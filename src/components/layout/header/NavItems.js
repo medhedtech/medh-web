@@ -1,47 +1,46 @@
-import React from "react";
-import Navitem from "./Navitem";
-import DropdownDemoes from "./DropdownDemoes";
-import DropdownPages from "./DropdownPages";
-import DropdownCourses from "./DropdownCourses";
-import DropdownWrapper from "@/components/shared/wrappers/DropdownWrapper";
-import DropdownDashboard from "./DropdownDashboard";
-import DropdownEcommerce from "./DropdownEcommerce";
+import React from 'react';
+import Navitem from './Navitem';
+import DropdownDemoes from './DropdownDemoes';
+import DropdownPages from './DropdownPages';
+import DropdownCourses from './DropdownCourses';
+import DropdownWrapper from '@/components/shared/wrappers/DropdownWrapper';
+import DropdownDashboard from './DropdownDashboard';
+import DropdownEcommerce from './DropdownEcommerce';
 
 const NavItems = () => {
   const navItems = [
     {
       id: 1,
-      name: "Demos",
-      path: "/",
-      dropdown: <DropdownDemoes />,
+      name: 'Home',
+      path: '/',
       isRelative: false,
     },
     {
       id: 2,
-      name: "Pages",
-      path: "/about",
-      dropdown: <DropdownPages />,
-      isRelative: false,
-    },
-    {
-      id: 3,
-      name: "Courses",
-      path: "/courses",
+      name: 'Courses',
+      path: '/courses',
       dropdown: <DropdownCourses />,
       isRelative: false,
     },
     {
+      id: 3,
+      name: 'Corporate Training',
+      path: '/courses',
+      // dropdown: <DropdownCourses />,
+      isRelative: false,
+    },
+    {
       id: 4,
-      name: "Dashboard",
-      path: "/dashboards/instructor-dashboard",
+      name: 'More',
+      path: '',
       dropdown: <DropdownDashboard />,
       isRelative: true,
     },
     {
       id: 5,
-      name: "eCommerce",
-      path: "/ecommerce/shop",
-      dropdown: <DropdownEcommerce />,
+      name: 'Blogs',
+      path: '/blogs',
+      // dropdown: <DropdownEcommerce />,
       isRelative: true,
     },
   ];

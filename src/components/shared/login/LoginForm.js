@@ -1,6 +1,44 @@
-import React from "react";
+import React from 'react';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+import usePostQuery from '@/hooks/postQuery.hook';
+import { apiUrls } from '@/apis';
+
+const schema = yup
+  .object({
+    email: yup.string().email().required('Email is required'),
+    password: yup
+      .string()
+      .min(8, 'At least 8 character required')
+      .required('Password is required'),
+  })
+  .required();
 
 const LoginForm = () => {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(schema),
+  });
+
+  const { postQuery, loading } = usePostQuery();
+
+  const onSubmit = async (data) => {
+    await postQuery({
+      url: apiUrls.login,
+      onSuccess: (res) => {
+        console.log(res);
+      },
+      onFail: (error) => {
+        console.log(error);
+      },
+      postData: data,
+    });
+  };
+
   return (
     <div className=" opacity-100 transition-opacity duration-150 ease-linear">
       {/* heading   */}
@@ -19,16 +57,26 @@ const LoginForm = () => {
         </p>
       </div>
 
-      <form className="pt-25px" data-aos="fade-up">
+      <form
+        className="pt-25px"
+        data-aos="fade-up"
+        onSubmit={handleSubmit(onSubmit)}
+      >
         <div className="mb-25px">
           <label className="text-contentColor dark:text-contentColor-dark mb-10px block">
-            Username or email
+            Email
           </label>
           <input
+            {...register('email')}
             type="text"
-            placeholder="Your username or email"
+            placeholder="Your email"
             className="w-full h-52px leading-52px pl-5 bg-transparent text-sm focus:outline-none text-contentColor dark:text-contentColor-dark border border-borderColor dark:border-borderColor-dark placeholder:text-placeholder placeholder:opacity-80 font-medium rounded"
           />
+          {errors.email && (
+            <p className="text-sm text-red-500 font-normal mt-1">
+              {errors.email?.message}
+            </p>
+          )}
         </div>
 
         <div className="mb-25px">
@@ -36,10 +84,16 @@ const LoginForm = () => {
             Password
           </label>
           <input
+            {...register('password')}
             type="password"
             placeholder="Password"
             className="w-full h-52px leading-52px pl-5 bg-transparent text-sm focus:outline-none text-contentColor dark:text-contentColor-dark border border-borderColor dark:border-borderColor-dark placeholder:text-placeholder placeholder:opacity-80 font-medium rounded"
           />
+          {errors.password && (
+            <p className="text-sm text-red-500 font-normal mt-1">
+              {errors.password?.message}
+            </p>
+          )}
         </div>
 
         <div className="text-contentColor dark:text-contentColor-dark flex items-center justify-between">
