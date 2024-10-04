@@ -4,6 +4,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import usePostQuery from '@/hooks/postQuery.hook';
 import { apiUrls } from '@/apis';
+import Preloader from '../others/Preloader';
 
 const schema = yup
   .object({
@@ -39,6 +40,10 @@ const LoginForm = () => {
     });
   };
 
+  if (loading) {
+    return <Preloader />;
+  }
+
   return (
     <div className=" opacity-100 transition-opacity duration-150 ease-linear">
       {/* heading   */}
@@ -70,7 +75,7 @@ const LoginForm = () => {
             {...register('email')}
             type="text"
             placeholder="Your email"
-            className="w-full h-52px leading-52px pl-5 bg-transparent text-sm focus:outline-none text-contentColor dark:text-contentColor-dark border border-borderColor dark:border-borderColor-dark placeholder:text-placeholder placeholder:opacity-80 font-medium rounded"
+            className="w-full h-52px leading-52px pl-5 bg-transparent text-sm focus:outline-none text-contentColor dark:text-contentColor-dark border border-borderColor dark:border-borderColor-dark placeholder:text-[#BEBCBC]  font-medium rounded"
           />
           {errors.email && (
             <p className="text-sm text-red-500 font-normal mt-1">
@@ -87,7 +92,7 @@ const LoginForm = () => {
             {...register('password')}
             type="password"
             placeholder="Password"
-            className="w-full h-52px leading-52px pl-5 bg-transparent text-sm focus:outline-none text-contentColor dark:text-contentColor-dark border border-borderColor dark:border-borderColor-dark placeholder:text-placeholder placeholder:opacity-80 font-medium rounded"
+            className="w-full h-52px leading-52px pl-5 bg-transparent text-sm focus:outline-none text-contentColor dark:text-contentColor-dark border border-borderColor dark:border-borderColor-dark placeholder:text-[#BEBCBC]  font-medium rounded"
           />
           {errors.password && (
             <p className="text-sm text-red-500 font-normal mt-1">

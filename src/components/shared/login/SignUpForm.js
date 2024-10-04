@@ -4,6 +4,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import usePostQuery from '@/hooks/postQuery.hook';
 import { apiUrls } from '@/apis';
+import Preloader from '../others/Preloader';
 
 const schema = yup
   .object({
@@ -50,6 +51,10 @@ const SignUpForm = () => {
       postData: rest,
     });
   };
+
+  if (loading) {
+    return <Preloader />;
+  }
 
   return (
     <div className="transition-opacity duration-150 ease-linear">
