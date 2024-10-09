@@ -1,112 +1,112 @@
-import DropdownContainer from "@/components/shared/containers/DropdownContainer";
-import React from "react";
-import DropdownItems from "./DropdownItems";
-import Image from "next/image";
-import megaMenu1 from "@/assets/images/mega/mega_menu_1.png";
+import DropdownContainer from '@/components/shared/containers/DropdownContainer';
+import React from 'react';
+import DropdownItems from './DropdownItems';
+import Image from 'next/image';
+import megaMenu1 from '@/assets/images/mega/mega_menu_1.png';
 const DropdownCourses = () => {
   const lists = [
     {
-      title: "Get Started 1",
+      title: 'Get Started 1',
       items: [
         {
-          name: "Grid",
-          status: "All Coures",
-          path: "/courses",
+          name: 'Grid',
+          status: 'All Coures',
+          path: '/courses',
         },
         {
-          name: "Coures Grid (Dark)",
+          name: 'Coures Grid (Dark)',
           status: null,
-          path: "/courses-dark",
+          path: '/courses-dark',
         },
         {
-          name: "Coures Grid",
+          name: 'Coures Grid',
           status: null,
-          path: "/course-grid",
+          path: '/course-grid',
         },
         {
-          name: "Coures Grid (Dark)",
+          name: 'Coures Grid (Dark)',
           status: null,
-          path: "/course-grid-dark",
+          path: '/course-grid-dark',
         },
         {
-          name: "Coures List",
+          name: 'Coures List',
           status: null,
-          path: "/course-list",
+          path: '/course-list',
         },
         {
-          name: "Coures List (Dark)",
+          name: 'Coures List (Dark)',
           status: null,
-          path: "/course-list-dark",
+          path: '/course-list-dark',
         },
       ],
     },
     {
-      title: "Get Started 2",
+      title: 'Get Started 2',
       items: [
         {
-          name: "Course Details",
+          name: 'Course Details',
           status: null,
-          path: "/courses/1",
+          path: '/courses/1',
         },
         {
-          name: "Course Details (Dark)",
+          name: 'Course Details (Dark)',
           status: null,
-          path: "/courses-dark/1",
+          path: '/courses-dark/1',
         },
         {
-          name: "Course Details 2",
+          name: 'Course Details 2',
           status: null,
-          path: "/course-details-2",
+          path: '/course-details-2',
         },
         {
-          name: "Details 2 (Dark)",
+          name: 'Details 2 (Dark)',
           status: null,
-          path: "/course-details-2-dark",
+          path: '/course-details-2-dark',
         },
         {
-          name: "Course Details 3",
+          name: 'Course Details 3',
           status: null,
-          path: "/course-details-3",
+          path: '/course-details-3',
         },
         {
-          name: "Details 3 (Dark)",
+          name: 'Details 3 (Dark)',
           status: null,
-          path: "/course-details-3-dark",
+          path: '/course-details-3-dark',
         },
       ],
     },
     {
-      title: "Get Started 3",
+      title: 'Get Started 3',
       items: [
         {
-          name: "Become An Instructor",
+          name: 'Become An Instructor',
           status: null,
-          path: "/dashboards/become-an-instructor",
+          path: '/dashboards/become-an-instructor',
         },
         {
-          name: "Create Coure",
-          status: "Career",
-          path: "/dashboards/create-course",
+          name: 'Create Coure',
+          status: 'Career',
+          path: '/dashboards/create-course',
         },
         {
-          name: "Instructor",
+          name: 'Instructor',
           status: null,
-          path: "/instructors",
+          path: '/instructors',
         },
         {
-          name: "Instructor (Dark)",
+          name: 'Instructor (Dark)',
           status: null,
-          path: "/instructors-dark",
+          path: '/instructors-dark',
         },
         {
-          name: "Instructor Details",
+          name: 'Instructor Details',
           status: null,
-          path: "/instructors/1",
+          path: '/instructors/1',
         },
         {
-          name: "Course Lesson",
-          status: "New",
-          path: "/lessons/1",
+          name: 'Course Lesson',
+          status: 'New',
+          path: '/lessons/1',
         },
       ],
     },
