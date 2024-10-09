@@ -3,11 +3,9 @@ import React from "react";
 
 const FooterNavItem = ({ name, path }) => {
   return (
-    <li>
-      <Link
-        href={path}
-        className="text-darkgray relative hover:text-primaryColor after:transition-all after:duration-300 after:w-0 after:h-2px after:absolute after:bg-primaryColor hover:after:w-full after:bottom-0 after:left-0"
-      >
+    <li className="flex items-center">
+      <span className="w-2 h-2 bg-[#5F2DED] mr-2"></span>
+      <Link href={path} className="text-white">
         {name}
       </Link>
     </li>
