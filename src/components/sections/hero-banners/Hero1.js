@@ -11,43 +11,60 @@ import herobanner6 from "@/assets/images/herobanner/herobanner__6.png";
 import herobanner7 from "@/assets/images/herobanner/herobanner__7.png";
 import Link from "next/link";
 import TiltWrapper from "@/components/shared/wrappers/TiltWrapper";
+import stemImg from "@/assets/images/herobanner/Background.png";
 
 const Hero1 = () => {
   return (
     <section data-aos="fade-up">
       {/* banner section  */}
-      <div className="container2-xl bg-darkdeep1 pt-50px md:pt-20 pb-205px md:pb-35 rounded-2xl relative overflow-hidden shadow-brand">
-        <div className="container grid grid-cols-1 lg:grid-cols-2 items-center">
+      <div className="container2-xl ">
+        <div className=" grid grid-cols-1 lg:grid-cols-2 gap-3">
           {/* banner Left  */}
           <div data-aos="fade-up">
-            <HreoName>EDUCATION SOLUTION</HreoName>
-            <HeadingLg color={"white"}>
-              Cloud-based LMS <br className="hidden md:block" />
-              Trusted by 1000+
+            <HreoName>UNLOCK YOUR POTENTIAL WITH MEDH</HreoName>
+            <HeadingLg
+              color={"#5F2DED"}
+              className="text-5xl font-bold leading-tight"
+            >
+              Skill Development Courses led by <br />
+              Seasoned Experts
             </HeadingLg>
-            <PagragraphHero color="white">
-              Lorem Ipsum is simply dummy text of the printing typesetting
-              industry. Lorem Ipsum has been
-            </PagragraphHero>
-
-            <div className="mt-30px md:mt-45px">
-              <Link
-                href="/courses"
-                className="text-sm md:text-size-15 font-semibold text-darkdeep2 bg-whiteColor border border-whiteColor px-5 md:px-30px py-3 md:py-4 hover:text-whiteColor hover:bg-darkblack rounded inline-block mr-6px md:mr-30px shadow-hero-action dark:bg-whiteColor-dark dark:hover:bg-whiteColor dark:text-whiteColor dark:hover:text-whiteColor-dark dark:border-none"
-              >
-                View Courses
-              </Link>
-              <Link
-                href="/courses"
-                className="text-sm md:text-size-15 font-semibold text-whiteColor py-3 md:py-4 hover:text-secondaryColor inline-block"
-              >
-                Find out more <i className="icofont-long-arrow-right"></i>
-              </Link>
+            <div className="flex mt-6 mb-9 gap-8">
+              <div>
+                {/* STEM Badge */}
+                <Image
+                  src={stemImg}
+                  alt="STEM Accredited"
+                  width={110}
+                  height={150}
+                />
+              </div>
+              <div className=" flex flex-col justify-center">
+                <p className="text-lg">
+                  Empowering people across all life stages from childhood and
+                  teens to professionals and homemakers.
+                </p>
+                {/* CTA Button */}
+                <div className="flex gap-4">
+                  <Link
+                    href="/courses"
+                    className="bg-[#5F2DED] text-white border border-[#5F2DED] font-bold text-base px-4 py-2 mt-4 inline-block"
+                  >
+                    Let's Connect
+                  </Link>
+                  <span className="mt-2 text-base font-semibold pt-4 underline underline-offset-8">
+                    ISO CERTIFIED
+                  </span>
+                </div>
+              </div>
             </div>
+            <span className="text-[#FD474F] text-3xl font-medium ">
+              Medh Hain Toh Mumkin Hain !
+            </span>
           </div>
           {/* banner right  */}
           <div data-aos="fade-up">
-            <TiltWrapper>
+            {/* <TiltWrapper>
               <div className="tilt relative">
                 <Image
                   placeholder="blur"
@@ -61,11 +78,11 @@ const Hero1 = () => {
                   alt=""
                 />
               </div>
-            </TiltWrapper>
+            </TiltWrapper> */}
           </div>
         </div>
 
-        <div>
+        {/* <div>
           <Image
             className="absolute left-1/2 bottom-[15%] animate-spin-slow"
             src={herobanner2}
@@ -86,7 +103,7 @@ const Hero1 = () => {
             src={herobanner7}
             alt=""
           />
-        </div>
+        </div> */}
       </div>
     </section>
   );
