@@ -5,38 +5,110 @@ import brand2 from "@/assets/images/brand/brand_2.png";
 import brand3 from "@/assets/images/brand/brand_3.png";
 import brand4 from "@/assets/images/brand/brand_4.png";
 import brand5 from "@/assets/images/brand/brand_5.png";
+import bgImg from "@/assets/images/herobanner/bg-img.jpeg";
+import bgImg1 from "@/assets/images/herobanner/bg1-img.jpeg";
 const BrandHero = () => {
   return (
     <div>
       <div data-aos="fade-up">
-        <div className="container2-md flex flex-wrap items-center justify-center bg-white dark:bg-whiteColor-dark rounded-md mx-auto md:-translate-y-1/2 w-full shadow-brand">
-          <div className="basis-1/2 md:basis-1/4 lg:basis-1/5 flex justify-center py-5 lg:py-35px 2xl:py-45px">
-            <a href="#">
-              <Image src={brand1} alt="" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mt-10 gap-2 lg:gap-0">
+          {/* Left Section */}
+          <div className="bg-[#F2277E] text-white flex flex-col p-6 lg:p-10">
+            <h1 className="font-bold text-xl lg:text-2xl pt-2">
+              50+ Medh Upskill Courses
+            </h1>
+            <span className="mt-4">
+              In high-demand domains like AI, Cybersecurity Career Development,
+              Data Analytics, etc.
+            </span>
+            <a href="#" className="underline mt-4">
+              View Courses +
             </a>
           </div>
-          <div className="basis-1/2 md:basis-1/4 lg:basis-1/5 flex justify-center py-5 lg:py-35px 2xl:py-45px">
-            <a href="#">
-              <Image src={brand2} alt="" />
+
+          {/* Center Section with Background Image */}
+          <div className="relative flex flex-col p-6 lg:p-10 text-white bg-cover bg-center">
+            <Image
+              src={bgImg}
+              alt="Background"
+              layout="fill"
+              objectFit="cover"
+              className="absolute inset-0 z-0"
+            />
+            <div className="relative z-10 flex flex-col gap-4 lg:gap-6 bg-opacity-70">
+              <h1 className="font-bold text-xl lg:text-2xl pt-2">
+                Earn a Course Certificate
+              </h1>
+              <span>
+                Nurture skills and elevate your career with industry-recognized
+                certifications upon completion.
+              </span>
+              <a href="#" className="underline">
+                View More +
+              </a>
+            </div>
+          </div>
+
+          {/* Right Section */}
+          <div className="bg-[#5F2DED] text-white flex flex-col p-6 lg:p-10">
+            <h1 className="font-bold text-xl lg:text-2xl pt-2">
+              Earn a Course Certificate
+            </h1>
+            <span className="mt-4">
+              Nurture skills and elevate your career with industry-recognized
+              certifications upon completion.
+            </span>
+            <a href="#" className="underline mt-4">
+              View More +
             </a>
           </div>
-          <div className="basis-1/2 md:basis-1/4 lg:basis-1/5 flex justify-center py-5 lg:py-35px 2xl:py-45px">
-            <a href="#">
-              <Image src={brand3} alt="" />
-            </a>
-          </div>
-          <div className="basis-1/2 md:basis-1/4 lg:basis-1/5 flex justify-center py-5 lg:py-35px 2xl:py-45px">
-            <a href="#">
-              <Image src={brand4} alt="" />
-            </a>
-          </div>
-          <div className="basis-1/2 md:basis-1/4 lg:basis-1/5 flex justify-center py-5 lg:py-35px 2xl:py-45px">
-            <a href="#">
-              <Image src={brand5} alt="" />
-            </a>
+
+          {/* Another Section with Background Image */}
+          <div className="relative flex flex-col p-6 lg:p-10 text-white bg-cover bg-center">
+            <Image
+              src={bgImg1}
+              alt="Background"
+              layout="fill"
+              objectFit="cover"
+              className="absolute inset-0 z-0"
+            />
+            <div className="relative z-10 flex flex-col gap-4 lg:gap-6 bg-opacity-70">
+              <h1 className="font-bold text-xl lg:text-2xl pt-2">
+                Earn a Course Certificate
+              </h1>
+              <span>
+                Nurture skills and elevate your career with industry-recognized
+                certifications upon completion.
+              </span>
+              <a href="#" className="underline">
+                View More +
+              </a>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Section Below */}
+      <section data-aos="fade-up" className="">
+        <div className="flex flex-col items-center text-center font-Ubuntu bg-[#FFF0F7] py-8 px-4">
+          <h1 className="font-bold text-[20px] lg:text-[26px] leading-8 mt-8 lg:w-[674px]">
+            Welcome to <span className="text-[#5F2DED]">Medh</span> | Pioneering
+            Skill Development for every stage of life.
+          </h1>
+          <div className="mt-4 text-sm lg:text-base lg:w-[820px]">
+            MEDH, the leading global EdTech innovator, is dedicated to
+            delivering skill development courses through cutting-edge technology
+            and bespoke mentorship. To empower individuals at every stage of
+            life, from early childhood and adolescence (preschool, school,
+            college) to working professionals and homemakers, with the knowledge
+            and capabilities to excel in today's dynamic world.
+          </div>
+          <span className="font-bold text-sm lg:text-base pb-8 mt-4">
+            We nurture growth, foster expertise, and ignite potential for
+            learners of every background.
+          </span>
+        </div>
+      </section>
     </div>
   );
 };

@@ -11,7 +11,7 @@ const HeaderTop = () => {
   const isHome5Dark = useIsTrue("/home-5-dark");
 
   return (
-    <div className="bg-blackColor2 dark:bg-lightGrey10-dark hidden lg:block">
+    <div className="bg-[#5F2DED] dark:bg-lightGrey10-dark hidden lg:block">
       <div
         className={`${
           isHome1 ||
@@ -26,17 +26,54 @@ const HeaderTop = () => {
       >
         <div className="flex justify-between items-center">
           <div>
-            <p>Call Us: +1 800 123 456 789 - Mail Us: Itcroc@mail.com</p>
+            <p className="flex pl-16 ">
+              <span className="pr-6"> Call: +91 77108 40696</span> |{" "}
+              <span className="pl-6">Follow us:</span>
+              <ul className="flex gap-2.5 pl-2">
+                <li>
+                  <a
+                    // className="hover:text-primaryColor"
+                    href="https://www.facebook.com"
+                  >
+                    <i className="icofont-facebook"></i>
+                  </a>
+                </li>
+                <li>
+                  <a
+                    // className="hover:text-primaryColor"
+                    href="https://www.instagram.com"
+                  >
+                    <i className="icofont-instagram"></i>
+                  </a>
+                </li>
+                <li>
+                  <a
+                    // className="hover:text-primaryColor"
+                    href="https://www.youtube.com"
+                  >
+                    <i className="icofont-linkedin"></i>
+                  </a>
+                </li>
+                <li>
+                  <a
+                    // className="hover:text-primaryColor"
+                    href="https://www.youtube.com"
+                  >
+                    <i className="icofont-youtube-play"></i>
+                  </a>
+                </li>
+              </ul>
+            </p>
           </div>
-          <div className="flex gap-37px items-center">
-            <div>
+          <div className="flex gap-2 pr-10 items-center">
+            {/* <div>
               <p>
                 <i className="icofont-location-pin text-primaryColor text-size-15 mr-5px"></i>
                 <span>684 West College St. Sun City, USA</span>
               </p>
             </div>
             <div>
-              {/* header social list  */}
+        
               <ul className="flex gap-[18px] text-size-15">
                 <li>
                   <a
@@ -71,7 +108,16 @@ const HeaderTop = () => {
                   </a>
                 </li>
               </ul>
+            </div> */}
+            <div>
+              <a
+                // className="hover:text-primaryColor"
+                href="https://www.youtube.com"
+              >
+                <i className="icofont-login"></i>
+              </a>
             </div>
+            LOGIN
           </div>
         </div>
       </div>
