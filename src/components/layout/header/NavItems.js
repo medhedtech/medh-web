@@ -11,43 +11,44 @@ const NavItems = () => {
   const navItems = [
     {
       id: 1,
-      name: "Demos",
-      path: "/",
-      dropdown: <DropdownDemoes />,
-      isRelative: false,
-    },
-    {
-      id: 2,
-      name: "Pages",
-      path: "/about",
-      dropdown: <DropdownPages />,
-      isRelative: false,
-    },
-    {
-      id: 3,
       name: "Courses",
       path: "/courses",
       dropdown: <DropdownCourses />,
       isRelative: false,
     },
     {
+      id: 2,
+      name: "Corporate Training",
+      path: "/courses",
+      // dropdown: <DropdownCourses />,
+      isRelative: false,
+    },
+    {
+      id: 3,
+      name: "Hire From Medh",
+      path: "",
+      dropdown: <DropdownDashboard />,
+      isRelative: true,
+    },
+    {
       id: 4,
-      name: "Dashboard",
-      path: "/dashboards/instructor-dashboard",
+      name: "more",
+      path: "",
       dropdown: <DropdownDashboard />,
       isRelative: true,
     },
     {
       id: 5,
-      name: "eCommerce",
-      path: "/ecommerce/shop",
-      dropdown: <DropdownEcommerce />,
+      name: "Blogs",
+      path: "/blogs",
+      // dropdown: <DropdownEcommerce />,
       isRelative: true,
     },
   ];
+
   return (
     <div className="hidden lg:block lg:col-start-3 lg:col-span-7">
-      <ul className="nav-list flex justify-center">
+      <ul className="nav-list flex justify-end">
         {navItems.map((navItem, idx) => (
           <Navitem key={idx} idx={idx} navItem={{ ...navItem, idx: idx }}>
             <DropdownWrapper>{navItem.dropdown}</DropdownWrapper>
