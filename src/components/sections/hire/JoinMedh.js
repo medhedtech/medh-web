@@ -22,9 +22,9 @@ const AddIcon = ({ fill = "white" }) => {
 
 const JoinMedh = () => {
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col gap-4 lg:gap-0">
       {/* Educator Section */}
-      <div className="flex flex-col md:flex-row md:items-center bg-white">
+      <div className="flex flex-col gap-4 lg:gap-0 md:flex-row md:items-center bg-white">
         <Image
           src={Educator}
           width={720}
@@ -47,7 +47,7 @@ const JoinMedh = () => {
       </div>
 
       {/* School Collaboration Section */}
-      <div className="flex flex-col md:flex-row md:items-center bg-[#F2277E]">
+      <div className="flex flex-col md:flex-row md:items-center gap-4 lg:gap-0 bg-[#F2277E]">
         <div className="flex flex-col justify-center px-4 md:w-1/2 md:px-8 lg:pl-24">
           <h1 className="font-bold text-white text-3xl mt-4 md:mt-0">
             Partner with Medh as a School /
