@@ -83,7 +83,7 @@ const About1 = ({ children, image, hideCounter }) => {
           {courses.map((course, index) => (
             <div
               key={index}
-              className="bg-white shadow-md rounded-lg overflow-hidden hover:scale-105 transition transform duration-300"
+              className="bg-white shadow-2xl  overflow-hidden hover:scale-105 transition transform duration-300"
             >
               <Image
                 src={course.imageSrc}
@@ -93,7 +93,7 @@ const About1 = ({ children, image, hideCounter }) => {
                 height={300} // specify the height
                 layout="responsive" // make the image responsive
               />
-              <div className="p-4">
+              <div className="py-2 px-12">
                 <h3 className="text-lg font-bold text-[#5C6574] ">
                   {course.title}
                 </h3>

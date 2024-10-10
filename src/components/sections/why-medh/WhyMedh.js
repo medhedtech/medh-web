@@ -8,6 +8,8 @@ import iso9001 from "@/assets/images/iso/iso9001.png";
 import placement from "@/assets/images/iso/placement.png";
 import bgImg from "@/assets/images/herobanner/bg-img.jpeg";
 import hire from "@/assets/images/hire/Hire.png";
+import ArrowIcon from "@/assets/images/icon/ArrowIcon";
+import InfoIcon from "@/assets/images/icon/InfoIcon";
 
 const WhyMedh = () => {
   return (
@@ -25,7 +27,10 @@ const WhyMedh = () => {
           <p className="font-bold text-2xl md:text-3xl leading-8 text-[#5C6574]">
             100% Job-guaranteed Courses from Medh.
           </p>
-          <button className="bg-[#F2277E] px-6 py-3 w-fit mx-auto text-white hover:bg-pink-700 transition">
+          <button className="bg-[#F2277E] px-4 py-3 w-fit mx-auto text-white flex gap-4">
+            <span>
+              <ArrowIcon />
+            </span>
             Explore Courses
           </button>
         </div>
@@ -46,7 +51,10 @@ const WhyMedh = () => {
         style={{ backgroundImage: `url(${bgImg.src})` }}
       >
         {/* Content Box */}
-        <div className="bg-white py-6 px-6 md:px-10 lg:px-16 relative shadow-lg w-full max-w-[630px]">
+        <div
+          className="bg-white h-60 md:h-auto py-6 px-6 md:px-10 lg:px-16 relative shadow-lg w-full max-w-[630px] 
+    overflow-x-hidden md:overflow-visible sm:h-60 sm:overflow-x-scroll"
+        >
           <h2 className="text-[#5F2DED] font-bold text-3xl md:text-4xl">
             WHY MEDH?
           </h2>
@@ -66,13 +74,16 @@ const WhyMedh = () => {
           </p>
 
           {/* More Info Button */}
-          <button className="bg-[#5F2DED] text-white mt-6 px-4 py-2 rounded-lg flex items-center justify-center gap-2">
+          <button className="bg-[#5F2DED] text-white mt-6 px-4.5 py-2 flex items-center justify-center gap-6">
+            <span>
+              <InfoIcon />
+            </span>
             More info..
           </button>
 
           {/* Carousel Navigation */}
-          <div className="absolute -left-6 top-1/2 transform -translate-y-1/2">
-            <button className="bg-white text-black rounded-full w-10 h-10 flex items-center justify-center">
+          <div className="absolute -left-6 top-1/2  transform -translate-y-1/2">
+            <button className="bg-white  text-black rounded-full w-10 h-10 flex items-center justify-center">
               &larr;
             </button>
           </div>

@@ -23,19 +23,20 @@ const AddIcon = ({ fill = "white" }) => {
 const Hire = () => {
   return (
     <div className="flex flex-col mb-12">
-      {/* Educator Section */}
+      {/* Hire Section */}
       <div className="flex flex-col md:flex-row md:items-center bg-white">
         <Image
-          src={hire} // Placeholder image, replace it with the correct one
+          src={hire}
           width={720}
           height={375}
-          className="w-full lg:w-1/2 object-cover"
+          className="w-full md:w-1/2 object-cover"
+          alt="Hire from Medh"
         />
-        <div className="flex flex-col justify-center px-4 w-1/2 md:px-8 lg:pl-24">
-          <h1 className="font-bold text-[#252525] text-3xl mt-4 md:mt-0">
+        <div className="flex flex-col justify-center px-4 w-full md:w-1/2 md:px-8 lg:pl-24">
+          <h1 className="font-bold text-[#252525] text-2xl md:text-3xl mt-4 md:mt-0">
             Hire from Medh
           </h1>
-          <p className="text-[#727695] text-base leading-7 mt-2">
+          <p className="text-[#727695] text-sm md:text-base leading-7 mt-2">
             Recruit industry-trained, job-ready top talents to meet your
             business needs through our placement services.
           </p>
@@ -46,26 +47,27 @@ const Hire = () => {
         </div>
       </div>
 
-      {/* School Collaboration Section */}
-      <div className="flex flex-col md:flex-row md:items-center  bg-[#5F2DED]">
-        <div className="flex flex-col justify-center px-4 w-1/2 md:px-8 lg:pl-24">
-          <h1 className="font-bold text-white text-3xl mt-4 md:mt-0">
+      {/* Training Section */}
+      <div className="flex flex-col md:flex-row md:items-center bg-[#5F2DED]">
+        <div className="flex flex-col justify-center px-4 w-full md:w-1/2 md:px-8 lg:pl-24">
+          <h1 className="font-bold text-white text-2xl md:text-3xl mt-4 md:mt-0">
             Corporate Training
           </h1>
-          <p className="text-white text-base leading-7 mt-2">
+          <p className="text-white text-sm md:text-base leading-7 mt-2">
             Enhance your employees' skills, motivation, and engagement with our
             dynamic Training Courses.
           </p>
-          <div className="bg-white text-black px-2.5 py-1 rounded-3xl  flex items-center gap-2.5 mt-4 w-fit">
-            <AddIcon fill={"black"} />
+          <div className="bg-white text-black px-2.5 py-1 rounded-3xl flex items-center gap-2.5 mt-4 w-fit">
+            <AddIcon fill="black" />
             Empower Your Team
           </div>
         </div>
         <Image
-          src={Traning} // Placeholder image, replace it with the correct one
+          src={Traning}
           width={720}
           height={375}
-          className="object-cover w-full lg:w-1/2"
+          className="w-full md:w-1/2 object-cover"
+          alt="Corporate Training"
         />
       </div>
     </div>
