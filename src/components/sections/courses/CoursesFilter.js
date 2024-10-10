@@ -15,6 +15,8 @@ import image5 from "@/assets/images/courses/image5.png";
 import image6 from "@/assets/images/courses/image6.png";
 import CategoryFilter from "./CategoryFilter";
 import CourseCard from "./CourseCard";
+import ArrowIcon from "@/assets/images/icon/ArrowIcon";
+import Pagination from "@/components/shared/pagination/Pagination";
 
 const courses = [
   {
@@ -83,10 +85,15 @@ const categories = [
 ];
 const CoursesFilter = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [isOpen, setIsOpen] = useState(false);
+
+  const toggleDropdown = () => {
+    setIsOpen((prev) => !prev);
+  };
 
   return (
     <section>
-      <div className="min-h-screen bg-gray-100 p-4">
+      <div className="min-h-screen bg-white dark:bg-black dark:text-white p-4">
         <div className="container mx-auto">
           {/* Header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
@@ -94,19 +101,80 @@ const CoursesFilter = () => {
               Skill Development Courses
             </h1>
             <div>
-              <button className="bg-[#5F2DED] text-white px-4 py-2 mt-2 md:mt-0">
+              <button className="bg-[#5F2DED] text-white px-4 py-2 mt-2 md:mt-0 flex gap-2">
+                <span>
+                  <ArrowIcon />
+                </span>{" "}
                 Explore More Courses
               </button>
             </div>
           </div>
 
           {/* Search and Filter Section */}
-          <div className="flex flex-col md:flex-row justify-between mb-6">
-            <input
-              type="text"
-              placeholder="Search"
-              className="border rounded-md p-2 lg:w-1/4 md:w-1/3 mb-4 md:mb-0"
-            />
+          <div className="flex flex-col md:flex-row justify-between mt-10">
+            <div>
+              <input
+                type="text"
+                placeholder="Search"
+                className="border rounded-md p-2 w-fit md:mb-0"
+              />
+            </div>
+            <div className="relative inline-block text-left pr-4 mt-4">
+              <div>
+                <button
+                  onClick={toggleDropdown}
+                  className="inline-flex justify-between w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-[#5C6574] hover:bg-gray-50"
+                >
+                  Program Title (a-z)
+                  <svg
+                    className="-mr-1 ml-2 h-5 w-5"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M5.23 7.21a.75.75 0 011.06 0L10 10.44l3.71-3.23a.75.75 0 111.06 1.06l-4.25 3.5a.75.75 0 01-1.06 0l-4.25-3.5a.75.75 0 010-1.06z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              {isOpen && (
+                <div className="absolute right-0 z-10 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+                  <div
+                    className="py-1"
+                    role="menu"
+                    aria-orientation="vertical"
+                    aria-labelledby="options-menu"
+                  >
+                    <a
+                      href="#"
+                      className="block px-4 py-2 text-sm text-[#5C6574] hover:bg-gray-100"
+                      role="menuitem"
+                    >
+                      Option 1
+                    </a>
+                    <a
+                      href="#"
+                      className="block px-4 py-2 text-sm text-[#5C6574] hover:bg-gray-100"
+                      role="menuitem"
+                    >
+                      Option 2
+                    </a>
+                    <a
+                      href="#"
+                      className="block px-4 py-2 text-sm text-[#5C6574] hover:bg-gray-100"
+                      role="menuitem"
+                    >
+                      Option 3
+                    </a>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="flex flex-col md:flex-row">
@@ -124,21 +192,11 @@ const CoursesFilter = () => {
             </div>
           </div>
 
-          {/* Pagination */}
-          <div className="flex justify-center mt-6">
-            <button className="px-3 py-1 bg-purple-700 text-white rounded-md mx-1">
-              1
-            </button>
-            <button className="px-3 py-1 bg-gray-300 text-gray-700 rounded-md mx-1">
-              2
-            </button>
-            <button className="px-3 py-1 bg-gray-300 text-gray-700 rounded-md mx-1">
-              3
-            </button>
-            <span className="mx-2">-</span>
-            <button className="px-3 py-1 bg-gray-300 text-gray-700 rounded-md mx-1">
-              15
-            </button>
+          {/* Pagination Section */}
+          <div className="flex justify-end px-3.5">
+            <div className="lg:w-[74%] w-full mt-2 mb-8 mborder px-4 text-[#5C6574] border rounded-md border-[#5C6574]">
+              <Pagination totalPages={15} currentPage={1} />
+            </div>
           </div>
         </div>
       </div>

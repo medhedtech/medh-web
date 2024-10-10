@@ -6,6 +6,7 @@ import vedicIcon from "@/assets/images/courses/Maths.png";
 import Network from "@/assets/images/courses/Networking.png";
 import Recongnized from "@/assets/images/courses/Recognized.png";
 import Industry from "@/assets/images/courses/Industry.png";
+import ArrowIcon from "@/assets/images/icon/ArrowIcon";
 
 const BrowseCategories = () => {
   return (
@@ -21,7 +22,10 @@ const BrowseCategories = () => {
           </h1>
         </div>
         <div className="md:px-6">
-          <button className="bg-[#F2277E] text-white px-4 py-2  font-semibold hover:bg-pink-700 transition w-full md:w-auto">
+          <button className="bg-[#F2277E] text-white px-4 py-2  font-semibold flex gap-3 w-full md:w-auto">
+            <span>
+              <ArrowIcon />
+            </span>
             View All
           </button>
         </div>
