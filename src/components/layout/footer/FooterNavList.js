@@ -6,51 +6,76 @@ import FooterRecentPosts from "./FooterRecentPosts";
 const FooterNavList = () => {
   const lists = [
     {
-      heading: "Usefull Links",
+      heading: "Join Us",
       items: [
         {
-          name: "About Us",
+          name: "As an Educator",
           path: "/about",
         },
         {
-          name: "Teachers",
+          name: "As a School or Institute",
           path: "/instructors",
         },
         {
-          name: "Partner",
+          name: "Medh Membership",
           path: "#",
         },
         {
-          name: "Room-Details",
+          name: "Hire from Medh (Recruit@Medh)",
           path: "#",
         },
         {
-          name: "Gallery",
+          name: "Careers at medh",
           path: "#",
         },
       ],
     },
     {
-      heading: "Course",
+      heading: "Menu",
       items: [
         {
-          name: "Ui Ux Design",
+          name: "Corporate Traning",
           path: "#",
         },
         {
-          name: "Web Development",
+          name: "About Us",
           path: "#",
         },
         {
-          name: "Business Strategy",
+          name: "Blog",
           path: "#",
         },
         {
-          name: "Softwere Development",
+          name: "Contact Us",
           path: "#",
         },
         {
-          name: "Business English",
+          name: "Home",
+          path: "#",
+        },
+      ],
+    },
+    {
+      heading: "Our Course",
+      items: [
+        {
+          name: "AI and Data Science",
+          path: "#",
+        },
+        {
+          name: "Degital Marketing with Data Analytics",
+          path: "#",
+        },
+        {
+          name: "Personality Development",
+          path: "#",
+        },
+        {
+          name: "Vedic Mathematics",
+          path: "#",
+        },
+        {
+          name: "View Other Courses",
           path: "#",
         },
       ],
@@ -59,9 +84,9 @@ const FooterNavList = () => {
 
   return (
     <section>
-      <div className="grid grid-cols-1 sm:grid-cols-12 md:grid-cols-2 lg:grid-cols-12 gap-30px md:gap-y-5 lg:gap-y-0 pt-60px pb-50px md:pt-30px md:pb-30px lg:pt-110px lg:pb-20">
+      <div className="flex justify-between flex-col md:flex-row gap-8 lg:gap-2">
         {/* left */}
-        <FooterAbout />
+        {/* <FooterAbout /> */}
 
         {/* nav area */}
         {lists.map((list, idx) => (
