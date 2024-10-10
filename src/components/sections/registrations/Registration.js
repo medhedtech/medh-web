@@ -61,10 +61,10 @@ const Registration = () => {
                 </div>
               </div>
             </div>
-            {/* sbject right  */}
+            {/* Subject right */}
             <div className="overflow-visible lg:col-start-8 lg:col-span-5 relative z-1 mb-4">
               <form
-                className="p-35px  bg-lightGrey10 dark:bg-lightGrey10-dark  shadow-experience"
+                className="p-35px bg-lightGrey10 dark:bg-lightGrey10-dark shadow-experience"
                 data-aos="fade-up"
               >
                 <h3 className="text-2xl text-[#F2277E] dark:text-blackColor-dark text-center font-semibold mb-5 font-inter">
@@ -74,17 +74,35 @@ const Registration = () => {
                 <input
                   type="text"
                   placeholder="Your Name*"
-                  className="w-full px-14px py-2 bg-lightGrey8 text-base  border mb-1.5 border-gray-300  "
+                  className="w-full px-14px py-2 bg-lightGrey8 text-base border mb-1.5 border-gray-300"
                 />
                 <input
-                  type="Email"
+                  type="email"
                   placeholder="Your Email*"
-                  className="w-full px-14px py-2 bg-lightGrey8 text-base mb-1.5 border border-gray-300  "
+                  className="w-full px-14px py-2 bg-lightGrey8 text-base mb-1.5 border border-gray-300"
                 />
+
+                {/* Phone Number Input with Country Dropdown */}
+                <div className="flex mb-2">
+                  <select className="w-1/4 px-2 py-2 bg-lightGrey8 border border-gray-300 mr-2 text-[#5C6574]">
+                    <option value="">Country</option>
+                    <option value="US">United States</option>
+                    <option value="CA">Canada</option>
+                    <option value="UK">United Kingdom</option>
+                    <option value="IN">India</option>
+                    <option value="AU">Australia</option>
+                    {/* Add more countries as needed */}
+                  </select>
+                  <input
+                    type="tel"
+                    placeholder="Your Phone Number*"
+                    className="w-full px-14px py-2 bg-lightGrey8 text-base border border-gray-300"
+                  />
+                </div>
 
                 <textarea
                   placeholder="Message"
-                  className="w-full px-15px pb-3 pt-3 bg-lightGrey8 text-base mb-4 h-[155px] border border-gray-300 placeholder:text-blackColor"
+                  className="w-full px-15px pb-3 pt-3 bg-lightGrey8 text-base mb-4 h-[155px] border border-gray-300"
                   cols="30"
                   rows="10"
                 />
@@ -98,17 +116,14 @@ const Registration = () => {
                   <label htmlFor="accept" className="text-sm text-gray-700">
                     By submitting this form, I accept
                     <span className="text-[#5F2DED] ml-1">
-                      Terms of Service 
-                    </span>{" "}
+                      Terms of Service
+                    </span>
                     & <br />
                     <span className="text-[#5F2DED]">Privacy Policy.</span>
                   </label>
                 </div>
                 <div className="-mb-6">
-                  {/* <ButtonPrimary type="submit" arrow={true} color="#F2277E">
-                    Sign Up
-                  </ButtonPrimary> */}
-                  <button className="bg-[#F2277E] text-white px-4 py-2">
+                  <button className="bg-[#F2277E] text-white px-6 py-2">
                     Submit
                   </button>
                 </div>
