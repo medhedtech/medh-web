@@ -1,6 +1,6 @@
 import React from "react";
 import Image from "next/image";
-import Banner from "@/assets/images/personality/banner.png"; // Ensure this path is correct
+import Banner from "@/assets/images/personality/banner.png"; 
 import DevelopmentImg from "@/assets/images/personality/development-cource.svg";
 import Iso from "@/assets/images/personality/iso-icon.svg";
 import Enroll from "@/assets/images/personality/enroll-icon.svg";
@@ -19,7 +19,6 @@ function PersonalityBanner() {
         />
       </div>
 
-      {/* Content Container (remove absolute positioning on small screens) */}
       <div className="w-[90%] h-full flex items-center justify-between bg-black md:bg-transparent md:absolute md:top-0 md:bottom-0">
         <div className="w-full md:w-[48%]  ml-0 md:ml-12">
           <p className="border-l-4 md:text-[15px] text-[12px] border-primaryColor font-bold mb-4 md:pl-2 pl-0">
@@ -36,9 +35,9 @@ function PersonalityBanner() {
                 <Image
                   src={Iso}
                   alt="ISO Icon"
-                  layout="fill" // Make the image fill the container
+                  layout="fill" 
                   objectFit="contain"
-                  className="w-full h-full " // Ensure the image scales properly
+                  className="w-full h-full " 
                 />
               </div>
             </div>
