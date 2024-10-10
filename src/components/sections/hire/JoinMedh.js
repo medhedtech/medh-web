@@ -29,9 +29,9 @@ const JoinMedh = () => {
           src={Educator}
           width={720}
           height={375}
-          className="w-full lg:w-1/2 object-cover"
+          className="w-full md:w-1/2 object-cover"
         />
-        <div className="flex flex-col justify-center px-4 w-1/2 md:px-8 lg:pl-24">
+        <div className="flex flex-col justify-center px-4 md:w-1/2 md:px-8 lg:pl-24">
           <h1 className="font-bold text-[#252525] text-3xl mt-4 md:mt-0">
             Join Medh as an Educator
           </h1>
@@ -47,16 +47,17 @@ const JoinMedh = () => {
       </div>
 
       {/* School Collaboration Section */}
-      <div className="flex flex-col md:flex-row md:items-center  bg-[#F2277E]">
-        <div className="flex flex-col justify-center px-4 w-1/2 md:px-8 lg:pl-24">
+      <div className="flex flex-col md:flex-row md:items-center bg-[#F2277E]">
+        <div className="flex flex-col justify-center px-4 md:w-1/2 md:px-8 lg:pl-24">
           <h1 className="font-bold text-white text-3xl mt-4 md:mt-0">
-            Partner with Medh as a School /<br /> Institute
+            Partner with Medh as a School /
+            <br /> Institute
           </h1>
           <p className="text-white text-base leading-7 mt-2">
             To implement customized skill development programs, empowering your
             students to excel in their chosen fields on a global scale.
           </p>
-          <div className="bg-white text-black px-2.5 py-1 rounded-3xl  flex items-center gap-2.5 mt-4 w-fit">
+          <div className="bg-white text-black px-2.5 py-1 rounded-3xl flex items-center gap-2.5 mt-4 w-fit">
             <AddIcon fill={"black"} />
             Let’s Collaborate
           </div>
@@ -65,7 +66,7 @@ const JoinMedh = () => {
           src={Partner}
           width={720}
           height={375}
-          className="object-cover w-full lg:w-1/2"
+          className="w-full md:w-1/2 object-cover"
         />
       </div>
     </div>
