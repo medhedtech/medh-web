@@ -590,6 +590,10 @@ module.exports = {
         select: "0 0 0 .25rem rgba(13,110,253,.25)",
         address: "0px 4px 15px rgba(174, 181, 206, 0.09)",
         "address-hover": "0px 4px 25px rgba(174, 181, 206, 0.3)",
+        "login-shadow": "0px 0px 15px 0px #0000001A",
+        "login-shadow2": "0px 4px 4px 0px #00000040"
+
+
       },
       // postion
       zIndex: {
