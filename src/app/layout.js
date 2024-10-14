@@ -3,7 +3,6 @@ import "@/assets/css/icofont.min.css";
 import "@/assets/css/popup.css";
 import "@/assets/css/video-modal.css";
 import "aos/dist/aos.css";
-
 import "./globals.css";
 import FixedShadow from "@/components/shared/others/FixedShadow";
 import PreloaderPrimary from "@/components/shared/others/PreloaderPrimary";
