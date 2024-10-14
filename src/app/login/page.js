@@ -10,7 +10,7 @@ const Login = () => {
   return (
     <PageWrapper>
       <main>
-        <LoginMain />
+        <LoginMain />  
         <ThemeController />
       </main>
     </PageWrapper>
