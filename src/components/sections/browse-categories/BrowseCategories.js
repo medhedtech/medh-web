@@ -3,10 +3,10 @@ import React from "react";
 import personalityIcon from "@/assets/images/courses/Personal.png";
 import aiIcon from "@/assets/images/courses/ai.png";
 import vedicIcon from "@/assets/images/courses/Maths.png";
-import Network from "@/assets/images/courses/Networking.png";
-import Recongnized from "@/assets/images/courses/Recognized.png";
-import Industry from "@/assets/images/courses/Industry.png";
+import NetworkingIcon from "@/assets/images/icon/NetworkingIcon";
 import ArrowIcon from "@/assets/images/icon/ArrowIcon";
+import RelevantIcon from "@/assets/images/icon/RelevantIcon";
+import RecognizedIcon from "@/assets/images/icon/RecognizedIcon";
 
 const BrowseCategories = () => {
   return (
@@ -95,14 +95,8 @@ const BrowseCategories = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
           {/* Feature 1 */}
           <div className="bg-white p-6 shadow-lg text-center rounded-lg">
-            <div>
-              <Image
-                src={Industry}
-                width={90}
-                height={90}
-                alt="Industry-Relevant Skills"
-                className="mx-auto"
-              />
+            <div className="flex justify-center">
+              <RelevantIcon stroke="#5F2DED" fill="#5F2DED" />
             </div>
             <h3 className="text-xl font-bold text-gray-800 mt-4">
               Industry-Relevant Skills
@@ -116,14 +110,8 @@ const BrowseCategories = () => {
 
           {/* Feature 2 */}
           <div className="bg-white p-6 shadow-lg text-center rounded-lg">
-            <div>
-              <Image
-                src={Recongnized}
-                width={90}
-                height={90}
-                alt="Industry-Recognized Certifications"
-                className="mx-auto"
-              />
+            <div className="flex justify-center">
+              <RecognizedIcon stroke="#5F2DED" fill="#5F2DED" />
             </div>
             <h3 className="text-xl font-bold text-gray-800 mt-4">
               Industry-Recognized Certifications
@@ -137,15 +125,10 @@ const BrowseCategories = () => {
 
           {/* Feature 3 */}
           <div className="bg-white p-6 shadow-lg text-center rounded-lg">
-            <div>
-              <Image
-                src={Network}
-                width={90}
-                height={90}
-                alt="Networking Opportunities"
-                className="mx-auto"
-              />
+            <div className="flex justify-center">
+              <NetworkingIcon stroke="#F2277E" fill="#F2277E" />
             </div>
+
             <h3 className="text-xl font-bold text-gray-800 mt-4">
               Networking Opportunities
             </h3>
