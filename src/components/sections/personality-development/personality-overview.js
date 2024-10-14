@@ -23,6 +23,7 @@ const data = {
       content:
         "Courses can open up various career opportunities, especially in fields that value soft skills.",
     },
+    
   ],
   overview: {
     // title: "Overview",
