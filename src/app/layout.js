@@ -3,10 +3,7 @@ import "@/assets/css/icofont.min.css";
 import "@/assets/css/popup.css";
 import "@/assets/css/video-modal.css";
 import "aos/dist/aos.css";
-import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/pagination";
-import "swiper/css/effect-cards";
+
 import "./globals.css";
 import FixedShadow from "@/components/shared/others/FixedShadow";
 import PreloaderPrimary from "@/components/shared/others/PreloaderPrimary";

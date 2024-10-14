@@ -22,9 +22,9 @@ const AddIcon = ({ fill = "white" }) => {
 
 const Hire = () => {
   return (
-    <div className="flex flex-col mb-12">
+    <div className="flex flex-col gap-4 lg:gap-0 mb-12">
       {/* Hire Section */}
-      <div className="flex flex-col md:flex-row md:items-center bg-white">
+      <div className="flex flex-col md:flex-row md:items-center gap-4 lg:gap-0 bg-white">
         <Image
           src={hire}
           width={720}
@@ -48,7 +48,7 @@ const Hire = () => {
       </div>
 
       {/* Training Section */}
-      <div className="flex flex-col md:flex-row md:items-center bg-[#5F2DED]">
+      <div className="flex flex-col gap-4 lg:gap-0 md:flex-row md:items-center bg-[#5F2DED]">
         <div className="flex flex-col justify-center px-4 w-full md:w-1/2 md:px-8 lg:pl-24">
           <h1 className="font-bold text-white text-2xl md:text-3xl mt-4 md:mt-0">
             Corporate Training
