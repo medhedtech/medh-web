@@ -52,7 +52,7 @@ const Hero1 = () => {
                 <div className="flex flex-col sm:flex-row gap-4 mt-4">
                   <Link
                     href="/courses"
-                    className="bg-[#5F2DED] text-white border border-[#5F2DED] font-bold text-base px-4 py-2 inline-block"
+                    className="bg-[#5F2DED] text-white border border-[#5F2DED] w-fit font-bold text-base px-4 py-2 inline-block"
                   >
                     Let's Connect
                   </Link>
@@ -67,7 +67,7 @@ const Hero1 = () => {
             </span>
           </div>
           {/* Banner Right */}
-          <div data-aos="fade-up" className="flex justify-end">
+          <div data-aos="fade-up" className="lg:flex hidden justify-end ">
             <Image
               src={Group}
               width={453}
