@@ -119,7 +119,7 @@ const CoursesFilter = () => {
                 className="border rounded-md p-2 w-fit md:mb-0"
               />
             </div>
-            <div className="relative inline-block text-left pr-4 mt-4">
+            <div className="relative inline-block text-left pr-4 pb-6 mt-4">
               <div>
                 <button
                   onClick={toggleDropdown}
@@ -179,13 +179,16 @@ const CoursesFilter = () => {
 
           <div className="flex flex-col md:flex-row">
             {/* Categories Section */}
-            <CategoryFilter
-              categories={categories}
-              setSelectedCategory={setSelectedCategory}
-            />
+            <div className="w-full md:w-[30%] ">
+              <span className="text-[#5C6574] font-bold text-xl">Category</span>
+              <CategoryFilter
+                categories={categories}
+                setSelectedCategory={setSelectedCategory}
+              />
+            </div>
 
             {/* Courses Section */}
-            <div className="w-full md:w-3/4 grid grid-cols-1 sm:grid-cols-2 text-center lg:grid-cols-3 gap-6 p-4">
+            <div className="w-full md:w-[70%] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 ">
               {courses.map((course, index) => (
                 <CourseCard key={index} course={course} />
               ))}
@@ -193,8 +196,8 @@ const CoursesFilter = () => {
           </div>
 
           {/* Pagination Section */}
-          <div className="flex justify-end px-3.5">
-            <div className="lg:w-[74%] w-full mt-2 mb-8 mborder px-4 text-[#5C6574] border rounded-md border-[#5C6574]">
+          <div className="flex justify-end ">
+            <div className="lg:w-[70%] w-full mt-4 mb-8  px-4 text-[#5C6574] border rounded-md border-[#5C6574]">
               <Pagination totalPages={15} currentPage={1} />
             </div>
           </div>
