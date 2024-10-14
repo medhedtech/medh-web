@@ -17,7 +17,7 @@ const Footer = () => {
           : isHome10
           ? "2xl:bg-[url(../assets/images/footer/footer_bg_ai.png)] "
           : ""
-      } bg-darkblack 2xl:bg-cover`}
+      } bg-[#0C0E2B] 2xl:bg-cover`}
     >
       <div
         className={`${
@@ -25,7 +25,7 @@ const Footer = () => {
         }   pt-65px pb-5 lg:pb-10  `}
       >
         {/* footer top or subscription */}
-        <FooterTop />
+        {/* <FooterTop /> */}
         {/* footer main */}
         <FooterNavList />
 

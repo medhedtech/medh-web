@@ -13,42 +13,100 @@ import counter2 from "@/assets/images/counter/counter__2.png";
 import counter3 from "@/assets/images/counter/counter__3.png";
 import counter4 from "@/assets/images/counter/counter__4.png";
 import TiltWrapper from "@/components/shared/wrappers/TiltWrapper";
+import aidata from "@/assets/images/about/ai-data-science.png";
+import digital from "@/assets/images/about/digital-marketing.png";
+import personality from "@/assets/images/about/personality-development.png";
+import vedic from "@/assets/images/about/vedic-mathematics.png";
 import useIsTrue from "@/hooks/useIsTrue";
 const About1 = ({ children, image, hideCounter }) => {
   const isHome9 = useIsTrue("/home-9");
   const isHome9Dark = useIsTrue("/home-9-dark");
-  const counterItems = [
+  // const counterItems = [
+  //   {
+  //     name: "Total Acheivment",
+  //     image: counter1,
+  //     data: 27,
+  //     symbol: "+",
+  //   },
+  //   {
+  //     name: "TOTAL STUDENTS",
+  //     image: counter2,
+  //     data: 145,
+  //     symbol: "+",
+  //   },
+  //   {
+  //     name: "tOTAL INSTRUCTOR",
+  //     image: counter3,
+  //     data: 10,
+  //     symbol: "k",
+  //   },
+  //   {
+  //     name: "OVER THE WORLD",
+  //     image: counter4,
+  //     data: 214,
+  //     symbol: "+",
+  //   },
+  // ];
+
+  const courses = [
     {
-      name: "Total Acheivment",
-      image: counter1,
-      data: 27,
-      symbol: "+",
+      title: "Artificial Intelligence and Data Science",
+      imageSrc: aidata,
     },
     {
-      name: "TOTAL STUDENTS",
-      image: counter2,
-      data: 145,
-      symbol: "+",
+      title: "Digital Marketing with Data Analytics",
+      imageSrc: digital,
     },
     {
-      name: "tOTAL INSTRUCTOR",
-      image: counter3,
-      data: 10,
-      symbol: "k",
+      title: "Personality Development",
+      imageSrc: personality,
     },
     {
-      name: "OVER THE WORLD",
-      image: counter4,
-      data: 214,
-      symbol: "+",
+      title: "Vedic Mathematics",
+      imageSrc: vedic,
     },
   ];
   return (
     <section>
-      <div className={`container ${hideCounter ? "pt-70px pb-100px" : ""}`}>
-        {/* about section   */}
+      <div className="container mx-auto px-4 py-10 text-center">
+        <h2 className="text-2xl sm:text-3xl font-bold mb-4">
+          Featured LIVE Courses
+        </h2>
+        <p className="text-gray-600 mb-8 max-w-full sm:max-w-md lg:max-w-2xl text-center mx-auto px-4">
+          Medh’s expertly crafted skill development courses empower you to excel
+          in life. Master industry-relevant skills and conquer modern
+          challenges. Embrace the future – Invest in your skills now.
+        </p>
+
+        {/* Grid Section */}
+        <div className="grid grid-cols-2 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {courses.map((course, index) => (
+            <div
+              key={index}
+              className="bg-white shadow-2xl  overflow-hidden hover:scale-105 transition transform duration-300"
+            >
+              <Image
+                src={course.imageSrc}
+                alt={course.title}
+                className="w-full h-48 object-cover"
+                width={500} // specify the width
+                height={300} // specify the height
+                layout="responsive" // make the image responsive
+              />
+              <div className="py-2 px-12">
+                <h3 className="text-lg font-bold text-[#5C6574] ">
+                  {course.title}
+                </h3>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/*<div className={`container ${hideCounter ? "pt-70px pb-100px" : ""}`}>
+        {/* about section   
         <div className="grid grid-cols-1 lg:grid-cols-2 pt-30px gap-x-30px">
-          {/* about left  */}
+          {/* about left  
           <div
             className="relative z-0 mb-30px lg:mb-0 pb-0 md:pb-30px xl:pb-0 overflow-visible"
             data-aos="fade-up"
@@ -77,7 +135,7 @@ const About1 = ({ children, image, hideCounter }) => {
                 />
               </div>
             </TiltWrapper>
-            {/* experience  */}
+            {/* experience  
             <div className="px-10px py-3 md:py-25px border-l-4 border-primaryColor shadow-experience absolute bottom-0 left-0 bg-white dark:bg-whiteColor-dark animate-move-var w-[290px]">
               <div className="counter flex items-center">
                 <p className="text-[40px] text-primaryColor font-bold uppercase pr-10px leading-1">
@@ -89,7 +147,7 @@ const About1 = ({ children, image, hideCounter }) => {
               </div>
             </div>
           </div>
-          {/* about right  */}
+          {/* about right  
           <div data-aos="fade-up">
             <SectionName>About Us</SectionName>
             <h3 className="text-3xl md:text-size-45 leading-10 md:leading-2xl font-bold text-blackColor dark:text-blackColor-dark pb-25px">
@@ -131,11 +189,11 @@ const About1 = ({ children, image, hideCounter }) => {
             </ul>
           </div>
         </div>
-        {/* about counter  */}
+        {/* about counter  
         {isHome9 || isHome9Dark || hideCounter || (
           <Counter items={counterItems} />
         )}
-      </div>
+      </div>*/}
     </section>
   );
 };
