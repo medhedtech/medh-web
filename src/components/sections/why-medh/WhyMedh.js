@@ -1,5 +1,9 @@
+"use client";
 import Image from "next/image";
 import React from "react";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import Slider from "react-slick";
 import iso27001 from "@/assets/images/iso/iso27001.png";
 import iso10002 from "@/assets/images/iso/iso10002.png";
 import iso20000 from "@/assets/images/iso/iso20000.png";
@@ -12,6 +16,30 @@ import ArrowIcon from "@/assets/images/icon/ArrowIcon";
 import InfoIcon from "@/assets/images/icon/InfoIcon";
 
 const WhyMedh = () => {
+  var settings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    arrows: false,
+    slidesToShow: 4,
+    slidesToScroll: 1,
+    responsive: [
+      {
+        breakpoint: 1024, // Tablets
+        settings: {
+          slidesToShow: 2,
+          slidesToScroll: 1,
+        },
+      },
+      {
+        breakpoint: 768, // Mobile devices
+        settings: {
+          slidesToShow: 1,
+          slidesToScroll: 1,
+        },
+      },
+    ],
+  };
   return (
     <div>
       {/* Job Guarantee Section */}
@@ -97,50 +125,52 @@ const WhyMedh = () => {
 
       {/* Certified & Recognized By Section */}
       <div className="bg-gray-100 py-12">
-        <h3 className="text-center text-[#5C6574] text-2xl font-bold mb-8">
+        <h3 className="text-center text-[#5C6574] text-size-32 leading-34px font-bold mb-8">
           Certified & Recognized By
         </h3>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 justify-items-center">
-          <div>
-            <Image
-              src={iso10002}
-              width={100}
-              height={162}
-              alt="ISO 10002 Certification"
-            />
-          </div>
-          <div>
-            <Image
-              src={iso27001}
-              width={100}
-              height={162}
-              alt="ISO 27001 Certification"
-            />
-          </div>
-          <div>
-            <Image
-              src={iso20000}
-              width={100}
-              height={162}
-              alt="ISO 20000 Certification"
-            />
-          </div>
-          <div>
-            <Image
-              src={iso22301}
-              width={100}
-              height={162}
-              alt="ISO 22301 Certification"
-            />
-          </div>
-          <div>
-            <Image
-              src={iso9001}
-              width={100}
-              height={162}
-              alt="ISO 9001 Certification"
-            />
-          </div>
+        <div className="mx-30">
+          <Slider {...settings}>
+            <div className="flex justify-center items-center h-full">
+              <Image
+                src={iso10002}
+                width={100}
+                height={162}
+                alt="ISO 10002 Certification"
+              />
+            </div>
+            <div className="flex justify-center items-center h-full">
+              <Image
+                src={iso27001}
+                width={100}
+                height={162}
+                alt="ISO 27001 Certification"
+              />
+            </div>
+            <div className="flex justify-center items-center h-full">
+              <Image
+                src={iso20000}
+                width={100}
+                height={162}
+                alt="ISO 20000 Certification"
+              />
+            </div>
+            <div className="flex justify-center items-center h-full">
+              <Image
+                src={iso22301}
+                width={100}
+                height={162}
+                alt="ISO 22301 Certification"
+              />
+            </div>
+            <div className="flex justify-center items-center h-full">
+              <Image
+                src={iso9001}
+                width={100}
+                height={162}
+                alt="ISO 9001 Certification"
+              />
+            </div>
+          </Slider>
         </div>
       </div>
     </div>
