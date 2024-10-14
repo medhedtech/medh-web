@@ -4,7 +4,6 @@ import Banner from "@/assets/images/vedic-mathematics/vedic-banner.png";
 import Cource from "@/assets/images/vedic-mathematics/vedic-cource.svg";
 import Iso from "@/assets/images/vedic-mathematics/vedic-logo.svg";
 import Enroll from "@/assets/images/personality/enroll-icon.svg";
-// import stemImg from "@/assets/images/herobanner/Background.png";
 
 function VedicBanner() {
   return (
@@ -36,8 +35,8 @@ function VedicBanner() {
                 src={Iso}
                 alt="STEM Accredited"
                 width={100}
-                height={100} // You can adjust the height here or leave it for auto scaling
-                className="object-contain" // Set max height for responsiveness
+                height={100} 
+                className="object-contain" 
 
               />
             </div>
