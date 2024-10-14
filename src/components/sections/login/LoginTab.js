@@ -20,12 +20,13 @@ const LoginTab = () => {
     },
   ];
   return (
-    <section className="relative">
-      <div className="container py-100px">
-        <div className="tab md:w-2/3 mx-auto">
+    <section className="relative ">
+      <div className="w-full py-100px flex justify-center items-center ">
+        <div className="md:w-[100%] w-full border-2">  
           {/* tab controller */}
 
-          <div className="tab-links grid grid-cols-2 gap-11px text-blackColor text-lg lg:text-size-22 font-semibold font-hind mb-43px mt-30px md:mt-0">
+          <div className=" flex justify-center items-center">
+          <div className="tab-links md:w-[60%] w-full grid grid-cols-2 gap-11px text-blackColor text-lg lg:text-size-22 font-semibold font-hind mb-43px mt-30px md:mt-0 ">
             {tabButtons?.map(({ name }, idx) => (
               <TabButtonPrimary
                 key={idx}
@@ -37,10 +38,11 @@ const LoginTab = () => {
               />
             ))}
           </div>
+          </div>
 
           {/* tab contents */}
-          <div className="shadow-container bg-whiteColor dark:bg-whiteColor-dark pt-10px px-5 pb-10 md:p-50px md:pt-30px rounded-5px">
-            <div className="tab-contents">
+          <div className="shadow-container bg-whiteColor dark:bg-whiteColor-dark pt-10px  md:pt-30px rounded-5px ">
+            <div className="tab-contents boder-2 border-black">
               {tabButtons.map(({ content }, idx) => (
                 <TabContentWrapper
                   key={idx}
@@ -49,6 +51,16 @@ const LoginTab = () => {
                   {content}
                 </TabContentWrapper>
               ))}
+            </div>
+            <div className="flex flex-wrap text-[13px] md:text-[14px] border-t-2 border-[#727695] md:w-[52%] w-full text-[#727695] pb-5 ">
+              <p className="pr-1">By proceeding to login your account you are agreeing to our</p>
+              <a href="#" className="text-[#252525] text-[14px] md:text-[15px]">
+              Terms of Service
+              </a>
+              <span className="px-2">and</span>
+              <a href="#" className="text-[#252525] text-[14px] md:text-[15px]">
+              Privacy Policy
+              </a>
             </div>
           </div>
         </div>
