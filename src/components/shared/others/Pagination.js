@@ -2,32 +2,27 @@
 
 import ButtonPagination from "../buttons/ButtonPagination";
 
-const Pagination = ({
-  pages,
-  skip,
-  limit,
-  totalItems,
-  handlePagesnation,
-  currentPage,
-}) => {
+const Pagination = ({ pages, handlePagesnation, currentPage }) => {
+  const pageNumbers = Array.from({ length: pages }, (_, idx) => idx + 1);
+
   return (
     <div>
       <ul className="flex items-center justify-center gap-15px mt-60px mb-30px">
         <li>
           <ButtonPagination
             type={"prev"}
-            skip={skip}
-            limit={limit}
-            handlePagesnation={handlePagesnation}
+            handlePagesnation={() =>
+              currentPage > 1 && handlePagesnation(currentPage - 1)
+            }
             idx={"prev"}
           />
         </li>
-        {pages?.map((page, idx) => (
-          <li key={idx}>
+        {pageNumbers.map((page) => (
+          <li key={page}>
             <ButtonPagination
-              idx={idx}
-              id={idx + 1}
-              handlePagesnation={handlePagesnation}
+              idx={page}
+              id={page}
+              handlePagesnation={() => handlePagesnation(page)}
               currentPage={currentPage}
             />
           </li>
@@ -35,10 +30,9 @@ const Pagination = ({
         <li>
           <ButtonPagination
             type={"next"}
-            skip={skip}
-            limit={limit}
-            totalItems={totalItems}
-            handlePagesnation={handlePagesnation}
+            handlePagesnation={() =>
+              currentPage < pages && handlePagesnation(currentPage + 1)
+            }
             idx={"next"}
           />
         </li>
