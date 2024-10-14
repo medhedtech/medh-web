@@ -9,6 +9,8 @@
 ****************
 *****************************************************************/
 
+const { Ubuntu, Poppins } = require("next/font/google");
+
 /**************************************************************
 
 	Start Tailwind Custom Style Indexing
@@ -451,6 +453,11 @@ module.exports = {
         "150px": "9.375rem",
       },
       // typography
+
+      fontFamily: {
+        Ubuntu: ["ubuntu", "sans"],
+        Poppins: ["poppins"],
+      },
 
       //  font size
       fontSize: {
