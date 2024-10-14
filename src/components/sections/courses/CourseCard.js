@@ -2,11 +2,11 @@ import Image from 'next/image';
 
 const CourseCard = ({ course }) => {
   return (
-    <div className="bg-white flex flex-col justify-between shadow-md p-3">
+    <div className="bg-white flex flex-col justify-between items-center shadow-md p-3">
       <Image
         src={course.image}
         alt={course.title}
-        className="rounded-md"
+        className="rounded-md "
         width={300}
         height={200}
       />
@@ -16,11 +16,11 @@ const CourseCard = ({ course }) => {
         <h3 className="font-semibold text-md">{course.grade}</h3>
         <p className="text-gray-500">{course.duration}</p>
       </div>
-      <div className="flex justify-end mt-2">
-        <button className="bg-[#5F2DED] text-sm text-white px-4 leading-none py-2">
+      <div className="flex justify-end mt-2 ">
+        <button className="bg-[#5F2DED] text-sm text-white px-4 leading-none py-3">
           Download Brochure
         </button>
-        <button className="bg-[#F2277E] text-sm text-white px-4 leading-none">
+        <button className="bg-[#F2277E] text-sm text-white px-4 leading-none py-3">
           Program Details
         </button>
       </div>
