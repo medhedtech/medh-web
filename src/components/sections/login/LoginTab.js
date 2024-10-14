@@ -52,7 +52,7 @@ const LoginTab = () => {
                 </TabContentWrapper>
               ))}
             </div>
-            <div className="flex flex-wrap text-[13px] md:text-[14px] border-t-2 border-[#727695] md:w-[52%] w-full text-[#727695] pb-5 ">
+            <div className="flex flex-wrap text-[13px] md:text-[14px] border-t-2 border-[#727695] md:w-[59%] w-full text-[#727695] pb-5 pl-2 md:pl-10 ">
               <p className="pr-1">By proceeding to login your account you are agreeing to our</p>
               <a href="#" className="text-[#252525] text-[14px] md:text-[15px]">
               Terms of Service
@@ -69,13 +69,13 @@ const LoginTab = () => {
       <div>
         <Image
           loading="lazy"
-          className="absolute right-[14%] top-[30%] animate-move-var"
+          className="absolute right-[5%] top-[30%] animate-move-var"
           src={shapImage2}
           alt="Shape"
         />
         <Image
           loading="lazy"
-          className="absolute left-[5%] top-1/2 animate-move-hor"
+          className="absolute left-[4%] top-1/2 animate-move-hor"
           src={shapImage3}
           alt="Shape"
         />
