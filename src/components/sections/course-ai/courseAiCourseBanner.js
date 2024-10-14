@@ -3,12 +3,12 @@
 import CourseBanner from "@/components/course-banner/courseBanner"; // Ensure this path is correct
 import CourseBannerImg from "../../../assets/images/personality/coursebannerimg.png";
 
-export default function PersonalityCourseBanner() {
+export default function CourseAiCourseBanner() {
   const courses = [
     {
-      heading: "Ready to Elevate Your Presence?",
+      heading: "Ready to supercharge your career?",
       description:
-        "Enroll in MEDH's Personality Development Course and unlock your potential for a fulfilling personal and professional life.",
+        "Enroll in our AI and Data Science Course today and transform your future!",
       actionText: "Take Actions for Your Brighter Future!",
       buttonText: "Enroll Now",
       imageUrl: CourseBannerImg, 
