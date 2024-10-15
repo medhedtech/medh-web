@@ -2,7 +2,7 @@ import Image from 'next/image';
 
 const CourseCard = ({ course }) => {
   return (
-    <div className="bg-white flex flex-col justify-between items-center shadow-md p-3">
+    <div className="bg-white flex flex-col justify-between shadow-md ">
       <Image
         src={course.image}
         alt={course.title}

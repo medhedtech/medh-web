@@ -23,7 +23,7 @@ const CourseBanner = ({
         <div className="w-full lg:w-[50%] space-y-2 ">
           <h2 className="text-2xl font-bold text-gray-800">{heading}</h2>
           <p className="text-gray-700 text-[0.9rem]">{description}</p>
-          <p className="text-[#F2277E] font-bold text-xl">{actionText}</p>
+          <p className="text-[#F2277E] font-bold text-lg">{actionText}</p>
         </div>
         <div>
           <button

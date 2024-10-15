@@ -8,9 +8,13 @@ import ButtonPrimary from "@/components/shared/buttons/ButtonPrimary";
 
 const Registration = () => {
   return (
+<<<<<<< HEAD
     <section className="bg-register bg-cover bg-center bg-no-repeat ">
+=======
+    <section className="bg-register bg-cover bg-center bg-no-repeat  ">
+>>>>>>> c211c4f62a5a819cc053b1367cb9374c87b7a304
       {/* registration overlay  */}
-      <div className="overlay bg-blueDark bg-opacity-90 py-4 lg:pb-0 relative z-0">
+      <div className="overlay bg-blueDark bg-opacity-90 py-4 lg:pb-0 relative z-0 my-10 ">
         {/* animate icons  */}
         <div>
           <Image
