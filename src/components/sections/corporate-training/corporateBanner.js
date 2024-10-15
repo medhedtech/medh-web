@@ -1,9 +1,9 @@
 import React from "react";
 import Image from "next/image";
-// import Banner from "@/assets/images/digital-marketing/banner.png";
-// import Cource from "@/assets/images/digital-marketing/digi-logo.svg";
-// import Iso from "@/assets/images/vedic-mathematics/vedic-logo.svg";
-// import Enroll from "@/assets/images/personality/enroll-icon.svg";
+import Banner from "@/assets/images/digital-marketing/banner.png";
+import Cource from "@/assets/images/digital-marketing/digi-logo.svg";
+import Iso from "@/assets/images/vedic-mathematics/vedic-logo.svg";
+import Enroll from "@/assets/images/personality/enroll-icon.svg";
 
 export default function CorporateBanner () {
    
@@ -13,7 +13,7 @@ export default function CorporateBanner () {
       {/* Banner Image (hidden on small screens) */}
       <div className="relative w-full h-[350px] md:h-[500px] hidden lg:block">
         <Image
-        //   src={Banner}
+          src={Banner}
           alt="Personality Development Course"
           layout="fill"
           objectFit="cover"
@@ -34,7 +34,7 @@ export default function CorporateBanner () {
             <div className="flex-shrink-0 bg-white ">
               {/* STEM Badge */}
               <Image
-                // src={Iso}
+                src={Iso}
                 alt="STEM Accredited"
                 width={100}
                 height={100} 
@@ -50,7 +50,7 @@ export default function CorporateBanner () {
               <div className="flex">
                 <button className="flex items-center bg-white md:text-[15px] text-[10px] text-primaryColor font-bold px-2 py-1 md:px-4 md:py-2 mt-6 ">
                   <Image
-                    // src={Enroll}
+                    src={Enroll}
                     alt="Enroll Icon"
                     className="md:w-[28px] w-[18px] lg:h-[28px] h-[20px] lg:mr-4 mr-2"
                   />
@@ -70,13 +70,14 @@ export default function CorporateBanner () {
         {/* Right side image (hidden on small screens) */}
         <div className="hidden lg:block md:w-[45%]">
           <Image
-            // src={Cource}
+            src={Cource}
             alt="Personality Development Image"
             objectFit="cover"
             className="w-full"
           />
         </div>
       </div>
+    
     </div>
   );
 }
