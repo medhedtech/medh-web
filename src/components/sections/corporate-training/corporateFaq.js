@@ -13,69 +13,44 @@ export default function CorporateFaq() {
 
   const faqs = [
     {
-      question: "What is Vedic Math?",
+      question: "What is the course curriculum and learning objectives of MEDH's Corporate Training Courses?",
       answer: "The Personality Development Course is designed to help individuals enhance their personal and professional skills through various interactive sessions and practical exercises.",
     },
     {
-      question: "Who can take the Vedic Maths Course?",
+      question: "What are the delivery methods for MEDH's Corporate Training Courses?",
       answer: "The duration of the course is typically 6 weeks, with classes held twice a week.",
     },
     {
-      question: "How long does the course usually last?",
+      question: "What are the pricing and payment options for MEDH's Corporate Training Courses?",
       answer: "Yes, the course is suitable for individuals of all ages, from students to professionals.",
     },
     {
-      question: "Can Vedic Math be used in everyday life?",
+      question: "Are MEDH's Corporate Training Courses certified or accredited?",
       answer: "The course covers various topics such as communication skills, leadership, teamwork, and self-awareness.",
     },
     {
-      question: "Will Vedic Math classes complement a student’s academic performance?",
+      question: "Can MEDH tailor the training courses to specific business needs?",
       answer: "Absolutely! The skills learned in this course are highly beneficial for career growth and personal development.",
     },
     {
-        question: "Is Vedic Math course different from Math tuitions?",
+        question: "What are the qualifications and industry experience of MEDH's instructors?",
         answer: "The Personality Development Course is designed to help individuals enhance their personal and professional skills through various interactive sessions and practical exercises.",
       },
       {
-        question: "How long is the course, and can I study at my own pace?",
+        question: "What post-training support and resources does MEDH provide?",
         answer: "The duration of the course is typically 6 weeks, with classes held twice a week.",
       },
       {
-        question: "How long does the course usually last?",
+        question: "How do MEDH's Corporate Training Courses compare to competitors' offerings?",
         answer: "Yes, the course is suitable for individuals of all ages, from students to professionals.",
       },
       {
-        question: "Will I receive a certificate upon completing the course?",
+        question: "What is the enrollment process and timeline for MEDH's Corporate Training Courses?",
         answer: "The course covers various topics such as communication skills, leadership, teamwork, and self-awareness.",
       },
-      {
-        question: "Will I have access to course materials after completing the course?",
-        answer: "Absolutely! The skills learned in this course are highly beneficial for career growth and personal development.",
-      },
-      {
-        question: "Can I interact with other students during the course?",
-        answer: "Absolutely! The skills learned in this course are highly beneficial for career growth and personal development.",
-      },
-      {
-          question: "Will I have access to support during the course?",
-          answer: "The Personality Development Course is designed to help individuals enhance their personal and professional skills through various interactive sessions and practical exercises.",
-        },
-        {
-          question: "Is there any technical support available if I encounter issues during the course?",
-          answer: "The duration of the course is typically 6 weeks, with classes held twice a week.",
-        },
-        {
-          question: "Is the course delivered entirely online?",
-          answer: "Yes, the course is suitable for individuals of all ages, from students to professionals.",
-        },
-        {
-          question: "Will I receive a certificate upon completing the course?",
-          answer: "The course covers various topics such as communication skills, leadership, teamwork, and self-awareness.",
-        },
-        {
-          question: "Is financial assistance available for the course?",
-          answer: "Absolutely! The skills learned in this course are highly beneficial for career growth and personal development.",
-        },
+      
+      
+     
   ];
 
   return (
@@ -84,8 +59,8 @@ export default function CorporateFaq() {
         <h2 className="md:text-3xl text-[22px] font-bold mb-4 text-center text-[#5C6574]">
           Frequently Asked Questions (FAQs)
         </h2>
-        <p className="text-center md:text-[15px] text-[14px] mb-8 md:px-14 px-3">
-          Find answers to common questions about MEDH's Personality Development Course. Learn about course structure, prerequisites, career prospects, and more.
+        <p className="text-center md:text-[15px] text-[14px] mb-8 md:px-14 px-3 ">
+        Find answers to common questions about MEDH’s Corporate Training Courses.
         </p>
         <div className="space-y-4">
           {faqs.map((faq, index) => (
@@ -108,6 +83,10 @@ export default function CorporateFaq() {
               )}
             </div>
           ))}
+        </div>
+        <div className='text-center mt-10'>
+        <p>Note: If you have any other questions or concerns not covered in the FAQs, please feel free to contact our</p>
+        <p>support team <a href="care@medh.co" className='text-[#0000FF]'>care@medh.co</a> , and we’ll be happy to assist you!</p>
         </div>
       </div>
     </div>
