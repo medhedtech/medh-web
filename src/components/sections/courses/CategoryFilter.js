@@ -1,6 +1,6 @@
 const CategoryFilter = ({ categories, setSelectedCategory, heading }) => {
   return (
-    <div className="w-full  bg-white p-4 rounded-md">
+    <div className="w-full  bg-white  rounded-md">
       <h2 className="text-2xl font-semibold mb-4 text-black">{heading}</h2>
       <div className="flex flex-col">
         {categories.map((category) => (

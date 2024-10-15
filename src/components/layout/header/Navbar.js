@@ -44,7 +44,7 @@ const Navbar = () => {
           ) : (
             ""
           )}
-          <div className="flex justify-between lg:grid-cols-12 items-center ">
+          <div className="flex justify-between lg:grid-cols-12 items-center">
             {/* navbar left */}
             <NavbarLogo />
             {/* Main menu */}
