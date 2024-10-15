@@ -22,7 +22,7 @@ const AddIcon = ({ fill = "white" }) => {
 
 const JoinMedh = () => {
   return (
-    <div className="flex flex-col gap-4 lg:gap-0">
+    <div className="flex flex-col py-10 bg-white gap-4 lg:gap-0">
       {/* Educator Section */}
       <div className="flex flex-col gap-4 lg:gap-0 md:flex-row md:items-center bg-white">
         <Image
