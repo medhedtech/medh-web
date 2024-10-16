@@ -20,11 +20,11 @@ const DropdownContainer = ({ children }) => {
         isHome4Dark ||
         isHome5 ||
         isHome5Dark
-          ? "lg:container 3xl:container2-lg"
+          ? "w-fit"
           : isHome2 || isHome2Dark
-          ? "container sm:container-fluid lg:container 3xl:container-secondary "
-          : "lg:container 3xl:container-secondary-lg "
-      } 4xl:container w-2000 shadow-dropdown px-30px mx-auto xl:px-30px py-30px rounded-standard bg-white dark:bg-whiteColor-dark overflow-y-auto max-h-dropdown`}
+          ? "w-fit "
+          : ""
+      } w-fit bg-white`}
     >
       {children}
     </div>
