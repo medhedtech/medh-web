@@ -44,14 +44,14 @@ const Navbar = () => {
           ) : (
             ""
           )}
-          <div className="grid grid-cols-2 lg:grid-cols-12 items-center gap-15px">
+          <div className="flex justify-between lg:grid-cols-12 items-center">
             {/* navbar left */}
             <NavbarLogo />
             {/* Main menu */}
             {isHome2Dark ? <NavItems2 /> : <NavItems />}
 
             {/* navbar right */}
-            <NavbarRight isHome2Dark={isHome2Dark} />
+            {/* <NavbarRight isHome2Dark={isHome2Dark} /> */}
           </div>
         </div>
       </nav>

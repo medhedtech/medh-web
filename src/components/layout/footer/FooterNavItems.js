@@ -13,7 +13,7 @@ const FooterNavItems = ({ list, idx }) => {
       data-aos="fade-up"
     >
       <FooterHeading>{heading}</FooterHeading>
-      <ul className="flex flex-col gap-y-3">
+      <ul className="flex flex-col gap-y-3 font-Poppins mt-6">
         {items.map(({ name, path }, idx) => (
           <FooterNavItem key={idx} path={path} name={name} />
         ))}
