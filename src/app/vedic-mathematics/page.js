@@ -4,10 +4,8 @@ import VedicBanner from '@/components/sections/vedic-mathematics/vedicBanner'
 import VedicOverview from '@/components/sections/vedic-mathematics/vedicOverview';
 import VedicCource from '@/components/sections/vedic-mathematics/vedicCource';
 import VedicFaq from '@/components/sections/vedic-mathematics/vedicFaq';
-// import PersonalityFaq from "@/components/sections/personality-development/personalityFaq";
-// import PersonalityOvereveiw from "@/components/sections/personality-development/personality-overview";
-// import PageWrapper from "@/components/shared/wrappers/PageWrapper";
-// import PersonalityCourse from "@/components/sections/personality-development/personalityCourse";
+import VedicCourceBanner from '@/components/sections/vedic-mathematics/vedicCourseBanner';
+
 
 function VedicMathematics() {
   return (
@@ -16,6 +14,7 @@ function VedicMathematics() {
     <VedicOverview />
     <VedicCource />
     <VedicFaq />
+    <VedicCourceBanner/>
   </PageWrapper>
   )
 }
