@@ -1,5 +1,5 @@
-import React from "react";
-import Image from "next/image";
+import React from 'react';
+import Image from 'next/image';
 
 const CourseBanner = ({
   heading,
@@ -9,8 +9,8 @@ const CourseBanner = ({
   buttonText,
   imageUrl,
   onButtonClick,
-  buttonBgColor = "#5F2DED", 
-  icon = null, 
+  buttonBgColor = '#5F2DED',
+  icon = null,
 }) => {
   return (
     <div className="bg-white w-full h-auto flex justify-center items-center">
@@ -24,7 +24,9 @@ const CourseBanner = ({
           />
         </div>
         <div className="w-full lg:w-[50%] space-y-2 ">
-          <h2 className="text-[24px] leading-7 font-bold text-[#5C6574]">{heading}</h2>
+          <h2 className="text-[24px] leading-7 font-bold text-[#5C6574]">
+            {heading}
+          </h2>
           <h2 className="text-2xl font-bold text-[#5C6574]">{headings}</h2>
           <p className="text-[#585454] text-[0.9rem]">{description}</p>
           <p className="text-[#F2277E] font-bold text-lg">{actionText}</p>
@@ -35,7 +37,8 @@ const CourseBanner = ({
             style={{ backgroundColor: buttonBgColor }} // Set dynamic background color
             className="hover:bg-[#3f2885] text-white px-6 py-3 shadow-lg font-semibold mt-4 lg:mt-0 flex items-center justify-center gap-2"
           >
-            {icon && <Image src={icon}  alt="button-icon" className="mr-2" />} {/* Display icon if passed */}
+            {icon && <Image src={icon} alt="button-icon" className="mr-2" />}{' '}
+            {/* Display icon if passed */}
             {buttonText}
           </button>
         </div>
