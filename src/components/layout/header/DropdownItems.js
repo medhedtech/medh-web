@@ -5,10 +5,11 @@ const DropdownItems = ({ list }) => {
   const { title, items } = list;
   return (
     <div>
-      <h3 className="text-lg text-blackColor font-semibold border-b border-borderColor dark:text-blackColor-dark p-10px mb-10px">
+      {/* <h3 className="text-lg text-blackColor font-semibold border-b border-borderColor dark:text-blackColor-dark p-10px mb-10px">
         {title}
-      </h3>
-      <ul>
+      </h3> */}
+      <div className="bg-[#F2277E] w-full h-2"></div>
+      <ul className=" w-full px-5">
         {items?.map((item, idx) => (
           <DropdownItem key={idx} item={item} />
         ))}
