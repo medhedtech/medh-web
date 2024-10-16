@@ -11,81 +11,71 @@ import herobanner6 from "@/assets/images/herobanner/herobanner__6.png";
 import herobanner7 from "@/assets/images/herobanner/herobanner__7.png";
 import Link from "next/link";
 import TiltWrapper from "@/components/shared/wrappers/TiltWrapper";
-
+import stemImg from "@/assets/images/herobanner/Background.png";
+import Group from "@/assets/images/herobanner/Group5.png";
 const Hero1 = () => {
   return (
     <section data-aos="fade-up">
-      {/* banner section  */}
-      <div className="container2-xl bg-darkdeep1 pt-50px md:pt-20 pb-205px md:pb-35 rounded-2xl relative overflow-hidden shadow-brand">
-        <div className="container grid grid-cols-1 lg:grid-cols-2 items-center">
-          {/* banner Left  */}
+      {/* Banner section */}
+      <div className="container2-xl px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Banner Left */}
           <div data-aos="fade-up">
-            <HreoName>EDUCATION SOLUTION</HreoName>
-            <HeadingLg color={"white"}>
-              Cloud-based LMS <br className="hidden md:block" />
-              Trusted by 1000+
+            <HreoName>
+              {" "}
+              <span className="font-extrabold text-[#5F2DED]">|</span>
+              UNLOCK YOUR POTENTIAL WITH MEDH
+            </HreoName>
+            <HeadingLg
+              color={"#5F2DED"}
+              className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight"
+            >
+              Skill Development Courses led by <br />
+              Seasoned Experts
             </HeadingLg>
-            <PagragraphHero color="white">
-              Lorem Ipsum is simply dummy text of the printing typesetting
-              industry. Lorem Ipsum has been
-            </PagragraphHero>
-
-            <div className="mt-30px md:mt-45px">
-              <Link
-                href="/courses"
-                className="text-sm md:text-size-15 font-semibold text-darkdeep2 bg-whiteColor border border-whiteColor px-5 md:px-30px py-3 md:py-4 hover:text-whiteColor hover:bg-darkblack rounded inline-block mr-6px md:mr-30px shadow-hero-action dark:bg-whiteColor-dark dark:hover:bg-whiteColor dark:text-whiteColor dark:hover:text-whiteColor-dark dark:border-none"
-              >
-                View Courses
-              </Link>
-              <Link
-                href="/courses"
-                className="text-sm md:text-size-15 font-semibold text-whiteColor py-3 md:py-4 hover:text-secondaryColor inline-block"
-              >
-                Find out more <i className="icofont-long-arrow-right"></i>
-              </Link>
-            </div>
-          </div>
-          {/* banner right  */}
-          <div data-aos="fade-up">
-            <TiltWrapper>
-              <div className="tilt relative">
+            <div className="flex flex-col md:flex-row mt-6 mb-9 gap-8">
+              <div className="flex-shrink-0">
+                {/* STEM Badge */}
                 <Image
-                  placeholder="blur"
-                  className="w-full"
-                  src={about8}
-                  alt=""
-                />
-                <Image
-                  className="absolute left-0 top-0 lg:top-4 right-0 mx-auto"
-                  src={about1}
-                  alt=""
+                  src={stemImg}
+                  alt="STEM Accredited"
+                  width={90}
+                  height={150}
                 />
               </div>
-            </TiltWrapper>
+              <div className="flex flex-col justify-center">
+                <p className="text-base sm:text-lg">
+                  Empowering people across all life stages from childhood and
+                  teens to professionals and homemakers.
+                </p>
+                {/* CTA Button */}
+                <div className="flex flex-col sm:flex-row gap-4 mt-4">
+                  <Link
+                    href="/courses"
+                    className="bg-[#5F2DED] text-white border border-[#5F2DED] w-fit font-bold text-base px-4 py-2 inline-block"
+                  >
+                    Let's Connect
+                  </Link>
+                  <span className="mt-2 text-base font-semibold underline underline-offset-8">
+                    ISO CERTIFIED
+                  </span>
+                </div>
+              </div>
+            </div>
+            <span className="text-[#FD474F] text-2xl sm:text-3xl font-medium">
+              Medh Hain Toh Mumkin Hain!
+            </span>
           </div>
-        </div>
-
-        <div>
-          <Image
-            className="absolute left-1/2 bottom-[15%] animate-spin-slow"
-            src={herobanner2}
-            alt=""
-          />
-          <Image
-            className="absolute left-[42%] sm:left-[65%] md:left-[42%] lg:left-[5%] top-[4%] sm:top-[1%] md:top-[4%] lg:top-[10%] animate-move-hor"
-            src={herobanner6}
-            alt=""
-          />
-          <Image
-            className="absolute right-[5%] bottom-[15%]"
-            src={herobanner7}
-            alt=""
-          />
-          <Image
-            className="absolute top-[5%] left-[45%]"
-            src={herobanner7}
-            alt=""
-          />
+          {/* Banner Right */}
+          <div data-aos="fade-up" className="lg:flex hidden justify-end ">
+            <Image
+              src={Group}
+              width={453}
+              height={457}
+              alt="Group Image"
+              className="max-w-full h-auto"
+            />
+          </div>
         </div>
       </div>
     </section>

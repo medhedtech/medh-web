@@ -6,7 +6,7 @@ const DropdownLink = ({ item }) => {
   return (
     <Link
       href={path}
-      className={`whitespace-nowrap text-sm 2xl:text-base font-semibold text-contentColor border-l-2 border-transparent transition duration-300 hover:border-primaryColor block hover:bg-whitegrey1 hover:text-primaryColor leading-sm 3xl:leading-lg dark:text-whiteColor dark:hover:bg-whitegrey1-dark dark:hover:text-primaryColor ${
+      className={`whitespace-nowrap text-sm  2xl:text-base font-semibold text-contentColor border-l-2 border-transparent transition duration-300 hover:border-primaryColor block hover:bg-whitegrey1 hover:text-primaryColor leading-sm 3xl:leading-lg dark:text-whiteColor dark:hover:bg-whitegrey1-dark dark:hover:text-primaryColor ${
         type === "secondary" || dropdown
           ? "flex justify-between items-center px-25px py-10px "
           : "p-10px "
