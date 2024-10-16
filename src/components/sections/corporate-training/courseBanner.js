@@ -7,7 +7,8 @@ import DotIcon from "@/assets/images/corporate-training/dot-icon.svg"
 function CourceBanner() {
     const courses = [
         {
-          heading: "Let’s collaborate and discuss your training needs.",
+          heading: "Let’s collaborate and discuss your",
+          headings:"training needs.",
           description:
             "Embark on a transformative journey towards success and unparalleled growth.",
           buttonText: "Let’s Connect",
@@ -24,6 +25,7 @@ function CourceBanner() {
         <CourseBanner
           key={index}
           heading={course.heading}
+          headings={course.headings}
           description={course.description}
           buttonText={course.buttonText}
           imageUrl={course.imageUrl}
