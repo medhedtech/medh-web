@@ -1,12 +1,12 @@
-import React from "react";
+import React from 'react'
 import Image from "next/image";
 import MainBanner from "@/components/course-banner/mainBanner";
-import Banner from "@/assets/images/corporate-training/banner.png";
-import Cource from "@/assets/images/corporate-training/banner-logo.svg";
+import Banner from "@/assets/images/news-media/banner.png";
+import Cource from "@/assets/images/news-media/banner-logo.svg";
 import Iso from "@/assets/images/vedic-mathematics/vedic-logo.svg";
 import LetsConnect from "@/assets/images/news-media/btn-vertical.svg";
 
-export default function CorporateBanner () {
+export default function BannerNews () {
    
 
   return (
@@ -23,11 +23,8 @@ export default function CorporateBanner () {
         isoText="ISO CERTIFIED"
         slogan="Medh Hain Toh Mumkin Hain!"
         buttonImage={LetsConnect}
+        //  buttonTextColor="#FF5733"
       />
     </div>
   );
 }
-
-
-
-
