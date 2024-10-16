@@ -8,7 +8,7 @@ const TiltWrapper = ({ children }) => {
   useEffect(() => {
     //hover effect parallex
     VanillaTilt.init(document.querySelectorAll(".tilt"), {
-      perspective: 2000,
+      perspective: 1000,
     });
   }, []);
   return children;
