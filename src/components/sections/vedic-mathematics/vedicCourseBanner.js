@@ -5,12 +5,11 @@ import CourseBannerImg from "../../../assets/images/personality/coursebannerimg.
 import DotIcon from "@/assets/images/corporate-training/dot-icon.svg";
 import VerticalIcon from "@/assets/images/news-media/vertical-white.svg";
 
-export default function DigiMarketingCourceBanner() {
+export default function VedicCourceBanner() {
   const courses = [
     {
-      heading: "Secure Your Future in Data-Driven Online Marketing.",
-      description: "Join Digital Marketing with Data Analytics Course.",
-      actionText: "Take Actions for Your Brighter Future Today!",
+      heading: "Join us in unlocking the magic of Vedic Mathematics.",
+      description: "Embark on a journey of mathematical discovery and empowerment.",
       buttonText: "Enroll Now",
       imageUrl: CourseBannerImg,
       buttonBgColor: "#5F2DED", // Dynamic background color
@@ -29,7 +28,6 @@ export default function DigiMarketingCourceBanner() {
           key={index}
           heading={course.heading}
           description={course.description}
-          actionText={course.actionText}
           buttonText={course.buttonText}
           imageUrl={course.imageUrl}
           onButtonClick={() => handleEnrollClick(course)}
