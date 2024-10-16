@@ -16,7 +16,7 @@ const Courses = async () => {
   return (
     <PageWrapper>
       <main>
-        <div className="relative w-full h-[700px] md:h-[500px]">
+        <div className="relative w-full h-[700px7] md:h-[500px]">
           {/* Background Image */}
           <Image
             src={coursesBg}
