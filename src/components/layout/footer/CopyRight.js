@@ -2,11 +2,68 @@ import Image from "next/image";
 import React from "react";
 import logoImage from "@/assets/images/logo/logo_2.png";
 import useIsSecondary from "@/hooks/useIsSecondary";
+import qr from "@/assets/images/footer/qr.png";
 const CopyRight = () => {
   const { isSecondary } = useIsSecondary();
   return (
     <div>
-      {isSecondary ? (
+      <div className="relative mx-auto mt-6 w-[150px] h-[150px]">
+        <Image src={qr} alt="qr" fill className="object-contain" />
+      </div>
+      <div className="mx-auto flex justify-center mt-3">
+        <ul className="flex gap-3 lg:gap-2 2xl:gap-3 lg:justify-end">
+          <li>
+            <a
+              href="https://www.facebook.com"
+              className="w-40.19px lg:w-35px 2xl:w-40.19px h-37px rounded-full lg:h-35px 2xl:h-37px leading-37px lg:leading-35px 2xl:leading-37px text-white bg-white bg-opacity-10 text-center"
+            >
+              <i className="icofont-facebook"></i>
+            </a>
+          </li>
+
+          <li>
+            <a
+              href="https://www.linkedin.com"
+              className="w-40.19px lg:w-35px 2xl:w-40.19px h-37px rounded-full lg:h-35px 2xl:h-37px leading-37px lg:leading-35px 2xl:leading-37px text-white bg-white bg-opacity-10 text-center"
+            >
+              <i className="icofont-linkedin"></i>
+            </a>
+          </li>
+          <li>
+            <a
+              href=""
+              className="w-40.19px lg:w-35px 2xl:w-40.19px h-37px rounded-full lg:h-35px 2xl:h-37px leading-37px lg:leading-35px 2xl:leading-37px text-white bg-white bg-opacity-10 text-center"
+            >
+              <i className="icofont-instagram"></i>
+            </a>
+          </li>
+          <li>
+            <a
+              href=""
+              className="w-40.19px lg:w-35px 2xl:w-40.19px h-37px rounded-full lg:h-35px 2xl:h-37px leading-37px lg:leading-35px 2xl:leading-37px text-white bg-white bg-opacity-10 text-center"
+            >
+              <i className="icofont-youtube-play"></i>
+            </a>
+          </li>
+        </ul>
+      </div>
+      <div className="text-white flex justify-center gap-1 mt-2 text-sm">
+        <span>Terms of Service </span>|<span>Privacy Policy</span>|
+        <span>Reschedule Policy</span>|<span>Cancellation & Refund Policy</span>
+      </div>
+      <div>
+        <h3 className="text-sm text-white text-center mt-4">
+          All trademarks and logos appearing on this website are the property of
+          their respective owners.
+        </h3>
+        <p className="text-sm text-white text-center">
+          Copyright © 2023. All Rights Reserved.
+        </p>
+        <p className="text-sm text-white text-center">
+          MEDH – LEARN. UPSKILL. ELEVATE.
+        </p>
+      </div>
+      {/* {isSecondary ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-10 lg:mt-4 items-center border-t border-darkcolor">
           <div>
             <p className="text-base text-center sm:text-start text-darkgray">
@@ -99,7 +156,7 @@ const CopyRight = () => {
             </ul>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 };
