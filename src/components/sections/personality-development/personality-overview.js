@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 
-// Example of importing JSON content
 const data = {
   tabs: [
     {
