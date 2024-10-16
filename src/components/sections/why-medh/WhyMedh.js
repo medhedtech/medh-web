@@ -1,45 +1,14 @@
 "use client";
 import Image from "next/image";
 import React from "react";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
-import Slider from "react-slick";
-import iso27001 from "@/assets/images/iso/iso27001.png";
-import iso10002 from "@/assets/images/iso/iso10002.png";
-import iso20000 from "@/assets/images/iso/iso20000.png";
-import iso22301 from "@/assets/images/iso/iso22301.png";
-import iso9001 from "@/assets/images/iso/iso9001.png";
 import placement from "@/assets/images/iso/placement.png";
 import bgImg from "@/assets/images/herobanner/bg-img.jpeg";
 import hire from "@/assets/images/hire/Hire.png";
 import ArrowIcon from "@/assets/images/icon/ArrowIcon";
 import InfoIcon from "@/assets/images/icon/InfoIcon";
+import Certified from "./Certified";
 
 const WhyMedh = () => {
-  var settings = {
-    dots: true,
-    infinite: true,
-    speed: 500,
-    arrows: false,
-    slidesToShow: 4,
-    slidesToScroll: 1,
-    responsive: [
-      {
-        breakpoint: 1024, // Tablets
-        settings: {
-          slidesToShow: 2,
-          slidesToScroll: 1,
-        },
-      },
-      {
-        breakpoint: 768, // Mobile devices
-        settings: {
-          slidesToShow: 1,
-          slidesToScroll: 1,
-        },
-      },
-    ],
-  };
   return (
     <div>
       {/* Job Guarantee Section */}
@@ -124,55 +93,8 @@ const WhyMedh = () => {
       </div>
 
       {/* Certified & Recognized By Section */}
-      <div className="bg-gray-100 py-12">
-        <h3 className="text-center text-[#5C6574] text-size-32 leading-34px font-bold mb-8">
-          Certified & Recognized By
-        </h3>
-        <div className="mx-30">
-          <Slider {...settings}>
-            <div className="flex justify-center items-center h-full">
-              <Image
-                src={iso10002}
-                width={100}
-                height={162}
-                alt="ISO 10002 Certification"
-              />
-            </div>
-            <div className="flex justify-center items-center h-full">
-              <Image
-                src={iso27001}
-                width={100}
-                height={162}
-                alt="ISO 27001 Certification"
-              />
-            </div>
-            <div className="flex justify-center items-center h-full">
-              <Image
-                src={iso20000}
-                width={100}
-                height={162}
-                alt="ISO 20000 Certification"
-              />
-            </div>
-            <div className="flex justify-center items-center h-full">
-              <Image
-                src={iso22301}
-                width={100}
-                height={162}
-                alt="ISO 22301 Certification"
-              />
-            </div>
-            <div className="flex justify-center items-center h-full">
-              <Image
-                src={iso9001}
-                width={100}
-                height={162}
-                alt="ISO 9001 Certification"
-              />
-            </div>
-          </Slider>
-        </div>
-      </div>
+
+      <Certified />
     </div>
   );
 };
