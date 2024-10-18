@@ -32,7 +32,6 @@ const TechEducator = () => {
           </p>
         </div>
 
-        {/* Render the cards for each criteria */}
         <div className="mt-10 w-full flex flex-wrap justify-center gap-6">
           {criteriaData.map((item, index) => (
             <div
