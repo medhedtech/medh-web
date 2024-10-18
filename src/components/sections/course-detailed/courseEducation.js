@@ -3,7 +3,7 @@ import React from "react";
 import Education from "@/assets/images/course-detailed/education.svg";
 import Emi from "@/assets/images/course-detailed/emi-card.svg";
 import Mode from "@/assets/images/course-detailed/mode.svg";
-import Course from "@/assets/images/course-detailed/Course.svg";
+import Course from "@/assets/images/course-detailed/course.svg"
 import Session from "@/assets/images/course-detailed/session.svg";
 import Classes from "@/assets/images/course-detailed/classes.svg";
 import Projects from "@/assets/images/course-detailed/project.svg";
