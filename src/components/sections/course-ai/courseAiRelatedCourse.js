@@ -27,14 +27,16 @@ function CourseAiRelatedCourses() {
   ];
 
   return (
-    <div className="w-full bg-white h-auto py-6 flex justify-center items-center flex-col">
+    <div className="w-full bg-white h-auto pb-6 flex justify-center items-center flex-col">
       <p
         className="text-[#727695] text-md  text-center px-4
         "
       >
         By enrolling in MEDH’s AI and Data Science course, you will gain a
-        comprehensive understanding of these dynamic fields, <br /> preparing you to
-        excel in an ever-evolving industry.
+        comprehensive understanding of
+        <br /> these
+        <br /> dynamic fields, preparing you to excel in an ever-evolving
+        industry.
       </p>
       <h1 className="text-center text-[#5C6574] text-3xl font-bold py-5 ">
         Related Courses
