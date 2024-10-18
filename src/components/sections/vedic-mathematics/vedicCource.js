@@ -3,9 +3,9 @@
 import React, { useState } from "react";
 import CategoryFilter from "../courses/CategoryFilter";
 import CourseCard from "../courses/CourseCard";
-import Card1 from "./../../../assets/images/vedic-mathematics/card-1.svg"; 
-import Card2 from "./../../../assets/images/vedic-mathematics/card-2.svg"; 
-import Card3 from "./../../../assets/images/vedic-mathematics/card-3.svg"; 
+import Card1 from "./../../../assets/images/vedic-mathematics/card-1.svg";
+import Card2 from "./../../../assets/images/vedic-mathematics/card-2.svg";
+import Card3 from "./../../../assets/images/vedic-mathematics/card-3.svg";
 import Registration from "../registrations/Registration";
 
 function VedicCource() {
@@ -28,7 +28,7 @@ function VedicCource() {
       label: "Personality Development",
       grade: "(Grade 1-2)",
       duration: "6 Months Course",
-      image:Card3,
+      image: Card3,
     },
     {
       title: "Certificate in",
@@ -45,26 +45,26 @@ function VedicCource() {
       image: Card2,
     },
     {
-        title: "Certificate in",
-        label: "Personality Development",
-        grade: "(Grade 1-2)",
-        duration: "6 Months Course",
-        image: Card2,
-      },
-      {
-        title: "Certificate in",
-        label: "Personality Development",
-        grade: "(Grade 1-2)",
-        duration: "9 Months Course",
-        image: Card2,
-      },
-      {
-        title: "Certificate in",
-        label: "Personality Development",
-        grade: "(Grade 1-2)",
-        duration: "3 Months Course",
-        image: Card1,
-      },
+      title: "Certificate in",
+      label: "Personality Development",
+      grade: "(Grade 1-2)",
+      duration: "6 Months Course",
+      image: Card2,
+    },
+    {
+      title: "Certificate in",
+      label: "Personality Development",
+      grade: "(Grade 1-2)",
+      duration: "9 Months Course",
+      image: Card2,
+    },
+    {
+      title: "Certificate in",
+      label: "Personality Development",
+      grade: "(Grade 1-2)",
+      duration: "3 Months Course",
+      image: Card1,
+    },
   ];
 
   const filteredCourses = selectedCategory
@@ -79,9 +79,9 @@ function VedicCource() {
       <div className="bg-white text-lightGrey14 flex justify-center py-10">
         <div className="w-full md:w-[80%] max-w-[1200px]">
           <h2 className="text-[22px] md:text-3xl font-bold mb-4 text-center text-[#5C6574] pb-10">
-          Course Options in Vedic Mathematics (Grade Wise)
+            Course Options in Vedic Mathematics (Grade Wise)
           </h2>
-          
+
           <div className="flex flex-col md:flex-row justify-between items-center mb-6 space-y-4 md:space-y-0">
             <div className="flex items-center border border-[#CDCFD5] px-3 py-2 rounded-md w-full md:w-[50%] lg:w-[40%]">
               <svg
@@ -114,15 +114,15 @@ function VedicCource() {
           </div>
 
           <div className="flex flex-col md:flex-row gap-6">
-            <div className="w-full md:w-1/4">
+            <div className="w-full px-2 md:w-1/4">
               <CategoryFilter
                 categories={categories}
                 setSelectedCategory={setSelectedCategory}
-                heading='Grade'
+                heading="Grade"
               />
             </div>
 
-            <div className="w-full md:w-3/4">
+            <div className="w-full md:w-3/4 px-2">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredCourses.map((course) => (
                   <CourseCard key={course.title} course={course} />
@@ -145,7 +145,7 @@ function VedicCource() {
       </div>
       <Registration />
     </>
-  )
+  );
 }
 
-export default VedicCource
+export default VedicCource;

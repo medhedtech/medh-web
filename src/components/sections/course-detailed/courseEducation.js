@@ -30,18 +30,18 @@ const courseInfo = [
   {
     label: "DURATION",
     value: "4 months / 16 weeks",
-    icon: Couresegray
+    icon: Couresegray,
   },
   {
     label: "ONLINE SESSIONS",
     value: "32 (90-120 min each)",
-    icon: Modegray
+    icon: Modegray,
   },
   {
     label: "MODE",
     value: "Live Online",
-    icon: Sessiongray
-  }
+    icon: Sessiongray,
+  },
 ];
 
 function CourseEducation() {
@@ -62,7 +62,7 @@ function CourseEducation() {
           <h1 className="lg:text-3xl text-[22px] font-bold text-[#5C6574] mb-2 lg:w-[70%] w-full">
             Digital Marketing with Data Analytics Foundation Certificate
           </h1>
-          <div className="flex space-x-8 lg:text-sm text-[12px] text-gray-500 mb-4 lg:space-x-12">
+          <div className="flex space-x-0 lg:text-sm text-[12px] text-gray-500 mb-4 lg:space-x-12">
             {courseInfo.map((info, index) => (
               <div key={index} className="flex space-x-8 lg:space-x-12">
                 <div className="flex justify-center items-center">
@@ -75,7 +75,7 @@ function CourseEducation() {
                   </div>
                 </div>
                 {index !== courseInfo.length - 1 && (
-                  <span className="border-r-2 lg:pr-16 pr-8"></span>
+                  <span className="border-r-2 lg:pr-10 pr-0"></span>
                 )}
               </div>
             ))}
@@ -100,11 +100,11 @@ function CourseEducation() {
                 <button className="text-[#F2277E]">Share</button>
               </div>
             </div>
-            <div className="flex space-x-4 my-2 text-[15px]">
+            <div className="flex gap-4 my-2 text-sm  md:text-[15px]">
               <button className="bg-[#F2277E] text-white px-8 py-1 rounded-[30px] hover:bg-pink-600">
                 BUY NOW
               </button>
-              <button className="bg-gray-200 text-gray-700 px-9 py-1 rounded-[30px] hover:bg-gray-300">
+              <button className="bg-inherit text-[#F2277E] border border-[#F2277E] px-5 py-1 rounded-[30px] hover:bg-[#F2277E] hover:text-white">
                 WISHLIST
               </button>
             </div>
