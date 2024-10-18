@@ -1,0 +1,102 @@
+"use client";
+import React, { useState } from "react";
+import Image from "next/image";
+import Left from "@/assets/images/personality/left.svg";
+import Down from "@/assets/images/personality/down.svg";
+
+export default function CaurseFaq() {
+  const [openIndex, setOpenIndex] = useState(null);
+
+  const toggleFAQ = (index) => {
+    setOpenIndex(openIndex === index ? null : index);
+  };
+
+  const faqs = [
+    {
+      question: "What are the key highlights of the 3 months Certificate course in Digital Marketing with Data Analytics?",
+      answer:
+        "The Personality Development Course is designed to help individuals enhance their personal and professional skills through various interactive sessions and practical exercises.",
+    },
+    {
+      question: "How will this course prepare me for entry-level roles in digital marketing and data analytics?",
+      answer:
+        "The duration of the course is typically 6 weeks, with classes held twice a week.",
+    },
+    {
+      question: "HCan this course serve as a stepping stone for further career development in digital marketing and data analytics?",
+      answer:
+        "Yes, the course is suitable for individuals of all ages, from students to professionals.",
+    },
+    {
+      question: "What networking opportunities can participants expect from this program?",
+      answer:
+        "The course covers various topics such as communication skills, leadership, teamwork, and self-awareness.",
+    },
+    {
+      question:
+        "How does the course address ethical considerations in digital marketing and data analytics?",
+      answer:
+        "Absolutely! The skills learned in this course are highly beneficial for career growth and personal development.",
+    },
+    {
+      question: "Is Vedic Math course different from Math tuitions?",
+      answer:
+        "The Personality Development Course is designed to help individuals enhance their personal and professional skills through various interactive sessions and practical exercises.",
+    },
+    {
+      question: "What practical skills and applications can participants expect to develop during the 3 months Certificate course?",
+      answer:
+        "The duration of the course is typically 6 weeks, with classes held twice a week.",
+    },
+    {
+      question: "How does the 3 months Certificate course cater to the needs of professionals seeking foundational knowledge in digital marketing and data analytics?",
+      answer:
+        "Yes, the course is suitable for individuals of all ages, from students to professionals.",
+    },
+   
+    {
+      question: "Is financial assistance available for the course?",
+      answer:
+        "Absolutely! The skills learned in this course are highly beneficial for career growth and personal development.",
+    },
+  ];
+
+  return (
+    <div className="bg-white text-lightGrey14 flex  md:py-10 px-4 md:px-4">
+      <div className="lg:w-[62%] w-full lg:ml-[7%] ">
+        <h2 className="md:text-3xl text-[22px] font-bold mb-4 text-center text-primaryColor">
+          FAQs
+        </h2>
+       
+        <div className="space-y-1">
+          {faqs.map((faq, index) => (
+            <div key={index} className="border shadow-md py-2">
+              <div
+                className="flex  items-center py-4 cursor-pointer px-2 sm:px-4"
+                onClick={() => toggleFAQ(index)}
+              >
+                {/* Icon comes first now */}
+                <span className="md:text-[15px] text-[14px]">
+                  {openIndex === index ? (
+                    <Image src={Down} width={20} height={23} alt="Down Icon" />
+                  ) : (
+                    <Image src={Left} width={27} height={25} alt="Left Icon" />
+                  )}
+                </span>
+                <h3 className="md:text-[15px] text-[14px] md:pl-3 font-semibold">
+                  {faq.question}
+                </h3>
+              </div>
+              {openIndex === index && (
+                <p className="text-lightGrey14 pb-4 px-2 md:pl-12 sm:px-4 md:text-[15px] text-[14px]">
+                  {faq.answer}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+        <p className="text-primaryColor pt-10 pr-5">Note: If you have any other questions or concerns not covered in the FAQs, please feel free to contact our support team, and we’ll be happy to assist you!</p>
+      </div>
+    </div>
+  );
+}
