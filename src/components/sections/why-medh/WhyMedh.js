@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import React from "react";
-import placement from "@/assets/images/iso/placement.png";
+import placement from "@/assets/images/iso/Placement.png";
 import bgImg from "@/assets/images/herobanner/bg-img.jpeg";
 import hire from "@/assets/images/hire/Hire.png";
 import ArrowIcon from "@/assets/images/icon/ArrowIcon";
