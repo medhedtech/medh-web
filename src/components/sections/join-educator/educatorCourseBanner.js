@@ -11,8 +11,8 @@ function EducatorCourceBanner() {
       headings: "training needs.",
       buttonText: "Let’s Connect",
       imageUrl: CourseBannerImg, 
-      buttonBgColor: "#F2277E", // Dynamic background color
-      icon: DotIcon, // Icon to display in the button
+      buttonBgColor: "#F2277E", 
+      icon: DotIcon, 
     },
   ];
 
@@ -31,8 +31,8 @@ return (
       buttonText={course.buttonText}
       imageUrl={course.imageUrl}
       onButtonClick={() => handleEnrollClick(course)}
-      buttonBgColor={course.buttonBgColor} // Pass dynamic button color
-      icon={course.icon} // Pass icon for button
+      buttonBgColor={course.buttonBgColor} 
+      icon={course.icon} 
     />
   ))}
 </div>
