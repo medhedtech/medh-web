@@ -1,6 +1,6 @@
 import React from "react";
 import Image from "next/image";
-import Banner from "@/assets/images/personality/banner.png";
+import Banner from "@/assets/images/hireformmedh/banner.png";
 import DevelopmentImg from "@/assets/images/personality/development-cource.svg";
 import Iso from "@/assets/images/personality/iso-icon.svg";
 import Enroll from "@/assets/images/personality/enroll-icon.svg";
@@ -18,6 +18,7 @@ function HireFromMedhBanner() {
             className="w-full h-full"
           />
         </div>
+        <div className="absolute w-full inset-0 bg-black opacity-30 z-10" />
 
         <div className="w-[90%] h-full flex items-center justify-between bg-black md:bg-transparent md:absolute md:top-0 md:bottom-0">
           <div className="w-full md:w-[48%]  ml-0 md:ml-12">
@@ -77,8 +78,14 @@ function HireFromMedhBanner() {
         </div>
       </div>
       <div className="py-6 bg-white text-center space-y-3 px-4">
-        <h1 className="text-2xl md:text-4xl font-bold text-[#5C6574] ">Start your hiring process now with Recruit @ Medh.</h1>
-        <p className="text-[#727695] tracking-wide text-[14px]">Providing access to top talent in the IT domain. Our platform offers a seamless experience for effortlessly <br /> recruiting industry-trained IT Professionals who are job-ready.</p>
+        <h1 className="text-2xl md:text-4xl font-bold text-[#5C6574] ">
+          Start your hiring process now with Recruit @ Medh.
+        </h1>
+        <p className="text-[#727695] tracking-wide text-[14px]">
+          Providing access to top talent in the IT domain. Our platform offers a
+          seamless experience for effortlessly <br /> recruiting
+          industry-trained IT Professionals who are job-ready.
+        </p>
       </div>
     </>
   );
