@@ -1,13 +1,16 @@
 import React from "react";
 import Image from "next/image";
-import Arrow from "@/assets/images/join-educator/arrow1.png";
-import Logo1 from "@/assets/images/join-educator/logo-1.svg";
-import Logo2 from "@/assets/images/join-educator/logo-2.svg";
-import Logo3 from "@/assets/images/join-educator/logo-3.svg";
-import Logo4 from "@/assets/images/join-educator/logo-4.svg";
-import Logo5 from "@/assets/images/join-educator/logo-5.svg";
-import Logo6 from "@/assets/images/join-educator/logo-6.svg";
-import Logo7 from "@/assets/images/join-educator/logo-7.svg";
+import Logo1 from "@/assets/images/join-as-school/logo-1.svg";
+import Logo2 from "@/assets/images/join-as-school/logo-2.svg";
+import Logo3 from "@/assets/images/join-as-school/logo-3.svg";
+import Logo4 from "@/assets/images/join-as-school/logo-4.svg";
+import Logo5 from "@/assets/images/join-as-school/logo-5.svg";
+import Logo6 from "@/assets/images/join-as-school/logo-6.svg";
+import Logo7 from "@/assets/images/join-as-school/logo-7.svg";
+import Logo8 from "@/assets/images/join-as-school/logo-8.svg";
+import Logo9 from "@/assets/images/join-as-school/logo-9.svg";
+import Logo10 from "@/assets/images/join-as-school/logo-10.svg";
+import Logo11 from "@/assets/images/join-as-school/logo-11.svg";
 
 
 const advantagesData = [
@@ -62,14 +65,14 @@ const advantagesData = [
   },
   {
     id:8,
-    icon: Logo5,
+    icon: Logo8,
     title: "Making Students Future-ready",
     description:
       "Collaboration empowers with modern, cost- effective, and engaging skill development solutions, enhancing student learning, diversifying skill sets, and preparing them for the future job market.",
   },
   {
     id:9,
-    icon: Logo5,
+    icon: Logo9,
     title: "Integration of Technology",
     description:
       "Collaborate to integrate our state-of-the-art tools, platforms, and applications into their teaching methods, enhancing students’ digital literacy and technological proficiency.",
@@ -80,14 +83,14 @@ const advantagesData = [
 const advantagesPotentialData = [
   {
     id:1,
-    icon: Logo2,
+    icon: Logo10,
     title: "Increased Student Engagement and Motivation",
     description:
       "Gamified learning, interactive quizzes, and real-time progress tracking make the learning process more enjoyable and encourage active participation and motivation.",
   },
   {
     id:2,
-    icon: Logo2,
+    icon: Logo11,
     title: "Enhanced Curriculum and Learning Experience",
     description:
       "Enrich the existing curriculum by integrating cutting-edge technologies and innovative teaching methods to make learning more engaging, interactive, and effective for students.",
@@ -116,10 +119,10 @@ const KeyAdvantages = () => {
           {advantagesData.map((advantages, index) => (
             <div
               key={index}
-              className=" px-2 py-3 text-center bg-white rounded-3xl border border-[#0000004D] shadow-card-custom w-full transition-transform duration-300 ease-in-out hover:shadow-lg hover:scale-105 "
+              className=" px-2 py-1 text-center bg-white rounded-3xl border border-[#0000004D] shadow-card-custom w-full transition-transform duration-300 ease-in-out hover:shadow-lg hover:scale-105 "
             >
-              <Image src={advantages.icon} alt="img" className="mx-auto h-16 mb-2" />
-              <h3 className="text-[15px] leading-7 font-bold text-[#252525]  font-Open">
+              <Image src={advantages.icon} alt="img" className="mx-auto h-16   mb-1" />
+              <h3 className="text-[15px] leading-7 font-bold text-[#252525]  font-Open mb-1">
                 {advantages.title}
               </h3>
               <p className="text-[#252525] text-[15px] leading-7 font-normal font-Open ">
@@ -135,11 +138,11 @@ const KeyAdvantages = () => {
             {advantagesPotentialData.map((item, index) => (
               <div
                 key={index}
-                className="w-full px-2 py-3 text-center  bg-white shadow-card-custom rounded-2xl border border-[#0000004D] flex flex-col transition-transform duration-300 ease-in-out hover:shadow-lg hover:scale-105"
+                className="w-full px-2 py-1 text-center  bg-white shadow-card-custom rounded-2xl border border-[#0000004D] flex flex-col transition-transform duration-300 ease-in-out hover:shadow-lg hover:scale-105"
                 
               >
-                <Image src={item.icon} alt="img" className="mx-auto h-16 mb-2" />
-                <h3 className="text-[15px] leading-7 font-bold text-[#252525] font-Open">
+                <Image src={item.icon} alt="img" className="mx-auto h-16 mb-1" />
+                <h3 className="text-[15px] leading-7 font-bold text-[#252525] font-Open mb-1">
                   {item.title}
                 </h3>
                 <p className="text-[#252525] text-[15px] leading-7 font-normal font-Open flex-grow">
