@@ -8,7 +8,10 @@ import Recycleicon from "@/assets/images/icon/Recycleicon";
 
 const AtMedh = () => {
   return (
-    <div className="mx-4 md:mx-10 lg:mx-40 font-bold text-2xl md:text-3xl my-10 text-[#5C6574]">
+    <div
+      data-aos="fade-up"
+      className="mx-4 md:mx-10 lg:mx-40 font-bold text-2xl md:text-3xl my-10 text-[#5C6574]"
+    >
       At <span className="text-[#5F2DED]">Medh,</span> we
       <div className="font-bold text-xl md:text-3xl text-[#5C6574] mt-8 flex flex-col lg:flex-row justify-between gap-5">
         <div className="text-sm md:text-base text-[#727695] mb-20 w-full lg:w-3/4">
