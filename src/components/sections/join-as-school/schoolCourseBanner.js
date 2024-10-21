@@ -2,7 +2,7 @@
 import React from 'react'
 import CourseBanner from "@/components/course-banner/courseBanner"; // Ensure this path is correct
 import CourseBannerImg from "../../../assets/images/personality/coursebannerimg.png";
-import DotIcon from "@/assets/images/corporate-training/dot-icon.svg"
+import Download from "@/assets/images/join-as-school/btn-logo.svg"
 
 function SchoolCourceBanner() {
   const courses = [
@@ -11,7 +11,7 @@ function SchoolCourceBanner() {
       buttonText: "Let’s Connect",
       imageUrl: CourseBannerImg, 
       buttonBgColor: "#F2277E", 
-      icon: DotIcon, 
+      icon: Download, 
     },
   ];
 
