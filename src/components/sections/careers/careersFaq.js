@@ -49,7 +49,7 @@ export default function CareerFaq() {
 
   return (
     <div className="bg-white text-lightGrey14 flex justify-center py-10">
-      <div className="md:w-[80%] w-[92%]">
+      <div className="md:w-[80%] w-[95%]">
         <h2 className="md:text-3xl text-[22px] font-bold mb-4 text-center text-[#5C6574]">
           Frequently Asked Questions (FAQs)
         </h2>

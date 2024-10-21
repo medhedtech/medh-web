@@ -1,8 +1,8 @@
 import React from "react";
 import Image from "next/image";
 import MainBanner from "@/components/course-banner/mainBanner";
-import Banner from "@/assets/images/join-educator/banner.png";
-import Cource from "@/assets/images/join-educator/educator-logo.svg";
+import Banner from "@/assets/images/join-as-school/banner.png";
+import Cource from "@/assets/images/join-as-school/school-logo.svg";
 import Iso from "@/assets/images/vedic-mathematics/vedic-logo.svg";
 import LetsConnect from "@/assets/images/news-media/btn-vertical.svg";
 
