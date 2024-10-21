@@ -13,11 +13,11 @@ const ButtonPagination = ({
   return (
     <button
       onClick={() => handlePagesnation(idx)}
-      className={`w-10 h-10 leading-10 md:w-50px md:h-50px md:leading-50px text-center disabled:cursor-not-allowed disabled:opacity-50  ${
+      className={`${
         idx === currentPage
-          ? "bg-primaryColor text-whiteColor  dark:hover:bg-primaryColor"
-          : "text-blackColor2  bg-whitegrey1  dark:text-blackColor2-dark  dark:bg-whitegrey1-dark "
-      } hover:text-whiteColor hover:bg-primaryColor dark:hover:text-whiteColor dark:hover:bg-primaryColor`}
+          ? "text-[#5F2DED] border-b-2 border-[#5F2DED] font-bold"
+          : "text-[#5C6574]"
+      } px-3 py-1 transition-colors duration-200`}
       disabled={
         type === "prev" && !skip
           ? true
