@@ -456,7 +456,8 @@ module.exports = {
 
       fontFamily: {
         Ubuntu: ["ubuntu", "sans"],
-        Poppins: ["poppins","sans"],
+        Poppins: ['Poppins', 'sans-serif'],
+        Open: ['Open Sans', 'sans-serif'],
       },
 
       //  font size
