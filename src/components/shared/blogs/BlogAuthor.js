@@ -8,11 +8,9 @@ const BlogAuthor = () => {
       className="p-5 md:p-30px lg:p-5 2xl:p-30px mb-30px border border-borderColor2 dark:border-borderColor2-dark text-center"
       data-aos="fade-up"
     >
-      {/* athor avatar */}
       <div className="mb-30px flex justify-center">
         <Image src={blogImag10} alt="" className="w-24 h-24 rounded-full" />
       </div>
-      {/* author name */}
       <div className="mb-3">
         <h3 className="mb-7px">
           <Link
@@ -26,12 +24,10 @@ const BlogAuthor = () => {
           Blogger/Photographer
         </p>
       </div>
-      {/* description */}
       <p className="text-sm text-contentColor dark:text-contentColor-dark mb-15px">
         Lorem ipsum dolor sit amet, consectetur adipisicing elit.Veritatis
         distinctio suscipit reprehenderit atque
       </p>
-      {/* social */}
       <div>
         <ul className="flex gap-10px justify-center items-center">
           <li>
