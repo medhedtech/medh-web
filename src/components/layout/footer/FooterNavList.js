@@ -10,23 +10,23 @@ const FooterNavList = () => {
       items: [
         {
           name: "As an Educator",
-          path: "/about",
+          path: "/join-as-educator",
         },
         {
           name: "As a School or Institute",
-          path: "/instructors",
+          path: "/join-as-school",
         },
         {
           name: "Medh Membership",
-          path: "#",
+          path: "/membership",
         },
         {
           name: "Hire from Medh (Recruit@Medh)",
-          path: "#",
+          path: "/hire-from-medh",
         },
         {
           name: "Careers at medh",
-          path: "#",
+          path: "/careers",
         },
       ],
     },
@@ -35,23 +35,23 @@ const FooterNavList = () => {
       items: [
         {
           name: "Corporate Traning",
-          path: "#",
+          path: "/corporate-training",
         },
         {
           name: "About Us",
-          path: "#",
+          path: "/about",
         },
         {
           name: "Blog",
-          path: "#",
+          path: "/blogs",
         },
         {
           name: "Contact Us",
-          path: "#",
+          path: "/contact",
         },
         {
           name: "Home",
-          path: "#",
+          path: "/",
         },
       ],
     },
@@ -60,23 +60,23 @@ const FooterNavList = () => {
       items: [
         {
           name: "AI and Data Science",
-          path: "#",
+          path: "/ai-data-science",
         },
         {
           name: "Degital Marketing with Data Analytics",
-          path: "#",
+          path: "/digital-marketing-data-science",
         },
         {
           name: "Personality Development",
-          path: "#",
+          path: "/personality-development",
         },
         {
           name: "Vedic Mathematics",
-          path: "#",
+          path: "/vedic-mathematics",
         },
         {
           name: "View Other Courses",
-          path: "#",
+          path: "/view-all-courses",
         },
       ],
     },

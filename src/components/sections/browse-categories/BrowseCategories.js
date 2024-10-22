@@ -1,5 +1,6 @@
 import Image from "next/image";
 import React from "react";
+import Link from "next/link";
 import personalityIcon from "@/assets/images/courses/Personal.png";
 import aiIcon from "@/assets/images/courses/ai.png";
 import vedicIcon from "@/assets/images/courses/Maths.png";
@@ -33,6 +34,7 @@ const BrowseCategories = () => {
 
       {/* Categories Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3  gap-6">
+      <Link href="/personality-development">
         {/* Category Card 1 */}
         <div className="bg-[#F2EEFF] flex flex-col justify-between shadow-md">
           <Image
@@ -46,8 +48,10 @@ const BrowseCategories = () => {
             Personality Development
           </h3>
         </div>
+          </Link>
 
         {/* Category Card 2 */}
+        <Link href="/ai-data-science">
         <div className="bg-[#F2EEFF] flex flex-col justify-between  rounded-lg shadow-md">
           <Image
             src={aiIcon}
@@ -60,8 +64,10 @@ const BrowseCategories = () => {
             AI and Data Science
           </h3>
         </div>
+        </Link>
 
         {/* Category Card 3 */}
+        <Link href="/vedic-mathematics">
         <div className="bg-[#F2EEFF] flex flex-col justify-between  shadow-md">
           <Image
             src={vedicIcon}
@@ -74,6 +80,7 @@ const BrowseCategories = () => {
             Vedic Mathematics
           </h3>
         </div>
+        </Link>
       </div>
 
       {/* Immersive Learning Section */}
