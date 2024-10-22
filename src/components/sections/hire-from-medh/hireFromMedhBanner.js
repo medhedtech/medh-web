@@ -4,7 +4,7 @@ import MainBanner from '@/components/course-banner/mainBanner';
 import Banner from '@/assets/images/hireformmedh/banner.png';
 import Cource from '@/assets/images/hireformmedh/banner-logo.svg';
 import Iso from '@/assets/images/hireformmedh/iso.svg';
-import Enroll from '@/assets/images/personality/enroll-icon.svg';
+import Enroll from "@/assets/images/career/dot-icon.svg";
 
 function DigiMarketingBanner() {
   return (
