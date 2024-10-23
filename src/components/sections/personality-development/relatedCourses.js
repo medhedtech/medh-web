@@ -28,10 +28,10 @@ function RelatedCourses() {
   ];
 
   return (
-    <div className="w-full bg-white dark:bg-[#050622] h-auto py-6 flex justify-center items-center flex-col">
+    <div className="w-full bg-white dark:bg-screen-dark h-auto py-6 flex justify-center items-center flex-col">
         <p className="text-[#727695] text-lg font-semibold text-center px-4 dark:text-gray-100
         ">We look forward to welcoming you on board to acquire the essential skills and knowledge to craft your success story</p>
-      <h1 className="text-center text-[#5C6574] text-3xl font-bold py-5 dark:text-gray-50 ">
+      <h1 className="text-center text-[#5C6574] text-3xl font-bold py-5 dark:text-gray50 ">
         Related Courses
       </h1>
       <div className="w-[80%] h-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

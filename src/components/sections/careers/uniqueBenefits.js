@@ -52,7 +52,7 @@ const advantagesPotentialData = [
 
 const UniqueBenefits = () => {
   return (
-    <section className="py-14 w-full dark:bg-black bg-white flex justify-center items-center">
+    <section className="py-14 w-full dark:bg-screen-dark bg-white flex justify-center items-center">
       <div className="w-[92%] lg:w-[80%]">
         <WelcomeCareers />
         {/* Benefits Section */}
@@ -67,7 +67,7 @@ const UniqueBenefits = () => {
           {advantagesData.map((advantages, index) => (
             <div
               key={index}
-              className=" px-2 pb-3 pt-1 text-center bg-white dark:bg-black dark:border-whitegrey rounded-3xl border border-[#0000004D] shadow-card-custom w-full transition-transform duration-300 ease-in-out hover:shadow-lg hover:scale-105 "
+              className=" px-2 pb-3 pt-1 text-center bg-white dark:bg-screen-dark dark:border-whitegrey rounded-3xl border border-[#0000004D] shadow-card-custom w-full transition-transform duration-300 ease-in-out hover:shadow-lg hover:scale-105 "
             >
               <Image
                 src={advantages.icon}
@@ -77,7 +77,7 @@ const UniqueBenefits = () => {
               <h3 className="text-[15px] leading-7 font-bold text-[#252525] dark:text-white font-Open">
                 {advantages.title}
               </h3>
-              <p className="text-[#252525] dark:text-whitegrey text-[15px] leading-7 font-normal font-Open ">
+              <p className="text-[#252525] dark:text-gray300 text-[15px] leading-7 font-normal font-Open ">
                 {advantages.description}
               </p>
             </div>
@@ -100,7 +100,7 @@ const UniqueBenefits = () => {
                 <h3 className="text-[15px] leading-7 font-bold dark:text-white text-[#252525] font-Open">
                   {item.title}
                 </h3>
-                <p className="text-[#252525] dark:text-whitegrey text-[15px] leading-7 font-normal font-Open flex-grow">
+                <p className="text-[#252525] dark:text-gray300 text-[15px] leading-7 font-normal font-Open flex-grow">
                   {item.description}
                 </p>
               </div>

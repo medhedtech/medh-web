@@ -76,14 +76,14 @@ function DigiMarketingOverview() {
   const activeContent = data.tabs.find((tab) => tab.id === activeTab);
 
   return (
-    <div className="bg-white dark:bg-[#050622]  h-auto pt-10 pb-6 w-full flex justify-center items-center px-1 md:px-0">
+    <div className="bg-white dark:bg-screen-dark  h-auto pt-10 pb-6 w-full flex justify-center items-center px-1 md:px-0">
       <div className="w-full md:w-[80%] ">
         {/* Title */}
         <div className="flex items-center flex-col w-80% md:mb-20 mb-10 px-4 ">
-          <h1 className="text-[24px] leading-7 md:text-4xl font-bold md:mb-3 mb-2 text-[#41454F] dark:text-gray-300">
+          <h1 className="text-[24px] leading-7 md:text-4xl font-bold md:mb-3 mb-2 text-[#41454F] dark:text-gray50">
           Your Path to Achieving Success in the Digital Age.
           </h1>
-          <p className="text-center md:text-[15px] text-[14px] leading-6 md:leading-7 md:w-[70%] text-[#727695]">
+          <p className="text-center md:text-[15px] text-[14px] leading-6 md:leading-7 md:w-[70%] dark:text-gray300 text-[#727695]">
           Gain expertise in using data analytics to improve digital marketing strategies. The Digital Marketing with Data Science course brings together two
           essential components of modern marketing—digital marketing and data analytics—allowing businesses to make informed, data-driven decisions and implement highly effective, targeted marketing campaigns.
           </p>
@@ -107,8 +107,8 @@ function DigiMarketingOverview() {
         </div>
 
         {/* Content Rendering */}
-        <section className="bg-white dark:bg-[#050622] dark:text-gray-300 px-5 md:px-6 py-8 border-2 border-gray-300 dark:border-gray-600 text-lightGrey14">
-          <h1 className="text-[23px] font-bold text-[#5C40FF] dark:text-gray-50">
+        <section className="bg-white dark:bg-screen-dark dark:text-gray-300 px-5 md:px-6 py-8 border-2 border-gray-300 dark:border-gray-600 text-lightGrey14">
+          <h1 className="text-[23px] font-bold text-[#5C40FF] ">
             {activeContent.name}
           </h1>
           <p className="mb-2 md:text-[15px] text-[14px]">
@@ -121,10 +121,10 @@ function DigiMarketingOverview() {
               
 
             
-              <ul className="list-none list-inside space-y-2 pb-2 dark:text-gray-300">
+              <ul className="list-none list-inside space-y-2 pb-2 dark:text-gray300">
                 {data.overview.keyFeatures.map((feature, index) => (
                   <li key={index}>
-                    <strong className="text-[1rem] font-bold tracking-wide dark:text-gray-50">
+                    <strong className="text-[1rem] font-bold tracking-wide dark:text-gray50">
                       {feature.title}:
                     </strong>{" "}
                     {feature.description}

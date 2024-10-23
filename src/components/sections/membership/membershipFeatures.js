@@ -48,21 +48,21 @@ const MembershipFeatures = () => {
   ];
 
   return (
-    <div className="flex  items-center justify-center py-10 lg:bg-[#F3F6FB] dark:bg-inherit bg-white ">
+    <div className="flex  items-center dark:bg-screen-dark justify-center py-10 lg:bg-[#F3F6FB] dark:bg-inherit bg-white ">
       <div className="lg:w-[80%] w-[90%] flex flex-col items-center justify-between ">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6  ">
           {features.map((feature, index) => (
             <div
               key={index}
-              className="border rounded-2xl shadow-box-custom p-8 bg-white dark:bg-black border-gray-400 "
+              className="border rounded-2xl shadow-box-custom p-8 bg-white dark:bg-screen-dark hover:scale-105 transition-transform duration-300 border-gray-400  "
             >
               <div className="flex items-center justify-center mb-5">
                 <Image src={feature.icon} width={70} />
               </div>
-              <h2 className="text-[19px] leading-6  font-semibold text-center mb-3">
+              <h2 className="text-[19px] leading-6  dark:text-gray50 font-semibold text-center mb-3">
                 {feature.title}
               </h2>
-              <p className="text-[15px] leading-7 dark:text-white text-gray-600 text-center">
+              <p className="text-[15px] leading-7 dark:text-gray300 text-gray-600 text-center">
                 {feature.description}
               </p>
             </div>
