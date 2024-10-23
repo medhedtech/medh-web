@@ -90,12 +90,12 @@ const BrandHero = () => {
 
       {/* Section Below */}
       <section data-aos="fade-up" className="">
-        <div className="flex flex-col items-center text-center font-Ubuntu bg-[#FFF0F7] py-8 px-4">
-          <h1 className="font-bold text-[20px] lg:text-[26px] leading-8 mt-8 lg:w-[674px]">
+        <div className="flex flex-col items-center text-center font-Ubuntu bg-[#FFF0F7] dark:bg-black py-8 px-4">
+          <h1 className="font-bold text-[20px] lg:text-[26px] leading-8 mt-8 lg:w-[674px] dark:text-white">
             Welcome to <span className="text-[#5F2DED]">Medh</span> | Pioneering
             Skill Development for every stage of life.
           </h1>
-          <div className="mt-4 text-sm lg:text-base lg:w-[820px]">
+          <div className="mt-4 text-sm lg:text-base lg:w-[820px] dark:text-whitegrey">
             MEDH, the leading global EdTech innovator, is dedicated to
             delivering skill development courses through cutting-edge technology
             and bespoke mentorship. To empower individuals at every stage of
@@ -103,7 +103,7 @@ const BrandHero = () => {
             college) to working professionals and homemakers, with the knowledge
             and capabilities to excel in today's dynamic world.
           </div>
-          <span className="font-bold text-sm lg:text-base pb-8 mt-4">
+          <span className="font-bold text-sm lg:text-base pb-8 mt-4 dark:text-white">
             We nurture growth, foster expertise, and ignite potential for
             learners of every background.
           </span>
