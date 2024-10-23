@@ -23,7 +23,7 @@ function CourceBanner() {
   };
 
   return (
-    <div className="bg-white dark:bg-black  flex justify-center items-center flex-col lg:pb-12 pb-10">
+    <div className="bg-white dark:bg-screen-dark  flex justify-center items-center flex-col lg:pb-12 pb-10">
       {courses.map((course, index) => (
         <CourseBanner
           key={index}

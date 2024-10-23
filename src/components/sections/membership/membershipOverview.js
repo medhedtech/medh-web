@@ -54,10 +54,10 @@ export default function MembershipOverview() {
   const activeContent = data.tabs.find((tab) => tab.id === activeTab);
 
   return (
-    <div className="bg-white dark:bg-black h-auto pt-10 pb-6 w-full flex justify-center items-center px-1 md:px-0">
+    <div className="bg-white dark:bg-screen-dark h-auto pt-10 pb-6 w-full flex justify-center items-center px-1 md:px-0">
       <div className="w-full lg:w-[80%]">
         {/* Title */}
-        <div className="flex items-center flex-col w-80% md:mb-20 mb-10 px-4">
+        <div className="flex items-center flex-col w-80% md:mb-20 mb-10 px-4 ">
           <h1 className="text-[24px] leading-7 md:text-4xl font-bold md:mb-1 mb-2 dark:text-white text-[#000000]">
             Unlock Your Potential with MEDH Membership!
           </h1>
@@ -65,7 +65,7 @@ export default function MembershipOverview() {
             Become an expert in your chosen field of interest by gaining
             comprehensive knowledge and skills.
           </p>
-          <p className="text-center md:text-[15px] text-[14px] leading-6 md:leading-7 md:w-[90%] text-[#727695] mt-3">
+          <p className="text-center md:text-[15px] dark:text-gray300 text-[14px] leading-6 md:leading-7 md:w-[90%] text-[#727695] mt-3">
             Welcome to MEDH Membership, where we empower individuals, students,
             and educational institutions with exclusive benefits that foster
             growth, learning, and success. Whether you are looking to enhance
@@ -93,7 +93,7 @@ export default function MembershipOverview() {
         </div>
 
         {/* Content Rendering */}
-        <section className="bg-white dark:bg-black px-5 md:px-6 py-8 border-2 border-gray-300 text-lightGrey14 lg:mx-0 mx-2">
+        <section className="bg-white dark:bg-screen-dark px-5 md:px-6 py-8 border-2 border-gray-300 text-lightGrey14 lg:mx-0 mx-2">
           <h1 className="text-[23px] font-bold text-[#5F2DED]">
             {activeContent.heading}
           </h1>

@@ -27,9 +27,9 @@ function CourseAiRelatedCourses() {
   ];
 
   return (
-    <div className="w-full bg-white dark:bg-[#050622] h-auto pb-6 flex justify-center items-center flex-col pt-10">
+    <div className="w-full bg-white dark:bg-screen-dark h-auto pb-6 flex justify-center items-center flex-col pt-10">
       <p
-        className="text-[#727695] text-md  text-center px-4 dark:text-gray-300
+        className="text-[#727695] text-md  text-center px-4 dark:text-gray300
         "
       >
         By enrolling in MEDH’s AI and Data Science course, you will gain a
@@ -38,7 +38,7 @@ function CourseAiRelatedCourses() {
         <br /> dynamic fields, preparing you to excel in an ever-evolving
         industry.
       </p>
-      <h1 className="text-center text-[#5C6574] text-3xl font-bold py-5 dark:text-gray-50 ">
+      <h1 className="text-center text-[#5C6574] text-3xl font-bold py-5 dark:text-gray50 ">
         Related Courses
       </h1>
       <div className="w-[80%] h-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

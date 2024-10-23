@@ -98,9 +98,9 @@ function VedicFaq() {
   ];
 
   return (
-    <div className="bg-white dark:bg-[#050622]  text-lightGrey14 flex justify-center py-4 mb-5">
+    <div className="bg-white  dark:bg-screen-dark text-lightGrey14 flex justify-center py-10 ">
       <div className="md:w-[80%] w-[90%] dark:text-gray-300">
-        <h2 className="md:text-3xl text-[22px] font-bold mb-4 text-center text-[#5C6574] dark:text-gray-50">
+        <h2 className="md:text-3xl text-[22px] font-bold mb-4 text-center text-[#5C6574] dark:text-gray50">
           Frequently Asked Questions (FAQs)
         </h2>
         <p className="text-center md:text-[15px] text-[14px] mb-8 md:px-14 px-3">
