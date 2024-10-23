@@ -19,14 +19,14 @@ const NavItems = () => {
     {
       id: 2,
       name: "Corporate Training",
-      path: "/courses",
+      path: "/corporate-training",
       // dropdown: <DropdownCourses />,
       isRelative: false,
     },
     {
       id: 3,
       name: "Hire From Medh",
-      path: "",
+      path: "/hire-from-medh",
       dropdown: <DropdownDashboard />,
       isRelative: true,
     },

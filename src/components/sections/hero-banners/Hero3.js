@@ -15,7 +15,7 @@ const Hero3 = () => {
   return (
     <section data-aos="fade-up">
       {/* banner section */}
-      <div className="bg-lightGrey11 dark:bg-lightGrey11-dark relative z-0 overflow-hidden py-50px md:py-100px lg:pt-100px lg:pb-150px 2xl:pt-155px 2xl:pb-250px">
+      <div className="bg-lightGrey11 dark:bg-lightGrey11-dark relative z-0 overflow-hidden py-50px md:py-100px lg:pt-100px lg:pb-150px 2xl:pt-155px 2xl:pb-250px ">
         {/* animated icons */}
         <div>
           <BookImage />

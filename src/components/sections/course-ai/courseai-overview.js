@@ -92,14 +92,16 @@ const CourseAiOverview = () => {
     <div className="bg-white h-auto py-10  w-full flex justify-center items-center">
       <div className=" w-full md:w-[80%] ">
         <div className="flex items-center flex-col w-80% md:mb-20 mb-10 px-4 ">
-          <h1 className="text-[24px]  leading-7 md:text-4xl  font-bold md:mb-3 mb-2 text-[#41454F] text-center ">
+          <h1 className="text-[32px]  leading-10 max-w-4xl md:text-4xl  font-bold md:mb-3 mb-2 text-[#252525] text-center ">
             Empower Your Journey to Success in the Modern Era of AI and Data
             Science with MEDH.
           </h1>
           <p className="text-center md:text-[15px] text-[14px] leading-6 md:leading-7 md:w-[70%] text-[#727695]">
             Medh’s Artificial Intelligence and Data Science course combines
             advanced AI techniques and technologies with the principles of Data
-            Science.This fusion leverages AI algorithms, models, and tools to
+            Science.
+            <br />
+            This fusion leverages AI algorithms, models, and tools to
             efficiently analyze data, extract valuable insights, automate
             processes, and support data-driven decision-making.
           </p>

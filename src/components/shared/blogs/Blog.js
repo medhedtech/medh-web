@@ -4,7 +4,7 @@ import Link from "next/link";
 const Blog = ({ blog }) => {
   const { title, image, pulishDate, id } = blog;
   return (
-    <div data-aos="fade-up" className="shadow-dropdown-secodary bg-transparent">
+    <div data-aos="fade-up" className="shadow-dropdown-secodary bg-transparent  ">
       <div className="relative group p-10px">
         <Image src={image} alt="" className="w-full" />
         {/* social icons  */}

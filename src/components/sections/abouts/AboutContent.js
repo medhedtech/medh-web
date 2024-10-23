@@ -6,7 +6,7 @@ import Image from "next/image";
 
 const AboutContent = () => {
   return (
-    <div className="flex flex-col">
+    <div data-aos="fade-up" className="flex flex-col">
       <div className="text-center mx-auto pt-10 pb-5">
         <div className="font-bold text-3xl py-4">
           Medh | Pioneering Skill Development for every stage of life.

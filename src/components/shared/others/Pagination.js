@@ -6,8 +6,9 @@ const Pagination = ({ pages, handlePagesnation, currentPage }) => {
   const pageNumbers = Array.from({ length: pages }, (_, idx) => idx + 1);
 
   return (
-    <div>
-      <ul className="flex items-center justify-center gap-15px mt-60px mb-30px">
+    <div className="flex justify-between space-x-4 text-[#5C6574]">
+      <span className="mt-1">{`Page ${currentPage} of ${pages}`}</span>
+      <ul className="flex items-center space-x-3">
         <li>
           <ButtonPagination
             type={"prev"}
@@ -19,12 +20,20 @@ const Pagination = ({ pages, handlePagesnation, currentPage }) => {
         </li>
         {pageNumbers.map((page) => (
           <li key={page}>
-            <ButtonPagination
-              idx={page}
-              id={page}
-              handlePagesnation={() => handlePagesnation(page)}
-              currentPage={currentPage}
-            />
+            {page === 1 ||
+            page === pages ||
+            (page >= currentPage - 1 && page <= currentPage + 1) ? (
+              <ButtonPagination
+                idx={page}
+                id={page}
+                handlePagesnation={() => handlePagesnation(page)}
+                currentPage={currentPage}
+              />
+            ) : (
+              page === currentPage && (
+                <span className="text-[#5C6574]">...</span>
+              )
+            )}
           </li>
         ))}
         <li>
