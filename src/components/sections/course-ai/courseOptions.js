@@ -28,8 +28,8 @@ function CourseOptions() {
   ];
 
   return (
-    <div className="w-full bg-white h-auto py-6 flex justify-center items-center flex-col">
-      <h1 className="text-center text-[#5C6574] text-3xl font-bold mb-8 ">
+    <div className="w-full bg-white dark:bg-[#050622] h-auto py-6 flex justify-center items-center flex-col">
+      <h1 className="text-center text-[#5C6574] text-3xl font-bold mb-8 dark:text-gray-50">
         Course Options in AI with Data Science
       </h1>
       <div className=" mx-auto h-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

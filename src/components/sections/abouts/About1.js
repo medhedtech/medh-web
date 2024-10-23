@@ -41,7 +41,7 @@ const About1 = ({ children, image, hideCounter }) => {
         <h2 className="text-2xl sm:text-3xl font-bold mb-4 dark:text-white">
           Featured LIVE Courses
         </h2>
-        <p className="text-gray-600 mb-8 max-w-full sm:max-w-md lg:max-w-2xl text-center mx-auto px-4">
+        <p className="text-gray-600 mb-8 max-w-full sm:max-w-md lg:max-w-2xl text-center mx-auto px-4 dark:text-gray-300">
           Medh’s expertly crafted skill development courses empower you to excel
           in life. Master industry-relevant skills and conquer modern
           challenges. Embrace the future – Invest in your skills now.

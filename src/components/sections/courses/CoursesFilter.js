@@ -93,7 +93,7 @@ const CoursesFilter = () => {
 
   return (
     <section>
-      <div className="min-h-screen bg-white dark:bg-black dark:text-white p-4">
+      <div className="min-h-screen bg-white dark:bg-[#0C0E2B]  dark:text-white p-4">
         <div className="container mx-auto">
           {/* Header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
@@ -180,7 +180,7 @@ const CoursesFilter = () => {
           <div className="flex flex-col md:flex-row">
             {/* Categories Section */}
             <div className="w-full md:w-[30%] ">
-              <span className="text-[#5C6574] font-bold text-xl">Category</span>
+              <span className="text-[#5C6574] dark:text-white font-bold text-xl">Category</span>
               <CategoryFilter
                 categories={categories}
                 setSelectedCategory={setSelectedCategory}
