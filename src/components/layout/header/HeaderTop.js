@@ -1,6 +1,7 @@
 "use client";
 import useIsTrue from "@/hooks/useIsTrue";
 import React from "react";
+import Link from "next/link";
 
 const HeaderTop = () => {
   const isHome1 = useIsTrue("/");
@@ -53,14 +54,15 @@ const HeaderTop = () => {
               </ul>
             </div>
           </div>
+          <Link href={'/login'}>
           <div className="flex gap-2 pr-10 items-center">
+            
             <div>
-              <a href="https://www.youtube.com">
                 <i className="icofont-login"></i>
-              </a>
             </div>
             LOGIN
           </div>
+          </Link>
         </div>
       </div>
     </div>

@@ -3,6 +3,7 @@ import React from "react";
 import Educator from "@/assets/images/hire/Educator.png";
 import Partner from "@/assets/images/hire/Partner.png";
 
+// AddIcon component
 const AddIcon = ({ fill = "white" }) => {
   return (
     <svg
@@ -20,50 +21,82 @@ const AddIcon = ({ fill = "white" }) => {
   );
 };
 
-const JoinMedh = () => {
+// JoinMedh component with customizable content and styles
+const JoinMedh = ({
+  educatorImage = Educator,
+  educatorTitle = "Join Medh as an Educator",
+  educatorText = "Join Medh’s pioneering learning community and contribute to shaping a transformative educational journey for learners worldwide.",
+  educatorButtonText = "Get Started",
+  educatorButtonColor = "#5F2DED",
+  partnerImage = Partner,
+  partnerTitle = "Partner with Medh as a School / Institute",
+  partnerText = "To implement customized skill development programs, empowering your students to excel in their chosen fields on a global scale.",
+  partnerButtonText = "Let’s Collaborate",
+  partnerButtonColor = "white",
+  partnerTextColor = "white",
+  partnerBackgroundColor = "#F2277E",
+  partnerBtnColor = "black",
+}) => {
   return (
-    <div className="flex flex-col py-10 bg-white gap-4 lg:gap-0">
+    <div className="flex flex-col gap-4 md:gap-0">
       {/* Educator Section */}
-      <div className="flex flex-col gap-4 lg:gap-0 md:flex-row md:items-center bg-white">
+      <div className="flex flex-col md:flex-row md:items-center bg-white">
         <Image
-          src={Educator}
+          src={educatorImage}
           width={720}
           height={375}
           className="w-full md:w-1/2 object-cover"
         />
         <div className="flex flex-col justify-center px-4 md:w-1/2 md:px-8 lg:pl-24">
           <h1 className="font-bold text-[#252525] text-3xl mt-4 md:mt-0">
-            Join Medh as an Educator
+            {educatorTitle}
           </h1>
           <p className="text-[#727695] text-base leading-7 mt-2">
-            Join Medh’s pioneering learning community and contribute to shaping
-            a transformative educational journey for learners worldwide.
+            {educatorText}
           </p>
-          <div className="bg-[#5F2DED] text-white px-2.5 py-1 rounded-3xl w-48 flex items-center gap-2.5 mt-4">
+          <div
+            className="text-white px-3.5 py-1 rounded-3xl  flex w-fit items-center gap-2.5 mt-4"
+            style={{ backgroundColor: educatorButtonColor }}
+          >
             <AddIcon />
-            Get Started
+            {educatorButtonText}
           </div>
         </div>
       </div>
 
       {/* School Collaboration Section */}
-      <div className="flex flex-col md:flex-row md:items-center gap-4 lg:gap-0 bg-[#F2277E]">
+      <div
+        className="flex flex-col md:flex-row md:items-center gap-4 lg:gap-0"
+        style={{ backgroundColor: partnerBackgroundColor }}
+      >
         <div className="flex flex-col justify-center px-4 md:w-1/2 md:px-8 lg:pl-24">
-          <h1 className="font-bold text-white text-3xl mt-4 md:mt-0">
-            Partner with Medh as a School /
-            <br /> Institute
+          <h1
+            className="font-bold text-3xl mt-4 md:mt-0"
+            style={{ color: partnerTextColor }}
+          >
+            {partnerTitle}
           </h1>
-          <p className="text-white text-base leading-7 mt-2">
-            To implement customized skill development programs, empowering your
-            students to excel in their chosen fields on a global scale.
+          <p
+            className="text-base leading-7 mt-2"
+            style={{ color: partnerTextColor }}
+          >
+            {partnerText}
           </p>
-          <div className="bg-white text-black px-2.5 py-1 rounded-3xl flex items-center gap-2.5 mt-4 w-fit">
-            <AddIcon fill={"black"} />
-            Let’s Collaborate
+          <div
+            className="px-2.5 py-1 rounded-3xl flex items-center gap-2.5 mt-4 w-fit"
+            style={{
+              backgroundColor: partnerButtonColor,
+              color: partnerBtnColor,
+            }}
+          >
+            <AddIcon
+              fill={partnerButtonColor === "white" ? "black" : "white"}
+            />
+            {partnerButtonText}
           </div>
         </div>
         <Image
-          src={Partner}
+          src={partnerImage}
           width={720}
           height={375}
           className="w-full md:w-1/2 object-cover"

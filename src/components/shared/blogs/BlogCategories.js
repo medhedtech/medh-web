@@ -1,6 +1,7 @@
 const BlogCategories = () => {
   return (
     <div
+      // className="p-5 md:p-30px lg:p-5 2xl:p-30px mb-30px border border-borderColor2 dark:border-borderColor2-dark"
       className="p-5 md:p-30px lg:p-5 2xl:p-30px mb-30px border border-borderColor2 dark:border-borderColor2-dark"
       data-aos="fade-up"
     >
