@@ -90,7 +90,7 @@ export default function CorporateFaq() {
                 </h3>
                 <span
                   className={`md:text-[15px] text-[14px] ${
-                    openIndex === index ? "text-white" : "text-black"
+                    openIndex === index ? "text-black" : "text-black"
                   } dark:text-white`}
                 >
                   {openIndex === index ? <DownIcon /> : <LeftIcon />}

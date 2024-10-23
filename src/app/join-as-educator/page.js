@@ -1,6 +1,3 @@
-
-
-
 "use client";
 import React from "react";
 
@@ -13,18 +10,20 @@ import EducatorCourceBanner from "@/components/sections/join-educator/educatorCo
 import TechEducator from "@/components/sections/join-educator/techEducator";
 import MedhOffering from "@/components/sections/join-educator/medhOffering";
 import EducatorFaq from "@/components/sections/join-educator/educatorFaq";
+import ThemeController from "@/components/shared/others/ThemeController";
 
 function JoinEducator() {
   return (
     <PageWrapper>
-      <EducatorBanner/>
-      <TechEducator/>
-      <MedhOffering/>
-      <Benefits/>
+      <EducatorBanner />
+      <TechEducator />
+      <MedhOffering />
+      <Benefits />
       <HiringProcess />
       <Registration />
-      <EducatorFaq/>
+      <EducatorFaq />
       <EducatorCourceBanner />
+      <ThemeController />
     </PageWrapper>
   );
 }

@@ -1,6 +1,3 @@
-
-
-
 "use client";
 import React from "react";
 
@@ -11,16 +8,18 @@ import KeyAdvantages from "@/components/sections/join-as-school/keyAdvantagesSch
 import SchoolCourceBanner from "@/components/sections/join-as-school/schoolCourseBanner";
 import SchoolFaq from "@/components/sections/join-as-school/schoolFaq";
 import AdvanceEducational from "@/components/sections/join-as-school/advanceEducational";
+import ThemeController from "@/components/shared/others/ThemeController";
 
 function JoinSchool() {
   return (
     <PageWrapper>
-      <SchoolBanner/>
-      <KeyAdvantages/>
-      <AdvanceEducational/>
+      <SchoolBanner />
+      <KeyAdvantages />
+      <AdvanceEducational />
       <Registration />
-      <SchoolFaq/>
+      <SchoolFaq />
       <SchoolCourceBanner />
+      <ThemeController />
     </PageWrapper>
   );
 }
