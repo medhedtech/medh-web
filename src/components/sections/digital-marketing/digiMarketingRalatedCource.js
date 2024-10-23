@@ -27,16 +27,16 @@ function DigiMarketingRalatedCource() {
     },
   ];
   return (
-    <div className="w-full bg-white h-auto pt-3 pb-10 flex justify-center items-center flex-col ">
+    <div className="w-full bg-white dark:bg-[#050622] h-auto pt-3 pb-10 flex justify-center items-center flex-col ">
       <p
-        className="text-[#727695] text-[15px] leading-6 font-medium text-center px-4  md:w-[60%] w-full 
+        className="text-[#727695] dark:text-gray-300 text-[15px] leading-6 font-medium text-center px-4  md:w-[60%] w-full 
         "
       >
         We are thrilled to be a part of your transformative journey and to
         assist you in unlocking your complete potential in the digital marketing
         and data analytics industry.
       </p>
-      <h1 className="text-center text-[#5C6574]  text-3xl font-bold py-5 ">
+      <h1 className="text-center text-[#5C6574] dark:text-gray-50  text-3xl font-bold py-5 ">
         Related Courses
       </h1>
       <div className="w-[80%] h-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 text-[#5C6574]">

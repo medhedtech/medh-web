@@ -21,7 +21,7 @@ const WhyMedh = () => {
             className="mx-auto"
             alt="100% Job-guaranteed"
           />
-          <p className="font-bold text-2xl md:text-3xl leading-8 text-[#5C6574]">
+          <p className="font-bold text-2xl md:text-3xl leading-8 text-[#5C6574] dark:text-white">
             100% Job-guaranteed Courses from Medh.
           </p>
           <button className="bg-[#F2277E] px-4 py-3 w-fit mx-auto text-white flex gap-4">

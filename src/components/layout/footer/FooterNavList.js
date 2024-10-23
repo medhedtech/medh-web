@@ -64,7 +64,7 @@ const FooterNavList = () => {
         },
         {
           name: "Degital Marketing with Data Analytics",
-          path: "/digital-marketing-data-science",
+          path: "/digital-marketing-with-data-analyst",
         },
         {
           name: "Personality Development",

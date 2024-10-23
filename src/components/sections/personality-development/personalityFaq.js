@@ -41,9 +41,9 @@ function PersonalityFaq() {
   ];
 
   return (
-    <div className="bg-white text-lightGrey14 flex justify-center items-center flex-col py-4">
+    <div className="bg-white dark:bg-[#050622] text-lightGrey14 dark:text-gray-300 flex justify-center items-center flex-col py-4">
       <div className="md:w-[80%] w-[90%]">
-        <h2 className="md:text-3xl text-[22px] font-bold mb-4 text-center text-[#5C6574]">
+        <h2 className="md:text-3xl text-[22px] font-bold mb-4 text-center text-[#5C6574] dark:text-gray-50">
           Frequently Asked Questions (FAQs)
         </h2>
         <p className="text-center md:text-[15px] text-[14px] mb-8 md:px-35 px-3">
@@ -53,9 +53,9 @@ function PersonalityFaq() {
         </p>
         <div className="space-y-4">
           {faqs.map((faq, index) => (
-            <div key={index} className="border shadow-sm">
+            <div key={index} className="border dark:border-gray-600 shadow-sm">
               <div
-                className="flex justify-between items-center py-4 cursor-pointer px-2 sm:px-4"
+                className="flex justify-between items-center py-4 cursor-pointer px-2 sm:px-4 "
                 onClick={() => toggleFAQ(index)}
               >
                 <h3 className="md:text-[15px] text-[14px] font-semibold">
@@ -63,9 +63,10 @@ function PersonalityFaq() {
                 </h3>
                 <span className="md:text-[15px] text-[14px]">
                   {openIndex === index ? (
-                    <Image src={Down} width={25} height={23} alt="Down Icon" />
+                    <i class="icofont-caret-down" style={{ fontSize: '20px'  }}></i>
+                   
                   ) : (
-                    <Image src={Left} width={30} height={25} alt="Left Icon" />
+                    <i class="icofont-caret-right" style={{ fontSize: '20px' }}></i>
                   )}
                 </span>
               </div>
