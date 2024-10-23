@@ -24,7 +24,7 @@ const DropdownContainer = ({ children }) => {
           : isHome2 || isHome2Dark
           ? "w-fit "
           : ""
-      } w-fit bg-white`}
+      } w-fit bg-white dark:bg-[#0b0d25]`}
     >
       {children}
     </div>

@@ -18,8 +18,13 @@ function JoinSchool() {
       <JobOpening />
       <CareerFaq />
       <CareerCourceBanner />
+<<<<<<< HEAD
       <Certified />
       <ThemeController />
+=======
+      <Certified/>
+      <ThemeController/>
+>>>>>>> origin/chandan-implement
     </PageWrapper>
   );
 }

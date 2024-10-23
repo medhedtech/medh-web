@@ -263,7 +263,7 @@ const CoursesPrimary = ({ isNotSidebar, isList, card }) => {
   return (
     <div>
       <div
-        className="container tab py-10 md:py-50px lg:py-60px 2xl:py-100px"
+        className="container tab py-10 md:py-30px lg:py-40px 2xl:py-60px"
         ref={coursesRef}
       >
         {/* courses header  */}

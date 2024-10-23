@@ -6,6 +6,7 @@ import coursesBg from "@/assets/images/courses/coursesBg.png";
 import Image from "next/image";
 import CoursesFilter from "@/components/sections/courses/CoursesFilter";
 import JoinMedh from "@/components/sections/hire/JoinMedh";
+import ThemeController from "@/components/shared/others/ThemeController";
 
 export const metadata = {
   title: "Courses | Edurock - Education LMS Template",
@@ -40,7 +41,7 @@ const Courses = async () => {
           <div className="absolute top-[55%] md:top-[60%] left-1/2 transform -translate-x-1/2 w-full flex items-center justify-center z-10">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-7xl px-6 md:px-16">
               {/* Feature 1 */}
-              <div className="bg-white p-6 shadow-lg text-center rounded-lg">
+              <div className="bg-white  p-6 shadow-lg text-center rounded-lg border-2 ">
                 <div className="flex justify-center">
                   <RelevantIcon stroke="#F2277E" fill="#F2277E" />
                 </div>
@@ -89,11 +90,11 @@ const Courses = async () => {
 
         {/* Footer Text */}
         <div className="lg:mt-44 mt-[47rem] md:mt-64 px-4">
-          <h1 className="text-2xl md:text-3xl leading-8 md:leading-10 text-center font-bold py-6">
+          <h1 className="text-2xl md:text-3xl dark:text-gray-50 leading-8 md:leading-10 text-center font-bold py-6">
             Experience the transformative impact of MEDH's skill development
             courses.
           </h1>
-          <p className="text-[#5C6574] text-base md:text-lg text-center pb-10">
+          <p className="text-[#5C6574] dark:text-gray-200 text-base md:text-lg text-center pb-10">
             Our skill development programs are designed for people of all ages
             and stages of life. Whether you're a young learner, a working
             <br className="hidden md:block" />
@@ -106,6 +107,7 @@ const Courses = async () => {
         <CoursesFilter />
         <JoinMedh />
       </main>
+      <ThemeController/>
     </PageWrapper>
   );
 };

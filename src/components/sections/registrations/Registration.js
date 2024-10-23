@@ -117,7 +117,7 @@ const Registration = () => {
                     name="accept"
                     className="w-4 h-4 text-[#5F2DED] border-gray-300 rounded mt-1 focus:ring-[#5F2DED]"
                   />
-                  <label htmlFor="accept" className="text-sm text-gray-700">
+                  <label htmlFor="accept" className="text-sm text-gray-700 dark:text-gray-300">
                     By submitting this form, I accept
                     <span className="text-[#5F2DED] ml-1">
                       Terms of Service

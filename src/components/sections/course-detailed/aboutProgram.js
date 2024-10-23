@@ -52,7 +52,7 @@ export default function CombinedProgram() {
   ];
 
   return (
-    <div className="bg-white text-lightGrey14 md:py-10 py-5  px-4 md:px-4">
+    <div className="bg-white dark:bg-[#050622] text-lightGrey14  md:py-10 py-5  px-4 md:px-4">
       <div className="lg:w-[62%] w-full lg:ml-[7%]  ">
         {/* Header Section */}
 
@@ -64,7 +64,7 @@ export default function CombinedProgram() {
             className={`font-semibold ${
               activeTab === "ProgramInfo"
                 ? "text-primaryColor border-b-2 border-primaryColor"
-                : "text-gray-500"
+                : "text-gray-500 dark:text-gray-300"
             }`}
           >
             Program Info
@@ -74,14 +74,14 @@ export default function CombinedProgram() {
             className={`ml-6 font-semibold ${
               activeTab === "Reviews"
                 ? "text-primaryColor border-b-2 border-primaryColor"
-                : "text-gray-500"
+                : "text-gray-500 dark:text-gray-300"
             }`}
           >
             Reviews
           </button>
         </div>
 
-        <h2 className="md:text-2xl text-[20px] font-bold mb-4 text-[#5C6574]">
+        <h2 className="md:text-2xl text-[20px] font-bold mb-4 text-[#5C6574] dark:text-gray-50">
           About Program
         </h2>
         {/* Show Content Based on Active Tab */}
@@ -103,8 +103,8 @@ export default function CombinedProgram() {
                 </button>
               ))}
             </div>
-            <div className="border-2 border-primaryColor p-2">
-              <div className="text-primaryColor font-medium pb-2">
+            <div className="border-2 dark:border-gray-500 border-primaryColor p-2 ">
+              <div className="text-primaryColor font-medium pb-2 dark:text-gray-200">
                 <u>Curriculum</u>
                 <p>
                   
@@ -120,19 +120,19 @@ export default function CombinedProgram() {
 
               {/* Accordion Items */}
               {curriculum.map((item, index) => (
-                <div key={index} className="border mb-1 text-[#41454F]">
+                <div key={index} className="border dark:border-gray-600 mb-1 text-[#41454F] dark:text-gray-300">
                   <button
                     className="w-full p-3 flex items-center"
                     onClick={() => toggleAccordion(index)}
                   >
-                    <span className="mr-2 text-2xl font-extrabold text-[#41454F]">
+                    <span className="mr-2 text-2xl font-extrabold text-[#41454F] dark:text-gray-200">
                       {openAccordions === index ? "-" : "+"}
                     </span>{" "}
                     {/* Left aligned + or - */}
                     <span className="text-[1rem]">{item.question}</span>
                   </button>
                   {openAccordions === index && (
-                    <div className="py-3 pl-7 bg-gray-50 text-[15px]  text-gray-600">
+                    <div className="py-3 pl-7 dark:bg-[#050622] bg-gray-50 text-[15px]  text-gray-600">
                       <p>{item.answer}</p>
                     </div>
                   )}
@@ -146,10 +146,10 @@ export default function CombinedProgram() {
                 </div>
 
                 <div className="flex-1 mb-4 text-center min-w-[250px]">
-                  <h2 className="text-primaryColor text-[1.4rem] font-bold font-Popins">
+                  <h2 className="text-primaryColor text-[1.4rem] font-bold font-Popins dark:text-gray-50">
                     Download Brochure
                   </h2>
-                  <p className="text-[15px]">
+                  <p className="text-[15px] dark:text-gray-300">
                     Unlock Your Potential: Download and Begin Your
                     Transformation Today!
                   </p>
