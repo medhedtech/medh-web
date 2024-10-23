@@ -61,10 +61,10 @@ const BlogsPrimary = () => {
 
   return (
     <section ref={blogsRef}>
-      <div className="container py-10 md:py-50px lg:py-60px 2xl:py-100px">
+      <div className="container py-10 md:py-30px lg:py-40px 2xl:py-60px">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-30px">
           {/* blogs */}
-          <div className="lg:col-start-1 lg:col-span-8 space-y-[35px]">
+          <div className="lg:col-start-1 lg:col-span-8 space-y-[35px] ">
             {currentBlogs && currentBlogs.length > 0 ? (
               <>
                 {currentBlogs?.map((blog, idx) => (

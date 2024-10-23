@@ -60,9 +60,9 @@ function CourseAiFaq() {
   ];
 
   return (
-    <div className="bg-white text-lightGrey14 flex justify-center items-center flex-col py-4">
+    <div className="bg-white dark:bg-[#050622] text-lightGrey14 dark:text-gray-300 flex justify-center items-center flex-col py-4">
       <div className="md:w-[80%] w-[90%]">
-        <h2 className="md:text-3xl text-[22px] font-bold mb-4 text-center text-[#5C6574]">
+        <h2 className="md:text-3xl text-[22px] font-bold mb-4 text-center text-[#5C6574] dark:text-gray-100">
           Frequently Asked Questions (FAQs)
         </h2>
         <p className="text-center md:text-[15px] text-[14px] mb-8 md:px-14 px-3">
@@ -82,14 +82,15 @@ function CourseAiFaq() {
                 </h3>
                 <span className="md:text-[15px] text-[14px]">
                   {openIndex === index ? (
-                    <Image src={Down} width={25} height={23} alt="Down Icon" />
+                    <i class="icofont-caret-down" style={{ fontSize: '20px'  }}></i>
+                   
                   ) : (
-                    <Image src={Left} width={30} height={25} alt="Left Icon" />
+                    <i class="icofont-caret-right" style={{ fontSize: '20px' }}></i>
                   )}
                 </span>
               </div>
               {openIndex === index && (
-                <p className="text-lightGrey14 pb-4 px-2 md:pr-12 sm:px-4 md:text-[15px] text-[14px] ">
+                <p className="text-lightGrey14 pb-4 px-2 md:pr-12 sm:px-4 md:text-[15px] text-[14px] dark:text-gray-300 ">
                   {faq.answer}
                 </p>
               )}
