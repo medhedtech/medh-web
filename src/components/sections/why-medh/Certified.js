@@ -52,7 +52,7 @@ const Certified = () => {
   return (
     <div className="py-12 w-full flex justify-center items-center">
       <div className="w-[80%]">
-        <h3 className="text-center text-[#5C6574] text-size-32 leading-34px font-bold mb-8">
+        <h3 className="text-center text-[#5C6574] dark:text-white text-size-32 leading-34px font-bold mb-8">
           Certified & Recognized By
         </h3>
         <Slider {...settings}>
@@ -103,7 +103,7 @@ const Certified = () => {
           </div>
           <div className="text-center">
             <Image
-              src={ iso270001}
+              src={iso270001}
               width={100}
               height={162}
               alt="ISO 9001 Certification"
