@@ -7,9 +7,10 @@ const membershipData = [
       { duration: "MONTHLY", price: "$49.00" },
       { duration: "QUARTERLY", price: "$99.00" },
       { duration: "HALF-YEARLY", price: "$129.00" },
-      { duration: "ANNUALLY", price: "$149.00" }
+      { duration: "ANNUALLY", price: "$149.00" },
     ],
-    description: "You have a choice to explore and learn any or all programs within a 'single-course-category' of your preference."
+    description:
+      "You have a choice to explore and learn any or all programs within a 'single-course-category' of your preference.",
   },
   {
     type: "Gold",
@@ -17,37 +18,52 @@ const membershipData = [
       { duration: "MONTHLY", price: "$69.00" },
       { duration: "QUARTERLY", price: "$119.00" },
       { duration: "HALF-YEARLY", price: "$149.00" },
-      { duration: "ANNUALLY", price: "$199.00" }
+      { duration: "ANNUALLY", price: "$199.00" },
     ],
-    description: "Gold membership gives access to multiple course categories for a premium experience."
-  }
+    description:
+      "Gold membership gives access to multiple course categories for a premium experience.",
+  },
   // Add more memberships if needed
 ];
 
 const PrimeMembership = () => {
   return (
-    <div className="flex items-center justify-center py-12 w-full bg-white">
-      <div className=" lg:w-[80%] w-[92%] flex justify-center items-center flex-col">
-        <h1 className="text-2xl md:text-3xl font-bold mb-10">Medh-SDP-Membership</h1>
-        <div className="flex justify-between flex-wrap w-full ">
+    <div className="flex items-center justify-center py-12 w-full dark:bg-black bg-white">
+      <div className=" lg:w-[80%] w-[92%] flex justify-center items-center dark:text-white flex-col">
+        <h1 className="text-2xl md:text-3xl font-bold mb-10 dark:text-white">
+          Medh-SDP-Membership
+        </h1>
+        <div className="flex justify-between flex-wrap w-full">
           {membershipData.map((membership, index) => (
-            <div key={index} className="rounded-xl shadow-custom-light  p-6 lg:w-[48%] md:w-full mb-5  border border-[#0000004D]">
+            <div
+              key={index}
+              className="rounded-xl shadow-custom-light dark:border-gray-600 p-6 lg:w-[48%] md:w-full mb-5  border border-[#0000004D]"
+            >
               {/* Membership Heading */}
-              <div className="text-3xl font-semibold border-b-2 border-[#252525] pb-5 font-Popins">
+              <div className="text-3xl font-semibold border-b-2  border-[#252525] pb-5 font-Popins">
                 <h2 className="text-primaryColor">{membership.type}</h2>
                 <h2>Membership</h2>
               </div>
               {/* Membership Plans */}
               <div className="grid grid-cols-2 gap-8 mt-8">
                 {membership.plans.map((plan, idx) => (
-                  <div key={idx} className="border-2 border-[#5C6574] rounded-xl px-4 py-2">
-                    <p className="font-meduim lg:text-[1rem] text-sm ">{plan.duration}</p>
-                    <p className="lg:text-xl text-base font-semibold">{plan.price}</p>
+                  <div
+                    key={idx}
+                    className="border-2 border-[#5C6574] rounded-xl px-4 py-2"
+                  >
+                    <p className="font-meduim lg:text-[1rem] text-sm ">
+                      {plan.duration}
+                    </p>
+                    <p className="lg:text-xl text-base font-semibold">
+                      {plan.price}
+                    </p>
                   </div>
                 ))}
               </div>
               {/* Membership Description */}
-              <p className="text-sm mt-6 text-gray-600 ">{membership.description}</p>
+              <p className="text-sm mt-6 text-gray-600 dark:text-gray-400">
+                {membership.description}
+              </p>
             </div>
           ))}
         </div>
@@ -59,10 +75,10 @@ const PrimeMembership = () => {
 
         {/* Select Membership */}
         <div className="mt-8">
-          <label className="block text-center mb-2 text-xl text-[#5C6574]">
+          <label className="block text-center mb-2 text-xl dark:text-white text-[#5C6574]">
             Select Membership
           </label>
-          <select className="border-2 rounded px-10  py-2 w-full  text-[#727695]">
+          <select className="border-2 rounded px-10  py-2 w-full dark:bg-black  text-[#727695]">
             <option>Select One</option>
             <option>Silver Membership</option>
             <option>Gold Membership</option>

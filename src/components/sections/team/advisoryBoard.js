@@ -40,8 +40,12 @@ const AdvisoryBoard = () => {
               height={291}
               className="mx-auto"
             />
-            <p className="text-[#252525] mt-2">{member.role}</p>
-            <h4 className="text-lg font-semibold">{member.name}</h4>
+            <p className="text-[#252525] mt-2 dark:text-whitegrey3">
+              {member.role}
+            </p>
+            <h4 className="text-lg font-semibold dark:text-white">
+              {member.name}
+            </h4>
           </div>
         ))}
       </div>
