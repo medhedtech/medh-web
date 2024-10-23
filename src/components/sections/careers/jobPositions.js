@@ -5,7 +5,7 @@ import JobApply from "./jobApply";
 const JobOpening = () => {
   const [activeJob, setActiveJob] = useState("Vedic Mathematics Instructor");
   return (
-    <div className="w-full flex justify-center items-center p-4 bg-white">
+    <div className="w-full flex justify-center items-center p-4 bg-white dark:bg-inherit">
       <div className="lg:w-[80%] w-[95%]">
         <h2 className="text-[#5C6574] text-center text-3xl font-Poppins font-bold pb-6">
           Job Positions / Openings
@@ -18,7 +18,7 @@ const JobOpening = () => {
                 className={`${
                   activeJob === "Vedic Mathematics Instructor"
                     ? "bg-[#5F2DED] text-white"
-                    : "bg-gray-200"
+                    : "bg-gray-200 "
                 } p-2`}
                 onClick={() => setActiveJob("Vedic Mathematics Instructor")}
               >
@@ -43,7 +43,7 @@ const JobOpening = () => {
           {/* Middle Section - Job Description */}
           <div className="w-full lg:w-[42%] p-6 text-[#727695] text-[15px] list-none border-2 border-[#D5D8DC]">
             <div className="mb-3 font-Open">
-              <h2 className="mb-2 leading-[27px] font-bold ">
+              <h2 className="mb-2 leading-[27px] font-bold dark:text-white">
                 Job Description:
               </h2>
               <div className="mb-3 font-Open">
@@ -61,7 +61,7 @@ const JobOpening = () => {
             </div>
 
             <div className="mb-3">
-              <h3 className="mb-2 leading-[27px] font-bold font-Open ">
+              <h3 className="mb-2 leading-[27px] font-bold font-Open dark:text-white">
                 Key Responsibilities:
               </h3>
               <ul className="  mt-2 leading-[22.5px] font-normal font-Poppins pl-8">
@@ -89,7 +89,7 @@ const JobOpening = () => {
             </div>
 
             <div className="mb-3">
-              <h3 className=" mb-2 leading-[27px] font-bold font-Open ">
+              <h3 className=" mb-2 leading-[27px] font-bold font-Open dark:text-white">
                 Qualifications and Requirements:
               </h3>
               <ul className="mt-2 leading-[22.5px] font-normal font-Poppins pl-8">
@@ -114,16 +114,16 @@ const JobOpening = () => {
               </ul>
             </div>
 
-            <h3 className="mb-2 leading-[27px] font-bold font-Open ">
+            <h3 className="mb-2 leading-[27px] font-bold font-Open dark:text-white">
               Mode: Hybrid (Work-from-Office and Work-from- Home)
             </h3>
 
-            <h3 className="mb-2 leading-[27px] font-bold font-Open ">
+            <h3 className="mb-2 leading-[27px] font-bold font-Open dark:text-white">
               Market: INDIA, US, UK and AUSTRALIA
             </h3>
 
             <div className="mb-3">
-              <h3 className="mb-2 leading-[27px] font-bold font-Open ">
+              <h3 className="mb-2 leading-[27px] font-bold font-Open dark:text-white">
                 Process of Selection:
               </h3>
               <ul className=" mt-2 leading-[22.5px] font-normal font-Poppins pl-8">
@@ -133,12 +133,12 @@ const JobOpening = () => {
               </ul>
             </div>
 
-            <h3 className="mb-2 leading-[27px] font-bold font-Open ">
+            <h3 className="mb-2 leading-[27px] font-bold font-Open dark:text-white">
               Work from Office Location: Andheri East, Mumbai
             </h3>
 
             <div className="mb-3">
-              <h3 className="mb-2 leading-[27px] font-bold font-Open ">
+              <h3 className="mb-2 leading-[27px] font-bold font-Open dark:text-white">
                 For Work-from-Home (pre-requisites):
               </h3>
               <ul>
@@ -150,7 +150,7 @@ const JobOpening = () => {
             </div>
 
             <div className="mb-3">
-              <h3 className="mb-2 leading-[27px] font-bold font-Open">
+              <h3 className="mb-2 leading-[27px] font-bold font-Open dark:text-white">
                 Note: Professional head-set can be provided if needed.
               </h3>
               <p>
@@ -164,7 +164,7 @@ const JobOpening = () => {
             </div>
 
             <div className="mt-3">
-              <h3 className="mb-2 leading-[27px] font-bold font-Open">
+              <h3 className="mb-2 leading-[27px] font-bold font-Open dark:text-white">
                 Remuneration:
               </h3>
               <p className=" mt-2 leading-[22.5px] font-normal font-Poppins pl-8">
@@ -176,7 +176,7 @@ const JobOpening = () => {
           </div>
 
           {/* Right Section - Apply Form */}
-          <div className=" lg:w-[43%] w-full py-6 lg:pl-8 bg-white">
+          <div className=" lg:w-[43%] w-full py-6 lg:pl-8 bg-white dark:bg-inherit">
             <JobApply />
           </div>
         </div>

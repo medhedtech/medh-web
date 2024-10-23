@@ -13,10 +13,10 @@ const BlogPrimary = ({ blog, idx }) => {
       </div>
       {/* blog content  */}
       <div className="pt-26px pb-5 px-30px">
-        <h3 className="lg:text-[25px] text-20px  leading-34px md:leading-10 font-Poppins font-bold text-[#252525] ">
+        <h3 className="lg:text-[25px] text-20px  leading-34px md:leading-10 font-Poppins font-bold dark:text-gray-300 text-[#252525] ">
           <Link href={`/blogs/${id}`}>{title}</Link>
         </h3>
-       
+
         <p className="text-base text-contentColor dark:text-contentColor-dark mb-15px !leading-30px">
           {desc}
         </p>
@@ -24,14 +24,11 @@ const BlogPrimary = ({ blog, idx }) => {
           <div>
             <Link
               href={`/blogs/${id}`}
-              className="uppercase text-[#252525] hover:text-secondaryColor "
+              className="uppercase text-[#252525] dark:text-whitegrey hover:text-secondaryColor "
             >
               READ MORE <i class="icofont-arrow-right text-xl"></i>
-
-
             </Link>
           </div>
-         
         </div>
       </div>
     </div>
