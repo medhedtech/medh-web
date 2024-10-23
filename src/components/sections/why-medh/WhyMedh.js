@@ -50,22 +50,22 @@ const WhyMedh = () => {
         {/* Content Box */}
         <div
           className="bg-white h-60 md:h-auto py-6 px-6 md:px-10 lg:px-16 relative shadow-lg w-full max-w-[630px] 
-    overflow-x-hidden md:overflow-visible sm:h-60 sm:overflow-x-scroll"
+    overflow-x-hidden md:overflow-visible sm:h-60 sm:overflow-x-scroll dark:bg-black"
         >
           <h2 className="text-[#5F2DED] font-bold text-3xl md:text-4xl">
             WHY MEDH?
           </h2>
-          <p className="text-gray-600 mt-4">
+          <p className="text-gray-600 mt-4 dark:text-whitegrey">
             Empowering learners with the freedom to explore, we go beyond
             fundamental concepts, fostering brainstorming, critical thinking,
             and beyond. We aim to provide learners with the canvas to visualize
             and pursue their aspirations.
           </p>
 
-          <h3 className="text-[#252525] mt-7 font-semibold text-lg">
+          <h3 className="text-[#252525] mt-7 font-semibold text-lg dark:text-white">
             Quality of Content and Curriculum
           </h3>
-          <p className="text-gray-600 mt-4">
+          <p className="text-gray-600 mt-4 dark:text-whitegrey">
             We assess content quality, effectiveness, and engagement, ensuring
             up-to-date, well-structured materials that drive learning outcomes.
           </p>
@@ -80,12 +80,12 @@ const WhyMedh = () => {
 
           {/* Carousel Navigation */}
           <div className="absolute -left-6 top-1/2  transform -translate-y-1/2">
-            <button className="bg-white  text-black rounded-full w-10 h-10 flex items-center justify-center">
+            <button className="bg-white dark:bg-black dark:text-white text-black rounded-full w-10 h-10 flex items-center justify-center">
               &larr;
             </button>
           </div>
           <div className="absolute -right-6 top-1/2 transform -translate-y-1/2">
-            <button className="bg-white text-black rounded-full w-10 h-10 flex items-center justify-center">
+            <button className="bg-white dark:bg-black dark:text-white text-black rounded-full w-10 h-10 flex items-center justify-center">
               &rarr;
             </button>
           </div>

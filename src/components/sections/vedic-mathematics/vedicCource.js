@@ -82,8 +82,8 @@ function VedicCource() {
             Course Options in Vedic Mathematics (Grade Wise)
           </h2>
 
-          <div className="flex flex-col md:flex-row justify-between items-center mb-6 space-y-4 md:space-y-0">
-            <div className="flex items-center border border-[#CDCFD5] px-3 py-2 rounded-md w-full md:w-[50%] lg:w-[40%]">
+          <div className="flex flex-col md:flex-row justify-between items-center mb-6 space-y-4 md:space-y-0 px-2">
+            <div className="flex items-center border border-[#CDCFD5] px-3 py-2 rounded-md w-full md:w-[30%] lg:w-[22%]">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="18"
@@ -102,7 +102,7 @@ function VedicCource() {
               <input
                 type="text"
                 placeholder="Search"
-                className="outline-none ml-2 w-full dark:bg-[#050622]"
+                className="outline-none ml-2 w-full  dark:bg-[#050622]"
               />
             </div>
 
