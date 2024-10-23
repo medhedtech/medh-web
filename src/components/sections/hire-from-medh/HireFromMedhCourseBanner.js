@@ -7,8 +7,7 @@ export default function HireFromMedhCourseBanner() {
   const courses = [
     {
       heading: "Secure Your Future in Data-Driven Online Marketing.",
-      description:
-        "Join Digital Marketing with Data Analytics Course.",
+      description: "Join Digital Marketing with Data Analytics Course.",
       actionText: "Take Actions for Your Brighter Future!",
       buttonText: "Enroll Now",
       imageUrl: CourseBannerImg,
@@ -34,7 +33,11 @@ export default function HireFromMedhCourseBanner() {
           />
         ))}
       </div>
-      <p className="bg-white text-center mt-[-20px] pb-8 px-3 text-[14px] text-[#727695]">We are thrilled to be a part of your transformative journey and to assist you in unlocking your complete <br /> potential in the digital marketing and data analytics industry.</p>
+      <p className="bg-white text-center dark:bg-black dark:text-white mt-[-20px] pb-8 px-3 text-[14px] text-[#727695]">
+        We are thrilled to be a part of your transformative journey and to
+        assist you in unlocking your complete <br /> potential in the digital
+        marketing and data analytics industry.
+      </p>
     </>
   );
 }
