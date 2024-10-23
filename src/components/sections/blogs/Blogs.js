@@ -49,167 +49,14 @@ const Blogs = ({ secondary }) => {
   return (
     <section>
       <div className="container py-100px font-Poppins">
-        {/*  heading  
-        <div className="mb-5 md:mb-10" data-aos="fade-up">
-        <div className="relative text-center">
-            <div>
-              <div>
-                <SectionName>News & Blogs</SectionName>
-              </div>
-              </div>
-            <HeadingPrimary>
-            {" "}
-              {isHome9 || isHome9Dark ? (
-                <>
-                  Our Latest{" "}
-                  <span className="relative after:w-full after:h-[7px] z-0 after:bg-secondaryColor after:absolute after:left-0 after:bottom-3 md:after:bottom-5 after:z-[-1]">
-                    Research
-                  </span>
-                </>
-              ) : (
-                "Leatest News & Blog"
-              )}
-            </HeadingPrimary>
-          </div>
-        </div>
-
-        {/*  blogs  
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-30px">
-          {blogs?.length &&
-            blogs.map(
-              ({ id, title, date, desc, image, author, month }, idx) =>
-                idx === 0 && (
-                  <div
-                    key={idx}
-                    className="lg:col-start-1 lg:col-span-8 group shadow-blog"
-                    data-aos="fade-up"
-                  >
-                    {/*  blog thumbnail  
-                    <div className="overflow-hidden relative">
-                      <Image
-                        src={images[idx]}
-                        alt=""
-                        className="w-full group-hover:scale-110 transition-all duration-300"
-                        placeholder="blur"
-                      />
-                      <div className="text-base md:text-3xl leading-5 md:leading-9 font-semibold text-white px-15px py-5px md:px-6 md:py-2 bg-primaryColor rounded text-center absolute top-5 left-5">
-                        {date} <br /> {month}
-                      </div>
-                    </div>
-                    {/*  blog content  
-                    <div className="p-5 md:p-35px md:pt-10">
-                      <h3 className="text-2xl md:text-4xl leading-30px md:leading-45px font-bold text-blackColor hover:text-primaryColor pb-25px dark:text-blackColor-dark dark:hover:text-primaryColor">
-                        <Link href={`blogs/${id}`}>{title}</Link>
-                      </h3>
-                      <p className="text-base text-contentColor dark:text-contentColor-dark mb-30px">
-                        {desc}
-                      </p>
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-3">
-                          <div className="w-11 h-11">
-                            <Image
-                              src={blogImage2}
-                              alt=""
-                              className="rounded-full"
-                            />
-                          </div>
-                          <div className="text-sm md:text-lg text-darkdeep5 dark:text-darkdeep5-dark">
-                            By:
-                            <span className="text-blackColor dark:text-blackColor-dark">
-                              {author?.name}
-                            </span>
-                          </div>
-                        </div>
-                        {/*  social  
-                        <div>
-                          <ul className="flex gap-1">
-                            <li>
-                              <a
-                                href="#"
-                                className="text-sm md:text-size-15 w-5 h-5 md:w-[39px] md:h-[39px] flex items-center justify-center border border-borderColor text-darkdeep4 hover:text-primaryColor dark:border-borderColor-dark rounded"
-                              >
-                                <i className="icofont-facebook"></i>
-                              </a>
-                            </li>
-                            <li>
-                              <a
-                                href="#"
-                                className="text-sm md:text-size-15 w-5 h-5 md:w-[39px] md:h-[39px] flex items-center justify-center border border-borderColor text-darkdeep4 hover:text-primaryColor dark:border-borderColor-dark rounded"
-                              >
-                                <i className="icofont-youtube-play"></i>
-                              </a>
-                            </li>
-                            <li>
-                              <a
-                                href="#"
-                                className="text-sm md:text-size-15 w-5 h-5 md:w-[39px] md:h-[39px] flex items-center justify-center border border-borderColor text-darkdeep4 hover:text-primaryColor dark:border-borderColor-dark rounded"
-                              >
-                                <i className="icofont-instagram"></i>
-                              </a>
-                            </li>
-                            <li>
-                              <a
-                                href="#"
-                                className="text-sm md:text-size-15 w-5 h-5 md:w-[39px] md:h-[39px] flex items-center justify-center border border-borderColor text-darkdeep4 hover:text-primaryColor dark:border-borderColor-dark rounded"
-                              >
-                                <i className="icofont-twitter"></i>
-                              </a>
-                            </li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )
-            )}
-
-          {/*  blog 2 & 3  
-
-          <div className="lg:col-start-9 lg:col-span-4">
-            <div className="flex flex-col gap-y-30px">
-              {blogs?.length &&
-                blogs.map(
-                  ({ id, title, date, image, month }, idx) =>
-                    idx > 0 &&
-                    idx < 3 && (
-                      <div
-                        key={idx}
-                        className="group shadow-blog"
-                        data-aos="fade-up"
-                      >
-                        {/*  blog thumbnail  
-                        <div className="overflow-hidden relative">
-                          <Image
-                            src={images[idx]}
-                            alt=""
-                            className="w-full  group-hover:scale-110 transition-all duration-300"
-                            placeholder="blur"
-                          />
-                          <div className="text-base md:text-2xl leading-5 md:leading-30px font-semibold text-white px-15px py-5px md:px-22px md:py-7px bg-primaryColor rounded text-center absolute top-5 left-5">
-                            {date} <br />
-                            {month}
-                          </div>
-                        </div>
-                        {/*  blog content  
-                        <div className="px-5 py-25px">
-                          <h3 className="text-2xl md:text-size-28 leading-30px md:leading-35px font-bold text-blackColor hover:text-primaryColor dark:text-blackColor-dark dark:hover:text-primaryColor">
-                            <Link href={`blogs/${id}`}>{title}</Link>
-                          </h3>
-                        </div>
-                      </div>
-                    )
-                )}
-            </div>
-          </div>
-          </div> */}
+       
         <div className="flex flex-col px-4">
           <div className="flex flex-col md:flex-row justify-between items-center mb-4">
             <div>
               <span className="text-[#5F2DED] font-Poppins font-medium text-[15px] leading-[22px]">
                 EXPLORE NEWS
               </span>
-              <h1 className="text-[#5C6574] font-bold text-[38px] leading-[45px]">
+              <h1 className="text-[#5C6574] font-bold text-[38px] leading-[45px] dark:text-gray-200">
                 Latest from Medh Blogs
               </h1>
             </div>
@@ -221,7 +68,7 @@ const Blogs = ({ secondary }) => {
             </div>
           </div>
 
-          <div className="flex flex-col gap-4 p-4 md:flex-row md:justify-center">
+          <div className="flex flex-col gap-4 p-4 md:flex-row md:justify-center dark:text-gray-200">
             <BlogCard
               imageSrc={Leadership}
               title={"Charismatic Leadership: Overview, Pros & Cons"}

@@ -89,11 +89,11 @@ const PersonalityOverview = () => {
   const activeContent = data.tabs.find((tab) => tab.id === activeTab);
 
   return (
-    <div className="bg-white h-auto py-10  w-full flex justify-center items-center">
+    <div className="bg-white dark:bg-[#050622] h-auto py-10  w-full flex justify-center items-center">
       <div className=" w-full md:w-[80%] ">
         <div className="flex items-center flex-col w-80% md:mb-20 mb-10 px-4 ">
-        <h1 className="text-[24px]  leading-7 md:text-4xl  font-bold md:mb-3 mb-2 text-[#41454F] ">Welcome to Medh's Transformative Personality Development Course</h1>
-        <p className="text-center md:text-[15px] text-[14px] leading-6 md:leading-7 md:w-[70%] text-[#727695]">Our course is designed to foster crucial life skills and character traits, offering inclusivity for individuals at every stage of life. Whether you’re a student, professional, or homemaker, this program empowers you with essential life skills, confidence, and interpersonal abilities.</p>
+        <h1 className="text-[24px]  leading-7 md:text-4xl  font-bold md:mb-3 mb-2 text-[#41454F] dark:text-gray-50 ">Welcome to Medh's Transformative Personality Development Course</h1>
+        <p className="text-center md:text-[15px] text-[14px] leading-6 md:leading-7 md:w-[70%] text-[#727695] dark:text-gray-300">Our course is designed to foster crucial life skills and character traits, offering inclusivity for individuals at every stage of life. Whether you’re a student, professional, or homemaker, this program empowers you with essential life skills, confidence, and interpersonal abilities.</p>
         </div>
 
         {/* Tabs */}
@@ -114,13 +114,13 @@ const PersonalityOverview = () => {
         </div>
 
         {/* Content Rendering */}
-        <section className=" bg-white px-5 md:px-6 py-8 border-2 border-gray-300 text-lightGrey14">
-          <h1 className="text-[23px] font-bold text-primaryColor ">
+        <section className=" bg-white dark:bg-[#050622] px-5 md:px-6 py-8 border-2 border-gray-600 text-lightGrey14">
+          <h1 className="text-[23px] font-bold text-primaryColor dark:text-gray-50 ">
             {activeContent.name}
           </h1>
-          <p className=" mb-2 md:text-[15px] text-[14px] ">
+          <p className=" mb-2 md:text-[15px] text-[14px] dark:text-gray-300 ">
             Introducing{" "}
-            <span className="text-lightGrey14 md:text-[1rem] text-[15px] font-bold tracking-wide ">
+            <span className="text-lightGrey14 md:text-[1rem] text-[15px] font-bold tracking-wide dark:text-gray-50 ">
               Medh’s Personality Development Courses{" "}
             </span>{" "}
             that offer practical insights and techniques to enhance confidence,
@@ -129,8 +129,8 @@ const PersonalityOverview = () => {
           </p>
           {activeTab === 1 && (
             <>
-              <p className="text-lightGrey14 mb-6 md:text-[15px] text-[14px] ">
-                <span className="text-lightGrey14 md:text-[1rem] text-[15px]font-bold tracking-wide ">
+              <p className="text-lightGrey14 mb-6 md:text-[15px] text-[14px] dark:text-gray-300 ">
+                <span className="text-lightGrey14 dark:text-gray-50 md:text-[1rem] text-[15px]font-bold tracking-wide ">
                   Tailored for diverse range of Age Groups:
                 </span>{" "}
                 From preschoolers, school students, college students,
@@ -139,13 +139,13 @@ const PersonalityOverview = () => {
                 leadership skills.",
               </p>
               {/* Key Features Section */}
-              <h2 className=" text-[1.3rem] font-bold mb-4 tracking-wide ">
+              <h2 className=" text-[1.3rem] font-bold mb-4 tracking-wide dark:text-gray-50 ">
                 Key Features:
               </h2>
-              <ul className="list-none list-inside space-y-2 pb-2">
+              <ul className="list-none list-inside space-y-2 pb-2 dark:text-gray-300">
                 {data.overview.keyFeatures.map((feature, index) => (
                   <li key={index}>
-                    <strong className=" text-[1rem] font-bold tracking-wide ">
+                    <strong className=" text-[1rem] font-bold tracking-wide  dark:text-gray-50">
                       {feature.title}:
                     </strong>{" "}
                     {feature.description}
