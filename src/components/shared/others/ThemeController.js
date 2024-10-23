@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useEffect } from "react";
-import theme from "@/libs/theme";
+import { useEffect } from 'react';
+import theme from '@/libs/theme';
 const ThemeController = () => {
   useEffect(() => {
     theme();

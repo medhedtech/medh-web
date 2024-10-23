@@ -1,44 +1,44 @@
-"use client";
-import Image from "next/image";
-import Link from "next/link";
-import React from "react";
-import aidata from "@/assets/images/about/ai-data-science.png";
-import digital from "@/assets/images/about/digital-marketing.png";
-import personality from "@/assets/images/about/personality-development.png";
-import vedic from "@/assets/images/about/vedic-mathematics.png";
-import useIsTrue from "@/hooks/useIsTrue";
+'use client';
+import Image from 'next/image';
+import Link from 'next/link';
+import React from 'react';
+import aidata from '@/assets/images/about/ai-data-science.png';
+import digital from '@/assets/images/about/digital-marketing.png';
+import personality from '@/assets/images/about/personality-development.png';
+import vedic from '@/assets/images/about/vedic-mathematics.png';
+import useIsTrue from '@/hooks/useIsTrue';
 
 const About1 = ({ children, image, hideCounter }) => {
-  const isHome9 = useIsTrue("/home-9");
-  const isHome9Dark = useIsTrue("/home-9-dark");
+  const isHome9 = useIsTrue('/home-9');
+  const isHome9Dark = useIsTrue('/home-9-dark');
 
   const courses = [
     {
-      title: "Artificial Intelligence and Data Science",
+      title: 'Artificial Intelligence and Data Science',
       imageSrc: aidata,
-      path: "/ai-data-science",
+      path: '/ai-data-science',
     },
     {
-      title: "Digital Marketing with Data Analytics",
+      title: 'Digital Marketing with Data Analytics',
       imageSrc: digital,
-      path: "/digital-marketing-with-data-analyst",
+      path: '/digital-marketing-with-data-analyst',
     },
     {
-      title: "Personality Development",
+      title: 'Personality Development',
       imageSrc: personality,
-      path: "/personality-development",
+      path: '/personality-development',
     },
     {
-      title: "Vedic Mathematics",
+      title: 'Vedic Mathematics',
       imageSrc: vedic,
-      path: "/vedic-mathematics",
+      path: '/vedic-mathematics',
     },
   ];
 
   return (
     <section>
       <div className="container mx-auto px-4 py-10 text-center">
-        <h2 className="text-2xl sm:text-3xl font-bold mb-4">
+        <h2 className="text-2xl sm:text-3xl font-bold mb-4 dark:text-white">
           Featured LIVE Courses
         </h2>
         <p className="text-gray-600 mb-8 max-w-full sm:max-w-md lg:max-w-2xl text-center mx-auto px-4">
@@ -51,9 +51,7 @@ const About1 = ({ children, image, hideCounter }) => {
         <div className="grid grid-cols-2 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {courses.map((course, index) => (
             <Link href={course.path} key={index}>
-              <div
-                className="bg-white shadow-2xl flex flex-col overflow-hidden hover:scale-105 transition transform duration-300 h-full"
-              >
+              <div className="bg-white shadow-2xl flex flex-col overflow-hidden hover:scale-105 transition transform duration-300 h-full">
                 <div className="relative w-full h-48">
                   <Image
                     src={course.imageSrc}
