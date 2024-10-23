@@ -40,7 +40,7 @@ const JoinMedh = ({
   return (
     <div className="flex flex-col gap-4 md:gap-0">
       {/* Educator Section */}
-      <div className="flex flex-col md:flex-row md:items-center bg-white">
+      <div className="flex flex-col md:flex-row md:items-center bg-white dark:bg-[#050622]">
         <Image
           src={educatorImage}
           width={720}
@@ -48,10 +48,10 @@ const JoinMedh = ({
           className="w-full md:w-1/2 object-cover"
         />
         <div className="flex flex-col justify-center px-4 md:w-1/2 md:px-8 lg:pl-24">
-          <h1 className="font-bold text-[#252525] text-3xl mt-4 md:mt-0">
+          <h1 className="font-bold text-[#252525] text-3xl mt-4 md:mt-0 dark:text-gray-50">
             {educatorTitle}
           </h1>
-          <p className="text-[#727695] text-base leading-7 mt-2">
+          <p className="text-[#727695] text-base leading-7 mt-2 dark:text-gray-300">
             {educatorText}
           </p>
           <div

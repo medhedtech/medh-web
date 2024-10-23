@@ -8,6 +8,7 @@ import CareerFaq from "@/components/sections/careers/careersFaq";
 import Certified from "@/components/sections/why-medh/Certified";
 import JobOpening from "@/components/sections/careers/jobPositions";
 import UniqueBenefits from "@/components/sections/careers/uniqueBenefits";
+import ThemeController from "@/components/shared/others/ThemeController";
 
 function JoinSchool() {
   return (
@@ -18,6 +19,7 @@ function JoinSchool() {
       <CareerFaq/>
       <CareerCourceBanner />
       <Certified/>
+      <ThemeController/>
     </PageWrapper>
   );
 }

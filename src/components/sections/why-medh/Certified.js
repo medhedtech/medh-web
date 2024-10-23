@@ -20,7 +20,8 @@ const Certified = () => {
     slidesToShow: 5, // Show 5 slides
     slidesToScroll: 1,
     centerMode: true, // Center the cards
-    centerPadding: "0", // Remove extra padding around the center slide
+    centerPadding: "0",
+     // Remove extra padding around the center slide
     responsive: [
       {
         breakpoint: 1024, // Tablets
@@ -51,11 +52,11 @@ const Certified = () => {
 
   return (
     <div className="py-12 w-full flex justify-center items-center">
-      <div className="w-[80%]">
-        <h3 className="text-center text-[#5C6574] text-size-32 leading-34px font-bold mb-8">
+      <div className="w-[80%] ">
+        <h3 className="text-center text-[#5C6574] dark:text-gray-200 text-size-32 leading-34px font-bold mb-8">
           Certified & Recognized By
         </h3>
-        <Slider {...settings}>
+        <Slider {...settings} >
           <div className="pb-5 text-center  ">
             <Image
               src={iso10002}
