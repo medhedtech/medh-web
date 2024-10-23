@@ -23,7 +23,7 @@ function CourceBanner() {
   };
 
 return (
-<div>
+<div className='bg-white flex justify-center items-center flex-col lg:pb-12 pb-10'>
   {courses.map((course, index) => (
     <CourseBanner
       key={index}
@@ -37,6 +37,10 @@ return (
       icon={course.icon} // Pass icon for button
     />
   ))}
+  <div className='lg:w-[80%] w-[95%] text-center font-Poppins text-[#727695] text-[15px] font-semibold leading-[27px]'>
+    <p>Upon enrolling in our Corporate Training Courses, you can be confident in making a strategic investment in your organization’s future.</p>
+      <p className='mt-6'>Our dedication to providing top-tier, customized training ensures that your team will acquire the skills needed to excel in today’s ever-evolving business environment. We are committed to your success and eager to embark on this transformative journey with you.</p>
+      </div>
 </div>
 );
 }
