@@ -1,0 +1,128 @@
+"use client";
+import React, { useState } from 'react';
+import Image from 'next/image';
+import Left from "@/assets/images/personality/left.svg";
+import Down from "@/assets/images/personality/down.svg";
+
+export default function EducatorFaq() {
+  const [openIndex, setOpenIndex] = useState(null);
+
+  const toggleFAQ = (index) => {
+    setOpenIndex(openIndex === index ? null : index);
+  };
+
+  const faqs = [
+    {
+      question: "What qualifications do educators need to have to apply for a position at Medh EdTech?",
+      answer: "The Personality Development Course is designed to help individuals enhance their personal and professional skills through various interactive sessions and practical exercises.",
+    },
+    {
+      question: "Is prior teaching experience necessary to become an educator with Medh EdTech?",
+      answer: "The duration of the course is typically 6 weeks, with classes held twice a week.",
+    },
+    {
+      question: "How can I apply to become an educator with Medh Edtech?",
+      answer: "Yes, the course is suitable for individuals of all ages, from students to professionals.",
+    },
+    {
+      question: "Are MEDH's Corporate Training Courses certified or accredited?",
+      answer: "The course covers various topics such as communication skills, leadership, teamwork, and self-awareness.",
+    },
+    {
+      question: "Are educators required to work full-time or part-time?",
+      answer: "Absolutely! The skills learned in this course are highly beneficial for career growth and personal development.",
+    },
+    {
+        question: "What technology or tools will educators need to use for online teaching?",
+        answer: "The Personality Development Course is designed to help individuals enhance their personal and professional skills through various interactive sessions and practical exercises.",
+      },
+      {
+        question: "What technology or tools will educators need to use for online teaching?",
+        answer: "The duration of the course is typically 6 weeks, with classes held twice a week.",
+      },
+      {
+        question: "Is training provided to educators before they start teaching online?",
+        answer: "Yes, the course is suitable for individuals of all ages, from students to professionals.",
+      },
+      {
+        question: "How are educators evaluated for their performance?",
+        answer: "The course covers various topics such as communication skills, leadership, teamwork, and self-awareness.",
+      },
+      {
+        question: "What professional development opportunities are available for educators?",
+        answer: "Yes, the course is suitable for individuals of all ages, from students to professionals.",
+      },
+      {
+        question: "What kind of support does Medh provide to its educators?",
+        answer: "The course covers various topics such as communication skills, leadership, teamwork, and self-awareness.",
+      },
+      {
+        question: "How does MEDH ensure the quality of its courses?",
+        answer: "Absolutely! The skills learned in this course are highly beneficial for career growth and personal development.",
+      },
+      {
+          question: "What are the benefits of joining Medh as an educator?",
+          answer: "The Personality Development Course is designed to help individuals enhance their personal and professional skills through various interactive sessions and practical exercises.",
+        },
+       
+        {
+          question: "What kind of support does Medh provide to its educators?",
+          answer: "The course covers various topics such as communication skills, leadership, teamwork, and self-awareness.",
+        },
+        {
+          question: "Can I teach multiple courses at Medh?",
+          answer: "Yes, the course is suitable for individuals of all ages, from students to professionals.",
+        },
+        {
+          question: "What is the structure of the courses at Medh?",
+          answer: "How can I get more information or assistance during the application process?",
+        },
+      
+      
+      
+     
+  ];
+
+  return (
+    <div className="bg-white text-lightGrey14 flex justify-center py-10">
+      <div className="md:w-[80%] w-[92%]">
+        <h2 className="md:text-3xl text-[22px] font-bold mb-4 text-center text-[#5C6574]">
+          Frequently Asked Questions (FAQs)
+        </h2>
+        <p className="text-center md:text-[15px] text-[14px] mb-8 md:px-14 px-3 ">
+        Find answers to common questions about MEDH’s Corporate Training Courses.
+        </p>
+        <div className="space-y-4">
+          {faqs.map((faq, index) => (
+            <div key={index} className="border shadow-md">
+              <div
+                className="flex justify-between items-center py-4 cursor-pointer px-2 sm:px-4"
+                onClick={() => toggleFAQ(index)}
+              >
+                <h3 className="md:text-[15px] text-[14px] font-semibold">{faq.question}</h3>
+                <span className="md:text-[15px] text-[14px]">
+                  {openIndex === index ? (
+                    <Image src={Down} width={20} height={23} alt="Down Icon" />
+                  ) : (
+                    <Image src={Left} width={27} height={25} alt="Left Icon" />
+                  )}
+                </span>
+              </div>
+              {openIndex === index && (
+                <p className="text-lightGrey14 pb-4 px-2 md:pr-12 sm:px-4 md:text-[15px] text-[14px] ">{faq.answer}</p>
+              )}
+            </div>
+          ))}
+        </div>
+        <div className='text-center mt-10'>
+        <p>Note: If you have any other questions or concerns not covered in the FAQs, please feel free to contact our</p>
+        <p>support team <a href="care@medh.co" className='text-[#0000FF]'>care@medh.co</a> , and we’ll be happy to assist you!</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+
+

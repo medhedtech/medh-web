@@ -7,18 +7,21 @@ import BlogContactForm from "./BlogContactForm";
 import BlogTags from "./BlogTags";
 import BlogSocials from "./BlogSocials";
 import BlogSearch from "./BlogSearch";
+import BlogArchive from "@/components/shared/blogs/BlogArchive"
 
 const BlogsSidebar = () => {
   return (
     <div className="flex flex-col">
       {/* author details */}
-      <BlogAuthor />
+      {/* <BlogAuthor /> */}
       {/* search input */}
       <BlogSearch />
       {/* categories */}
-      <BlogCategories />
+      {/* <BlogCategories /> */}
+      <BlogArchive/>
       {/* recent posts */}
-      <RecentPosts />
+      {/* <RecentPosts /> */}
+      <BlogTags />
       {/* photo gallary */}
       <div
         className="p-5 md:p-30px lg:p-5 2xl:p-30px mb-30px border border-borderColor2 dark:border-borderColor2-dark"
@@ -30,11 +33,10 @@ const BlogsSidebar = () => {
         <ImageGallery gallary={"mini"} />
       </div>
       {/* contact form */}
-      <BlogContactForm />
+      {/* <BlogContactForm /> */}
       {/* tags */}
-      <BlogTags />
       {/* social area */}
-      <BlogSocials />
+      {/* <BlogSocials /> */}
     </div>
   );
 };

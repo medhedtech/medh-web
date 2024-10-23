@@ -46,14 +46,14 @@ function PersonalityFaq() {
         <h2 className="md:text-3xl text-[22px] font-bold mb-4 text-center text-[#5C6574]">
           Frequently Asked Questions (FAQs)
         </h2>
-        <p className="text-center md:text-[15px] text-[14px] mb-8 md:px-14 px-3">
+        <p className="text-center md:text-[15px] text-[14px] mb-8 md:px-35 px-3">
           Find answers to common questions about MEDH's Personality Development
           Course. Learn about course structure, prerequisites, career prospects,
           and more.
         </p>
         <div className="space-y-4">
           {faqs.map((faq, index) => (
-            <div key={index} className="border shadow-md">
+            <div key={index} className="border shadow-sm">
               <div
                 className="flex justify-between items-center py-4 cursor-pointer px-2 sm:px-4"
                 onClick={() => toggleFAQ(index)}

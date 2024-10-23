@@ -72,7 +72,7 @@ function HireFromMedhFaq() {
         </p>
         <div className="space-y-4">
           {faqs.map((faq, index) => (
-            <div key={index} className="border shadow-md">
+            <div key={index} className="border shadow-sm">
               <div
                 className="flex justify-between items-center py-4 cursor-pointer px-2 sm:px-4"
                 onClick={() => toggleFAQ(index)}
