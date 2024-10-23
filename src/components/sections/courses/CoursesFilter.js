@@ -116,14 +116,14 @@ const CoursesFilter = () => {
               <input
                 type="text"
                 placeholder="Search"
-                className="border rounded-md p-2 w-fit md:mb-0"
+                className="border rounded-md p-2 w-fit md:mb-0 dark:bg-black  border-whitegrey"
               />
             </div>
             <div className="relative inline-block text-left pr-4 pb-6 mt-4">
               <div>
                 <button
                   onClick={toggleDropdown}
-                  className="inline-flex justify-between w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-[#5C6574] hover:bg-gray-50"
+                  className="inline-flex justify-between w-full rounded-md border dark:bg-black dark:text-white border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-[#5C6574] hover:bg-gray-50"
                 >
                   Program Title (a-z)
                   <svg
@@ -143,7 +143,7 @@ const CoursesFilter = () => {
               </div>
 
               {isOpen && (
-                <div className="absolute right-0 z-10 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+                <div className="absolute right-0 z-10 mt-2 w-56 rounded-md shadow-lg dark:bg-black bg-white ring-1 ring-black ring-opacity-5">
                   <div
                     className="py-1"
                     role="menu"
@@ -180,7 +180,9 @@ const CoursesFilter = () => {
           <div className="flex flex-col md:flex-row">
             {/* Categories Section */}
             <div className="w-full md:w-[30%] ">
-              <span className="text-[#5C6574] dark:text-white font-bold text-xl">Category</span>
+              <span className="text-[#5C6574] dark:text-white font-bold text-xl">
+                Category
+              </span>
               <CategoryFilter
                 categories={categories}
                 setSelectedCategory={setSelectedCategory}

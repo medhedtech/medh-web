@@ -1,7 +1,9 @@
 const CategoryFilter = ({ categories, setSelectedCategory, heading }) => {
   return (
     <div className="w-full dark:text-gray-300    rounded-md">
-      <h2 className="text-2xl font-semibold mb-4 text-black">{heading}</h2>
+      <h2 className="text-2xl font-semibold mb-4 text-black dark:text-white">
+        {heading}
+      </h2>
       <div className="flex flex-col">
         {categories.map((category) => (
           <label key={category} className="inline-flex items-center mb-2">
@@ -14,7 +16,6 @@ const CategoryFilter = ({ categories, setSelectedCategory, heading }) => {
           </label>
         ))}
       </div>
-     
     </div>
   );
 };
