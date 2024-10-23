@@ -1,6 +1,6 @@
 import React from "react";
 import Image from "next/image";
-import Girl from "@/assets/images/join-educator/baby-girl.svg"
+import Girl from "@/assets/images/join-educator/baby-girl.svg";
 
 const offerings = [
   {
@@ -9,7 +9,8 @@ const offerings = [
   },
   {
     title: "Flexibility",
-    description: "Work from the comfort of your own home and set your own schedule.",
+    description:
+      "Work from the comfort of your own home and set your own schedule.",
   },
   {
     title: "Cutting-edge technology",
@@ -23,30 +24,37 @@ const offerings = [
   },
   {
     title: "Competitive compensation",
-    description:
-      "Be rewarded for your expertise and dedication to education.",
+    description: "Be rewarded for your expertise and dedication to education.",
   },
 ];
 
 const Offerings = () => {
   return (
-    <section className="w-full bg-[#FFE5F0] flex justify-center items-center">
+    <section className="w-full bg-[#FFE5F0] flex justify-center dark:bg-inherit items-center">
       <div className="w-[90%] lg:w-[80%] flex flex-wrap justify-between  ">
         <div className="text-left lg:w-[54%] w-full py-12  text-[#5C6574]  ">
-          <h2 className="text-3xl font-bold  mb-6 font-sans">
+          <h2 className="text-3xl font-bold  mb-6 font-sans dark:text-white">
             Medh Offerings
           </h2>
-          <ul className="text-gray-700 space-y-2">
+          <ul className="text-gray-700  space-y-2">
             {offerings.map((offering, index) => (
-              <li key={index} className="flex flex-col sm:flex-row gap-x-2 sm:gap-4">
-                <strong className="font-bold lg:text-lg text-base">{offering.title}: <span className="font-normal px-1">{offering.description}</span></strong>
+              <li
+                key={index}
+                className="flex flex-col sm:flex-row gap-x-2  sm:gap-4"
+              >
+                <strong className="font-bold lg:text-lg text-base dark:text-white">
+                  {offering.title}:{" "}
+                  <span className="font-normal px-1 dark:text-gray-400">
+                    {offering.description}
+                  </span>
+                </strong>
               </li>
             ))}
           </ul>
         </div>
         {/* right  */}
-        <div className="lg:w-[42%] w-full flx justify-center" >
-            <Image src={Girl} className="w-full h-[435px]"/>
+        <div className="lg:w-[42%] w-full flx justify-center">
+          <Image src={Girl} className="w-full h-[435px]" />
         </div>
       </div>
     </section>

@@ -64,12 +64,12 @@ const earningPotentialData = [
 
 const Benefits = () => {
   return (
-    <section className="py-16 w-full bg-white flex justify-center items-center">
+    <section className="py-16 w-full bg-whit dark:bg-black flex justify-center items-center">
       <div className="w-[92%] lg:w-[80%]">
         {/* Benefits Section */}
         <div className="text-center px-3 lg:px-15">
           <h2 className="text-3xl font-bold text-primaryColor">Benefits</h2>
-          <p className="mt-4 text-gray-600 text-[15px] leading-7">
+          <p className="mt-4 text-gray-600 text-[15px] leading-7 dark:text-white">
             Embark on an exhilarating journey of knowledge sharing, empowerment,
             and personal growth as an educator with Medh EdTech. Our platform
             offers a gratifying and fulfilling career choice for various
@@ -82,9 +82,9 @@ const Benefits = () => {
           {benefitsData.map((benefit, index) => (
             <div
               key={index}
-              className="px-4 pb-6 pt-8 bg-white rounded-3xl border border-[#0000004D] shadow-card-custom w-full transition-transform duration-300 ease-in-out hover:shadow-lg hover:scale-105"
+              className="px-4 pb-6 pt-8 bg-white rounded-3xl border border-[#0000004D] shadow-card-custom w-full transition-transform duration-300 ease-in-out hover:shadow-lg hover:scale-105 dark:bg-inherit dark:border-whitegrey3"
             >
-              <h3 className="text-[20px] leading-6 font-bold text-[#252525] mb-4">
+              <h3 className="text-[20px] leading-6 font-bold text-[#252525] dark:text-white mb-4">
                 {benefit.title}
               </h3>
               <p className="text-[#727695] text-[14px] leading-7 pt-1">
@@ -100,9 +100,9 @@ const Benefits = () => {
             {earningPotentialData.map((item, index) => (
               <div
                 key={index}
-                className="w-full px-4 py-8 bg-white shadow-card-custom rounded-2xl border border-[#0000004D] flex flex-col transition-transform duration-300 ease-in-out hover:shadow-lg hover:scale-105"
+                className="w-full px-4 py-8 bg-white dark:bg-inherit shadow-card-custom rounded-2xl border dark:border-whitegrey3 border-[#0000004D] flex flex-col transition-transform duration-300 ease-in-out hover:shadow-lg hover:scale-105"
               >
-                <h3 className="text-[20px] leading-6 font-bold text-[#252525] mb-4">
+                <h3 className="text-[20px] leading-6 font-bold text-[#252525] dark:text-white mb-4">
                   {item.title}
                 </h3>
                 <p className="text-[#727695] text-[14px] leading-7 pt-1 flex-grow">

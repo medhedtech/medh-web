@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import Left from "@/assets/images/personality/left.svg";
 import Down from "@/assets/images/personality/down.svg";
+import { DownIcon, LeftIcon } from "@/assets/images/icon/FaqIcon";
 
 export default function CareerFaq() {
   const [openIndex, setOpenIndex] = useState(null);
@@ -13,8 +14,7 @@ export default function CareerFaq() {
 
   const faqs = [
     {
-      question:
-        "What is Medh’s work culture like?",
+      question: "What is Medh’s work culture like?",
       answer:
         "The Personality Development Course is designed to help individuals enhance their personal and professional skills through various interactive sessions and practical exercises.",
     },
@@ -29,33 +29,33 @@ export default function CareerFaq() {
         "Yes, the course is suitable for individuals of all ages, from students to professionals.",
     },
     {
-        question: "What benefits can I expect as a Medh employee?",
-        answer:
-          "The Personality Development Course is designed to help individuals enhance their personal and professional skills through various interactive sessions and practical exercises.",
-      },
+      question: "What benefits can I expect as a Medh employee?",
+      answer:
+        "The Personality Development Course is designed to help individuals enhance their personal and professional skills through various interactive sessions and practical exercises.",
+    },
     {
       question: "How can I apply for a job at Medh?",
       answer:
         "Absolutely! The skills learned in this course are highly beneficial for career growth and personal development.",
     },
-   
+
     {
       question: "What is the recruitment process at Medh?",
       answer:
         "The duration of the course is typically 6 weeks, with classes held twice a week.",
     },
-    
   ];
 
   return (
-    <div className="bg-white text-lightGrey14 flex justify-center py-10">
+    <div className="bg-white dark:bg-black text-lightGrey14 flex justify-center py-10">
       <div className="md:w-[80%] w-[95%]">
-        <h2 className="md:text-3xl text-[22px] font-bold mb-4 text-center text-[#5C6574]">
+        <h2 className="md:text-3xl text-[22px] font-bold mb-4 text-center dark:text-white text-[#5C6574]">
           Frequently Asked Questions (FAQs)
         </h2>
         <p className="text-center md:text-[15px] text-[14px] mb-8 md:px-14 px-3 ">
-        Discover answers to common questions about becoming an integral part of the MEDH team.
-        Learn about the application process, pre-requisites, career opportunities, and more.
+          Discover answers to common questions about becoming an integral part
+          of the MEDH team. Learn about the application process, pre-requisites,
+          career opportunities, and more.
         </p>
         <div className="space-y-4">
           {faqs.map((faq, index) => (
@@ -67,12 +67,12 @@ export default function CareerFaq() {
                 <h3 className="md:text-[15px] text-[14px] font-bold ">
                   {faq.question}
                 </h3>
-                <span className="md:text-[15px] text-[14px]">
-                  {openIndex === index ? (
-                    <Image src={Down} width={20} height={23} alt="Down Icon" />
-                  ) : (
-                    <Image src={Left} width={27} height={25} alt="Left Icon" />
-                  )}
+                <span
+                  className={`md:text-[15px] text-[14px] ${
+                    openIndex === index ? "text-black" : "text-black"
+                  } dark:text-white`}
+                >
+                  {openIndex === index ? <DownIcon /> : <LeftIcon />}
                 </span>
               </div>
               {openIndex === index && (
