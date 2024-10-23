@@ -40,7 +40,7 @@ const JoinMedh = ({
   return (
     <div className="flex flex-col gap-4 md:gap-0">
       {/* Educator Section */}
-      <div className="flex flex-col md:flex-row md:items-center bg-white">
+      <div className="flex flex-col md:flex-row md:items-center bg-white dark:bg-black">
         <Image
           src={educatorImage}
           width={720}
@@ -48,7 +48,7 @@ const JoinMedh = ({
           className="w-full md:w-1/2 object-cover"
         />
         <div className="flex flex-col justify-center px-4 md:w-1/2 md:px-8 lg:pl-24">
-          <h1 className="font-bold text-[#252525] text-3xl mt-4 md:mt-0">
+          <h1 className="font-bold text-[#252525] text-3xl mt-4 md:mt-0 dark:text-white">
             {educatorTitle}
           </h1>
           <p className="text-[#727695] text-base leading-7 mt-2">
@@ -66,10 +66,10 @@ const JoinMedh = ({
 
       {/* School Collaboration Section */}
       <div
-        className="flex flex-col md:flex-row md:items-center gap-4 lg:gap-0"
+        className="flex flex-col md:flex-row md:items-center gap-4 lg:gap-0 "
         style={{ backgroundColor: partnerBackgroundColor }}
       >
-        <div className="flex flex-col justify-center px-4 md:w-1/2 md:px-8 lg:pl-24">
+        <div className="flex flex-col  justify-center px-4 md:w-1/2 md:px-8 lg:pl-24">
           <h1
             className="font-bold text-3xl mt-4 md:mt-0"
             style={{ color: partnerTextColor }}
