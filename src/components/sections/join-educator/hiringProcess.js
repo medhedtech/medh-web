@@ -63,9 +63,9 @@ const HiringProcess = () => {
   ];
 
   return (
-    <div className="w-full px-4 py-12 bg-white dark:bg-black  flex justify-center items-center">
+    <div className="w-full px-4 py-12 bg-white dark:bg-screen-dark  flex justify-center items-center">
       <div className="lg:w-[80%] w-[96%]">
-        <h1 className="text-center text-4xl font-bold mb-12">
+        <h1 className="text-center text-4xl font-bold mb-12 dark:text-gray50">
           Process of Hiring an Educator at Medh!
         </h1>
 
@@ -74,13 +74,13 @@ const HiringProcess = () => {
           {processSteps.map((step, index) => (
             <div
               key={index}
-              className="border-2 p-2 rounded-lg shadow-lg flex flex-col justify-between text-center relative dark:bg-black bg-white self-start transition-transform transform hover:scale-105 hover:shadow-xl "
+              className="border-2 dark:border-gray600 p-2 rounded-lg shadow-lg flex flex-col justify-between text-center relative dark:bg-screen-dark bg-white self-start transition-transform transform hover:scale-105 hover:shadow-xl "
             >
               <Image src={step.icon} alt="img" className="mx-auto h-16 mb-4" />
-              <h3 className="text-[22px] leading-6 font-bold mb-2 dark: text-[#020101] dark:text-white mt-2">
+              <h3 className="text-[22px] leading-6 font-bold mb-2 dark: text-[#020101] dark:text-gray50 mt-2">
                 {step.title}
               </h3>
-              <p className="text-[#020101] text-[15px] dark:text-whitegrey leading-7 ">
+              <p className="text-[#020101] text-[15px] dark:text-gray300 leading-7 ">
                 {step.description}
               </p>
               {step.arrow && (
@@ -95,7 +95,7 @@ const HiringProcess = () => {
 
           {/* Summary box */}
           <div className="lg:px-20 text-center col-span-1 lg:col-span-2 relative  flex justify-center items-center flex-col">
-            <p className="text-[#000000] dark:text-white text-[16px] leading-7 font-medium">
+            <p className="text-[#000000] dark:text-gray300 text-[16px] leading-7 font-medium">
               Tutors are periodically evaluated based on student feedback and
               adherence to standards. Becoming an educator with MEDH enables you
               to leverage technology, reach a global audience, and transform

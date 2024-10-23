@@ -21,7 +21,7 @@ const advantagesPotentialData = [
 
 const WelcomeCareers = () => {
   return (
-    <section className=" w-full bg-white dark:bg-black flex justify-center flex-col items-center">
+    <section className=" w-full bg-white dark:bg-screen-dark flex justify-center flex-col items-center">
       <h2 className="text-[#252525] lg:text-2xl text-lg dark:text-white font-Poppins text-center font-bold">
         Welcome to MEDH, where we are redefining the future of education through
         innovation and technology. As a leading EdTech company, we are committed
@@ -36,7 +36,7 @@ const WelcomeCareers = () => {
           {advantagesPotentialData.map((item, index) => (
             <div
               key={index}
-              className="w-full px-2 py-3 text-center  bg-white dark:bg-black dark:border-whitegrey shadow-card-custom rounded-3xl border border-[#0000004D] flex flex-col transition-transform duration-300 ease-in-out hover:shadow-lg hover:scale-105"
+              className="w-full px-2 py-3 text-center  bg-white dark:bg-screen-dark dark:border-whitegrey shadow-card-custom rounded-3xl border border-[#0000004D] flex flex-col transition-transform duration-300 ease-in-out hover:shadow-lg hover:scale-105"
             >
               <Image src={item.icon} alt="img" className="mx-auto h-16 mb-2" />
               <p className="text-[#252525] text-[15px] leading-7 font-normal font-Open flex-grow dark:text-whitegrey3">

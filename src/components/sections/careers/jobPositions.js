@@ -5,9 +5,9 @@ import JobApply from "./jobApply";
 const JobOpening = () => {
   const [activeJob, setActiveJob] = useState("Vedic Mathematics Instructor");
   return (
-    <div className="w-full flex justify-center items-center p-4 bg-white dark:bg-inherit">
+    <div className="w-full flex justify-center items-center p-4 bg-white dark:bg-screen-dark">
       <div className="lg:w-[80%] w-[95%]">
-        <h2 className="text-[#5C6574] text-center text-3xl font-Poppins font-bold pb-6">
+        <h2 className="text-[#5C6574] text-center text-3xl dark:text-gray50 font-Poppins font-bold pb-6">
           Job Positions / Openings
         </h2>
         {/* Left Section - Job Title Navigation */}
@@ -41,13 +41,13 @@ const JobOpening = () => {
           </div>
 
           {/* Middle Section - Job Description */}
-          <div className="w-full lg:w-[42%] p-6 text-[#727695] text-[15px] list-none border-2 border-[#D5D8DC]">
+          <div className="w-full lg:w-[42%] p-6 text-[#727695] text-[15px] list-none border-2 dark:text-gray300 dark:border-gray600 border-[#D5D8DC]">
             <div className="mb-3 font-Open">
               <h2 className="mb-2 leading-[27px] font-bold dark:text-white">
                 Job Description:
               </h2>
-              <div className="mb-3 font-Open">
-                <p className="leading-[27px] font-normal">
+              <div className="mb-3 font-Open dark:text-gray300">
+                <p className="leading-[27px] font-normal ">
                   We are seeking experienced Vedic Mathematics Instructors to
                   deliver engaging online courses tailored to learners aged 3-7,
                   8-12, and 13-18 years.
@@ -64,7 +64,7 @@ const JobOpening = () => {
               <h3 className="mb-2 leading-[27px] font-bold font-Open dark:text-white">
                 Key Responsibilities:
               </h3>
-              <ul className="  mt-2 leading-[22.5px] font-normal font-Poppins pl-8">
+              <ul className="  mt-2 leading-[22.5px] font-normal font-Poppins pl-8 dark:text-gray300" >
                 <li>
                   Deliver live online classes and pre-recorded sessions in Vedic
                   Mathematics for each specified age group.
@@ -92,7 +92,7 @@ const JobOpening = () => {
               <h3 className=" mb-2 leading-[27px] font-bold font-Open dark:text-white">
                 Qualifications and Requirements:
               </h3>
-              <ul className="mt-2 leading-[22.5px] font-normal font-Poppins pl-8">
+              <ul className="mt-2 leading-[22.5px] font-normal font-Poppins pl-8 ">
                 <li>
                   Bachelor’s or Master’s degree in Mathematics, Education, or
                   related fields.
@@ -126,7 +126,7 @@ const JobOpening = () => {
               <h3 className="mb-2 leading-[27px] font-bold font-Open dark:text-white">
                 Process of Selection:
               </h3>
-              <ul className=" mt-2 leading-[22.5px] font-normal font-Poppins pl-8">
+              <ul className=" mt-2 leading-[22.5px] font-normal font-Poppins pl-8 ">
                 <li>Telephonic Call and Screening</li>
                 <li>Online aptitude Test</li>
                 <li>Live Demo Session</li>
@@ -149,7 +149,7 @@ const JobOpening = () => {
               </ul>
             </div>
 
-            <div className="mb-3">
+            <div className="mb-3 ">
               <h3 className="mb-2 leading-[27px] font-bold font-Open dark:text-white">
                 Note: Professional head-set can be provided if needed.
               </h3>
@@ -163,7 +163,7 @@ const JobOpening = () => {
               </p>
             </div>
 
-            <div className="mt-3">
+            <div className="mt-3 ">
               <h3 className="mb-2 leading-[27px] font-bold font-Open dark:text-white">
                 Remuneration:
               </h3>
