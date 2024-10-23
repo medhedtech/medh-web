@@ -26,8 +26,8 @@ const CertificationsCarousel = () => {
   ];
 
   return (
-    <div className="py-10 bg-white">
-      <h2 className="text-center text-2xl md:text-3xl font-bold text-gray-800 mb-8">
+    <div className="py-10 bg-white dark:bg-black">
+      <h2 className="text-center text-2xl md:text-3xl font-bold text-gray-800 mb-8 dark:text-white">
         Certified & Recognised By
       </h2>
 

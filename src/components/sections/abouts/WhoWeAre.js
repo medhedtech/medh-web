@@ -4,7 +4,7 @@ import Explain from "@/assets/images/about/explain.png";
 
 const WhoWeAre = () => {
   return (
-    <div className="bg-[#F3F6FB] px-4 md:px-16 lg:px-40 my-16 flex gap-8 flex-col lg:flex-row py-16">
+    <div className="bg-[#F3F6FB] dark:bg-black px-4 md:px-16 lg:px-40 my-16 flex gap-8 flex-col lg:flex-row py-16">
       <div className="w-full lg:w-1/2 flex justify-center">
         <Image
           src={Explain}
@@ -16,7 +16,7 @@ const WhoWeAre = () => {
       </div>
       <div className="w-full lg:w-1/2 my-auto flex flex-col gap-8">
         <div>
-          <h1 className="text-[#5C6574] font-semibold text-xl md:text-2xl pb-3">
+          <h1 className="text-[#5C6574] dark:text-white font-semibold text-xl md:text-2xl pb-3">
             Who We Are?
           </h1>
           <p className="text-[#727695] text-base text-left">
@@ -28,7 +28,7 @@ const WhoWeAre = () => {
           </p>
         </div>
         <div>
-          <h1 className="text-[#5C6574] font-semibold text-xl md:text-2xl pb-3">
+          <h1 className="text-[#5C6574] dark:text-white font-semibold text-xl md:text-2xl pb-3">
             Our Commitment to Quality
           </h1>
           <p className="text-[#727695] text-base text-left">
@@ -40,7 +40,7 @@ const WhoWeAre = () => {
           </p>
         </div>
         <div>
-          <h1 className="text-[#5C6574] font-semibold text-xl md:text-2xl pb-3">
+          <h1 className="text-[#5C6574] dark:text-white font-semibold text-xl md:text-2xl pb-3">
             Empowering Lifelong Learning
           </h1>
           <p className="text-[#727695] text-base text-left">
