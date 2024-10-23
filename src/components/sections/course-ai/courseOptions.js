@@ -9,7 +9,7 @@ function CourseOptions() {
     {
       title: "Advanced Certificate in",
       label: "AI & Data Science",
-    //   grade: "(Grade 5-6)",
+      //   grade: "(Grade 5-6)",
       duration: "8 Months Course",
       image: CardImg1,
     },
@@ -32,7 +32,7 @@ function CourseOptions() {
       <h1 className="text-center text-[#5C6574] text-3xl font-bold mb-8 ">
         Course Options in AI with Data Science
       </h1>
-      <div className="w-[80%] h-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className=" mx-auto h-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {courses.map((course, index) => (
           <CourseCard key={index} course={course} />
         ))}

@@ -3,6 +3,7 @@ import React from "react";
 import hire from "@/assets/images/hire/Hire.png";
 import Traning from "@/assets/images/hire/Traning.png";
 
+// AddIcon component with customizable fill color
 const AddIcon = ({ fill = "white" }) => {
   return (
     <svg
@@ -20,55 +21,100 @@ const AddIcon = ({ fill = "white" }) => {
   );
 };
 
-const Hire = () => {
+// Hire component with customizable content and styles
+const Hire = ({
+  hireImage = hire,
+  hireTitle = "Hire from Medh",
+  hireText = "Recruit industry-trained, job-ready top talents to meet your business needs through our placement services.",
+  hireButtonText = "Recruit@Medh",
+  hireButtonColor = "#5F2DED",
+  hireButtonTextColor = "white",
+  trainingImage = Traning,
+  trainingTitle = "Corporate Training",
+  trainingText = "Enhance your employees' skills, motivation, and engagement with our dynamic Training Courses.",
+  trainingButtonText = "Empower Your Team",
+  trainingButtonColor = "white",
+  trainingButtonTextColor = "black",
+  trainingBackgroundColor = "#5F2DED",
+  trainingTextColor = "white",
+  hireBackground = "#EDE6FF",
+}) => {
   return (
-    <div className="flex flex-col gap-4 lg:gap-0 mb-12">
+    <div className="flex flex-col gap-4 md:gap-0 mb-12">
       {/* Hire Section */}
-      <div className="flex flex-col md:flex-row md:items-center gap-4 lg:gap-0 bg-white">
-        <Image
-          src={hire}
-          width={720}
-          height={375}
-          className="w-full md:w-1/2 object-cover"
-          alt="Hire from Medh"
-        />
-        <div className="flex flex-col justify-center px-4 w-full md:w-1/2 md:px-8 lg:pl-24">
+      <div
+        className="flex flex-col md:flex-row md:items-center gap-4 lg:gap-0 "
+        style={{ backgroundColor: hireBackground }}
+      >
+        {hireImage && (
+          <Image
+            src={hireImage}
+            width={720}
+            height={375}
+            className="w-full md:w-1/2 object-cover"
+            alt="Hire from Medh"
+          />
+        )}
+        <div className="flex flex-col justify-center px-4 w-full md:w-1/2 md:px-8 py-3 lg:pl-24 ">
           <h1 className="font-bold text-[#252525] text-2xl md:text-3xl mt-4 md:mt-0">
-            Hire from Medh
+            {hireTitle}
           </h1>
           <p className="text-[#727695] text-sm md:text-base leading-7 mt-2">
-            Recruit industry-trained, job-ready top talents to meet your
-            business needs through our placement services.
+            {hireText}
           </p>
-          <div className="bg-[#5F2DED] text-white px-2.5 py-1 rounded-3xl w-48 flex items-center gap-2.5 mt-4">
-            <AddIcon />
-            Recruit@Medh
+          <div
+            className="px-2.5 py-1 rounded-3xl flex items-center gap-2.5 mt-4 w-fit"
+            style={{
+              backgroundColor: hireButtonColor,
+              color: hireButtonTextColor,
+            }}
+          >
+            <AddIcon fill={hireButtonTextColor} />
+            {hireButtonText}
           </div>
         </div>
       </div>
 
       {/* Training Section */}
-      <div className="flex flex-col gap-4 lg:gap-0 md:flex-row md:items-center bg-[#5F2DED]">
+      <div
+        className="flex flex-col gap-4 lg:gap-0 md:flex-row md:items-center"
+        style={{ backgroundColor: trainingBackgroundColor }}
+      >
         <div className="flex flex-col justify-center px-4 w-full md:w-1/2 md:px-8 lg:pl-24">
-          <h1 className="font-bold text-white text-2xl md:text-3xl mt-4 md:mt-0">
-            Corporate Training
+          <h1
+            className="font-bold text-2xl md:text-3xl mt-4 md:mt-0"
+            style={{ color: trainingTextColor }}
+          >
+            {trainingTitle}
           </h1>
-          <p className="text-white text-sm md:text-base leading-7 mt-2">
-            Enhance your employees' skills, motivation, and engagement with our
-            dynamic Training Courses.
+          <p
+            className="text-sm md:text-base leading-7 mt-2"
+            style={{ color: trainingTextColor }}
+          >
+            {trainingText}
           </p>
-          <div className="bg-white text-black px-2.5 py-1 rounded-3xl flex items-center gap-2.5 mt-4 w-fit">
-            <AddIcon fill="black" />
-            Empower Your Team
+          <div
+            className="px-2.5 py-1 rounded-3xl flex items-center gap-2.5 mt-4 w-fit"
+            style={{
+              backgroundColor: trainingButtonColor,
+              color: trainingButtonTextColor,
+            }}
+          >
+            <AddIcon
+              fill={trainingButtonTextColor === "black" ? "black" : "white"}
+            />
+            {trainingButtonText}
           </div>
         </div>
-        <Image
-          src={Traning}
-          width={720}
-          height={375}
-          className="w-full md:w-1/2 object-cover"
-          alt="Corporate Training"
-        />
+        {trainingImage && (
+          <Image
+            src={trainingImage}
+            width={720}
+            height={375}
+            className="w-full md:w-1/2 object-cover"
+            alt="Corporate Training"
+          />
+        )}
       </div>
     </div>
   );

@@ -6,8 +6,10 @@ import blogImag8 from "@/assets/images/blog/blog_8.png";
 import blogImag9 from "@/assets/images/blog/blog_9.png";
 import BlogPrimary from "@/components/shared/blogs/BlogPrimary";
 import BlogsSidebar from "@/components/shared/blogs/BlogsSidebar";
-import Pagination from "@/components/shared/others/Pagination";
+// import Pagination from "@/components/shared/others/Pagination"; // Import Pagination component
 import { useEffect, useRef, useState } from "react";
+import Pagination from "./pagination";
+
 const images = [
   blogImag6,
   blogImag7,
@@ -20,31 +22,32 @@ const images = [
   blogImag6,
   blogImag7,
 ];
+
 const BlogsPrimary = () => {
-  const [currentBlogs, setCurrentBlogs] = useState(null);
+  const [currentBlogs, setCurrentBlogs] = useState([]);
   const blogsRef = useRef(null);
   const [skip, setSkip] = useState(0);
   const [currentPage, setCurrentPage] = useState(0);
   const totalBlogs = allBlogs?.length;
-  const limit = 4;
+  const limit = 3;
   const totalPages = Math.ceil(totalBlogs / limit);
-  const paginationItems = [...Array(totalPages)];
 
-  const handlePagesnation = (id) => {
+  // Function to handle pagination
+  const handlePagination = (id) => {
     blogsRef.current.scrollIntoView({ behavior: "smooth" });
     if (typeof id === "number") {
       setCurrentPage(id);
-
       setSkip(limit * id);
-    } else if (id === "prev") {
+    } else if (id === "prev" && currentPage > 0) {
       setCurrentPage(currentPage - 1);
       setSkip(skip - limit);
-    } else if (id === "next") {
+    } else if (id === "next" && currentPage < totalPages - 1) {
       setCurrentPage(currentPage + 1);
       setSkip(skip + limit);
     }
   };
 
+  // Update displayed blogs when `skip` or `limit` changes
   useEffect(() => {
     const blogs = [...allBlogs.slice(6, 10), ...allBlogs.slice(0, 6)]?.map(
       (blog, idx) => ({
@@ -52,7 +55,7 @@ const BlogsPrimary = () => {
         image: images[idx],
       })
     );
-    const blogsToShow = [...blogs].splice(skip, limit);
+    const blogsToShow = blogs.slice(skip, skip + limit); // Correct slicing for current blogs
     setCurrentBlogs(blogsToShow);
   }, [skip, limit]);
 
@@ -62,22 +65,21 @@ const BlogsPrimary = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-30px">
           {/* blogs */}
           <div className="lg:col-start-1 lg:col-span-8 space-y-[35px]">
-            {currentBlogs && (
+            {currentBlogs && currentBlogs.length > 0 ? (
               <>
-                {" "}
                 {currentBlogs?.map((blog, idx) => (
                   <BlogPrimary blog={blog} idx={idx} key={idx} />
                 ))}
-                {/* pagination */}
+
+                {/* Pagination Component */}
                 <Pagination
-                  pages={paginationItems}
-                  totalItems={totalBlogs}
-                  handlePagesnation={handlePagesnation}
                   currentPage={currentPage}
-                  skip={skip}
-                  limit={limit}
+                  totalPages={totalPages}
+                  handlePagesnation={handlePagination}
                 />
               </>
+            ) : (
+              <p>No blogs available</p>
             )}
           </div>
           {/* blog sidebar */}
