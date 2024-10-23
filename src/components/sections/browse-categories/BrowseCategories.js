@@ -18,7 +18,7 @@ const BrowseCategories = () => {
           <h3 className="text-purple-600 uppercase tracking-wider text-sm text-center md:text-left">
             Course Categories
           </h3>
-          <h1 className="text-gray-800 font-bold text-2xl md:text-3xl text-center md:text-left mt-2">
+          <h1 className="text-gray-800 dark:text-white font-bold text-2xl md:text-3xl text-center md:text-left mt-2">
             Browse Trending Categories
           </h1>
         </div>
@@ -85,13 +85,13 @@ const BrowseCategories = () => {
 
       {/* Immersive Learning Section */}
       <div className="mt-16">
-        <h3 className="text-center text-blue-500 text-sm font-semibold tracking-wide uppercase mb-2">
+        <h3 className="text-center text-blue-500 text-sm font-semibold tracking-wide uppercase mb-2 dark:text-white">
           Make Connections
         </h3>
-        <h2 className="text-center text-2xl md:text-3xl font-bold text-gray-900">
+        <h2 className="text-center text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-200">
           Immersive Learning: Your Tailored Pathway to Excellence.
         </h2>
-        <p className="text-center text-gray-600 mt-4 px-4 md:px-16 lg:px-32">
+        <p className="text-center text-gray-600 mt-4 px-4 md:px-16 lg:px-32 dark:text-gray-300">
           Offers engaging, interactive experiences, fostering deep
           understanding, critical thinking,
           <br className="hidden md:inline" /> and skill development in diverse

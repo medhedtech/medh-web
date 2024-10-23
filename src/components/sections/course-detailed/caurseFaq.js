@@ -62,15 +62,15 @@ export default function CaurseFaq() {
   ];
 
   return (
-    <div className="bg-white text-lightGrey14 flex  md:py-10 px-4 md:px-4">
-      <div className="lg:w-[62%] w-full lg:ml-[7%] ">
-        <h2 className="md:text-3xl text-[22px] font-bold mb-4 text-center text-primaryColor">
+    <div className="bg-white dark:bg-[#050622] text-lightGrey14 flex  md:py-10 px-4 md:px-4">
+      <div className="lg:w-[62%] w-full lg:ml-[7%] dark:text-gray-300 ">
+        <h2 className="md:text-3xl text-[22px] font-bold mb-4 text-center dark:text-gray-50 text-primaryColor">
           FAQs
         </h2>
        
         <div className="space-y-1">
           {faqs.map((faq, index) => (
-            <div key={index} className="border shadow-md py-2">
+            <div key={index} className="border dark:border-gray-600 shadow-md py-2">
               <div
                 className="flex  items-center py-4 cursor-pointer px-2 sm:px-4"
                 onClick={() => toggleFAQ(index)}
@@ -78,9 +78,10 @@ export default function CaurseFaq() {
                 {/* Icon comes first now */}
                 <span className="md:text-[15px] text-[14px]">
                   {openIndex === index ? (
-                    <Image src={Down} width={20} height={23} alt="Down Icon" />
+                    <i class="icofont-caret-down" style={{ fontSize: '20px'  }}></i>
+                   
                   ) : (
-                    <Image src={Left} width={27} height={25} alt="Left Icon" />
+                    <i class="icofont-caret-right" style={{ fontSize: '20px' }}></i>
                   )}
                 </span>
                 <h3 className="md:text-[15px] text-[14px] md:pl-3 font-semibold">
@@ -88,14 +89,14 @@ export default function CaurseFaq() {
                 </h3>
               </div>
               {openIndex === index && (
-                <p className="text-lightGrey14 pb-4 px-2 md:pl-12 sm:px-4 md:text-[15px] text-[14px]">
+                <p className="text-lightGrey14 dark:bg-[#050622] pb-4 px-2 md:pl-12 sm:px-4 md:text-[15px] text-[14px]">
                   {faq.answer}
                 </p>
               )}
             </div>
           ))}
         </div>
-        <p className="text-primaryColor pt-10 pr-5">Note: If you have any other questions or concerns not covered in the FAQs, please feel free to contact our support team, and we’ll be happy to assist you!</p>
+        <p className="text-primaryColor dark:text-[#F2277E] pt-10 pr-5">Note: If you have any other questions or concerns not covered in the FAQs, please feel free to contact our support team, and we’ll be happy to assist you!</p>
       </div>
     </div>
   );

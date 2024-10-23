@@ -21,7 +21,7 @@ const BlogArchive = () => {
   ];
 
   return (
-    <div className="p-5 md:p-8 lg:p-5 2xl:p-8 mb-8 border ">
+    <div className="p-5 md:p-8 lg:p-5 2xl:p-8 mb-8 border dark:border-gray-600 ">
       <h4 className="text-lg text-[#252525] border-dashed border-l-2  dark:text-blackColor-dark font-bold pl-2 mb-6">
         Archive
       </h4>

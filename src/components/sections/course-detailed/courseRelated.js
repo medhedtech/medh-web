@@ -25,9 +25,9 @@ function CourceRalated() {
   ];
 
   return (
-    <div className="w-full bg-white h-auto pb-10 md:px-4">
+    <div className="w-full bg-white dark:bg-[#050622] h-auto pb-10 md:px-4">
       <div className="flex flex-col lg:w-[62%] w-full lg:ml-[7%] ">
-        <h1 className="text-[#5C6574] text-3xl font-bold py-5 md:ml-[0] ml-[10%]  ">
+        <h1 className="text-[#5C6574] text-3xl font-bold py-5 md:ml-[0] ml-[10%] dark:text-gray-50  ">
           Related Courses
         </h1>
 
