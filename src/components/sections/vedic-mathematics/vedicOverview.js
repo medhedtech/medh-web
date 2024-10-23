@@ -62,14 +62,14 @@ const PersonalityOverview = () => {
   const activeContent = data.tabs.find((tab) => tab.id === activeTab);
 
   return (
-    <div className="bg-white h-auto py-10 w-full flex justify-center items-center">
+    <div className="bg-white dark:bg-[#050622] h-auto py-10 w-full flex justify-center items-center">
       <div className="w-full md:w-[80%]">
         {/* Title */}
         <div className="flex items-center flex-col w-80% md:mb-20 mb-10 px-4">
-          <h1 className="text-[24px] leading-7 md:text-4xl font-bold md:mb-3 mb-2 text-[#41454F]">
+          <h1 className="text-[24px] leading-7 md:text-4xl font-bold md:mb-3 mb-2 dark:text-gray-50 text-[#41454F]">
             Welcome to Medh's Vedic Mathematics Course
           </h1>
-          <p className="text-center md:text-[15px] text-[14px] leading-6 md:leading-7 md:w-[70%] text-[#727695]">
+          <p className="text-center md:text-[15px] text-[14px] leading-6 md:leading-7 md:w-[70%] text-[#727695] dark:text-gray-300">
             Our course is designed to simplify mathematical problems through ancient techniques that can be applied to a variety of real-world applications.
           </p>
         </div>
@@ -92,11 +92,11 @@ const PersonalityOverview = () => {
         </div>
 
         {/* Content Rendering */}
-        <section className="bg-white px-5 md:px-6 py-8 border-2 border-gray-300 text-lightGrey14">
-          <h1 className="text-[23px] font-bold text-[#5C40FF]">
+        <section className="bg-white dark:text-gray-300 dark:bg-[#050622] px-5 md:px-6 py-8 border-2 border-gray-300 text-lightGrey14">
+          <h1 className="text-[23px] font-bold text-[#5C40FF] dark:text-gray-50">
             {activeContent.name}
           </h1>
-          <p className="mb-2 md:text-[15px] text-[14px]">
+          <p className="mb-2 md:text-[15px] text-[14px] ">
             {activeContent.content}
           </p>
           <p className="mb-2 md:text-[15px] text-[14px]">
@@ -106,18 +106,18 @@ const PersonalityOverview = () => {
           {activeTab === 1 && (
             <>
               {/* Transformative Learning Experience */}
-              <h2 className="text-[1.3rem] font-bold mb-3 tracking-wide">
+              <h2 className="text-[1.3rem] font-bold mb-3 tracking-wide dark:text-gray-50">
                 Transformative Learning Experience
               </h2>
               <p className="mb-2 text-[14px]">
                 In today’s competitive world, the ability to solve problems quickly is crucial, and that’s where Vedic Mathematics comes to your rescue. Through interactive and easy-to-follow lessons and practice exercises, you will learn powerful techniques that make math easy and enjoyable, including:
               </p>
-              <ul className="list-disc list-inside mb-4">
-                <li className="text-[14px]">
-                  <strong>Easy Tricks to Solve:</strong> Addition, Subtraction, Multiplication, and Division
+              <ul className=" list-none mb-4 ">
+                <li className="text-[14px] ml-8">
+                  <strong className="dark:text-gray-50">Easy Tricks to Solve:</strong> Addition, Subtraction, Multiplication, and Division
                 </li>
-                <li className="text-[14px]">
-                  <strong>Fast & Accurate Calculations of:</strong> Square Root, Cube, Cube Root, HCF, LCM, and Algebra
+                <li className="text-[14px] ml-8 ">
+                  <strong className="dark:text-gray-50">Fast & Accurate Calculations of:</strong> Square Root, Cube, Cube Root, HCF, LCM, and Algebra
                 </li>
               </ul>
               <p className="text-[14px] mb-6">
@@ -125,13 +125,13 @@ const PersonalityOverview = () => {
               </p>
 
               {/* Key Features */}
-              <h2 className="text-[1.3rem] font-bold mb-4 tracking-wide">
+              <h2 className="text-[1.3rem] font-bold mb-4 tracking-wide dark:text-gray-50">
                 Key Features of Vedic Mathematics:
               </h2>
               <ul className="list-none list-inside space-y-2 pb-2">
                 {data.overview.keyFeatures.map((feature, index) => (
                   <li key={index}>
-                    <strong className="text-[1rem] font-bold tracking-wide">
+                    <strong className="text-[1rem] font-bold tracking-wide dark:text-gray-50">
                       {feature.title}:
                     </strong>{" "}
                     {feature.description}
