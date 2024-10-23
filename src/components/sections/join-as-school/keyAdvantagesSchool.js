@@ -98,21 +98,21 @@ const advantagesPotentialData = [
 
 const KeyAdvantages = () => {
   return (
-    <section className="py-16 w-full bg-white dark:bg-black flex justify-center items-center">
+    <section className="py-16 w-full bg-white dark:bg-screen-dark flex justify-center items-center">
       <div className="w-[92%] lg:w-[80%]">
         {/* Benefits Section */}
         <div className="text-center px-3 lg:px-50 ">
-          <h2 className="text-3xl font-bold text-[#252525] dark:text-white">
+          <h2 className="text-3xl font-bold text-[#252525] dark:text-gray50">
             Collaborate with Medh and Empower your Students with cutting-edge
             skills.
           </h2>
-          <p className="mt-4 lg:px-16 px-2 text-[#5C6574] text-[17px] font-normal leading-6 font-sans ">
+          <p className="mt-4 lg:px-16 px-2 text-[#5C6574] dark:text-gray300 text-[17px] font-normal leading-6 font-sans ">
             Equip your students for the future: upskill for confidence,
             job-readiness, and success. Let's work together to bring innovative
             and effective education solutions to your institution.
           </p>
         </div>
-        <div className="text-[#252525] dark:text-white text-3xl text-center font-bold lg:pt-16 pt-10">
+        <div className="text-[#252525] dark:text-gray50 text-3xl text-center font-bold lg:pt-16 pt-10">
           <h2>Key advantages to Schools/Institutes</h2>
         </div>
 
@@ -128,10 +128,10 @@ const KeyAdvantages = () => {
                 alt="img"
                 className="mx-auto h-16   mb-1"
               />
-              <h3 className="text-[15px] leading-7 font-bold text-[#252525] dark:text-white font-Open mb-1">
+              <h3 className="text-[15px] leading-7 font-bold text-[#252525] dark:text-gray50 font-Open mb-1">
                 {advantages.title}
               </h3>
-              <p className="text-[#252525] text-[15px] leading-7 font-normal font-Open dark:text-whitegrey">
+              <p className="text-[#252525] text-[15px] leading-7 font-normal font-Open dark:text-gray300">
                 {advantages.description}
               </p>
             </div>
@@ -144,17 +144,17 @@ const KeyAdvantages = () => {
             {advantagesPotentialData.map((item, index) => (
               <div
                 key={index}
-                className="w-full px-2 py-1 text-center  bg-white dark:bg-inherit dark:border-whitegrey shadow-card-custom rounded-2xl border border-[#0000004D] flex flex-col transition-transform duration-300 ease-in-out hover:shadow-lg hover:scale-105"
+                className="w-full px-2 py-1 text-center  bg-white dark:bg-screen-dark dark:border-whitegrey shadow-card-custom rounded-2xl border border-[#0000004D] flex flex-col transition-transform duration-300 ease-in-out hover:shadow-lg hover:scale-105"
               >
                 <Image
                   src={item.icon}
                   alt="img"
                   className="mx-auto h-16 mb-1"
                 />
-                <h3 className="text-[15px] leading-7 font-bold text-[#252525] font-Open mb-1 dark:text-white">
+                <h3 className="text-[15px] leading-7 font-bold text-[#252525] font-Open mb-1 dark:text-gray50">
                   {item.title}
                 </h3>
-                <p className="text-[#252525] text-[15px] leading-7 font-normal font-Open flex-grow dark:text-whitegrey">
+                <p className="text-[#252525] text-[15px] leading-7 font-normal font-Open flex-grow dark:text-gray300">
                   {item.description}
                 </p>
               </div>

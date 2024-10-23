@@ -116,14 +116,14 @@ const CoursesFilter = () => {
               <input
                 type="text"
                 placeholder="Search"
-                className="border rounded-md p-2 w-fit md:mb-0"
+                className="border rounded-md p-2 w-fit md:mb-0 dark:bg-[#0C0E2B] "
               />
             </div>
             <div className="relative inline-block text-left pr-4 pb-6 mt-4">
               <div>
                 <button
                   onClick={toggleDropdown}
-                  className="inline-flex justify-between w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-[#5C6574] hover:bg-gray-50"
+                  className="inline-flex justify-between w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 dark:bg-[#0C0E2B]  bg-white text-sm font-medium text-[#5C6574] hover:bg-gray-50"
                 >
                   Program Title (a-z)
                   <svg
