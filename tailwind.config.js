@@ -456,7 +456,8 @@ module.exports = {
 
       fontFamily: {
         Ubuntu: ["ubuntu", "sans"],
-        Poppins: ["poppins","sans"],
+        Poppins: ['Poppins', 'sans-serif'],
+        Open: ['Open Sans', 'sans-serif'],
       },
 
       //  font size
@@ -598,7 +599,13 @@ module.exports = {
         address: "0px 4px 15px rgba(174, 181, 206, 0.09)",
         "address-hover": "0px 4px 25px rgba(174, 181, 206, 0.3)",
         "login-shadow": "0px 0px 15px 0px #0000001A",
-        "login-shadow2": "0px 4px 4px 0px #00000040"
+        "login-shadow2": "0px 4px 4px 0px #00000040",
+        'custom-light': '0px 4px 4px 0px #00000040',
+        'box-custom': '0px 4px 4px 0px #00000040',
+        'card-custom': '0px 4px 4px 0px #00000040',
+
+
+ // Your custom shadow
 
 
       },

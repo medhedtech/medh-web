@@ -4,11 +4,11 @@ import HiringProcessImg from "../../../assets/images/hireformmedh/hiringprocessi
 const HiringProcess = () => {
   return (
     <section className="w-full flex justify-center items-center bg-white py-10 sm:py-20">
-      <div className="w-[90%] sm:w-[85%] h-auto flex flex-col md:flex-row items-start md:items-center space-y-8 md:space-y-0 md:space-x-8 lg:space-x-16">
+      <div className="w-[90%] sm:w-[75%] h-auto flex  flex-col md:flex-row items-start md:items-center space-y-8 md:space-y-0 md:space-x-8 lg:space-x-16">
         <div className="w-full md:w-1/2">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#5F2DED] leading-snug">
             Process for hiring IT professionals <br />
-            through 
+            through
           </h2>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#263238]">
             Recruit@Medh?

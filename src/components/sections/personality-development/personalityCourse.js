@@ -120,12 +120,13 @@ function PersonalityCourse() {
                 <CourseCard key={course.title} course={course} />
               ))}
             </div>
-
-            <Pagination
-              pages={totalPages}
-              currentPage={currentPage}
-              handlePagesnation={handlePagesnation}
-            />
+            <div className=" w-full mt-4 mb-8  px-4 text-[#5C6574] border rounded-md border-[#CDCFD5]">
+              <Pagination
+                pages={totalPages}
+                currentPage={currentPage}
+                handlePagesnation={handlePagesnation}
+              />
+            </div>
           </div>
         </div>
 
