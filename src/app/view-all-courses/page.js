@@ -28,7 +28,7 @@ const Courses = async () => {
           />
 
           {/* Text Above Feature Cards */}
-          <div className="absolute top-[20%] md:top-[30%] w-full text-center z-10 px-4">
+          <div className="absolute top-[20%] md:top-[30%] w-full text-center  z-10 px-4">
             <p className="text-white text-xl md:text-size-38 font-bold leading-45px bg-opacity-50 inline-block py-2 px-4 rounded-lg">
               Accelerate Your Personal and Professional Growth with <br />{" "}
               <span className="text-[#F2277E]">
@@ -107,7 +107,7 @@ const Courses = async () => {
         <CoursesFilter />
         <JoinMedh />
       </main>
-      <ThemeController/>
+      <ThemeController />
     </PageWrapper>
   );
 };
