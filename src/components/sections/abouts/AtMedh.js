@@ -10,11 +10,11 @@ const AtMedh = () => {
   return (
     <div
       data-aos="fade-up"
-      className="mx-4 md:mx-10 lg:mx-40 font-bold text-2xl md:text-3xl my-10 text-[#5C6574]"
+      className="mx-4 md:mx-10 lg:mx-40 font-bold text-2xl md:text-3xl my-10 dark:text-white text-[#5C6574]"
     >
       At <span className="text-[#5F2DED]">Medh,</span> we
       <div className="font-bold text-xl md:text-3xl text-[#5C6574] mt-8 flex flex-col lg:flex-row justify-between gap-5">
-        <div className="text-sm md:text-base text-[#727695] mb-20 w-full lg:w-3/4">
+        <div className="text-sm md:text-base dark:text-gray-300 text-[#727695] mb-20 w-full lg:w-3/4">
           <div className="flex gap-2 pb-4">
             <Tick />{" "}
             <p>
@@ -54,10 +54,10 @@ const AtMedh = () => {
             <BulbIcon />
           </div>
           <div className="pl-5 md:pl-10 pb-8">
-            <span className="font-bold text-xl md:text-3xl text-[#252525]">
+            <span className="font-bold text-xl md:text-3xl dark:text-white text-[#252525]">
               MEDH – VISION
             </span>
-            <p className="text-sm pt-3 w-[90%]">
+            <p className="text-sm dark:text-gray-300 pt-3 w-[90%]">
               Aspires to lead the EdTech industry by offering skill development
               solutions that empower individuals at every stage of life, from
               early childhood to career and homemaking readiness.
@@ -69,10 +69,10 @@ const AtMedh = () => {
             <Recycleicon />
           </div>
           <div className="pl-5 md:pl-10">
-            <span className="font-bold text-xl md:text-3xl text-[#252525]">
+            <span className="font-bold text-xl md:text-3xl dark:text-white text-[#252525]">
               MEDH – MISSION
             </span>
-            <p className="text-sm pt-3 w-[98%] pb-12">
+            <p className="text-sm pt-3 w-[98%] dark:text-gray-300 pb-12">
               Our mission is to empower individuals of all ages through
               innovative and personalized skill development courses, offering
               future-ready curriculum, interactive learning, AI-based

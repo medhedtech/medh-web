@@ -27,7 +27,8 @@ const HiringProcess = () => {
     },
     {
       title: "Subject Proficiency Test",
-      description: "Depending on the subject they will be teaching, tutors may be required to take a subject proficiency test to assess their knowledge and understanding.",
+      description:
+        "Depending on the subject they will be teaching, tutors may be required to take a subject proficiency test to assess their knowledge and understanding.",
       icon: Logo3,
       arrow: false,
     },
@@ -62,40 +63,44 @@ const HiringProcess = () => {
   ];
 
   return (
-    <div className="w-full px-4 py-12 bg-white flex justify-center items-center">
+    <div className="w-full px-4 py-12 bg-white dark:bg-screen-dark  flex justify-center items-center">
       <div className="lg:w-[80%] w-[96%]">
-        <h1 className="text-center text-4xl font-bold mb-12">
+        <h1 className="text-center text-4xl font-bold mb-12 dark:text-gray50">
           Process of Hiring an Educator at Medh!
         </h1>
 
         {/* Main Container */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 ">
+        <div className="grid grid-cols-1 md:grid-cols-2 dark:bg-inherit lg:grid-cols-3 gap-8 ">
           {processSteps.map((step, index) => (
             <div
               key={index}
-              className="border-2 p-2 rounded-lg shadow-lg flex flex-col justify-between text-center relative bg-white self-start transition-transform transform hover:scale-105 hover:shadow-xl "
+              className="border-2 dark:border-gray600 p-2 rounded-lg shadow-lg flex flex-col justify-between text-center relative dark:bg-screen-dark bg-white self-start transition-transform transform hover:scale-105 hover:shadow-xl "
             >
               <Image src={step.icon} alt="img" className="mx-auto h-16 mb-4" />
-              <h3 className="text-[22px] leading-6 font-bold mb-2 text-[#020101] mt-2">
+              <h3 className="text-[22px] leading-6 font-bold mb-2 dark: text-[#020101] dark:text-gray50 mt-2">
                 {step.title}
               </h3>
-              <p className="text-[#020101] text-[15px] leading-7 ">{step.description}</p>
+              <p className="text-[#020101] text-[15px] dark:text-gray300 leading-7 ">
+                {step.description}
+              </p>
               {step.arrow && (
                 <Image
                   src={Arrow}
                   alt="Arrow"
-                  className="absolute right-0 top-1/4 transform translate-x-full -translate-y-1/4 h-20 w-20 bg-gray-100 hidden lg:block"
+                  className="absolute right-0 top-1/4 transform translate-x-full -translate-y-1/4 h-20 w-20 dark:hidden bg-gray-100 hidden lg:block"
                 />
               )}
             </div>
           ))}
 
           {/* Summary box */}
-          <div className="lg:px-20 text-center col-span-1 lg:col-span-2 relative flex justify-center items-center flex-col">
-            <p className="text-[#000000] text-[16px] leading-7 font-medium">
-              Tutors are periodically evaluated based on student feedback and adherence to standards.
-              Becoming an educator with MEDH enables you to leverage technology, reach a global audience,
-              and transform education while enjoying flexibility and ongoing professional growth.
+          <div className="lg:px-20 text-center col-span-1 lg:col-span-2 relative  flex justify-center items-center flex-col">
+            <p className="text-[#000000] dark:text-gray300 text-[16px] leading-7 font-medium">
+              Tutors are periodically evaluated based on student feedback and
+              adherence to standards. Becoming an educator with MEDH enables you
+              to leverage technology, reach a global audience, and transform
+              education while enjoying flexibility and ongoing professional
+              growth.
             </p>
           </div>
         </div>

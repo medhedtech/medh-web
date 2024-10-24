@@ -31,8 +31,8 @@ function DigiMarketingCource() {
       ];
   return (
     <>
-       <div className="w-full bg-white h-auto py-6 flex justify-center items-center flex-col pb-14">
-      <h1 className="text-center text-[#5C6574] text-3xl font-bold py-5 ">
+       <div className="w-full bg-white dark:bg-screen-dark h-auto py-6 flex justify-center items-center flex-col pb-14">
+      <h1 className="text-center text-[#5C6574] text-3xl font-bold py-5 dark:text-gray50 ">
       Course Options in Digital Marketing with Data Analytics
       </h1>
       <div className="w-[80%] h-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6  text-[#5C6574]">

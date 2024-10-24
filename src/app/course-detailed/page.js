@@ -5,6 +5,7 @@ import AboutProgram from '@/components/sections/course-detailed/aboutProgram'
 import CaurseFaq from '@/components/sections/course-detailed/caurseFaq'
 import CourseCertificate from '@/components/sections/course-detailed/courseCertificate'
 import CourceRalated from '@/components/sections/course-detailed/courseRelated'
+import ThemeController from "@/components/shared/others/ThemeController";
 
 function CourseDetailed() {
   return (
@@ -14,6 +15,7 @@ function CourseDetailed() {
         <CaurseFaq/>
         <CourceRalated/>
         <CourseCertificate/>
+        <ThemeController/>
         </PageWrapper>
     
   )

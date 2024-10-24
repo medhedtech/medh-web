@@ -43,10 +43,10 @@ const BlogTags = () => {
 
   return (
     <div
-      className="p-5 md:p-30px lg:p-5 2xl:p-30px mb-30px border border-borderColor2 dark:border-borderColor2-dark"
+      className="p-5 md:p-30px lg:p-5 2xl:p-30px mb-30px border border-borderColor2 dark:border-gray-600"
       data-aos="fade-up"
     >
-      <h4 className="text-size-22 text-blackColor dark:text-blackColor-dark font-bold pl-2 before:w-0.5 relative before:h-[21px] before:bg-primaryColor before:absolute before:bottom-[5px] before:left-0 leading-30px mb-25px">
+      <h4 className="text-size-22 text-blackColor dark:text-blackColor-dark font-bold pl-2 before:w-0.5 relative before:h-[21px] before:bg-[#F2277E] before:absolute before:bottom-[5px] before:left-0 leading-30px mb-25px">
         Tags
       </h4>
       <ul className="flex flex-wrap gap-x-3px">
@@ -54,7 +54,7 @@ const BlogTags = () => {
           <li key={idx}>
             <Link
               href={`/courses?category=${title.toLowerCase()}`} // Using title in the URL, converted to lowercase
-              className="m-5px px-19px py-3px text-[#252525] text-[13px] font-semibold font-Poppins border border-borderColor2 hover:text-whiteColor hover:bg-primaryColor hover:border-primaryColor leading-30px dark:text-contentColor-dark dark:border-borderColor2-dark dark:hover:text-whiteColor dark:hover:bg-primaryColor dark:hover:border-primaryColor"
+              className="m-5px px-19px py-3px text-[#252525] text-[13px] font-semibold font-Poppins border border-borderColor2 hover:text-whiteColor hover:bg-[#F2277E] hover:border-[#F2277E] leading-30px dark:text-gray-200 dark:border-gray-400 dark:hover:text-whiteColor dark:hover:bg-[#F2277E] dark:hover:border-[#F2277E]"
             >
               {title}
             </Link>
