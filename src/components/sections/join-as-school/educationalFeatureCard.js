@@ -54,24 +54,24 @@ const educationFeature = [
 
 const EducationalFeatureCard = () => {
   return (
-    <section className="py-10 w-full bg-[#FFE5F0] dark:bg-inherit flex justify-center items-center ">
+    <section className="py-10 w-full bg-[#FFE5F0] dark:bg-inherit dark:bg-screen-dark flex justify-center items-center ">
       <div className="w-[92%] lg:w-[80%]">
         {/* Render the General Benefits */}
         <div className=" grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-x-5 lg:gap-y-10 gap-y-5">
           {educationFeature.map((feature, index) => (
             <div
               key={index}
-              className=" px-2 py-2 text-center bg-white rounded-3xl border border-[#0000004D] dark:bg-black dark:border-whitegrey shadow-card-custom w-full transition-transform duration-300 ease-in-out hover:shadow-lg hover:scale-105 "
+              className=" px-2 py-2 text-center bg-white rounded-3xl border border-[#0000004D] dark:bg-screen-dark dark:border-gray600 shadow-card-custom w-full transition-transform duration-300 ease-in-out hover:shadow-lg hover:scale-105 "
             >
               <Image
                 src={feature.icon}
                 alt="img"
                 className="mx-auto h-16 mb-2"
               />
-              <h3 className="text-[15px] leading-[22.5px] font-semibold text-[#252525] dark:text-white font-Poppins mb-1">
+              <h3 className="text-[15px] leading-[22.5px] font-semibold text-[#252525] dark:text-gray50 font-Poppins mb-1">
                 {feature.title}
               </h3>
-              <p className="text-[#252525] text-[15px] leading-[22.5px] dark:text-whitegrey font-normal font-Poppins">
+              <p className="text-[#252525] text-[15px] leading-[22.5px] dark:text-gray300 font-normal font-Poppins">
                 {feature.description}
               </p>
             </div>

@@ -20,7 +20,7 @@ function SchoolCourceBanner() {
   };
 
   return (
-    <div className="bg-white dark:bg-black flex justify-center items-center flex-col lg:pb-12 pb-10">
+    <div className="bg-white dark:bg-screen-dark flex justify-center items-center flex-col lg:pb-12 pb-10">
       {courses.map((course, index) => (
         <CourseBanner
           key={index}
@@ -35,7 +35,7 @@ function SchoolCourceBanner() {
         />
       ))}
 
-      <div className="lg:w-[50%] w-[95%] text-center text-[#727695] text-[15px] font-Poppins font-semibold leading-[27px]">
+      <div className="lg:w-[50%] w-[95%] text-center  dark:text-gray300 text-[#727695] text-[15px] font-Poppins font-semibold leading-[27px]">
         <p>
           For this purpose, students, teachers, and skill tech need to become
           partners in this endeavor. Because in the end, students must be taught
