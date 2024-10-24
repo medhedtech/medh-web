@@ -48,7 +48,7 @@ const About1 = ({ children, image, hideCounter }) => {
         </p>
 
         {/* Grid Section */}
-        <div className="grid grid-cols-2 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {courses.map((course, index) => (
             <Link href={course.path} key={index}>
               <div className="bg-white   border dark:border-whitegrey  shadow-2xl flex flex-col overflow-hidden hover:scale-105 transition transform duration-300 h-full">
