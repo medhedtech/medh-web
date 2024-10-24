@@ -12,7 +12,7 @@ import Link from "next/link";
 
 const ContactBanner = () => {
   return (
-    <section data-aos="fade-up">
+    <section data-aos="fade-up" className="py-10">
       {/* Banner section */}
       <div className="container2-xl px-4 gap-10 sm:px-6 mt-5 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -41,7 +41,7 @@ const ContactBanner = () => {
                 />
               </div>
               <div className="flex flex-col justify-center">
-                <p className="text-base sm:text-lg">
+                <p className="text-base sm:text-lg dark:text-white">
                   With expert guidance, unlock a pathway to limitless learning
                   opportunities and endless personal and professional growth.
                 </p>
@@ -53,7 +53,7 @@ const ContactBanner = () => {
                   >
                     Let's Connect
                   </Link>
-                  <span className="mt-2 text-base font-semibold underline underline-offset-8">
+                  <span className="mt-2 text-base font-semibold underline dark:text-white underline-offset-8">
                     ISO CERTIFIED
                   </span>
                 </div>

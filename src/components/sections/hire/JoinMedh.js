@@ -1,10 +1,10 @@
-import Image from "next/image";
-import React from "react";
-import Educator from "@/assets/images/hire/Educator.png";
-import Partner from "@/assets/images/hire/Partner.png";
+import Image from 'next/image';
+import React from 'react';
+import Educator from '@/assets/images/hire/Educator.png';
+import Partner from '@/assets/images/hire/Partner.png';
 
 // AddIcon component
-const AddIcon = ({ fill = "white" }) => {
+const AddIcon = ({ fill = 'white' }) => {
   return (
     <svg
       width="25"
@@ -24,23 +24,23 @@ const AddIcon = ({ fill = "white" }) => {
 // JoinMedh component with customizable content and styles
 const JoinMedh = ({
   educatorImage = Educator,
-  educatorTitle = "Join Medh as an Educator",
-  educatorText = "Join Medh’s pioneering learning community and contribute to shaping a transformative educational journey for learners worldwide.",
-  educatorButtonText = "Get Started",
-  educatorButtonColor = "#5F2DED",
+  educatorTitle = 'Join Medh as an Educator',
+  educatorText = 'Join Medh’s pioneering learning community and contribute to shaping a transformative educational journey for learners worldwide.',
+  educatorButtonText = 'Get Started',
+  educatorButtonColor = '#5F2DED',
   partnerImage = Partner,
-  partnerTitle = "Partner with Medh as a School / Institute",
-  partnerText = "To implement customized skill development programs, empowering your students to excel in their chosen fields on a global scale.",
-  partnerButtonText = "Let’s Collaborate",
-  partnerButtonColor = "white",
-  partnerTextColor = "white",
-  partnerBackgroundColor = "#F2277E",
-  partnerBtnColor = "black",
+  partnerTitle = 'Partner with Medh as a School / Institute',
+  partnerText = 'To implement customized skill development programs, empowering your students to excel in their chosen fields on a global scale.',
+  partnerButtonText = 'Let’s Collaborate',
+  partnerButtonColor = 'white',
+  partnerTextColor = 'white',
+  partnerBackgroundColor = '#F2277E',
+  partnerBtnColor = 'black',
 }) => {
   return (
     <div className="flex flex-col gap-4 md:gap-0">
       {/* Educator Section */}
-      <div className="flex flex-col md:flex-row md:items-center bg-white">
+      <div className="flex flex-col md:flex-row md:items-center bg-white dark:bg-[#050622]">
         <Image
           src={educatorImage}
           width={720}
@@ -48,10 +48,10 @@ const JoinMedh = ({
           className="w-full md:w-1/2 object-cover"
         />
         <div className="flex flex-col justify-center px-4 md:w-1/2 md:px-8 lg:pl-24">
-          <h1 className="font-bold text-[#252525] text-3xl mt-4 md:mt-0">
+          <h1 className="font-bold text-[#252525] text-3xl mt-4 md:mt-0 dark:text-gray-50">
             {educatorTitle}
           </h1>
-          <p className="text-[#727695] text-base leading-7 mt-2">
+          <p className="text-[#727695] text-base leading-7 mt-2 dark:text-gray-300">
             {educatorText}
           </p>
           <div
@@ -66,10 +66,10 @@ const JoinMedh = ({
 
       {/* School Collaboration Section */}
       <div
-        className="flex flex-col md:flex-row md:items-center gap-4 lg:gap-0"
+        className="flex flex-col md:flex-row md:items-center gap-4 lg:gap-0 "
         style={{ backgroundColor: partnerBackgroundColor }}
       >
-        <div className="flex flex-col justify-center px-4 md:w-1/2 md:px-8 lg:pl-24">
+        <div className="flex flex-col  justify-center px-4 md:w-1/2 md:px-8 lg:pl-24">
           <h1
             className="font-bold text-3xl mt-4 md:mt-0"
             style={{ color: partnerTextColor }}
@@ -90,7 +90,7 @@ const JoinMedh = ({
             }}
           >
             <AddIcon
-              fill={partnerButtonColor === "white" ? "black" : "white"}
+              fill={partnerButtonColor === 'white' ? 'black' : 'white'}
             />
             {partnerButtonText}
           </div>

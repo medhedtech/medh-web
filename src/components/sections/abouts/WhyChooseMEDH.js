@@ -73,12 +73,12 @@ const WhyChooseMEDH = () => {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8  ">
       <div className="text-center mb-8">
-        <h2 className="text-2xl md:text-3xl font-bold text-[#252525]">
+        <h2 className="text-2xl md:text-3xl font-bold dark:text-white text-[#252525]">
           Why Choose MEDH?
         </h2>
-        <p className="mt-4 max-w-[840px] text-base text-[#5C6574] mx-auto">
+        <p className="mt-4 max-w-[840px] text-base dark:text-gray300 text-[#5C6574] mx-auto">
           Empowering learners with the freedom to explore and excel in
           fundamental concepts, we strive to provide a global EdTech platform to
           shape aspirations.
@@ -100,7 +100,7 @@ const WhyChooseMEDH = () => {
                   />
                 </div>
                 <div>
-                  <p className="mt-8 text-base text-center text-[#252525] px-2">
+                  <p className="mt-8 text-base text-center dark:text-white text-[#252525] px-2">
                     {feature.description}
                   </p>
                 </div>
