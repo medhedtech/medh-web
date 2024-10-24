@@ -1,25 +1,25 @@
 import Image from "next/image";
 import React from "react";
-import img11 from "@/assets/images/team/img11.png";
-import img12 from "@/assets/images/team/img12.png";
-import img13 from "@/assets/images/team/img13.png";
+import Advisor11 from "@/assets/images/team/img11.png";
+import Advisor12 from "@/assets/images/team/img12.png";
+import Advisor13 from "@/assets/images/team/img13.png";
 
 const AdvisoryBoard = () => {
   const advisoryTeam = [
     {
       name: "Anil Nayak",
       role: "Advisory Board Member,eSampark Tech Solutions",
-      image: img11,
+      image: Advisor11,
     },
     {
       name: "Upendra Upadhyay",
       role: "Advisory Board Member, eSampark EdTech Medh",
-      image: img12,
+      image: Advisor12,
     },
     {
       name: "Vikram Srivastava",
       role: "Advisory Board Member, eSampark EdTech Medh",
-      image: img13,
+      image: Advisor13,
     },
   ];
   return (
