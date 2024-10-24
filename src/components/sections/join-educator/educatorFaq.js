@@ -105,7 +105,7 @@ export default function EducatorFaq() {
 
   return (
     <div className="bg-white dark:bg-screen-dark text-lightGrey14 flex justify-center py-10">
-      <div className="md:w-[80%] w-[92%]">
+      <div className="md:w-[80%] w-[91%]">
         <h2 className="md:text-3xl text-[22px] font-bold mb-4 text-center dark:text-gray50 text-[#5C6574]">
           Frequently Asked Questions (FAQs)
         </h2>

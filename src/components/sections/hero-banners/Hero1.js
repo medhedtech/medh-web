@@ -15,9 +15,9 @@ import stemImg from "@/assets/images/herobanner/Background.png";
 import Group from "@/assets/images/herobanner/Group5.png";
 const Hero1 = () => {
   return (
-    <section data-aos="fade-up ">
+    <section data-aos="fade-up " className="dark:bg-screen-dark">
       {/* Banner section */}
-      <div className="container2-xl px-4 sm:px-6 lg:px-8 mt-5">
+      <div className="container2-xl px-2  sm:px-6 lg:px-8 py-5">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Banner Left */}
           <div data-aos="fade-up">
@@ -49,6 +49,7 @@ const Hero1 = () => {
                   Empowering people across all life stages from childhood and
                   teens to professionals and homemakers.
                 </p>
+                
                 {/* CTA Button */}
                 <div className="flex flex-col sm:flex-row gap-4 mt-6">
                   <Link

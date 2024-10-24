@@ -12,7 +12,7 @@ const WhyMedh = () => {
   return (
     <div>
       {/* Job Guarantee Section */}
-      <div className="flex flex-col md:flex-row items-center px-4 md:px-8 lg:px-20 py-7 gap-6">
+      <div className="flex flex-col dark:bg-screen-dark md:flex-row items-center px-4 md:px-8 lg:px-20 py-7 gap-6">
         <div className="text-center md:w-1/2 px-4 md:px-6 flex flex-col gap-3">
           <Image
             src={placement}
@@ -44,18 +44,18 @@ const WhyMedh = () => {
 
       {/* Why Medh Section */}
       <div
-        className="bg-cover bg-center h-[400px] md:h-[600px] flex items-center justify-start px-14"
+        className="bg-cover bg-center h-[400px] dark:bg-screen-dark md:h-[600px] flex items-center justify-start px-14"
         style={{ backgroundImage: `url(${bgImg.src})` }}
       >
         {/* Content Box */}
         <div
           className="bg-white h-60 md:h-auto py-6 px-6 md:px-10 lg:px-16 relative shadow-lg w-full max-w-[630px] 
-    overflow-x-hidden md:overflow-visible sm:h-60 sm:overflow-x-scroll dark:bg-black"
+    overflow-x-hidden md:overflow-visible sm:h-60 sm:overflow-x-scroll dark:bg-screen-dark"
         >
           <h2 className="text-[#5F2DED] font-bold text-3xl md:text-4xl">
             WHY MEDH?
           </h2>
-          <p className="text-gray-600 mt-4 dark:text-whitegrey">
+          <p className="text-gray-600 mt-4 dark:text-gray300">
             Empowering learners with the freedom to explore, we go beyond
             fundamental concepts, fostering brainstorming, critical thinking,
             and beyond. We aim to provide learners with the canvas to visualize
@@ -65,7 +65,7 @@ const WhyMedh = () => {
           <h3 className="text-[#252525] mt-7 font-semibold text-lg dark:text-white">
             Quality of Content and Curriculum
           </h3>
-          <p className="text-gray-600 mt-4 dark:text-whitegrey">
+          <p className="text-gray-600 mt-4 dark:text-gray300">
             We assess content quality, effectiveness, and engagement, ensuring
             up-to-date, well-structured materials that drive learning outcomes.
           </p>

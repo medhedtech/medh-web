@@ -97,7 +97,7 @@ const PersonalityOverview = () => {
         </div>
 
         {/* Tabs */}
-        <div className="flex md:mx-0  mx-3 space-x-2 flex-wrap">
+        <div className="flex md:mx-0  mx-4 space-x-2 flex-wrap">
           {data.tabs.map((tab) => (
             <button
               key={tab.id}
@@ -114,7 +114,7 @@ const PersonalityOverview = () => {
         </div>
 
         {/* Content Rendering */}
-        <section className=" bg-white dark:bg-screen-dark px-5 md:px-6 py-8 border-2 border-gray-600 text-lightGrey14">
+        <section className=" bg-white mx-4 md:mx-0 dark:bg-screen-dark px-2 md:px-6 py-8 border-2 border-gray-600 text-lightGrey14">
           <h1 className="text-[23px] font-bold text-primaryColor dark:text-gray50 ">
             {activeContent.name}
           </h1>
@@ -129,8 +129,8 @@ const PersonalityOverview = () => {
           </p>
           {activeTab === 1 && (
             <>
-              <p className="text-lightGrey14 mb-6 md:text-[15px] text-[14px] dark:text-gray-]300 ">
-                <span className="text-lightGrey14 dark:text-gray50 md:text-[1rem] text-[15px]font-bold tracking-wide ">
+              <p className="text-lightGrey14 mb-6 md:text-[15px] text-[14px] dark:text-gray300 ">
+                <span className="text-lightGrey14 dark:text-gray50 md:text-[1rem] text-[15px] font-bold tracking-wide ">
                   Tailored for diverse range of Age Groups:
                 </span>{" "}
                 From preschoolers, school students, college students,

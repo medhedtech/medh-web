@@ -90,11 +90,11 @@ function DigiMarketingOverview() {
         </div>
 
         {/* Tabs */}
-        <div className="flex md:mx-0 mx-3 space-x-2 flex-wrap">
+        <div className="flex md:mx-0 mx-4 space-x-2 flex-wrap">
           {data.tabs.map((tab) => (
             <button
               key={tab.id}
-              className={`px-2 md:px-6 md:py-2 py-1 transition md:mb-0 mb-2 ${
+              className={`px-2 md:px-6 md:py-2 py-1 transition md:mb-0  ${
                 activeTab === tab.id
                   ? "bg-[#5C40FF] text-white font-semibold"
                   : "bg-[#E6E6FA] text-[#5C40FF] border-2 border-[#5C40FF]"
@@ -107,7 +107,7 @@ function DigiMarketingOverview() {
         </div>
 
         {/* Content Rendering */}
-        <section className="bg-white dark:bg-screen-dark dark:text-gray-300 px-5 md:px-6 py-8 border-2 border-gray-300 dark:border-gray-600 text-lightGrey14">
+        <section className="bg-white mx-4 md:mx-0 dark:bg-screen-dark dark:text-gray-300 px-2 md:px-6 py-8 border-2 border-gray-300 dark:border-gray-600 text-lightGrey14">
           <h1 className="text-[23px] font-bold text-[#5C40FF] ">
             {activeContent.name}
           </h1>

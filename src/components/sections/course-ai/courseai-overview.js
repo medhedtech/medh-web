@@ -108,7 +108,7 @@ const CourseAiOverview = () => {
         </div>
 
         {/* Tabs */}
-        <div className="flex md:mx-0  mx-3 space-x-2 flex-wrap">
+        <div className="flex md:mx-0  mx-5 space-x-2 flex-wrap">
           {data.tabs.map((tab) => (
             <button
               key={tab.id}
@@ -125,8 +125,8 @@ const CourseAiOverview = () => {
         </div>
 
         {/* Content Rendering */}
-        <section className=" bg-white dark:bg-screen-dark px-5 md:px-6 py-8 border-2 border-gray-500 text-lightGrey14 dark:text-gray300 ">
-          <h1 className="text-[23px] font-bold text-primaryColor dark:text-gray50 ">
+        <section className=" bg-white dark:bg-screen-dark px-2 mx-5 md:mx-0 md:px-6 py-8 border-2 border-gray-500 text-lightGrey14 dark:text-gray300 ">
+          <h1 className="md:text-[23px] text-[22px] font-bold text-primaryColor dark:text-gray50 ">
             Why Choose the Combined AI and Data Science Course?
           </h1>
           <p className=" mb-2 md:text-[15px] text-[14px]  ">

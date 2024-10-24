@@ -6,7 +6,7 @@ import PopupVideo from '../popup/PopupVideo';
 const BlogPrimary = ({ blog, idx }) => {
   const { title, image, desc, id } = blog;
   return (
-    <div className="group shadow-blog2 " data-aos="fade-up">
+    <div className="group shadow-blog2 dark:bg-screen-dark " data-aos="fade-up">
       {/* blog thumbnail  */}
       <div className="overflow-hidden relative ">
         <Image src={image} alt="" className="w-full" placeholder="blur" />

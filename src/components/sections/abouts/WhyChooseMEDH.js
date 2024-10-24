@@ -73,7 +73,8 @@ const WhyChooseMEDH = () => {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8  ">
+    <section className="dark:bg-screen-dark">
+    <div className="max-w-7xl mx-auto py-12  px-4 sm:px-6 lg:px-8  ">
       <div className="text-center mb-8">
         <h2 className="text-2xl md:text-3xl font-bold dark:text-white text-[#252525]">
           Why Choose MEDH?
@@ -117,10 +118,10 @@ const WhyChooseMEDH = () => {
         </div>
 
         <div className="max-w-[520px] mx-auto md:mx-0 md:w-1/2">
-          <h2 className="text-[#5C6574] text-left font-bold text-2xl pt-6">
+          <h2 className="text-[#444a54] text-left font-bold text-2xl pt-6">
             Join us at Medh to craft a brighter future.
           </h2>
-          <p className="text-[#727695] text-base text-left pt-4">
+          <p className="text-[#323340]  text-base text-left pt-4">
             Contact us to learn more or explore our platform to experience the
             power of transformative education firsthand.
           </p>
@@ -135,13 +136,14 @@ const WhyChooseMEDH = () => {
         </div>
       </div>
       <div className="mt-5 text-center">
-        <p className="text-[#727695] font-bold text-base leading-6 max-w-[720px] mx-auto">
+        <p className="text-[#727695] dark:text-gray300 font-bold text-base leading-6 max-w-[720px] mx-auto">
           Join us in our mission to redefine education and create a brighter
           future for learners worldwide. Together, we can unlock the limitless
           potential that lies within each of us.
         </p>
       </div>
     </div>
+    </section>
   );
 };
 

@@ -11,7 +11,7 @@ import RecognizedIcon from "@/assets/images/icon/RecognizedIcon";
 
 const BrowseCategories = () => {
   return (
-    <div className="py-12 px-4 md:px-8 lg:px-32">
+    <div className="py-12 px-4 md:px-8 dark:bg-screen-dark lg:px-32">
       {/* Browse Trending Categories Section */}
       <div className="flex flex-col md:flex-row justify-between items-center mb-8">
         <div className="md:px-6 mb-4 md:mb-0">
@@ -36,7 +36,7 @@ const BrowseCategories = () => {
       <div className="grid grid-cols-1 md:grid-cols-3  gap-6">
         <Link href="/personality-development">
           {/* Category Card 1 */}
-          <div className="bg-[#F2EEFF] dark:bg-black dark:border-whitegrey border  flex flex-col justify-between shadow-md">
+          <div className="bg-[#F2EEFF] dark:bg-screen-dark dark:border-whitegrey border  flex flex-col justify-between shadow-md">
             <Image
               src={personalityIcon}
               width={200}
@@ -52,7 +52,7 @@ const BrowseCategories = () => {
 
         {/* Category Card 2 */}
         <Link href="/ai-data-science">
-          <div className="bg-[#F2EEFF] dark:bg-black dark:border-whitegrey border  flex flex-col justify-between   shadow-md">
+          <div className="bg-[#F2EEFF] dark:bg-screen-dark dark:border-whitegrey border  flex flex-col justify-between   shadow-md">
             <Image
               src={aiIcon}
               width={200}
@@ -68,7 +68,7 @@ const BrowseCategories = () => {
 
         {/* Category Card 3 */}
         <Link href="/vedic-mathematics">
-          <div className="bg-[#F2EEFF] dark:bg-black dark:border-whitegrey border  flex flex-col justify-between  shadow-md">
+          <div className="bg-[#F2EEFF] dark:bg-screen-dark dark:border-whitegrey border  flex flex-col justify-between  shadow-md">
             <Image
               src={vedicIcon}
               width={200}
@@ -101,14 +101,14 @@ const BrowseCategories = () => {
         {/* Features Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
           {/* Feature 1 */}
-          <div className="bg-white p-6 dark:bg-black dark:border-whitegrey border  shadow-lg text-center rounded-lg">
+          <div className="bg-white p-6 dark:bg-screen-dark dark:border-whitegrey border  shadow-lg text-center rounded-lg">
             <div className="flex justify-center">
               <RelevantIcon stroke="#5F2DED" fill="#5F2DED" />
             </div>
             <h3 className="text-xl font-bold dark:text-white text-gray-800 mt-4">
               Industry-Relevant Skills
             </h3>
-            <p className="text-gray-600 mt-2">
+            <p className="text-gray-600 mt-2 dark:text-gray300">
               Designed in collaboration with industry experts, ensuring that
               students acquire practical, up-to-date skills for their desired
               career paths.
@@ -116,14 +116,14 @@ const BrowseCategories = () => {
           </div>
 
           {/* Feature 2 */}
-          <div className="bg-white p-6 shadow-lg dark:bg-black dark:border-whitegrey border  text-center rounded-lg">
+          <div className="bg-white p-6 shadow-lg dark:bg-screen-dark dark:border-whitegrey border  text-center rounded-lg">
             <div className="flex justify-center">
               <RecognizedIcon stroke="#5F2DED" fill="#5F2DED" />
             </div>
             <h3 className="text-xl font-bold dark:text-white text-gray-800 mt-4">
               Industry-Recognized Certifications
             </h3>
-            <p className="text-gray-600 mt-2">
+            <p className="text-gray-600 mt-2 dark:text-gray300">
               Offer industry-recognized certifications upon completion, adding
               credibility to the student's skillset and enhancing their
               professional profile.
@@ -131,7 +131,7 @@ const BrowseCategories = () => {
           </div>
 
           {/* Feature 3 */}
-          <div className="bg-white dark:bg-black dark:border-whitegrey border  p-6 shadow-lg text-center rounded-lg">
+          <div className="bg-white dark:bg-screen-dark dark:border-whitegrey border  p-6 shadow-lg text-center rounded-lg">
             <div className="flex justify-center">
               <NetworkingIcon stroke="#F2277E" fill="#F2277E" />
             </div>
@@ -139,7 +139,7 @@ const BrowseCategories = () => {
             <h3 className="text-xl font-bold dark:text-white text-gray-800 mt-4">
               Networking Opportunities
             </h3>
-            <p className="text-gray-600 mt-2">
+            <p className="text-gray-600 mt-2 dark:text-gray300">
               Provide opportunities for students to connect with industry
               professionals, mentors, and fellow learners, fostering valuable
               collaboration.
