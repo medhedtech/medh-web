@@ -1,68 +1,68 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import CategoryFilter from "../courses/CategoryFilter";
-import CourseCard from "../courses/CourseCard";
-import Card1 from "./../../../assets/images/vedic-mathematics/card-1.svg";
-import Card2 from "./../../../assets/images/vedic-mathematics/card-2.svg";
-import Card3 from "./../../../assets/images/vedic-mathematics/card-3.svg";
-import Registration from "../registrations/Registration";
+import React, { useState } from 'react';
+import CategoryFilter from '../courses/CategoryFilter';
+import CourseCard from '../courses/CourseCard';
+import Card1 from './../../../assets/images/vedic-mathematics/card-1.svg';
+import Card2 from './../../../assets/images/vedic-mathematics/card-2.svg';
+import Card3 from './../../../assets/images/vedic-mathematics/card-3.svg';
+import Registration from '../registrations/Registration';
 
 function VedicCource() {
   const [selectedCategory, setSelectedCategory] = useState(null);
 
   const categories = [
-    "Preschool",
-    "Grade 1-2",
-    "Grade 3-4",
-    "Grade 5-6",
-    "Grade 7-8",
-    "Grade 9-10",
-    "Grade 11-12",
-    "UG - Graduate - Professionals",
+    'Preschool',
+    'Grade 1-2',
+    'Grade 3-4',
+    'Grade 5-6',
+    'Grade 7-8',
+    'Grade 9-10',
+    'Grade 11-12',
+    'UG - Graduate - Professionals',
   ];
 
   const courses = [
     {
-      title: "Certificate in",
-      label: "Personality Development",
-      grade: "(Grade 1-2)",
-      duration: "6 Months Course",
+      title: 'Certificate in',
+      label: 'Personality Development',
+      grade: '(Grade 1-2)',
+      duration: '6 Months Course',
       image: Card3,
     },
     {
-      title: "Certificate in",
-      label: "Personality Development",
-      grade: "(Grade 1-2)",
-      duration: "9 Months Course",
+      title: 'Certificate in',
+      label: 'Personality Development',
+      grade: '(Grade 1-2)',
+      duration: '9 Months Course',
       image: Card3,
     },
     {
-      title: "Certificate in",
-      label: "Personality Development",
-      grade: "(Grade 1-2)",
-      duration: "3 Months Course",
+      title: 'Certificate in',
+      label: 'Personality Development',
+      grade: '(Grade 1-2)',
+      duration: '3 Months Course',
       image: Card2,
     },
     {
-      title: "Certificate in",
-      label: "Personality Development",
-      grade: "(Grade 1-2)",
-      duration: "6 Months Course",
+      title: 'Certificate in',
+      label: 'Personality Development',
+      grade: '(Grade 1-2)',
+      duration: '6 Months Course',
       image: Card2,
     },
     {
-      title: "Certificate in",
-      label: "Personality Development",
-      grade: "(Grade 1-2)",
-      duration: "9 Months Course",
+      title: 'Certificate in',
+      label: 'Personality Development',
+      grade: '(Grade 1-2)',
+      duration: '9 Months Course',
       image: Card2,
     },
     {
-      title: "Certificate in",
-      label: "Personality Development",
-      grade: "(Grade 1-2)",
-      duration: "3 Months Course",
+      title: 'Certificate in',
+      label: 'Personality Development',
+      grade: '(Grade 1-2)',
+      duration: '3 Months Course',
       image: Card1,
     },
   ];
@@ -76,14 +76,14 @@ function VedicCource() {
   };
   return (
     <>
-      <div className="bg-white text-lightGrey14 flex justify-center py-10">
+      <div className="bg-white dark:bg-screen-dark text-lightGrey14 flex justify-center py-10">
         <div className="w-full md:w-[80%] max-w-[1200px]">
-          <h2 className="text-[22px] md:text-3xl font-bold mb-4 text-center text-[#5C6574] pb-10">
+          <h2 className="text-[22px] md:text-3xl font-bold mb-4 text-center text-[#5C6574] dark:text-gray50 pb-10">
             Course Options in Vedic Mathematics (Grade Wise)
           </h2>
 
-          <div className="flex flex-col md:flex-row justify-between items-center mb-6 space-y-4 md:space-y-0">
-            <div className="flex items-center border border-[#CDCFD5] px-3 py-2 rounded-md w-full md:w-[50%] lg:w-[40%]">
+          <div className="flex flex-col md:flex-row justify-between items-center mb-6 space-y-4 md:space-y-0 px-2">
+            <div className="flex items-center border border-[#CDCFD5] px-3 py-2 rounded-md w-full md:w-[30%] lg:w-[22%]">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="18"
@@ -102,12 +102,12 @@ function VedicCource() {
               <input
                 type="text"
                 placeholder="Search"
-                className="outline-none ml-2 w-full"
+                className="outline-none ml-2 w-full dark:bg-screen-dark"
               />
             </div>
 
             <div className="border border-[#CDCFD5] px-2 py-2 rounded-md w-full md:w-auto">
-              <select className="w-full outline-none">
+              <select className="w-full outline-none dark:bg-screen-dark dark:text-gray300">
                 <option>Program Title (A-Z)</option>
               </select>
             </div>

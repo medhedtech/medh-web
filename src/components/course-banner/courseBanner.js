@@ -13,7 +13,7 @@ const CourseBanner = ({
   icon = null,
 }) => {
   return (
-    <div className="bg-white w-full h-auto flex justify-center items-center">
+    <div className="bg-white dark:bg-screen-dark w-full h-auto flex justify-center items-center">
       <div className="bg-pink-100 w-full lg:w-[80%] pt-4 px-10 max-lg:pb-4 max-lg:mx-4 rounded-[25px] flex justify-between items-center flex-col lg:flex-row my-8 max-lg:text-center">
         <div className="w-40 ">
           <Image

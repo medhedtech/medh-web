@@ -89,14 +89,14 @@ const CourseAiOverview = () => {
   const activeContent = data.tabs.find((tab) => tab.id === activeTab);
 
   return (
-    <div className="bg-white h-auto py-10  w-full flex justify-center items-center">
+    <div className="bg-white dark:bg-screen-dark h-auto py-10  w-full flex justify-center items-center">
       <div className=" w-full md:w-[80%] ">
         <div className="flex items-center flex-col w-80% md:mb-20 mb-10 px-4 ">
-          <h1 className="text-[32px]  leading-10 max-w-4xl md:text-4xl  font-bold md:mb-3 mb-2 text-[#252525] text-center ">
+          <h1 className="text-[32px]  leading-10 max-w-4xl md:text-4xl  font-bold md:mb-3 mb-2 text-[#252525] dark:text-gray-100 text-center ">
             Empower Your Journey to Success in the Modern Era of AI and Data
             Science with MEDH.
           </h1>
-          <p className="text-center md:text-[15px] text-[14px] leading-6 md:leading-7 md:w-[70%] text-[#727695]">
+          <p className="text-center md:text-[15px] text-[14px] leading-6 md:leading-7 md:w-[70%] text-[#727695] dark:text-gray-300">
             Medh’s Artificial Intelligence and Data Science course combines
             advanced AI techniques and technologies with the principles of Data
             Science.
@@ -125,12 +125,12 @@ const CourseAiOverview = () => {
         </div>
 
         {/* Content Rendering */}
-        <section className=" bg-white px-5 md:px-6 py-8 border-2 border-gray-300 text-lightGrey14">
-          <h1 className="text-[23px] font-bold text-primaryColor ">
+        <section className=" bg-white dark:bg-screen-dark px-5 md:px-6 py-8 border-2 border-gray-500 text-lightGrey14 dark:text-gray300 ">
+          <h1 className="text-[23px] font-bold text-primaryColor dark:text-gray50 ">
             Why Choose the Combined AI and Data Science Course?
           </h1>
-          <p className=" mb-2 md:text-[15px] text-[14px] ">
-            <span className="text-lightGrey14 md:text-[1rem] text-[15px] font-bold tracking-wide ">
+          <p className=" mb-2 md:text-[15px] text-[14px]  ">
+            <span className="text-lightGrey14  pr-1 dark:text-gray50 md:text-[1rem] text-[15px] font-bold tracking-wide ">
               Synergy between AI and Data Science:
             </span>
             AI and Data Science are closely related fields. AI techniques, such
@@ -140,7 +140,7 @@ const CourseAiOverview = () => {
             the learning experience more cohesive and practical.
           </p>
           <p className=" mb-2 md:text-[15px] text-[14px] ">
-            <span className="text-lightGrey14 md:text-[1rem] text-[15px] font-bold tracking-wide ">
+            <span className="text-lightGrey14  pr-1 dark:text-gray50 md:text-[1rem] text-[15px] font-bold tracking-wide ">
               Real-world Relevance:
             </span>
             In the real world, AI and Data Science are often used in conjunction
@@ -149,7 +149,7 @@ const CourseAiOverview = () => {
             how they complement each other.
           </p>
           <p className=" mb-2 md:text-[15px] text-[14px] ">
-            <span className="text-lightGrey14 md:text-[1rem] text-[15px] font-bold tracking-wide ">
+            <span className="text-lightGrey14  pr-1 dark:text-gray50 md:text-[1rem] text-[15px] font-bold tracking-wide ">
               Comprehensive Skill Set:
             </span>
             Students who take a combined AI and Data Science course can develop
@@ -158,7 +158,7 @@ const CourseAiOverview = () => {
             gain valuable insights from that data
           </p>
           <p className=" mb-2 md:text-[15px] text-[14px] ">
-            <span className="text-lightGrey14 md:text-[1rem] text-[15px] font-bold tracking-wide ">
+            <span className="text-lightGrey14  pr-1 dark:text-gray50 md:text-[1rem] text-[15px] font-bold tracking-wide ">
               Efficiency and Time-saving:
             </span>
             Offering both subjects in a single course can save time for students
@@ -167,7 +167,7 @@ const CourseAiOverview = () => {
             their learning.
           </p>
           <p className=" mb-2 md:text-[15px] text-[14px] ">
-            <span className="text-lightGrey14 md:text-[1rem] text-[15px] font-bold tracking-wide ">
+            <span className="text-lightGrey14  pr-1  dark:text-gray50 md:text-[1rem] text-[15px] font-bold tracking-wide ">
               Interdisciplinary Perspective:
             </span>
             AI and Data Science draw concepts and techniques from various
@@ -177,11 +177,11 @@ const CourseAiOverview = () => {
             fields and how they interact in the real world.
           </p>
 
-          <h1 className="text-[23px] font-bold text-primaryColor ">
+          <h1 className="text-[23px] font-bold text-primaryColor  ">
             Course Features:
           </h1>
           <p className=" mb-2 md:text-[15px] text-[14px] ">
-            <span className="text-lightGrey14 md:text-[1rem] text-[15px] font-bold tracking-wide ">
+            <span className="text-lightGrey14  pr-1 dark:text-gray50 md:text-[1rem] text-[15px] font-bold tracking-wide ">
               Expert-Led Instruction
             </span>
             Our course is facilitated by industry experts with extensive
@@ -189,8 +189,8 @@ const CourseAiOverview = () => {
             complex concepts, offer real-world insights, and share practical
             tips to enhance your learning experience.
           </p>
-          <p className=" mb-2 md:text-[15px] text-[14px] ">
-            <span className="text-lightGrey14 md:text-[1rem] text-[15px] font-bold tracking-wide ">
+          <p className=" mb-2 md:text-[15px]  text-[14px] ">
+            <span className="text-lightGrey14 pr-1 dark:text-gray50 md:text-[1rem] text-[15px] font-bold tracking-wide ">
               Interactive Learning Environment:
             </span>
             Our platform fosters an engaging and collaborative learning
@@ -198,8 +198,8 @@ const CourseAiOverview = () => {
             discussions, and exchange ideas, enhancing your overall learning
             experience.
           </p>
-          <p className=" mb-2 md:text-[15px] text-[14px] ">
-            <span className="text-lightGrey14 md:text-[1rem] text-[15px] font-bold tracking-wide ">
+          <p className=" mb-2 md:text-[15px]  text-[14px] ">
+            <span className="text-lightGrey14  pr-1 dark:text-gray50 md:text-[1rem] text-[15px] font-bold tracking-wide ">
               Practical Tools and Software:
             </span>
             Gain proficiency in popular tools and software used in AI and Data
@@ -208,7 +208,7 @@ const CourseAiOverview = () => {
             tackle real-world challenges.
           </p>
           <p className=" mb-2 md:text-[15px] text-[14px] ">
-            <span className="text-lightGrey14 md:text-[1rem] text-[15px] font-bold tracking-wide ">
+            <span className="text-lightGrey14  pr-1 dark:text-gray50 md:text-[1rem] text-[15px] font-bold tracking-wide ">
               Career Support:
             </span>
             We care about your success beyond the course completion. Benefit
@@ -216,33 +216,6 @@ const CourseAiOverview = () => {
             preparation to boost your chances of landing rewarding positions in
             the AI and Data Science industry.
           </p>
-
-          {/* {activeTab === 1 && (
-            <>
-              <p className="text-lightGrey14 mb-6 md:text-[15px] text-[14px] ">
-                <span className="text-lightGrey14 md:text-[1rem] text-[15px]font-bold tracking-wide ">
-                  Tailored for diverse range of Age Groups:
-                </span>{" "}
-                From preschoolers, school students, college students,
-                professionals, and homemakers, providing unique and engaging
-                content designed to enhance their confidence, communication, and
-                leadership skills.",
-              </p>
-              <h2 className=" text-[1.3rem] font-bold mb-4 tracking-wide ">
-                Key Features:
-              </h2>
-              <ul className="list-none list-inside space-y-2 pb-2">
-                {data.overview.keyFeatures.map((feature, index) => (
-                  <li key={index}>
-                    <strong className=" text-[1rem] font-bold tracking-wide ">
-                      {feature.title}:
-                    </strong>{" "}
-                    {feature.description}
-                  </li>
-                ))}
-              </ul>
-            </>
-          )} */}
         </section>
       </div>
     </div>
