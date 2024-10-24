@@ -93,7 +93,7 @@ const CoursesFilter = () => {
 
   return (
     <section>
-      <div className="min-h-screen bg-white dark:bg-[#0C0E2B]  dark:text-white p-4">
+      <div className="min-h-screen bg-white dark:bg-screen-dark  dark:text-white p-4">
         <div className="container mx-auto">
           {/* Header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center">

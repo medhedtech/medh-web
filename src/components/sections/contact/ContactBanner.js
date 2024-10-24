@@ -12,9 +12,9 @@ import Link from "next/link";
 
 const ContactBanner = () => {
   return (
-    <section data-aos="fade-up" className="py-10">
+    <section data-aos="fade-up" className="py-10 dark:bg-screen-dark">
       {/* Banner section */}
-      <div className="container2-xl px-4 gap-10 sm:px-6 mt-5 lg:px-8">
+      <div className="container2-xl px-2 gap-10 sm:px-6 mt-5 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Banner Left */}
           <div data-aos="fade-up">

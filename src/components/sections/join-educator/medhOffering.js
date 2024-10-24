@@ -44,7 +44,7 @@ const Offerings = () => {
               >
                 <strong className="font-bold lg:text-lg text-base dark:text-white">
                   {offering.title}:{" "}
-                  <span className="font-normal px-1 dark:text-gray-400">
+                  <span className="font-normal px-1 dark:text-gray-300">
                     {offering.description}
                   </span>
                 </strong>
