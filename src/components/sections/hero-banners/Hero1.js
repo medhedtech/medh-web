@@ -21,10 +21,11 @@ const Hero1 = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Banner Left */}
           <div data-aos="fade-up">
-            <HreoName>
-              {" "}
-              <span className="font-extrabold text-[#5F2DED]">|</span>
-              UNLOCK YOUR POTENTIAL WITH MEDH
+            <HreoName >
+            <div className="flex " >
+              <span className="font-black text-[#5F2DED]">|</span>
+              <p className="dark:text-white px-1">UNLOCK YOUR POTENTIAL WITH MEDH</p>
+              </div>
             </HreoName>
             <HeadingLg
               color={"#5F2DED"}
@@ -43,7 +44,7 @@ const Hero1 = () => {
                   height={150}
                 />
               </div>
-              <div className="flex flex-col justify-center lg:mt-4">
+              <div className="flex flex-col justify-center lg:mt-4 dark:text-gray-200">
                 <p className="text-base sm:text-lg">
                   Empowering people across all life stages from childhood and
                   teens to professionals and homemakers.

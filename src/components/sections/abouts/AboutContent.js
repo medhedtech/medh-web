@@ -8,10 +8,10 @@ const AboutContent = () => {
   return (
     <div data-aos="fade-up" className="flex flex-col">
       <div className="text-center mx-auto pt-10 pb-5">
-        <div className="font-bold text-3xl py-4">
+        <div className="font-bold text-3xl py-4 dark:text-white">
           Medh | Pioneering Skill Development for every stage of life.
         </div>
-        <p className="text-[#5C6574] text-size-17  xl:w-[849px] px-2 mx-auto">
+        <p className="text-[#5C6574] text-size-17 dark:text-gray-300 xl:w-[849px] px-2 mx-auto">
           MEDH, the leading global EdTech innovator, is dedicated to delivering
           skill development courses through cutting-edge technology and bespoke
           mentorship. To empower individuals at every stage of life, from early
@@ -20,7 +20,7 @@ const AboutContent = () => {
           excel in today's dynamic world.
         </p>
       </div>
-      <span className=" text-[#5C6574] font-bold leading-34px text-size-17 text-center">
+      <span className=" text-[#5C6574] dark:text-gray-300 font-bold leading-34px text-size-17 text-center">
         We nurture growth, foster expertise, and ignite potential for learners
         of every background.
       </span>
