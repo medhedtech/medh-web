@@ -101,7 +101,7 @@ const PersonalityOverview = () => {
           {data.tabs.map((tab) => (
             <button
               key={tab.id}
-              className={`px-1 md:px-6 md:py-2 py-1  transition ${
+              className={`px-1 md:px-6 md:py-2 py-1  transition sm:mb-0 mb-1 ${
                 activeTab === tab.id
                   ? "bg-primaryColor text-white font-semibold"
                   : "bg-white text-primaryColor border border-primaryColor"
