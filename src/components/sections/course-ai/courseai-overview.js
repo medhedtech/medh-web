@@ -92,7 +92,7 @@ const CourseAiOverview = () => {
     <div className="bg-white dark:bg-screen-dark h-auto py-10  w-full flex justify-center items-center">
       <div className=" w-full md:w-[80%] ">
         <div className="flex items-center flex-col w-80% md:mb-20 mb-10 px-4 ">
-          <h1 className="text-[32px]  leading-10 max-w-4xl md:text-4xl  font-bold md:mb-3 mb-2 text-[#252525] dark:text-gray-100 text-center ">
+          <h1 className="lg:text-[32px] text-[24px]   leading-10 max-w-4xl md:text-4xl  font-bold md:mb-3 mb-2 text-[#252525] dark:text-gray-100 text-center ">
             Empower Your Journey to Success in the Modern Era of AI and Data
             Science with MEDH.
           </h1>
@@ -112,7 +112,7 @@ const CourseAiOverview = () => {
           {data.tabs.map((tab) => (
             <button
               key={tab.id}
-              className={`px-1 md:px-6 md:py-2 py-1  transition ${
+              className={`px-1 md:px-6 md:py-2 py-1 sm:mb-0 mb-1  transition ${
                 activeTab === tab.id
                   ? "bg-primaryColor text-white font-semibold"
                   : "bg-white text-primaryColor border border-primaryColor"
