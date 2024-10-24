@@ -94,7 +94,7 @@ function DigiMarketingOverview() {
           {data.tabs.map((tab) => (
             <button
               key={tab.id}
-              className={`px-2 md:px-6 md:py-2 py-1 transition md:mb-0  ${
+              className={`px-2 md:px-6 md:py-2 py-1 transition  sm:mb-0 mb-1   ${
                 activeTab === tab.id
                   ? "bg-[#5C40FF] text-white font-semibold"
                   : "bg-[#E6E6FA] text-[#5C40FF] border-2 border-[#5C40FF]"
