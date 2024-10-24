@@ -75,11 +75,11 @@ const PersonalityOverview = () => {
         </div>
 
         {/* Tabs */}
-        <div className="flex md:mx-0 mx-3 space-x-2 flex-wrap">
+        <div className="flex md:mx-0 mx-4  flex-wrap">
           {data.tabs.map((tab) => (
             <button
               key={tab.id}
-              className={`px-2 md:px-6 md:py-2 py-1 transition md:mb-0 mb-2 ${
+              className={`px-2 md:px-6 mr-2 md:py-2 py-1 transition md:mb-0 mb-1 ${
                 activeTab === tab.id
                   ? "bg-[#5C40FF] text-white font-semibold"
                   : "bg-[#E6E6FA] text-[#5C40FF] border-2 border-[#5C40FF]"
@@ -92,7 +92,7 @@ const PersonalityOverview = () => {
         </div>
 
         {/* Content Rendering */}
-        <section className="bg-white dark:text-gray300 dark:bg-screen-dark px-5 md:px-6 py-8 border-2 border-gray300 dark:border-gray600 text-lightGrey14">
+        <section className="bg-white dark:text-gray300 dark:bg-screen-dark px-5 mx-4 sm:mx-0 md:px-6 py-8 border-2 border-gray300 dark:border-gray600 text-lightGrey14">
           <h1 className="text-[23px] font-bold text-[#5C40FF] dark:text-gray50">
             {activeContent.name}
           </h1>

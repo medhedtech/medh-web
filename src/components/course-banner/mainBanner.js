@@ -32,15 +32,15 @@ export default function MainBanner({
       {/* <div className="absolute w-full inset-0 bg-black opacity-30 z-10" /> */}
 
       <div className="w-[90%] h-full flex items-center justify-between bg-black lg:bg-transparent lg:absolute lg:top-0 lg:bottom-0">
-        <div className="w-full lg:w-[45%] ml-0 md:ml-12">
+        <div className="w-full lg:w-[45%] ml-0 md:ml-12 ">
           <p
-            className="border-l-4 md:text-[15px] text-[12px] border-primaryColor font-bold mb-4 md:pl-2 pl-0"
+            className="border-l-4 md:text-[15px] font-Open text-[12px] border-primaryColor font-bold mb-4 md:pl-2 pl-0"
             style={{ color: subheadingColor }}
           >
             {subheading} {/* Dynamic subheading */}
           </p>
           <h1
-            className="text-2xl md:text-4xl font-bold mb-6"
+            className="text-2xl md:text-4xl font-bold font-Poppins  mb-6"
             style={{ color: headingColor }}
           >
             {heading}
