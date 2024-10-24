@@ -3,7 +3,7 @@ import React from "react";
 
 const BlogCard = ({ imageSrc, title, buttonText }) => {
   return (
-    <div className="max-w-sm overflow-hidden flex flex-col justify-between shadow-lg ">
+    <div className="max-w-sm overflow-hidden dark:bg-black dark:shadow-gray-800 dark:border-whitegrey border  flex flex-col justify-between shadow-lg ">
       <Image
         src={imageSrc}
         alt={title}

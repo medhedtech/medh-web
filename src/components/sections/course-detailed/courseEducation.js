@@ -46,9 +46,9 @@ const courseInfo = [
 
 function CourseEducation() {
   return (
-    <div className="flex flex-wrap justify-between bg-white w-full lg:space-x-8">
+    <div className="flex flex-wrap justify-between bg-white dark:bg-[#050622] w-full lg:space-x-8">
       {/* Left Section */}
-      <div className="lg:w-[60%] w-full md:px-4 ">
+      <div className="lg:w-[60%] w-full md:px-4 dark:pt-12 ">
         <div className="relative lg:bottom-12 bottom-5">
           <Image
             src={Education}
@@ -59,7 +59,7 @@ function CourseEducation() {
           />
         </div>
         <div className="lg:ml-[11%] px-5 lg:p-0 lg:mt-10 mt-6">
-          <h1 className="lg:text-3xl text-[22px] font-bold text-[#5C6574] mb-2 lg:w-[70%] w-full">
+          <h1 className="lg:text-3xl text-[22px] font-bold text-[#5C6574] mb-2 lg:w-[70%] w-full dark:text-gray-50">
             Digital Marketing with Data Analytics Foundation Certificate
           </h1>
           <div className="flex space-x-0 lg:text-sm text-[12px] text-gray-500 mb-4 lg:space-x-12">
@@ -71,7 +71,7 @@ function CourseEducation() {
                     <h4 className="font-semibold text-primaryColor">
                       {info.label}
                     </h4>
-                    <p>{info.value}</p>
+                    <p className="dark:text-gray-300">{info.value}</p>
                   </div>
                 </div>
                 {index !== courseInfo.length - 1 && (
@@ -84,15 +84,15 @@ function CourseEducation() {
       </div>
 
       {/* Right Section */}
-      <div className="lg:w-[35%] w-full flex justify-center items-center flex-col lg:mr-6 mt-10">
-        <div className="bg-gray-50 lg:w-[70%] w-full rounded-md shadow-sm border-2 border-gray-200  ">
-          <div className="bg-[#F5F2FF] p-4 border-b-2 border-gray-200 md:px-4">
+      <div className="lg:w-[35%] w-full flex justify-center items-center flex-col lg:mr-6 mt-10 dark:text-gray-200 ">
+        <div className="bg-gray-50  dark:bg-[#050622]  lg:w-[70%] w-full rounded-md shadow-sm border-2 border-gray-200 dark:border-gray-600  ">
+          <div className="bg-[#F5F2FF]  dark:bg-[#050622] p-4 border-b-2 border-gray-200 dark:border-gray-600 md:px-4">
             <div className="flex justify-between items-center">
               <div className="mb-2">
-                <p className="text-[1rem] font-normal font-Popins leading-6 text-[#41454F]">
+                <p className="text-[1rem] font-normal font-Popins leading-6 text-[#41454F] dark:text-gray-200">
                   4 Months Course
                 </p>
-                <h3 className="text-2xl font-bold text-[#5C6574]">
+                <h3 className="text-2xl font-bold text-[#5C6574] dark:text-gray-50">
                   USD $595.00
                 </h3>
               </div>
@@ -108,11 +108,11 @@ function CourseEducation() {
                 WISHLIST
               </button>
             </div>
-            <p className="text-gray-500">Enrollment validity: Lifetime</p>
+            <p className="text-gray-500 dark:text-gray-200">Enrollment validity: Lifetime</p>
           </div>
 
           {/* Dynamically Render Course Details */}
-          <div className="text-sm px-4 md:px-8">
+          <div className="text-sm px-4 md:px-8 ">
             {courseDetails.map((detail, index) => (
               <div
                 key={index}
