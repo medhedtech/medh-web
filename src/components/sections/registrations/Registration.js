@@ -8,13 +8,13 @@ import ButtonPrimary from "@/components/shared/buttons/ButtonPrimary";
 
 const Registration = () => {
   return (
-// <<<<<<< HEAD
+    // <<<<<<< HEAD
     // <section className="bg-register bg-cover bg-center bg-no-repeat ">
-// =======
+    // =======
     <section className="bg-register bg-cover bg-center bg-no-repeat  ">
-{/* >>>>>>> c211c4f62a5a819cc053b1367cb9374c87b7a304 */}
+      {/* >>>>>>> c211c4f62a5a819cc053b1367cb9374c87b7a304 */}
       {/* registration overlay  */}
-      <div className="overlay bg-blueDark bg-opacity-90 py-4 lg:pb-0 relative z-0 my-10 ">
+      <div className="overlay bg-blueDark  bg-opacity-90 py-4 lg:pb-0 relative z-0  ">
         {/* animate icons  */}
         <div>
           <Image
@@ -78,17 +78,17 @@ const Registration = () => {
                 <input
                   type="text"
                   placeholder="Your Name*"
-                  className="w-full px-14px py-2 bg-lightGrey8 text-base border mb-1.5 border-gray-300"
+                  className="w-full px-14px py-2 dark:bg-inherit bg-lightGrey8 text-base border mb-1.5 border-gray-300"
                 />
                 <input
                   type="email"
                   placeholder="Your Email*"
-                  className="w-full px-14px py-2 bg-lightGrey8 text-base mb-1.5 border border-gray-300"
+                  className="w-full px-14px py-2 dark:bg-inherit bg-lightGrey8 text-base mb-1.5 border border-gray-300"
                 />
 
                 {/* Phone Number Input with Country Dropdown */}
                 <div className="flex mb-2">
-                  <select className="w-1/4 px-2 py-2 bg-lightGrey8 border border-gray-300 mr-2 text-[#5C6574]">
+                  <select className="w-1/4 px-2 py-2 dark:bg-inherit bg-lightGrey8 border border-gray-300 mr-2 text-[#5C6574]">
                     <option value="">Country</option>
                     <option value="US">United States</option>
                     <option value="CA">Canada</option>
@@ -100,13 +100,13 @@ const Registration = () => {
                   <input
                     type="tel"
                     placeholder="Your Phone Number*"
-                    className="w-full px-14px py-2 bg-lightGrey8 text-base border border-gray-300"
+                    className="w-full px-14px py-2 dark:bg-inherit bg-lightGrey8 text-base border border-gray-300"
                   />
                 </div>
 
                 <textarea
                   placeholder="Message"
-                  className="w-full px-15px pb-3 pt-3 bg-lightGrey8 text-base mb-4 h-[155px] border border-gray-300"
+                  className="w-full px-15px pb-3 pt-3 dark:bg-inherit bg-lightGrey8 text-base mb-4 h-[155px] border border-gray-300"
                   cols="30"
                   rows="10"
                 />
@@ -117,7 +117,7 @@ const Registration = () => {
                     name="accept"
                     className="w-4 h-4 text-[#5F2DED] border-gray-300 rounded mt-1 focus:ring-[#5F2DED]"
                   />
-                  <label htmlFor="accept" className="text-sm text-gray-700">
+                  <label htmlFor="accept" className="text-sm text-gray-700 dark:text-gray-300">
                     By submitting this form, I accept
                     <span className="text-[#5F2DED] ml-1">
                       Terms of Service

@@ -5,7 +5,7 @@ import React from "react";
 const BlogsMain = () => {
   return (
     <>
-      <HeroPrimary title={"Blog Page"} path={"Blog Page"} />
+      {/* <HeroPrimary title={"Blog Page"} path={"Blog Page"} /> */}
       <BlogsPrimary />
     </>
   );

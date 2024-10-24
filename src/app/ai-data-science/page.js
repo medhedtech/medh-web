@@ -6,6 +6,7 @@ import CourseAiRelatedCourses from "@/components/sections/course-ai/courseAiRela
 import CourseOptions from "@/components/sections/course-ai/courseOptions";
 import Registration from "@/components/sections/registrations/Registration";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
+import ThemeController from "@/components/shared/others/ThemeController";
 import React from "react";
 
 function CouseAi() {
@@ -18,6 +19,7 @@ function CouseAi() {
       <CourseAiFaq />
       <CourseAiCourseBanner />
       <CourseAiRelatedCourses />
+      <ThemeController/>
     </PageWrapper>
   );
 }

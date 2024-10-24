@@ -1,67 +1,68 @@
 import Image from "next/image";
 import React from "react";
-import img1 from "@/assets/images/team/img1.png";
-import img2 from "@/assets/images/team/img2.png";
-import img3 from "@/assets/images/team/img3.png";
-import img4 from "@/assets/images/team/img4.png";
-import img5 from "@/assets/images/team/img5.png";
-import img6 from "@/assets/images/team/img6.png";
-import img7 from "@/assets/images/team/img7.png";
-import img8 from "@/assets/images/team/img8.png";
-import img9 from "@/assets/images/team/img9.png";
-import img10 from "@/assets/images/team/img10.png";
+// import img1 from "@/assets/images/team/img1.png";
+import Dynamic1 from "@/assets/images/team/img1.png"
+import Dynamic2 from "@/assets/images/team/img2.png";
+import Dynamic3 from "@/assets/images/team/img3.png";
+import Dynamic4 from "@/assets/images/team/img4.png";
+import Dynamic5 from "@/assets/images/team/img5.png";
+import Dynamic6 from "@/assets/images/team/img6.png";
+import Dynamic7 from "@/assets/images/team/img7.png";
+import Dynamic8 from "@/assets/images/team/img8.png";
+import Dynamic9 from "@/assets/images/team/img9.png";
+import Dynamic10 from "@/assets/images/team/img10.png";
 
 const DynamicTeam = () => {
   const teamMembers = [
     {
       name: "Niti Saxena",
       role: "Director",
-      image: img1,
+      image: Dynamic1,
     },
     {
       name: "Neeraj Narain",
       role: "CEO & CTO",
-      image: img2,
+      image: Dynamic2,
     },
     {
       name: "Jatin Wadhwa",
       role: "Director of Global Operations",
-      image: img3,
+      image: Dynamic3,
     },
     {
       name: "Namrathaa Malu",
       role: "Head of AI and Data Science",
-      image: img4,
+      image: Dynamic4,
     },
     {
       name: "Pradnya Thakur",
       role: "AM – Operations",
-      image: img5,
+      image: Dynamic5,
     },
     {
       name: "Nishita Francis",
       role: "ATL – Operations",
-      image: img6,
+      image: Dynamic6,
     },
     {
       name: "Vikash Gupta",
       role: "Web Developer",
-      image: img7,
+      image: Dynamic7,
     },
     {
       name: "Nitanshu Saini",
       role: "Graphic Designer",
-      image: img8,
+      image: Dynamic8,
     },
     {
       name: "Esha Bharti",
       role: "Creative Designer",
-      image: img9,
+      image: Dynamic9,
     },
     {
       name: "Harsh Patel",
       role: "IT Admin",
-      image: img10,
+      image: Dynamic10,
     },
   ];
 
@@ -82,8 +83,12 @@ const DynamicTeam = () => {
                 height={385}
                 className="mx-auto "
               />
-              <p className="text-[#252525] mt-2">{member.role}</p>
-              <h4 className=" text-lg font-semibold">{member.name}</h4>
+              <p className="text-[#252525] mt-2 dark:text-whitegrey3">
+                {member.role}
+              </p>
+              <h4 className=" text-lg font-semibold dark:text-white">
+                {member.name}
+              </h4>
             </div>
           ))}
         </div>
@@ -98,8 +103,12 @@ const DynamicTeam = () => {
                 height={385}
                 className="mx-auto "
               />
-              <p className="text-[#252525] mt-2">{member.role}</p>
-              <h4 className=" text-lg font-semibold">{member.name}</h4>
+              <p className="text-[#252525] mt-2 dark:text-whitegrey3">
+                {member.role}
+              </p>
+              <h4 className=" text-lg font-semibold dark:text-white">
+                {member.name}
+              </h4>
             </div>
           ))}
         </div>
@@ -114,8 +123,12 @@ const DynamicTeam = () => {
                 height={296}
                 className="mx-auto "
               />
-              <p className="text-[#252525] mt-2">{member.role}</p>
-              <h4 className=" text-lg font-semibold">{member.name}</h4>
+              <p className="text-[#252525] mt-2 dark:text-whitegrey3">
+                {member.role}
+              </p>
+              <h4 className=" text-lg font-semibold dark:text-white">
+                {member.name}
+              </h4>
             </div>
           ))}
         </div>

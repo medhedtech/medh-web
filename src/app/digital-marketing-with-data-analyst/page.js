@@ -6,6 +6,7 @@ import DigiMarketingCource from '@/components/sections/digital-marketing/digiMar
 import DigiMarketingFaq from '@/components/sections/digital-marketing/digiMarketingFaq';
 import DigiMarketingCourceBanner from '@/components/sections/digital-marketing/digiMarketingCourceBanner';
 import DigiMarketingRalatedCource from '@/components/sections/digital-marketing/digiMarketingRalatedCource';
+import ThemeController from "@/components/shared/others/ThemeController";
 
 function DigitalMarketing() {
   return (
@@ -16,6 +17,7 @@ function DigitalMarketing() {
       <DigiMarketingFaq />
       <DigiMarketingCourceBanner />
       <DigiMarketingRalatedCource />
+      <ThemeController/>
     </PageWrapper>
   )
 }

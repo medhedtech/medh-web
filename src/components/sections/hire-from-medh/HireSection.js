@@ -3,7 +3,7 @@ import HireSectionImg from "../../../assets/images/hireformmedh/hiresectionimg.p
 
 const HireSection = () => {
   return (
-    <section className="flex flex-col md:flex-row items-center justify-center space-y-8 md:space-y-0 md:space-x-12 px-4 py-8 md:px-16 md:py-16 bg-white ">
+    <section className="flex flex-col md:flex-row items-center justify-center space-y-8 md:space-y-0 md:space-x-12 px-4 py-8 md:px-16 md:py-16 bg-white dark:bg-screen-dark ">
       <div className="relative w-full md:w-[40%] flex justify-center">
         <Image src={HireSectionImg} className="object-cover w-full h-full" />
       </div>
@@ -11,7 +11,7 @@ const HireSection = () => {
       {/* Text Section */}
       <div className="w-full md:w-1/2">
         <div className="mb-8">
-          <h2 className="text-3xl md:text-4xl font-bold text-[#5C6574]">
+          <h2 className="text-3xl md:text-4xl font-bold text-[#5C6574] dark:text-white">
             Why Hire from
           </h2>
           <h2 className="text-3xl md:text-4xl font-bold text-[#5F2DED]">
@@ -65,10 +65,13 @@ const HireSection = () => {
                 </svg>
               </div>
               <div>
-                <strong className="text-lg font-bold text-[#5C6574]">
-                  {item.title}: 
+                <strong className="text-lg font-bold text-[#5C6574] dark:text-whiteColor">
+                  {item.title}:
                 </strong>
-                <span className="text-gray-700"> {item.description}</span>
+                <span className="text-gray-700 dark:text-gray300">
+                  {" "}
+                  {item.description}
+                </span>
               </div>
             </div>
           ))}

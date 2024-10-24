@@ -168,6 +168,10 @@ module.exports = {
         blueDark: "#260094EE",
         naveBlue: "#17093e",
         placeholder: "rgb(98, 96, 93)",
+        gray300: '#D1D5DB', // Custom gray300 color
+        gray50: '#F9FAFB',  // Custom gray50 color
+        gray600: '#4B5563', // custome gray600 color
+      
 
         "bodyColor-dark": "#fff",
         "bodyBg-dark": "#0C0E2B",
@@ -197,6 +201,10 @@ module.exports = {
         "bs-body-color-dark": "#fff",
         "fb-color": "#3b5999",
         "twiter-color": "#55acee",
+        "screen-dark": "#050622",
+        // "screen-dark": "#020212", //dark-navy-blue
+
+       
       },
       // area
       // width

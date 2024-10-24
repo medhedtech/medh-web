@@ -3,7 +3,7 @@ import SkillSectionImg from "../../../assets/images/hireformmedh/skillsectionimg
 
 const SkillsSection = () => {
   return (
-    <section className="flex justify-center items-center w-full h-auto bg-[#FFE5F0] py-14">
+    <section className="flex justify-center items-center w-full h-auto bg-[#FFE5F0] dark:bg-screen-dark py-14">
       <div className="w-[85%] h-full flex flex-col md:flex-row items-center justify-between">
         <div className="w-full md:w-[40%]  overflow-hidden">
           <Image
@@ -17,7 +17,7 @@ const SkillsSection = () => {
           <h2 className="text-3xl md:text-4xl font-bold text-[#F2277E]">
             Get-Job-Ready Candidates
           </h2>
-          <p className="text-2xl md:text-3xl font-semibold text-gray-800">
+          <p className="text-2xl md:text-3xl font-semibold text-gray-800 dark:text-white">
             with following IT skills
           </p>
 
@@ -34,7 +34,7 @@ const SkillsSection = () => {
             ].map((skill, index) => (
               <li key={index} className="flex items-start space-x-2">
                 <svg
-                  className="w-5 h-5 p-[2.2px] mt-1 text-white bg-[#F2277E] rounded-full"
+                  className="w-5 h-5 p-[2.2px] mt-1 text-white  bg-[#F2277E] rounded-full"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -47,7 +47,7 @@ const SkillsSection = () => {
                     d="M5 13l4 4L19 7"
                   />
                 </svg>
-                <span className="text-lg font-medium text-gray-700">
+                <span className="text-lg font-medium text-gray-700 dark:text-white">
                   {skill}
                 </span>
               </li>
