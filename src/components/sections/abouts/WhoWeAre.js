@@ -4,7 +4,7 @@ import Explain from "@/assets/images/about/explain.png";
 
 const WhoWeAre = () => {
   return (
-    <div className="bg-[#F3F6FB] dark:bg-screen-dark px-4 md:px-16 lg:px-40 my-16 flex gap-8 flex-col lg:flex-row py-16">
+    <div className="bg-[#F3F6FB] dark:bg-screen-dark px-4 md:px-16 lg:px-40 py-16 flex gap-8 flex-col lg:flex-row py-16">
       <div className="w-full lg:w-1/2 flex justify-center">
         <Image
           src={Explain}
