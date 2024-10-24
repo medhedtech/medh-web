@@ -47,24 +47,24 @@ export default function CareerFaq() {
   ];
 
   return (
-    <div className="bg-white dark:bg-black text-lightGrey14 flex justify-center py-10">
+    <div className="bg-white dark:bg-screen-dark text-lightGrey14 flex justify-center py-10">
       <div className="md:w-[80%] w-[95%]">
         <h2 className="md:text-3xl text-[22px] font-bold mb-4 text-center dark:text-white text-[#5C6574]">
           Frequently Asked Questions (FAQs)
         </h2>
-        <p className="text-center md:text-[15px] text-[14px] mb-8 md:px-14 px-3 ">
+        <p className="text-center md:text-[15px] text-[14px] mb-8 md:px-14 dark:text-gray300 px-3 ">
           Discover answers to common questions about becoming an integral part
           of the MEDH team. Learn about the application process, pre-requisites,
           career opportunities, and more.
         </p>
         <div className="space-y-4">
           {faqs.map((faq, index) => (
-            <div key={index} className="border shadow-md">
+            <div key={index} className="border dark:border-gray600 shadow-md">
               <div
                 className="flex justify-between items-center py-4 cursor-pointer px-2 sm:px-4 text-[#727695]"
                 onClick={() => toggleFAQ(index)}
               >
-                <h3 className="md:text-[15px] text-[14px] font-bold ">
+                <h3 className="md:text-[15px] text-[14px] font-bold dark:text-gray300 ">
                   {faq.question}
                 </h3>
                 <span
@@ -83,7 +83,7 @@ export default function CareerFaq() {
             </div>
           ))}
         </div>
-        <div className="text-center mt-10">
+        <div className="text-center mt-10 dark:text-gray300">
           <p>
             Note: If you have any other questions or concerns not covered in the
             FAQs, please feel free to contact our

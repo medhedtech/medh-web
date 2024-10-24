@@ -3,7 +3,7 @@ import SkillSectionImg from "../../../assets/images/hireformmedh/skillsectionimg
 
 const SkillsSection = () => {
   return (
-    <section className="flex justify-center items-center w-full h-auto bg-[#FFE5F0] dark:bg-black py-14">
+    <section className="flex justify-center items-center w-full h-auto bg-[#FFE5F0] dark:bg-screen-dark py-14">
       <div className="w-[85%] h-full flex flex-col md:flex-row items-center justify-between">
         <div className="w-full md:w-[40%]  overflow-hidden">
           <Image

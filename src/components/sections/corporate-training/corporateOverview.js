@@ -25,27 +25,27 @@ const data = {
   overview: {
     keyFeatures: [
       {
-        title: "Customized Training Courses:",
+        title: "Customized Training Courses",
         description:
           "Acknowledging the unique characteristics of each company, our seasoned trainers collaborate closely to tailor training courses that effectively address your IT and other training requirements. From AI, Data Science & Analytics, Cybersecurity, Cloud computing to Digital Marketing, Personality Development, our dynamic training courses are meticulously crafted to align with your business objectives.",
       },
       {
-        title: "Expert Instructors:",
+        title: "Expert Instructors",
         description:
           " Our trainers are seasoned IT professionals with extensive industry experience. They bring real-world insights and practical knowledgeto the training sessions, ensuring that your employees receive top-notch instruction and guidance.",
       },
       {
-        title: "Flexible Learning Options: We",
+        title: "Flexible Learning Options",
         description:
           "We recognize that every company operates within its own scheduling constraints. Hence, we offer flexible learning options,including on-site training, virtual classrooms, and self-paced e-learning modules. This allows your employees to conveniently access our training courses,balancing learning with their regular work responsibilities.",
       },
       {
-        title: "Cutting-Edge Curriculum: ",
+        title: "Cutting-Edge Curriculum ",
         description:
           "Our training curriculum is regularly updated to reflect the latest trends and advancements in the IT industry. By enrolling in ourcourses, your employees will be equipped with the most relevant and up-to-date skills, empowering them to contribute meaningfully to your company’s success.",
       },
       {
-        title: "Hands-On Practical Experience:  ",
+        title: "Hands-On Practical Experience  ",
         description:
           "Hands-On Practical Experience: We firmly believe that experiential learning is one of the most effective ways to grasp complex IT concepts. Our training advancements in the IT industry. By enrolling in ourcourses, your employees will be equipped with the most relevant and up-to-date skills, empowering them to contribute meaningfully to your company’s success.",
         descript:
@@ -61,14 +61,14 @@ export default function CorporateOverview() {
   const activeContent = data.tabs.find((tab) => tab.id === activeTab);
 
   return (
-    <div className="bg-white dark:bg-black h-auto pt-10 pb-6 w-full flex justify-center items-center px-1 md:px-0">
+    <div className="bg-white dark:bg-screen-dark h-auto pt-10 pb-6 w-full flex justify-center items-center px-1 md:px-0">
       <div className="w-full md:w-[80%]">
         {/* Title */}
         <div className="flex items-center flex-col w-80% md:mb-20 mb-10 px-4">
           <h1 className="text-[24px] leading-7 md:text-4xl font-bold md:mb-3 mb-2 dark:text-white text-[#000000]">
             Gain a competitive edge with Medh's Corporate Training Courses
           </h1>
-          <p className="text-center md:text-[15px] text-[14px] leading-6 md:leading-7 md:w-[70%] text-[#727695]">
+          <p className="text-center md:text-[15px] text-[14px] leading-6 md:leading-7 md:w-[70%] dark:text-gray300 text-[#727695]">
             Our SMART (Specific, Measurable, Achievable, Relevant, and
             Time-bound), approach ensures that the training is catering to your
             unique organizational goals.
@@ -93,8 +93,8 @@ export default function CorporateOverview() {
         </div>
 
         {/* Content Rendering */}
-        <section className="bg-white dark:bg-inherit px-5 md:px-6 py-8 border-2 border-gray-300 text-lightGrey14">
-          <h1 className="text-[23px] font-bold text-[#5F2DED]">
+        <section className="bg-white dark:bg-inherit px-5 md:px-6 py-8 border-2 border-gray-300 dark:border-gray600 text-lightGrey14">
+          <h1 className="text-[23px] font-bold text-[#5F2DED] ">
             {activeContent.name}
           </h1>
 
@@ -102,10 +102,10 @@ export default function CorporateOverview() {
             <>
               {/* Key Features */}
 
-              <ul className="list-none list-inside space-y-2 pb-2">
+              <ul className="list-none list-inside space-y-2 pb-2 dark:text-gray300">
                 {data.overview.keyFeatures.map((feature, index) => (
                   <li key={index}>
-                    <strong className="text-[1rem] font-bold tracking-wide">
+                    <strong className="text-[1rem] font-bold tracking-wide dark:text-gray50">
                       {feature.title}:
                     </strong>{" "}
                     {feature.description} <br />

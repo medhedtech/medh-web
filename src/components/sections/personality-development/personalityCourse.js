@@ -68,9 +68,9 @@ function PersonalityCourse() {
   };
 
   return (
-    <div className="bg-white dark:bg-[#050622] text-lightGrey14 flex justify-center py-10">
+    <div className="bg-white dark:bg-screen-dark text-lightGrey14 flex justify-center py-10">
       <div className="w-full px-4 md:px-8 lg:px-10 max-w-[1200px]">
-        <h2 className="text-[22px] md:text-3xl font-bold mb-4 text-center text-[#5C6574] dark:text-gray-50 pb-10">
+        <h2 className="text-[22px] md:text-3xl font-bold mb-4 text-center text-[#5C6574] dark:text-gray50 pb-10">
           Personality Development Courses (Grade Wise)
         </h2>
 
@@ -94,12 +94,12 @@ function PersonalityCourse() {
             <input
               type="text"
               placeholder="Search"
-              className="outline-none ml-2 w-full dark:bg-[#050622] dark:text-gray-50"
+              className="outline-none ml-2 w-full dark:bg-screen-dark dark:text-gray50"
             />
           </div>
 
           <div className="border border-[#CDCFD5] px-2 py-2 rounded-md w-full md:w-auto">
-            <select className="w-full outline-none dark:bg-[#050622]">
+            <select className="w-full outline-none dark:bg-screen-dark">
               <option>Program Title (A-Z)</option>
             </select>
           </div>

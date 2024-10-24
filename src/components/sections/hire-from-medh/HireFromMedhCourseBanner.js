@@ -33,7 +33,7 @@ export default function HireFromMedhCourseBanner() {
           />
         ))}
       </div>
-      <p className="bg-white text-center dark:bg-black dark:text-white mt-[-20px] pb-8 px-3 text-[14px] text-[#727695]">
+      <p className="bg-white text-center dark:bg-screen-dark dark:text-gray300 mt-[-20px] pb-8 px-3 text-[14px] text-[#727695]">
         We are thrilled to be a part of your transformative journey and to
         assist you in unlocking your complete <br /> potential in the digital
         marketing and data analytics industry.

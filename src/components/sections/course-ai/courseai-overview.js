@@ -89,7 +89,7 @@ const CourseAiOverview = () => {
   const activeContent = data.tabs.find((tab) => tab.id === activeTab);
 
   return (
-    <div className="bg-white dark:bg-[#050622] h-auto py-10  w-full flex justify-center items-center">
+    <div className="bg-white dark:bg-screen-dark h-auto py-10  w-full flex justify-center items-center">
       <div className=" w-full md:w-[80%] ">
         <div className="flex items-center flex-col w-80% md:mb-20 mb-10 px-4 ">
           <h1 className="text-[32px]  leading-10 max-w-4xl md:text-4xl  font-bold md:mb-3 mb-2 text-[#252525] dark:text-gray-100 text-center ">
@@ -125,12 +125,12 @@ const CourseAiOverview = () => {
         </div>
 
         {/* Content Rendering */}
-        <section className=" bg-white dark:bg-[#050622] px-5 md:px-6 py-8 border-2 border-gray-500 text-lightGrey14 dark:text-gray-300 ">
-          <h1 className="text-[23px] font-bold text-primaryColor dark:text-gray-50 ">
+        <section className=" bg-white dark:bg-screen-dark px-5 md:px-6 py-8 border-2 border-gray-500 text-lightGrey14 dark:text-gray300 ">
+          <h1 className="text-[23px] font-bold text-primaryColor dark:text-gray50 ">
             Why Choose the Combined AI and Data Science Course?
           </h1>
           <p className=" mb-2 md:text-[15px] text-[14px]  ">
-            <span className="text-lightGrey14  pr-1 dark:text-gray-50 md:text-[1rem] text-[15px] font-bold tracking-wide ">
+            <span className="text-lightGrey14  pr-1 dark:text-gray50 md:text-[1rem] text-[15px] font-bold tracking-wide ">
               Synergy between AI and Data Science:
             </span>
             AI and Data Science are closely related fields. AI techniques, such
@@ -140,7 +140,7 @@ const CourseAiOverview = () => {
             the learning experience more cohesive and practical.
           </p>
           <p className=" mb-2 md:text-[15px] text-[14px] ">
-            <span className="text-lightGrey14  pr-1 dark:text-gray-50 md:text-[1rem] text-[15px] font-bold tracking-wide ">
+            <span className="text-lightGrey14  pr-1 dark:text-gray50 md:text-[1rem] text-[15px] font-bold tracking-wide ">
               Real-world Relevance:
             </span>
             In the real world, AI and Data Science are often used in conjunction
@@ -149,7 +149,7 @@ const CourseAiOverview = () => {
             how they complement each other.
           </p>
           <p className=" mb-2 md:text-[15px] text-[14px] ">
-            <span className="text-lightGrey14  pr-1 dark:text-gray-50 md:text-[1rem] text-[15px] font-bold tracking-wide ">
+            <span className="text-lightGrey14  pr-1 dark:text-gray50 md:text-[1rem] text-[15px] font-bold tracking-wide ">
               Comprehensive Skill Set:
             </span>
             Students who take a combined AI and Data Science course can develop
@@ -158,7 +158,7 @@ const CourseAiOverview = () => {
             gain valuable insights from that data
           </p>
           <p className=" mb-2 md:text-[15px] text-[14px] ">
-            <span className="text-lightGrey14  pr-1 dark:text-gray-50 md:text-[1rem] text-[15px] font-bold tracking-wide ">
+            <span className="text-lightGrey14  pr-1 dark:text-gray50 md:text-[1rem] text-[15px] font-bold tracking-wide ">
               Efficiency and Time-saving:
             </span>
             Offering both subjects in a single course can save time for students
@@ -167,7 +167,7 @@ const CourseAiOverview = () => {
             their learning.
           </p>
           <p className=" mb-2 md:text-[15px] text-[14px] ">
-            <span className="text-lightGrey14  pr-1  dark:text-gray-50 md:text-[1rem] text-[15px] font-bold tracking-wide ">
+            <span className="text-lightGrey14  pr-1  dark:text-gray50 md:text-[1rem] text-[15px] font-bold tracking-wide ">
               Interdisciplinary Perspective:
             </span>
             AI and Data Science draw concepts and techniques from various
@@ -181,7 +181,7 @@ const CourseAiOverview = () => {
             Course Features:
           </h1>
           <p className=" mb-2 md:text-[15px] text-[14px] ">
-            <span className="text-lightGrey14  pr-1 dark:text-gray-50 md:text-[1rem] text-[15px] font-bold tracking-wide ">
+            <span className="text-lightGrey14  pr-1 dark:text-gray50 md:text-[1rem] text-[15px] font-bold tracking-wide ">
               Expert-Led Instruction
             </span>
             Our course is facilitated by industry experts with extensive
@@ -190,7 +190,7 @@ const CourseAiOverview = () => {
             tips to enhance your learning experience.
           </p>
           <p className=" mb-2 md:text-[15px]  text-[14px] ">
-            <span className="text-lightGrey14 pr-1 dark:text-gray-50 md:text-[1rem] text-[15px] font-bold tracking-wide ">
+            <span className="text-lightGrey14 pr-1 dark:text-gray50 md:text-[1rem] text-[15px] font-bold tracking-wide ">
               Interactive Learning Environment:
             </span>
             Our platform fosters an engaging and collaborative learning
@@ -199,7 +199,7 @@ const CourseAiOverview = () => {
             experience.
           </p>
           <p className=" mb-2 md:text-[15px]  text-[14px] ">
-            <span className="text-lightGrey14  pr-1 dark:text-gray-50 md:text-[1rem] text-[15px] font-bold tracking-wide ">
+            <span className="text-lightGrey14  pr-1 dark:text-gray50 md:text-[1rem] text-[15px] font-bold tracking-wide ">
               Practical Tools and Software:
             </span>
             Gain proficiency in popular tools and software used in AI and Data
@@ -208,7 +208,7 @@ const CourseAiOverview = () => {
             tackle real-world challenges.
           </p>
           <p className=" mb-2 md:text-[15px] text-[14px] ">
-            <span className="text-lightGrey14  pr-1 dark:text-gray-50 md:text-[1rem] text-[15px] font-bold tracking-wide ">
+            <span className="text-lightGrey14  pr-1 dark:text-gray50 md:text-[1rem] text-[15px] font-bold tracking-wide ">
               Career Support:
             </span>
             We care about your success beyond the course completion. Benefit
