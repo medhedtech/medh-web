@@ -47,7 +47,7 @@ const HeroSection = ({
                 <p className="text-base sm:text-lg">
                   {leftContent.description}
                 </p>
-                <div className="flex flex-col sm:flex-row gap-4 mt-4">
+                <div className="flex  sm:flex-row gap-4 mt-4">
                   <Link
                     href={leftContent.cta.link}
                     className="bg-white text-[#5F2DED] border border-[#5F2DED] w-fit flex font-bold text-base px-4 py-2 gap-2"
