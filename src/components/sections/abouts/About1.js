@@ -36,8 +36,8 @@ const About1 = ({ children, image, hideCounter }) => {
   ];
 
   return (
-    <section>
-      <div className="container mx-auto px-4 py-10 text-center">
+    <section className="dark:bg-screen-dark">
+      <div className="container  mx-auto px-4 py-10 text-center">
         <h2 className="text-2xl sm:text-3xl font-bold mb-4 dark:text-white">
           Featured LIVE Courses
         </h2>
@@ -51,7 +51,7 @@ const About1 = ({ children, image, hideCounter }) => {
         <div className="grid grid-cols-2 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {courses.map((course, index) => (
             <Link href={course.path} key={index}>
-              <div className="bg-white dark:bg-black border dark:border-whitegrey dark:shadow-gray-800 shadow-2xl flex flex-col overflow-hidden hover:scale-105 transition transform duration-300 h-full">
+              <div className="bg-white   border dark:border-whitegrey  shadow-2xl flex flex-col overflow-hidden hover:scale-105 transition transform duration-300 h-full">
                 <div className="relative w-full h-48">
                   <Image
                     src={course.imageSrc}
@@ -60,7 +60,7 @@ const About1 = ({ children, image, hideCounter }) => {
                     objectFit="cover" // Crop the image to fit
                   />
                 </div>
-                <div className="py-4 px-6 flex-grow">
+                <div className="py-4 px-6 flex-grow dark:bg-screen-dark">
                   <h3 className="text-lg font-bold text-[#5C6574] dark:text-whitegrey3">
                     {course.title}
                   </h3>

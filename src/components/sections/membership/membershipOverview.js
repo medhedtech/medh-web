@@ -76,11 +76,11 @@ export default function MembershipOverview() {
         </div>
 
         {/* Tabs */}
-        <div className="flex md:mx-0 mx-3 space-x-2 flex-wrap">
+        <div className="flex md:mx-0 mx-4  flex-wrap">
           {data.tabs.map((tab) => (
             <button
               key={tab.id}
-              className={`px-2 md:px-6 md:py-2 py-1 transition md:mb-0 mb-2 ${
+              className={`px-2 md:px-6 mr-2 md:py-2 py-1 transition md:mb-0 mb-2 ${
                 activeTab === tab.id
                   ? "bg-[#5F2DED] text-white font-semibold"
                   : "bg-[#E6E6FA]  text-[#5F2DED] border-2 border-[#5F2DED]"
@@ -93,7 +93,7 @@ export default function MembershipOverview() {
         </div>
 
         {/* Content Rendering */}
-        <section className="bg-white dark:bg-screen-dark px-5 md:px-6 py-8 border-2 border-gray-300 text-lightGrey14 lg:mx-0 mx-2">
+        <section className="bg-white dark:bg-screen-dark  px-5 md:px-6 py-8 border-2 border-gray-300 text-lightGrey14 lg:mx-0 mx-4">
           <h1 className="text-[23px] font-bold text-[#5F2DED]">
             {activeContent.heading}
           </h1>
