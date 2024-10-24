@@ -68,7 +68,7 @@ const Blogs = ({ secondary }) => {
             </div>
           </div>
 
-          <div className="flex flex-col gap-4 p-4 md:flex-row md:justify-center dark:text-gray-200">
+          <div className="flex flex-col gap-4 md:p-4 md:flex-row md:justify-center dark:text-gray-200">
             <BlogCard
               imageSrc={Leadership}
               title={"Charismatic Leadership: Overview, Pros & Cons"}
