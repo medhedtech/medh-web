@@ -57,9 +57,9 @@ export default function MainBanner({
                 className="object-contain"
               />
             </div>
-            <div className="ml-10">
+            <div className="md:ml-10 ml-5">
               <p
-                className="md:text-[1.1rem] text-[0.8rem] tracking-wider"
+                className="md:text-[1.2rem] sm:text-[1.3rem] text-[0.9rem] lg:text-[1.1rem] tracking-wider"
                 style={{ color: descriptionColor }}
               >
                 {description} {/* Dynamic description */}
@@ -74,7 +74,7 @@ export default function MainBanner({
                   {buttonText}
                 </button>
                 <p
-                  className="border-b-2 border-gray-500 mt-10 ml-3 text-[10px] lg:text-[15px]"
+                  className="border-b-2 border-gray-500 mt-10 ml-3 text-[12px] md:text-[15px]"
                   style={{ color: isoTextColor }}
                 >
                   {isoText}
