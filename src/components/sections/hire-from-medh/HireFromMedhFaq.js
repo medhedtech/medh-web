@@ -61,19 +61,19 @@ function HireFromMedhFaq() {
   ];
 
   return (
-    <div className="bg-white dark:bg-black text-lightGrey14 flex justify-center items-center flex-col py-4 pb-8">
+    <div className="bg-white dark:bg-screen-dark text-lightGrey14 flex justify-center items-center flex-col py-4 pb-8">
       <div className="md:w-[80%] w-[90%]">
         <h2 className="md:text-3xl text-[22px] font-bold mb-4 text-center dark:text-white text-[#5C6574]">
           Frequently Asked Questions (FAQs)
         </h2>
-        <p className="text-center md:text-[15px] text-[14px] mb-8 md:px-14 px-3">
+        <p className="text-center md:text-[15px] text-[14px] dark:text-gray300 mb-8 md:px-14 px-3">
           Find answers to common questions about MEDH's Personality Development
           Course. Learn about course structure, prerequisites, career prospects,
           and more.
         </p>
         <div className="space-y-4">
           {faqs.map((faq, index) => (
-            <div key={index} className="border shadow-sm">
+            <div key={index} className="border dark:border-gray600 shadow-sm">
               <div
                 className="flex justify-between items-center py-4 cursor-pointer px-2 sm:px-4"
                 onClick={() => toggleFAQ(index)}

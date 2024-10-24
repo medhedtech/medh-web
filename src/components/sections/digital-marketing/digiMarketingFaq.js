@@ -81,9 +81,9 @@ function DigiMarketingFaq() {
   ];
 
   return (
-    <div className="bg-white dark:bg-[#050622] text-lightGrey14 flex justify-center py-10">
+    <div className="bg-white dark:bg-screen-dark text-lightGrey14 flex justify-center py-10">
       <div className="md:w-[80%] w-[90%] dark:text-gray-200">
-        <h2 className="md:text-3xl text-[22px] font-bold mb-4 text-center text-[#5C6574] dark:text-gray-50">
+        <h2 className="md:text-3xl text-[22px] font-bold mb-4 text-center text-[#5C6574] dark:text-gray50">
           Frequently Asked Questions (FAQs)
         </h2>
         <p className="text-center md:text-[15px] text-[14px] mb-8 md:px-14 px-3">
@@ -91,7 +91,7 @@ function DigiMarketingFaq() {
         </p>
         <div className="space-y-4">
           {faqs.map((faq, index) => (
-            <div key={index} className="border dark:border-gray-600 shadow-md">
+            <div key={index} className="border dark:border-gray600 shadow-md">
               <div
                 className="flex justify-between items-center py-4 cursor-pointer px-2 sm:px-4"
                 onClick={() => toggleFAQ(index)}

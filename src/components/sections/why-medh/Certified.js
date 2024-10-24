@@ -51,7 +51,7 @@ const Certified = () => {
   };
 
   return (
-    <div className="py-12 w-full flex justify-center items-center">
+    <div className="py-12 w-full dark:bg-screen-dark flex justify-center items-center">
       <div className="w-[80%] ">
         <h3 className="text-center text-[#5C6574] dark:text-gray-200 text-size-32 leading-34px font-bold mb-8">
           Certified & Recognized By

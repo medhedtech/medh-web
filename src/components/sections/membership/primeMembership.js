@@ -28,9 +28,9 @@ const membershipData = [
 
 const PrimeMembership = () => {
   return (
-    <div className="flex items-center justify-center py-12 w-full dark:bg-black bg-white">
+    <div className="flex items-center justify-center py-12 w-full dark:bg-screen-dark bg-white">
       <div className=" lg:w-[80%] w-[92%] flex justify-center items-center dark:text-white flex-col">
-        <h1 className="text-2xl md:text-3xl font-bold mb-10 dark:text-white">
+        <h1 className="text-2xl md:text-3xl font-bold mb-10 dark:text-gray50">
           Medh-SDP-Membership
         </h1>
         <div className="flex justify-between flex-wrap w-full">
@@ -78,7 +78,7 @@ const PrimeMembership = () => {
           <label className="block text-center mb-2 text-xl dark:text-white text-[#5C6574]">
             Select Membership
           </label>
-          <select className="border-2 rounded px-10  py-2 w-full dark:bg-black  text-[#727695]">
+          <select className="border-2 rounded px-10  py-2 w-full dark:bg-screen-dark  text-[#727695]">
             <option>Select One</option>
             <option>Silver Membership</option>
             <option>Gold Membership</option>
