@@ -2,7 +2,7 @@ import React from "react";
 
 function JobApply() {
   return (
-    <div className="w-full bg-white dark:bg-inherit rounded-md ">
+    <div className="w-full bg-white dark:bg-screen-dark rounded-md ">
       <h2 className="text-[#5F2DED] text-3xl text-center font-Poppins font-bold mb-4">
         Apply Now
       </h2>
@@ -54,9 +54,9 @@ function JobApply() {
             required
           />
         </div>
-        <div className="flex ">
+        <div className="flex  ">
           <input type="checkbox" required className="mb-5" />
-          <p className="text-sm text-gray-600 px-3 font-semibold">
+          <p className="text-sm text-gray-600 dark:text-gray300 px-3 font-semibold">
             By submitting this form, I accept{" "}
             <a href="#" className="text-[#1f1aaf] ">
               Terms of Service
@@ -70,7 +70,7 @@ function JobApply() {
         </div>
         <div className="my-2">
           <input type="checkbox" required />
-          <span className="ml-2 text-sm text-gray-800 dark:text-whitegrey">
+          <span className="ml-2 text-sm text-gray-800 dark:text-gray300">
             I'm not a robot
           </span>
         </div>

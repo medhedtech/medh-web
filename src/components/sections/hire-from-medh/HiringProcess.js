@@ -3,7 +3,7 @@ import HiringProcessImg from "../../../assets/images/hireformmedh/hiringprocessi
 
 const HiringProcess = () => {
   return (
-    <section className="w-full flex justify-center items-center bg-white dark:bg-black py-10 sm:py-20">
+    <section className="w-full flex justify-center items-center bg-white dark:bg-screen-dark py-10 sm:py-20">
       <div className="w-[90%] sm:w-[75%] h-auto flex  flex-col md:flex-row items-start md:items-center space-y-8 md:space-y-0 md:space-x-8 lg:space-x-16">
         <div className="w-full md:w-1/2">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#5F2DED] leading-snug">
@@ -13,7 +13,7 @@ const HiringProcess = () => {
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#263238] dark:text-white">
             Recruit@Medh?
           </h2>
-          <p className="text-base sm:text-lg mt-4 text-gray-600 dark:text-white">
+          <p className="text-base sm:text-lg mt-4 text-gray-600 dark:text-gray300">
             Our hiring process is completely managed by our Support Team and a
             Dedicated Relationship Manager assigned for you and typically
             involves the following steps:
@@ -68,7 +68,7 @@ const HiringProcess = () => {
                   <p className="font-semibold text-gray-900 dark:text-white">
                     {step.title}
                   </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-sm text-gray-600 dark:text-gray300">
                     {step.description}
                   </p>
                 </div>
