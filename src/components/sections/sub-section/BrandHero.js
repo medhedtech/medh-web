@@ -89,7 +89,7 @@ const BrandHero = () => {
       </div>
 
       {/* Section Below */}
-      <section data-aos="fade-up" className="">
+      <section data-aos="fade-up" >
         <div className="flex flex-col items-center text-center font-Ubuntu bg-[#FFF0F7] dark:bg-[#09041d] py-8 px-4">
           <h1 className="font-bold text-[20px] lg:text-[26px] leading-8 mt-8 lg:w-[674px] dark:text-white">
             Welcome to <span className="text-[#5F2DED]">Medh</span> | Pioneering
