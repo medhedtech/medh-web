@@ -8,9 +8,9 @@ import stemImg from "@/assets/images/herobanner/Background.png";
 import Group from "@/assets/images/herobanner/Group5.png";
 const Hero1 = () => {
   return (
-    <section data-aos="fade-up " className="dark:bg-screen-dark">
+    <section data-aos="fade-up " className="dark:bg-screen-dark ">
       {/* Banner section */}
-      <div className="container2-xl   sm:px-4 lg:px-6 py-5">
+      <div className="container2-xl   sm:px-4 lg:px-6 py-5 ">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Banner Left */}
           <div data-aos="fade-up">
@@ -22,10 +22,10 @@ const Hero1 = () => {
             </HreoName>
             <HeadingLg
               color={"#5F2DED"}
-              
+              className="text-2xl sm:text-4xl lg:text-[40px] font-bold leading-tight"
             >
-            <h1 className="text-2xl sm:text-4xl lg:text-[40px] font-bold leading-tight"> Skill Development Courses led by 
-              Seasoned Experts</h1>
+             Skill Development Courses led by 
+              Seasoned Experts
             </HeadingLg>
             <div className="flex  md:flex-row mt-6 mb-9 sm:gap-8">
               <div className="flex-shrink-0">
