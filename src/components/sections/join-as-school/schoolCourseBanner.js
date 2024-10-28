@@ -10,7 +10,7 @@ function SchoolCourceBanner() {
       heading: "To create future-ready students through upskilling.",
       buttonText: "Let’s Connect",
       imageUrl: CourseBannerImg,
-      buttonBgColor: "#F2277E",
+      buttonBgColor: "#F6B335",
       icon: Download,
     },
   ];

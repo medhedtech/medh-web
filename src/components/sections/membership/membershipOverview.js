@@ -61,7 +61,7 @@ export default function MembershipOverview() {
           <h1 className="text-[24px] leading-7 md:text-4xl font-bold md:mb-1 mb-2 dark:text-white text-[#000000]">
             Unlock Your Potential with MEDH Membership!
           </h1>
-          <p className="text-[#F2277E] text-[1rem]">
+          <p className="text-[#F6B335] text-[1rem]">
             Become an expert in your chosen field of interest by gaining
             comprehensive knowledge and skills.
           </p>
@@ -82,9 +82,9 @@ export default function MembershipOverview() {
               key={tab.id}
               className={`px-2 md:px-6 mr-2 md:py-2 py-1 transition sm:mb-0 mb-1 ${
                 activeTab === tab.id
-                  ? "bg-[#5F2DED] text-white font-semibold"
-                  : "bg-[#E6E6FA]  text-[#5F2DED] border-2 border-[#5F2DED]"
-              } hover:bg-[#5F2DED] hover:text-white`}
+                  ? "bg-[#7ECA9D] text-white font-semibold"
+                  : "bg-[#E6E6FA]  text-[#7ECA9D] border-2 border-[#7ECA9D]"
+              } hover:bg-[#7ECA9D] hover:text-white`}
               onClick={() => setActiveTab(tab.id)}
             >
               {tab.name}
@@ -94,7 +94,7 @@ export default function MembershipOverview() {
 
         {/* Content Rendering */}
         <section className="bg-white dark:bg-screen-dark  px-5 md:px-6 py-8 border-2 border-gray-300 text-lightGrey14 lg:mx-0 mx-4">
-          <h1 className="text-[23px] font-bold text-[#5F2DED]">
+          <h1 className="text-[23px] font-bold text-[#7ECA9D]">
             {activeContent.heading}
           </h1>
 

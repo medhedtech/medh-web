@@ -27,7 +27,7 @@ const BlogsSidebar = () => {
         className="p-5 md:p-30px lg:p-5 2xl:p-30px mb-30px border border-borderColor2 dark:border-gray-600"
         data-aos="fade-up"
       >
-        <h4 className="text-size-22 text-blackColor dark:text-blackColor-dark font-bold pl-2 before:w-0.5 relative before:h-[21px] before:bg-[#F2277E] before:absolute before:bottom-[5px] before:left-0 leading-30px mb-25px">
+        <h4 className="text-size-22 text-blackColor dark:text-blackColor-dark font-bold pl-2 before:w-0.5 relative before:h-[21px] before:bg-[#F6B335] before:absolute before:bottom-[5px] before:left-0 leading-30px mb-25px">
           Photo
         </h4>
         <ImageGallery gallary={"mini"} />

@@ -15,7 +15,7 @@ const ButtonPagination = ({
       onClick={() => handlePagesnation(idx)}
       className={`${
         idx === currentPage
-          ? "text-[#5F2DED] border-b-2 border-[#5F2DED] font-bold"
+          ? "text-[#7ECA9D] border-b-2 border-[#7ECA9D] font-bold"
           : "text-[#5C6574]"
       } px-3 py-1 transition-colors duration-200`}
       disabled={

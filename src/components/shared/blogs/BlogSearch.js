@@ -14,7 +14,7 @@ const BlogSearch = () => {
         />
         <button
           type="submit"
-          className="bg-[#F2277E] py-[5px] px-[10px] rounded-md "
+          className="bg-[#F6B335] py-[5px] px-[10px] rounded-md "
         >
           <i className="icofont-search-1 text-base text-white"></i>
         </button>

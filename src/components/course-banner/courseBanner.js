@@ -9,7 +9,7 @@ const CourseBanner = ({
   buttonText,
   imageUrl,
   onButtonClick,
-  buttonBgColor = '#5F2DED',
+  buttonBgColor = '#7ECA9D',
   icon = null,
 }) => {
   return (
@@ -29,7 +29,7 @@ const CourseBanner = ({
           </h2>
           <h2 className="text-2xl font-bold text-[#5C6574]">{headings}</h2>
           <p className="text-[#585454] text-[0.9rem]">{description}</p>
-          <p className="text-[#F2277E] font-bold text-lg">{actionText}</p>
+          <p className="text-[#F6B335] font-bold text-lg">{actionText}</p>
         </div>
         <div>
           <button

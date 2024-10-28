@@ -11,7 +11,7 @@ function EducatorCourceBanner() {
       headings: "training needs.",
       buttonText: "Let’s Connect",
       imageUrl: CourseBannerImg, 
-      buttonBgColor: "#F2277E", 
+      buttonBgColor: "#F6B335", 
       icon: DotIcon, 
     },
   ];
