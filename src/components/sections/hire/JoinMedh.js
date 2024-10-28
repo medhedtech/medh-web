@@ -27,14 +27,14 @@ const JoinMedh = ({
   educatorTitle = 'Join Medh as an Educator',
   educatorText = 'Join Medh’s pioneering learning community and contribute to shaping a transformative educational journey for learners worldwide.',
   educatorButtonText = 'Get Started',
-  educatorButtonColor = '#5F2DED',
+  educatorButtonColor = '#7ECA9D',
   partnerImage = Partner,
   partnerTitle = 'Partner with Medh as a School / Institute',
   partnerText = 'To implement customized skill development programs, empowering your students to excel in their chosen fields on a global scale.',
   partnerButtonText = 'Let’s Collaborate',
   partnerButtonColor = 'white',
   partnerTextColor = 'white',
-  partnerBackgroundColor = '#F2277E',
+  partnerBackgroundColor = '#F6B335',
   partnerBtnColor = 'black',
 }) => {
   return (

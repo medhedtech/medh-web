@@ -23,7 +23,7 @@ export default function Pagination({ totalPages = 15, currentPage = 1 }) {
                 onClick={() => handlePageChange(index + 1)}
                 className={`${
                   page === index + 1
-                    ? "text-[#5F2DED] dark:text-[#F2277E] border-b-2 border-[#5F2DED] dark:border-[#F2277E] font-bold"
+                    ? "text-[#7ECA9D] dark:text-[#F6B335] border-b-2 border-[#7ECA9D] dark:border-[#F6B335] font-bold"
                     : "text-[#5C6574] dark:text-gray-300 "
                 } px-3 py-1 transition-colors duration-200`}
               >

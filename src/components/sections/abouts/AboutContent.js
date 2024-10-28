@@ -42,7 +42,7 @@ const AboutContent = () => {
           </p>
         </div>
         <div className="my-auto mx-12">
-          <div className="bg-[#F2277E] flex items-center px-4 py-3">
+          <div className="bg-[#F6B335] flex items-center px-4 py-3">
             <span className="mr-2">
               <DownArrowIcon />
             </span>
