@@ -193,7 +193,7 @@ const SignUpForm = () => {
             </div>
             <div className="flex justify-center mt-5">
               <p>Already have an account? </p>
-              <a href="#" className="text-[#F2277E]">
+              <a href="#" className="text-[#F6B335]">
               Sign in
               </a>
             </div>

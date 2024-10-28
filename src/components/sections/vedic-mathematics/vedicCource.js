@@ -135,7 +135,7 @@ function VedicCource() {
             <div className="flex justify-center mt-6">
               <button
                 onClick={handleClearFilters}
-                className="border border-[#5F2DED] text-[#5F2DED] px-4 py-2 rounded-md"
+                className="border border-[#7ECA9D] text-[#7ECA9D] px-4 py-2 rounded-md"
               >
                 Clear All Filters
               </button>
