@@ -13,7 +13,7 @@ const BrandHero = () => {
       <div data-aos="fade-up " className="dark:bg-screen-dark">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 pt-10 gap-2 lg:gap-0">
           {/* Left Section */}
-          <div className="bg-[#F2277E] text-white flex flex-col p-6 lg:p-10">
+          <div className="bg-[#F6B335] text-white flex flex-col p-6 lg:p-10">
             <h1 className="font-bold text-xl lg:text-2xl pt-2">
               50+ Medh Upskill Courses
             </h1>
@@ -50,7 +50,7 @@ const BrandHero = () => {
           </div>
 
           {/* Right Section */}
-          <div className="bg-[#5F2DED] text-white flex flex-col p-6 lg:p-10">
+          <div className="bg-[#7ECA9D] text-white flex flex-col p-6 lg:p-10">
             <h1 className="font-bold text-xl lg:text-2xl pt-2">
               Earn a Course Certificate
             </h1>
@@ -92,7 +92,7 @@ const BrandHero = () => {
       <section data-aos="fade-up" >
         <div className="flex flex-col items-center text-center font-Ubuntu bg-[#FFF0F7] dark:bg-[#09041d] py-8 px-4">
           <h1 className="font-bold text-[20px] lg:text-[26px] leading-8 mt-8 lg:w-[674px] dark:text-white">
-            Welcome to <span className="text-[#5F2DED]">Medh</span> | Pioneering
+            Welcome to <span className="text-[#7ECA9D]">Medh</span> | Pioneering
             Skill Development for every stage of life.
           </h1>
           <div className="mt-4 text-sm lg:text-base lg:w-[820px] dark:text-gray300">

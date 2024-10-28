@@ -97,11 +97,11 @@ const CoursesFilter = () => {
         <div className="container mx-auto">
           {/* Header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-            <h1 className="text-3xl md:text-4xl font-bold text-[#5F2DED] mb-4 md:mb-0">
+            <h1 className="text-3xl md:text-4xl font-bold text-[#7ECA9D] mb-4 md:mb-0">
               Skill Development Courses
             </h1>
             <div>
-              <button className="bg-[#5F2DED] text-white px-4 py-2 mt-2 md:mt-0 flex gap-2">
+              <button className="bg-[#7ECA9D] text-white px-4 py-2 mt-2 md:mt-0 flex gap-2">
                 <span>
                   <ArrowIcon />
                 </span>{' '}
