@@ -50,7 +50,7 @@ const HeroSection = ({
                 <div className="flex  sm:flex-row gap-4 mt-4">
                   <Link
                     href={leftContent.cta.link}
-                    className="bg-white text-[#5F2DED] border border-[#5F2DED] w-fit flex font-bold text-base px-4 py-2 gap-2"
+                    className="bg-white text-[#7ECA9D] border border-[#7ECA9D] w-fit flex font-bold text-base px-4 py-2 gap-2"
                   >
                     <span>
                       <ExploreIcon />

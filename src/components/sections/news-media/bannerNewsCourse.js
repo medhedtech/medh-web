@@ -13,7 +13,7 @@ function BannerNewsCourse() {
             "Together, we can create a brighter future through the power of education.",
           buttonText: "Let’s Connect",
           imageUrl: CourseBannerImg, 
-          buttonBgColor: "#F2277E", // Dynamic background color
+          buttonBgColor: "#F6B335", // Dynamic background color
           icon: VerticalIcon, // Icon to display in the button
         },
       ];
