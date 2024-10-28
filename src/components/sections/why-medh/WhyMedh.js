@@ -24,7 +24,7 @@ const WhyMedh = () => {
           <p className="font-bold text-2xl md:text-3xl leading-8 text-[#5C6574] dark:text-white">
             100% Job-guaranteed Courses from Medh.
           </p>
-          <button className="bg-[#F2277E] px-4 py-3 w-fit mx-auto text-white flex gap-4">
+          <button className="bg-[#F6B335] px-4 py-3 w-fit mx-auto text-white flex gap-4">
             <span>
               <ArrowIcon />
             </span>
@@ -52,7 +52,7 @@ const WhyMedh = () => {
           className="bg-white h-60 md:h-auto py-6 px-6 md:px-10 lg:px-16 relative shadow-lg w-full max-w-[630px] 
     overflow-x-hidden md:overflow-visible sm:h-60 sm:overflow-x-scroll dark:bg-screen-dark"
         >
-          <h2 className="text-[#5F2DED] font-bold text-3xl md:text-4xl">
+          <h2 className="text-[#7ECA9D] font-bold text-3xl md:text-4xl">
             WHY MEDH?
           </h2>
           <p className="text-gray-600 mt-4 dark:text-gray300">
@@ -71,7 +71,7 @@ const WhyMedh = () => {
           </p>
 
           {/* More Info Button */}
-          <button className="bg-[#5F2DED] text-white mt-6 px-4.5 py-2 flex items-center justify-center gap-6">
+          <button className="bg-[#7ECA9D] text-white mt-6 px-4.5 py-2 flex items-center justify-center gap-6">
             <span>
               <InfoIcon />
             </span>

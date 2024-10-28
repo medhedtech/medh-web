@@ -17,10 +17,10 @@ const CourseCard = ({ course }) => {
         <p className="text-gray-500 dark:text-gray-300">{course.duration}</p>
       </div>
       <div className="flex  mt-2 ">
-        <button className="bg-[#5F2DED] text-sm text-white px-4 w-1/2 leading-none py-3.5">
+        <button className="bg-[#7ECA9D] text-sm text-white px-4 w-1/2 leading-none py-3.5">
           Download Brochure
         </button>
-        <button className="bg-[#F2277E] text-sm text-white px-4 w-1/2 leading-none py-3.5">
+        <button className="bg-[#F6B335] text-sm text-white px-4 w-1/2 leading-none py-3.5">
           Program Details
         </button>
       </div>
