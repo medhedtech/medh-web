@@ -12,7 +12,7 @@ export default function MembershipCourceBanner() {
       description: "Connect, learn, and grow with MEDH Membership.",
       buttonText: "Join Us",
       imageUrl: CourseBannerImg,
-      buttonBgColor: "#F2277E", // Dynamic background color
+      buttonBgColor: "#F6B335", // Dynamic background color
       icon: VerticalIcon, // Icon to display in the button
     },
   ];

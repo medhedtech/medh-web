@@ -53,14 +53,14 @@ const Blogs = ({ secondary }) => {
         <div className="flex flex-col px-4">
           <div className="flex flex-col md:flex-row justify-between items-center mb-4">
             <div>
-              <span className="text-[#5F2DED] font-Poppins font-medium text-[15px] leading-[22px]">
+              <span className="text-[#7ECA9D] font-Poppins font-medium text-[15px] leading-[22px]">
                 EXPLORE NEWS
               </span>
               <h1 className="text-[#5C6574] font-bold text-[38px] leading-[45px] dark:text-gray-200">
                 Latest from Medh Blogs
               </h1>
             </div>
-            <div className="flex items-center gap-3 bg-[#5F2DED] text-white px-3.5 py-2 rounded-md">
+            <div className="flex items-center gap-3 bg-[#7ECA9D] text-white px-3.5 py-2 rounded-md">
               <div>
                 <EyeIcon />
               </div>

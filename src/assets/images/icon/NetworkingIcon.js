@@ -1,6 +1,6 @@
 import React from "react";
 
-const NetworkingIcon = ({ stroke = "#F2277E", fill = "#F2277E" }) => {
+const NetworkingIcon = ({ stroke = "#F6B335", fill = "#F6B335" }) => {
   return (
     <svg
       width="90"

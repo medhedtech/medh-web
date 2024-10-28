@@ -16,12 +16,12 @@ const Hero1 = () => {
           <div data-aos="fade-up">
             <HreoName >
             <div className="flex " >
-              <span className="font-black text-[#5F2DED]">|</span>
+              <span className="font-black text-[#7ECA9D]">|</span>
               <p className="dark:text-white px-1">UNLOCK YOUR POTENTIAL WITH MEDH</p>
               </div>
             </HreoName>
             <HeadingLg
-              color={"#5F2DED"}
+              color={"#7ECA9D"}
               className="text-2xl sm:text-4xl lg:text-[40px] font-bold leading-tight"
             >
              Skill Development Courses led by 
@@ -46,7 +46,7 @@ const Hero1 = () => {
                 {/* CTA Button */}
                 <div className="flex  sm:flex-row gap-4 sm:mt-6 mt-2">
                   <Link href="/courses"
-                    className="bg-[#5F2DED] text-white border border-[#5F2DED] w-fit font-bold sm:text-base text-[12px] sm:px-4 px-2 sm:py-2 py-1 inline-block"
+                    className="bg-[#7ECA9D] text-white border border-[#7ECA9D] w-fit font-bold sm:text-base text-[12px] sm:px-4 px-2 sm:py-2 py-1 inline-block"
                   >
                     Let's Connect
                   </Link>
