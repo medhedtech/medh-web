@@ -13,7 +13,7 @@ function CourceBanner() {
         "Embark on a transformative journey towards success and unparalleled growth.",
       buttonText: "Let’s Connect",
       imageUrl: CourseBannerImg,
-      buttonBgColor: "#F2277E", // Dynamic background color
+      buttonBgColor: "#F6B335", // Dynamic background color
       icon: DotIcon, // Icon to display in the button
     },
   ];

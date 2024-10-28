@@ -3,7 +3,7 @@ import React from "react";
 function JobApply() {
   return (
     <div className="w-full bg-white dark:bg-screen-dark rounded-md ">
-      <h2 className="text-[#5F2DED] text-3xl text-center font-Poppins font-bold mb-4">
+      <h2 className="text-[#7ECA9D] text-3xl text-center font-Poppins font-bold mb-4">
         Apply Now
       </h2>
       <form className="space-y-4">
@@ -76,7 +76,7 @@ function JobApply() {
         </div>
         <button
           type="submit"
-          className="bg-[#5F2DED] text-white px-4 py-2 rounded-md hover:bg-[#5F2DED] transition duration-300"
+          className="bg-[#7ECA9D] text-white px-4 py-2 rounded-md hover:bg-[#7ECA9D] transition duration-300"
         >
           Submit
         </button>
