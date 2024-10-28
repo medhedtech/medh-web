@@ -14,7 +14,7 @@ const SkillsSection = () => {
         </div>
 
         <div className="w-full md:w-1/2 mt-8 md:mt-0 md:ml-16 text-center md:text-left">
-          <h2 className="text-3xl md:text-4xl font-bold text-[#F2277E]">
+          <h2 className="text-3xl md:text-4xl font-bold text-[#F6B335]">
             Get-Job-Ready Candidates
           </h2>
           <p className="text-2xl md:text-3xl font-semibold text-gray-800 dark:text-white">
@@ -34,7 +34,7 @@ const SkillsSection = () => {
             ].map((skill, index) => (
               <li key={index} className="flex items-start space-x-2">
                 <svg
-                  className="w-5 h-5 p-[2.2px] mt-1 text-white  bg-[#F2277E] rounded-full"
+                  className="w-5 h-5 p-[2.2px] mt-1 text-white  bg-[#F6B335] rounded-full"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"

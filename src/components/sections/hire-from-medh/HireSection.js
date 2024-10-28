@@ -14,7 +14,7 @@ const HireSection = () => {
           <h2 className="text-3xl md:text-4xl font-bold text-[#5C6574] dark:text-white">
             Why Hire from
           </h2>
-          <h2 className="text-3xl md:text-4xl font-bold text-[#5F2DED]">
+          <h2 className="text-3xl md:text-4xl font-bold text-[#7ECA9D]">
             Recruit@Medh?
           </h2>
         </div>
@@ -48,7 +48,7 @@ const HireSection = () => {
             },
           ].map((item, index) => (
             <div key={index} className="flex items-start space-x-3">
-              <div className="text-white bg-[#5F2DED] p-[2px] mt-[6px] rounded-full text-center">
+              <div className="text-white bg-[#7ECA9D] p-[2px] mt-[6px] rounded-full text-center">
                 <svg
                   className="w-4 h-4"
                   fill="none"

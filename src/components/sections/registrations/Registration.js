@@ -71,7 +71,7 @@ const Registration = () => {
                 className="p-35px bg-lightGrey10 dark:bg-lightGrey10-dark shadow-experience"
                 data-aos="fade-up"
               >
-                <h3 className="text-2xl text-[#F2277E] dark:text-blackColor-dark text-center font-semibold mb-5 font-inter">
+                <h3 className="text-2xl text-[#F6B335] dark:text-blackColor-dark text-center font-semibold mb-5 font-inter">
                   Get In Touch
                 </h3>
 
@@ -115,19 +115,19 @@ const Registration = () => {
                     type="checkbox"
                     id="accept"
                     name="accept"
-                    className="w-4 h-4 text-[#5F2DED] border-gray-300 rounded mt-1 focus:ring-[#5F2DED]"
+                    className="w-4 h-4 text-[#7ECA9D] border-gray-300 rounded mt-1 focus:ring-[#7ECA9D]"
                   />
                   <label htmlFor="accept" className="text-sm text-gray-700 dark:text-gray-300">
                     By submitting this form, I accept
-                    <span className="text-[#5F2DED] ml-1">
+                    <span className="text-[#7ECA9D] ml-1">
                       Terms of Service
                     </span>
                     & <br />
-                    <span className="text-[#5F2DED]">Privacy Policy.</span>
+                    <span className="text-[#7ECA9D]">Privacy Policy.</span>
                   </label>
                 </div>
                 <div className="-mb-6">
-                  <button className="bg-[#F2277E] text-white px-6 py-2">
+                  <button className="bg-[#F6B335] text-white px-6 py-2">
                     Submit
                   </button>
                 </div>
