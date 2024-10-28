@@ -23,7 +23,7 @@ const BrowseCategories = () => {
           </h1>
         </div>
         <div className="md:px-6">
-          <button className="bg-[#F2277E] text-white px-4 py-2  font-semibold flex gap-3 w-full md:w-auto">
+          <button className="bg-[#F6B335] text-white px-4 py-2  font-semibold flex gap-3 w-full md:w-auto">
             <span>
               <ArrowIcon />
             </span>
@@ -44,7 +44,7 @@ const BrowseCategories = () => {
               alt="Personality Development"
               className="mx-auto"
             />
-            <h3 className="text-xl font-bold mt-4 py-2 text-center bg-[#F2277E] text-white ">
+            <h3 className="text-xl font-bold mt-4 py-2 text-center bg-[#F6B335] text-white ">
               Personality Development
             </h3>
           </div>
@@ -60,7 +60,7 @@ const BrowseCategories = () => {
               alt="AI and Data Science"
               className="mx-auto"
             />
-            <h3 className="text-xl font-bold mt-4 py-2 text-center bg-[#F2277E] text-white ">
+            <h3 className="text-xl font-bold mt-4 py-2 text-center bg-[#F6B335] text-white ">
               AI and Data Science
             </h3>
           </div>
@@ -76,7 +76,7 @@ const BrowseCategories = () => {
               alt="Vedic Mathematics"
               className="mx-auto"
             />
-            <h3 className="text-xl font-bold mt-4 py-2 text-center bg-[#F2277E] text-white ">
+            <h3 className="text-xl font-bold mt-4 py-2 text-center bg-[#F6B335] text-white ">
               Vedic Mathematics
             </h3>
           </div>
@@ -103,7 +103,7 @@ const BrowseCategories = () => {
           {/* Feature 1 */}
           <div className="bg-white p-6 dark:bg-screen-dark dark:border-whitegrey border  shadow-lg text-center rounded-lg">
             <div className="flex justify-center">
-              <RelevantIcon stroke="#5F2DED" fill="#5F2DED" />
+              <RelevantIcon stroke="#7ECA9D" fill="#7ECA9D" />
             </div>
             <h3 className="text-xl font-bold dark:text-white text-gray-800 mt-4">
               Industry-Relevant Skills
@@ -118,7 +118,7 @@ const BrowseCategories = () => {
           {/* Feature 2 */}
           <div className="bg-white p-6 shadow-lg dark:bg-screen-dark dark:border-whitegrey border  text-center rounded-lg">
             <div className="flex justify-center">
-              <RecognizedIcon stroke="#5F2DED" fill="#5F2DED" />
+              <RecognizedIcon stroke="#7ECA9D" fill="#7ECA9D" />
             </div>
             <h3 className="text-xl font-bold dark:text-white text-gray-800 mt-4">
               Industry-Recognized Certifications
@@ -133,7 +133,7 @@ const BrowseCategories = () => {
           {/* Feature 3 */}
           <div className="bg-white dark:bg-screen-dark dark:border-whitegrey border  p-6 shadow-lg text-center rounded-lg">
             <div className="flex justify-center">
-              <NetworkingIcon stroke="#F2277E" fill="#F2277E" />
+              <NetworkingIcon stroke="#F6B335" fill="#F6B335" />
             </div>
 
             <h3 className="text-xl font-bold dark:text-white text-gray-800 mt-4">

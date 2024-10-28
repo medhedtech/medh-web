@@ -91,10 +91,10 @@ const LoginForm = () => {
               )}
             </div>
 
-            <div className="text-[#F2277E] flex justify-end">
+            <div className="text-[#F6B335] flex justify-end">
               <a
                 href="#"
-                className=" relative after:absolute after:left-0 after:bottom-0.5 after:w-0 after:h-0.5 after:bg-[#F2277E] after:transition-all after:duration-300 hover:after:w-full"
+                className=" relative after:absolute after:left-0 after:bottom-0.5 after:w-0 after:h-0.5 after:bg-[#F6B335] after:transition-all after:duration-300 hover:after:w-full"
               >
                 Forgot your password?
               </a>
@@ -126,7 +126,7 @@ const LoginForm = () => {
             </div>
             <div className="flex justify-center mt-5">
               <p>Don't have an account? </p>
-              <a href="#" className="text-[#F2277E]">
+              <a href="#" className="text-[#F6B335]">
                 Sign up
               </a>
             </div>

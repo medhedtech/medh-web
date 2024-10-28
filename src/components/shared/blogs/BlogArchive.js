@@ -29,7 +29,7 @@ const BlogArchive = () => {
         {posts.map(({ date, id }) => (
           <li className="flex items-center" key={id}>
               <div className=" px-3 relative">
-              <span className=" h-2 w-2  rounded-[50%]  bg-[#F2277E] absolute left-0 ">
+              <span className=" h-2 w-2  rounded-[50%]  bg-[#F6B335] absolute left-0 ">
               </span>
             </div>
             <div className="w-3/5 mt-1">

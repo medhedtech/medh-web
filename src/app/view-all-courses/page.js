@@ -31,7 +31,7 @@ const Courses = async () => {
           <div className="absolute top-[3%] md:top-[30%] w-full text-center  z-10 px-4">
             <p className="text-white text-xl md:text-size-38 font-bold leading-45px bg-opacity-50 inline-block py-2 md:px-4 rounded-lg">
               Accelerate Your Personal and Professional Growth with <br />{" "}
-              <span className="text-[#F2277E]">
+              <span className="text-[#F6B335]">
                 Medh's Skill Development Courses
               </span>
             </p>
@@ -43,7 +43,7 @@ const Courses = async () => {
               {/* Feature 1 */}
               <div className="bg-white dark:bg-screen-dark  p-6 shadow-lg text-center rounded-lg border-2 ">
                 <div className="flex justify-center">
-                  <RelevantIcon stroke="#F2277E" fill="#F2277E" />
+                  <RelevantIcon stroke="#F6B335" fill="#F6B335" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-800 mt-4 dark:text-gray50">
                   Industry-Relevant Skills
@@ -58,7 +58,7 @@ const Courses = async () => {
               {/* Feature 2 */}
               <div className="bg-white p-6 dark:bg-screen-dark shadow-lg text-center rounded-lg border-2">
                 <div className="flex justify-center">
-                  <RecognizedIcon stroke="#F2277E" fill="#F2277E" />
+                  <RecognizedIcon stroke="#F6B335" fill="#F6B335" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-800 mt-4 dark:text-gray50">
                   Industry-Recognized Certifications
@@ -73,7 +73,7 @@ const Courses = async () => {
               {/* Feature 3 */}
               <div className="bg-white p-6 dark:bg-screen-dark  shadow-lg text-center rounded-lg border-2">
                 <div className="flex justify-center">
-                  <NetworkingIcon stroke="#5F2DED" fill="#5F2DED" />
+                  <NetworkingIcon stroke="#7ECA9D" fill="#7ECA9D" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-800 mt-4 dark:text-gray50">
                   Networking Opportunities
