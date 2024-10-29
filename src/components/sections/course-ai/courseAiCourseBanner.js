@@ -13,7 +13,7 @@ export default function CourseAiCourseBanner() {
       actionText: "Take Actions for Your Brighter Future Today!",
       buttonText: "Enroll Now",
       imageUrl: CourseBannerImg,
-      buttonBgColor: "#5F2DED", // Dynamic background color
+      buttonBgColor: "#7ECA9D", // Dynamic background color
       icon: VerticalIcon, // Icon to display in the button
     },
   ];

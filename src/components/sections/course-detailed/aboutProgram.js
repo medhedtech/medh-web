@@ -156,7 +156,7 @@ export default function CombinedProgram() {
                 </div>
 
                 <div className="flex-1 flex justify-center items-center mb-4 min-w-[200px] text-white">
-                  <button className="bg-[#F2277E] flex justify-center items-center px-8 py-3 font-bold text-[1rem]">
+                  <button className="bg-[#F6B335] flex justify-center items-center px-8 py-3 font-bold text-[1rem]">
                     <Image src={Download} width={30} className="mr-3" />
                     Download
                   </button>

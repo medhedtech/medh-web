@@ -97,14 +97,14 @@ function CourseEducation() {
                 </h3>
               </div>
               <div className="text-right text-gray-500">
-                <button className="text-[#F2277E]">Share</button>
+                <button className="text-[#F6B335]">Share</button>
               </div>
             </div>
             <div className="flex gap-4 my-2 text-sm  md:text-[15px]">
-              <button className="bg-[#F2277E] text-white px-8 py-1 rounded-[30px] hover:bg-pink-600">
+              <button className="bg-[#F6B335] text-white px-8 py-1 rounded-[30px] hover:bg-pink-600">
                 BUY NOW
               </button>
-              <button className="bg-inherit text-[#F2277E] border border-[#F2277E] px-5 py-1 rounded-[30px] hover:bg-[#F2277E] hover:text-white">
+              <button className="bg-inherit text-[#F6B335] border border-[#F6B335] px-5 py-1 rounded-[30px] hover:bg-[#F6B335] hover:text-white">
                 WISHLIST
               </button>
             </div>

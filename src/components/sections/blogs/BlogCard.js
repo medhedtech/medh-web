@@ -3,13 +3,13 @@ import React from "react";
 
 const BlogCard = ({ imageSrc, title, buttonText }) => {
   return (
-    <div className="max-w-sm overflow-hidden dark:bg-black dark:shadow-gray-800 dark:border-whitegrey border  flex flex-col justify-between shadow-lg ">
+    <div className="max-w-sm overflow-hidden dark:bg-screen-dark dark:shadow-gray-800 dark:border-whitegrey border  flex flex-col justify-between shadow-lg ">
       <Image
         src={imageSrc}
         alt={title}
         width={353}
         height={300}
-        className="w-full h-[300px] object-cover"
+        className="w-full h-[300px] object-cover dark:border-b dark:border-gray600"
       />
       <div className="px-6  py-4">
         <div className="font-bold text-xl mb-2">{title}</div>

@@ -14,7 +14,7 @@ export default function PersonalityCourseBanner() {
       actionText: "Take Action for a Brighter Future Today!",
       buttonText: "Enroll Now",
       imageUrl: CourseBannerImg, 
-      buttonBgColor: "#5F2DED", // Dynamic background color
+      buttonBgColor: "#7ECA9D", // Dynamic background color
       icon: DotIcon, // Icon to display in the button
     },
   ];

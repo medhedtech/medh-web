@@ -113,8 +113,8 @@ module.exports = {
         headingColor: "#222222",
         contentColor: "#5F6C76",
         contentColor2: "#5C727D",
-        primaryColor: "#5F2DED",
-        secondaryColor: "#F2277E",
+        primaryColor: "#7ECA9D",
+        secondaryColor: "#F6B335",
         secondaryColor2: "#FF275A",
         secondaryColor3: "#FF2828",
         blackColor: "#000000",
@@ -882,7 +882,7 @@ module.exports = {
       // shadow
       addComponents({
         ".fixed-shadow": {
-          backgroundImage: "linear-gradient(45deg, #F2277E, #5F2DED)",
+          backgroundImage: "linear-gradient(45deg, #F6B335, #7ECA9D)",
 
           position: "fixed",
           top: "200px",
