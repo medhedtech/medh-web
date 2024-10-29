@@ -1,39 +1,29 @@
-"use client";
 import React from "react";
-import HeroSection from "./HeroSection";
+import Image from "next/image";
+import MainBanner from "@/components/course-banner/mainBanner"; // Import your MainBanner component
+import Iso from "@/assets/images/courseai/iso.png";
 import heroBg from "@/assets/images/about/heroBg.png";
-import stemImg from "@/assets/images/herobanner/Background.png";
 import AboutUs from "@/assets/images/about/about-us.png";
+import LetsConnect from "@/assets/images/news-media/btn-vertical.svg";
 
-const HeroSectionContent = () => {
-  const leftContent = {
-    title: "SKILL UP. RISE UP. EMBRACE EMPOWERMENT.",
-    subtitle: "Start Your Journey towards Success with Medh",
-    description:
-      "Nurturing Minds, Shaping Futures. Inspiring Growth, Igniting Potential. Transforming Dreams into Reality!",
-    cta: {
-      text: "Explore More",
-      link: "/courses",
-    },
-    certification: "ISO CERTIFIED",
-    motto: "Medh Hain Toh Mumkin Hain!",
-  };
-
-  const rightImage = {
-    src: AboutUs,
-    width: 570,
-    height: 321,
-    alt: "About Us",
-  };
-
+function CourseAiBanner() {
   return (
-    <HeroSection
-      backgroundImage={heroBg}
-      leftContent={leftContent}
-      rightImage={rightImage}
-      stemImage={stemImg}
-    />
+    <div>
+      <MainBanner
+        bannerImage={heroBg}
+        logoImage={AboutUs}     
+        isoImage={Iso}                 
+        heading="Start Your Journey towards Success with Medh"   
+        subheading="SKILL UP. RISE UP. EMBRACE EMPOWERMENT."  
+        description="Nurturing Minds, Shaping Futures. Inspiring Growth, Igniting Potential. Transforming Dreams into Reality!"  // Dynamic description
+        buttonText="Explore More"        
+        isoText="ISO CERTIFIED"         
+        slogan="Medh Hain Toh Mumkin Hain!"  
+        buttonImage={LetsConnect}           
+      />
+    </div>
   );
-};
+}
 
-export default HeroSectionContent;
+export default CourseAiBanner;
+

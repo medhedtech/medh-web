@@ -12,7 +12,7 @@ function CareerCourceBanner() {
       description: "Explore our current job openings and apply today.",
       buttonText: "Apply Now",
       imageUrl: CourseBannerImg, 
-      buttonBgColor: "#F2277E", 
+      buttonBgColor: "#F6B335", 
       icon: VerticalIcon, 
     },
   ];
