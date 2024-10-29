@@ -29,8 +29,8 @@ const PieChartDashboard = () => {
           },
           elements: {
             arc: {
-              backgroundColor: "#5F2DED",
-              hoverBackgroundColor: "#5F2DED",
+              backgroundColor: "#7ECA9D",
+              hoverBackgroundColor: "#7ECA9D",
             },
           },
         },

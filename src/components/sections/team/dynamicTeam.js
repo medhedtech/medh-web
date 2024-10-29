@@ -68,7 +68,7 @@ const DynamicTeam = () => {
 
   return (
     <div>
-      <div className="font-bold text-[#5F2DED] text-size-32 leading-30px text-center mt-12">
+      <div className="font-bold text-[#7ECA9D] text-size-32 leading-30px text-center mt-12">
         Our Dynamic Team
       </div>
 

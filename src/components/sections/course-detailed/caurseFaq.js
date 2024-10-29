@@ -96,7 +96,7 @@ export default function CaurseFaq() {
             </div>
           ))}
         </div>
-        <p className="text-primaryColor dark:text-[#F2277E] pt-10 pr-5">Note: If you have any other questions or concerns not covered in the FAQs, please feel free to contact our support team, and we’ll be happy to assist you!</p>
+        <p className="text-primaryColor dark:text-[#F6B335] pt-10 pr-5">Note: If you have any other questions or concerns not covered in the FAQs, please feel free to contact our support team, and we’ll be happy to assist you!</p>
       </div>
     </div>
   );

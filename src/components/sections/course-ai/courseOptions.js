@@ -29,10 +29,10 @@ function CourseOptions() {
 
   return (
     <div className="w-full bg-white dark:bg-screen-dark h-auto py-6 flex justify-center items-center flex-col">
-      <h1 className="text-center text-[#5C6574] text-3xl font-bold mb-8 dark:text-gray50">
+      <h1 className="text-center text-[#5C6574] md:text-3xl text-2xl font-bold mb-8 dark:text-gray50">
         Course Options in AI with Data Science
       </h1>
-      <div className=" mx-auto h-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className=" md:mx-auto w-[88%] h-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {courses.map((course, index) => (
           <CourseCard key={index} course={course} />
         ))}

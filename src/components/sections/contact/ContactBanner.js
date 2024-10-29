@@ -12,19 +12,19 @@ import Link from "next/link";
 
 const ContactBanner = () => {
   return (
-    <section data-aos="fade-up" className="py-10">
+    <section data-aos="fade-up" className="py-10 dark:bg-screen-dark">
       {/* Banner section */}
-      <div className="container2-xl px-4 gap-10 sm:px-6 mt-5 lg:px-8">
+      <div className="container2-xl px-2 gap-10 sm:px-6 mt-5 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Banner Left */}
           <div data-aos="fade-up">
             <HreoName>
               {" "}
-              <span className="font-extrabold text-[#5F2DED]">|</span>
+              <span className="font-extrabold text-[#7ECA9D]">|</span>
               EMPOWERMENT THROUGH ENGAGEMENT.
             </HreoName>
             <HeadingLg
-              color={"#5F2DED"}
+              color={"#7ECA9D"}
               className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight"
             >
               Connect with Medh for
@@ -49,7 +49,7 @@ const ContactBanner = () => {
                 <div className="flex flex-col sm:flex-row gap-4 mt-4">
                   <Link
                     href="/courses"
-                    className="bg-[#5F2DED] text-white border border-[#5F2DED] w-fit font-bold text-base px-4 py-2 inline-block"
+                    className="bg-[#7ECA9D] text-white border border-[#7ECA9D] w-fit font-bold text-base px-4 py-2 inline-block"
                   >
                     Let's Connect
                   </Link>

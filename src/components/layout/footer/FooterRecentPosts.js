@@ -51,7 +51,7 @@ const FooterRecentPosts = () => {
           placeholder="Enter your email "
           className="p-2 bg-transparent border border-white text-white"
         />
-        <button className="bg-[#F2277E] text-white p-2">SUBSCRIBE</button>
+        <button className="bg-[#F6B335] text-white p-2">SUBSCRIBE</button>
       </div>
     </div>
   );

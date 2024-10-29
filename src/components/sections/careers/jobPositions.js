@@ -17,7 +17,7 @@ const JobOpening = () => {
               <button
                 className={`${
                   activeJob === "Vedic Mathematics Instructor"
-                    ? "bg-[#5F2DED] text-white"
+                    ? "bg-[#7ECA9D] text-white"
                     : "bg-gray-200 "
                 } p-2`}
                 onClick={() => setActiveJob("Vedic Mathematics Instructor")}
@@ -28,7 +28,7 @@ const JobOpening = () => {
               <button
                 className={`${
                   activeJob === "Personality Development Instructor"
-                    ? "bg-[#5F2DED] text-white"
+                    ? "bg-[#7ECA9D] text-white"
                     : "bg-gray-200"
                 } p-2`}
                 onClick={() =>
