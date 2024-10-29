@@ -68,8 +68,8 @@ function PersonalityCourse() {
   };
 
   return (
-    <div className="bg-white dark:bg-screen-dark text-lightGrey14 flex justify-center py-10">
-      <div className="w-full px-4 md:px-8 lg:px-10 max-w-[1200px]">
+    <div className="bg-white dark:bg-screen-dark text-lightGrey14 flex justify-center md:py-10 py-5">
+      <div className="w-[96%] px-4 md:px-8 lg:px-10 md:w-[80%] max-w-[1200px]">
         <h2 className="text-[22px] md:text-3xl font-bold mb-4 text-center text-[#5C6574] dark:text-gray50 pb-10">
           Personality Development Courses (Grade Wise)
         </h2>
@@ -134,7 +134,7 @@ function PersonalityCourse() {
           <div className="flex justify-center mt-6">
             <button
               onClick={handleClearFilters}
-              className="border border-[#5F2DED] text-[#5F2DED] px-4 py-2 rounded-md"
+              className="border border-[#7ECA9D] text-[#7ECA9D] px-4 py-2 rounded-md"
             >
               Clear All Filters
             </button>

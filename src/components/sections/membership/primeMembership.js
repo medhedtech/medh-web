@@ -40,7 +40,7 @@ const PrimeMembership = () => {
               className="rounded-xl shadow-custom-light dark:border-gray-600 p-6 lg:w-[48%] md:w-full mb-5  border border-[#0000004D]"
             >
               {/* Membership Heading */}
-              <div className="text-3xl font-semibold border-b-2  border-[#252525] pb-5 font-Popins">
+              <div className="md:text-3xl text-[27px]  font-semibold border-b-2  border-[#252525] dark:border-gray-500 dark:border-b pb-5 font-Popins">
                 <h2 className="text-primaryColor">{membership.type}</h2>
                 <h2>Membership</h2>
               </div>
@@ -67,7 +67,7 @@ const PrimeMembership = () => {
             </div>
           ))}
         </div>
-        <p className="mt-6 text-base px-6 text-[#F2277E]  ">
+        <p className="mt-6 text-base px-6 text-[#F6B335]  ">
           Note: Only Medh's Blended Courses having 'Pre-Recorded Videos with
           Live Interactive Doubt Clearing Sessions' would be eligible for these
           memberships.
