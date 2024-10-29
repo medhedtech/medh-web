@@ -17,38 +17,38 @@ const Courses = async () => {
   return (
     <PageWrapper>
       <main>
-        <div className="relative w-full h-[700px7] md:h-[500px]">
+        <div className="relative w-full h-[700px] md:h-[500px]">
           {/* Background Image */}
           <Image
             src={coursesBg}
             alt="Courses Background"
             layout="fill"
             objectFit="cover"
-            className="absolute top-0 left-0 w-full h-full z-0"
+            className="absolute top-0 left-0 w-full h-full z-0 md:block hidden"
           />
 
           {/* Text Above Feature Cards */}
-          <div className="absolute top-[20%] md:top-[30%] w-full text-center  z-10 px-4">
-            <p className="text-white text-xl md:text-size-38 font-bold leading-45px bg-opacity-50 inline-block py-2 px-4 rounded-lg">
+          <div className="absolute top-[3%] md:top-[30%] w-full text-center  z-10 px-4">
+            <p className="text-white text-xl md:text-size-38 font-bold leading-45px bg-opacity-50 inline-block py-2 md:px-4 rounded-lg">
               Accelerate Your Personal and Professional Growth with <br />{" "}
-              <span className="text-[#F2277E]">
+              <span className="text-[#F6B335]">
                 Medh's Skill Development Courses
               </span>
             </p>
           </div>
 
           {/* Features Grid */}
-          <div className="absolute top-[55%] md:top-[60%] left-1/2 transform -translate-x-1/2 w-full flex items-center justify-center z-10">
+          <div className="absolute top-[32%]  md:top-[60%] left-1/2 transform -translate-x-1/2 w-full flex items-center justify-center z-10">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-7xl px-6 md:px-16">
               {/* Feature 1 */}
-              <div className="bg-white  p-6 shadow-lg text-center rounded-lg border-2 ">
+              <div className="bg-white dark:bg-screen-dark  p-6 shadow-lg text-center rounded-lg border-2 ">
                 <div className="flex justify-center">
-                  <RelevantIcon stroke="#F2277E" fill="#F2277E" />
+                  <RelevantIcon stroke="#F6B335" fill="#F6B335" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-800 mt-4">
+                <h3 className="text-xl font-bold text-gray-800 mt-4 dark:text-gray50">
                   Industry-Relevant Skills
                 </h3>
-                <p className="text-gray-600 mt-2">
+                <p className="text-gray-600 mt-2 dark:text-gray300">
                   Designed in collaboration with industry experts, ensuring that
                   students acquire practical, up-to-date skills for their
                   desired career paths.
@@ -56,14 +56,14 @@ const Courses = async () => {
               </div>
 
               {/* Feature 2 */}
-              <div className="bg-white p-6 shadow-lg text-center rounded-lg">
+              <div className="bg-white p-6 dark:bg-screen-dark shadow-lg text-center rounded-lg border-2">
                 <div className="flex justify-center">
-                  <RecognizedIcon stroke="#F2277E" fill="#F2277E" />
+                  <RecognizedIcon stroke="#F6B335" fill="#F6B335" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-800 mt-4">
+                <h3 className="text-xl font-bold text-gray-800 mt-4 dark:text-gray50">
                   Industry-Recognized Certifications
                 </h3>
-                <p className="text-gray-600 mt-2">
+                <p className="text-gray-600 mt-2 dark:text-gray300">
                   Offer industry-recognized certifications upon completion,
                   adding credibility to the student's skillset and enhancing
                   their professional profile.
@@ -71,14 +71,14 @@ const Courses = async () => {
               </div>
 
               {/* Feature 3 */}
-              <div className="bg-white p-6 shadow-lg text-center rounded-lg">
+              <div className="bg-white p-6 dark:bg-screen-dark  shadow-lg text-center rounded-lg border-2">
                 <div className="flex justify-center">
-                  <NetworkingIcon stroke="#5F2DED" fill="#5F2DED" />
+                  <NetworkingIcon stroke="#7ECA9D" fill="#7ECA9D" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-800 mt-4">
+                <h3 className="text-xl font-bold text-gray-800 mt-4 dark:text-gray50">
                   Networking Opportunities
                 </h3>
-                <p className="text-gray-600 mt-2">
+                <p className="text-gray-600 mt-2 dark:text-gray300">
                   Provide opportunities for students to connect with industry
                   professionals, mentors, and fellow learners, fostering
                   valuable collaboration.
@@ -89,7 +89,7 @@ const Courses = async () => {
         </div>
 
         {/* Footer Text */}
-        <div className="lg:mt-44 mt-[47rem] md:mt-64 px-4">
+        <div className="lg:mt-44 mt-[34rem] md:mt-64 px-4">
           <h1 className="text-2xl md:text-3xl dark:text-gray-50 leading-8 md:leading-10 text-center font-bold py-6">
             Experience the transformative impact of MEDH's skill development
             courses.

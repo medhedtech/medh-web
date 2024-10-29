@@ -28,7 +28,7 @@ const TechEducator = () => {
     <section className="py-10 w-full dark:bg-screen-dark bg-white flex justify-center items-center ">
       <div className="lg:w-[80%] w-[92%] text-center">
         <div className="lg:px-30 px-2 ">
-          <h2 className="text-[26px] leading-9 font-bold dark:text-gray50 text-[#252525] ">
+          <h2 className="md:text-[26px] text-[22px] leading-9 font-bold dark:text-gray50 text-[#252525] ">
             Empower minds and ignite change by joining MEDH as an influential
             educator / instructor. Experience the freedom to innovate and teach
             with passion, while receiving rewarding compensation.
