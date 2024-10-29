@@ -3,10 +3,10 @@ import React from 'react';
 const BlogSearch = () => {
   return (
     <div
-      className="p-5 md:p-30px lg:p-5 2xl:p-30px mb-30px border border-borderColor2 dark:border-gray-600"
+      className="p-5 md:p-30px lg:p-5 2xl:p-30px mb-30px border border-borderColor2 dark:border-gray600"
       data-aos="fade-up"
     >
-      <form className="w-full px-4 py-2 rounded-md text-sm text-contentColor bg-lightGrey10 dark:bg-lightGrey10-dark dark:text-contentColor-dark flex justify-center items-center leading-26px dark:border dark:border-gray-700">
+      <form className="w-full px-4 py-2 rounded-md text-sm text-contentColor bg-lightGrey10 dark:bg-lightGrey10-dark dark:text-contentColor-dark flex justify-center items-center leading-26px dark:border dark:border-gray-400">
         <input
           type="text"
           placeholder="Search"
@@ -14,7 +14,7 @@ const BlogSearch = () => {
         />
         <button
           type="submit"
-          className="bg-[#F2277E] py-[5px] px-[10px] rounded-md "
+          className="bg-[#F6B335] py-[5px] px-[10px] rounded-md "
         >
           <i className="icofont-search-1 text-base text-white"></i>
         </button>

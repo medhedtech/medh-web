@@ -12,7 +12,7 @@ const HeaderTop = () => {
   const isHome5Dark = useIsTrue("/home-5-dark");
 
   return (
-    <div className="bg-[#5F2DED] dark:bg-lightGrey10-dark hidden lg:block">
+    <div className="bg-[#7ECA9D] dark:bg-lightGrey10-dark hidden lg:block">
       <div
         className={`${
           isHome1 ||
