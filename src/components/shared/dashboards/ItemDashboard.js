@@ -9,17 +9,17 @@ const ItemDashboard = ({ item }) => {
   const isActive = currentPath === path ? true : false;
   return (
     <li
-      className={`py-10px border-b border-borderColor dark:border-borderColor-dark ${
-        tag ? "flex justify-between items-center" : ""
+      className={`py-3 border-b border-borderColor dark:border-borderColor-dark ${
+        tag ? "flex justify-between items-center " : ""
       }`}
     >
       <Link
         href={path}
         className={`${
           isActive
-            ? "text-primaryColor"
+            ? "bg-primaryColor text-white py-4 rounded-r-5"
             : "text-contentColor dark:text-contentColor-dark "
-        }  hover:text-primaryColor dark:hover:text-primaryColor leading-1.8 flex gap-3 text-nowrap`}
+        }   leading-1.8 flex gap-3 text-nowrap justify-start pl-10`}
       >
         {icon} {name}
       </Link>
