@@ -34,7 +34,7 @@ const EnrollCourses = () => {
   ];
   return (
     <div className="container mx-auto p-8">
-      <div className="flex items-center justify-between font-normal font-Open">
+      <div className="flex items-center justify-between font-normal font-Open  pb-4 ">
         <h2 className="text-size-32 font-Open">Enrolled Courses</h2>
         <a
           href="#"
