@@ -3,7 +3,7 @@ import Image from "next/image";
 const CountDashboard = ({ count }) => {
   const { name, data, image, symbol } = count;
   return (
-    <div className=" md:px-0 md:py-0px flex justify-between bg-slate-900 dark:bg-whiteColor-dark rounded-3xl shadow-accordion-dark">
+    <div className=" md:px-0 md:py-0px mt-4 flex justify-between bg-slate-900 dark:bg-whiteColor-dark rounded-3xl shadow-accordion-dark">
       <div className="flex flex-col justify-between gap-4">
         <div className="p-4">
           <Image src={image} alt="" />
