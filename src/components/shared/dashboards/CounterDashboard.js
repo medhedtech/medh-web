@@ -8,7 +8,7 @@ const CounterDashboard = ({ counts, children }) => {
     counterUp();
   });
   return (
-    <div className="p-10px md:px-10 md:py-50px dark:bg-whiteColor-dark shadow-accordion dark:shadow-accordion-dark ">
+    <div className="p-10px md:px-10 md:py-50px  dark:bg-whiteColor-dark shadow-accordion dark:shadow-accordion-dark ">
       {children ? children : ""}
 
       {/* counter area */}
