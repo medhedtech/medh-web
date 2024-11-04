@@ -5,8 +5,11 @@ import reactImg from "@/assets/images/courses/React.jpeg";
 import os from "@/assets/images/courses/os.jpeg";
 import javascript from "@/assets/images/courses/JavaScript.jpeg";
 import AiMl from "@/assets/images/courses/Ai&Ml.jpeg";
+import { useRouter } from "next/navigation";
 
 const NewCourses = () => {
+  const router = useRouter();
+
   const courses = [
     {
       id: 1,
@@ -24,7 +27,6 @@ const NewCourses = () => {
       reviews: 4051,
       image: reactImg,
     },
-
     {
       id: 3,
       title: "OS Masterclasses",
@@ -33,7 +35,6 @@ const NewCourses = () => {
       reviews: 4051,
       image: os,
     },
-
     {
       id: 4,
       title: "JavaScript Masterclasses",
@@ -43,6 +44,10 @@ const NewCourses = () => {
       image: javascript,
     },
   ];
+
+  const handleCardClick = (id) => {
+    router.push(`/dashboards/my-courses/${id}`);
+  };
 
   return (
     <div className="container mx-auto p-8">
@@ -71,7 +76,11 @@ const NewCourses = () => {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {courses.map((course) => (
-          <CourseCard key={course.id} {...course} />
+          <CourseCard
+            key={course.id}
+            {...course}
+            onClick={() => handleCardClick(course.id)}
+          />
         ))}
       </div>
     </div>

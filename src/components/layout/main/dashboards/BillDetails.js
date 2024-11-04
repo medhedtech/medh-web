@@ -2,9 +2,11 @@
 import Image from "next/image";
 import React, { useState } from "react";
 import MLimg from "@/assets/images/dashbord/MLimg.png";
+import { useRouter } from "next/navigation";
 
 const BillDetails = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const router = useRouter();
 
   const handleProceedToPay = () => {
     setIsModalOpen(true);
@@ -103,7 +105,7 @@ const BillDetails = () => {
       {/* Modal Section */}
       {isModalOpen && (
         <div className="fixed inset-0 flex items-center mx-auto justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white  rounded-lg p-6 w-1/3">
+          <div className="bg-white  rounded-lg p-12 w-1/2">
             <div className="">
               <svg
                 width="64"
@@ -133,7 +135,7 @@ const BillDetails = () => {
               <button
                 onClick={() => {
                   closeModal();
-                  // Add payment processing logic here
+                  router.push("/dashboards/my-courses");
                 }}
                 className="px-8 py-2 bg-primaryColor text-center text-white rounded-full hover:bg-green-500"
               >
