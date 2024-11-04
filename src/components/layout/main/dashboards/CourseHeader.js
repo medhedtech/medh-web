@@ -1,7 +1,10 @@
 "use client";
 import React from "react";
-import BillDetails from "./BillDetails";
+import { useRouter } from "next/navigation";
+
 const CourseHeader = ({ title, classes, rating, hour, price }) => {
+  const router = useRouter();
+
   return (
     <div className=" justify-between items-start md:items-center mt-6 w-[531px]">
       <div>
@@ -113,7 +116,12 @@ const CourseHeader = ({ title, classes, rating, hour, price }) => {
           </span>
         </div>
       </div>
-      <button className="mt-4 md:mt-0 px-4 py-2 rounded-[150px] bg-primaryColor w-[530px] text-white font-semibold  hover:bg-green-600">
+      <button
+        onClick={() => {
+          router.push("/dashboards/billing-details");
+        }}
+        className="mt-4 md:mt-0 px-4 py-2 rounded-[150px] bg-primaryColor w-[530px] text-white font-semibold  hover:bg-green-600"
+      >
         Enroll @{price}
       </button>
 
