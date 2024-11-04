@@ -2,7 +2,6 @@ import React from "react";
 import Image from "next/image";
 import ClockLogo from "@/assets/images/student-dashboard/clock.svg";
 import VideoClass from "@/assets/images/student-dashboard/video-class.svg";
-
 const StudentMainMembership = ({ membership }) => (
   <div className="flex items-center dark:border shadow-student-dashboard  p-5 rounded-lg overflow-hidden hover:scale-105 transform transition-transform duration-300">
     <div className="relative h-40 w-[40%]">
@@ -22,11 +21,23 @@ const StudentMainMembership = ({ membership }) => (
         {membership.title}
       </h3>
       <div className="flex items-center font-semibold dark:text-white text-[#202244] text-[11px] mt-2">
-        <Image src={VideoClass} alt="Classes Icon" width={20} height={20} className="mr-2" />
+        <Image
+          src={VideoClass}
+          alt="Classes Icon"
+          width={20}
+          height={20}
+          className="mr-2"
+        />
         {membership.classes}
       </div>
       <div className="flex items-center font-semibold dark:text-white text-[#202244] text-[11px] mt-1">
-        <Image src={ClockLogo} alt="Clock Icon" width={20} height={20} className="mr-2" />
+        <Image
+          src={ClockLogo}
+          alt="Clock Icon"
+          width={20}
+          height={20}
+          className="mr-2"
+        />
         {membership.hours}
       </div>
       <p className="text-[#7ECA9D] font-bold text-xs mt-4">
@@ -35,5 +46,4 @@ const StudentMainMembership = ({ membership }) => (
     </div>
   </div>
 );
-
 export default StudentMainMembership;
