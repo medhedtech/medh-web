@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import BillDetails from "./BillDetails";
 const CourseHeader = ({ title, classes, rating, hour, price }) => {
   return (
     <div className=" justify-between items-start md:items-center mt-6 w-[531px]">
