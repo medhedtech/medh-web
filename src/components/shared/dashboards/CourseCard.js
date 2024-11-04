@@ -2,9 +2,12 @@
 import Image from "next/image";
 import React from "react";
 
-const CourseCard = ({ title, instructor, rating, reviews, image }) => {
+const CourseCard = ({ title, instructor, rating, reviews, image, onClick }) => {
   return (
-    <div className="bg-white shadow-sm rounded-lg overflow-hidden border border-gray-200">
+    <div
+      onClick={onClick}
+      className="cursor-pointer bg-white shadow-sm rounded-lg overflow-hidden border border-gray-200"
+    >
       {/* <img src={image} alt={title} className="w-full h-40 object-cover" /> */}
       <Image src={image} alt={title} className="w-full h-40 object-cover" />
       <div className="p-4">
