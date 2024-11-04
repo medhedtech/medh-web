@@ -57,13 +57,13 @@ const NewCourses = () => {
             <h2 className="text-3xl ">Enroll in New Course</h2>
           </div>
           <div className="flex gap-4 mb-4">
-            <select className="border border-[#BDB7B7] text-[#808080] outline-none rounded-2xl  py-1">
+            <select className="border border-[#BDB7B7] text-[#808080] outline-none rounded-[20px] py-1 px-2">
               <option>By Age</option>
             </select>
-            <select className="border border-[#BDB7B7] text-[#808080] outline-none rounded-2xl py-1">
+            <select className="border border-[#BDB7B7] text-[#808080] outline-none rounded-[20px] py-1 px-2">
               <option>By Grade</option>
             </select>
-            <select className="border border-[#BDB7B7] text-[#808080] outline-none rounded-2xl py-1">
+            <select className="border border-[#BDB7B7] text-[#808080] outline-none rounded-[20px] py-1 px-2">
               <option>Price</option>
             </select>
           </div>
