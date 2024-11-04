@@ -156,7 +156,7 @@ const DropdownDashboard = () => {
         {
           name: "Message",
           status: null,
-          path: "/dashboards/student-message",
+          path: "/dashboards/student-membership",
           type: "secondary",
         },
         {

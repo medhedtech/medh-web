@@ -8,17 +8,17 @@ export const metadata = {
   title: "Student Message | Edurock - Education LMS Template",
   description: "Student Message | Edurock - Education LMS Template",
 };
-const Student_Message = () => {
+const Student_Membership = () => {
   return (
     <PageWrapper>
       <main>
-          <DashboardContainer>
-            <StudentMembership />
-          </DashboardContainer>
+        <DashboardContainer>
+          <StudentMembership />
+        </DashboardContainer>
         <ThemeController />
       </main>
     </PageWrapper>
   );
 };
 
-export default Student_Message;
+export default Student_Membership;
