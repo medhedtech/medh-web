@@ -616,7 +616,7 @@ const SidebarDashboard = () => {
         },
         {
           name: "My Membership",
-          path: "/dashboards/student-message",
+          path: "/dashboards/student-membership",
           // tag: 12,
           icon: (
             <svg
