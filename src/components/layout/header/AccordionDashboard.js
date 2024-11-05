@@ -133,7 +133,7 @@ const AccordionDashboard = () => {
         {
           name: "Message",
 
-          path: "/dashboards/student-message",
+          path: "/dashboards/student-membership",
         },
         {
           name: "Enrolled Courses",
