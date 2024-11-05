@@ -84,6 +84,7 @@ const SidebarDashboard = () => {
               <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
             </svg>
           ),
+
         },
         {
           name: "Courses",
@@ -124,7 +125,77 @@ const SidebarDashboard = () => {
               <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
             </svg>
           ),
+          subItems: [
+            {
+              name: "Create User",
+              path: "/dashboards/admin-subpage1",
+              icon: (
+                <svg
+                  width="16"
+                  height="17"
+                  viewBox="0 0 16 17"
+                  fill="none"
+                  stroke="currentColor"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="my-auto"
+                >
+                  <path
+                    d="M7.99996 8.41764C9.84091 8.41764 11.3333 6.92526 11.3333 5.08431C11.3333 3.24336 9.84091 1.75098 7.99996 1.75098C6.15901 1.75098 4.66663 3.24336 4.66663 5.08431C4.66663 6.92526 6.15901 8.41764 7.99996 8.41764Z"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M13.7266 15.0841C13.7266 12.5041 11.16 10.4175 7.99998 10.4175C4.83998 10.4175 2.27332 12.5041 2.27332 15.0841"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              ),
+            },
+            {
+              name: "Define Role",
+              path: "/dashboards/admin-subpage2",
+              icon: (
+                <svg
+                  width="16"
+                  height="17"
+                  viewBox="0 0 16 17"
+                  fill="none"
+                  stroke="currentColor"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="my-auto"
+                >
+                  <path d="M8 1.5l5 2.5v5l-5 2.5-5-2.5v-5l5-2.5z" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M4 11h8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M6 8h4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+
+              ),
+            },
+            {
+              name: "View User",
+              path: "/dashboards/admin-subpage3",
+              icon: (
+                <svg
+                  width="16"
+                  height="17"
+                  viewBox="0 0 16 17"
+                  fill="none"
+                  stroke="currentColor"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="my-auto"
+                >
+                  <path d="M8 4.5C4 4.5 1 8.5 1 8.5s3 4 7 4 7-4 7-4-3-4-7-4z" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <circle cx="8" cy="8.5" r="1.5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+
+              ),
+            },
+          ],
         },
+
         {
           name: "Quiz Attempts",
           path: "/dashboards/admin-quiz-attempts",
@@ -778,8 +849,8 @@ const SidebarDashboard = () => {
   const items = isAdmin
     ? adminItems
     : isInstructor
-    ? instructorItems
-    : studentItems;
+      ? instructorItems
+      : studentItems;
   return (
     <div className="w-72 ">
       {/* navigation menu */}
