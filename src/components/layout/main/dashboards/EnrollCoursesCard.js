@@ -1,9 +1,9 @@
 import React from "react";
 import Image from "next/image";
 
-const EnrollCoursesCard = ({ title, image, isLive, progress }) => {
+const EnrollCoursesCard = ({ title, image, isLive, progress, onClick }) => {
   return (
-    <div className="relative max-w-xs rounded-lg overflow-hidden border border-gray-200 bg-white shadow-lg">
+    <div onClick={onClick} className="cursor-pointer relative max-w-xs rounded-lg overflow-hidden border border-gray-200 bg-white ">
       {/* Live indicator */}
       {isLive && (
         <div className="absolute top-2 left-2 flex items-center space-x-1">
