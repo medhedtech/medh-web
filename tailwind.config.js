@@ -171,6 +171,9 @@ module.exports = {
         gray300: '#D1D5DB', // Custom gray300 color
         gray50: '#F9FAFB',  // Custom gray50 color
         gray600: '#4B5563', // custome gray600 color
+        customGreen: '#7ECA9D',
+        orange: '#FFA927',
+        orange2: '#FFF0D9',
       
 
         "bodyColor-dark": "#fff",
