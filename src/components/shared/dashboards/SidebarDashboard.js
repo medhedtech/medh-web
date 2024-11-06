@@ -84,7 +84,6 @@ const SidebarDashboard = () => {
               <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
             </svg>
           ),
-
         },
         {
           name: "Courses",
@@ -255,11 +254,25 @@ const SidebarDashboard = () => {
                   xmlns="http://www.w3.org/2000/svg"
                   className="my-auto"
                 >
-                  <path d="M8 1.5l5 2.5v5l-5 2.5-5-2.5v-5l5-2.5z" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M4 11h8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M6 8h4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <path
+                    d="M8 1.5l5 2.5v5l-5 2.5-5-2.5v-5l5-2.5z"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M4 11h8"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M6 8h4"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
-
               ),
             },
             {
@@ -270,7 +283,6 @@ const SidebarDashboard = () => {
                   <path d="M10 10C12.4853 10 14.5 7.98528 14.5 5.5C14.5 3.01472 12.4853 1 10 1C7.51472 1 5.5 3.01472 5.5 5.5C5.5 7.98528 7.51472 10 10 10Z" fill="#808080" />
                   <path d="M0 16.2893V14.6573L1.012 14.4893C1.067 14.2693 1.176 14.0523 1.336 13.7293L1.35 13.7013L0.731 12.8573L1.912 11.6773L2.756 12.2953C3.00267 12.1446 3.26533 12.032 3.544 11.9573L3.656 10.9453H5.288L5.429 11.7963L5.456 11.9573C5.738 12.0133 5.963 12.1273 6.244 12.2953L7.088 11.6763L8.268 12.8573L7.706 13.7013C7.812 13.8773 7.874 14.0313 7.933 14.1913L7.958 14.2613L7.968 14.2883C7.99133 14.3523 8.01667 14.419 8.044 14.4883L9 14.6013V16.2323L7.988 16.4023C7.931 16.6823 7.818 16.9073 7.65 17.1883L8.213 18.0323L7.244 19.0013L7.031 19.2143L6.711 19.0013L6.187 18.6513C5.988 18.7513 5.744 18.8513 5.496 18.9513L5.446 18.9713L5.4 18.9893L5.398 19.0013L5.231 20.0013H3.544L3.377 19.0013L3.375 18.9893C3.094 18.9323 2.869 18.8193 2.588 18.6513L2.111 19.0013L1.744 19.2713L0.562 18.0893L1.182 17.2453C1.03218 17.0002 0.918355 16.7348 0.844 16.4573L0 16.2893ZM4.5 17.1323C4.72263 17.1361 4.94375 17.0951 5.15019 17.0116C5.35663 16.9282 5.54418 16.8041 5.70167 16.6467C5.85917 16.4893 5.98338 16.3018 6.06693 16.0954C6.15048 15.889 6.19165 15.6679 6.188 15.4453C6.188 14.4893 5.456 13.7573 4.5 13.7573C3.544 13.7573 2.812 14.4893 2.812 15.4453C2.812 16.4013 3.544 17.1323 4.5 17.1323ZM10 11.0013C9.261 11.0013 8.582 11.0483 7.96 11.1343L9.554 12.7303L8.98 13.5923L10 13.7123V17.0793L8.902 17.2623L9.5 18.1593L8.658 19.0013H18V16.0013C18 14.0013 15.917 11.0013 10 11.0013Z" fill="#808080" />
                 </svg>
-
               ),
             },
           ],
@@ -847,7 +859,7 @@ const SidebarDashboard = () => {
         // },
         {
           name: "Assignments & Quizzes",
-          path: "/dashboards/student-my-quiz-attempts",
+          path: "/dashboards/student-quize",
           icon: (
             <svg
               width="16"
@@ -867,7 +879,7 @@ const SidebarDashboard = () => {
         },
         {
           name: "Feedback & Support",
-          path: "/dashboards/student-assignments",
+          path: "/dashboards/feedback",
           icon: (
             <svg
               width="16"
@@ -887,7 +899,7 @@ const SidebarDashboard = () => {
         },
         {
           name: "Certificate",
-          path: "/dashboards/student-settings",
+          path: "/dashboards/student-certificate",
           icon: (
             <svg
               width="20"
@@ -988,8 +1000,8 @@ const SidebarDashboard = () => {
   const items = isAdmin
     ? adminItems
     : isInstructor
-      ? instructorItems
-      : studentItems;
+    ? instructorItems
+    : studentItems;
   return (
     <div className="w-72 ">
       {/* navigation menu */}
