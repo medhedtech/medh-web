@@ -26,7 +26,7 @@ const CounterStudent = () => {
   ];
   return (
     <CounterDashboard counts={counts}>
-      <HeadingDashboard></HeadingDashboard>
+      {/* <HeadingDashboard></HeadingDashboard> */}
     </CounterDashboard>
   );
 };
