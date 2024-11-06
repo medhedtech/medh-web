@@ -84,7 +84,6 @@ const SidebarDashboard = () => {
               <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
             </svg>
           ),
-
         },
         {
           name: "Courses",
@@ -167,11 +166,25 @@ const SidebarDashboard = () => {
                   xmlns="http://www.w3.org/2000/svg"
                   className="my-auto"
                 >
-                  <path d="M8 1.5l5 2.5v5l-5 2.5-5-2.5v-5l5-2.5z" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M4 11h8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M6 8h4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <path
+                    d="M8 1.5l5 2.5v5l-5 2.5-5-2.5v-5l5-2.5z"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M4 11h8"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M6 8h4"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
-
               ),
             },
             {
@@ -187,10 +200,21 @@ const SidebarDashboard = () => {
                   xmlns="http://www.w3.org/2000/svg"
                   className="my-auto"
                 >
-                  <path d="M8 4.5C4 4.5 1 8.5 1 8.5s3 4 7 4 7-4 7-4-3-4-7-4z" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  <circle cx="8" cy="8.5" r="1.5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <path
+                    d="M8 4.5C4 4.5 1 8.5 1 8.5s3 4 7 4 7-4 7-4-3-4-7-4z"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <circle
+                    cx="8"
+                    cy="8.5"
+                    r="1.5"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
-
               ),
             },
           ],
@@ -708,7 +732,7 @@ const SidebarDashboard = () => {
         // },
         {
           name: "Assignments & Quizzes",
-          path: "/dashboards/student-my-quiz-attempts",
+          path: "/dashboards/student-quize",
           icon: (
             <svg
               width="16"
@@ -728,7 +752,7 @@ const SidebarDashboard = () => {
         },
         {
           name: "Feedback & Support",
-          path: "/dashboards/student-assignments",
+          path: "/dashboards/feedback",
           icon: (
             <svg
               width="16"
@@ -748,7 +772,7 @@ const SidebarDashboard = () => {
         },
         {
           name: "Certificate",
-          path: "/dashboards/student-settings",
+          path: "/dashboards/student-certificate",
           icon: (
             <svg
               width="20"
@@ -849,8 +873,8 @@ const SidebarDashboard = () => {
   const items = isAdmin
     ? adminItems
     : isInstructor
-      ? instructorItems
-      : studentItems;
+    ? instructorItems
+    : studentItems;
   return (
     <div className="w-72 ">
       {/* navigation menu */}
