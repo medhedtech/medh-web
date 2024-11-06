@@ -1,18 +1,72 @@
 "use client";
-import React, { useState } from 'react';
-import { FaSort, FaPlus, FaChevronDown } from 'react-icons/fa';
+import React, { useState } from "react";
+import { FaSort, FaPlus, FaChevronDown } from "react-icons/fa";
 
 const UsersTable = () => {
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
 
   const users = [
-    { id: 1, name: "Roger Workman", age: 48, email: "enteremail@gmail.com", joinDate: "2024/07/13", role: "Student", course: "Course 1", status: "Active" },
-    { id: 2, name: "Kianna Geidt", age: 76, email: "enteremail@gmail.com", joinDate: "2024/07/01", role: "Student", course: "Course 1", status: "Active" },
-    { id: 3, name: "Kadin Dokidis", age: 58, email: "enteremail@gmail.com", joinDate: "2024/07/04", role: "Instructor", course: "Course 1", status: "Inactive" },
-    { id: 4, name: "Makenna Gouse", age: 52, email: "enteremail@gmail.com", joinDate: "2024/07/07", role: "Instructor", course: "Course 1", status: "Inactive" },
-    { id: 5, name: "Tiana Vetrovs", age: 45, email: "enteremail@gmail.com", joinDate: "2024/07/10", role: "Instructor", course: "Course 1", status: "Active" },
-    { id: 6, name: "Roger Aminoff", age: 65, email: "enteremail@gmail.com", joinDate: "2024/07/16", role: "Instructor", course: "Course 1", status: "Inactive" },
+    {
+      id: 1,
+      name: "Roger Workman",
+      age: 48,
+      email: "enteremail@gmail.com",
+      joinDate: "2024/07/13",
+      role: "Student",
+      course: "Course 1",
+      status: "Active",
+    },
+    {
+      id: 2,
+      name: "Kianna Geidt",
+      age: 76,
+      email: "enteremail@gmail.com",
+      joinDate: "2024/07/01",
+      role: "Student",
+      course: "Course 1",
+      status: "Active",
+    },
+    {
+      id: 3,
+      name: "Kadin Dokidis",
+      age: 58,
+      email: "enteremail@gmail.com",
+      joinDate: "2024/07/04",
+      role: "Instructor",
+      course: "Course 1",
+      status: "Inactive",
+    },
+    {
+      id: 4,
+      name: "Makenna Gouse",
+      age: 52,
+      email: "enteremail@gmail.com",
+      joinDate: "2024/07/07",
+      role: "Instructor",
+      course: "Course 1",
+      status: "Inactive",
+    },
+    {
+      id: 5,
+      name: "Tiana Vetrovs",
+      age: 45,
+      email: "enteremail@gmail.com",
+      joinDate: "2024/07/10",
+      role: "Instructor",
+      course: "Course 1",
+      status: "Active",
+    },
+    {
+      id: 6,
+      name: "Roger Aminoff",
+      age: 65,
+      email: "enteremail@gmail.com",
+      joinDate: "2024/07/16",
+      role: "Instructor",
+      course: "Course 1",
+      status: "Inactive",
+    },
   ];
 
   return (
@@ -37,9 +91,24 @@ const UsersTable = () => {
               </button>
               {isFilterDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
-                  <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Filter Option 1</a>
-                  <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Filter Option 2</a>
-                  <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Filter Option 3</a>
+                  <a
+                    href="#"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Filter Option 1
+                  </a>
+                  <a
+                    href="#"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Filter Option 2
+                  </a>
+                  <a
+                    href="#"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Filter Option 3
+                  </a>
                 </div>
               )}
             </div>
@@ -55,8 +124,18 @@ const UsersTable = () => {
               </button>
               {isSortDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
-                  <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Oldest to New</a>
-                  <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Newest to Old</a>
+                  <a
+                    href="#"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Oldest to New
+                  </a>
+                  <a
+                    href="#"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Newest to Old
+                  </a>
                 </div>
               )}
             </div>
@@ -88,9 +167,14 @@ const UsersTable = () => {
               {users.map((user, index) => (
                 <tr key={user.id} className="hover:bg-gray-100">
                   <td className="px-4 py-2 border-b">
-                    <input type="checkbox" className="form-checkbox h-4 w-4 text-indigo-600" />
+                    <input
+                      type="checkbox"
+                      className="form-checkbox h-4 w-4 text-indigo-600"
+                    />
                   </td>
-                  <td className="px-4 py-2 border-b">{String(index + 1).padStart(2, '0')}.</td>
+                  <td className="px-4 py-2 border-b">
+                    {String(index + 1).padStart(2, "0")}.
+                  </td>
                   <td className="px-4 py-2 border-b">{user.name}</td>
                   <td className="px-4 py-2 border-b">{user.age}</td>
                   <td className="px-4 py-2 border-b">{user.email}</td>
@@ -98,9 +182,13 @@ const UsersTable = () => {
                   <td className="px-4 py-2 border-b">{user.role}</td>
                   <td className="px-4 py-2 border-b">{user.course}</td>
                   <td className="px-4 py-2 border-b">
-                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                      user.status === "Active" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                    }`}>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                        user.status === "Active"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-red-100 text-red-700"
+                      }`}
+                    >
                       {user.status}
                     </span>
                   </td>
