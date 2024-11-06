@@ -22,6 +22,7 @@ const StudentDashboardMain = () => {
           <CounterStudent />
           <ProgressOverview />
           <UpcomigClasses />
+          {/* <CourseDetails /> */}
         </>
       )}
       {/* <BillDetails /> */}
