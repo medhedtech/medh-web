@@ -1,14 +1,19 @@
-import React from "react";
+"use client";
+import React, { useState } from "react";
 import StudentMainMembership from "./studentMainMembership";
 import Image from "next/image";
+import MembershipModal from "./MembershipModal"; // Import the modal component
+import SubscriptionLogo from "@/assets/images/student-dashboard/subscription.svg";
 import Card1 from "@/assets/images/student-dashboard/card1.svg";
 import Card2 from "@/assets/images/student-dashboard/card2.svg";
 import Card3 from "@/assets/images/student-dashboard/card3.svg";
 import Card4 from "@/assets/images/student-dashboard/card4.svg";
 import Card5 from "@/assets/images/student-dashboard/card5.svg";
 import Card6 from "@/assets/images/student-dashboard/card6.svg";
-import SubscriptionLogo from "@/assets/images/student-dashboard/subscription.svg";
+
 const StudentMembershipCard = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const memberships = [
     {
       id: 1,
@@ -65,13 +70,17 @@ const StudentMembershipCard = () => {
       imageSrc: Card6,
     },
   ];
+
   return (
     <section className="py-10 px-4">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-wrap justify-between items-center mb-8">
           <h2 className="text-3xl font-bold text-gray-800">Membership</h2>
-          <button className="flex items-center bg-[#FCA400] gap-x-2 text-white font-bold font-Open py-2 px-4 rounded-3xl hover:bg-orange-600 transition">
-            <Image src={SubscriptionLogo} width={30} />
+          <button
+            className="flex items-center bg-[#FCA400] gap-x-2 text-white font-bold font-Open py-2 px-4 rounded-3xl hover:bg-orange-600 transition"
+            onClick={() => setIsModalOpen(true)}
+          >
+            <Image src={SubscriptionLogo} width={30} alt="Subscription Logo" />
             <p>Upgrade Membership</p>
           </button>
         </div>
@@ -84,7 +93,14 @@ const StudentMembershipCard = () => {
           ))}
         </div>
       </div>
+
+      {/* Membership Modal */}
+      <MembershipModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </section>
   );
 };
+
 export default StudentMembershipCard;
