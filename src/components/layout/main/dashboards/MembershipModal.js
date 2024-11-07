@@ -1,11 +1,25 @@
-import React from "react";
+"use client";
+import React, { useState } from "react";
 
 const MembershipModal = ({ isOpen, onClose }) => {
+  const [selectedPlan, setSelectedPlan] = useState("Monthly");
+
   if (!isOpen) return null;
+
+  const plans = {
+    Monthly: { silver: "$49", gold: "$59", period: "per month" },
+    Quarterly: { silver: "$129", gold: "$149", period: "per 3 months" },
+    "Half-Yearly": { silver: "$249", gold: "$299", period: "per 6 months" },
+    Yearly: { silver: "$499", gold: "$599", period: "per year" },
+  };
+
+  const handlePlanChange = (plan) => {
+    setSelectedPlan(plan);
+  };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="bg-white px-4 py-3 rounded-lg w-3/5 relative">
+      <div className="bg-white p-4  rounded-lg w-1/2 relative">
         <button
           className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-3xl"
           onClick={onClose}
@@ -14,37 +28,37 @@ const MembershipModal = ({ isOpen, onClose }) => {
         </button>
 
         {/* Header Section */}
-        <h2 className="text-4xl font-semibold text-center text-[#1B223C]">
+        <h2 className="text-[1.5rem] font-semibold text-center text-[#1B223C]">
           Find Your Perfect Plan
         </h2>
-        <p className="text-gray-500 text-center mt-2 text-xl font-light">
+        <p className="text-[#797878] w-3/4 mx-auto text-center mt-2 text-[1rem] font-light">
           Discover the ideal plan to fuel your business growth. Our pricing
           options are carefully crafted to cater to your learnings.
         </p>
 
         {/* Toggle Buttons */}
-        <div className="flex justify-center mt-2  mb-2">
-          <button className="px-4 py-2 border rounded-l-md text-primary bg-[#E0EFFE] font-semibold">
-            Monthly
-          </button>
-          <button className="px-4 py-2 border-t border-b text-gray-600 font-semibold">
-            Yearly
-          </button>
-          <button className="px-4 py-2 border-t border-b text-gray-600 font-semibold">
-            Half-Yearly
-          </button>
-          <button className="px-4 py-2 border rounded-r-md text-gray-600 font-semibold">
-            Quarterly
-          </button>
+        <div className="flex justify-center mt-1 border rounded-lg w-fit mx-auto mb-2">
+          {Object.keys(plans).map((plan) => (
+            <button
+              key={plan}
+              className={`px-4 py-0 m-2 border-2 rounded-lg ${
+                selectedPlan === plan
+                  ? "text-[#1B223C] font-semibold"
+                  : "text-[#797878]"
+              }`}
+              onClick={() => handlePlanChange(plan)}
+            >
+              {plan}
+            </button>
+          ))}
         </div>
 
         <div className="flex space-x-6">
-          {/* Silver Plan */}
-          <div className="py-2 px-6 border rounded-md w-1/2 bg-white">
+          <div className="py-2 px-6 border rounded-lg w-1/2 bg-white">
             <div className="flex flex-col">
               <svg
-                width="56"
-                height="56"
+                width="30"
+                height="30"
                 viewBox="0 0 56 56"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
@@ -132,14 +146,17 @@ const MembershipModal = ({ isOpen, onClose }) => {
                 </defs>
               </svg>
             </div>
-            <h3 className="text-4xl font-semibold text-[#1B223C] mt-4">
+            <h3 className="text-[1.5rem] font-semibold text-[#1B223C] mt-2">
               Silver
             </h3>
-            <p className="text-gray-500 mt-2">
+            <p className="text-gray-500 mb-2">
               Unleash the Power with Silver Plan.
             </p>
-            <p className="text-gray-700 text-5xl font-bold border-b-2 mb-4">
-              $49 <span className="text-lg font-normal">per month</span>
+            <p className="text-gray-700 text-[1.5rem] font-bold border-b-2 mb-2">
+              {plans[selectedPlan].silver}{" "}
+              <span className="text-[1rem] font-normal">
+                {plans[selectedPlan].period}
+              </span>
             </p>
             <ul className="text-gray-700 space-y-3  mb-6">
               <li>✔ Learn Offline</li>
@@ -157,8 +174,8 @@ const MembershipModal = ({ isOpen, onClose }) => {
           <div className="py-2 px-6 border rounded-md w-1/2 bg-primaryColor">
             <div className="flex flex-col">
               <svg
-                width="56"
-                height="56"
+                width="30"
+                height="30"
                 viewBox="0 0 56 56"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
@@ -252,20 +269,22 @@ const MembershipModal = ({ isOpen, onClose }) => {
                 </defs>
               </svg>
             </div>
-            <div className="flex justify-between py-2">
-              <h3 className="font-semibold text-4xl mt-1 text-[#1B223C] ">
+            <div className="flex justify-between py-1">
+              <h3 className="font-semibold text-[1.5rem] mt-1 text-[#1B223C] ">
                 Gold
               </h3>
-              <span className="text-lg text-white border border-white  px-2.5 rounded-md">
+              <span className="text-[1rem] text-white border border-white my-auto px-2.5 rounded-md">
                 Best Offer
               </span>
             </div>
-            <p className="text-[#1B223C] ">
-              Take Your Learning to the Next Level
-              <br /> with Gold Plan.
+            <p className="text-[#1B223C] text-[1rem] ">
+              Take Your Learning to the Next Level with Gold Plan.
             </p>
-            <p className="text-gray-700 text-5xl font-bold border-b-2 mb-4">
-              $59 <span className="text-lg font-normal">per month</span>
+            <p className="text-gray-700 text-[1.5rem] font-bold border-b-2 mb-2">
+              {plans[selectedPlan].gold}{" "}
+              <span className="text-[1rem] font-normal">
+                {plans[selectedPlan].period}
+              </span>
             </p>
             <ul className="text-[#1B223C]  mb-3 space-y-2">
               <li>✔ Advanced Learning Tools</li>
