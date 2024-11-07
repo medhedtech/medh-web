@@ -6,7 +6,7 @@ const PlacementForm = () => {
       <h1 className="text-size-32 mb-7">Apply For Placement</h1>
       <form className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-xl mb-6 font-semibold text-[#434343]">
+          <label className="block text-xl mb-6 font-normal text-[#434343]">
             Name
           </label>
           <input
@@ -17,7 +17,7 @@ const PlacementForm = () => {
         </div>
 
         <div>
-          <label className="block text-xl mb-6 font-semibold text-[#434343]">
+          <label className="block text-xl mb-6 font-normal text-[#434343]">
             Email Id
           </label>
           <input
@@ -28,7 +28,7 @@ const PlacementForm = () => {
         </div>
 
         <div>
-          <label className="block text-xl mb-6 font-semibold text-[#434343]">
+          <label className="block text-xl mb-6 font-normal text-[#434343]">
             Mobile Number
           </label>
           <input
@@ -39,37 +39,40 @@ const PlacementForm = () => {
         </div>
 
         <div>
-          <label className="block text-xl mb-6 font-semibold text-[#434343]">
+          <label className="block text-xl mb-6 font-normal text-[#434343]">
             City
           </label>
           <select className="mt-1 block w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primaryColor">
-            <option></option>
             <option>Select</option>
+            <option>Delhi</option>
+            <option>Chandgarh</option>
           </select>
         </div>
 
         <div>
-          <label className="block text-xl mb-6 font-semibold text-[#434343]">
+          <label className="block text-xl mb-6 font-normal text-[#434343]">
             Completed Course
           </label>
           <select className="mt-1 block w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primaryColor">
-            <option></option>
             <option>Select</option>
+            <option>1</option>
+            <option>2</option>
           </select>
         </div>
 
         <div>
-          <label className="block text-xl mb-6 font-semibold text-[#434343]">
+          <label className="block text-xl mb-6 font-normal text-[#434343]">
             Course Completed Year
           </label>
           <select className="mt-1 block w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primaryColor">
-            <option></option>
             <option>Select</option>
+            <option>2024</option>
+            <option>2025</option>
           </select>
         </div>
 
         <div>
-          <label className="block text-xl mb-6 font-semibold text-[#434343]">
+          <label className="block text-xl mb-6 font-normal text-[#434343]">
             Area of Interest
           </label>
           <input
@@ -79,17 +82,19 @@ const PlacementForm = () => {
         </div>
 
         <div>
-          <label className="block text-xl mb-6 font-semibold text-[#434343]">
+          <label className="block text-xl mb-6 font-normal text-[#434343]">
             Apply for Role
           </label>
           <select className="mt-1 block w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primaryColor">
-            <option></option>
             <option>Select</option>
+            <option>Admin</option>
+            <option>Student</option>
+            <option>Instructor</option>
           </select>
         </div>
 
         <div className="md:col-span-2">
-          <label className="block text-xl mb-6 font-semibold text-[#434343]">
+          <label className="block text-xl mb-6 font-normal text-[#434343]">
             Message
           </label>
           <textarea
