@@ -1,12 +1,31 @@
-import AdminFeedbacks from "@/components/sections/sub-section/dashboards/AdminFeedbacks";
+"use client";
+import React, { useState } from "react";
 import CounterStudent from "@/components/sections/sub-section/dashboards/CounterStudent";
-import React from "react";
+import ProgressOverview from "./ProgressOverview";
+import UpcomigClasses from "@/components/shared/dashboards/UpcomigClasses";
+import CourseDetailed from "@/app/course-detailed/page";
+import CourseDetails from "./CourseDetails";
+import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
+import SearchDetails from "./SearchDetails";
+import BillDetails from "./BillDetails";
 
 const StudentDashboardMain = () => {
+  const [isFocused, setIsFocused] = useState(false);
+
   return (
     <>
-      <CounterStudent />
-      <AdminFeedbacks />
+      <HeadingDashboard setIsFocused={setIsFocused} isFocused={isFocused} />
+      {isFocused ? (
+        <SearchDetails />
+      ) : (
+        <>
+          <CounterStudent />
+          <ProgressOverview />
+          <UpcomigClasses />
+          {/* <CourseDetails /> */}
+        </>
+      )}
+      {/* <BillDetails /> */}
     </>
   );
 };
