@@ -24,7 +24,6 @@ const EditProfile = ({ onBackClick }) => {
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-white opacity-50"></div>{" "}
-            {/* White overlay */}
           </div>
           <div className="absolute top-28 left-6 flex items-center ">
             <Image
@@ -32,7 +31,7 @@ const EditProfile = ({ onBackClick }) => {
               alt="Profile"
               width={150}
               height={150}
-              className="rounded-full border-4 border-white object-cover"
+              className="rounded-full h-[150px] border-4 border-white object-cover"
             />
             <button className="absolute bg-white bottom-1  right-2 w-8 h-8 border shadow-2xl rounded-full flex items-center justify-center text-white">
               <span>
@@ -65,7 +64,7 @@ const EditProfile = ({ onBackClick }) => {
 
         <form className="grid grid-cols-1 font-Open md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-base font-bold mb-2">First Name</label>
+            <label className="block text-base font-normal mb-2">First Name</label>
             <input
               type="text"
               placeholder="Manik Yadav"
@@ -74,7 +73,7 @@ const EditProfile = ({ onBackClick }) => {
           </div>
 
           <div>
-            <label className="block text-base font-bold mb-2">Last Name</label>
+            <label className="block text-base font-normal mb-2">Last Name</label>
             <input
               type="text"
               placeholder="Manik Yadav"
@@ -83,7 +82,7 @@ const EditProfile = ({ onBackClick }) => {
           </div>
 
           <div>
-            <label className="block text-base font-bold mb-2">
+            <label className="block text-base font-normal mb-2">
               Phone Number
             </label>
             <input
@@ -94,7 +93,7 @@ const EditProfile = ({ onBackClick }) => {
           </div>
 
           <div>
-            <label className="block text-base font-bold mb-2">Email</label>
+            <label className="block text-base font-normal mb-2">Email</label>
             <input
               type="email"
               placeholder="manik@gmail.com"
@@ -103,7 +102,7 @@ const EditProfile = ({ onBackClick }) => {
           </div>
 
           <div>
-            <label className="block text-base font-bold mb-2">
+            <label className="block text-base font-normal mb-2">
               Date of Birth
             </label>
             <input
@@ -114,7 +113,7 @@ const EditProfile = ({ onBackClick }) => {
           </div>
 
           <div>
-            <label className="block text-base font-bold mb-2">Domain</label>
+            <label className="block text-base font-normal mb-2">Domain</label>
             <input
               type="text"
               placeholder="Student"
@@ -123,7 +122,7 @@ const EditProfile = ({ onBackClick }) => {
           </div>
 
           <div>
-            <label className="block text-base font-bold mb-2">
+            <label className="block text-base font-normal mb-2">
               Date of Join
             </label>
             <input
@@ -134,7 +133,7 @@ const EditProfile = ({ onBackClick }) => {
           </div>
 
           <div>
-            <label className="block text-base font-bold mb-2">
+            <label className="block text-base font-normal mb-2">
               Add Facebook Link
             </label>
             <input
@@ -145,7 +144,7 @@ const EditProfile = ({ onBackClick }) => {
           </div>
 
           <div>
-            <label className="block text-base font-bold mb-2">
+            <label className="block text-base font-normal mb-2">
               Add Twitter Link
             </label>
             <input
@@ -156,7 +155,7 @@ const EditProfile = ({ onBackClick }) => {
           </div>
 
           <div>
-            <label className="block text-base font-bold mb-2">
+            <label className="block text-base font-normal mb-2">
               Add LinkedIn Link
             </label>
             <input

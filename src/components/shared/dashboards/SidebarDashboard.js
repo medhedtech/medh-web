@@ -36,175 +36,6 @@ const SidebarDashboard = () => {
           ),
         },
         {
-          name: "My Courses",
-          path: "/dashboards/my-courses",
-          icon: (
-            <svg
-              width="16"
-              height="15"
-              viewBox="0 0 16 15"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M4.34269 0.750977C3.47336 0.836977 2.88803 1.03031 2.45069 1.46831C1.66736 2.25298 1.66736 3.51631 1.66736 6.04364V8.72364C1.66736 11.2503 1.66736 12.5143 2.45069 13.2996C3.23403 14.085 4.49536 14.0843 7.01736 14.0843H8.35536C10.8774 14.0843 12.1387 14.0843 12.922 13.2996C13.6334 12.5863 13.6994 11.4883 13.7054 9.40231"
-                stroke="#70747E"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-              <path
-                d="M7.01731 4.08426L7.68597 6.41759C8.05931 7.15759 8.52797 7.35092 9.69264 7.41759C10.6186 7.39492 11.156 7.28559 11.6146 6.88692C11.9273 6.61492 12.0686 6.20492 12.1373 5.79692L12.3666 4.41759M14.0386 3.08426V6.41759M5.73397 2.70626C6.79197 1.82826 7.73464 1.35692 9.68997 0.838257C9.91056 0.780018 10.1426 0.781168 10.3626 0.841591C12.0933 1.31759 13.028 1.74026 14.28 2.68026C14.3333 2.72026 14.3493 2.79492 14.312 2.85026C13.9033 3.45159 12.9906 3.93892 10.752 4.80692C10.2857 4.98634 9.76891 4.98349 9.30464 4.79892C6.92064 3.85226 5.82464 3.34559 5.69131 2.81959C5.68697 2.7986 5.68868 2.77681 5.69623 2.75675C5.70378 2.73669 5.71687 2.71918 5.73397 2.70626Z"
-                stroke="#70747E"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          ),
-        },
-        {
-          name: "Message",
-          path: "/dashboards/admin-message",
-          tag: 12,
-          icon: (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="feather feather-book-open"
-            >
-              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
-            </svg>
-          ),
-        },
-        {
-          name: "Courses",
-          path: "/dashboards/admin-course",
-          icon: (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="feather feather-bookmark"
-            >
-              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-            </svg>
-          ),
-        },
-        {
-          name: "Reviews",
-          path: "/dashboards/admin-reviews",
-          icon: (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="feather feather-star"
-            >
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-            </svg>
-          ),
-        },
-        {
-          name: "Student Management",
-          path: "/dashboards/admin-studentmange",
-          // tag: 12,
-          icon: (
-            <svg
-              width="16"
-              height="17"
-              viewBox="0 0 16 17"
-              fill="none"
-              stroke="currentColor"
-              xmlns="http://www.w3.org/2000/svg"
-              className="my-auto"
-            >
-              <path
-                d="M7.99996 8.41764C9.84091 8.41764 11.3333 6.92526 11.3333 5.08431C11.3333 3.24336 9.84091 1.75098 7.99996 1.75098C6.15901 1.75098 4.66663 3.24336 4.66663 5.08431C4.66663 6.92526 6.15901 8.41764 7.99996 8.41764Z"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-              <path
-                d="M13.7266 15.0841C13.7266 12.5041 11.16 10.4175 7.99998 10.4175C4.83998 10.4175 2.27332 12.5041 2.27332 15.0841"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          ),
-        },
-        {
-          name: "Instructor Management",
-          path: "/dashboards/admin-Instuctoremange",
-          // tag: 12,
-          icon: (
-            <svg
-              width="16"
-              height="24"
-              viewBox="0 0 24 20"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <g clip-path="url(#clip0_563_2039)">
-                <path
-                  d="M7.80006 13.5984C7.71044 13.5984 7.62081 13.6116 7.53531 13.6393C7.04931 13.7972 6.53819 13.8984 6.00006 13.8984C5.46194 13.8984 4.95081 13.7972 4.46444 13.6393C4.37894 13.6116 4.28969 13.5984 4.20006 13.5984C1.87281 13.5984 -0.0123144 15.4914 6.05804e-05 17.8217C0.00531058 18.8064 0.814935 19.5984 1.80006 19.5984H10.2001C11.1852 19.5984 11.9948 18.8064 12.0001 17.8217C12.0124 15.4914 10.1273 13.5984 7.80006 13.5984ZM6.00006 12.3984C7.98831 12.3984 9.60006 10.7867 9.60006 8.79844C9.60006 6.81019 7.98831 5.19844 6.00006 5.19844C4.01181 5.19844 2.40006 6.81019 2.40006 8.79844C2.40006 10.7867 4.01181 12.3984 6.00006 12.3984ZM22.2001 0.398438H7.80006C6.80744 0.398438 6.00006 1.23281 6.00006 2.25806V3.99844C6.87831 3.99844 7.69131 4.25269 8.40006 4.66594V2.79844H21.6001V13.5984H19.2001V11.1984H14.4001V13.5984H11.5411C12.2573 14.2243 12.7831 15.0508 13.0294 15.9984H22.2001C23.1927 15.9984 24.0001 15.1641 24.0001 14.1388V2.25806C24.0001 1.23281 23.1927 0.398438 22.2001 0.398438Z"
-                  fill="#808080"
-                />
-              </g>
-              <defs>
-                <clipPath id="clip0_563_2039">
-                  <rect
-                    width="24"
-                    height="19.2"
-                    fill="white"
-                    transform="translate(0 0.398438)"
-                  />
-                </clipPath>
-              </defs>
-            </svg>
-          ),
-        },
-        {
-          name: "Genrate Certificate",
-          path: "/dashboards/admin-GenrateCertificate",
-          // tag: 12,
-          icon: (
-            <svg
-              width="16"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M13 21L15 20L17 21V14H13M17 9V7L15 8L13 7V9L11 10L13 11V13L15 12L17 13V11L19 10M20 3H4C3.46957 3 2.96086 3.21071 2.58579 3.58579C2.21071 3.96086 2 4.46957 2 5V15C2 15.5304 2.21071 16.0391 2.58579 16.4142C2.96086 16.7893 3.46957 17 4 17H11V15H4V5H20V15H19V17H20C20.5304 17 21.0391 16.7893 21.4142 16.4142C21.7893 16.0391 22 15.5304 22 15V5C22 4.46957 21.7893 3.96086 21.4142 3.58579C21.0391 3.21071 20.5304 3 20 3ZM11 8H5V6H11M9 11H5V9H9M11 14H5V12H11V14Z"
-                fill="#808080"
-              />
-            </svg>
-          ),
-        },
-        {
           name: "User Management",
           path: null,
           icon: (
@@ -320,7 +151,6 @@ const SidebarDashboard = () => {
         },
         {
           name: "Course Management",
-
           icon: (
             <svg
               width="16"
@@ -414,30 +244,116 @@ const SidebarDashboard = () => {
             },
           ],
         },
-
         {
-          name: "Quiz Attempts",
-          path: "/dashboards/admin-quiz-attempts",
+          name: "Student Management",
+          path: "/dashboards/admin-studentmange",
+          // tag: 12,
           icon: (
             <svg
+              width="16"
+              height="17"
+              viewBox="0 0 16 17"
+              fill="none"
+              stroke="currentColor"
               xmlns="http://www.w3.org/2000/svg"
+              className="my-auto"
+            >
+              <path
+                d="M7.99996 8.41764C9.84091 8.41764 11.3333 6.92526 11.3333 5.08431C11.3333 3.24336 9.84091 1.75098 7.99996 1.75098C6.15901 1.75098 4.66663 3.24336 4.66663 5.08431C4.66663 6.92526 6.15901 8.41764 7.99996 8.41764Z"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M13.7266 15.0841C13.7266 12.5041 11.16 10.4175 7.99998 10.4175C4.83998 10.4175 2.27332 12.5041 2.27332 15.0841"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          ),
+        },
+        {
+          name: "Instructor Management",
+          path: "/dashboards/admin-Instuctoremange",
+          // tag: 12,
+          icon: (
+            <svg
+              width="16"
+              height="24"
+              viewBox="0 0 24 20"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <g clip-path="url(#clip0_563_2039)">
+                <path
+                  d="M7.80006 13.5984C7.71044 13.5984 7.62081 13.6116 7.53531 13.6393C7.04931 13.7972 6.53819 13.8984 6.00006 13.8984C5.46194 13.8984 4.95081 13.7972 4.46444 13.6393C4.37894 13.6116 4.28969 13.5984 4.20006 13.5984C1.87281 13.5984 -0.0123144 15.4914 6.05804e-05 17.8217C0.00531058 18.8064 0.814935 19.5984 1.80006 19.5984H10.2001C11.1852 19.5984 11.9948 18.8064 12.0001 17.8217C12.0124 15.4914 10.1273 13.5984 7.80006 13.5984ZM6.00006 12.3984C7.98831 12.3984 9.60006 10.7867 9.60006 8.79844C9.60006 6.81019 7.98831 5.19844 6.00006 5.19844C4.01181 5.19844 2.40006 6.81019 2.40006 8.79844C2.40006 10.7867 4.01181 12.3984 6.00006 12.3984ZM22.2001 0.398438H7.80006C6.80744 0.398438 6.00006 1.23281 6.00006 2.25806V3.99844C6.87831 3.99844 7.69131 4.25269 8.40006 4.66594V2.79844H21.6001V13.5984H19.2001V11.1984H14.4001V13.5984H11.5411C12.2573 14.2243 12.7831 15.0508 13.0294 15.9984H22.2001C23.1927 15.9984 24.0001 15.1641 24.0001 14.1388V2.25806C24.0001 1.23281 23.1927 0.398438 22.2001 0.398438Z"
+                  fill="#808080"
+                />
+              </g>
+              <defs>
+                <clipPath id="clip0_563_2039">
+                  <rect
+                    width="24"
+                    height="19.2"
+                    fill="white"
+                    transform="translate(0 0.398438)"
+                  />
+                </clipPath>
+              </defs>
+            </svg>
+          ),
+        },
+        {
+          name: "Genrate Certificate",
+          path: "/dashboards/admin-GenrateCertificate",
+          // tag: 12,
+          icon: (
+            <svg
               width="16"
               height="24"
               viewBox="0 0 24 24"
               fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="feather feather-help-circle"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <circle cx="12" cy="12" r="10"></circle>
-              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              <path
+                d="M13 21L15 20L17 21V14H13M17 9V7L15 8L13 7V9L11 10L13 11V13L15 12L17 13V11L19 10M20 3H4C3.46957 3 2.96086 3.21071 2.58579 3.58579C2.21071 3.96086 2 4.46957 2 5V15C2 15.5304 2.21071 16.0391 2.58579 16.4142C2.96086 16.7893 3.46957 17 4 17H11V15H4V5H20V15H19V17H20C20.5304 17 21.0391 16.7893 21.4142 16.4142C21.7893 16.0391 22 15.5304 22 15V5C22 4.46957 21.7893 3.96086 21.4142 3.58579C21.0391 3.21071 20.5304 3 20 3ZM11 8H5V6H11M9 11H5V9H9M11 14H5V12H11V14Z"
+                fill="#808080"
+              />
             </svg>
           ),
         },
       ],
+    },
+
+    {
+      name: "Student Management",
+      path: "/dashboards/admin-studentmange",
+      // tag: 12,
+      icon: (
+        <svg
+          width="16"
+          height="17"
+          viewBox="0 0 16 17"
+          fill="none"
+          stroke="currentColor"
+          xmlns="http://www.w3.org/2000/svg"
+          className="my-auto"
+        >
+          <path
+            d="M7.99996 8.41764C9.84091 8.41764 11.3333 6.92526 11.3333 5.08431C11.3333 3.24336 9.84091 1.75098 7.99996 1.75098C6.15901 1.75098 4.66663 3.24336 4.66663 5.08431C4.66663 6.92526 6.15901 8.41764 7.99996 8.41764Z"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M13.7266 15.0841C13.7266 12.5041 11.16 10.4175 7.99998 10.4175C4.83998 10.4175 2.27332 12.5041 2.27332 15.0841"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      ),
     },
     {
       title: "USER",
@@ -465,6 +381,27 @@ const SidebarDashboard = () => {
         },
         {
           name: "Logout",
+          path: "#",
+          icon: (
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="feather feather-volume-1"
+            >
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            </svg>
+          ),
+        },
+        {
+          name: "Help Center",
           path: "#",
           icon: (
             <svg
