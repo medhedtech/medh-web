@@ -8,9 +8,9 @@ const MembershipModal = ({ isOpen, onClose }) => {
 
   const plans = {
     Monthly: { silver: "$49", gold: "$59", period: "per month" },
-    Yearly: { silver: "$499", gold: "$599", period: "per year" },
-    "Half-Yearly": { silver: "$249", gold: "$299", period: "per 6 months" },
     Quarterly: { silver: "$129", gold: "$149", period: "per 3 months" },
+    "Half-Yearly": { silver: "$249", gold: "$299", period: "per 6 months" },
+    Yearly: { silver: "$499", gold: "$599", period: "per year" },
   };
 
   const handlePlanChange = (plan) => {
@@ -28,10 +28,10 @@ const MembershipModal = ({ isOpen, onClose }) => {
         </button>
 
         {/* Header Section */}
-        <h2 className="text-5xl font-semibold text-center text-[#1B223C]">
+        <h2 className="text-[1.5rem] font-semibold text-center text-[#1B223C]">
           Find Your Perfect Plan
         </h2>
-        <p className="text-[#797878] w-3/4 mx-auto text-center mt-2 text-lg font-light">
+        <p className="text-[#797878] w-3/4 mx-auto text-center mt-2 text-[1rem] font-light">
           Discover the ideal plan to fuel your business growth. Our pricing
           options are carefully crafted to cater to your learnings.
         </p>
@@ -41,9 +41,9 @@ const MembershipModal = ({ isOpen, onClose }) => {
           {Object.keys(plans).map((plan) => (
             <button
               key={plan}
-              className={`px-4 py-1 m-2 border-2 rounded-lg ${
+              className={`px-4 py-0 m-2 border-2 rounded-lg ${
                 selectedPlan === plan
-                  ? "text-[#1B223C] font-bold"
+                  ? "text-[#1B223C] font-semibold"
                   : "text-[#797878]"
               }`}
               onClick={() => handlePlanChange(plan)}
@@ -54,12 +54,11 @@ const MembershipModal = ({ isOpen, onClose }) => {
         </div>
 
         <div className="flex space-x-6">
-          {/* Silver Plan */}
           <div className="py-2 px-6 border rounded-lg w-1/2 bg-white">
             <div className="flex flex-col">
               <svg
-                width="56"
-                height="56"
+                width="30"
+                height="30"
                 viewBox="0 0 56 56"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
@@ -147,15 +146,15 @@ const MembershipModal = ({ isOpen, onClose }) => {
                 </defs>
               </svg>
             </div>
-            <h3 className="text-4xl font-semibold text-[#1B223C] mt-2">
+            <h3 className="text-[1.5rem] font-semibold text-[#1B223C] mt-2">
               Silver
             </h3>
             <p className="text-gray-500 mb-2">
               Unleash the Power with Silver Plan.
             </p>
-            <p className="text-gray-700 text-5xl font-bold border-b-2 mb-4">
+            <p className="text-gray-700 text-[1.5rem] font-bold border-b-2 mb-2">
               {plans[selectedPlan].silver}{" "}
-              <span className="text-lg font-normal">
+              <span className="text-[1rem] font-normal">
                 {plans[selectedPlan].period}
               </span>
             </p>
@@ -175,8 +174,8 @@ const MembershipModal = ({ isOpen, onClose }) => {
           <div className="py-2 px-6 border rounded-md w-1/2 bg-primaryColor">
             <div className="flex flex-col">
               <svg
-                width="56"
-                height="56"
+                width="30"
+                height="30"
                 viewBox="0 0 56 56"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
@@ -271,19 +270,19 @@ const MembershipModal = ({ isOpen, onClose }) => {
               </svg>
             </div>
             <div className="flex justify-between py-1">
-              <h3 className="font-semibold text-4xl mt-1 text-[#1B223C] ">
+              <h3 className="font-semibold text-[1.5rem] mt-1 text-[#1B223C] ">
                 Gold
               </h3>
-              <span className="text-lg text-white border border-white my-auto px-2.5 rounded-md">
+              <span className="text-[1rem] text-white border border-white my-auto px-2.5 rounded-md">
                 Best Offer
               </span>
             </div>
-            <p className="text-[#1B223C] ">
+            <p className="text-[#1B223C] text-[1rem] ">
               Take Your Learning to the Next Level with Gold Plan.
             </p>
-            <p className="text-gray-700 text-5xl font-bold border-b-2 mb-4">
+            <p className="text-gray-700 text-[1.5rem] font-bold border-b-2 mb-2">
               {plans[selectedPlan].gold}{" "}
-              <span className="text-lg font-normal">
+              <span className="text-[1rem] font-normal">
                 {plans[selectedPlan].period}
               </span>
             </p>
