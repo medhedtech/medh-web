@@ -92,9 +92,10 @@ const UsersTable = () => {
             </div>
 
             {/* Create User Button with Icon */}
-            <button  onClick = {
-              router.push("/dashboards/add-data")
-            }
+            <button 
+            //  onClick = {
+            //   router.push("/dashboards/add-data")
+            // }
             
             className="px-4 py-2 bg-customGreen text-white rounded-md flex items-center space-x-1">
               <FaPlus />
