@@ -1,83 +1,173 @@
 "use client";
-import useTab from "@/hooks/useTab";
-import TabContentWrapper from "@/components/shared/wrappers/TabContentWrapper";
-import TabButtonSecondary from "@/components/shared/buttons/TabButtonSecondary";
-import EnrolledContent from "@/components/shared/dashboards/EnrolledContent";
-import ActiveContent from "@/components/shared/dashboards/ActiveContent";
-import CompletedContent from "@/components/shared/dashboards/CompletedContent";
-import getAllCourses from "@/libs/getAllCourses";
-const StudentEnrolledCourses = () => {
-  const { currentIdx, handleTabClick } = useTab();
-  const courses = getAllCourses();
-  const enrolledCourses = courses
-    ?.filter(({ id }) => (id > 0 && id < 6) || id === 8)
-    ?.map((course) => ({
-      ...course,
-      isCompleted: course?.id < 4 ? true : false,
-      isActive: course?.id === 4 || course?.id === 5 ? true : false,
-      completedParchent: course?.id === 4 ? 80 : course?.id === 5 ? 70 : false,
-    }));
-  const activeCourses = courses
-    ?.filter(({ id }) => id === 4 || id === 5)
-    ?.map((course) => ({
-      ...course,
-      isActive: true,
-      completedParchent: course?.id === 4 ? 80 : 70,
-    }));
-  const completedCourses = courses
-    ?.filter(({ id }) => id < 4)
-    ?.map((course) => ({
-      ...course,
-      isCompleted: true,
-    }));
+import { useState } from "react";
+import dashboardProdileImage from "@/assets/images/dashbord/profile.png";
+import PDFImage from "@/assets/images/dashbord/bxs_file-pdf.png";
+import Image from "next/image";
 
-  const tabbuttons = [
-    {
-      name: "ENROLLED COURSES",
-      content: <EnrolledContent courses={enrolledCourses} />,
-    },
-    {
-      name: "ACTIVE COURSES",
-      content: <ActiveContent courses={activeCourses} />,
-    },
-    {
-      name: "COMPLETED COURSES",
-      content: <CompletedContent courses={completedCourses} />,
-    },
+const courses = [
+  {
+    id: 1,
+    title: "Web Development",
+    instructor: "John Doe",
+    image: dashboardProdileImage,
+    downloadLink: PDFImage,
+  },
+  {
+    id: 2,
+    title: "Communication Skills",
+    instructor: "John Doe",
+    image: dashboardProdileImage,
+    downloadLink: PDFImage,
+  },
+  {
+    id: 3,
+    title: "Leadership is everything",
+    instructor: "John Doe",
+    image: dashboardProdileImage,
+    downloadLink: PDFImage,
+  },
+  {
+    id: 4,
+    title: "Team work hard work",
+    instructor: "John Doe",
+    image: dashboardProdileImage,
+    downloadLink: PDFImage,
+  },
+  {
+    id: 5,
+    title: "Master the art of Psychology",
+    instructor: "John Doe",
+    image: dashboardProdileImage,
+    downloadLink: PDFImage,
+  },
+  {
+    id: 6,
+    title: "React Basics",
+    instructor: "John Doe",
+    image: dashboardProdileImage,
+    downloadLink: PDFImage,
+  },
+];
+
+const liveCourses = [
+  {
+    id: 1,
+    title: "Team work hard work",
+    instructor: "John Doe",
+    image: dashboardProdileImage,
+    downloadLink: PDFImage,
+  },
+  {
+    id: 2,
+    title: "Communication Skills",
+    instructor: "John Doe",
+    image: dashboardProdileImage,
+    downloadLink: PDFImage,
+  },
+  {
+    id: 3,
+    title: "Leadership is everything",
+    instructor: "John Doe",
+    image: dashboardProdileImage,
+    downloadLink: PDFImage,
+  },
+];
+
+const selfPacedCourses = [
+  {
+    id: 1,
+    title: "Communication Skills",
+    instructor: "John Doe",
+    image: dashboardProdileImage,
+    downloadLink: PDFImage,
+  },
+  {
+    id: 2,
+    title: "Leadership is everything",
+    instructor: "John Doe",
+    image: dashboardProdileImage,
+    downloadLink: PDFImage,
+  },
+];
+
+const StudentEnrolledCourses = () => {
+  const [currentTab, setCurrentTab] = useState(0);
+
+  const tabs = [
+    { name: "Enrolled Courses", content: courses },
+    { name: "Live Courses", content: liveCourses },
+    { name: "Self-Paced Courses", content: selfPacedCourses },
   ];
+
   return (
-    <div className="p-10px md:px-10 md:py-50px mb-30px bg-whiteColor dark:bg-whiteColor-dark shadow-accordion dark:shadow-accordion-dark rounded-5">
-      {/* heading  */}
-      <div className="mb-6 pb-5 border-b-2 border-borderColor dark:border-borderColor-dark">
-        <h2 className="text-2xl font-bold text-blackColor dark:text-blackColor-dark">
-          My Profile
-        </h2>
+    <div className="p-12 rounded-lg max-w-full mx-auto">
+      <h2 className="text-3xl font-semibold mb-8">Course Resources</h2>
+
+      {/* Tab Buttons */}
+      <div className="flex mb-6">
+        {tabs.map((tab, idx) => (
+          <button
+            key={idx}
+            onClick={() => setCurrentTab(idx)}
+            className={`px-4 py-2 font-medium text-lg ${
+              currentTab === idx
+                ? "text-[#7ECA9D] border-2 border-[#7ECA9D] rounded-[36px]"
+                : "text-gray-500"
+            }`}
+          >
+            {tab.name}
+          </button>
+        ))}
       </div>
-      <div className="tab">
-        <div className="tab-links flex flex-wrap mb-10px lg:mb-50px rounded gap-10px">
-          {tabbuttons?.map(({ name }, idx) => (
-            <TabButtonSecondary
-              key={idx}
-              name={name}
-              idx={idx}
-              currentIdx={currentIdx}
-              handleTabClick={handleTabClick}
-              button={"small"}
-            />
-          ))}
-        </div>
-        <div>
-          {tabbuttons?.map(({ content }, idx) => (
-            <TabContentWrapper
-              key={idx}
-              isShow={idx === currentIdx ? true : false}
-            >
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 sm:-mx-15px ">
-                {content}
+
+      {/* Tab Content */}
+      <div>
+        {tabs.map((tab, idx) => (
+          <div key={idx} className={idx === currentTab ? "block" : "hidden"}>
+            {tab.content.length > 0 ? (
+              <div className="space-y-4">
+                {tab.content.map((course) => (
+                  <div
+                    key={course.id}
+                    className="p-5 bg-white shadow rounded-lg flex gap-4 items-start"
+                  >
+                    <Image
+                      src={course.image}
+                      alt={course.title}
+                      width={100}
+                      height={100}
+                      className="rounded-md object-cover"
+                    />
+                    <div>
+                      <h3 className="text-xl text-[#171A1F] font-normal">
+                        {course.title}
+                      </h3>
+                      <p className="text-[#9095A0]">
+                        Instructor: {course.instructor}
+                      </p>
+                      <a
+                        href={course.downloadLink}
+                        className="text-[#7ECA9D] font-medium flex items-center mt-2 hover:underline"
+                      >
+                        <span className="material-icons mr-1">
+                          <Image
+                            src={course.downloadLink}
+                            width={20}
+                            height={20}
+                            className="rounded-md object-cover"
+                          />
+                        </span>
+                        Download Course Materials
+                      </a>
+                    </div>
+                  </div>
+                ))}
               </div>
-            </TabContentWrapper>
-          ))}
-        </div>
+            ) : (
+              <p className="text-gray-500">No courses available in this tab.</p>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );

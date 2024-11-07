@@ -9,16 +9,16 @@ export const metadata = {
 };
 const Student_Dashboard = () => {
   return (
-    <PageWrapper>
-      <main>
-        <DsahboardWrapper>
-          <DashboardContainer>
-            <StudentDashboardMain />
-          </DashboardContainer>
-        </DsahboardWrapper>
-        <ThemeController />
-      </main>
-    </PageWrapper>
+    // <PageWrapper>
+    <main>
+      {/* <DsahboardWrapper> */}
+      <DashboardContainer>
+        <StudentDashboardMain />
+      </DashboardContainer>
+      {/* </DsahboardWrapper> */}
+      <ThemeController />
+    </main>
+    // </PageWrapper>
   );
 };
 
