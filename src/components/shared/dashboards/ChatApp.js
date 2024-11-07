@@ -12,9 +12,9 @@ const ChatApp = () => {
       {/* message body */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-12 gap-30px">
         {/* participant */}
-        <CoversationPartner />
+        {/* <CoversationPartner /> */}
         {/* conversation */}
-        <Conversation />
+        {/* <Conversation /> */}
       </div>
     </div>
   );
