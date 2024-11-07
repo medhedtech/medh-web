@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 const AddCourse = () => {
   const [courseVideo, setCourseVideo] = useState(null);
@@ -19,21 +19,35 @@ const AddCourse = () => {
     <div className="min-h-screen flex items-center justify-center pt-8 bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-6xl">
         <h2 className="text-2xl font-semibold mb-6">Add Course Details</h2>
-        
+
         {/* Select Category */}
         <div className="mb-6">
-          <label className="block text-gray-700 font-medium mb-2">Select Category</label>
           <div className="flex items-center gap-4">
+            <label className="block text-gray-700 font-medium mb-2">
+              Select Category
+            </label>
             <label className="flex items-center space-x-2">
-              <input type="radio" name="category" className="text-customGreen" />
+              <input
+                type="radio"
+                name="category"
+                className="text-customGreen"
+              />
               <span className="text-green-500 font-semibold">Live Courses</span>
             </label>
             <label className="flex items-center space-x-2">
-              <input type="radio" name="category" className="text-customGreen" />
+              <input
+                type="radio"
+                name="category"
+                className="text-customGreen"
+              />
               <span>Blended Courses</span>
             </label>
             <label className="flex items-center space-x-2">
-              <input type="radio" name="category" className="text-customGreen" />
+              <input
+                type="radio"
+                name="category"
+                className="text-customGreen"
+              />
               <span>Cooperate Training Courses</span>
             </label>
           </div>
@@ -86,7 +100,11 @@ const AddCourse = () => {
               className="absolute inset-0 opacity-0 cursor-pointer"
               onChange={handleVideoUpload}
             />
-            {courseVideo && <p className="mt-2 text-sm text-gray-500">Uploaded: {courseVideo.name}</p>}
+            {courseVideo && (
+              <p className="mt-2 text-sm text-gray-500">
+                Uploaded: {courseVideo.name}
+              </p>
+            )}
           </div>
           <div className="border-dashed border-2 border-gray-300 rounded-lg p-6 text-center relative">
             <p className="font-semibold mb-2">Add PDF Brochure</p>
@@ -98,14 +116,22 @@ const AddCourse = () => {
               className="absolute inset-0 opacity-0 cursor-pointer"
               onChange={handlePdfUpload}
             />
-            {pdfBrochure && <p className="mt-2 text-sm text-gray-500">Uploaded: {pdfBrochure.name}</p>}
+            {pdfBrochure && (
+              <p className="mt-2 text-sm text-gray-500">
+                Uploaded: {pdfBrochure.name}
+              </p>
+            )}
           </div>
         </div>
 
         {/* Action Buttons */}
         <div className="flex justify-end gap-4">
-          <button className="bg-gray-200 text-gray-700 py-2 px-6 rounded-lg">Cancel</button>
-          <button className="bg-green-500 text-white py-2 px-6 rounded-lg">Continue</button>
+          <button className="bg-gray-200 text-gray-700 py-2 px-6 rounded-lg">
+            Cancel
+          </button>
+          <button className="bg-green-500 text-white py-2 px-6 rounded-lg">
+            Continue
+          </button>
         </div>
       </div>
     </div>
