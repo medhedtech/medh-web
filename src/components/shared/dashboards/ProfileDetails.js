@@ -5,7 +5,7 @@ import ProfileImg from "@/assets/images/dashbord/ProfileImg.png";
 const ProfileDetails = ({ onEditClick }) => {
   return (
     <div className=" md:py-50px mb-30px  dark:bg-whiteColor-dark shadow-accordion dark:shadow-accordion-dark rounded-5">
-      <div className=" px-5 border-borderColor dark:border-borderColor-dark flex justify-between">
+      <div className="px-5 border border-borderColor dark:border-borderColor-dark flex justify-between">
         <h2 className="text-2xl font-semibold px-4 text-blackColor dark:text-blackColor-dark">
           Profile
         </h2>
@@ -36,20 +36,17 @@ const ProfileDetails = ({ onEditClick }) => {
         </span>
       </div>
 
-      <div className="shadow-lg p-4  mx-4 rounded-lg ">
-        <div
-          className="py-4.5 px-5
-        "
-        >
+      <div className="shadow-lg p-4  mx-4 rounded-lg" style={{ boxShadow: '0px 4px 24px 0px #0000001F' }}>
+        <div className="py-4.5 px-5">
           <Image src={ProfileImg} alt="profile img" width={192} height={173} />
         </div>
         <ul className="px-4 ">
           <li className=" grid grid-cols-1 md:grid-cols-12 mb-3">
             <div className="md:col-start-1 md:col-span-4">
-              <span className="inline-block text-2xl ">First Name</span>
+              <span className="inline-block text-[20px]">First Name</span>
             </div>
             <div className="md:col-start-5 md:col-span-8">
-              <span className="inline-block text-xl text-[#544C4C]">
+              <span className="inline-block text-[20px] text-[#544C4C]">
                 Manik Yadav
               </span>
             </div>
@@ -57,20 +54,20 @@ const ProfileDetails = ({ onEditClick }) => {
 
           <li className=" grid grid-cols-1 md:grid-cols-12 mb-3">
             <div className="md:col-start-1 md:col-span-4">
-              <span className="inline-block text-2xl ">Last Name</span>
+              <span className="inline-block text-[20px]">Last Name</span>
             </div>
             <div className="md:col-start-5 md:col-span-8">
-              <span className="inline-block text-xl text-[#544C4C]">
+              <span className="inline-block text-[20px] text-[#544C4C]">
                 Yadav Naresh
               </span>
             </div>
           </li>
           <li className=" grid grid-cols-1 md:grid-cols-12 mb-3">
             <div className="md:col-start-1 md:col-span-4">
-              <span className="inline-block text-2xl ">Email Id</span>
+              <span className="inline-block text-[20px]">Email Id</span>
             </div>
             <div className="md:col-start-5 md:col-span-8">
-              <span className="inline-block text-xl text-[#544C4C]">
+              <span className="inline-block text-[20px] text-[#544C4C]">
                 manikyadav123@gmail.com
               </span>
             </div>
@@ -78,10 +75,10 @@ const ProfileDetails = ({ onEditClick }) => {
 
           <li className=" grid grid-cols-1 md:grid-cols-12 mb-3">
             <div className="md:col-start-1 md:col-span-4">
-              <span className="inline-block text-2xl ">Mobile Number</span>
+              <span className="inline-block text-[20px]">Mobile Number</span>
             </div>
             <div className="md:col-start-5 md:col-span-8">
-              <span className="inline-block text-xl text-[#544C4C]">
+              <span className="inline-block text-[20px] text-[#544C4C]">
                 {" "}
                 +91 8765428929
               </span>
@@ -90,10 +87,10 @@ const ProfileDetails = ({ onEditClick }) => {
 
           <li className=" grid grid-cols-1 md:grid-cols-12 mb-3">
             <div className="md:col-start-1 md:col-span-4">
-              <span className="inline-block text-2xl ">Date of Birth</span>
+              <span className="inline-block text-[20px]">Date of Birth</span>
             </div>
             <div className="md:col-start-5 md:col-span-8">
-              <span className="inline-block text-xl text-[#544C4C]">
+              <span className="inline-block text-[20px] text-[#544C4C]">
                 {" "}
                 12-11-1994
               </span>
@@ -101,10 +98,10 @@ const ProfileDetails = ({ onEditClick }) => {
           </li>
           <li className=" grid grid-cols-1 md:grid-cols-12 mb-3">
             <div className="md:col-start-1 md:col-span-4">
-              <span className="inline-block text-2xl ">Date of Joining </span>
+              <span className="inline-block text-[20px]">Date of Joining </span>
             </div>
             <div className="md:col-start-5 md:col-span-8">
-              <span className="inline-block text-xl text-[#544C4C]">
+              <span className="inline-block text-[20px] text-[#544C4C]">
                 10-10-2023
               </span>
             </div>
@@ -112,28 +109,28 @@ const ProfileDetails = ({ onEditClick }) => {
 
           <li className=" grid grid-cols-1 md:grid-cols-12 mb-3">
             <div className="md:col-start-1 md:col-span-4">
-              <span className="inline-block text-2xl ">
+              <span className="inline-block text-[20px]">
                 Registration Id Number
               </span>
             </div>
             <div className="md:col-start-5 md:col-span-8">
-              <span className="inline-block text-xl text-[#544C4C]">9019</span>
+              <span className="inline-block text-[20px] text-[#544C4C]">9019</span>
             </div>
           </li>
 
           <li className=" grid grid-cols-1 md:grid-cols-12 mb-3">
             <div className="md:col-start-1 md:col-span-4">
-              <span className="inline-block text-2xl ">Domain Belongs to</span>
+              <span className="inline-block text-[20px]">Domain Belongs to</span>
             </div>
             <div className="md:col-start-5 md:col-span-8">
-              <span className="inline-block text-xl text-[#544C4C]">
+              <span className="inline-block text-[20px] text-[#544C4C]">
                 Student
               </span>
             </div>
           </li>
           <li className=" grid grid-cols-1 md:grid-cols-12 mb-3">
             <div className="md:col-start-1 md:col-span-4">
-              <span className="inline-block text-2xl ">Social Media Links</span>
+              <span className="inline-block text-[20px]">Social Media Links</span>
             </div>
             <div className="md:col-start-5 md:col-span-8">
               <div className="flex gap-2">

@@ -12,15 +12,13 @@ export const metadata = {
 
 const Student_Enrolled_Courses = () => {
   return (
-    <PageWrapper>
-      {/* <main> */}
+    <main>
       <DashboardContainer>
         <HeadingDashboard />
         <StudentEnrolledCoursesMain />
       </DashboardContainer>
       <ThemeController />
-      {/* </main> */}
-    </PageWrapper>
+    </main>
   );
 };
 
