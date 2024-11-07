@@ -12,7 +12,7 @@ const SidebarDashboard = () => {
   const isInstructor = partOfPathNaem === "instructor" ? true : false;
   const adminItems = [
     {
-      title: " WELCOME, MICLE OBEMA",
+      title: "MAIN",
       items: [
         {
           name: "Dashboard",
@@ -149,6 +149,7 @@ const SidebarDashboard = () => {
             },
           ],
         },
+
         {
           name: "Course Management",
           icon: (
@@ -356,7 +357,7 @@ const SidebarDashboard = () => {
       ),
     },
     {
-      title: "USER",
+      title: "HELP & SETTINGS",
       items: [
         {
           name: "Settings",
@@ -667,6 +668,7 @@ const SidebarDashboard = () => {
         },
       ],
     },
+   
 
     {
       title: "USER",
@@ -716,6 +718,7 @@ const SidebarDashboard = () => {
       ],
     },
   ];
+  
 
   const studentItems = [
     {
@@ -1013,6 +1016,9 @@ const SidebarDashboard = () => {
       <div className=" pt-5 2xl:pr-4 2xl:pt-5 rounded-lg2 shadow-accordion dark:shadow-accordion-dark bg-whiteColor dark:bg-whiteColor-dark h-full">
         <div className="pt-6 px-8">
           <NavbarLogo />
+        </div>
+        <div className="pt-4 px-8">
+        <h2 className="text-xl text-gh font-bold mb-4">MAIN</h2>
         </div>
         {items?.map((item, idx) => (
           <ItemsDashboard key={idx} item={item} />
