@@ -5,6 +5,7 @@ import {
   SearchIcon,
   SettingIcon,
 } from "@/assets/images/icon/SearchIcon";
+import Link from "next/link";
 import { useState } from "react";
 
 const HeadingDashboard = ({ userName = "Manik" }) => {
@@ -65,14 +66,16 @@ const HeadingDashboard = ({ userName = "Manik" }) => {
           <>
             <BellIcon className="text-gray-500 hover:text-blackColor dark:text-gray-300 dark:hover:text-white cursor-pointer" />
             <SettingIcon className="text-gray-500 hover:text-blackColor dark:text-gray-300 dark:hover:text-white cursor-pointer" />
-            <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-600 overflow-hidden">
-              {/* Placeholder for user's profile image */}
-              <img
-                src="https://via.placeholder.com/32"
-                alt="User Profile"
-                className="w-full h-full object-cover"
-              />
-            </div>
+            <Link href="/dashboards/student-profile">
+              <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-600 overflow-hidden cursor-pointer">
+                {/* Placeholder for user's profile image */}
+                <img
+                  src="https://via.placeholder.com/32"
+                  alt="User Profile"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </Link>
           </>
         )}
       </div>
