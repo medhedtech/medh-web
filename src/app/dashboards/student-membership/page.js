@@ -10,14 +10,14 @@ export const metadata = {
 };
 const Student_Membership = () => {
   return (
-    <PageWrapper>
+    // <PageWrapper>
       <main>
         <DashboardContainer>
           <StudentMembership />
         </DashboardContainer>
         <ThemeController />
       </main>
-    </PageWrapper>
+    // </PageWrapper>
   );
 };
 
