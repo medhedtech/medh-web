@@ -1,7 +1,7 @@
 import Image from "next/image";
 import React from "react";
-import ProfileImg from "@/assets/images/dashbord/ProfileImg.png";
-import ProfileBanner from "@/assets/images/dashbord/ProfileBanner.png";
+import ProfileImg from "@/assets/images/dashbord/profileImg.png";
+import ProfileBanner from "@/assets/images/dashbord/profileBanner.png";
 
 const EditProfile = ({ onBackClick }) => {
   return (
