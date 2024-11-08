@@ -67,7 +67,7 @@ function HireFromMedhFaq() {
           Frequently Asked Questions (FAQs)
         </h2>
         <p className="text-center md:text-[15px] text-[14px] dark:text-gray300 mb-8 md:px-14 px-3">
-          Find answers to common questions about MEDH's Personality Development
+          Find answers to common questions about MEDH&#39;s Personality Development
           Course. Learn about course structure, prerequisites, career prospects,
           and more.
         </p>
