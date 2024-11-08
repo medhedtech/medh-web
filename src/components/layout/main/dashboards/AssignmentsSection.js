@@ -63,7 +63,7 @@ const AssignmentsSection = ({ onQuizClick }) => {
         </div>
         {/* Quize card  */}
         <div
-          className="p-4 w-64 bg-[#EFFFF6] rounded-lg "
+          className="p-4 w-64 bg-[#EFFFF6] rounded-lg cursor-pointer"
           onClick={onQuizClick}
         >
           <div className="mb-9">
