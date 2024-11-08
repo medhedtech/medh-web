@@ -17,7 +17,7 @@ const AboutContent = () => {
           mentorship. To empower individuals at every stage of life, from early
           childhood and adolescence (preschool, school, college) to working
           professionals and homemakers, with the knowledge and capabilities to
-          excel in today's dynamic world.
+          excel in today&#39;s dynamic world.
         </p>
       </div>
       <span className=" text-[#5C6574] dark:text-gray-200 font-bold leading-34px text-size-17 text-center">
@@ -36,7 +36,7 @@ const AboutContent = () => {
           <p className="text-[#727695] text-base text-left pt-4.5 pb-8">
             Our commitment to providing a seamless gamut of skill development
             courses, creating tailored learning pathways that accommodate every
-            phase of a child's developmental journey, from early childhood to
+            phase of a child&#39;s developmental journey, from early childhood to
             professional readiness. This holistic approach ensures that
             individuals are fully equipped for success at every stage of life.
           </p>
