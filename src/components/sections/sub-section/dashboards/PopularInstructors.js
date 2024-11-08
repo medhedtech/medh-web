@@ -52,9 +52,9 @@ const PopularInstructors = () => {
   ];
   return (
     <div className="p-10px md:px-10 md:py-50px mb-30px bg-whiteColor dark:bg-whiteColor-dark shadow-accordion dark:shadow-accordion-dark rounded-5 max-h-137.5 overflow-auto">
-      <HeadingDashboard path={`/instructors`}>
+      {/* <HeadingDashboard path={`/instructors`}>
         Popular Instructor
-      </HeadingDashboard>
+      </HeadingDashboard> */}
 
       {/* instrutor */}
       <ul>
