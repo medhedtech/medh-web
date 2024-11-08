@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import AiMl from "@/assets/images/courses/Ai&Ml.jpeg";
 import reactImg from "@/assets/images/courses/React.jpeg";
 import os from "@/assets/images/courses/os.jpeg";
-import javascript from "@/assets/images/courses/JavaScript.jpeg";
+import javascript from "@/assets/images/courses/javaScript.jpeg";
 
 const RecordedSessions = () => {
   const router = useRouter();
