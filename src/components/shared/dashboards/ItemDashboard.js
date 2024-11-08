@@ -71,7 +71,10 @@ const ItemDashboard = ({ item }) => {
               {icon} {name}
             </Link>
           ) : (
-            <div className="leading-1.8 flex gap-3 text-contentColor pl-10 ">
+            <div
+              onClick={toggleDropdown} // Clicking on the heading will toggle the dropdown
+              className="leading-1.8 flex gap-3 text-contentColor pl-10 cursor-pointer"
+            >
               {icon} {name} {/* Render as heading if no path */}
             </div>
           )}
@@ -81,7 +84,7 @@ const ItemDashboard = ({ item }) => {
         <div className="flex items-center space-x-2 pr-4">
           {subItems && (
             <button
-              onClick={toggleDropdown}
+              onClick={toggleDropdown} // Optional: Keep the button for the dropdown icon if desired
               className="text-contentColor dark:text-contentColor-dark"
             >
               <svg
@@ -111,7 +114,7 @@ const ItemDashboard = ({ item }) => {
 
       {/* Dropdown Menu */}
       {subItems && isDropdownOpen && (
-        <ul className="pl-10 mt-2 space-y-1">
+        <ul className="pl-16 mt-2 space-y-1"> {/* Increase padding for indentation */}
           {subItems.map((subItem, idx) => (
             <li key={idx} className="flex items-center gap-2">
               <Link
@@ -122,12 +125,9 @@ const ItemDashboard = ({ item }) => {
                     : "text-contentColor dark:text-contentColor-dark"
                 } block w-full flex items-center`}
               >
-                {subItem.icon && (
-                  <span className="mr-2">
-                    {subItem.icon}
-                  </span>
-                )}
-                {subItem.name}
+                {/* Render sub-item icons and text with a little offset */}
+                <span className="mr-2">{subItem.icon}</span>
+                <span className="whitespace-nowrap">{subItem.name}</span> {/* Prevent wrapping */}
               </Link>
             </li>
           ))}
