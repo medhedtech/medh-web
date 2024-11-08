@@ -4,7 +4,7 @@ import EnrollCoursesCard from "./EnrollCoursesCard";
 import reactImg from "@/assets/images/courses/React.jpeg";
 import hockey from "@/assets/images/courses/hockey.jpeg";
 import os from "@/assets/images/courses/os.jpeg";
-import javascript from "@/assets/images/courses/JavaScript.jpeg";
+import javascript from "@/assets/images/courses/javaScript.jpeg";
 import { useRouter } from "next/navigation";
 
 const EnrollCourses = () => {
