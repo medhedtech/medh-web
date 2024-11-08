@@ -11,6 +11,7 @@ const AdminDashboardMain = () => {
     <>
       <CounterAdmin />
       <ChartDashboard />
+      <AdminFeedbacks />
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-30px">
         {/* popular instructor */}
         <PopularInstructors />
@@ -18,13 +19,10 @@ const AdminDashboardMain = () => {
         <RecentCourses />
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-30px">
-        {/* Notice Board */}
+      {/* <div className="grid grid-cols-1 xl:grid-cols-2 gap-30px">
         <NoticeBoard />
-        {/* notifications */}
         <Notifications />
-      </div>
-      <AdminFeedbacks />
+      </div> */}
     </>
   );
 };
