@@ -2,9 +2,9 @@ import HeadingPrimary from "@/components/shared/headings/HeadingPrimary";
 import SectionNameSecondary from "@/components/shared/section-names/SectionNameSecondary";
 import Image from "next/image";
 import React from "react";
-import teamImage1 from "@/assets/images/team/team__1.png";
-import teamImage2 from "@/assets/images/team/team__2.png";
-import teamImage3 from "@/assets/images/team/team__3.png";
+import teamImage1 from "@/assets/images/team/img1.png";
+import teamImage2 from "@/assets/images/team/img2.png";
+import teamImage3 from "@/assets/images/team/img3.png";
 import Instructor from "@/components/shared/instructors/Instructor";
 import HeadingPrimaryXl from "@/components/shared/headings/HeadingPrimaryXl ";
 const Instructors2 = () => {
