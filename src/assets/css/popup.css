@@ -76,6 +76,12 @@
   border-left-color: white;
   right: 30px;
 }
+.react-time-picker__wrapper {
+  display: flex;
+  flex-grow: 1;
+  flex-shrink: 0;
+  border: none;
+}
 /* xs: "320px",
 // => @media (min-width: 320px) { ... }
 sm: "576px", */
