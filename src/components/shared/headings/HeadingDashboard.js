@@ -23,7 +23,7 @@ const HeadingDashboard = ({ userName = "Manik" }) => {
   };
 
   return (
-    <div className="flex items-center justify-between p-8 w-full">
+    <div className="flex font-Open items-center justify-between p-8 w-full">
       {!focused && (
         <div className="flex flex-col">
           <h2 className="text-lg font-semibold text-blackColor dark:text-white">
