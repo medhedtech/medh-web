@@ -7,6 +7,8 @@ import {
 } from "@/assets/images/icon/SearchIcon";
 import Link from "next/link";
 import { useState } from "react";
+import teacherImage1 from "@/assets/images/teacher/teacher__1.png";
+import Image from "next/image";
 
 const HeadingDashboard = ({ userName = "Manik" }) => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -69,8 +71,8 @@ const HeadingDashboard = ({ userName = "Manik" }) => {
             <Link href="/dashboards/student-profile">
               <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-600 overflow-hidden cursor-pointer">
                 {/* Placeholder for user's profile image */}
-                <img
-                  src="https://via.placeholder.com/32"
+                <Image
+                  src={teacherImage1}
                   alt="User Profile"
                   className="w-full h-full object-cover"
                 />
