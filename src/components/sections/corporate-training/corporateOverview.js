@@ -66,7 +66,7 @@ export default function CorporateOverview() {
         {/* Title */}
         <div className="flex items-center flex-col w-80% md:mb-20 mb-10 px-4">
           <h1 className="text-[24px] leading-7 md:text-4xl font-bold md:mb-3 mb-2 dark:text-white text-[#000000]">
-            Gain a competitive edge with Medh's Corporate Training Courses
+            Gain a competitive edge with Medh&#39;s Corporate Training Courses
           </h1>
           <p className="text-center md:text-[15px] text-[14px] leading-6 md:leading-7 md:w-[70%] dark:text-gray300 text-[#727695]">
             Our SMART (Specific, Measurable, Achievable, Relevant, and
