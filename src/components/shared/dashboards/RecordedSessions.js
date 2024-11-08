@@ -47,7 +47,15 @@ const RecordedSessions = () => {
 
   return (
     <div className="container mx-auto p-8">
-      <h2 className="text-3xl mb-4">Access Recorded Sessions</h2>
+      <div className="flex items-center justify-between font-normal font-Open  pb-4 ">
+        <h2 className="text-size-32 font-Open">Access Recorded Sessions</h2>
+        <a
+          href="#"
+          className="text-green-500 text-sm font-semibold hover:underline"
+        >
+          View All
+        </a>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {sessions.map((session) => (
           <div
