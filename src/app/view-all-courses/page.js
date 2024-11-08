@@ -32,7 +32,7 @@ const Courses = async () => {
             <p className="text-white text-xl md:text-size-38 font-bold leading-45px bg-opacity-50 inline-block py-2 md:px-4 rounded-lg">
               Accelerate Your Personal and Professional Growth with <br />{" "}
               <span className="text-[#F6B335]">
-                Medh's Skill Development Courses
+                Medh&#39;s Skill Development Courses
               </span>
             </p>
           </div>
@@ -65,7 +65,7 @@ const Courses = async () => {
                 </h3>
                 <p className="text-gray-600 mt-2 dark:text-gray300">
                   Offer industry-recognized certifications upon completion,
-                  adding credibility to the student's skillset and enhancing
+                  adding credibility to the student&#39;s skillset and enhancing
                   their professional profile.
                 </p>
               </div>
@@ -91,17 +91,17 @@ const Courses = async () => {
         {/* Footer Text */}
         <div className="lg:mt-44 mt-[34rem] md:mt-64 px-4">
           <h1 className="text-2xl md:text-3xl dark:text-gray-50 leading-8 md:leading-10 text-center font-bold py-6">
-            Experience the transformative impact of MEDH's skill development
+            Experience the transformative impact of MEDH&#39;s skill development
             courses.
           </h1>
           <p className="text-[#5C6574] dark:text-gray-200 text-base md:text-lg text-center pb-10">
             Our skill development programs are designed for people of all ages
-            and stages of life. Whether you're a young learner, a working
+            and stages of life. Whether you&#39;re a young learner, a working
             <br className="hidden md:block" />
             professional, or managing a home, our programs are carefully crafted
             to bring you joy
             <br className="hidden md:block" />
-            and value, giving you an edge in today's changing world.
+            and value, giving you an edge in today&#39;s changing world.
           </p>
         </div>
         <CoursesFilter />

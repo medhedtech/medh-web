@@ -108,7 +108,7 @@ const KeyAdvantages = () => {
           </h2>
           <p className="mt-4 lg:px-16 px-2 text-[#5C6574] dark:text-gray300 text-[17px] font-normal leading-6 font-sans ">
             Equip your students for the future: upskill for confidence,
-            job-readiness, and success. Let's work together to bring innovative
+            job-readiness, and success. Let&#39;s work together to bring innovative
             and effective education solutions to your institution.
           </p>
         </div>
