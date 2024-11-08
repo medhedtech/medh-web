@@ -47,7 +47,7 @@ function PersonalityFaq() {
           Frequently Asked Questions (FAQs)
         </h2>
         <p className="text-center md:text-[15px] text-[14px] mb-8 md:px-35 px-3">
-          Find answers to common questions about MEDH's Personality Development
+          Find answers to common questions about MEDH&#39;s Personality Development
           Course. Learn about course structure, prerequisites, career prospects,
           and more.
         </p>
@@ -89,7 +89,7 @@ function PersonalityFaq() {
           <a href="" className="text-[#0000FF] font-semibold">
             care@medh.co
           </a>
-          , and we’ll be happy to assist you!
+          , and we&#39;ll be happy to assist you!
         </p>
       </div>
     </div>

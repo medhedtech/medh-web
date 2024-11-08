@@ -125,7 +125,7 @@ const BrowseCategories = () => {
             </h3>
             <p className="text-gray-600 mt-2 dark:text-gray300">
               Offer industry-recognized certifications upon completion, adding
-              credibility to the student's skillset and enhancing their
+              credibility to the student&#39;s skillset and enhancing their
               professional profile.
             </p>
           </div>
