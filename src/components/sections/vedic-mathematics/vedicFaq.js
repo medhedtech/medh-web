@@ -34,7 +34,7 @@ function VedicFaq() {
     },
     {
       question:
-        "Will Vedic Math classes complement a student’s academic performance?",
+        "Will Vedic Math classes complement a student&#39;s academic performance?",
       answer:
         "Absolutely! The skills learned in this course are highly beneficial for career growth and personal development.",
     },

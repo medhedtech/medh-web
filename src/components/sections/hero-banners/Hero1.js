@@ -48,7 +48,7 @@ const Hero1 = () => {
                   <Link href="/courses"
                     className="bg-[#7ECA9D] text-white border border-[#7ECA9D] w-fit font-bold sm:text-base text-[12px] sm:px-4 px-2 sm:py-2 py-1 inline-block"
                   >
-                    Let's Connect
+                    Let&#39;s Connect
                   </Link>
                   <span className="mt-[6px] sm:text-base text-[12px] font-semibold underline underline-offset-8">
                     ISO CERTIFIED
