@@ -3,7 +3,6 @@ import teacherImage2 from "@/assets/images/teacher/teacher__2.png";
 import teacherImage3 from "@/assets/images/teacher/teacher__3.png";
 import teacherImage4 from "@/assets/images/teacher/teacher__4.png";
 import teacherImage5 from "@/assets/images/teacher/teacher__5.png";
-import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -12,6 +11,7 @@ const PopularInstructors = () => {
     {
       id: 1,
       name: "Sanki Jho",
+      description: "Foundation course to understand about software",
       avatar: teacherImage1,
       reviews: "25,895",
       students: "692",
@@ -20,6 +20,7 @@ const PopularInstructors = () => {
     {
       id: 2,
       name: "Nidmjae Mollin",
+      description: "Foundation course to understand about software",
       avatar: teacherImage2,
       reviews: "21,895",
       students: "95",
@@ -28,6 +29,7 @@ const PopularInstructors = () => {
     {
       id: 3,
       name: "Nidmjae Mollin",
+      description: "Foundation course to understand about software",
       avatar: teacherImage3,
       reviews: "17,895",
       students: "325",
@@ -36,6 +38,7 @@ const PopularInstructors = () => {
     {
       id: 4,
       name: "Sndi Jac",
+      description: "Foundation course to understand about software",
       avatar: teacherImage4,
       reviews: "17,895",
       students: "325",
@@ -44,6 +47,7 @@ const PopularInstructors = () => {
     {
       id: 5,
       name: "Sndi Jac",
+      description: "Foundation course to understand about software",
       avatar: teacherImage5,
       reviews: "17,895",
       students: "325",
@@ -52,14 +56,26 @@ const PopularInstructors = () => {
   ];
   return (
     <div className="p-10px md:px-10 md:py-50px mb-30px bg-whiteColor dark:bg-whiteColor-dark shadow-accordion dark:shadow-accordion-dark rounded-5 max-h-137.5 overflow-auto">
-      {/* <HeadingDashboard path={`/instructors`}>
-        Popular Instructor
-      </HeadingDashboard> */}
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl md:text-[18px] font-semibold text-gray-800">
+          Recent Course
+        </h2>
+        <div>
+          <h3 className="cursor-pointer text-xl md:text-[16px] font-normal text-gray-800">
+            See More...
+          </h3>
+        </div>
+      </div>
+
+      <div className="w-full border-t-2 border-gray-200 mb-4"></div>
 
       {/* instrutor */}
       <ul>
         {instructors?.map(
-          ({ id, name, avatar, reviews, students, courses }, idx) => (
+          (
+            { id, name, description, avatar, reviews, students, courses },
+            idx
+          ) => (
             <li
               key={idx}
               className={`flex items-center flex-wrap  ${
@@ -75,24 +91,23 @@ const PopularInstructors = () => {
               {/* details */}
               <div className="max-w-full md:max-w-4/5 pr-10px">
                 <div>
-                  <h5 className="text-lg leading-1 font-bold text-contentColor dark:text-contentColor-dark mb-5px">
-                    <Link
-                      className="hover:text-primaryColor"
-                      href={`/instructors/${id}`}
-                    >
-                      {name}
-                    </Link>
+                  <h5 className="text-[18px] leading-1 font-semibold text-contentColor dark:text-contentColor-dark mb-5px">
+                    {description}
                   </h5>
-                  <div className="flex flex-wrap items-center text-sm text-darkblack dark:text-darkblack-dark gap-x-15px gap-y-10px leading-1.8">
-                    <p>
-                      <i className="icofont-chat"></i> {reviews} Reviews
+                  <div className="flex items-center text-sm text-darkblack dark:text-darkblack-dark gap-x-4 leading-1.8">
+                    <p className="flex items-center gap-x-1">
+                      <i className="icofont-student-alt"></i>
+                      {name}
                     </p>
-                    <p>
-                      <i className="icofont-student-alt"></i> {students}{" "}
-                      Students
+                    <p className="flex items-center gap-x-1">
+                      <i className="icofont-video-alt"></i>
+                      {students} lesson
                     </p>
-                    <p>
-                      <i className="icofont-video-alt"></i> {courses}+ Courses
+                  </div>
+
+                  <div className="flex items-center text-sm text-darkblack dark:text-darkblack-dark gap-x-4 leading-1.8">
+                    <p className="flex items-center gap-x-1">
+                      <i className="icofont-video-alt"></i>1 hr 30 min
                     </p>
                   </div>
                 </div>
