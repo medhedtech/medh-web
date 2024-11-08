@@ -10,7 +10,7 @@ export const metadata = {
 };
 const Admin_Reviews = () => {
   return (
-    <PageWrapper>
+    // <PageWrapper>
       <main>
         {/* <DsahboardWrapper> */}
           <DashboardContainer>
@@ -20,7 +20,7 @@ const Admin_Reviews = () => {
         {/* </DsahboardWrapper> */}
         <ThemeController />
       </main>
-    </PageWrapper>
+    // </PageWrapper>
   );
 };
 
