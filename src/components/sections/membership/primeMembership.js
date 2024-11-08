@@ -68,8 +68,8 @@ const PrimeMembership = () => {
           ))}
         </div>
         <p className="mt-6 text-base px-6 text-[#F6B335]  ">
-          Note: Only Medh's Blended Courses having 'Pre-Recorded Videos with
-          Live Interactive Doubt Clearing Sessions' would be eligible for these
+          Note: Only Medh&#39;s Blended Courses having &#39;Pre-Recorded Videos with
+          Live Interactive Doubt Clearing Sessions&#39; would be eligible for these
           memberships.
         </p>
 

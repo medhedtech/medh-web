@@ -51,7 +51,7 @@ const ContactBanner = () => {
                     href="/courses"
                     className="bg-[#7ECA9D] text-white border border-[#7ECA9D] w-fit font-bold text-base px-4 py-2 inline-block"
                   >
-                    Let's Connect
+                    Let&#39;s Connect
                   </Link>
                   <span className="mt-2 text-base font-semibold underline dark:text-white underline-offset-8">
                     ISO CERTIFIED
