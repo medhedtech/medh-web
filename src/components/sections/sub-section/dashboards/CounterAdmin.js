@@ -1,7 +1,9 @@
-import counter1 from "@/assets/images/counter/counter__1.png";
-import counter2 from "@/assets/images/counter/counter__2.png";
-import counter3 from "@/assets/images/counter/counter__3.png";
-import counter4 from "@/assets/images/counter/counter__4.png";
+import counter1 from "@/assets/images/counter/card-1.png";
+import counter2 from "@/assets/images/counter/card-1.png";
+import counter3 from "@/assets/images/counter/card-2.png";
+import counter4 from "@/assets/images/counter/card-3.png";
+import counter5 from "@/assets/images/counter/card-4.png";
+import counter6 from "@/assets/images/counter/card-5.png";
 import CounterDashboard from "@/components/shared/dashboards/CounterDashboard";
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 const CounterAdmin = () => {
@@ -13,13 +15,13 @@ const CounterAdmin = () => {
       symbol: "+",
     },
     {
-      name: "Active Courses",
+      name: "Active Students",
       image: counter2,
       data: 500,
       symbol: "+",
     },
     {
-      name: "Complete Courses",
+      name: "Total Instructors ",
       image: counter3,
       data: 300,
       symbol: "k",
@@ -31,14 +33,14 @@ const CounterAdmin = () => {
       symbol: "+",
     },
     {
-      name: "Total Students",
-      image: counter3,
+      name: "Cooporate Employee",
+      image: counter5,
       data: 30,
       symbol: "k",
     },
     {
-      name: "OVER THE WORLD",
-      image: counter4,
+      name: "School/Institute",
+      image: counter6,
       data: 90,
       symbol: ",000k+",
     },
