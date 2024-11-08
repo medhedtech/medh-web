@@ -101,7 +101,7 @@ const BrandHero = () => {
             and bespoke mentorship. To empower individuals at every stage of
             life, from early childhood and adolescence (preschool, school,
             college) to working professionals and homemakers, with the knowledge
-            and capabilities to excel in today's dynamic world.
+            and capabilities to excel in today&#39;s dynamic world.
           </div>
           <span className="font-bold text-sm lg:text-base pb-8 mt-4 dark:text-white">
             We nurture growth, foster expertise, and ignite potential for
