@@ -11,7 +11,7 @@ export const metadata = {
 };
 const Add_data = () => {
   return (
-    <PageWrapper>
+    // <PageWrapper>
       <main>
         {/* <DsahboardWrapper> */}
           <DashboardContainer>
@@ -23,7 +23,7 @@ const Add_data = () => {
         {/* </DsahboardWrapper> */}
         <ThemeController />
       </main>
-    </PageWrapper>
+    // </PageWrapper>
   );
 };
 
