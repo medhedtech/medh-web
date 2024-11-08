@@ -71,7 +71,7 @@ function JobApply() {
         <div className="my-2">
           <input type="checkbox" required />
           <span className="ml-2 text-sm text-gray-800 dark:text-gray300">
-            I'm not a robot
+            I&#39;m not a robot
           </span>
         </div>
         <button
