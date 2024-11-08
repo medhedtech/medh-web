@@ -7,8 +7,17 @@ const RecentCourses = () => {
 
   return (
     <div className="p-10px md:px-10 md:py-50px mb-30px bg-whiteColor dark:bg-whiteColor-dark shadow-accordion dark:shadow-accordion-dark rounded-5 max-h-137.5 overflow-auto">
-      {/* <HeadingDashboard path={"/courses"}>Recent Course</HeadingDashboard> */}
-      {/* instrutor */}
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl md:text-[18px] font-semibold text-gray-800">
+          Notice Board
+        </h2>
+        <div>
+          <h3 className="cursor-pointer text-xl md:text-[16px] font-normal text-gray-800">
+            See More...
+          </h3>
+        </div>
+      </div>
+      <div className="w-full border-t-2 border-gray-200 mb-4"></div>
       <ul>
         {courses?.map(
           ({ title, id, lesson, insName, duration, image }, idx) => (
@@ -42,17 +51,6 @@ const RecentCourses = () => {
                       {title}
                     </Link>
                   </h5>
-                  <div className="flex flex-wrap items-center justify-between text-sm text-darkblack dark:text-darkblack-dark gap-x-15px gap-y-10px leading-1.8">
-                    <p>
-                      <i className="icofont-teacher"></i> {insName}
-                    </p>
-                    <p>
-                      <i className="icofont-book-alt"></i> {lesson}
-                    </p>
-                    <p>
-                      <i className="icofont-clock-time"></i> {duration}
-                    </p>
-                  </div>
                 </div>
               </div>
             </li>
