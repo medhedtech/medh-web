@@ -42,7 +42,7 @@ const AssignmentCard = ({ title, instructor, status, daysLeft, image }) => {
           className="w-27 h-27 rounded-md mr-4"
         />
         <div className="w-full">
-          <h3 className="text-sm text-[#171A1F]">{title}</h3>
+          <h3 className="text-sm text-[#171A1F] font-Open">{title}</h3>
           <p className="text-size-11 text-[#9095A0]">
             Instructor: {instructor}
           </p>

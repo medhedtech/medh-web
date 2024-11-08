@@ -668,7 +668,6 @@ const SidebarDashboard = () => {
         },
       ],
     },
-   
 
     {
       title: "USER",
@@ -718,7 +717,6 @@ const SidebarDashboard = () => {
       ],
     },
   ];
-  
 
   const studentItems = [
     {
@@ -1011,14 +1009,14 @@ const SidebarDashboard = () => {
     ? instructorItems
     : studentItems;
   return (
-    <div className="w-72 ">
+    <div className="w-72 font-Open">
       {/* navigation menu */}
       <div className=" pt-5 2xl:pr-4 2xl:pt-5 rounded-lg2 shadow-accordion dark:shadow-accordion-dark bg-whiteColor dark:bg-whiteColor-dark h-full">
         <div className="pt-6 px-8">
           <NavbarLogo />
         </div>
         <div className="pt-4 px-8">
-        {/* <h2 className="text-xl text-gh font-bold mb-4">MAIN</h2> */}
+          {/* <h2 className="text-xl text-gh font-bold mb-4">MAIN</h2> */}
         </div>
         {items?.map((item, idx) => (
           <ItemsDashboard key={idx} item={item} />
