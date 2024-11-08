@@ -100,11 +100,13 @@ const StudentEnrolledCourses = () => {
   ];
 
   return (
-    <div className="p-12 rounded-lg max-w-full mx-auto">
-      <h2 className="text-3xl font-semibold mb-8">Course Resources</h2>
+    <div className="p-12 rounded-lg max-w-full mx-auto font-Open">
+      <h2 className="text-3xl font-semibold mb-8 font-Open dark:text-white">
+        Course Resources
+      </h2>
 
       {/* Tab Buttons */}
-      <div className="flex mb-6">
+      <div className="flex mb-6 ">
         {tabs.map((tab, idx) => (
           <button
             key={idx}
@@ -125,11 +127,11 @@ const StudentEnrolledCourses = () => {
         {tabs.map((tab, idx) => (
           <div key={idx} className={idx === currentTab ? "block" : "hidden"}>
             {tab.content.length > 0 ? (
-              <div className="space-y-4">
+              <div className="space-y-4 ">
                 {tab.content.map((course) => (
                   <div
                     key={course.id}
-                    className="p-5 bg-white shadow rounded-lg flex gap-4 items-start"
+                    className="p-5 bg-white dark:bg-inherit dark:border shadow rounded-lg flex gap-4 items-start font-Open"
                   >
                     <Image
                       src={course.image}
@@ -139,7 +141,7 @@ const StudentEnrolledCourses = () => {
                       className="rounded-md object-cover"
                     />
                     <div>
-                      <h3 className="text-xl text-[#171A1F] font-normal">
+                      <h3 className="text-xl text-[#171A1F] font-normal font-Open dark:text-white">
                         {course.title}
                       </h3>
                       <p className="text-[#9095A0]">
@@ -147,7 +149,7 @@ const StudentEnrolledCourses = () => {
                       </p>
                       <a
                         href={course.downloadLink}
-                        className="text-[#7ECA9D] font-medium flex items-center mt-2 hover:underline"
+                        className="text-[#7ECA9D] font-medium flex items-center mt-2 hover:underline font-Open"
                       >
                         <span className="material-icons mr-1">
                           <Image

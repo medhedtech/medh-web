@@ -59,8 +59,8 @@ const LineChartDashboard = () => {
     }
   }, []);
   return (
-    <div className="w-full md:w-65%">
-      <div className="md:px-5 py-10px md:py-0">
+    <div className="w-full md:w-65% font-Poppins">
+      <div className="md:px-5 py-10px md:py-0 font-pop">
         <div className="mb-6 pb-5 border-b-2 border-borderColor dark:border-borderColor-dark flex justify-between items-center gap-2">
           <h2 className="text-2xl font-bold text-blackColor dark:text-blackColor-dark">
             Dashboard

@@ -60,16 +60,14 @@ const AdminFeedbacks = () => {
   ]);
 
   return (
-    <div className="p-6 md:p-10 bg-white shadow rounded-lg mb-8">
+    <div className="p-6 md:p-10 bg-white shadow rounded-lg mb-8 font-Poppins">
       {/* Heading Section */}
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl md:text-2xl font-semibold text-gray-800">
           Instructor Highlights
         </h2>
         <div className="flex items-center space-x-4 ml-[-24px]">
-          <div
-            className={`relative ${focused ? "w-full" : "w-80"}`}
-          >
+          <div className={`relative ${focused ? "w-full" : "w-80"}`}>
             <SearchIcon
               className={`absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ${
                 focused ? "hidden" : "block"
@@ -106,7 +104,7 @@ const AdminFeedbacks = () => {
       {/* Table Section */}
       <div className="overflow-auto">
         <table className="w-full text-left text-sm">
-          <thead className="text-gray-600 bg-gray-100">
+          <thead className="text-[#232323] font-medium bg-gray-100">
             <tr>
               <th className="px-4 py-3 font-semibold">No.</th>
               <th className="px-4 py-3 font-semibold">Name</th>
