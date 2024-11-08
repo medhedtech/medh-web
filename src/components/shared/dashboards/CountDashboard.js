@@ -3,17 +3,17 @@ import Image from "next/image";
 const CountDashboard = ({ count }) => {
   const { name, data, image, symbol } = count;
   return (
-    <div className="md:px-0 md:py-0px flex justify-between bg-gradient-to-r from-slate-900 to-green-950 dark:bg-whiteColor-dark rounded-3xl shadow-accordion-dark hover:bg-customGreen">
+    <div className="md:px-0 md:py-0px flex justify-between  dark:bg-whiteColor-dark rounded-3xl shadow-accordion-dark hover:bg-customGreen">
       <div className="flex flex-col justify-between gap-4 ">
         <div className="p-4">
           <Image src={image} alt="" />
         </div>
-        <p className=" p-4 font-medium leading-[18px] text-white dark:text-white">
+        <p className=" p-4 font-medium leading-[18px] text-black dark:text-white">
           {name}
         </p>
       </div>
       <div>
-        <h3 className="text-size-34 leading-[1.1] text-white font-bold font-hind px-4 py-3 dark:text-blackColor-dark">
+        <h3 className="text-size-34 leading-[1.1] text-black font-bold font-hind px-4 py-3 dark:text-blackColor-dark">
           <span data-countup-number={data}> {data}</span>
           {symbol ? <span>{symbol}</span> : ""}
         </h3>
