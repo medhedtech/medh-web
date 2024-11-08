@@ -3,7 +3,7 @@ import React from "react";
 const WhatYouGet = ({ benefits }) => {
   return (
     <div className="p-4 mb-4">
-      <h3 className="text-lg font-semibold mb-4">What You'll Get</h3>
+      <h3 className="text-lg font-semibold mb-4">What You&#39;ll Get</h3>
       <div className="">
         {/* {benefits.map((benefit, index) => (
           <li key={index} className="text-sm text-gray-600 flex items-center">

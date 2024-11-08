@@ -34,7 +34,7 @@ const TechEducator = () => {
             with passion, while receiving rewarding compensation.
           </h2>
           <p className="mt-2 font-semibold text-base text-[#5C6574] dark:text-gray300  lg:px-[16rem]">
-            Become a part of MEDH's innovative learning community. We are
+            Become a part of MEDH&#39;s innovative learning community. We are
             looking for:
           </p>
         </div>

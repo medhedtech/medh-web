@@ -131,7 +131,7 @@ const WhyChooseMEDH = () => {
             <span className="mr-2">
               <DownArrowIcon />
             </span>
-            <p className="text-white font-bold text-sm">Let's Connect</p>
+            <p className="text-white font-bold text-sm">Let&#39;s Connect</p>
           </div>
         </div>
       </div>

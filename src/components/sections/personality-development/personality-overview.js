@@ -8,7 +8,7 @@ const data = {
       id: 1,
       name: "Overview",
       content:
-        "Introducing Medh’s Personality Development Courses that offer practical insights and techniques to enhance confidence, communication, and leadership capabilities for personal and professional success.",
+        "Introducing Medh&#39;s Personality Development Courses that offer practical insights and techniques to enhance confidence, communication, and leadership capabilities for personal and professional success.",
     },
     {
       id: 2,
@@ -92,7 +92,7 @@ const PersonalityOverview = () => {
     <div className="bg-white dark:bg-screen-dark h-auto py-10  w-full flex justify-center items-center">
       <div className=" w-full md:w-[80%] ">
         <div className="flex items-center flex-col w-80% md:mb-20 mb-10 px-4 ">
-        <h1 className="text-[24px]  leading-7 md:text-4xl  font-bold md:mb-3 mb-2 text-[#41454F] dark:text-gray-50 ">Welcome to Medh's Transformative Personality Development Course</h1>
+        <h1 className="text-[24px]  leading-7 md:text-4xl  font-bold md:mb-3 mb-2 text-[#41454F] dark:text-gray-50 ">Welcome to Medh&#39;s Transformative Personality Development Course</h1>
         <p className="text-center md:text-[15px] text-[14px] leading-6 md:leading-7 md:w-[70%] text-[#727695] dark:text-gray-300">Our course is designed to foster crucial life skills and character traits, offering inclusivity for individuals at every stage of life. Whether you’re a student, professional, or homemaker, this program empowers you with essential life skills, confidence, and interpersonal abilities.</p>
         </div>
 
@@ -121,7 +121,7 @@ const PersonalityOverview = () => {
           <p className=" mb-2 md:text-[15px] text-[14px] dark:text-gray300 ">
             Introducing{" "}
             <span className="text-lightGrey14 md:text-[1rem] text-[15px] font-bold tracking-wide dark:text-gray50 ">
-              Medh’s Personality Development Courses{" "}
+              Medh&#39;s Personality Development Courses{" "}
             </span>{" "}
             that offer practical insights and techniques to enhance confidence,
             communication, and leadership capabilities for personal and
