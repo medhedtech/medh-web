@@ -3,7 +3,7 @@ import React from "react";
 import CourseCard from "./CourseCard";
 import reactImg from "@/assets/images/courses/React.jpeg";
 import os from "@/assets/images/courses/os.jpeg";
-import javascript from "@/assets/images/courses/JavaScript.jpeg";
+import javascript from "@/assets/images/courses/javaScript.jpeg";
 import AiMl from "@/assets/images/courses/Ai&Ml.jpeg";
 import { useRouter } from "next/navigation";
 

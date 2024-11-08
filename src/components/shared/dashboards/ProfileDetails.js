@@ -1,6 +1,6 @@
 import Image from "next/image";
 import React from "react";
-import ProfileImg from "@/assets/images/dashbord/ProfileImg.png";
+import ProfileImg from "@/assets/images/dashbord/profileImg.png";
 
 const ProfileDetails = ({ onEditClick }) => {
   return (
