@@ -70,7 +70,7 @@ const UsersTable = () => {
   ];
 
   return (
-    <div className="flex items-start justify-center min-h-screen bg-gray-100 p-4 pt-9">
+    <div className="flex items-start font-Poppins justify-center min-h-screen bg-gray-100 p-4 pt-9">
       <div className="w-full max-w-6xl bg-white p-8 md:p-10 rounded-lg shadow-md">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 space-y-4 md:space-y-0">
           <h2 className="text-xl font-semibold md:text-left">Users List</h2>
