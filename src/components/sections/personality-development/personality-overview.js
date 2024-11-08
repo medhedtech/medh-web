@@ -125,7 +125,7 @@ const PersonalityOverview = () => {
             </span>{" "}
             that offer practical insights and techniques to enhance confidence,
             communication, and leadership capabilities for personal and
-            professional success.",
+            professional success.&#34;,
           </p>
           {activeTab === 1 && (
             <>
@@ -136,7 +136,7 @@ const PersonalityOverview = () => {
                 From preschoolers, school students, college students,
                 professionals, and homemakers, providing unique and engaging
                 content designed to enhance their confidence, communication, and
-                leadership skills.",
+                leadership skills.&#34;,
               </p>
               {/* Key Features Section */}
               <h2 className=" text-[1.3rem] font-bold mb-4 tracking-wide dark:text-gray50 ">
