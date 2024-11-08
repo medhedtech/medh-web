@@ -174,6 +174,8 @@ module.exports = {
         customGreen: '#7ECA9D',
         orange: '#FFA927',
         orange2: '#FFF0D9',
+        purple: '#F4F1FE',
+        gh: '#808080',
       
 
         "bodyColor-dark": "#fff",

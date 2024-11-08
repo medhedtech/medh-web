@@ -8,11 +8,14 @@ import {
   FaSearch,
   FaCalendarAlt,
 } from "react-icons/fa";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const CertificatePage = () => {
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [completionDate, setCompletionDate] = useState(null);
 
   const users = [
     {
@@ -68,7 +71,7 @@ const CertificatePage = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen pt-0 bg-gray-100 p-6">
+    <div className="flex justify-center items-center min-h-screen pt-9 bg-gray-100 p-6">
       <div className="w-full max-w-6xl bg-white rounded-lg shadow-md p-8">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-semibold">Certificate</h2>
@@ -120,9 +123,10 @@ const CertificatePage = () => {
                   <p className="font-semibold text-gray-800">{user.name}</p>
                   <p className="text-sm text-gray-600">
                     Completed{" "}
-                    <span className="text-indigo-600">{user.course}</span> on{" "}
+                    <span className="text-customGreen underline">{user.course}</span> on{" "}
                     {user.date}
                   </p>
+
                 </div>
               </div>
               <button
@@ -178,16 +182,23 @@ const CertificatePage = () => {
               <div>
                 <label className="block text-gray-700">Completion Date</label>
                 <div className="relative">
-                  <FaCalendarAlt className="absolute top-2 left-3 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Completion Date"
-                    value="19-10-2024"
-                    readOnly
-                    className="w-full px-10 py-2 border border-gray-300 rounded-md bg-gray-100"
+                  {/* Calendar Icon */}
+                  <FaCalendarAlt
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10"
+                  />
+                  {/* Date Picker Field */}
+                  <DatePicker
+                    selected={completionDate}
+                    onChange={(date) => setCompletionDate(date)}
+                    placeholderText="Select Completion Date"
+                    dateFormat="dd-MM-yyyy"
+                    className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-md bg-white" // Increased px to match other fields
                   />
                 </div>
               </div>
+
+
+
               <button
                 type="button"
                 className="w-full py-2 bg-green-500 text-white font-semibold rounded-md hover:bg-green-600"
