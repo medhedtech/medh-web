@@ -95,7 +95,7 @@ const CertificatePage = () => {
 
           <button
             onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 flex items-center"
+            className="px-6 py-2 border-gray-400 border text-gray-700 rounded-full hover:bg-gray-300 flex items-center"
           >
             <FaFilter className="mr-2" />
             Filter
@@ -103,30 +103,31 @@ const CertificatePage = () => {
 
           <button
             onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 flex items-center"
+            className="px-6 py-2 border-gray-400 border  text-gray-700 rounded-full hover:bg-gray-300 flex items-center"
           >
             <FaSort className="mr-2" />
             Sort
           </button>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-9">
           {users.map((user) => (
-            <div key={user.id} className="flex justify-between items-center">
+            <div key={user.id} className="flex justify-between items-center ">
               <div className="flex items-center">
                 <img
                   src={user.profileImage}
                   alt={`${user.name} profile`}
-                  className="w-10 h-10 rounded-full mr-4"
+                  className="w-12 h-12 rounded-full mr-4"
                 />
                 <div>
                   <p className="font-semibold text-gray-800">{user.name}</p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-xs text-gray-600">
                     Completed{" "}
-                    <span className="text-customGreen underline">{user.course}</span> on{" "}
-                    {user.date}
+                    <span className="text-customGreen underline cursor-pointer">
+                      {user.course}
+                    </span>{" "}
+                    on {user.date}
                   </p>
-
                 </div>
               </div>
               <button
@@ -141,7 +142,7 @@ const CertificatePage = () => {
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="fixed inset-0 flex items-center justify-center  bg-black bg-opacity-50">
           <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative">
             <button
               onClick={closeModal}
@@ -149,7 +150,9 @@ const CertificatePage = () => {
             >
               &times;
             </button>
-            <h2 className="text-xl font-semibold mb-4">Generate Certificate</h2>
+            <h2 className="text-xl font-semibold mb-4 font-Poppins text-[#434343]">
+              Generate Certificate
+            </h2>
             <form className="space-y-4">
               <div>
                 <label className="block text-gray-700">Course Name</label>
@@ -183,9 +186,7 @@ const CertificatePage = () => {
                 <label className="block text-gray-700">Completion Date</label>
                 <div className="relative">
                   {/* Calendar Icon */}
-                  <FaCalendarAlt
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10"
-                  />
+                  <FaCalendarAlt className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10" />
                   {/* Date Picker Field */}
                   <DatePicker
                     selected={completionDate}
@@ -197,11 +198,9 @@ const CertificatePage = () => {
                 </div>
               </div>
 
-
-
               <button
                 type="button"
-                className="w-full py-2 bg-green-500 text-white font-semibold rounded-md hover:bg-green-600"
+                className="w-full py-2 bg-primaryColor text-white font-semibold rounded-full hover:bg-green-600"
               >
                 Generate Certificate
               </button>

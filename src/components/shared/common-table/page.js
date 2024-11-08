@@ -168,7 +168,7 @@ const MyTable = ({
                         whiteSpace: "nowrap",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
-                        alignSelf:"center",
+                        alignSelf: "center",
                         color:
                           column.accessor === "status"
                             ? row[column.accessor] === "Failed"
