@@ -12,7 +12,7 @@ const SidebarDashboard = () => {
   const isInstructor = partOfPathNaem === "instructor" ? true : false;
   const adminItems = [
     {
-      title: "MAIN",
+      // title: "MAIN",
       items: [
         {
           name: "Dashboard",
@@ -1018,7 +1018,7 @@ const SidebarDashboard = () => {
           <NavbarLogo />
         </div>
         <div className="pt-4 px-8">
-        <h2 className="text-xl text-gh font-bold mb-4">MAIN</h2>
+        {/* <h2 className="text-xl text-gh font-bold mb-4">MAIN</h2> */}
         </div>
         {items?.map((item, idx) => (
           <ItemsDashboard key={idx} item={item} />
