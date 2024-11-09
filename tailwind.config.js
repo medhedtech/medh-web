@@ -138,7 +138,7 @@ module.exports = {
         lightGrey12: "#f0f4f7",
         lightGrey13: "#e5e7eb",
         greencolor: "#44CEA9",
-        lightGrey14:"#727695",
+        lightGrey14: "#727695",
         greencolor2: "#1EC902",
         greencolor3: "#2EC14A",
         orange: "#FE2323",
@@ -168,15 +168,14 @@ module.exports = {
         blueDark: "#260094EE",
         naveBlue: "#17093e",
         placeholder: "rgb(98, 96, 93)",
-        gray300: '#D1D5DB', // Custom gray300 color
-        gray50: '#F9FAFB',  // Custom gray50 color
-        gray600: '#4B5563', // custome gray600 color
-        customGreen: '#7ECA9D',
-        orange: '#FFA927',
-        orange2: '#FFF0D9',
-        purple: '#F4F1FE',
-        gh: '#808080',
-      
+        gray300: "#D1D5DB", // Custom gray300 color
+        gray50: "#F9FAFB", // Custom gray50 color
+        gray600: "#4B5563", // custome gray600 color
+        customGreen: "#7ECA9D",
+        orange: "#FFA927",
+        orange2: "#FFF0D9",
+        purple: "#F4F1FE",
+        gh: "#808080",
 
         "bodyColor-dark": "#fff",
         "bodyBg-dark": "#0C0E2B",
@@ -208,8 +207,6 @@ module.exports = {
         "twiter-color": "#55acee",
         "screen-dark": "#050622",
         // "screen-dark": "#020212", //dark-navy-blue
-
-       
       },
       // area
       // width
@@ -469,8 +466,8 @@ module.exports = {
 
       fontFamily: {
         Ubuntu: ["ubuntu", "sans"],
-        Poppins: ['Poppins', 'sans-serif'],
-        Open: ['Open Sans', 'sans-serif'],
+        Poppins: ["Poppins", "sans-serif"],
+        Open: ["Open Sans", "sans-serif"],
       },
 
       //  font size
@@ -613,16 +610,12 @@ module.exports = {
         "address-hover": "0px 4px 25px rgba(174, 181, 206, 0.3)",
         "login-shadow": "0px 0px 15px 0px #0000001A",
         "login-shadow2": "0px 4px 4px 0px #00000040",
-        'custom-light': '0px 4px 4px 0px #00000040',
-        'box-custom': '0px 4px 4px 0px #00000040',
-        'card-custom': '0px 4px 4px 0px #00000040',
+        "custom-light": "0px 4px 4px 0px #00000040",
+        "box-custom": "0px 4px 4px 0px #00000040",
+        "card-custom": "0px 4px 4px 0px #00000040",
         "student-dashboard": "0px 4px 16px 0px #0000001F",
 
-
-
- // Your custom shadow
-
-
+        // Your custom shadow
       },
       // postion
       zIndex: {

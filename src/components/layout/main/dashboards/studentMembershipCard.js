@@ -74,10 +74,12 @@ const StudentMembershipCard = () => {
   return (
     <section className="py-10 px-4">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-wrap justify-between items-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-800">Membership</h2>
+        <div className="flex flex-wrap justify-between items-center mb-8 font-Open">
+          <h2 className="text-3xl font-bold text-gray-800 font-Open">
+            Membership
+          </h2>
           <button
-            className="flex items-center bg-[#FCA400] gap-x-2 text-white font-bold font-Open py-2 px-4 rounded-3xl hover:bg-orange-600 transition"
+            className="flex items-center bg-[#FCA400] gap-x-2 text-white font-bold  py-2 px-4 rounded-3xl hover:bg-orange-600 transition font-Open"
             onClick={() => setIsModalOpen(true)}
           >
             <Image src={SubscriptionLogo} width={30} alt="Subscription Logo" />

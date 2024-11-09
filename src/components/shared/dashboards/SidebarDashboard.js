@@ -206,7 +206,7 @@ const SidebarDashboard = () => {
               ),
             },
             {
-              name: "Schedule Online Classes",
+              name: "Schedule Classes",
               path: "/dashboards/admin-schonlineclass",
               icon: (
                 <svg
@@ -361,7 +361,7 @@ const SidebarDashboard = () => {
       items: [
         {
           name: "Settings",
-          path: "/dashboards/admin-settings",
+          path: "#",
           icon: (
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -394,10 +394,11 @@ const SidebarDashboard = () => {
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="feather feather-volume-1"
+              className="feather feather-log-out"
             >
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-              <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
             </svg>
           ),
         },
@@ -415,10 +416,11 @@ const SidebarDashboard = () => {
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="feather feather-volume-1"
+              className="feather feather-help-circle"
             >
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-              <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M9.09 9a3 3 0 1 1 5.82 1c0 1.5-1.5 2-1.5 2"></path>
+              <line x1="12" y1="17" x2="12" y2="17"></line>
             </svg>
           ),
         },
@@ -668,7 +670,6 @@ const SidebarDashboard = () => {
         },
       ],
     },
-   
 
     {
       title: "USER",
@@ -718,7 +719,6 @@ const SidebarDashboard = () => {
       ],
     },
   ];
-  
 
   const studentItems = [
     {
@@ -1011,14 +1011,14 @@ const SidebarDashboard = () => {
     ? instructorItems
     : studentItems;
   return (
-    <div className="w-72 ">
+    <div className="w-72 font-Open">
       {/* navigation menu */}
       <div className=" pt-5 2xl:pr-4 2xl:pt-5 rounded-lg2 shadow-accordion dark:shadow-accordion-dark bg-whiteColor dark:bg-whiteColor-dark h-full">
         <div className="pt-6 px-8">
           <NavbarLogo />
         </div>
-        <div className="pt-4 px-8">
-        {/* <h2 className="text-xl text-gh font-bold mb-4">MAIN</h2> */}
+        <div className="pt-4 px-8 w-[250px]">
+          {/* <h2 className="text-xl text-gh font-bold mb-4">MAIN</h2> */}
         </div>
         {items?.map((item, idx) => (
           <ItemsDashboard key={idx} item={item} />
