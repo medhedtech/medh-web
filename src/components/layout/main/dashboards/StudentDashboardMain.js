@@ -8,6 +8,7 @@ import CourseDetails from "./CourseDetails";
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 import SearchDetails from "./SearchDetails";
 import BillDetails from "./BillDetails";
+import FreeClasses from "@/components/shared/dashboards/FreeClasses";
 
 const StudentDashboardMain = () => {
   const [isFocused, setIsFocused] = useState(false);
@@ -22,6 +23,7 @@ const StudentDashboardMain = () => {
           <CounterStudent />
           <ProgressOverview />
           <UpcomigClasses />
+          <FreeClasses /> 
           {/* <CourseDetails /> */}
         </>
       )}

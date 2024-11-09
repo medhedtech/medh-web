@@ -5,7 +5,7 @@ import ProfileImg from "@/assets/images/dashbord/profileImg.png";
 const ProfileDetails = ({ onEditClick }) => {
   return (
     <div className=" md:py-50px mb-30px  dark:bg-whiteColor-dark shadow-accordion dark:shadow-accordion-dark rounded-5">
-      <div className="px-5 border border-borderColor dark:border-borderColor-dark flex justify-between">
+      <div className="px-5 mb-4 mt-[-24px] dark:border-borderColor-dark flex justify-between">
         <h2 className="text-2xl font-semibold px-4 text-blackColor dark:text-blackColor-dark">
           Profile
         </h2>

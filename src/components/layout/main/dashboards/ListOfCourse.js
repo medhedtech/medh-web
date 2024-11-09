@@ -218,11 +218,11 @@ export default function Home() {
                 <td className="p-3 text-sm">{course.category}</td>
                 <td className="p-3 text-sm">
                   <div className="flex items-center space-x-2">
-                    <img
+                    {/* <img
                       src="/path/to/image.jpg"
                       alt="Course"
                       className="w-8 h-8 rounded-full"
-                    />
+                    /> */}
                     <span>{course.name}</span>
                   </div>
                 </td>
