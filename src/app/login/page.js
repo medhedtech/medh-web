@@ -3,17 +3,17 @@ import ThemeController from "@/components/shared/others/ThemeController";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 
 export const metadata = {
-  title: "Login/Register | Edurock - Education LMS Template",
-  description: "Login/Register | Edurock - Education LMS Template",
+  title: "Login",
+  description: "Login",
 };
 const Login = () => {
   return (
-    <PageWrapper>
+    // <PageWrapper>
       <main>
         <LoginMain />  
         <ThemeController />
       </main>
-    </PageWrapper>
+    // </PageWrapper>
   );
 };
 

@@ -53,7 +53,7 @@ const BillDetails = () => {
           />
         </div>
 
-        <div className="w-1/2">
+        <div className="w-1/2 px-4">
           <div className="flex justify-between">
             <p className="font-bold text-xs text-[#FF6B00]">Diploma</p>
             <p className="text-gray-500 text-sm">
