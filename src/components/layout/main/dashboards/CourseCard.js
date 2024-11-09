@@ -6,8 +6,10 @@ const CourseCard = ({ title, instructor, progress, image }) => {
     <div className="flex items-center justify-between bg-white shadow-sm rounded-lg p-4 border border-gray-200">
       {/* Left Section - Text Content */}
       <div className="w-full md:w-2/3">
-        <h3 className="text-lg font-semibold">{title}</h3>
-        <p className="text-sm text-gray-500 mb-2">Instructor: {instructor}</p>
+        <h3 className="text-lg font-semibold mb-1">{title}</h3>
+        <p className="text-sm text-[#434343] font-Open mb-2">
+          Instructor: {instructor}
+        </p>
 
         {/* Progress Bar */}
         <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden mb-2">

@@ -2,14 +2,17 @@ import React from "react";
 
 const AddUserForm = ({ formType = "Student", onSubmit, onCancel }) => {
   return (
-    <div className="w-[95%] mx-auto p-6 bg-white rounded-lg shadow-md">
+    <div className="w-[95%] mx-auto p-6 bg-white rounded-lg shadow-md font-Poppins">
       <h2 className="text-2xl font-semibold mb-6">Add {formType}</h2>
       <form
         onSubmit={onSubmit}
         className="grid grid-cols-1 sm:grid-cols-2 gap-4"
       >
         <div className="flex flex-col">
-          <label htmlFor="name" className="text-sm font-medium mb-1">
+          <label
+            htmlFor="name"
+            className="text-xs px-2 text-[#808080] font-medium mb-1"
+          >
             Full Name
           </label>
           <div className="relative">
@@ -47,7 +50,10 @@ const AddUserForm = ({ formType = "Student", onSubmit, onCancel }) => {
         </div>
 
         <div className="flex flex-col">
-          <label htmlFor="age" className="text-sm font-medium mb-1">
+          <label
+            htmlFor="age"
+            className="text-xs px-2 text-[#808080] font-medium mb-1"
+          >
             Age
           </label>
           <input
@@ -60,7 +66,10 @@ const AddUserForm = ({ formType = "Student", onSubmit, onCancel }) => {
         </div>
 
         <div className="flex flex-col">
-          <label htmlFor="email" className="text-sm font-medium mb-1">
+          <label
+            htmlFor="email"
+            className="text-xs px-2 text-[#808080] font-medium mb-1"
+          >
             Email
           </label>
           <div className="relative">
@@ -91,7 +100,10 @@ const AddUserForm = ({ formType = "Student", onSubmit, onCancel }) => {
         </div>
 
         <div className="flex flex-col">
-          <label htmlFor="course" className="text-sm font-medium mb-1">
+          <label
+            htmlFor="course"
+            className="text-xs px-2 text-[#808080] font-medium mb-1"
+          >
             {formType === "Student" ? "Course" : "Department"}
           </label>
           <input
@@ -106,7 +118,10 @@ const AddUserForm = ({ formType = "Student", onSubmit, onCancel }) => {
         </div>
 
         <div className="flex flex-col">
-          <label htmlFor="other" className="text-sm font-medium mb-1">
+          <label
+            htmlFor="other"
+            className="text-xs px-2 text-[#808080] font-medium mb-1"
+          >
             Other
           </label>
           <div className="relative">
@@ -136,7 +151,10 @@ const AddUserForm = ({ formType = "Student", onSubmit, onCancel }) => {
         </div>
 
         <div className="flex flex-col">
-          <label htmlFor="other" className="text-sm font-medium mb-1">
+          <label
+            htmlFor="other"
+            className="text-xs px-2 text-[#808080] font-medium mb-1"
+          >
             Other
           </label>
           <div className="relative">
