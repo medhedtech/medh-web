@@ -37,7 +37,7 @@ const UpcomigClasses = () => {
   return (
     <div className="px-10 pb-12">
       <h2 className="text-size-32  text-start mb-4">Upcoming Classes</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-16">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {classes.map((classItem, index) => (
           <ClassCard
             key={index}
