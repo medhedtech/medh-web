@@ -25,8 +25,10 @@ const assignments = [
 
 const AssignmentsSection = ({ onQuizClick }) => {
   return (
-    <div className="p-8">
-      <h2 className="text-size-32 mb-4">Assignment and Quizzes</h2>
+    <div className="p-8 font-Open">
+      <h2 className="text-size-32 mb-4 font-Open dark:text-white">
+        Assignment and Quizzes
+      </h2>
       <div className="flex gap-4 mb-6">
         <div className="p-5 w-64 bg-orange-100 rounded-lg px-6 h-48 bg-[#FFF5E5]">
           <div className="bg-white w-9 rounded-full mb-11">

@@ -111,7 +111,7 @@ const UsersTable = () => {
 
   return (
     <div className="flex items-start justify-center min-h-screen bg-gray-100 p-4 pt-9">
-      <div className="w-full max-w-6xl bg-white p-8 md:p-10 rounded-lg shadow-md">
+      <div className="w-full max-w-6xl bg-white p-8 md:p-10 rounded-lg shadow-md font-Poppins">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 space-y-4 md:space-y-0">
           <h2 className="text-xl font-semibold md:text-left">
             Instructor List
@@ -194,7 +194,7 @@ const UsersTable = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-center border-collapse font-Poppins">
             <thead>
               <tr>
                 <th className="px-4 py-2 border-b">Select</th>
@@ -209,21 +209,29 @@ const UsersTable = () => {
             </thead>
             <tbody>
               {users.map((user, index) => (
-                <tr key={user.id} className="hover:bg-gray-100">
+                <tr key={user.id} className="hover:bg-gray-100 text-center">
                   <td className="px-4 py-2 border-b">
                     <input
                       type="checkbox"
                       className="form-checkbox h-4 w-4 text-indigo-600"
                     />
                   </td>
-                  <td className="px-4 py-2 border-b">
+                  <td className="px-4 py-2 border-b text-[#808080]">
                     {String(index + 1).padStart(2, "0")}.
                   </td>
                   <td className="px-4 py-2 border-b">{user.name}</td>
-                  <td className="px-4 py-2 border-b">{user.age}</td>
-                  <td className="px-4 py-2 border-b">{user.email}</td>
-                  <td className="px-4 py-2 border-b">{user.joinDate}</td>
-                  <td className="px-4 py-2 border-b">{user.Domain}</td>
+                  <td className="px-4 py-2 border-b text-[#808080]">
+                    {user.age}
+                  </td>
+                  <td className="px-4 py-2 border-b text-[#808080]">
+                    {user.email}
+                  </td>
+                  <td className="px-4 py-2 border-b text-[#808080]">
+                    {user.joinDate}
+                  </td>
+                  <td className="px-4 py-2 border-b text-[#808080]">
+                    {user.Domain}
+                  </td>
                   <td className="px-4 py-2 border-b">
                     <StatusToggle
                       isActive={user.isActive}

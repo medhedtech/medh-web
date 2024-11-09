@@ -55,9 +55,9 @@ const PopularInstructors = () => {
     },
   ];
   return (
-    <div className="p-10px md:px-10 md:py-50px mb-30px bg-whiteColor dark:bg-whiteColor-dark shadow-accordion dark:shadow-accordion-dark rounded-5 max-h-137.5 overflow-auto">
+    <div className="p-10px md:px-10 font-Poppins md:py-50px mb-30px bg-whiteColor dark:bg-whiteColor-dark shadow-accordion dark:shadow-accordion-dark rounded-5 max-h-137.5 overflow-auto">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl md:text-[18px] font-semibold text-gray-800">
+        <h2 className="text-xl md:text-[18px] font-semibold text-black">
           Recent Course
         </h2>
         <div>
