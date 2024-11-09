@@ -1,15 +1,20 @@
-import React from 'react';
+import React from "react";
 
 const DefineRoleForm = () => {
   return (
-    <div className="flex items-start justify-center min-h-screen pt-9 bg-gray-100 p-8">
+    <div className="flex items-start font-Poppins justify-center min-h-screen pt-9 bg-gray-100 p-8">
       <div className="bg-white w-full max-w-6xl p-8 md:p-10 rounded-lg shadow-md">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-6">Define Role</h2>
+        <h2 className="text-2xl font-semibold text-gray-800 mb-6">
+          Define Role
+        </h2>
 
         <form className="space-y-6">
           {/* Email Input */}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700"
+            >
               Email id
             </label>
             <input
@@ -24,7 +29,10 @@ const DefineRoleForm = () => {
 
           {/* Role Selection */}
           <div>
-            <label htmlFor="role" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="role"
+              className="block text-sm font-medium text-gray-700"
+            >
               Select Role
             </label>
             <select
@@ -41,7 +49,10 @@ const DefineRoleForm = () => {
 
           {/* Role Description */}
           <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="description"
+              className="block text-sm font-medium text-gray-700"
+            >
               Role Description
             </label>
             <textarea
@@ -55,18 +66,32 @@ const DefineRoleForm = () => {
 
           {/* Permissions */}
           <fieldset>
-            <legend className="text-sm font-medium text-gray-700 mb-2">Permission</legend>
+            <legend className="text-sm font-medium text-gray-700 mb-2">
+              Permission
+            </legend>
             <div className="space-y-2">
               <label className="flex items-center">
-                <input type="radio" name="permission" className="mr-2 text-indigo-600 focus:ring-indigo-500" />
+                <input
+                  type="radio"
+                  name="permission"
+                  className="mr-2 text-indigo-600 focus:ring-indigo-500"
+                />
                 View Courses
               </label>
               <label className="flex items-center">
-                <input type="radio" name="permission" className="mr-2 text-indigo-600 focus:ring-indigo-500" />
+                <input
+                  type="radio"
+                  name="permission"
+                  className="mr-2 text-indigo-600 focus:ring-indigo-500"
+                />
                 Edit Users
               </label>
               <label className="flex items-center">
-                <input type="radio" name="permission" className="mr-2 text-indigo-600 focus:ring-indigo-500" />
+                <input
+                  type="radio"
+                  name="permission"
+                  className="mr-2 text-indigo-600 focus:ring-indigo-500"
+                />
                 Create Report
               </label>
             </div>

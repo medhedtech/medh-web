@@ -13,7 +13,7 @@ const StudentMainMembership = ({ membership }) => (
         className="rounded-xl"
       />
     </div>
-    <div className=" px-4 w-[60%]  font-Open">
+    <div className=" px-4 w-[60%] font-Open">
       <span className="text-orange-500 text-xs font-bold text-[#FFA927]">
         {membership.type}
       </span>

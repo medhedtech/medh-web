@@ -27,7 +27,7 @@ const Gamma = () => {
   };
 
   return (
-    <div className="flex items-start justify-center min-h-screen pt-9 bg-gray-100 p-4">
+    <div className="flex items-start font-Poppins justify-center min-h-screen pt-9 bg-gray-100 p-4">
       <form
         onSubmit={handleSubmit}
         className="bg-white max-w-6xl w-full p-6 md:p-8 rounded-lg shadow-lg"
@@ -38,9 +38,14 @@ const Gamma = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="relative">
-            <label className="block text-sm font-medium text-gray-600">Full Name</label>
+            <label className="block text-sm font-medium text-gray-600">
+              Full Name
+            </label>
             <div className="relative">
-              <FontAwesomeIcon icon={faUser} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <FontAwesomeIcon
+                icon={faUser}
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              />
               <input
                 type="text"
                 name="fullName"
@@ -53,7 +58,9 @@ const Gamma = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-600">Age</label>
+            <label className="block text-sm font-medium text-gray-600">
+              Age
+            </label>
             <input
               type="text"
               name="age"
@@ -65,9 +72,14 @@ const Gamma = () => {
           </div>
 
           <div className="relative">
-            <label className="block text-sm font-medium text-gray-600">Email</label>
+            <label className="block text-sm font-medium text-gray-600">
+              Email
+            </label>
             <div className="relative">
-              <FontAwesomeIcon icon={faEnvelope} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <FontAwesomeIcon
+                icon={faEnvelope}
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              />
               <input
                 type="email"
                 name="email"
@@ -80,9 +92,14 @@ const Gamma = () => {
           </div>
 
           <div className="relative">
-            <label className="block text-sm font-medium text-gray-600">Phone number</label>
+            <label className="block text-sm font-medium text-gray-600">
+              Phone number
+            </label>
             <div className="relative">
-              <FontAwesomeIcon icon={faPhone} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <FontAwesomeIcon
+                icon={faPhone}
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              />
               <input
                 type="text"
                 name="phoneNumber"
@@ -95,7 +112,9 @@ const Gamma = () => {
           </div>
 
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-600">Select Role</label>
+            <label className="block text-sm font-medium text-gray-600">
+              Select Role
+            </label>
             <select
               name="role"
               value={formData.role}
@@ -109,7 +128,9 @@ const Gamma = () => {
           </div>
 
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-600">Assign Department</label>
+            <label className="block text-sm font-medium text-gray-600">
+              Assign Department
+            </label>
             <select
               name="department"
               value={formData.department}
