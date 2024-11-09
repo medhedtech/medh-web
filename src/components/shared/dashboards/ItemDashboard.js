@@ -56,7 +56,7 @@ const ItemDashboard = ({ item }) => {
         tag ? "flex justify-between items-center " : ""
       }`}
     >
-      <div className="flex items-center w-full">
+      <div className="flex font-Open items-center w-full">
         {/* Main Link Content */}
         <div className="flex-grow">
           {path ? (
@@ -81,10 +81,10 @@ const ItemDashboard = ({ item }) => {
         </div>
 
         {/* Right-aligned Icons */}
-        <div className="flex items-center space-x-2 pr-4">
+        <div className="flex items-center space-x-2 pr-2">
           {subItems && (
             <button
-              onClick={toggleDropdown} // Optional: Keep the button for the dropdown icon if desired
+              onClick={toggleDropdown}
               className="text-contentColor dark:text-contentColor-dark"
             >
               <svg
@@ -105,7 +105,7 @@ const ItemDashboard = ({ item }) => {
             </button>
           )}
           {tag && (
-            <span className="text-size-10 font-medium text-whiteColor px-2 bg-primaryColor leading-14px rounded-2xl">
+            <span className="text-xs font-medium text-whiteColor px-2 bg-primaryColor leading-tight rounded-2xl">
               {tag}
             </span>
           )}
@@ -114,7 +114,9 @@ const ItemDashboard = ({ item }) => {
 
       {/* Dropdown Menu */}
       {subItems && isDropdownOpen && (
-        <ul className="pl-16 mt-2 space-y-1"> {/* Increase padding for indentation */}
+        <ul className="pl-16 mt-2 font-Open space-y-1">
+          {" "}
+          {/* Increase padding for indentation */}
           {subItems.map((subItem, idx) => (
             <li key={idx} className="flex items-center gap-2">
               <Link
@@ -123,11 +125,14 @@ const ItemDashboard = ({ item }) => {
                   currentPath === subItem.path
                     ? "bg-primaryColor text-white rounded-r-lg px-4 py-2 shadow-md"
                     : "text-contentColor dark:text-contentColor-dark"
-                } block w-full flex items-center`}
+                } block w-full  items-center`}
               >
                 {/* Render sub-item icons and text with a little offset */}
-                <span className="mr-2">{subItem.icon}</span>
-                <span className="whitespace-nowrap">{subItem.name}</span> {/* Prevent wrapping */}
+                <div className="flex">
+                <span className="mr-2 mt-1">{subItem.icon}</span>
+                <span className="whitespace-nowrap">{subItem.name}</span>{" "}
+                </div>
+                {/* Prevent wrapping */}
               </Link>
             </li>
           ))}

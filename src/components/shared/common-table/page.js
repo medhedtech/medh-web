@@ -102,9 +102,9 @@ const MyTable = ({
 
   return (
     <Box px={3}>
-      <Typography variant="body2" color="textSecondary" gutterBottom>
+      {/* <Typography variant="body2" color="textSecondary" gutterBottom>
         {entryText} {filteredData.length}
-      </Typography>
+      </Typography> */}
       <TableContainer
         sx={{
           borderRadius: "8px",
@@ -168,7 +168,7 @@ const MyTable = ({
                         whiteSpace: "nowrap",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
-                        alignSelf:"center",
+                        alignSelf: "center",
                         color:
                           column.accessor === "status"
                             ? row[column.accessor] === "Failed"
