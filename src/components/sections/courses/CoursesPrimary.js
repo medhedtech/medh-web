@@ -354,7 +354,7 @@ const CoursesPrimary = ({ isNotSidebar, isList, card }) => {
                     </button>
                     {searchCourses?.length ? (
                       <ul
-                        className={`absolute  left-0 top-full transition-all opacity-0 ${
+                        className={`absolute  left-full top-full transition-all opacity-0 ${
                           searchCourses?.length && isBlock
                             ? "visible opacity-100"
                             : "invisible"
