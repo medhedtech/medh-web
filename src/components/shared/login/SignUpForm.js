@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from "react";
 import Image from "next/image";
 import SignIn from "@/assets/images/log-sign/SignIn.png";
@@ -104,7 +105,7 @@ const SignUpForm = () => {
 
           <form
             className="pt-6"
-            data-aos="fade-up"
+            // data-aos="fade-up"
             onSubmit={handleSubmit(onSubmit)}
           >
             <div className="w-full mb-6 flex flex-col gap-4">
@@ -241,7 +242,7 @@ const SignUpForm = () => {
 
             <div className="flex justify-center mt-5 text-[#545454] gap-4 font-Open text-sm">
               <p>Don’t have an Account? </p>
-              <a href="#" className="text-primaryColor font-semibold">
+              <a href="/login" className="text-primaryColor font-semibold">
                 Sign In
               </a>
             </div>
