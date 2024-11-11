@@ -70,11 +70,7 @@ const LoginForm = () => {
             </p>
           </div>
 
-          <form
-            className="pt-6"
-            data-aos="fade-up"
-            onSubmit={handleSubmit(onSubmit)}
-          >
+          <form className="pt-6" onSubmit={handleSubmit(onSubmit)}>
             <div className="gap-4 mb-6">
               <div className="relative">
                 <Image
@@ -144,7 +140,7 @@ const LoginForm = () => {
 
             <div className="flex justify-center mt-5 text-[#545454] gap-4 font-Open text-sm">
               <p>Don’t have an Account? </p>
-              <a href="#" className="text-primaryColor font-semibold">
+              <a href="/signup" className="text-primaryColor font-semibold">
                 Sign Up
               </a>
             </div>
