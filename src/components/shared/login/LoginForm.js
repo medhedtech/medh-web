@@ -1,7 +1,6 @@
 import React from "react";
 import Image from "next/image";
 import LogIn from "@/assets/images/log-sign/logIn.png";
-import axios from "axios";
 import logo1 from "@/assets/images/logo/medh_logo.png";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -11,6 +10,8 @@ import { apiUrls } from "@/apis";
 import Preloader from "../others/Preloader";
 import lock from "@/assets/images/log-sign/lock.svg";
 import Email from "@/assets/images/log-sign/Email.svg";
+import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
 
 const schema = yup
   .object({
@@ -23,6 +24,8 @@ const schema = yup
   .required();
 
 const LoginForm = () => {
+  const router = useRouter();
+  const { postQuery, loading } = usePostQuery();
   const {
     register,
     handleSubmit,
@@ -31,18 +34,22 @@ const LoginForm = () => {
     resolver: yupResolver(schema),
   });
 
-  const { postQuery, loading } = usePostQuery();
-
   const onSubmit = async (data) => {
     await postQuery({
       url: apiUrls.login,
+      postData: {
+        email: data.email,
+        password: data.password,
+      },
       onSuccess: (res) => {
-        console.log(res);
+        localStorage.setItem("token", res.token);
+        router.push("/dashboards/admin-dashboard");
+        toast.success("Login successful!");
       },
       onFail: (error) => {
+        toast.error("Invalid Credentials!");
         console.log(error);
       },
-      postData: data,
     });
   };
 
@@ -70,11 +77,7 @@ const LoginForm = () => {
             </p>
           </div>
 
-          <form
-            className="pt-6"
-            data-aos="fade-up"
-            onSubmit={handleSubmit(onSubmit)}
-          >
+          <form className="pt-6" onSubmit={handleSubmit(onSubmit)}>
             <div className="gap-4 mb-6">
               <div className="relative">
                 <Image
@@ -89,7 +92,7 @@ const LoginForm = () => {
                 />
               </div>
               {errors.email && (
-                <p className="text-sm text-red-500 font-normal mt-1">
+                <p className="text-xs text-red-500 font-normal mt-1 ml-2">
                   {errors.email?.message}
                 </p>
               )}
@@ -109,25 +112,14 @@ const LoginForm = () => {
                 />
               </div>
               {errors.password && (
-                <p className="text-sm text-red-500 font-normal mt-1">
+                <p className="text-xs text-red-500 font-normal mt-1 ml-2">
                   {errors.password?.message}
                 </p>
               )}
             </div>
 
             <div className="flex justify-between items-center cursor-pointer mb-4">
-              <div>
-                <input type="checkbox" id="terms" className="hidden peer" />
-                <label
-                  htmlFor="terms"
-                  className="flex items-center cursor-pointer text-xs text-[#545454]"
-                >
-                  <div className="w-5 h-5 rounded-full border-2 ml-2 border-gray-400 flex items-center justify-center mr-2 peer-checked:bg-primaryColor">
-                    <div className="w-3 h-3 rounded-full bg-white peer-checked:block hidden"></div>
-                  </div>
-                  Agree to Terms & Conditions
-                </label>
-              </div>
+              <div></div>
               <div className="text-primaryColor font-semibold font-Open">
                 Forgot Password?
               </div>
@@ -143,8 +135,8 @@ const LoginForm = () => {
             </div>
 
             <div className="flex justify-center mt-5 text-[#545454] gap-4 font-Open text-sm">
-              <p>Don’t have an Account? </p>
-              <a href="#" className="text-primaryColor font-semibold">
+              <p>Don&#39;t have an Account? </p>
+              <a href="/signup" className="text-primaryColor font-semibold">
                 Sign Up
               </a>
             </div>
