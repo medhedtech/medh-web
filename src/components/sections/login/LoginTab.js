@@ -21,11 +21,11 @@ const LoginTab = () => {
   ];
   return (
     <section className="relative ">
-      <div className="w-full py-100px flex justify-center items-center ">
+      <div className="w-full  flex justify-center items-center ">
         <div className="md:w-[100%] w-full border-2">
           {/* tab controller */}
 
-          <div className=" flex justify-center items-center">
+          {/* <div className=" flex justify-center items-center">
             <div className="tab-links md:w-[60%] w-full grid grid-cols-2 gap-11px text-blackColor text-lg lg:text-size-22 font-semibold font-hind mb-43px mt-30px md:mt-0 ">
               {tabButtons?.map(({ name }, idx) => (
                 <TabButtonPrimary
@@ -38,10 +38,10 @@ const LoginTab = () => {
                 />
               ))}
             </div>
-          </div>
+          </div> */}
 
           {/* tab contents */}
-          <div className="shadow-container bg-whiteColor dark:bg-whiteColor-dark pt-10px  md:py-30px rounded-5px ">
+          <div className="shadow-container bg-whiteColor dark:bg-whiteColor-dark pt-10px   rounded-5px ">
             <div className="tab-contents boder-2 border-black">
               {tabButtons.map(({ content }, idx) => (
                 <TabContentWrapper
