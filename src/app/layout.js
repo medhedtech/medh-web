@@ -6,6 +6,8 @@ import "aos/dist/aos.css";
 import "./globals.css";
 import FixedShadow from "@/components/shared/others/FixedShadow";
 import PreloaderPrimary from "@/components/shared/others/PreloaderPrimary";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export const inter = Inter({
   subsets: ["latin"],
@@ -39,6 +41,7 @@ export default function RootLayout({ children }) {
           <FixedShadow />
           <FixedShadow align={"right"} />
         </div>
+        <ToastContainer />
       </body>
     </html>
   );

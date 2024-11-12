@@ -15,37 +15,36 @@ import Email from "@/assets/images/log-sign/Email.svg";
 import phone from "@/assets/images/log-sign/phone.svg";
 import eyeOff from "@/assets/images/log-sign/eyeIcon.svg";
 import eye from "@/assets/images/log-sign/eye.svg";
+import { useRouter } from "next/navigation";
 
 const schema = yup
   .object({
-    first_name: yup.string().required("First name is required"),
-    last_name: yup.string().required("Last name is required"),
+    full_name: yup.string().required("Name is required"),
     email: yup.string().email().required("Email is required"),
     phone_number: yup
       .string()
       .min(10, "At least 10 digits required")
-      .max(10, "must be at most 10 characters")
+      .max(10, "Must be exactly 10 digits")
       .required("Phone number is required"),
     password: yup
       .string()
-      .min(8, "At least 8 character required")
+      .min(8, "At least 8 characters required")
       .required("Password is required"),
     confirm_password: yup
       .string()
       .oneOf([yup.ref("password"), null], "Passwords must match")
       .required("Confirm password is required"),
+    agree_terms: yup
+      .boolean()
+      .oneOf([true], "You must accept the agree to proceed"),
   })
   .required();
 
 const SignUpForm = () => {
-  const [country, setCountry] = useState({ name: "IN", code: "+91" });
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
-
-  const togglePasswordVisibility = () => {
-    setShowPassword((prev) => !prev);
-  };
-
-  const [mobileNumber, setMobileNumber] = useState("");
+  const [apiError, setApiError] = useState(null);
+  const { postQuery, loading } = usePostQuery();
   const {
     register,
     handleSubmit,
@@ -54,20 +53,50 @@ const SignUpForm = () => {
     resolver: yupResolver(schema),
   });
 
-  const { postQuery, loading } = usePostQuery();
+  const togglePasswordVisibility = () => {
+    setShowPassword((prev) => !prev);
+  };
+
+  // const onSubmit = async (data) => {
+  //   const { confirm_password, ...rest } = data;
+  //   await postQuery({
+  //     url: apiUrls.register,
+  //     onSuccess: (res) => {
+  //       console.log(res);
+  //     },
+  //     onFail: (error) => {
+  //       console.log(error);
+  //     },
+  //     postData: rest,
+  //   });
+  // };
 
   const onSubmit = async (data) => {
-    const { confirm_password, ...rest } = data;
-    await postQuery({
-      url: apiUrls.register,
-      onSuccess: (res) => {
-        console.log(res);
-      },
-      onFail: (error) => {
-        console.log(error);
-      },
-      postData: rest,
-    });
+    setApiError(null);
+    // const { confirm_password, ...rest } = data;
+
+    try {
+      await postQuery({
+        url: apiUrls.register,
+        postData: {
+          full_name: data?.full_name,
+          email: data?.email,
+          password: data?.password,
+          phone_number: data?.phone_number,
+          agree_terms: data?.agree_terms,
+        },
+        onSuccess: () => {
+          router.push("/login");
+          toast.success("Registration successful!");
+        },
+        onFail: (error) => {
+          console.log("Registration failed:", error);
+          setApiError(error.message);
+        },
+      });
+    } catch (error) {
+      setApiError("An unexpected error occurred. Please try again.");
+    }
   };
 
   if (loading) {
@@ -115,15 +144,15 @@ const SignUpForm = () => {
                   className="absolute left-4 top-1/2 transform -translate-y-1/2"
                 />
                 <input
-                  {...register("Name")}
+                  {...register("full_name")}
                   type="text"
-                  placeholder="Name"
+                  placeholder="Enter Your Name"
                   className="w-full h-12 pl-10 text-sm focus:outline-none text-black bg-[#F7F7F7] dark:text-contentColor-dark border-2 border-borderColor dark:border-borderColor-dark placeholder:text-black placeholder:opacity-80 font-medium rounded-[162px]"
                 />
               </div>
-              {errors.name && (
-                <p className="text-sm text-red-500 font-normal mt-1">
-                  {errors.name?.message}
+              {errors.full_name && (
+                <p className="text-xs text-red-500 font-normal mt-[-10px] ml-2">
+                  {errors.full_name?.message}
                 </p>
               )}
             </div>
@@ -137,12 +166,12 @@ const SignUpForm = () => {
                 <input
                   {...register("email")}
                   type="email"
-                  placeholder="E-Mail"
+                  placeholder="Enter Your E-Mail"
                   className="w-full h-12 pl-10 text-sm focus:outline-none text-black bg-[#F7F7F7] dark:text-contentColor-dark border-2 border-borderColor dark:border-borderColor-dark placeholder:text-black placeholder:opacity-80 font-medium rounded-[162px]"
                 />
               </div>
               {errors.email && (
-                <p className="text-sm text-red-500 font-normal mt-1">
+                <p className="text-xs text-red-500 font-normal mt-[3px] ml-2">
                   {errors.email?.message}
                 </p>
               )}
@@ -155,15 +184,15 @@ const SignUpForm = () => {
                   className="absolute left-4 top-1/2 transform -translate-y-1/2"
                 />
                 <input
-                  {...register("phone")}
+                  {...register("phone_number")}
                   type="phone"
                   placeholder="Phone Number"
                   className="w-full h-12 pl-10 text-sm focus:outline-none text-black bg-[#F7F7F7] dark:text-contentColor-dark border-2 border-borderColor dark:border-borderColor-dark placeholder:text-black placeholder:opacity-80 font-medium rounded-[162px]"
                 />
               </div>
-              {errors.phone && (
-                <p className="text-sm text-red-500 font-normal mt-1">
-                  {errors.phone?.message}
+              {errors.phone_number && (
+                <p className="text-xs text-red-500 font-normal mt-[2px] ml-2">
+                  {errors.phone_number?.message}
                 </p>
               )}
             </div>
@@ -182,7 +211,7 @@ const SignUpForm = () => {
                 />
               </div>
               {errors.password && (
-                <p className="text-sm text-red-500 font-normal mt-1">
+                <p className="text-xs text-red-500 font-normal mt-[2px] ml-2">
                   {errors.password?.message}
                 </p>
               )}
@@ -195,7 +224,7 @@ const SignUpForm = () => {
                   className="absolute left-4 top-1/2 transform -translate-y-1/2"
                 />
                 <input
-                  {...register("confirmPassword")}
+                  {...register("confirm_password")}
                   type={showPassword ? "text" : "password"}
                   placeholder="Confirm Password"
                   className="w-full h-12 pl-10 text-sm focus:outline-none text-black bg-[#F7F7F7] dark:text-contentColor-dark border-2 border-borderColor dark:border-borderColor-dark placeholder:text-[#000000] placeholder:opacity-80 font-medium rounded-[162px]"
@@ -211,14 +240,14 @@ const SignUpForm = () => {
                   />
                 </button>
               </div>
-              {errors.confirmPassword && (
-                <p className="text-sm text-red-500 font-normal mt-1">
-                  {errors.confirmPassword?.message}
+              {errors.confirm_password && (
+                <p className="text-xs text-red-500 font-normal mt-[2px] ml-2">
+                  {errors.confirm_password?.message}
                 </p>
               )}
             </div>
 
-            <div className="flex items-center cursor-pointer mb-4">
+            {/* <div className="flex items-center cursor-pointer mb-4">
               <input type="checkbox" id="terms" className="hidden peer" />
               <label
                 htmlFor="terms"
@@ -229,7 +258,33 @@ const SignUpForm = () => {
                 </div>
                 Agree to Terms & Conditions
               </label>
+            </div> */}
+            <div className="flex items-center cursor-pointer mb-4">
+              <input
+                type="checkbox"
+                id="terms"
+                {...register("agree_terms")}
+                className="w-6 h-6 mr-2 appearance-none border-2 border-gray-400 rounded-full cursor-pointer checked:bg-[#7ECA9D] checked:border-[#7ECA9D] checked:before:content-['✔'] checked:before:text-white checked:before:text-[12px] checked:before:flex checked:before:justify-center checked:before:items-center"
+              />
+              <label
+                htmlFor="terms"
+                className="text-xs text-[#545454] cursor-pointer"
+              >
+                Agree to Terms & Conditions
+              </label>
             </div>
+            {errors.agree_terms && (
+              <p className="text-red-500 text-xs ml-2 mt-[-5px]">
+                {errors.agree_terms.message}
+              </p>
+            )}
+
+            {/* API Error Display */}
+            {apiError && (
+              <p className="text-xs text-red-500 font-normal mt-1 ">
+                {apiError}
+              </p>
+            )}
 
             <div className="mt-12 text-center">
               <button
@@ -241,7 +296,7 @@ const SignUpForm = () => {
             </div>
 
             <div className="flex justify-center mt-5 text-[#545454] gap-4 font-Open text-sm">
-              <p>Don’t have an Account? </p>
+              <p>Don&#39;t have an Account? </p>
               <a href="/login" className="text-primaryColor font-semibold">
                 Sign In
               </a>
