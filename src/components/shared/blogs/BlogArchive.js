@@ -21,16 +21,18 @@ const BlogArchive = () => {
   ];
 
   return (
-    <div className="p-5 md:p-8 lg:p-5 2xl:p-8 mb-8 border dark:border-gray-600 ">
+    <div
+      className="p-5 md:p-8 lg:p-5 2xl:p-8 mb-8 border dark:border-gray-600 "
+      style={{ boxShadow: "0px 10px 30px 0px #00000012" }}
+    >
       <h4 className="text-lg text-[#252525] border-dashed border-l-2  dark:text-blackColor-dark font-bold pl-2 mb-6">
         Archive
       </h4>
       <ul className="flex flex-col gap-y-6">
         {posts.map(({ date, id }) => (
           <li className="flex items-center" key={id}>
-              <div className=" px-3 relative">
-              <span className=" h-2 w-2  rounded-[50%]  bg-[#F6B335] absolute left-0 ">
-              </span>
+            <div className=" px-3 relative">
+              <span className=" h-2 w-2  rounded-[50%]  bg-[#F6B335] absolute left-0 "></span>
             </div>
             <div className="w-3/5 mt-1">
               <Link
