@@ -10,16 +10,13 @@ export const metadata = {
 };
 const Instructor_Dashboard = () => {
   return (
-    <PageWrapper>
-      <main>
-        <DsahboardWrapper>
-          <DashboardContainer>
-            <InstructorDashbordMain />
-          </DashboardContainer>
-        </DsahboardWrapper>
-        <ThemeController />
-      </main>
-    </PageWrapper>
+    <main>
+      <DashboardContainer>
+        <InstructorDashbordMain />
+      </DashboardContainer>
+
+      <ThemeController />
+    </main>
   );
 };
 
