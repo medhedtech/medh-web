@@ -8,6 +8,7 @@ import HireSection from "@/components/sections/hire-from-medh/HireSection";
 import HiringProcess from "@/components/sections/hire-from-medh/HiringProcess";
 import SkillsSection from "@/components/sections/hire-from-medh/SkillsSection";
 import Registration from "@/components/sections/registrations/Registration";
+import Certified from "@/components/sections/why-medh/Certified";
 import ThemeController from "@/components/shared/others/ThemeController";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import React from "react";
@@ -20,7 +21,7 @@ function HireFromMedh() {
       <SkillsSection />
       <HiringProcess />
       <Registration />
-      <CertificationsCarousel />
+      <Certified />
       <HireFromMedhFaq />
       <HireFromMedhCourseBanner />
       <ThemeController />
