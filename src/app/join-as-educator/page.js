@@ -15,15 +15,19 @@ import ThemeController from "@/components/shared/others/ThemeController";
 function JoinEducator() {
   return (
     <PageWrapper>
-      <EducatorBanner />
-      <TechEducator />
-      <MedhOffering />
-      <Benefits />
-      <HiringProcess />
-      <Registration />
-      <EducatorFaq />
-      <EducatorCourceBanner />
-      <ThemeController />
+      <div className="bg-white">
+        <EducatorBanner />
+        <TechEducator />
+        <MedhOffering />
+        <Benefits />
+        <HiringProcess />
+        <Registration />
+        <EducatorFaq />
+        <div className="pb-16">
+          <EducatorCourceBanner />
+        </div>
+        <ThemeController />
+      </div>
     </PageWrapper>
   );
 }
