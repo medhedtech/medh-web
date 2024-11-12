@@ -20,7 +20,9 @@ export default function Membership() {
       <MembershipFeatures />
       <MembershipFaq />
       <MembershipCourceBanner />
-      <Certified />
+      <div className="pb-16">
+        <Certified />
+      </div>
       <ThemeController />
     </PageWrapper>
   );

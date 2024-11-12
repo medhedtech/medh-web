@@ -1,11 +1,14 @@
 "use client";
 import allBlogs from "@/../public/fakedata/blogs";
-import blogImag6 from "@/assets/images/blog/blog_6.png";
-import blogImag7 from "@/assets/images/blog/blog_7.png";
-import blogImag8 from "@/assets/images/blog/blog_8.png";
+// import blogImag6 from "@/assets/images/blog/blog_6.png";
+// import blogImag7 from "@/assets/images/blog/blog_7.png";
+// import blogImag8 from "@/assets/images/blog/blog_8.png";
 import blogImag9 from "@/assets/images/blog/blog_9.png";
 import BlogPrimary from "@/components/shared/blogs/BlogPrimary";
 import BlogsSidebar from "@/components/shared/blogs/BlogsSidebar";
+import blogImag7 from "@/assets/images/blog/Leadership.png";
+import blogImag8 from "@/assets/images/blog/security.png";
+import blogImag6 from "@/assets/images/blog/High-income.png";
 // import Pagination from "@/components/shared/others/Pagination"; // Import Pagination component
 import { useEffect, useRef, useState } from "react";
 import Pagination from "./pagination";
