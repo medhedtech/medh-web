@@ -9,16 +9,13 @@ export const metadata = {
 };
 const Instructor_Message = () => {
   return (
-    <PageWrapper>
-      <main>
-        <DsahboardWrapper>
-          <DashboardContainer>
-            <InstructorMessageMain />
-          </DashboardContainer>
-        </DsahboardWrapper>
-        <ThemeController />
-      </main>
-    </PageWrapper>
+    <main>
+      <DashboardContainer>
+        <InstructorMessageMain />
+      </DashboardContainer>
+
+      <ThemeController />
+    </main>
   );
 };
 
