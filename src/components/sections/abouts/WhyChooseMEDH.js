@@ -97,7 +97,7 @@ const WhyChooseMEDH = () => {
                     alt={feature.title}
                     width={90}
                     height={90}
-                    className="object-contain"
+                    className="object-contain color-[#242424]"
                   />
                 </div>
                 <div>
