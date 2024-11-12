@@ -9,14 +9,14 @@ const data = {
       name: "Overview",
       content:
         "Vedic Mathematics Course offers a wide array of benefits, from simplifying complex calculations to enhancing mental agility and boosting confidence. The system&#39;s versatility and applicability across various branches of mathematics make it a valuable tool for individuals preparing for competitive exams or seeking to improve their mathematical skills. ",
-         contents:"With its emphasis on simplicity, speed, and universality, Vedic Mathematics has the potential to transform the way individuals perceive and engage with mathematics, making it an essential skill for personal and professional growth.",
+      contents:
+        "With its emphasis on simplicity, speed, and universality, Vedic Mathematics has the potential to transform the way individuals perceive and engage with mathematics, making it an essential skill for personal and professional growth.",
     },
     {
       id: 2,
       name: "Benefits",
       content:
         "Benefits of Vedic Mathematics include improved speed in calculations, better mental agility, and stronger problem-solving skills. It's highly beneficial for students preparing for competitive exams.",
-       
     },
     {
       id: 3,
@@ -35,7 +35,8 @@ const data = {
     keyFeatures: [
       {
         title: "Simplicity",
-        description: "Aims to simplify complex mathematical calculations through its unique techniques.",
+        description:
+          "Aims to simplify complex mathematical calculations through its unique techniques.",
       },
       {
         title: "Speed",
@@ -70,7 +71,9 @@ const PersonalityOverview = () => {
             Welcome to Medh&#39;s Vedic Mathematics Course
           </h1>
           <p className="text-center md:text-[15px] text-[14px] leading-6 md:leading-7 md:w-[70%] text-[#727695] dark:text-gray300">
-            Our course is designed to simplify mathematical problems through ancient techniques that can be applied to a variety of real-world applications.
+            Our course is designed to simplify mathematical problems through
+            ancient techniques that can be applied to a variety of real-world
+            applications.
           </p>
         </div>
 
@@ -81,9 +84,9 @@ const PersonalityOverview = () => {
               key={tab.id}
               className={`px-2 md:px-6 mr-2 md:py-2 py-1 transition md:mb-0 mb-1 ${
                 activeTab === tab.id
-                  ? "bg-[#5C40FF] text-white font-semibold"
-                  : "bg-[#E6E6FA] text-[#5C40FF] border-2 border-[#5C40FF]"
-              } hover:bg-[#5C40FF] hover:text-white`}
+                  ? "bg-primaryColor text-white font-semibold"
+                  : "bg-white text-primaryColor border border-primaryColor"
+              } hover:bg-primaryColor hover:text-white`}
               onClick={() => setActiveTab(tab.id)}
             >
               {tab.name}
@@ -93,7 +96,7 @@ const PersonalityOverview = () => {
 
         {/* Content Rendering */}
         <section className="bg-white dark:text-gray300 dark:bg-screen-dark px-5 mx-4 sm:mx-0 md:px-6 py-8 border-2 border-gray300 dark:border-gray600 text-lightGrey14">
-          <h1 className="text-[23px] font-bold text-[#5C40FF] dark:text-gray50">
+          <h1 className="text-[23px] font-bold text-primaryColor dark:text-gray50">
             {activeContent.name}
           </h1>
           <p className="mb-2 md:text-[15px] text-[14px] ">
@@ -110,18 +113,29 @@ const PersonalityOverview = () => {
                 Transformative Learning Experience
               </h2>
               <p className="mb-2 text-[14px]">
-                In today&#39;s competitive world, the ability to solve problems quickly is crucial, and that&#39;s where Vedic Mathematics comes to your rescue. Through interactive and easy-to-follow lessons and practice exercises, you will learn powerful techniques that make math easy and enjoyable, including:
+                In today&#39;s competitive world, the ability to solve problems
+                quickly is crucial, and that&#39;s where Vedic Mathematics comes
+                to your rescue. Through interactive and easy-to-follow lessons
+                and practice exercises, you will learn powerful techniques that
+                make math easy and enjoyable, including:
               </p>
               <ul className=" list-none mb-4 ">
                 <li className="text-[14px] ml-8">
-                  <strong className="dark:text-gray50">Easy Tricks to Solve:</strong> Addition, Subtraction, Multiplication, and Division
+                  <strong className="dark:text-gray50">
+                    Easy Tricks to Solve:
+                  </strong>{" "}
+                  Addition, Subtraction, Multiplication, and Division
                 </li>
                 <li className="text-[14px] ml-8 ">
-                  <strong className="dark:text-gray50">Fast & Accurate Calculations of:</strong> Square Root, Cube, Cube Root, HCF, LCM, and Algebra
+                  <strong className="dark:text-gray50">
+                    Fast & Accurate Calculations of:
+                  </strong>{" "}
+                  Square Root, Cube, Cube Root, HCF, LCM, and Algebra
                 </li>
               </ul>
               <p className="text-[14px] mb-6">
-                And lots of other lessons that help you fall in love with Mathematics.
+                And lots of other lessons that help you fall in love with
+                Mathematics.
               </p>
 
               {/* Key Features */}
