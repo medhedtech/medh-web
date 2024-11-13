@@ -5,7 +5,9 @@ import Link from "next/link";
 import React from "react";
 let insId = 0;
 const CourseCard = ({ course, type }) => {
-  const { addProductToWishlist } = useWishlistContext();
+  // const { addProductToWishlist } = useWishlistContext();
+  const { addProductToWishlist } = useWishlistContext() || {};
+
   const {
     id,
     title,
@@ -123,7 +125,15 @@ const CourseCard = ({ course, type }) => {
                 </p>
               </div>
               <button
+                // onClick={() =>
+                //   addProductToWishlist({
+                //     ...course,
+                //     isCourse: true,
+                //     quantity: 1,
+                //   })
+                // }
                 onClick={() =>
+                  addProductToWishlist &&
                   addProductToWishlist({
                     ...course,
                     isCourse: true,
