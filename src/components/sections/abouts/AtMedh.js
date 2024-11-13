@@ -49,7 +49,12 @@ const AtMedh = () => {
       </div>
       {/* card */}
       <div className="flex flex-col lg:flex-row gap-8 w-full mt-36">
-        <div className="flex px-5 md:px-10 rounded-3xl shadow-md w-full">
+        <div
+          className="flex px-5 md:px-10 pt-6 md:pt-6 rounded-3xl w-full"
+          style={{
+            boxShadow: "0px 4px 24px 0px #0000001A",
+          }}
+        >
           <div>
             <BulbIcon />
           </div>
@@ -64,7 +69,12 @@ const AtMedh = () => {
             </p>
           </div>
         </div>
-        <div className="flex px-5 md:px-10 rounded-3xl shadow-md w-full">
+        <div
+          className="flex px-5 md:px-10 pt-6 md:pt-6 rounded-3xl w-full"
+          style={{
+            boxShadow: "0px 4px 24px 0px #0000001A",
+          }}
+        >
           <div>
             <Recycleicon />
           </div>
@@ -72,7 +82,7 @@ const AtMedh = () => {
             <span className="font-bold text-xl md:text-3xl dark:text-white text-[#252525]">
               MEDH – MISSION
             </span>
-            <p className="text-sm pt-3 w-[98%] dark:text-gray-300 pb-12">
+            <p className="text-sm pt-3 w-[98%] dark:text-[#252525] pb-12">
               Our mission is to empower individuals of all ages through
               innovative and personalized skill development courses, offering
               future-ready curriculum, interactive learning, AI-based

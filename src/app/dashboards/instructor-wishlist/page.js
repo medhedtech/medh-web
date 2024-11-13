@@ -9,16 +9,14 @@ export const metadata = {
 };
 const Instructor_Wishlist = () => {
   return (
-    <PageWrapper>
-      <main>
-        <DsahboardWrapper>
-          <DashboardContainer>
-            <InstructorWishlistMain />
-          </DashboardContainer>
-        </DsahboardWrapper>
-        <ThemeController />
-      </main>
-    </PageWrapper>
+    <main>
+      <DsahboardWrapper>
+        <DashboardContainer>
+          <InstructorWishlistMain />
+        </DashboardContainer>
+      </DsahboardWrapper>
+      <ThemeController />
+    </main>
   );
 };
 
