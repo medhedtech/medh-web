@@ -22,7 +22,6 @@ const data = {
       content:
         "Vedic Mathematics provides excellent career prospects for those aiming to excel in mathematics, teaching, tutoring, and competitive exams.",
     },
-  
   ],
   overview: {
     keyFeatures: [
@@ -46,11 +45,12 @@ const data = {
         description:
           "Personalized Marketing: By segmenting audiences based on preferences, behaviors, and demographics, data analytics facilitates the delivery of personalized and targeted marketing messages, enhancing campaign effectiveness and customer experiences.",
       },
-       {
+      {
         title: "Performance Measurement",
         description:
           " Data analytics enables precise measurement of campaign impact, tracking key performance indicators (KPIs), identifying success metrics, and optimizing resource allocation for enhanced marketing strategies.",
-      },   {
+      },
+      {
         title: "Customer Journey Insight",
         description:
           " Marketers gain insights into the entire customer journey, from initial contact to conversion and beyond, allowing for the creation of seamless and engaging customer experiences.",
@@ -59,13 +59,9 @@ const data = {
         title: "Career Opportunities",
         description:
           " Professionals skilled in digital marketing and data analytics are highly sought after. This course offers diverse career prospects in marketing, advertising, market research, and business analytics.",
-          description1:
+        description1:
           " Equipping marketers with a comprehensive skill set, this course empowers individuals to thrive in the digital landscape, make data-driven decisions, and deliver impactful results for businesses and organizations. It serves as a transformative learning journey, setting individuals on a path of continuous success in the digital age.",
-      
       },
-      
-       
-
     ],
   },
 };
@@ -81,11 +77,15 @@ function DigiMarketingOverview() {
         {/* Title */}
         <div className="flex items-center flex-col w-80% md:mb-20 mb-10 px-4 ">
           <h1 className="text-[24px] leading-7 md:text-4xl font-bold md:mb-3 mb-2 text-[#41454F] dark:text-gray50">
-          Your Path to Achieving Success in the Digital Age.
+            Your Path to Achieving Success in the Digital Age.
           </h1>
           <p className="text-center md:text-[15px] text-[14px] leading-6 md:leading-7 md:w-[70%] dark:text-gray300 text-[#727695]">
-          Gain expertise in using data analytics to improve digital marketing strategies. The Digital Marketing with Data Science course brings together two
-          essential components of modern marketing—digital marketing and data analytics—allowing businesses to make informed, data-driven decisions and implement highly effective, targeted marketing campaigns.
+            Gain expertise in using data analytics to improve digital marketing
+            strategies. The Digital Marketing with Data Science course brings
+            together two essential components of modern marketing—digital
+            marketing and data analytics—allowing businesses to make informed,
+            data-driven decisions and implement highly effective, targeted
+            marketing campaigns.
           </p>
         </div>
 
@@ -96,9 +96,9 @@ function DigiMarketingOverview() {
               key={tab.id}
               className={`px-2 md:px-6 md:py-2 py-1 transition  sm:mb-0 mb-1   ${
                 activeTab === tab.id
-                  ? "bg-[#5C40FF] text-white font-semibold"
-                  : "bg-[#E6E6FA] text-[#5C40FF] border-2 border-[#5C40FF]"
-              } hover:bg-[#5C40FF] hover:text-white`}
+                  ? "bg-primaryColor text-white font-semibold"
+                  : "bg-white text-primaryColor border border-primaryColor"
+              } hover:bg-primaryColor hover:text-white`}
               onClick={() => setActiveTab(tab.id)}
             >
               {tab.name}
@@ -108,19 +108,15 @@ function DigiMarketingOverview() {
 
         {/* Content Rendering */}
         <section className="bg-white mx-4 md:mx-0 dark:bg-screen-dark dark:text-gray-300 px-2 md:px-6 py-8 border-2 border-gray-300 dark:border-gray-600 text-lightGrey14">
-          <h1 className="text-[23px] font-bold text-[#5C40FF] ">
+          <h1 className="text-[23px] font-bold text-primaryColor ">
             {activeContent.name}
           </h1>
           <p className="mb-2 md:text-[15px] text-[14px]">
             {activeContent.content}
           </p>
-          
 
           {activeTab === 1 && (
             <>
-              
-
-            
               <ul className="list-none list-inside space-y-2 pb-2 dark:text-gray300">
                 {data.overview.keyFeatures.map((feature, index) => (
                   <li key={index}>

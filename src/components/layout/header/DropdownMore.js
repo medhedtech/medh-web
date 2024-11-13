@@ -22,6 +22,22 @@ const DropdownMore = () => {
           name: "Team",
           path: "/team",
         },
+        {
+          name: "Join Us as an Educator",
+          path: "/join-as-educator",
+        },
+        {
+          name: "Join Us as a School / Institute",
+          path: "/join-as-school",
+        },
+        {
+          name: "Careers @medh",
+          path: "/careers",
+        },
+        {
+          name: "Contact Us",
+          path: "/contact",
+        },
       ],
     },
   ];
