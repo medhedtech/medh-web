@@ -1,12 +1,16 @@
-import Image from 'next/image';
-import Link from 'next/link';
-import React from 'react';
-import PopupVideo from '../popup/PopupVideo';
+import Image from "next/image";
+import Link from "next/link";
+import React from "react";
+import PopupVideo from "../popup/PopupVideo";
 
 const BlogPrimary = ({ blog, idx }) => {
   const { title, image, desc, id } = blog;
   return (
-    <div className="group shadow-blog2 dark:bg-screen-dark " data-aos="fade-up">
+    <div
+      className="group shadow-blog2 dark:bg-screen-dark "
+      data-aos="fade-up"
+      style={{ boxShadow: "0px 10px 30px 0px #00000012" }}
+    >
       {/* blog thumbnail  */}
       <div className="overflow-hidden relative ">
         <Image src={image} alt="" className="w-full" placeholder="blur" />
