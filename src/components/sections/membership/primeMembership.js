@@ -37,7 +37,8 @@ const PrimeMembership = () => {
           {membershipData.map((membership, index) => (
             <div
               key={index}
-              className="rounded-xl shadow-custom-light dark:border-gray-600 p-6 lg:w-[48%] md:w-full mb-5  border border-[#0000004D]"
+              className="rounded-xl dark:border-gray-600 p-6 lg:w-[48%] md:w-full mb-5  border border-[#0000004D]"
+              style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
             >
               {/* Membership Heading */}
               <div className="md:text-3xl text-[27px]  font-semibold border-b-2  border-[#252525] dark:border-gray-500 dark:border-b pb-5 font-Popins">
@@ -68,9 +69,9 @@ const PrimeMembership = () => {
           ))}
         </div>
         <p className="mt-6 text-base px-6 text-[#F6B335]  ">
-          Note: Only Medh&#39;s Blended Courses having &#39;Pre-Recorded Videos with
-          Live Interactive Doubt Clearing Sessions&#39; would be eligible for these
-          memberships.
+          Note: Only Medh&#39;s Blended Courses having &#39;Pre-Recorded Videos
+          with Live Interactive Doubt Clearing Sessions&#39; would be eligible
+          for these memberships.
         </p>
 
         {/* Select Membership */}
