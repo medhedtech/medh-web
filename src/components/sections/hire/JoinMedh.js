@@ -1,9 +1,11 @@
+"use client";
 import Image from "next/image";
 import React from "react";
 import Educator from "@/assets/images/hire/Educator.png";
 import Partner from "@/assets/images/hire/Partner.png";
 import EducationBg from "@/assets/images/about/joinSvg.png";
 import SchoolBg from "@/assets/images/about/Image.svg";
+import { useRouter } from "next/navigation";
 
 // AddIcon component
 const AddIcon = ({ fill = "white" }) => {
@@ -41,6 +43,7 @@ const JoinMedh = ({
   EducationBg,
   SchoolBg,
 }) => {
+  const router = useRouter();
   return (
     <div className="flex flex-col gap-4 md:gap-0">
       {/* Educator Section */}
@@ -60,7 +63,10 @@ const JoinMedh = ({
             {educatorText}
           </p>
           <div
-            className="text-white px-3.5 py-1 rounded-3xl  flex w-fit items-center gap-2.5 mt-4"
+            onClick={() => {
+              router.push("/join-as-educator");
+            }}
+            className="cursor-pointer text-white px-3.5 py-1 rounded-3xl  flex w-fit items-center gap-2.5 mt-4"
             style={{ backgroundColor: educatorButtonColor }}
           >
             <AddIcon />
@@ -91,7 +97,10 @@ const JoinMedh = ({
             {partnerText}
           </p>
           <div
-            className="px-2.5 py-1 rounded-3xl flex items-center gap-2.5 mt-4 w-fit"
+            onClick={() => {
+              router.push("/join-as-school");
+            }}
+            className="cursor-pointer px-2.5 py-1 rounded-3xl flex items-center gap-2.5 mt-4 w-fit"
             style={{
               backgroundColor: partnerButtonColor,
               color: partnerBtnColor,
