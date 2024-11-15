@@ -89,7 +89,9 @@ const CertificateCoursesEnroll = ({ onViewCertificate }) => {
 
   return (
     <div className="px-7 rounded-lg max-w-full mx-auto">
-      <h2 className="text-size-32 font-semibold mb-2">Certificate</h2>
+      <h2 className="text-size-32 font-semibold mb-2 dark:text-white">
+        Certificate
+      </h2>
 
       {/* Tab Buttons */}
       <div className="flex mb-4">
@@ -126,7 +128,7 @@ const CertificateCoursesEnroll = ({ onViewCertificate }) => {
                     />
                     <div className="flex w-full justify-between">
                       <div>
-                        <h3 className="text-xl text-[#171A1F] font-normal">
+                        <h3 className="text-xl text-[#171A1F] dark:text-white font-normal">
                           {course.title}
                         </h3>
                         <p className="text-[#9095A0]">

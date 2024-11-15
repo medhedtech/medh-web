@@ -48,7 +48,9 @@ const RecordedSessions = () => {
   return (
     <div className="container mx-auto p-8">
       <div className="flex items-center justify-between font-normal font-Open  pb-4 ">
-        <h2 className="text-size-32 font-Open">Access Recorded Sessions</h2>
+        <h2 className="text-size-32 font-Open dark:text-white">
+          Access Recorded Sessions
+        </h2>
         <a
           href="#"
           className="text-green-500 text-sm font-semibold hover:underline"
@@ -61,7 +63,7 @@ const RecordedSessions = () => {
           <div
             key={session.id}
             onClick={() => handleCardClick(session.id)}
-            className="bg-white shadow-sm rounded-lg overflow-hidden border border-gray-200 cursor-pointer"
+            className="bg-white dark:bg-inherit shadow-sm rounded-lg overflow-hidden border border-gray-200 cursor-pointer"
           >
             <div className="relative">
               <Image
@@ -74,7 +76,9 @@ const RecordedSessions = () => {
               </div>
             </div>
             <div className="p-4">
-              <h3 className="text-sm text-[#282F3E]">{session.title}</h3>
+              <h3 className="text-sm text-[#282F3E] dark:text-white">
+                {session.title}
+              </h3>
               <p className="text-xs text-[#585D69]">{session.instructor}</p>
               <p className="text-size-11 text-primaryColor mt-2">
                 Recorded Date: {session.date}

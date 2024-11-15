@@ -36,7 +36,10 @@ const ProfileDetails = ({ onEditClick }) => {
         </span>
       </div>
 
-      <div className="shadow-lg p-4  mx-4 rounded-lg" style={{ boxShadow: '0px 4px 24px 0px #0000001F' }}>
+      <div
+        className="shadow-lg p-4  mx-4 rounded-lg dark:text-white"
+        style={{ boxShadow: "0px 4px 24px 0px #0000001F" }}
+      >
         <div className="py-4.5 px-5">
           <Image src={ProfileImg} alt="profile img" width={192} height={173} />
         </div>
@@ -114,13 +117,17 @@ const ProfileDetails = ({ onEditClick }) => {
               </span>
             </div>
             <div className="md:col-start-5 md:col-span-8">
-              <span className="inline-block text-[20px] text-[#544C4C]">9019</span>
+              <span className="inline-block text-[20px] text-[#544C4C]">
+                9019
+              </span>
             </div>
           </li>
 
           <li className=" grid grid-cols-1 md:grid-cols-12 mb-3">
             <div className="md:col-start-1 md:col-span-4">
-              <span className="inline-block text-[20px]">Domain Belongs to</span>
+              <span className="inline-block text-[20px]">
+                Domain Belongs to
+              </span>
             </div>
             <div className="md:col-start-5 md:col-span-8">
               <span className="inline-block text-[20px] text-[#544C4C]">
@@ -130,7 +137,9 @@ const ProfileDetails = ({ onEditClick }) => {
           </li>
           <li className=" grid grid-cols-1 md:grid-cols-12 mb-3">
             <div className="md:col-start-1 md:col-span-4">
-              <span className="inline-block text-[20px]">Social Media Links</span>
+              <span className="inline-block text-[20px]">
+                Social Media Links
+              </span>
             </div>
             <div className="md:col-start-5 md:col-span-8">
               <div className="flex gap-2">

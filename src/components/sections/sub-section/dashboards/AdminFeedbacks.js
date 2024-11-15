@@ -69,11 +69,11 @@ const AdminFeedbacks = () => {
   };
 
   return (
-    <div className="p-6 md:p-10 bg-white shadow rounded-lg mb-8 font-Poppins">
+    <div className="p-6 md:p-10 bg-white dark:bg-inherit  shadow rounded-lg mb-8 font-Poppins">
       {/* Heading Section */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex gap-4">
-          <h2 className="text-xl md:text-2xl pt-3 font-semibold text-gray-800">
+          <h2 className="text-xl md:text-2xl pt-3 font-semibold text-gray-800 dark:text-white">
             Instructor Highlights
           </h2>
           <div className={`relative  ${focused ? "w-full" : "w-80"}`}>
@@ -102,9 +102,9 @@ const AdminFeedbacks = () => {
             />
           </div>
         </div>
-        <div className="flex items-center space-x-4 ml-[-24px]">
+        <div className="flex items-center space-x-4 ml-[-24px] ">
           <div className="relative ">
-            <select className="appearance-none border border-[#BDB7B7] text-[#323232] outline-none rounded-5px pr-7 pl-3 py-1">
+            <select className="appearance-none dark:bg-inherit dark:text-white border border-[#BDB7B7] text-[#323232] outline-none rounded-5px pr-7 pl-3 py-1">
               <option>Filters</option>
             </select>
             <div className="absolute  top-1/2 right-2 transform -translate-y-1/2 pointer-events-none ">
@@ -163,7 +163,7 @@ const AdminFeedbacks = () => {
                 />
               </svg>
             </div>
-            <select className="appearance-none  text-[#323232] outline-none rounded-5px pr-7 pl-3  py-1">
+            <select className="appearance-none dark:bg-inherit dark:text-white text-[#323232] outline-none rounded-5px pr-7 pl-3  py-1">
               <option>New to oldest</option>
             </select>
             <div className="absolute  top-1/2 right-2 transform -translate-y-1/2 pointer-events-none ">
@@ -189,7 +189,7 @@ const AdminFeedbacks = () => {
       {/* Table Section */}
       <div className="overflow-auto">
         <table className="w-full text-left text-sm">
-          <thead className="text-[#232323] font-medium bg-gray-100">
+          <thead className="text-[#232323] font-medium dark:bg-inherit dark:text-white bg-gray-100">
             <tr>
               <th className="px-4 py-3 font-semibold">
                 <input type="checkbox" />
@@ -206,7 +206,11 @@ const AdminFeedbacks = () => {
             {instructors.map((instructor, index) => (
               <tr
                 key={instructor.id}
-                className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                className={
+                  index % 2 === 0
+                    ? "bg-white dark:bg-inherit dark:text-white dark:border-b"
+                    : "bg-gray-50 dark:bg-inherit dark:text-white dark:border-b"
+                }
               >
                 <td className="px-4 py-3">
                   <input
