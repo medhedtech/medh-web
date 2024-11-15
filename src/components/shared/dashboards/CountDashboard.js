@@ -37,12 +37,12 @@ const CountDashboard = ({ count }) => {
 
       <div className="flex items-center">
         {/* Image on the left with hover color change */}
-        <div className="flex items-center justify-center w-16 h-16 bg-transparant rounded-full mr-4 group-hover:bg-white">
+        <div className="flex items-center justify-center w-20 h-20 bg-transparant rounded-full mr-4  group-hover:bg-white">
           <Image
             src={image}
             alt=""
-            width={30}
-            height={36}
+            width={55}
+            height={56}
             style={{ objectFit: "cover" }}
           />
         </div>
