@@ -6,7 +6,7 @@ import FilterControllerWrapper from "@/components/shared/wrappers/FilterControll
 import FilterCards from "@/components/shared/courses/FilterCards";
 import HeadingPrimaryXl from "@/components/shared/headings/HeadingPrimaryXl ";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import image1 from "@/assets/images/courses/image1.png";
 import image2 from "@/assets/images/courses/image2.png";
 import image3 from "@/assets/images/courses/image3.png";
@@ -18,6 +18,8 @@ import CourseCard from "./CourseCard";
 import ArrowIcon from "@/assets/images/icon/ArrowIcon";
 import Pagination from "@/components/shared/pagination/Pagination";
 import { useRouter } from "next/navigation";
+import useGetQuery from "@/hooks/getQuery.hook";
+import { apiUrls } from "@/apis";
 
 const courses = [
   {
@@ -91,13 +93,26 @@ const categories = [
   "Vedic Mathematics",
 ];
 const CoursesFilter = () => {
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
+  const [allCourses,setAllCourses] = useState([])
+  const {getQuery,loading} = useGetQuery();
 
   const toggleDropdown = () => {
     setIsOpen((prev) => !prev);
   };
+
+  useEffect(() => {
+   getQuery({
+    url:apiUrls?.courses?.getAllCoursesWithLimits(1,10,'','',selectedCategory),
+    onSuccess:(data) => {
+      setAllCourses(data?.courses)
+    },
+    onFail:() => {
+    }
+   })
+  },[selectedCategory])
 
   return (
     <section>
@@ -204,7 +219,7 @@ const CoursesFilter = () => {
 
             {/* Courses Section */}
             <div className="w-full md:w-[70%] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 ">
-              {courses.map((course, index) => (
+              {allCourses?.map((course, index) => (
                 <CourseCard key={index} course={course} />
               ))}
             </div>
