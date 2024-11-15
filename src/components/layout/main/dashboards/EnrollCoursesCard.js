@@ -3,7 +3,10 @@ import Image from "next/image";
 
 const EnrollCoursesCard = ({ title, image, isLive, progress, onClick }) => {
   return (
-    <div onClick={onClick} className="cursor-pointer relative max-w-xs rounded-lg overflow-hidden border border-gray-200 bg-white ">
+    <div
+      onClick={onClick}
+      className="cursor-pointer relative max-w-xs rounded-lg overflow-hidden border border-gray-200 bg-white dark:bg-inherit"
+    >
       {/* Live indicator */}
       {isLive && (
         <div className="absolute top-2 left-2 flex items-center space-x-1">
@@ -21,7 +24,7 @@ const EnrollCoursesCard = ({ title, image, isLive, progress, onClick }) => {
       </div>
       {/* Course Content */}
       <div className="p-4">
-        <h3 className="text-size-15 text-[#282F3E]">{title}</h3>
+        <h3 className="text-size-15 text-[#282F3E] dark:text-white">{title}</h3>
         {/* Progress Bar */}
         <div className="mt-2 flex items-center justify-between">
           <div className="w-[30%] h-1 flex bg-gray-200 rounded-full overflow-hidden">

@@ -1,6 +1,12 @@
 "use client";
 import { useState } from "react";
 import dashboardProdileImage from "@/assets/images/dashbord/profile.png";
+import img2 from "@/assets/images/resources/img2.png";
+import img3 from "@/assets/images/resources/img3.png";
+import img4 from "@/assets/images/resources/img4.png";
+import img5 from "@/assets/images/resources/img5.png";
+import img6 from "@/assets/images/resources/img6.png";
+import Qize from "@/assets/images/dashbord/quize.png";
 import PDFImage from "@/assets/images/dashbord/bxs_file-pdf.png";
 import Image from "next/image";
 
@@ -9,42 +15,42 @@ const courses = [
     id: 1,
     title: "Web Development",
     instructor: "John Doe",
-    image: dashboardProdileImage,
+    image: Qize,
     downloadLink: PDFImage,
   },
   {
     id: 2,
     title: "Communication Skills",
     instructor: "John Doe",
-    image: dashboardProdileImage,
+    image: img2,
     downloadLink: PDFImage,
   },
   {
     id: 3,
     title: "Leadership is everything",
     instructor: "John Doe",
-    image: dashboardProdileImage,
+    image: img3,
     downloadLink: PDFImage,
   },
   {
     id: 4,
     title: "Team work hard work",
     instructor: "John Doe",
-    image: dashboardProdileImage,
+    image: img4,
     downloadLink: PDFImage,
   },
   {
     id: 5,
     title: "Master the art of Psychology",
     instructor: "John Doe",
-    image: dashboardProdileImage,
+    image: img5,
     downloadLink: PDFImage,
   },
   {
     id: 6,
     title: "React Basics",
     instructor: "John Doe",
-    image: dashboardProdileImage,
+    image: img6,
     downloadLink: PDFImage,
   },
 ];
@@ -54,21 +60,21 @@ const liveCourses = [
     id: 1,
     title: "Team work hard work",
     instructor: "John Doe",
-    image: dashboardProdileImage,
+    image: Qize,
     downloadLink: PDFImage,
   },
   {
     id: 2,
     title: "Communication Skills",
     instructor: "John Doe",
-    image: dashboardProdileImage,
+    image: img2,
     downloadLink: PDFImage,
   },
   {
     id: 3,
     title: "Leadership is everything",
     instructor: "John Doe",
-    image: dashboardProdileImage,
+    image: img3,
     downloadLink: PDFImage,
   },
 ];
@@ -78,14 +84,14 @@ const selfPacedCourses = [
     id: 1,
     title: "Communication Skills",
     instructor: "John Doe",
-    image: dashboardProdileImage,
+    image: img4,
     downloadLink: PDFImage,
   },
   {
     id: 2,
     title: "Leadership is everything",
     instructor: "John Doe",
-    image: dashboardProdileImage,
+    image: img5,
     downloadLink: PDFImage,
   },
 ];
