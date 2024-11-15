@@ -124,14 +124,14 @@ const UsersTable = () => {
     return <AddInstructor onCancel={handleCancelAddStudent} />;
 
   return (
-    <div className="flex items-start justify-center min-h-screen bg-gray-100 p-6">
-      <div className="w-full max-w-6xl bg-white p-8 rounded-lg shadow-md">
+    <div className="flex items-start justify-center min-h-screen dark:bg-inherit dark:text-white bg-gray-100 p-6">
+      <div className="w-full max-w-6xl dark:bg-inherit dark:text-white dark:border bg-white p-8 rounded-lg shadow-md">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
           <h1 className="text-2xl font-bold">Instructor List</h1>
           <input
             type="text"
             placeholder="Search here"
-            className="w-full md:w-1/3 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full md:w-1/3 px-4 py-2 border dark:bg-inherit border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
