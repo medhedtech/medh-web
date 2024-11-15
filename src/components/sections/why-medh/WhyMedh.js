@@ -7,8 +7,10 @@ import hire from "@/assets/images/hire/Hire.png";
 import ArrowIcon from "@/assets/images/icon/ArrowIcon";
 import InfoIcon from "@/assets/images/icon/InfoIcon";
 import Certified from "./Certified";
+import { useRouter } from "next/navigation";
 
 const WhyMedh = () => {
+  const router = useRouter();
   return (
     <div>
       {/* Job Guarantee Section */}
@@ -24,7 +26,12 @@ const WhyMedh = () => {
           <p className="font-bold text-2xl md:text-3xl leading-8 text-[#5C6574] dark:text-white">
             100% Job-guaranteed Courses from Medh.
           </p>
-          <button className="bg-[#F6B335] px-4 py-3 w-fit mx-auto text-white flex gap-4">
+          <button
+            onClick={() => {
+              router.push("/courses");
+            }}
+            className="cursor-pointer bg-[#F6B335] px-4 py-3 w-fit mx-auto text-white flex gap-4"
+          >
             <span>
               <ArrowIcon />
             </span>
