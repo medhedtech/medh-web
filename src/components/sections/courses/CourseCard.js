@@ -3,6 +3,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import DownloadBrochureModal from "@/components/shared/download-broucher";
 import { useState } from "react";
+import image6 from "@/assets/images/courses/image6.png";
 
 const CourseCard = ({ course }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -28,7 +29,9 @@ const CourseCard = ({ course }) => {
         <h3 className="font-semibold text-md dark:text-gray300">
           {course?.course_fee}
         </h3>
-        <p className="text-gray-500 dark:text-gray-300">{course?.course_duration}</p>
+        <p className="text-gray-500 dark:text-gray-300">
+          {course?.course_duration}
+        </p>
       </div>
       <div className="flex  mt-2 ">
         <button

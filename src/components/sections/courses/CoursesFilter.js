@@ -105,7 +105,7 @@ const CoursesFilter = () => {
 
   useEffect(() => {
    getQuery({
-    url:apiUrls?.courses?.getAllCoursesWithLimits(1,10,'','',selectedCategory),
+    url:apiUrls?.courses?.getAllCoursesWithLimits(1,6,'','',selectedCategory),
     onSuccess:(data) => {
       setAllCourses(data?.courses)
     },
