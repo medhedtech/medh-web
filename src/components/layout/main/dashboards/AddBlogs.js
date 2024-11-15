@@ -118,8 +118,8 @@ const AddBlog = () => {
   }
 
   return (
-    <div className="flex items-start justify-center w-full bg-gray-100 p-4 pt-9">
-      <div className="w-[95%] mx-auto p-6 bg-white rounded-lg shadow-md font-Poppins">
+    <div className="flex items-start dark:bg-inherit dark:text-white justify-center w-full bg-gray-100 p-4 pt-9">
+      <div className="w-[95%] mx-auto dark:bg-inherit dark:text-white p-6 bg-white rounded-lg shadow-md dark:shadow-white font-Poppins">
         <h2 className="text-2xl font-semibold mb-6">Add Blog</h2>
         <form
           onSubmit={handleSubmit(onSubmit)}

@@ -1,3 +1,4 @@
+import counter from "@/assets/images/counter/icons_badge.svg";
 import counter1 from "@/assets/images/counter/card-1.png";
 import counter2 from "@/assets/images/counter/card-1.png";
 import counter3 from "@/assets/images/counter/card-2.png";
@@ -10,39 +11,39 @@ const CounterAdmin = () => {
   const counts = [
     {
       name: "Enrolled Courses",
-      image: counter1,
-      data: 900,
+      image: counter,
+      data: 100,
       symbol: "+",
     },
     {
       name: "Active Students",
       image: counter2,
-      data: 500,
+      data: 50,
       symbol: "+",
     },
     {
       name: "Total Instructors ",
       image: counter3,
-      data: 300,
-      symbol: "k",
+      data: 50,
+      symbol: "+",
     },
     {
       name: "Total Courses",
       image: counter4,
-      data: 1500,
+      data: 150,
       symbol: "+",
     },
     {
       name: "Cooporate Employee",
       image: counter5,
       data: 30,
-      symbol: "k",
+      symbol: "",
     },
     {
       name: "School/Institute",
       image: counter6,
-      data: 90,
-      symbol: ",000k+",
+      data: 10,
+      symbol: "",
     },
   ];
   return (
