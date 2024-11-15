@@ -6,7 +6,8 @@ export default function Home() {
   return (
     <PageWrapper>
       <main>
-        <Home1 />
+        {/* <>hfjsdbjf</> */}
+        <Home1/>
         <ThemeController />
       </main>
     </PageWrapper>
