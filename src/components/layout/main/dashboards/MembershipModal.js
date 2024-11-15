@@ -19,7 +19,7 @@ const MembershipModal = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="bg-white p-4 font-Open rounded-lg w-1/2 relative">
+      <div className="bg-white dark:bg-black p-4 font-Open rounded-lg w-1/2 relative">
         <button
           className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-3xl"
           onClick={onClose}
@@ -28,7 +28,7 @@ const MembershipModal = ({ isOpen, onClose }) => {
         </button>
 
         {/* Header Section */}
-        <h2 className="text-[1.5rem] font-semibold text-center text-[#1B223C]">
+        <h2 className="text-[1.5rem] font-semibold text-center text-[#1B223C] dark:text-white">
           Find Your Perfect Plan
         </h2>
         <p className="text-[#797878] w-3/4 mx-auto text-center mt-2 text-[1rem] font-light">
@@ -43,7 +43,7 @@ const MembershipModal = ({ isOpen, onClose }) => {
               key={plan}
               className={`px-4 py-0 m-2 border-2 rounded-lg ${
                 selectedPlan === plan
-                  ? "text-[#1B223C] font-semibold"
+                  ? "text-[#1B223C] dark:text-white font-semibold"
                   : "text-[#797878]"
               }`}
               onClick={() => handlePlanChange(plan)}
@@ -54,7 +54,7 @@ const MembershipModal = ({ isOpen, onClose }) => {
         </div>
 
         <div className="flex space-x-6">
-          <div className="py-2 px-6 border rounded-lg w-1/2 bg-white">
+          <div className="py-2 px-6 border rounded-lg w-1/2 dark:bg-inherit bg-white">
             <div className="flex flex-col">
               <svg
                 width="30"
@@ -146,26 +146,26 @@ const MembershipModal = ({ isOpen, onClose }) => {
                 </defs>
               </svg>
             </div>
-            <h3 className="text-[1.5rem] font-semibold text-[#1B223C] mt-2">
+            <h3 className="text-[1.5rem] font-semibold text-[#1B223C] mt-2 dark:text-white">
               Silver
             </h3>
             <p className="text-gray-500 mb-2">
               Unleash the Power with Silver Plan.
             </p>
-            <p className="text-gray-700 text-[1.5rem] font-bold border-b-2 mb-2">
+            <p className="text-gray-700 dark:text-white text-[1.5rem] font-bold border-b-2 mb-2">
               {plans[selectedPlan].silver}{" "}
               <span className="text-[1rem] font-normal">
                 {plans[selectedPlan].period}
               </span>
             </p>
-            <ul className="text-gray-700 space-y-3  mb-6">
+            <ul className="text-gray-700 space-y-3 dark:text-whitegrey mb-6">
               <li>✔ Learn Offline</li>
               <li>✔ Download Materials</li>
               <li>✔ Early Access</li>
               <li>✔ Priority Support</li>
               <li>✔ Advanced Security</li>
             </ul>
-            <button className="bg-white text-black font-Open  py-2 w-full rounded-xl border-[#1B223C] border">
+            <button className="bg-white dark:bg-inherit dark:text-white dark:border-white text-black font-Open  py-2 w-full rounded-xl border-[#1B223C] border">
               Get Started
             </button>
           </div>

@@ -5,7 +5,7 @@ import ProfileBanner from "@/assets/images/dashbord/profileBanner.png";
 
 const EditProfile = ({ onBackClick }) => {
   return (
-    <div className="w-full mx-auto p-6 bg-white shadow-md rounded-lg">
+    <div className="w-full mx-auto p-6 dark:bg-inherit dark:text-white bg-white shadow-md rounded-lg">
       <div className="flex items-center mb-6">
         <button
           className="text-xl font-semibold  mr-4 cursor-pointer"
@@ -70,7 +70,7 @@ const EditProfile = ({ onBackClick }) => {
             <input
               type="text"
               placeholder="Manik Yadav"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-black "
+              className="mt-1 block w-full px-3 py-2 border  dark:bg-inherit dark:placeholder:text-whitegrey border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-black "
             />
           </div>
 
@@ -79,7 +79,7 @@ const EditProfile = ({ onBackClick }) => {
             <input
               type="text"
               placeholder="Manik Yadav"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-black"
+              className="mt-1 block w-full px-3 py-2 border dark:bg-inherit dark:placeholder:text-whitegrey border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-black"
             />
           </div>
 
@@ -90,7 +90,7 @@ const EditProfile = ({ onBackClick }) => {
             <input
               type="tel"
               placeholder="+91 9798648976"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-black"
+              className="mt-1 block w-full px-3 py-2 border dark:bg-inherit dark:placeholder:text-whitegrey border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-black"
             />
           </div>
 
@@ -99,7 +99,7 @@ const EditProfile = ({ onBackClick }) => {
             <input
               type="email"
               placeholder="manik@gmail.com"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-black"
+              className="mt-1 block w-full px-3 py-2 border dark:bg-inherit dark:placeholder:text-whitegrey border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-black"
             />
           </div>
 
@@ -110,7 +110,7 @@ const EditProfile = ({ onBackClick }) => {
             <input
               type="date"
               placeholder="23/05/1995"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-black"
+              className="mt-1 block w-full px-3 py-2 border dark:bg-inherit dark:placeholder:text-whitegrey border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-black"
             />
           </div>
 
@@ -119,7 +119,7 @@ const EditProfile = ({ onBackClick }) => {
             <input
               type="text"
               placeholder="Student"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-black"
+              className="mt-1 block w-full px-3 py-2 border dark:bg-inherit dark:placeholder:text-whitegrey border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-black"
             />
           </div>
 
@@ -130,7 +130,7 @@ const EditProfile = ({ onBackClick }) => {
             <input
               type="date"
               placeholder="12/10/2024"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-black"
+              className="mt-1 block w-full px-3 py-2 border dark:bg-inherit dark:placeholder:text-whitegrey border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-black"
             />
           </div>
 
@@ -141,7 +141,7 @@ const EditProfile = ({ onBackClick }) => {
             <input
               type="url"
               placeholder="http://facebook.com"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-black"
+              className="mt-1 block w-full px-3 py-2 border dark:bg-inherit dark:placeholder:text-whitegrey border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-black"
             />
           </div>
 
@@ -152,7 +152,7 @@ const EditProfile = ({ onBackClick }) => {
             <input
               type="url"
               placeholder="http://twitter.com"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-black"
+              className="mt-1 block w-full px-3 py-2 border dark:bg-inherit dark:placeholder:text-whitegrey border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-black"
             />
           </div>
 
@@ -163,7 +163,7 @@ const EditProfile = ({ onBackClick }) => {
             <input
               type="url"
               placeholder="http://linkedin.com"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-black"
+              className="mt-1 block w-full px-3 py-2 border dark:bg-inherit dark:placeholder:text-whitegrey border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-black"
             />
           </div>
 
