@@ -1,9 +1,5 @@
 import { useState } from 'react';
 import apiClient from '../apis/apiClient';
-import { logger } from '../utils/logger';
-// import { toast } from 'react-toastify';
-// import 'react-toastify/dist/ReactToastify.css';
-
 const headers = {
   'Content-Type': 'application/json',
 };
@@ -17,32 +13,27 @@ const usePostQuery = () => {
     const {
       url,
       onSuccess = () => {
-        logger.log('onSuccess function');
+        console.log('onSuccess function');
       },
       onFail = () => {
-        logger.log('onFail function');
+        console.log('onFail function');
       },
       postData,
+      headers: headersFromParams,
     } = params;
     setLoading(true);
+    console.log(headersFromParams, 'headersFromParamsheadersFromParams');
     try {
       const { data: apiData = {} } = await apiClient.post(url, postData, {
-        headers,
+        headers: headersFromParams ?? headers,
       });
       setData(apiData);
       await onSuccess(apiData);
-      logger.log(apiData, 'postQuery-success');
+      console.log(apiData, 'postQuery-success');
+      return apiData;
     } catch (err) {
-      // toast.error(
-      //   err?.response?.data?.message ||
-      //     err?.message ||
-      //     err?.data?.message ||
-      //     err?.response?.data?.message ||
-      //     err?.data?.data?.message ||
-      //     'Something went wrong'
-      // );
       onFail(err);
-      logger.log(err, 'postQuery-fail');
+      console.log(err, 'postQuery-fail');
       setError(err);
       setData();
     } finally {
