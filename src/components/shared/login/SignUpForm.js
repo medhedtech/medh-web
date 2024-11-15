@@ -77,7 +77,7 @@ const SignUpForm = () => {
 
     try {
       await postQuery({
-        url: apiUrls.register,
+        url: apiUrls.user.register,
         postData: {
           full_name: data?.full_name,
           email: data?.email,

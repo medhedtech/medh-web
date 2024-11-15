@@ -46,4 +46,18 @@ export const apiUrls = {
     updateStudent: "/students/update/:id",
     deleteStudent: "/students/delete/:id",
   },
+  Contacts: {
+    getAllContacts: "/contact/get",
+    getContactById: "/contact/get/:id",
+    createContact: "/contact/create",
+    updateContact: "/contact/update/:id",
+    deleteContact: "/contact/delete",
+  },
+  Blogs: {
+    getAllBlogs: "/blogs/get",
+    getBlogById: "/blogs/get/:id",
+    createBlog: "/blogs/create",
+    updateBlog: "/blogs/update/:id",
+    deleteBlog: "/blogs/delete",
+  },
 };
