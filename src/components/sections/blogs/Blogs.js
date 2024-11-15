@@ -19,7 +19,9 @@ import BlogCard from "./BlogCard";
 import Branding from "@/assets/images/blog/Branding.png";
 import Leadership from "@/assets/images/blog/Leadership.png";
 import Security from "@/assets/images/blog/security.png";
+import { useRouter } from "next/navigation";
 const Blogs = ({ secondary }) => {
+  const router = useRouter();
   const isHome9 = useIsTrue("/home-9");
   const isHome9Dark = useIsTrue("/home-9-dark");
   const images = [
@@ -49,7 +51,6 @@ const Blogs = ({ secondary }) => {
   return (
     <section>
       <div className="container py-100px font-Poppins">
-       
         <div className="flex flex-col px-4">
           <div className="flex flex-col md:flex-row justify-between items-center mb-4">
             <div>
@@ -64,7 +65,14 @@ const Blogs = ({ secondary }) => {
               <div>
                 <EyeIcon />
               </div>
-              <button className="text-sm">Read All</button>
+              <button
+                onClick={() => {
+                  router.push("/blogs");
+                }}
+                className="text-sm"
+              >
+                Read All
+              </button>
             </div>
           </div>
 

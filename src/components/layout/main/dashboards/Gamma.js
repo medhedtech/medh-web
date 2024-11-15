@@ -20,13 +20,10 @@ const schema = yup
       .min(10, "At least 10 digits required")
       .max(10, "Must be exactly 10 digits")
       .required("Phone number is required"),
-    role: yup.string().required("Role is not selected"),
+    role: yup.string().required("Role is required"),
     assign_department: yup
-      // .array()
       .string()
-      .oneOf(["Engineering"])
-      // .of(yup.string())
-      .required("Assign Department is not selected"),
+      .required("Assign department is required"),
   })
   .required();
 
@@ -74,7 +71,8 @@ const Gamma = () => {
           age: data?.age,
           email: data?.email,
           role: data?.role,
-          assign_department: data?.assign_department,
+          // assign_department: data?.assign_department,
+          assign_department: [data?.assign_department],
           phone_number: data?.phone_number,
         },
         onSuccess: () => {
@@ -119,8 +117,6 @@ const Gamma = () => {
                 {...register("full_name")}
                 type="text"
                 name="full_name"
-                // value={formData.fullName}
-                // onChange={handleInputChange}
                 placeholder="Karan Singh"
                 className="mt-1 block w-full border border-gray-300 rounded-md p-2 pl-10 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
@@ -234,6 +230,7 @@ const Gamma = () => {
             </label>
             <select
               {...register("assign_department")}
+              type="string"
               name="assign_department"
               // value={formData.assign_department}
               // onChange={handleInputChange}
