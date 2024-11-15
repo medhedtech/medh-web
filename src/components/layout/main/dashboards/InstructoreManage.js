@@ -83,13 +83,11 @@ const UsersTable = () => {
   const columns = [
     {
       Header: "No.",
-      Cell: ({ row }) => (
-        <span className="text-gray-600">{row.index + 1}</span>
-      ),
+      Cell: ({ row }) => <span className="text-gray-600">{row.index + 1}</span>,
       width: 100,
     },
     { Header: "Name", accessor: "full_name" },
-    { Header: "Age", accessor: "age" },
+    { Header: "Phone Number", accessor: "Phone_Number" },
     { Header: "Email ID", accessor: "email" },
     {
       Header: "Join Date",

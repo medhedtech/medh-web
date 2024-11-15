@@ -4,11 +4,11 @@ import React from "react";
 const CurriculumSection = ({ title, duration, lessons }) => {
   return (
     <div className="mb-8 w-96">
-      <div className="flex mt-6 justify-between mb-3">
+      <div className="flex mt-6 gap-28 mb-3">
         <h4 className="text-sm  font-semibold">
           Section 01 - <span className="text-primaryColor">{title}</span>
         </h4>
-        <p className="text-sm text-primaryColor">{duration} Mins</p>
+        <p className="text-sm text-[#7ECA9D] font-extrabold">{duration} </p>
       </div>
       <ul>
         {lessons.map((lesson, index) => (
