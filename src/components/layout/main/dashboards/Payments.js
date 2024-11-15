@@ -160,7 +160,45 @@ const PaymentTable = () => {
                 onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
                 className="px-10 py-2 border border-[#666666] text-[#666666] rounded-full flex items-center space-x-1"
               >
-                <span>Sort</span>
+                <span>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M3.42773 6.28564L12.5706 6.28564"
+                      stroke="#666666"
+                      stroke-width="1.37143"
+                      stroke-miterlimit="10"
+                      stroke-linecap="square"
+                    />
+                    <path
+                      d="M1.71484 2.85693L14.2863 2.85693"
+                      stroke="#666666"
+                      stroke-width="1.37143"
+                      stroke-miterlimit="10"
+                      stroke-linecap="square"
+                    />
+                    <path
+                      d="M5.14258 9.71436L10.8569 9.71436"
+                      stroke="#666666"
+                      stroke-width="1.37143"
+                      stroke-miterlimit="10"
+                      stroke-linecap="square"
+                    />
+                    <path
+                      d="M6.85742 13.1431L9.14314 13.1431"
+                      stroke="#666666"
+                      stroke-width="1.37143"
+                      stroke-miterlimit="10"
+                      stroke-linecap="square"
+                    />
+                  </svg>
+                </span>
+                <span className="pl-1">Sort</span>
               </button>
               {/* {isSortDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">

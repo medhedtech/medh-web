@@ -56,16 +56,73 @@ const NewCourses = () => {
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-3xl ">Enroll in New Course</h2>
           </div>
-          <div className="flex gap-4 mb-4">
-            <select className="border border-[#BDB7B7] text-[#808080] outline-none rounded-[20px] py-1 px-2">
-              <option>By Age</option>
-            </select>
-            <select className="border border-[#BDB7B7] text-[#808080] outline-none rounded-[20px] py-1 px-2">
-              <option>By Grade</option>
-            </select>
-            <select className="border border-[#BDB7B7] text-[#808080] outline-none rounded-[20px] py-1 px-2">
-              <option>Price</option>
-            </select>
+          <div className="flex gap-7 mb-4 ">
+            <div className="relative ">
+              <select className="appearance-none border border-[#BDB7B7] text-[#808080] outline-none rounded-[20px] pr-7 pl-3 py-1">
+                <option>By Age</option>
+              </select>
+              <div className="absolute  top-1/2 right-2 transform -translate-y-1/2 pointer-events-none ">
+                {/* Replace this with your custom SVG */}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-4 h-4 text-[#808080]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </div>
+            </div>
+            <div className="relative ">
+              <select className="appearance-none border border-[#BDB7B7] text-[#808080] outline-none rounded-[20px] pr-7 pl-3 py-1">
+                <option>By Grade</option>
+              </select>
+              <div className="absolute  top-1/2 right-2 transform -translate-y-1/2 pointer-events-none ">
+                {/* Replace this with your custom SVG */}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-4 h-4 text-[#808080]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </div>
+            </div>
+            <div className="relative ">
+              <select className="appearance-none border border-[#BDB7B7] text-[#808080] outline-none rounded-[20px] pr-7 pl-3 py-1">
+                <option>Price</option>
+              </select>
+              <div className="absolute  top-1/2 right-2 transform -translate-y-1/2 pointer-events-none ">
+                {/* Replace this with your custom SVG */}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-4 h-4 text-[#808080]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </div>
+            </div>
           </div>
         </div>
         <div>

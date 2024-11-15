@@ -1,6 +1,12 @@
 // pages/certificate.js
 "use client";
 import React, { useState } from "react";
+import img1 from "@/assets/images/certificate/img1.png";
+import img2 from "@/assets/images/certificate/img2.png";
+import img3 from "@/assets/images/certificate/img3.png";
+import img4 from "@/assets/images/certificate/img4.png";
+import img5 from "@/assets/images/certificate/img5.png";
+import img6 from "@/assets/images/certificate/img6.png";
 import {
   FaFilter,
   FaSort,
@@ -10,6 +16,7 @@ import {
 } from "react-icons/fa";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import Image from "next/image";
 
 const CertificatePage = () => {
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
@@ -23,42 +30,42 @@ const CertificatePage = () => {
       name: "Nitesh Yadav",
       course: "The Communication Mastery",
       date: "25th August",
-      profileImage: "/images/profileImg.png",
+      profileImage: img1,
     },
     {
       id: 2,
       name: "Nitesh Yadav",
       course: "The Communication Mastery",
       date: "25th August",
-      profileImage: "/images/profileImg.png",
+      profileImage: img2,
     },
     {
       id: 3,
       name: "PT Usha",
       course: "The React Mastery",
       date: "25th August",
-      profileImage: "/images/profileImg.png",
+      profileImage: img3,
     },
     {
       id: 4,
       name: "PT Usha",
       course: "The React Mastery",
       date: "25th August",
-      profileImage: "/images/profileImg.png",
+      profileImage: img4,
     },
     {
       id: 5,
       name: "PV Sindhu",
       course: "The WEB Basics",
       date: "25th August",
-      profileImage: "/images/profileImg.png",
+      profileImage: img5,
     },
     {
       id: 6,
       name: "PV Sindhu",
       course: "The WEB Basics",
       date: "25th August",
-      profileImage: "/images/profileImg.png",
+      profileImage: img6,
     },
   ];
 
@@ -114,7 +121,7 @@ const CertificatePage = () => {
           {users.map((user) => (
             <div key={user.id} className="flex justify-between items-center ">
               <div className="flex items-center">
-                <img
+                <Image
                   src={user.profileImage}
                   alt={`${user.name} profile`}
                   className="w-12 h-12 rounded-full mr-4"
