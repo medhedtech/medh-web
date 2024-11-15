@@ -85,6 +85,17 @@ h6 {
   font-family: var(--font-hind);
 }
 
+@font-face {
+  font-family: "Bulgatti";
+  src: url('/fonts/bulgatti.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.mumkinMedh {
+  font-family: 'Bulgatti', sans-serif;
+}
+
 /* sticky header */
 .sticky-header.active {
   background: var(--whiteColor);
