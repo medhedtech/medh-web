@@ -35,7 +35,10 @@ const UsersTable = () => {
         await getQuery({
           url: apiUrls?.Students?.getAllStudents,
           onSuccess: (data) => setStudents(data),
-          onFail: (err) => console.error("API error:", err),
+          onFail: (err) => {
+            console.error("Api error", err);
+            setStudents([]);
+          },
         });
       } catch (error) {
         console.error("Failed to fetch students:", error);
@@ -80,27 +83,23 @@ const UsersTable = () => {
 
   // Table Columns Configuration
   const columns = [
-    {
-      Header: "No.",
-      Cell: ({ row }) => <span className="text-gray-600">{row.index + 1}</span>,
-      width: 100,
-    },
     { Header: "Name", accessor: "full_name" },
     { Header: "Age", accessor: "age" },
     { Header: "Email ID", accessor: "email" },
     {
       Header: "Join Date",
       accessor: "createdAt",
-      Cell: ({ value }) => formatDate(value),
+      width: 150,
+      render: (row) => formatDate(row?.createdAt),
     },
     { Header: "Course", accessor: "course_name" },
     {
       Header: "Status",
       accessor: "isActive",
-      Cell: ({ row }) => (
+      reader: (row) => (
         <StatusToggle
-          isActive={row.original.isActive}
-          onClick={() => toggleStatus(row.original.id)}
+          isActive={row.isActive}
+          onClick={() => toggleStatus(row.id)}
         />
       ),
     },
