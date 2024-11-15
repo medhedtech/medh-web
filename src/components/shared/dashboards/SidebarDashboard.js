@@ -306,7 +306,7 @@ const SidebarDashboard = () => {
           ),
         },
         {
-          name: "Genrate Certificate",
+          name: "Generate Certificate",
           path: "/dashboards/admin-GenrateCertificate",
           // tag: 12,
           icon: (
