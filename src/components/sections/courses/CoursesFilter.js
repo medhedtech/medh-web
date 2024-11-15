@@ -1,91 +1,99 @@
-'use client';
-import FilterController from '@/components/shared/courses/FilterController';
-import HeadingPrimary from '@/components/shared/headings/HeadingPrimary';
-import SectionName from '@/components/shared/section-names/SectionName';
-import FilterControllerWrapper from '@/components/shared/wrappers/FilterControllerWrapper';
-import FilterCards from '@/components/shared/courses/FilterCards';
-import HeadingPrimaryXl from '@/components/shared/headings/HeadingPrimaryXl ';
-import Image from 'next/image';
-import { useState } from 'react';
-import image1 from '@/assets/images/courses/image1.png';
-import image2 from '@/assets/images/courses/image2.png';
-import image3 from '@/assets/images/courses/image3.png';
-import image4 from '@/assets/images/courses/image4.png';
-import image5 from '@/assets/images/courses/image5.png';
-import image6 from '@/assets/images/courses/image6.png';
-import CategoryFilter from './CategoryFilter';
-import CourseCard from './CourseCard';
-import ArrowIcon from '@/assets/images/icon/ArrowIcon';
-import Pagination from '@/components/shared/pagination/Pagination';
+"use client";
+import FilterController from "@/components/shared/courses/FilterController";
+import HeadingPrimary from "@/components/shared/headings/HeadingPrimary";
+import SectionName from "@/components/shared/section-names/SectionName";
+import FilterControllerWrapper from "@/components/shared/wrappers/FilterControllerWrapper";
+import FilterCards from "@/components/shared/courses/FilterCards";
+import HeadingPrimaryXl from "@/components/shared/headings/HeadingPrimaryXl ";
+import Image from "next/image";
+import { useState } from "react";
+import image1 from "@/assets/images/courses/image1.png";
+import image2 from "@/assets/images/courses/image2.png";
+import image3 from "@/assets/images/courses/image3.png";
+import image4 from "@/assets/images/courses/image4.png";
+import image5 from "@/assets/images/courses/image5.png";
+import image6 from "@/assets/images/courses/image6.png";
+import CategoryFilter from "./CategoryFilter";
+import CourseCard from "./CourseCard";
+import ArrowIcon from "@/assets/images/icon/ArrowIcon";
+import Pagination from "@/components/shared/pagination/Pagination";
+import { useRouter } from "next/navigation";
 
 const courses = [
   {
-    title: 'Professional Edge Diploma in ',
-    label: 'Digital Marketing with Data Analytics',
-    duration: '18 Months Course',
-    brochure: '/path/to/brochure.pdf',
+    id: 1,
+    title: "Professional Edge Diploma in ",
+    label: "Digital Marketing with Data Analytics",
+    duration: "18 Months Course",
+    brochure: "/path/to/brochure.pdf",
     image: image1,
   },
   {
-    title: 'Professional Edge Diploma in ',
-    label: 'AI & Data Science',
-    duration: '18 Months Course',
-    brochure: '/path/to/brochure.pdf',
+    id: 2,
+    title: "Professional Edge Diploma in ",
+    label: "AI & Data Science",
+    duration: "18 Months Course",
+    brochure: "/path/to/brochure.pdf",
     image: image2,
   },
   {
-    title: 'Certificate in ',
-    label: 'Writing and Editing Skills',
-    duration: 'Self Paced Learning Program',
-    brochure: '/path/to/brochure.pdf',
+    id: 3,
+    title: "Certificate in ",
+    label: "Writing and Editing Skills",
+    duration: "Self Paced Learning Program",
+    brochure: "/path/to/brochure.pdf",
     image: image3,
   },
   {
-    title: 'Certificate in ',
-    label: 'Learning Mandarin Language',
-    duration: 'Self Paced Learning Program',
-    brochure: '/path/to/brochure.pdf',
+    id: 4,
+    title: "Certificate in ",
+    label: "Learning Mandarin Language",
+    duration: "Self Paced Learning Program",
+    brochure: "/path/to/brochure.pdf",
     image: image4,
   },
   {
-    title: 'Certificate in ',
-    label: 'Learning Spanish Language',
-    duration: 'Self Paced Learning Program',
-    brochure: '/path/to/brochure.pdf',
+    id: 5,
+    title: "Certificate in ",
+    label: "Learning Spanish Language",
+    duration: "Self Paced Learning Program",
+    brochure: "/path/to/brochure.pdf",
     image: image5,
   },
   {
-    title: 'Certificate in',
-    label: 'Cyber Law India International',
-    duration: 'Self Paced Learning Program',
-    brochure: '/path/to/brochure.pdf',
+    id: 6,
+    title: "Certificate in",
+    label: "Cyber Law India International",
+    duration: "Self Paced Learning Program",
+    brochure: "/path/to/brochure.pdf",
     image: image6,
   },
 ];
 
 const categories = [
-  'AI and Data Science',
-  'AI for Professionals',
-  'Business & Management',
-  'Career Development',
-  'Communication & Soft Skills',
-  'Data & Analytics',
-  'Digital Marketing with Data Analytics',
-  'Environmental and Sustainability Skills',
-  'Finance & Accounts',
-  'Health & Wellness',
-  'Industry-Specific Skills',
-  'Language & Linguistic',
-  'Legal & Compliance Skills',
-  'Personal Well-Being',
-  'Personality Development',
-  'Sales & Marketing',
-  'Technical Skills',
-  'Vedic Mathematics',
+  "AI and Data Science",
+  "AI for Professionals",
+  "Business & Management",
+  "Career Development",
+  "Communication & Soft Skills",
+  "Data & Analytics",
+  "Digital Marketing with Data Analytics",
+  "Environmental and Sustainability Skills",
+  "Finance & Accounts",
+  "Health & Wellness",
+  "Industry-Specific Skills",
+  "Language & Linguistic",
+  "Legal & Compliance Skills",
+  "Personal Well-Being",
+  "Personality Development",
+  "Sales & Marketing",
+  "Technical Skills",
+  "Vedic Mathematics",
 ];
 const CoursesFilter = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
 
   const toggleDropdown = () => {
     setIsOpen((prev) => !prev);
@@ -101,10 +109,15 @@ const CoursesFilter = () => {
               Skill Development Courses
             </h1>
             <div>
-              <button className="bg-[#7ECA9D] text-white px-4 py-2 mt-2 md:mt-0 flex gap-2">
+              <button
+                onClick={() => {
+                  router.push("/courses");
+                }}
+                className="cursor-pointer bg-[#7ECA9D] text-white px-4 py-2 mt-2 md:mt-0 flex gap-2"
+              >
                 <span>
                   <ArrowIcon />
-                </span>{' '}
+                </span>{" "}
                 Explore More Courses
               </button>
             </div>
