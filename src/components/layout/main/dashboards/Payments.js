@@ -125,17 +125,17 @@ const PaymentTable = () => {
 
   return (
     <div className="flex items-start justify-center w-full font-Open">
-      <div className="w-full bg-white px-2 md:px-10 rounded-lg ">
-        <h1 className="text-size-32 px-6">Payments</h1>
+      <div className="w-full bg-white dark:bg-inherit px-2 md:px-10 rounded-lg ">
+        <h1 className="text-size-32 px-6 dark:text-white">Payments</h1>
         <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4 space-y-4 md:space-y-0">
-          <div className="relative w-full md:w-1/4 ml-6">
-            <span className="absolute inset-y-0 left-4 flex items-center text-[#666666]">
+          <div className="relative w-full md:w-1/4 ml-6 ">
+            <span className="absolute inset-y-0 left-4 flex items-center  text-[#666666]">
               <SearchIcon fill="#666666" />
             </span>
             <input
               type="text"
               placeholder="Search here"
-              className="w-full pl-10 pr-4 py-2 border border-[#666666] text-[#666666] rounded-full focus:outline-none focus:ring-2"
+              className="w-full pl-10 pr-4 py-2 border border-[#666666] dark:bg-inherit text-[#666666] rounded-full focus:outline-none focus:ring-2"
             />
           </div>
           <div className="flex space-x-2 justify-center md:justify-start">

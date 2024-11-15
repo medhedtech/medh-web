@@ -52,8 +52,8 @@ export default function Home() {
     return <Preloader />;
   }
   return (
-    <div className="bg-gray-100 font-Poppins min-h-screen pt-8 p-6">
-      <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-lg p-6">
+    <div className="bg-gray-100 dark:bg-darkblack font-Poppins min-h-screen pt-8 p-6">
+      <div className="max-w-6xl mx-auto  dark:bg-inherit dark:text-whitegrey3 dark:border bg-white rounded-lg shadow-lg p-6">
         <header className="flex items-center justify-between mb-4">
           <h1 className="text-xl font-semibold">Course List</h1>
           <div className="flex items-center space-x-2">
@@ -61,7 +61,7 @@ export default function Home() {
               <input
                 type="text"
                 placeholder="Search here"
-                className="border border-gray-300 rounded-full p-2 pl-4 w-full max-w-md"
+                className="border  dark:bg-inherit dark:text-whitegrey3 dark:border border-gray-300 rounded-full p-2 pl-4 w-full max-w-md"
               />
             </div>
             <div className="relative">
@@ -138,7 +138,7 @@ export default function Home() {
                   />
                 </svg>
               </div>
-              <select className="appearance-none  text-[#323232] outline-none rounded-5px pr-7 pl-3  py-1">
+              <select className="appearance-none  dark:bg-inherit dark:text-whitegrey3  text-[#323232] outline-none rounded-5px pr-7 pl-3  py-1">
                 <option>New to oldest</option>
               </select>
               <div className="absolute  top-1/2 right-2 transform -translate-y-1/2 pointer-events-none ">
