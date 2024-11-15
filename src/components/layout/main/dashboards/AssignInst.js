@@ -143,10 +143,10 @@ const AssignInstructor = () => {
   ];
 
   return (
-    <div className="min-h-screen font-Poppins bg-gray-100 p-6 flex items-center pt-9 justify-center">
+    <div className="min-h-screen font-Poppins dark:bg-inherit bg-gray-100 p-6 flex items-center pt-9 justify-center">
       <div className="container max-w-6xl w-full mx-auto">
         {/* Form Section */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div className="bg-white dark:bg-inherit dark:border dark:text-white rounded-lg shadow-md p-6 mb-6">
           <h2 className="text-2xl font-semibold mb-4">Assign Instructor</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -156,7 +156,7 @@ const AssignInstructor = () => {
               <input
                 type="text"
                 placeholder="Instructor Name"
-                className="w-full px-4 py-2 border rounded-lg text-gray-700 focus:outline-none"
+                className="w-full px-4 py-2 border rounded-lg dark:bg-inherit dark:text-white text-gray-700 focus:outline-none"
                 value={instructorData.name}
                 onChange={(e) =>
                   setInstructorData({ ...instructorData, name: e.target.value })
@@ -170,7 +170,7 @@ const AssignInstructor = () => {
               <input
                 type="text"
                 placeholder="Course Name"
-                className="w-full px-4 py-2 border rounded-lg text-gray-700 focus:outline-none"
+                className="w-full px-4 py-2 border rounded-lg dark:bg-inherit dark:text-white text-gray-700 focus:outline-none"
                 value={instructorData.course}
                 onChange={(e) =>
                   setInstructorData({
@@ -187,7 +187,7 @@ const AssignInstructor = () => {
               <input
                 type="email"
                 placeholder="enteremail@gmail.com"
-                className="w-full px-4 py-2 border rounded-lg text-gray-700 focus:outline-none"
+                className="w-full px-4 py-2 border rounded-lg dark:bg-inherit dark:text-white text-gray-700 focus:outline-none"
                 value={instructorData.email}
                 onChange={(e) =>
                   setInstructorData({
@@ -202,7 +202,7 @@ const AssignInstructor = () => {
                 Type
               </label>
               <select
-                className="w-full px-4 py-2 border rounded-lg text-gray-700 focus:outline-none"
+                className="w-full px-4 py-2 border rounded-lg dark:bg-inherit dark:text-white text-gray-700 focus:outline-none"
                 value={instructorData.type}
                 onChange={(e) =>
                   setInstructorData({ ...instructorData, type: e.target.value })
@@ -235,7 +235,7 @@ const AssignInstructor = () => {
         </div>
 
         {/* Table Section */}
-        <div className="bg-white font-Poppins rounded-lg shadow-md p-6">
+        <div className="bg-white dark:bg-inherit dark:text-white dark:border font-Poppins rounded-lg shadow-md p-6">
           <h2 className="text-xl font-semibold mb-4">Assigned Instructor</h2>
           <MyTable columns={columns} data={assignedInstructors} />
         </div>
@@ -266,7 +266,7 @@ const AssignInstructor = () => {
       {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-3xl">
+          <div className="bg-white dark:bg-black dark:text-white rounded-lg shadow-lg p-8 w-full max-w-3xl">
             <h2 className="text-xl font-semibold mb-4">
               Edit Assigned Instructor
             </h2>
