@@ -165,7 +165,7 @@ const MembershipModal = ({ isOpen, onClose }) => {
               <li>✔ Priority Support</li>
               <li>✔ Advanced Security</li>
             </ul>
-            <button className="bg-primaryColor text-white py-2 w-full rounded-md font-semibold">
+            <button className="bg-white text-black font-Open  py-2 w-full rounded-xl border-[#1B223C] border">
               Get Started
             </button>
           </div>

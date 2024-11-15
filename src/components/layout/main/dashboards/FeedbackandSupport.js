@@ -30,8 +30,14 @@ const FeedbackandSupport = () => {
             <p className="mb-4 text-size-22">
               Write Review about Course/Instructor
             </p>
-            <div className="flex gap-3 mb-2.5 ">
-              <label className="flex items-center text-lg text-[#B4BDC4]">
+            <div className="flex gap-3 mb-2.5">
+              <label
+                className={`flex items-center text-lg ${
+                  feedbackType === "course"
+                    ? "text-primaryColor"
+                    : "text-[#B4BDC4]"
+                }`}
+              >
                 <input
                   type="radio"
                   value="course"
@@ -41,7 +47,13 @@ const FeedbackandSupport = () => {
                 />
                 Course
               </label>
-              <label className="flex items-center text-lg text-[#B4BDC4]">
+              <label
+                className={`flex items-center text-lg ${
+                  feedbackType === "instructor"
+                    ? "text-primaryColor"
+                    : "text-[#B4BDC4]"
+                }`}
+              >
                 <input
                   type="radio"
                   value="instructor"
@@ -86,7 +98,7 @@ const FeedbackandSupport = () => {
               type="text"
               value={complaintName}
               onChange={(e) => setComplaintName(e.target.value)}
-              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-1 focus:ring-green-300"
+              className="w-full p-3 border rounded-lg text-[#434343BF] focus:outline-none focus:ring-1 focus:ring-green-300"
             />
           </div>
 
@@ -98,7 +110,7 @@ const FeedbackandSupport = () => {
               rows="4"
               value={complaintText}
               onChange={(e) => setComplaintText(e.target.value)}
-              className="w-1/2 p-3 border rounded-lg focus:outline-none focus:ring-1 focus:ring-green-300"
+              className="w-1/2 p-3 border rounded-lg text-[#434343BF] focus:outline-none focus:ring-1 focus:ring-green-300"
             />
           </div>
 
