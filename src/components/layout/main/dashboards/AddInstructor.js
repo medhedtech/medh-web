@@ -65,6 +65,8 @@ const AddInstructor = () => {
           age: data.age,
           email: data.email,
           course_name: data.course_name,
+          phone_number: data.phone_number,
+          domain: data.domain,
         },
         onSuccess: () => {
           toast.success("Student added successfully!");
@@ -137,7 +139,6 @@ const AddInstructor = () => {
               </span>
             )}
           </div>
-
           {/* Age Field */}
           <div className="flex flex-col">
             <label
@@ -159,6 +160,7 @@ const AddInstructor = () => {
           </div>
 
           {/* Email Field */}
+
           <div className="flex flex-col">
             <label
               htmlFor="email"
@@ -194,6 +196,45 @@ const AddInstructor = () => {
             {errors.email && (
               <span className="text-red-500 text-xs">
                 {errors.email.message}
+              </span>
+            )}
+          </div>
+          {/* phone_number */}
+          <div className="flex flex-col">
+            <label
+              htmlFor=" phone_number"
+              className="text-xs px-2 text-[#808080] font-medium mb-1"
+            >
+              Phone Number
+            </label>
+            <div className="relative">
+              <input
+                type="Phone"
+                id="phone_number"
+                placeholder="999999999"
+                className="w-full border border-gray-300 rounded-md py-2 px-3 pr-3 focus:outline-none focus:ring-2 focus:ring-green-400"
+                {...register("phone_number")}
+              />
+              {/* <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                <span>
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6ZM20 6L12 11L4 6H20ZM20 18H4V8L12 13L20 8V18Z"
+                      fill="#808080"
+                    />
+                  </svg>
+                </span>
+              </span> */}
+            </div>
+            {errors.phone_number && (
+              <span className="text-red-500 text-xs">
+                {errors.phone_number.message}
               </span>
             )}
           </div>
@@ -240,6 +281,45 @@ const AddInstructor = () => {
               <p className="text-red-500 text-xs">
                 {errors.course_name.message}
               </p>
+            )}
+          </div>
+
+          <div className="flex flex-col">
+            <label
+              htmlFor="domain"
+              className="text-xs px-2 text-[#808080] font-medium mb-1"
+            >
+              Domain
+            </label>
+            <div className="relative">
+              <input
+                type=""
+                id="domain"
+                placeholder="Domain Name"
+                className="w-full border border-gray-300 rounded-md py-2 px-3 pr-3 focus:outline-none focus:ring-2 focus:ring-green-400"
+                {...register("domain")}
+              />
+              {/* <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                <span>
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6ZM20 6L12 11L4 6H20ZM20 18H4V8L12 13L20 8V18Z"
+                      fill="#808080"
+                    />
+                  </svg>
+                </span>
+              </span> */}
+            </div>
+            {errors.domain && (
+              <span className="text-red-500 text-xs">
+                {errors.domain.message}
+              </span>
             )}
           </div>
 

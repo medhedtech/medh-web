@@ -35,6 +35,7 @@ const schema = yup.object({
 
 const AddCourse = () => {
   const router = useRouter();
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [courseVideo, setCourseVideo] = useState(null);
   const [pdfBrochure, setPdfBrochure] = useState(null);
   const { postQuery, loading } = usePostQuery();
@@ -151,10 +152,10 @@ const AddCourse = () => {
         course_videos: courseVideo ? [courseVideo] : [],
         brochures: pdfBrochure ? [pdfBrochure] : [],
       };
-  
+
       // Save data to localStorage
       localStorage.setItem("courseData", JSON.stringify(postData));
-  
+
       // Navigate to the preview page
       router.push("/dashboards/admin-add-data");
       toast.success("Course details saved locally!");
@@ -169,7 +170,10 @@ const AddCourse = () => {
       reset(courseData);
     }
   }, [courseData, reset]);
-  
+
+  const handleChange = (value) => {
+    setSelectedCategory(value);
+  };
 
   if (loading) {
     return <Preloader />;
@@ -183,35 +187,53 @@ const AddCourse = () => {
         {/* Select Category */}
         <div className="mb-6">
           <div className="flex items-center gap-7 mb-2">
-            <label className="block text-[#323232] font-semibold text-xl ">
+            <label className="block text-[#323232] font-semibold text-xl">
               Select Category
             </label>
-            <label className="flex text-lg font-medium items-center space-x-2">
+            <label
+              className={`flex text-lg font-medium items-center space-x-2 ${
+                selectedCategory === "Live Courses"
+                  ? "text-green-500"
+                  : "text-[#808080]"
+              }`}
+            >
               <input
                 type="radio"
                 name="course_category"
                 value="Live Courses"
-                className="text-customGreen"
+                onChange={() => handleChange("Live Courses")}
                 {...register("course_category")}
               />
-              <span className="text-primaryColor">Live Courses</span>
+              <span>Live Courses</span>
             </label>
-            <label className="flex items-center text-lg font-medium text-[#808080] space-x-2">
+            <label
+              className={`flex text-lg font-medium items-center space-x-2 ${
+                selectedCategory === "Blended Courses"
+                  ? "text-green-500"
+                  : "text-[#808080]"
+              }`}
+            >
               <input
                 type="radio"
                 name="course_category"
                 value="Blended Courses"
-                className="text-customGreen"
+                onChange={() => handleChange("Blended Courses")}
                 {...register("course_category")}
               />
               <span>Blended Courses</span>
             </label>
-            <label className="flex items-center text-lg font-medium text-[#808080] space-x-2">
+            <label
+              className={`flex text-lg font-medium items-center space-x-2 ${
+                selectedCategory === "Corporate Training Courses"
+                  ? "text-green-500"
+                  : "text-[#808080]"
+              }`}
+            >
               <input
                 type="radio"
                 name="course_category"
-                value="Cooporate Training Courses"
-                className="text-customGreen"
+                value="Corporate Training Courses"
+                onChange={() => handleChange("Corporate Training Courses")}
                 {...register("course_category")}
               />
               <span>Corporate Training Courses</span>
