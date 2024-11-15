@@ -94,8 +94,8 @@ export default function GetInTouch() {
   }
 
   return (
-    <div className="bg-gray-100 font-Poppins min-h-screen pt-8 p-6">
-      <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-lg p-6">
+    <div className="bg-gray-100 dark:bg-inherit dark:text-white font-Poppins min-h-screen pt-8 p-6">
+      <div className="max-w-6xl dark:bg-inherit dark:text-white  mx-auto bg-white rounded-lg shadow-lg p-6">
         <header className="flex items-center justify-between mb-4">
           <h1 className="text-xl font-semibold">Get In Touch</h1>
         </header>

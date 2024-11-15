@@ -60,7 +60,7 @@ export default function QuizPage() {
   };
 
   return (
-    <div className="w-full bg-gray-100 flex items-center justify-center">
+    <div className="w-full bg-gray-100 dark:bg-inherit dark:border rounded-5px flex items-center justify-center">
       <QuizQuestion
         question={quizData[currentQuestion].question}
         options={quizData[currentQuestion].options}
@@ -75,12 +75,14 @@ export default function QuizPage() {
       {/* Popup */}
       {showPopup && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white px-6 pb-4 rounded-lg shadow-lg text-center w-[765px]">
+          <div className="bg-white dark:bg-black px-6 pb-4 rounded-lg shadow-lg text-center w-[765px]">
             <div className="mx-auto">
               <Image src={Pana} alt="pana" className="mx-auto" />
             </div>
 
-            <p>Congratulations! You are successfully completed the quiz </p>
+            <p className="dark:text-white">
+              Congratulations! You are successfully completed the quiz{" "}
+            </p>
             <button
               onClick={closePopup}
               className="mt-4 px-6 py-2 bg-primaryColor text-white rounded-full hover:bg-green-600 w-80"

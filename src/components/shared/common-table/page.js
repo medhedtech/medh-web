@@ -115,6 +115,7 @@ const MyTable = ({
             <TableRow>
               {columns.map((column, index) => (
                 <TableCell
+                  className="font-Open dark:text-black"
                   key={index}
                   sx={{
                     backgroundColor: "#F9FAFB",
@@ -129,7 +130,9 @@ const MyTable = ({
                   {column.Header}
                   {shouldHaveSelectFilter(column) && (
                     <FormControl fullWidth size="small" margin="dense">
-                      <InputLabel>Filter by {column.Header}</InputLabel>
+                      <InputLabel className="font-Open dark:text-black">
+                        Filter by {column.Header}
+                      </InputLabel>
                       <Select
                         value={filterValues[column.accessor] || ""}
                         onChange={(event) => handleFilterChange(column, event)}
@@ -158,6 +161,7 @@ const MyTable = ({
                 <TableRow key={rowIndex} hover>
                   {columns.map((column, columnIndex) => (
                     <TableCell
+                      className="font-Open dark:text-white"
                       key={columnIndex}
                       sx={{
                         padding: "12px",
@@ -198,7 +202,13 @@ const MyTable = ({
           </TableBody>
         </Table>
       </TableContainer>
-      <Box display="flex" justifyContent="flex-end" alignItems="center" mt={2}>
+      <Box
+        className="font-Open dark:text-white"
+        display="flex"
+        justifyContent="flex-end"
+        alignItems="center"
+        mt={2}
+      >
         <IconButton
           onClick={prevPage}
           disabled={currentPage === 0}
@@ -206,7 +216,12 @@ const MyTable = ({
         >
           <ChevronLeftIcon />
         </IconButton>
-        <Typography variant="body2" color="textSecondary" mx={2}>
+        <Typography
+          className="font-Open dark:text-white"
+          variant="body2"
+          color="textSecondary"
+          mx={2}
+        >
           {currentPage + 1} of {totalPages}
         </Typography>
         <IconButton
@@ -221,11 +236,22 @@ const MyTable = ({
           size="small"
           margin="dense"
           sx={{ ml: 2 }}
+          className="font-Open dark:outline-white"
         >
-          <Select value={pageLimit} onChange={handlePageLimitChange}>
-            <MenuItem value={5}>5</MenuItem>
-            <MenuItem value={10}>10</MenuItem>
-            <MenuItem value={50}>50</MenuItem>
+          <Select
+            className="font-Open dark:text-white"
+            value={pageLimit}
+            onChange={handlePageLimitChange}
+          >
+            <MenuItem className="font-Open dark:text-black" value={5}>
+              5
+            </MenuItem>
+            <MenuItem className="font-Open dark:text-black" value={10}>
+              10
+            </MenuItem>
+            <MenuItem className="font-Open dark:text-black" value={50}>
+              50
+            </MenuItem>
           </Select>
         </FormControl>
       </Box>
