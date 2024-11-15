@@ -75,7 +75,7 @@ const StudentMembershipCard = () => {
     <section className="py-10 px-4">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-wrap justify-between items-center mb-8 font-Open">
-          <h2 className="text-3xl font-bold text-gray-800 font-Open">
+          <h2 className="text-3xl font-bold text-gray-800 font-Open dark:text-white">
             Membership
           </h2>
           <button
