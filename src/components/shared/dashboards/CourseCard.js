@@ -6,12 +6,12 @@ const CourseCard = ({ title, instructor, rating, reviews, image, onClick }) => {
   return (
     <div
       onClick={onClick}
-      className="cursor-pointer bg-white shadow-sm rounded-lg overflow-hidden border border-gray-200"
+      className="cursor-pointer bg-white dark:bg-inherit shadow-sm rounded-lg overflow-hidden border border-gray-200"
     >
       {/* <img src={image} alt={title} className="w-full h-40 object-cover" /> */}
       <Image src={image} alt={title} className="w-full h-40 object-cover" />
       <div className="p-4">
-        <h3 className="text-sm text-[#282F3E] ">{title}</h3>
+        <h3 className="text-sm text-[#282F3E] dark:text-white">{title}</h3>
         <p className="text-xs text-[#585D69]">{instructor}</p>
         <div className="flex items-center mt-2 justify-between">
           <div className="flex ">

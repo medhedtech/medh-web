@@ -94,18 +94,18 @@ const Gamma = () => {
   }
 
   return (
-    <div className="flex items-start font-Poppins justify-center min-h-screen pt-9 bg-gray-100 p-4">
+    <div className="flex items-start font-Poppins justify-center min-h-screen pt-9 dark:bg-inherit bg-gray-100 p-4">
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="bg-white max-w-6xl w-full p-6 md:p-8 rounded-lg shadow-lg"
+        className="bg-white dark:border dark:bg-inherit max-w-6xl w-full p-6 md:p-8 rounded-lg shadow-lg"
       >
-        <h2 className="text-xl font-semibold text-gray-800 mb-6">
+        <h2 className="text-xl font-semibold text-gray-800 mb-6 dark:text-white">
           Create a new user
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="relative">
-            <label className="block text-sm font-medium text-gray-600">
+            <label className="block text-sm font-medium text-gray-600 dark:text-whitegrey3">
               Full Name
             </label>
             <div className="relative">
@@ -118,7 +118,7 @@ const Gamma = () => {
                 type="text"
                 name="full_name"
                 placeholder="Karan Singh"
-                className="mt-1 block w-full border border-gray-300 rounded-md p-2 pl-10 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="mt-1 block w-full border border-gray-300 rounded-md p-2 pl-10 focus:outline-none focus:ring-2 dark:bg-inherit dark: focus:ring-indigo-500"
               />
             </div>
             {errors.full_name && (
@@ -129,7 +129,7 @@ const Gamma = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-600">
+            <label className="block text-sm font-medium text-gray-600 dark:text-whitegrey3">
               Age
             </label>
             <input
@@ -139,7 +139,7 @@ const Gamma = () => {
               // value={formData.age}
               // onChange={handleInputChange}
               placeholder="27 years"
-              className="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 dark:bg-inherit focus:ring-indigo-500"
             />
             {errors.age && (
               <p className="text-xs text-red-500 font-normal  ml-2">
@@ -149,7 +149,7 @@ const Gamma = () => {
           </div>
 
           <div className="relative">
-            <label className="block text-sm font-medium text-gray-600">
+            <label className="block text-sm font-medium text-gray-600 dark:text-whitegrey3">
               Email
             </label>
             <div className="relative">
@@ -164,7 +164,7 @@ const Gamma = () => {
                 // value={formData.email}
                 // onChange={handleInputChange}
                 placeholder="enteremail@gmail.com"
-                className="mt-1 block w-full border border-gray-300 rounded-md p-2 pl-10 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="mt-1 block w-full border border-gray-300 rounded-md p-2 pl-10 focus:outline-none focus:ring-2 dark:bg-inherit focus:ring-indigo-500"
               />
             </div>
             {errors.email && (
@@ -175,7 +175,7 @@ const Gamma = () => {
           </div>
 
           <div className="relative">
-            <label className="block text-sm font-medium text-gray-600">
+            <label className="block text-sm font-medium text-gray-600 dark:text-whitegrey3">
               Phone number
             </label>
             <div className="relative">
@@ -190,7 +190,7 @@ const Gamma = () => {
                 // value={formData.phoneNumber}
                 // onChange={handleInputChange}
                 placeholder="8317074259"
-                className="mt-1 block w-full border border-gray-300 rounded-md p-2 pl-10 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="mt-1 block w-full border border-gray-300 rounded-md p-2 pl-10 focus:outline-none focus:ring-2 dark:bg-inherit focus:ring-indigo-500"
               />
             </div>
             {errors.phone_number && (
@@ -201,7 +201,7 @@ const Gamma = () => {
           </div>
 
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-600">
+            <label className="block text-sm font-medium text-gray-600 dark:text-whitegrey3">
               Select Role
             </label>
             <select
@@ -209,7 +209,7 @@ const Gamma = () => {
               name="role"
               // value={formData.role}
               // onChange={handleInputChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="mt-1 block w-full border dark:text-whitegrey1 border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 dark:bg-inherit focus:ring-indigo-500"
             >
               <option value="">Select</option>
               <option value="student">Student</option>
@@ -225,7 +225,7 @@ const Gamma = () => {
           </div>
 
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-600">
+            <label className="block text-sm font-medium text-gray-600 dark:text-whitegrey3">
               Assign department
             </label>
             <select
@@ -234,7 +234,7 @@ const Gamma = () => {
               name="assign_department"
               // value={formData.assign_department}
               // onChange={handleInputChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="mt-1 block w-full border dark:text-whitegrey border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 dark:bg-inherit focus:ring-indigo-500"
             >
               <option value="">Select</option>
               <option value="Engineering">Engineering</option>
@@ -253,7 +253,7 @@ const Gamma = () => {
         <div className="flex justify-end mt-6 gap-4">
           <button
             type="button"
-            className="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300"
+            className="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 dark:bg-inherit dark:text-white dark:border"
           >
             Cancel
           </button>
