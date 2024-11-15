@@ -35,6 +35,7 @@ const schema = yup.object({
 
 const AddCourse = () => {
   const router = useRouter();
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [courseVideo, setCourseVideo] = useState(null);
   const [pdfBrochure, setPdfBrochure] = useState(null);
   const { postQuery, loading } = usePostQuery();
@@ -151,10 +152,10 @@ const AddCourse = () => {
         course_videos: courseVideo ? [courseVideo] : [],
         brochures: pdfBrochure ? [pdfBrochure] : [],
       };
-  
+
       // Save data to localStorage
       localStorage.setItem("courseData", JSON.stringify(postData));
-  
+
       // Navigate to the preview page
       router.push("/dashboards/admin-add-data");
       toast.success("Course details saved locally!");
@@ -169,49 +170,70 @@ const AddCourse = () => {
       reset(courseData);
     }
   }, [courseData, reset]);
-  
+
+  const handleChange = (value) => {
+    setSelectedCategory(value);
+  };
 
   if (loading) {
     return <Preloader />;
   }
 
   return (
-    <div className="min-h-screen font-Poppins flex items-center justify-center pt-8 bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-6xl">
+    <div className="min-h-screen font-Poppins flex items-center justify-center pt-8  dark:bg-inherit dark:text-whitegrey3  bg-gray-100">
+      <div className="bg-white p-8 rounded-lg  dark:bg-inherit dark:text-whitegrey3 dark:border shadow-lg w-full max-w-6xl">
         <h2 className="text-2xl font-semibold mb-6">Add Course Details</h2>
 
         {/* Select Category */}
         <div className="mb-6">
           <div className="flex items-center gap-7 mb-2">
-            <label className="block text-[#323232] font-semibold text-xl ">
+            <label className="block text-[#323232] font-semibold text-xl dark:text-white">
               Select Category
             </label>
-            <label className="flex text-lg font-medium items-center space-x-2">
+            <label
+              className={`flex text-lg font-medium items-center space-x-2 ${
+                selectedCategory === "Live Courses"
+                  ? "text-green-500"
+                  : "text-[#808080]"
+              }`}
+            >
               <input
                 type="radio"
                 name="course_category"
                 value="Live Courses"
-                className="text-customGreen"
+                onChange={() => handleChange("Live Courses")}
                 {...register("course_category")}
               />
-              <span className="text-primaryColor">Live Courses</span>
+              <span>Live Courses</span>
             </label>
-            <label className="flex items-center text-lg font-medium text-[#808080] space-x-2">
+            <label
+              className={`flex text-lg font-medium items-center space-x-2 ${
+                selectedCategory === "Blended Courses"
+                  ? "text-green-500"
+                  : "text-[#808080]"
+              }`}
+            >
               <input
                 type="radio"
                 name="course_category"
                 value="Blended Courses"
-                className="text-customGreen"
+                onChange={() => handleChange("Blended Courses")}
                 {...register("course_category")}
               />
               <span>Blended Courses</span>
             </label>
-            <label className="flex items-center text-lg font-medium text-[#808080] space-x-2">
+            <label
+              className={`flex text-lg font-medium items-center space-x-2 ${
+                selectedCategory === "Corporate Training Courses"
+                  ? "text-green-500"
+                  : "text-[#808080]"
+              }`}
+            >
               <input
                 type="radio"
                 name="course_category"
-                value="Cooporate Training Courses"
-                className="text-customGreen"
+                value="Corporate Training Courses"
+                onChange={() => handleChange("Corporate Training Courses")}
                 {...register("course_category")}
               />
               <span>Corporate Training Courses</span>
@@ -229,7 +251,7 @@ const AddCourse = () => {
               <input
                 type="text"
                 placeholder="Enter title"
-                className="p-3 border rounded-lg w-full text-[#808080] placeholder-gray-400"
+                className="p-3 border rounded-lg w-full text-[#808080] dark:bg-inherit placeholder-gray-400"
                 {...register("course_title")}
               />
               {errors.course_title && (
@@ -239,11 +261,11 @@ const AddCourse = () => {
               )}
             </div>
             <div>
-              <label className="block text-sm px-2 font-semibold mb-1">
+              <label className="block text-sm px-2  font-semibold mb-1">
                 Category Type (Live/ Hybrid/ Pre-Recorded)
               </label>
               <select
-                className="p-3 border rounded-lg w-full text-gray-600"
+                className="p-3 border rounded-lg w-full dark:bg-inherit text-gray-600"
                 {...register("course_tag")}
               >
                 <option value="">Select type</option>
@@ -264,7 +286,7 @@ const AddCourse = () => {
               <input
                 type="number"
                 placeholder="Enter sessions"
-                className="p-3 border rounded-lg w-full text-gray-600 placeholder-gray-400"
+                className="p-3 border rounded-lg w-full text-gray-600 dark:bg-inherit placeholder-gray-400"
                 {...register("no_of_Sessions")}
               />
               {errors.no_of_Sessions && (
@@ -279,7 +301,7 @@ const AddCourse = () => {
                 Duration (In months/weeks)
               </label>
               <select
-                className="p-3 border rounded-lg w-full text-gray-600"
+                className="p-3 border rounded-lg w-full dark:bg-inherit text-gray-600"
                 {...register("course_duration")}
               >
                 <option value="">Select type</option>
@@ -300,7 +322,7 @@ const AddCourse = () => {
               <input
                 type="text"
                 placeholder="Enter session duration"
-                className="p-3 border rounded-lg w-full text-gray-600 placeholder-gray-400"
+                className="p-3 border rounded-lg w-full text-gray-600 dark:bg-inherit placeholder-gray-400"
                 {...register("session_duration")}
               />
               {errors.session_duration && (
@@ -316,7 +338,7 @@ const AddCourse = () => {
               <input
                 type="text"
                 placeholder="Write description"
-                className="p-3 border rounded-lg w-full text-gray-600 placeholder-gray-400"
+                className="p-3 border rounded-lg w-full text-gray-600 dark:bg-inherit placeholder-gray-400"
                 {...register("course_description")}
               />
               {errors.course_description && (
@@ -332,7 +354,7 @@ const AddCourse = () => {
               <input
                 type="text"
                 placeholder="Enter fee"
-                className="p-3 border rounded-lg w-full text-gray-600 placeholder-gray-400"
+                className="p-3 border rounded-lg w-full text-gray-600 dark:bg-inherit placeholder-gray-400"
                 {...register("course_fee")}
               />
               {errors.course_fee && (
@@ -350,7 +372,7 @@ const AddCourse = () => {
               <p className="font-semibold mb-2 text-center text-2xl">
                 Add Course Videos
               </p>
-              <div className="border-dashed border-2 bg-purple border-gray-300 rounded-lg p-3 w-[210px] h-[140px] text-center relative">
+              <div className="border-dashed border-2 dark:bg-inherit bg-purple border-gray-300 rounded-lg p-3 w-[210px] h-[140px] text-center relative">
                 <svg
                   width="36"
                   height="36"
@@ -371,7 +393,7 @@ const AddCourse = () => {
                 <input
                   type="file"
                   accept="video/*"
-                  className="absolute inset-0 opacity-0 cursor-pointer"
+                  className="absolute inset-0 opacity-0 dark:bg-inherit cursor-pointer"
                   onChange={handleVideoUpload}
                 />
                 {courseVideo && (
@@ -387,7 +409,7 @@ const AddCourse = () => {
               <p className="font-semibold mb-2 text-center text-2xl">
                 Add PDF Brochure
               </p>
-              <div className="border-dashed border-2 bg-purple border-gray-300 rounded-lg p-3 w-[210px] h-[140px] text-center relative">
+              <div className="border-dashed border-2 dark:bg-inherit bg-purple border-gray-300 rounded-lg p-3 w-[210px] h-[140px] text-center relative">
                 <svg
                   width="36"
                   height="36"
