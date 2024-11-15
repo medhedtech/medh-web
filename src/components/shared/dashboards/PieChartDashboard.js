@@ -44,8 +44,8 @@ const PieChartDashboard = () => {
           <h2 className="text-2xl font-bold text-blackColor dark:text-blackColor-dark">
             Traffic
           </h2>
-          <div className="bg-whiteColor rounded-md relative">
-            <select className="bg-transparent text-darkBlue w-42.5 px-3 py-6px focus:outline-none block appearance-none leading-1.5 relative z-20 focus:shadow-select border border-borderColor6 rounded-md">
+          <div className="bg-whiteColor dark:bg-inherit rounded-md relative">
+            <select className="bg-transparent dark:text-white text-darkBlue w-42.5 px-3 py-6px focus:outline-none block appearance-none leading-1.5 relative z-20 focus:shadow-select border border-borderColor6 rounded-md">
               <option defaultValue="Today">Today</option>
               <option defaultValue="Weekly">Weekly</option>
               <option defaultValue="Monthly">Monthly</option>
