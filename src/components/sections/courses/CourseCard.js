@@ -1,9 +1,16 @@
-"use client"
+"use client";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import DownloadBrochureModal from "@/components/shared/download-broucher";
+import { useState } from "react";
 
 const CourseCard = ({ course }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
+
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
+
   return (
     <div className="bg-white dark:bg-screen-dark flex flex-col justify-between shadow-md  dark:border-whitegrey border">
       <Image
@@ -24,7 +31,10 @@ const CourseCard = ({ course }) => {
         <p className="text-gray-500 dark:text-gray-300">{course.duration}</p>
       </div>
       <div className="flex  mt-2 ">
-        <button className="bg-[#7ECA9D] text-sm text-white px-4 w-1/2 leading-none py-3.5">
+        <button
+          onClick={openModal}
+          className="bg-[#7ECA9D] text-sm text-white px-4 w-1/2 leading-none py-3.5"
+        >
           Download Brochure
         </button>
         <button
@@ -34,6 +44,7 @@ const CourseCard = ({ course }) => {
           Program Details
         </button>
       </div>
+      <DownloadBrochureModal isOpen={isModalOpen} onClose={closeModal} />
     </div>
   );
 };

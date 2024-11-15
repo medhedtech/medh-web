@@ -4,36 +4,60 @@ import React, { useEffect, useState } from "react";
 import MyTable from "@/components/shared/common-table/page";
 import useGetQuery from "@/hooks/getQuery.hook";
 import Preloader from "@/components/shared/others/Preloader";
+import useDeleteQuery from "@/hooks/deleteQuery.hook";
+import { toast } from "react-toastify";
+
+const formatDate = (date) => {
+  if (!date) return "";
+  const options = { day: "2-digit", month: "2-digit", year: "numeric" };
+  const formattedDate = new Date(date).toLocaleDateString("en-GB", options);
+  const [day, month, year] = formattedDate.split("/");
+  return `${day}-${month}-${year}`;
+};
 
 export default function GetInTouch() {
   const [courses, setCourses] = useState([]);
   const { getQuery, loading } = useGetQuery();
+  const { deleteQuery } = useDeleteQuery();
 
   // Fetch courses from API
   useEffect(() => {
-    const fetchCourses = async () => {
+    const fetchContacts = async () => {
       await getQuery({
         url: apiUrls?.Contacts?.getAllContacts,
         onSuccess: (response) => {
           console.log("Contacts fetched successfully:", response);
-
-          // Check if the response contains the 'data' field and it's an array
           if (response?.success && Array.isArray(response.data)) {
-            setCourses(response.data); // Set courses to the data array
+            setCourses(response.data);
           } else {
-            console.error("Fetched data is not valid. Setting courses to empty array.");
-            setCourses([]); // Set empty array in case of invalid response
+            console.error(
+              "Fetched data is not valid. Setting courses to empty array."
+            );
+            setCourses([]);
           }
         },
         onFail: (err) => {
           console.error("Failed to fetch contacts:", err);
-          setCourses([]); // Set empty array in case of error
+          setCourses([]);
         },
       });
     };
 
-    fetchCourses();
-  }, []); // Include getQuery as a dependency if it might change
+    fetchContacts();
+  }, []);
+
+  const deleteGetInTouch = (id) => {
+    deleteQuery({
+      url: `${apiUrls?.Contacts?.deleteContact}/${id}`,
+      onSuccess: (res) => {
+        toast.success(res?.message);
+        fetchContacts();
+      },
+      onFail: (res) => {
+        console.log(res, "FAILED");
+      },
+    });
+  };
 
   const columns = [
     { Header: "Name", accessor: "full_name" },
@@ -41,6 +65,28 @@ export default function GetInTouch() {
     { Header: "Country", accessor: "country" },
     { Header: "Phone", accessor: "phone_number" },
     { Header: "Message", accessor: "message" },
+    {
+      Header: "Date",
+      accessor: "createdAt",
+      width: 150,
+      render: (row) => formatDate(row?.createdAt),
+    },
+    {
+      Header: "Action",
+      accessor: "actions",
+      render: (row) => (
+        <div className="flex gap-2 items-center">
+          <button
+            onClick={() => {
+              deleteGetInTouch(row?._id);
+            }}
+            className="text-[#7ECA9D] border border-[#7ECA9D] rounded-md px-[10px] py-1"
+          >
+            Delete
+          </button>
+        </div>
+      ),
+    },
   ];
 
   if (loading) {
