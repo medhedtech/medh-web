@@ -28,21 +28,23 @@ const UsersTable = () => {
   }
 
   return (
-    <div className="flex items-start font-Poppins justify-center min-h-screen bg-gray-100 p-4 pt-9">
-      <div className="w-full max-w-6xl bg-white p-8 md:p-10 rounded-lg shadow-md">
+    <div className="flex items-start font-Poppins justify-center min-h-screen dark:bg-inherit bg-gray-100 p-4 pt-9">
+      <div className="w-full max-w-6xl bg-white dark:bg-inherit dark:border p-8 md:p-10 rounded-lg shadow-md">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 space-y-4 md:space-y-0">
-          <h2 className="text-xl font-semibold md:text-left">Users List</h2>
+          <h2 className="text-xl font-semibold md:text-left dark:text-white">
+            Users List
+          </h2>
           <input
             type="text"
             placeholder="Search here"
-            className="w-full md:w-1/3 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full md:w-1/3 px-4 py-2 border dark:bg-inherit dark:text-whitegrey3 border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
           <div className="flex space-x-2 justify-center md:justify-start">
             {/* Filter Button with Dropdown */}
             <div className="relative">
               <button
                 onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 flex items-center space-x-1"
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md dark:bg-inherit dark:text-whitegrey3 dark:border hover:bg-gray-300 flex items-center space-x-1"
               >
                 <span>Filters</span>
                 <FaChevronDown />
@@ -75,7 +77,7 @@ const UsersTable = () => {
             <div className="relative">
               <button
                 onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 flex items-center space-x-1"
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md  dark:bg-inherit dark:text-whitegrey3 dark:border hover:bg-gray-300 flex items-center space-x-1"
               >
                 <span>New to oldest</span>
                 <FaChevronDown />
@@ -107,7 +109,7 @@ const UsersTable = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse dark:text-white">
             <thead>
               <tr>
                 <th className="px-4 py-2 border-b">Select</th>
@@ -124,7 +126,7 @@ const UsersTable = () => {
             <tbody>
               {!loading && data?.data?.length > 0 ? (
                 data.data.map((user, index) => (
-                  <tr key={user._id} className="hover:bg-gray-100">
+                  <tr key={user._id} className="">
                     <td className="px-4 py-2 border-b">
                       <input
                         type="checkbox"

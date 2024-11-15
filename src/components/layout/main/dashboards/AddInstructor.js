@@ -86,8 +86,8 @@ const AddInstructor = () => {
   }
 
   return (
-    <div className="flex items-start justify-center w-full bg-gray-100 p-4 pt-9">
-      <div className="w-[95%] mx-auto p-6 bg-white rounded-lg shadow-md font-Poppins">
+    <div className="flex items-start justify-center w-full dark:bg-inherit dark:text-white bg-gray-100 p-4 pt-9">
+      <div className="w-[95%] mx-auto p-6 dark:bg-inherit dark:text-white dark:border bg-white rounded-lg shadow-md font-Poppins">
         <h2 className="text-2xl font-semibold mb-6">Add Instructor</h2>
         <form
           onSubmit={handleSubmit(onSubmit)}
@@ -97,7 +97,7 @@ const AddInstructor = () => {
           <div className="flex flex-col">
             <label
               htmlFor="full_name"
-              className="text-xs px-2 text-[#808080] font-medium mb-1"
+              className="text-xs px-2 text-[#808080]  font-medium mb-1"
             >
               Full Name
             </label>
@@ -106,7 +106,7 @@ const AddInstructor = () => {
                 type="text"
                 id="full_name"
                 placeholder="Student Name"
-                className="w-full border border-gray-300 rounded-md py-2 pl-10 pr-3 focus:outline-none focus:ring-2 focus:ring-green-400"
+                className="w-full border border-gray-300 dark:bg-inherit rounded-md py-2 pl-10 pr-3 focus:outline-none focus:ring-2 focus:ring-green-400"
                 {...register("full_name")}
               />
               <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
@@ -151,7 +151,7 @@ const AddInstructor = () => {
               type="number"
               id="age"
               placeholder="Age"
-              className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-green-400"
+              className="w-full border border-gray-300 dark:bg-inherit rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-green-400"
               {...register("age")}
             />
             {errors.age && (
@@ -173,7 +173,7 @@ const AddInstructor = () => {
                 type="email"
                 id="email"
                 placeholder="enteremail@gmail.com"
-                className="w-full border border-gray-300 rounded-md py-2 pl-10 pr-3 focus:outline-none focus:ring-2 focus:ring-green-400"
+                className="w-full border border-gray-300 dark:bg-inherit rounded-md py-2 pl-10 pr-3 focus:outline-none focus:ring-2 focus:ring-green-400"
                 {...register("email")}
               />
               <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
@@ -212,7 +212,7 @@ const AddInstructor = () => {
                 type="Phone"
                 id="phone_number"
                 placeholder="999999999"
-                className="w-full border border-gray-300 rounded-md py-2 px-3 pr-3 focus:outline-none focus:ring-2 focus:ring-green-400"
+                className="w-full border border-gray-300 dark:bg-inherit rounded-md py-2 px-3 pr-3 focus:outline-none focus:ring-2 focus:ring-green-400"
                 {...register("phone_number")}
               />
               {/* <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
@@ -267,7 +267,7 @@ const AddInstructor = () => {
             </label>
             <select
               {...register("course_name")}
-              className="w-full p-2 border rounded-lg text-gray-600"
+              className="w-full p-2 border rounded-lg dark:bg-inherit text-gray-600"
             >
               <option value="">Select Course</option>
               {courses.map((course, index) => (
@@ -296,7 +296,7 @@ const AddInstructor = () => {
                 type=""
                 id="domain"
                 placeholder="Domain Name"
-                className="w-full border border-gray-300 rounded-md py-2 px-3 pr-3 focus:outline-none focus:ring-2 focus:ring-green-400"
+                className="w-full border border-gray-300 dark:bg-inherit rounded-md py-2 px-3 pr-3 focus:outline-none focus:ring-2 focus:ring-green-400"
                 {...register("domain")}
               />
               {/* <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
