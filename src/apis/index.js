@@ -11,8 +11,8 @@ export const apiUrls = {
     getAll: "/auth/get-all",
   },
   courses: {
-    getAllCoursesWithLimits: (page = 1, limit = 10) =>
-      `/courses/get?page=${page}&limit=${limit}`,
+    getAllCoursesWithLimits: (page = 1, limit = 10,course_title,course_tag,course_category) =>
+      `/courses/getLimitedCourses?page=${page}&limit=${limit}&course_title=${course_title}&course_tag=${course_tag}&course_category=${course_category}`,
     getAllCourses: "/courses/get",
     getCourseById: "/courses/get/:id",
     createCourse: "/courses/create",
