@@ -5,7 +5,7 @@ import Image from "next/image";
 import React from "react";
 import Link from "next/link";
 import stemImg from "@/assets/images/herobanner/Background.png";
-import Group from "@/assets/images/herobanner/Group5.png";
+import Group from "@/assets/images/herobanner/medh-home-banner.jpg";
 const Hero1 = () => {
   return (
     <section data-aos="fade-up " className="dark:bg-screen-dark ">
@@ -56,18 +56,18 @@ const Hero1 = () => {
                 </div>
               </div>
             </div>
-            <span className="text-[#FD474F] text-2xl sm:text-3xl font-medium">
+            <span className="text-[#7ECA9D] text-2xl sm:text-3xl mumkinMedh font-medium">
               Medh Hain Toh Mumkin Hain!
             </span>
           </div>
           {/* Banner Right */}
-          <div data-aos="fade-up" className="lg:flex hidden justify-end ">
+          <div className="lg:flex hidden justify-end ">
             <Image
               src={Group}
               width={453}
               height={457}
               alt="Group Image"
-              className="max-w-full h-auto"
+              className="max-w-full h-auto lg:rounded-[10%] contain"
             />
           </div>
         </div>
