@@ -10,16 +10,16 @@ export const metadata = {
 };
 const Admin_Profile = () => {
   return (
-    <PageWrapper>
+    // <PageWrapper>
       <main>
-        <DsahboardWrapper>
+        {/* <DsahboardWrapper> */}
           <DashboardContainer>
             <AdminProfileMain />
           </DashboardContainer>
-        </DsahboardWrapper>
+        {/* </DsahboardWrapper> */}
         <ThemeController />
       </main>
-    </PageWrapper>
+    // </PageWrapper>
   );
 };
 

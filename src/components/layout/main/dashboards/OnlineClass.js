@@ -158,8 +158,8 @@ const OnlineMeeting = () => {
   if (loading) return <Preloader />;
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col justify-start font-Poppins pt-8">
-      <div className="bg-white shadow-lg rounded-lg w-full max-w-6xl p-6 sm:p-8 md:p-10 mx-auto">
+    <div className="min-h-screen dark:bg-inherit bg-gray-100 flex flex-col justify-start font-Poppins pt-8">
+      <div className="bg-white dark:bg-inherit dark:text-white dark:border shadow-lg rounded-lg w-full max-w-6xl p-6 sm:p-8 md:p-10 mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-semibold">Online Meeting</h2>
           <button
@@ -175,7 +175,7 @@ const OnlineMeeting = () => {
           {meeting.map((meeting, index) => (
             <div
               key={index}
-              className="bg-gray-50 p-4 rounded-lg shadow-md border border-gray-200 w-[298.2px] h-[281.8px] flex flex-col"
+              className="bg-gray-50 dark:bg-inherit p-4 rounded-lg shadow-md border border-gray-200 w-[298.2px] h-[281.8px] flex flex-col"
             >
               <h3 className="text-lg font-semibold mb-2">
                 Meeting Title: {meeting.meet_title}
@@ -279,9 +279,9 @@ const OnlineMeeting = () => {
         {/* Modal */}
         {isModalOpen && (
           <div className="fixed inset-0 flex justify-center items-center bg-gray-700 bg-opacity-50 z-50">
-            <div className="bg-white p-4 rounded-lg w-[400px] md:w-[550px]">
+            <div className="bg-white dark:bg-black p-4 rounded-lg w-[400px] md:w-[550px]">
               {/* <div className="flex justify-between items-center mb-2"> */}
-              <div className="bg-white p-6 rounded-lg w-full relative">
+              <div className="bg-white dark:bg-black p-6 rounded-lg w-full relative">
                 <h3 className="text-2xl font-semibold mb-4">Create Meeting</h3>
                 <button
                   className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
@@ -310,7 +310,7 @@ const OnlineMeeting = () => {
                 <div className="mb-4">
                   <label
                     htmlFor="course_name"
-                    className="block text-sm font-medium text-gray-600 mb-2"
+                    className="block text-sm font-medium  text-gray-600 mb-2"
                   >
                     Course Name
                   </label>
