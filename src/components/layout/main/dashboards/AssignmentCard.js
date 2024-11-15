@@ -42,7 +42,9 @@ const AssignmentCard = ({ title, instructor, status, daysLeft, image }) => {
           className="w-27 h-27 rounded-md mr-4"
         />
         <div className="w-full">
-          <h3 className="text-sm text-[#171A1F] font-Open">{title}</h3>
+          <h3 className="text-sm text-[#171A1F] font-Open dark:text-white">
+            {title}
+          </h3>
           <p className="text-size-11 text-[#9095A0]">
             Instructor: {instructor}
           </p>
@@ -64,21 +66,21 @@ const AssignmentCard = ({ title, instructor, status, daysLeft, image }) => {
       {/* Popup Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg px-10 py-5 w-[705px]  shadow-lg relative">
+          <div className="bg-white rounded-lg px-10 py-5 w-[705px] dark:bg-black shadow-lg relative">
             <button
-              className="absolute top-5 right-4 font-bold hover:text-gray-700"
+              className="absolute top-5 right-4 font-bold hover:text-gray-700 dark:text-white"
               onClick={closeModal}
             >
               ✕
             </button>
-            <h2 className="text-xl text-center font-semibold mb-4">
+            <h2 className="text-xl text-center font-semibold mb-4 dark:text-white">
               Submit Assignment
             </h2>
             <form>
               <div className="mb-4">
                 <label
                   htmlFor="name"
-                  className="block text-xl font-semibold text-[#434343]"
+                  className="block text-xl font-semibold text-[#434343] dark:text-whitegrey1"
                 >
                   Course Name
                 </label>
@@ -86,7 +88,7 @@ const AssignmentCard = ({ title, instructor, status, daysLeft, image }) => {
                   type="text"
                   id="name"
                   name="name"
-                  className="mt-6 block w-full p-2 border border-gray-300 rounded-md"
+                  className="mt-6 block w-full p-2 border dark:bg-inherit border-gray-300 rounded-md"
                   placeholder="Enter your name"
                   required
                 />
@@ -94,7 +96,7 @@ const AssignmentCard = ({ title, instructor, status, daysLeft, image }) => {
               <div className="mb-7">
                 <label
                   htmlFor="file"
-                  className="block text-xl font-semibold text-[#434343]"
+                  className="block text-xl font-semibold text-[#434343] dark:text-whitegrey1"
                 >
                   Upload File
                 </label>

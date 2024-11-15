@@ -18,30 +18,33 @@ const QuizQuestion = ({
   };
 
   return (
-    <div className="p-6 bg-white rounded-lg shadow-md w-full mx-auto">
+    <div className="p-6 bg-white dark:bg-inherit rounded-lg shadow-md w-full mx-auto">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <button onClick={onBack} className="text-size-32 text-gray-700">
+        <button
+          onClick={onBack}
+          className="text-size-32 text-gray-700 dark:text-white"
+        >
           &larr; Quizzes
         </button>
-        <div className="text-gray-800 text-lg font-semibold">
+        <div className="text-gray-800 text-lg font-semibold dark:text-white">
           {questionNumber}/{totalQuestions}
         </div>
-        <div className="font-semibold">
+        <div className="font-semibold dark:text-white">
           Time <br />
           <span>{time}</span>
         </div>
       </div>
 
       {/* Question */}
-      <h2 className="text-lg font-medium mb-4">{question}</h2>
+      <h2 className="text-lg font-medium mb-4 dark:text-white">{question}</h2>
 
       {/* Options */}
-      <div className="space-y-2 text-[#615F5F]">
+      <div className="space-y-2 text-[#615F5F] dark:text-white">
         {options.map((option, index) => (
           <label
             key={index}
-            className={`block p-3 border rounded-lg cursor-pointer ${
+            className={`block p-3 border rounded-lg cursor-pointer dark:bg-inherit dark:text-white ${
               selectedOption === index
                 ? "bg-[#F6F7F9] border-green-500"
                 : "bg-gray-100 border-gray-200"
