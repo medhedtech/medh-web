@@ -8,7 +8,7 @@ const EditProfile = ({ onBackClick }) => {
     <div className="w-full mx-auto p-6 bg-white shadow-md rounded-lg">
       <div className="flex items-center mb-6">
         <button
-          className="text-xl font-semibold text-gray-800 mr-4 cursor-pointer"
+          className="text-xl font-semibold  mr-4 cursor-pointer"
           onClick={onBackClick}
         >
           ←
@@ -64,111 +64,113 @@ const EditProfile = ({ onBackClick }) => {
 
         <form className="grid grid-cols-1 font-Open md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-base font-normal mb-2">First Name</label>
+            <label className="block text-base  font-bold mb-2">
+              First Name
+            </label>
             <input
               type="text"
               placeholder="Manik Yadav"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-black "
             />
           </div>
 
           <div>
-            <label className="block text-base font-normal mb-2">Last Name</label>
+            <label className="block text-base  font-bold mb-2">Last Name</label>
             <input
               type="text"
               placeholder="Manik Yadav"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-black"
             />
           </div>
 
           <div>
-            <label className="block text-base font-normal mb-2">
+            <label className="block text-base  font-bold mb-2">
               Phone Number
             </label>
             <input
               type="tel"
               placeholder="+91 9798648976"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-black"
             />
           </div>
 
           <div>
-            <label className="block text-base font-normal mb-2">Email</label>
+            <label className="block text-base  font-bold mb-2">Email</label>
             <input
               type="email"
               placeholder="manik@gmail.com"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-black"
             />
           </div>
 
           <div>
-            <label className="block text-base font-normal mb-2">
+            <label className="block text-base  font-bold mb-2">
               Date of Birth
             </label>
             <input
               type="date"
               placeholder="23/05/1995"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-black"
             />
           </div>
 
           <div>
-            <label className="block text-base font-normal mb-2">Domain</label>
+            <label className="block text-base  font-bold mb-2">Domain</label>
             <input
               type="text"
               placeholder="Student"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-black"
             />
           </div>
 
           <div>
-            <label className="block text-base font-normal mb-2">
+            <label className="block text-base  font-bold mb-2">
               Date of Join
             </label>
             <input
               type="date"
               placeholder="12/10/2024"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-black"
             />
           </div>
 
           <div>
-            <label className="block text-base font-normal mb-2">
+            <label className="block text-base  font-bold mb-2">
               Add Facebook Link
             </label>
             <input
               type="url"
               placeholder="http://facebook.com"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-black"
             />
           </div>
 
           <div>
-            <label className="block text-base font-normal mb-2">
+            <label className="block text-base  font-bold mb-2">
               Add Twitter Link
             </label>
             <input
               type="url"
               placeholder="http://twitter.com"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-black"
             />
           </div>
 
           <div>
-            <label className="block text-base font-normal mb-2">
+            <label className="block text-base  font-bold mb-2">
               Add LinkedIn Link
             </label>
             <input
               type="url"
               placeholder="http://linkedin.com"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-black"
             />
           </div>
 
           <div className="md:col-span-2">
             <button
               type="submit"
-              className=" py-2 px-5 bg-primaryColor  text-white font-semibold rounded-full hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500"
+              className=" py-2 px-5 bg-primaryColor  text-white font-semibold rounded-full hover:bg-green-600 focus:outline-none focus:ring-2"
             >
               Update/Save Changes
             </button>
