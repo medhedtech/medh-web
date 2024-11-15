@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import { useRouter } from "next/navigation";
+import StarIcon from "@/assets/images/icon/StarIcon";
 
 const CourseHeader = ({ title, classes, rating, hour, price }) => {
   const router = useRouter();
@@ -8,11 +9,19 @@ const CourseHeader = ({ title, classes, rating, hour, price }) => {
   return (
     <div className=" justify-between items-start md:items-center mt-6 w-[531px]">
       <div>
-        <div className="flex justify-between">
+        <div className="">
+          <div className="flex justify-between ">
+            <div className="text-[#FF6B00] font-bold text-size-12">Diploma</div>
+            <div className="text-yellow-500 text-sm flex gap-0.5">
+              <span className="my-auto">
+                <StarIcon />
+              </span>
+              {rating}
+            </div>
+          </div>
           <h1 className="text-2xl font-semibold text-gray-800 w-[396px]">
             {title}
           </h1>
-          <span className="text-yellow-500 text-sm">&#9733; {rating}</span>
         </div>
         <div className="flex items-center space-x-2 my-4">
           <span className="text-gray-500 text-sm flex gap-2">
