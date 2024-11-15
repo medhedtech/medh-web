@@ -1,73 +1,31 @@
 "use client";
-import React, { useState } from "react";
+import { apiUrls } from "@/apis";
+import Preloader from "@/components/shared/others/Preloader";
+import useGetQuery from "@/hooks/getQuery.hook";
+import React, { useEffect, useState } from "react";
 import { FaSort, FaPlus, FaChevronDown } from "react-icons/fa";
 
 const UsersTable = () => {
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
+  const { getQuery, data, loading, error } = useGetQuery();
 
-  const users = [
-    {
-      id: 1,
-      name: "Roger Workman",
-      age: 48,
-      email: "enteremail@gmail.com",
-      joinDate: "2024/07/13",
-      role: "Student",
-      course: "Course 1",
-      status: "Active",
-    },
-    {
-      id: 2,
-      name: "Kianna Geidt",
-      age: 76,
-      email: "enteremail@gmail.com",
-      joinDate: "2024/07/01",
-      role: "Student",
-      course: "Course 1",
-      status: "Active",
-    },
-    {
-      id: 3,
-      name: "Kadin Dokidis",
-      age: 58,
-      email: "enteremail@gmail.com",
-      joinDate: "2024/07/04",
-      role: "Instructor",
-      course: "Course 1",
-      status: "Inactive",
-    },
-    {
-      id: 4,
-      name: "Makenna Gouse",
-      age: 52,
-      email: "enteremail@gmail.com",
-      joinDate: "2024/07/07",
-      role: "Instructor",
-      course: "Course 1",
-      status: "Inactive",
-    },
-    {
-      id: 5,
-      name: "Tiana Vetrovs",
-      age: 45,
-      email: "enteremail@gmail.com",
-      joinDate: "2024/07/10",
-      role: "Instructor",
-      course: "Course 1",
-      status: "Active",
-    },
-    {
-      id: 6,
-      name: "Roger Aminoff",
-      age: 65,
-      email: "enteremail@gmail.com",
-      joinDate: "2024/07/16",
-      role: "Instructor",
-      course: "Course 1",
-      status: "Inactive",
-    },
-  ];
+  useEffect(() => {
+    // Fetching users data when the component mounts
+    getQuery({
+      url: apiUrls.user.getAll,
+      onSuccess: (data) => {
+        console.log(data, "this is Data");
+      },
+      onFail: (error) => {
+        console.log("Error", error);
+      },
+    });
+  }, []);
+
+  if (loading) {
+    return <Preloader />;
+  }
 
   return (
     <div className="flex items-start font-Poppins justify-center min-h-screen bg-gray-100 p-4 pt-9">
@@ -159,41 +117,50 @@ const UsersTable = () => {
                 <th className="px-4 py-2 border-b">Email ID</th>
                 <th className="px-4 py-2 border-b">Join Date</th>
                 <th className="px-4 py-2 border-b">Role</th>
-                <th className="px-4 py-2 border-b">Course</th>
+                {/* <th className="px-4 py-2 border-b">Course</th> */}
                 <th className="px-4 py-2 border-b">Status</th>
               </tr>
             </thead>
             <tbody>
-              {users.map((user, index) => (
-                <tr key={user.id} className="hover:bg-gray-100">
-                  <td className="px-4 py-2 border-b">
-                    <input
-                      type="checkbox"
-                      className="form-checkbox h-4 w-4 text-indigo-600"
-                    />
-                  </td>
-                  <td className="px-4 py-2 border-b">
-                    {String(index + 1).padStart(2, "0")}.
-                  </td>
-                  <td className="px-4 py-2 border-b">{user.name}</td>
-                  <td className="px-4 py-2 border-b">{user.age}</td>
-                  <td className="px-4 py-2 border-b">{user.email}</td>
-                  <td className="px-4 py-2 border-b">{user.joinDate}</td>
-                  <td className="px-4 py-2 border-b">{user.role}</td>
-                  <td className="px-4 py-2 border-b">{user.course}</td>
-                  <td className="px-4 py-2 border-b">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                        user.status === "Active"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-700"
-                      }`}
-                    >
-                      {user.status}
-                    </span>
+              {!loading && data?.data?.length > 0 ? (
+                data.data.map((user, index) => (
+                  <tr key={user._id} className="hover:bg-gray-100">
+                    <td className="px-4 py-2 border-b">
+                      <input
+                        type="checkbox"
+                        className="form-checkbox h-4 w-4 text-indigo-600"
+                      />
+                    </td>
+                    <td className="px-4 py-2 border-b">
+                      {String(index + 1).padStart(2, "0")}.
+                    </td>
+                    <td className="px-4 py-2 border-b">{user.full_name}</td>
+                    <td className="px-4 py-2 border-b">{user.email}</td>
+                    <td className="px-4 py-2 border-b">{user.phone_number}</td>
+                    <td className="px-4 py-2 border-b">
+                      {new Date(user.createdAt).toLocaleDateString("en-GB")}
+                    </td>
+                    <td className="px-4 py-2 border-b">{user.role}</td>
+                    <td className="px-4 py-2 border-b">
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                          user.status === "active"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-red-100 text-red-700"
+                        }`}
+                      >
+                        {user.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="8" className="text-center py-4">
+                    {loading ? "Loading..." : "No users found"}
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
