@@ -22,16 +22,22 @@ const FeedbackandSupport = () => {
   return (
     <div className="p-6 w-full mx-auto">
       <div className="mb-8">
-        <h1 className="text-size-32  ">Feedback</h1>
+        <h1 className="text-size-32 dark:text-white ">Feedback</h1>
 
         <form onSubmit={handleFeedbackSubmit}>
           {/* Feedback Type Selector */}
           <div className="flex items-center  space-x-4 mb-4">
-            <p className="mb-4 text-size-22">
+            <p className="mb-4 text-size-22 dark:text-white">
               Write Review about Course/Instructor
             </p>
-            <div className="flex gap-3 mb-2.5 ">
-              <label className="flex items-center text-lg text-[#B4BDC4]">
+            <div className="flex gap-3 mb-2.5">
+              <label
+                className={`flex items-center text-lg ${
+                  feedbackType === "course"
+                    ? "text-primaryColor"
+                    : "text-[#B4BDC4]"
+                }`}
+              >
                 <input
                   type="radio"
                   value="course"
@@ -41,7 +47,13 @@ const FeedbackandSupport = () => {
                 />
                 Course
               </label>
-              <label className="flex items-center text-lg text-[#B4BDC4]">
+              <label
+                className={`flex items-center text-lg ${
+                  feedbackType === "instructor"
+                    ? "text-primaryColor"
+                    : "text-[#B4BDC4]"
+                }`}
+              >
                 <input
                   type="radio"
                   value="instructor"
@@ -61,7 +73,7 @@ const FeedbackandSupport = () => {
               rows="4"
               value={feedbackText}
               onChange={(e) => setFeedbackText(e.target.value)}
-              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-1 focus:ring-[#B4BDC4]"
+              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-1 dark:bg-inherit focus:ring-[#B4BDC4]"
             />
 
             {/* Feedback Submit Button positioned inside the textarea */}
@@ -76,29 +88,35 @@ const FeedbackandSupport = () => {
       </div>
 
       <div>
-        <h1 className="text-size-32  mb-2">Complaints & Grievances</h1>
+        <h1 className="text-size-32 dark:text-white mb-2">
+          Complaints & Grievances
+        </h1>
 
         <form onSubmit={handleComplaintSubmit}>
           {/* Name Input */}
           <div className="mb-4">
-            <label className="block text-gray-700 mb-2">Name</label>
+            <label className="block text-gray-700 mb-2 dark:text-white">
+              Name
+            </label>
             <input
               type="text"
               value={complaintName}
               onChange={(e) => setComplaintName(e.target.value)}
-              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-1 focus:ring-green-300"
+              className="w-full p-3 border dark:bg-inherit dark:text-white rounded-lg text-[#434343BF] focus:outline-none focus:ring-1 focus:ring-green-300"
             />
           </div>
 
           {/* Complaint Text Area */}
           <div className="mb-11">
-            <label className="block text-gray-700 mb-2">Write Complaint</label>
+            <label className="block dark:text-white text-gray-700 mb-2 dark:bg-inherit">
+              Write Complaint
+            </label>
             <textarea
               placeholder="Write....."
               rows="4"
               value={complaintText}
               onChange={(e) => setComplaintText(e.target.value)}
-              className="w-1/2 p-3 border rounded-lg focus:outline-none focus:ring-1 focus:ring-green-300"
+              className="w-1/2 p-3 border rounded-lg dark:bg-inherit dark:text-white text-[#434343BF] focus:outline-none focus:ring-1 focus:ring-green-300"
             />
           </div>
 

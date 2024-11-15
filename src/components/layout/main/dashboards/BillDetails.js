@@ -3,6 +3,7 @@ import Image from "next/image";
 import React, { useState } from "react";
 import MLimg from "@/assets/images/dashbord/MLimg.png";
 import { useRouter } from "next/navigation";
+import StarIcon from "@/assets/images/icon/StarIcon";
 
 const BillDetails = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -57,7 +58,12 @@ const BillDetails = () => {
           <div className="flex justify-between">
             <p className="font-bold text-xs text-[#FF6B00]">Diploma</p>
             <p className="text-gray-500 text-sm">
-              <span className="text-yellow-500">★ 4.0</span>
+              <span className="text-yellow-500 flex gap-0.5">
+                <span className="my-auto">
+                  <StarIcon />
+                </span>{" "}
+                4.0
+              </span>
             </p>
           </div>
           <h3 className="text-xl font-bold text-black dark:text-white mb-2">

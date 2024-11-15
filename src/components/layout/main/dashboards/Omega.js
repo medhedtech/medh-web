@@ -2,9 +2,9 @@ import React from "react";
 
 const DefineRoleForm = () => {
   return (
-    <div className="flex items-start font-Poppins justify-center min-h-screen pt-9 bg-gray-100 p-8">
-      <div className="bg-white w-full max-w-6xl p-8 md:p-10 rounded-lg shadow-md">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-6">
+    <div className="flex items-start font-Poppins justify-center min-h-screen pt-9 dark:bg-inherit bg-gray-100 p-8">
+      <div className="bg-white w-full max-w-6xl p-8 md:p-10 rounded-lg shadow-md dark:bg-inherit dark:border">
+        <h2 className="text-2xl font-semibold text-gray-800 mb-6 dark:text-white">
           Define Role
         </h2>
 
@@ -13,7 +13,7 @@ const DefineRoleForm = () => {
           <div>
             <label
               htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-gray-700 dark:text-whitegrey1"
             >
               Email id
             </label>
@@ -22,7 +22,7 @@ const DefineRoleForm = () => {
               id="email"
               name="email"
               placeholder="abc@gmail.com"
-              className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full mt-1 px-3 py-2 border dark:bg-inherit dark:text-whitegrey3 border-gray-300 rounded-md bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               required
             />
           </div>
@@ -31,14 +31,14 @@ const DefineRoleForm = () => {
           <div>
             <label
               htmlFor="role"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-gray-700 dark:text-whitegrey1"
             >
               Select Role
             </label>
             <select
               id="role"
               name="role"
-              className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full mt-1 px-3 py-2 border dark:bg-inherit dark:text-whitegrey3 border-gray-300 rounded-md bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               required
             >
               <option value="cooperate-admin">Cooperate Admin</option>
@@ -51,7 +51,7 @@ const DefineRoleForm = () => {
           <div>
             <label
               htmlFor="description"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-gray-700 dark:text-whitegrey1"
             >
               Role Description
             </label>
@@ -60,16 +60,16 @@ const DefineRoleForm = () => {
               name="description"
               rows="3"
               placeholder="Write description"
-              className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full mt-1 px-3 py-2 border dark:bg-inherit dark:text-whitegrey3 border-gray-300 rounded-md bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             ></textarea>
           </div>
 
           {/* Permissions */}
           <fieldset>
-            <legend className="text-sm font-medium text-gray-700 mb-2">
+            <legend className="text-sm font-medium text-gray-700 mb-2 dark:text-whitegrey1">
               Permission
             </legend>
-            <div className="space-y-2">
+            <div className="space-y-2 dark:text-white">
               <label className="flex items-center">
                 <input
                   type="radio"
@@ -90,7 +90,7 @@ const DefineRoleForm = () => {
                 <input
                   type="radio"
                   name="permission"
-                  className="mr-2 text-indigo-600 focus:ring-indigo-500"
+                  className="mr-2 text-indigo-600 focus:ring-indigo-500 "
                 />
                 Create Report
               </label>
@@ -101,7 +101,7 @@ const DefineRoleForm = () => {
           <div className="flex justify-end space-x-4">
             <button
               type="button"
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 dark:bg-inherit dark:border dark:text-white"
             >
               Cancel
             </button>
