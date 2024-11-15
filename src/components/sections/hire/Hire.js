@@ -1,7 +1,9 @@
+"use client"
 import Image from "next/image";
 import React from "react";
 import hire from "@/assets/images/hire/Hire.png";
 import Traning from "@/assets/images/hire/Traning.png";
+import { useRouter } from "next/navigation";
 
 // AddIcon component with customizable fill color
 const AddIcon = ({ fill = "white" }) => {
@@ -39,6 +41,7 @@ const Hire = ({
   trainingTextColor = "white",
   hireBackground = "#EDE6FF",
 }) => {
+  const router = useRouter();
   return (
     <div className="flex flex-col gap-4 md:gap-0 mb-12">
       {/* Hire Section */}
@@ -63,10 +66,13 @@ const Hire = ({
             {hireText}
           </p>
           <div
-            className="px-2.5 py-1 rounded-3xl flex items-center gap-2.5 mt-4 w-fit"
+            className="px-2.5 py-1 cursor-pointer rounded-3xl flex items-center gap-2.5 mt-4 w-fit"
             style={{
               backgroundColor: hireButtonColor,
               color: hireButtonTextColor,
+            }}
+            onClick={() => {
+              router.push("/hire-from-medh");
             }}
           >
             <AddIcon fill={hireButtonTextColor} />
@@ -94,10 +100,13 @@ const Hire = ({
             {trainingText}
           </p>
           <div
-            className="px-2.5 py-1 rounded-3xl flex items-center gap-2.5 mt-4 w-fit"
+            className="px-2.5 py-1 cursor-pointer rounded-3xl flex items-center gap-2.5 mt-4 w-fit"
             style={{
               backgroundColor: trainingButtonColor,
               color: trainingButtonTextColor,
+            }}
+            onClick={()=>{
+              router.push("/corporate-training")
             }}
           >
             <AddIcon
