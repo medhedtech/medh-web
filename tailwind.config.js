@@ -468,6 +468,7 @@ module.exports = {
         Ubuntu: ["ubuntu", "sans"],
         Poppins: ["Poppins", "sans-serif"],
         Open: ["Open Sans", "sans-serif"],
+        Bugatti: ["bugatti", "sans-serif"],
       },
 
       //  font size

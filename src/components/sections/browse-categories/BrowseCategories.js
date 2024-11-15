@@ -1,3 +1,4 @@
+"use client";
 import Image from "next/image";
 import React from "react";
 import Link from "next/link";
@@ -8,8 +9,10 @@ import NetworkingIcon from "@/assets/images/icon/NetworkingIcon";
 import ArrowIcon from "@/assets/images/icon/ArrowIcon";
 import RelevantIcon from "@/assets/images/icon/RelevantIcon";
 import RecognizedIcon from "@/assets/images/icon/RecognizedIcon";
+import { useRouter } from "next/navigation";
 
 const BrowseCategories = () => {
+  const router = useRouter();
   return (
     <div className="py-12 px-4 md:px-8 dark:bg-screen-dark lg:px-32">
       {/* Browse Trending Categories Section */}
@@ -23,7 +26,12 @@ const BrowseCategories = () => {
           </h1>
         </div>
         <div className="md:px-6">
-          <button className="bg-[#F6B335] text-white px-4 py-2  font-semibold flex gap-3 w-full md:w-auto">
+          <button
+            onClick={() => {
+              router.push("/view-all-courses");
+            }}
+            className="bg-[#F6B335] text-white px-4 py-2  font-semibold flex gap-3 w-full md:w-auto"
+          >
             <span>
               <ArrowIcon />
             </span>
