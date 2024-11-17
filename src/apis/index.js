@@ -73,7 +73,9 @@ export const apiUrls = {
   adminDashboard: {
     getDashboardCount: "/dashboard/admin-dashboard-count",
   },
-  placements: {},
+  placements: {
+    addPlacements:"/placements/",
+  },
   quzies: {},
   assignments: {},
   feedbacks: {},
