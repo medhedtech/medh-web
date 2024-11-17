@@ -1,7 +1,10 @@
-import React from "react";
+import React,{useEffect, useState} from "react";
 import ClassCard from "./ClassCard";
 import AiMl from "@/assets/images/courses/Ai&Ml.jpeg";
 import reactImg from "@/assets/images/courses/React.jpeg";
+import useGetQuery from "@/hooks/getQuery.hook";
+import { apiUrls } from "@/apis";
+import moment from "moment";
 
 const UpcomigClasses = () => {
   const classes = [
@@ -34,6 +37,30 @@ const UpcomigClasses = () => {
       image: AiMl,
     },
   ];
+
+  const [courses, setCourses] = useState([]);
+  const { getQuery } = useGetQuery();
+  const [limit] = useState(4);
+  const [page] = useState(1);
+
+  useEffect(() => {
+    const fetchCourses = () => {
+      getQuery({
+        url: apiUrls?.courses?.getAllCoursesWithLimits(page,limit,'','','','Upcoming'),
+        onSuccess: (res) => {
+          setCourses(res?.courses || []);
+        },
+        onFail: (err) => {
+          console.error("Error fetching courses:", err);
+        },
+      });
+    };
+    fetchCourses();
+  }, [page, limit]);
+
+
+
+
   return (
     <div className="px-10 pb-12">
       {/* <h2 className="text-size-32  text-start mb-4"> */}
@@ -41,14 +68,14 @@ const UpcomigClasses = () => {
         Upcoming Classes
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {classes.map((classItem, index) => (
+        {courses?.map((classItem, index) => (
           <ClassCard
             key={index}
-            title={classItem.title}
-            instructor={classItem.instructor}
-            dateTime={classItem.dateTime}
-            isLive={classItem.isLive}
-            image={classItem.image}
+            title={classItem.course_title}
+            // instructor={classItem.instructor}
+            dateTime={moment(classItem?.createdAt).format("DD/MM/YYYY")}
+            // isLive={classItem.isLive}
+            image={AiMl}
           />
         ))}
       </div>

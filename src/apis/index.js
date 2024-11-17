@@ -17,9 +17,10 @@ export const apiUrls = {
       limit = 10,
       course_title,
       course_tag,
-      course_category
+      course_category,
+      status
     ) =>
-      `/courses/getLimitedCourses?page=${page}&limit=${limit}&course_title=${course_title}&course_tag=${course_tag}&course_category=${course_category}`,
+      `/courses/getLimitedCourses?page=${page}&limit=${limit}&course_title=${course_title}&course_tag=${course_tag}&course_category=${course_category}&status=${status}`,
     getAllCourses: "/courses/get",
     getCourseById: "/courses/get/:id",
     createCourse: "/courses/create",
@@ -72,4 +73,10 @@ export const apiUrls = {
   adminDashboard: {
     getDashboardCount: "/dashboard/admin-dashboard-count",
   },
+  placements: {},
+  quzies: {},
+  assignments: {},
+  feedbacks: {},
+  resources: {},
+  assignments: {},
 };
