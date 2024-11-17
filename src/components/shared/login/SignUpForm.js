@@ -57,27 +57,11 @@ const SignUpForm = () => {
     setShowPassword((prev) => !prev);
   };
 
-  // const onSubmit = async (data) => {
-  //   const { confirm_password, ...rest } = data;
-  //   await postQuery({
-  //     url: apiUrls.register,
-  //     onSuccess: (res) => {
-  //       console.log(res);
-  //     },
-  //     onFail: (error) => {
-  //       console.log(error);
-  //     },
-  //     postData: rest,
-  //   });
-  // };
-
   const onSubmit = async (data) => {
     setApiError(null);
-    // const { confirm_password, ...rest } = data;
-
     try {
       await postQuery({
-        url: apiUrls.user.register,
+        url: apiUrls?.user?.register,
         postData: {
           full_name: data?.full_name,
           email: data?.email,
