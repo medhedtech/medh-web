@@ -29,7 +29,7 @@ const CountDashboard = ({ count }) => {
   const { name, data, image, symbol } = count;
 
   return (
-    <div className="group font-Poppins flex flex-col justify-between p-4 py-8 bg-white dark:bg-whiteColor-dark rounded-lg shadow-md hover:bg-customGreen transition-all ease-in-out duration-300 h-40">
+    <div className="group font-Poppins flex flex-col justify-between p-4 py-8 bg-white dark:bg-[#0C0E2B] dark:shadow-white Color-dark rounded-lg shadow-md hover:bg-customGreen transition-all ease-in-out duration-300 h-40">
       {/* Title at the top left with hover color change */}
       <p className="text-[1rem] font-semibold text-black dark:text-white mb-4 group-hover:text-white">
         {name}
@@ -48,7 +48,7 @@ const CountDashboard = ({ count }) => {
         </div>
 
         {/* Count on the right side of the image with hover color change */}
-        <h3 className="text-4xl font-Poppins font-semibold text-black dark:text-blackColor-dark group-hover:text-white">
+        <h3 className="text-4xl font-Poppins font-semibold text-black dark:text-white Color-dark group-hover:text-white">
           <span data-countup-number={data}>{data}</span>
           {symbol && <span>{symbol}</span>}
         </h3>
