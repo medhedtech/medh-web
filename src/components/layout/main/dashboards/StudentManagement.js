@@ -40,6 +40,7 @@ const UsersTableStudent = () => {
             console.log("Response data:", data);
             setStudents(data?.students || []);
           },
+
           onFail: () => setStudents([]),
         });
       } catch (error) {
