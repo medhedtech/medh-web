@@ -75,6 +75,8 @@ const AdminFeedbacks = () => {
     ...user,
     no: index + 1,
     createdAt: new Date(user.createdAt).toLocaleDateString("en-GB"),
+    course_name: user.meta?.course_name,
+    age: user.meta?.age,
   }));
 
   // Table Columns Configuration
