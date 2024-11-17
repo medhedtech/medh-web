@@ -6,27 +6,29 @@ import AddStudentForm from "./AddStudentForm";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import MyTable from "@/components/shared/common-table/page";
+import useDeleteQuery from "@/hooks/deleteQuery.hook";
+import { toast } from "react-toastify";
+import usePostQuery from "@/hooks/postQuery.hook";
 
-// Function to format the date in [DD-MM-YYYY]
-const formatDate = (date) => {
-  if (!date) return "";
-
-  const options = { day: "2-digit", month: "2-digit", year: "numeric" };
-  const formattedDate = new Date(date).toLocaleDateString("en-GB", options);
-
-  // Convert the formatted date to [DD-MM-YYYY]
-  const [day, month, year] = formattedDate.split("/");
-  return `${day}-${month}-${year}`;
-};
-
-const UsersTable = () => {
+const UsersTableStudent = () => {
+  const { deleteQuery } = useDeleteQuery();
   const [showAddStudentForm, setShowAddStudentForm] = useState(false);
   const [students, setStudents] = useState([]);
+  const [sortOrder, setSortOrder] = useState("newest");
+  const [searchQuery, setSearchQuery] = useState("");
+  const { postQuery } = usePostQuery();
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const router = useRouter();
+  const [filterOptions, setFilterOptions] = useState({
+    full_name: "",
+    email: "",
+    phone_number: "",
+    course_name: "",
+  });
+
   const { getQuery } = useGetQuery();
+  const [deletedStudents, setDeletedStudents] = useState(null);
+  const [updateStatus, setUpdateStatus] = useState(null);
 
   // Fetch Students Data from API
   useEffect(() => {
@@ -35,261 +37,258 @@ const UsersTable = () => {
         await getQuery({
           url: apiUrls?.Students?.getAllStudents,
           onSuccess: (data) => setStudents(data),
-          onFail: (err) => {
-            console.error("Api error", err);
-            setStudents([]);
-          },
+          onFail: () => setStudents([]),
         });
       } catch (error) {
         console.error("Failed to fetch students:", error);
       }
     };
     fetchStudents();
-  }, []);
+  }, [deletedStudents, updateStatus]);
 
-  // Toggle Active/Inactive Status
-  const toggleStatus = (userId) => {
-    setStudents((prevStudents) =>
-      prevStudents.map((user) =>
-        user.id === userId ? { ...user, isActive: !user.isActive } : user
-      )
-    );
+  // Delete User
+  const deleteStudent = (id) => {
+    deleteQuery({
+      url: `${apiUrls?.Students?.deleteStudent}/${id}`,
+      onSuccess: (res) => {
+        toast.success(res?.message);
+        setDeletedStudents(id);
+      },
+      onFail: (res) => console.log(res, "FAILED"),
+    });
   };
 
-  // Toggle Button for Status
-  const StatusToggle = ({ isActive, onClick }) => (
-    <div className="flex items-center">
-      <button
-        onClick={onClick}
-        className={`w-10 h-5 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 ${
-          isActive ? "bg-green-500" : "bg-gray-400"
-        }`}
-      >
-        <div
-          className={`w-4 h-4 bg-white rounded-full transform transition-transform duration-300 ${
-            isActive ? "translate-x-5" : "translate-x-0"
-          }`}
-        ></div>
-      </button>
-      <span
-        className={`ml-2 text-sm ${
-          isActive ? "text-green-700" : "text-red-700"
-        }`}
-      >
-        {isActive ? "Active" : "Inactive"}
-      </span>
-    </div>
-  );
+  const toggleStatus = async (id) => {
+    try {
+      await postQuery({
+        url: `${apiUrls?.Students?.toggleStudentStatus}/${id}`,
+        postData: {},
+        onSuccess: (response) => {
+          const { student } = response;
+          toast.success(
+            `${student?.full_name}'s status changed to ${student?.status}.`
+          );
+          setUpdateStatus(id);
+        },
+        onFail: () => {
+          toast.error("Student status cannot be changed!");
+        },
+      });
+    } catch (error) {
+      toast.error("Something went wrong!");
+    }
+  };
 
   // Table Columns Configuration
   const columns = [
+    { Header: "No.", accessor: "no" },
     { Header: "Name", accessor: "full_name" },
     { Header: "Age", accessor: "age" },
     { Header: "Email ID", accessor: "email" },
-    {
-      Header: "Join Date",
-      accessor: "createdAt",
-      width: 150,
-      render: (row) => formatDate(row?.createdAt),
-    },
+    { Header: "Join Date", accessor: "createdAt" },
     { Header: "Course", accessor: "course_name" },
     {
       Header: "Status",
-      accessor: "isActive",
-      reader: (row) => (
-        <StatusToggle
-          isActive={row.isActive}
-          onClick={() => toggleStatus(row.id)}
-        />
+      accessor: "status",
+      render: (row) => {
+        const isActive = row?.status === "Active";
+        return (
+          <div className="flex gap-2 items-center">
+            <button
+              onClick={() => toggleStatus(row?._id)}
+              className={`w-10 h-5 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 ${
+                isActive ? "bg-green-500" : "bg-gray-400"
+              }`}
+            >
+              <div
+                className={`w-4 h-4 bg-white rounded-full transform transition-transform duration-300 ${
+                  isActive ? "translate-x-5" : "translate-x-0"
+                }`}
+              ></div>
+            </button>
+            <span
+              className={`ml-2 text-sm ${
+                isActive ? "text-green-700" : "text-red-700"
+              }`}
+            >
+              {isActive ? "Active" : "Inactive"}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      Header: "Action",
+      accessor: "actions",
+      render: (row) => (
+        <div className="flex gap-2 items-center">
+          <button
+            onClick={() => deleteStudent(row?._id)}
+            className="text-white bg-red-600 border border-red-600 rounded-md px-[10px] py-1"
+          >
+            Delete
+          </button>
+        </div>
       ),
     },
   ];
 
-  // Search Filter Function
-  const filteredStudents = students.filter(
-    (student) =>
-      student.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.course_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.age.toString().includes(searchTerm.toLowerCase())
-  );
+  const handleSortChange = (order) => {
+    setSortOrder(order);
+    setIsSortDropdownOpen(false);
+  };
 
-  const handleAddStudentClick = () => setShowAddStudentForm(true);
-  const handleCancelAddStudent = () => setShowAddStudentForm(false);
+  const handleFilterDropdownToggle = () => {
+    setIsFilterDropdownOpen(!isFilterDropdownOpen);
+  };
+
+  const handleFilterSelect = (filterType, value) => {
+    setFilterOptions((prev) => ({ ...prev, [filterType]: value }));
+    setIsFilterDropdownOpen(false);
+  };
+
+  // Filtering the data based on user inputs
+  const filteredData =
+    students?.filter((students) => {
+      const matchesName = filterOptions.full_name
+        ? (students.full_name || "")
+            .toLowerCase()
+            .includes(filterOptions.full_name.toLowerCase())
+        : true;
+
+      const matchesStatus = filterOptions.status
+        ? (students.status || "")
+            .toLowerCase()
+            .includes(filterOptions.status.toLowerCase())
+        : true;
+
+      const matchesSearchQuery =
+        students.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        students.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        students.phone_number.includes(searchQuery);
+
+      return matchesSearchQuery && matchesName && matchesStatus;
+    }) || [];
+
+  const sortedData = [...filteredData].sort((a, b) => {
+    if (sortOrder === "newest") {
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    } else if (sortOrder === "oldest") {
+      return new Date(a.createdAt) - new Date(b.createdAt);
+    }
+    return 0;
+  });
+
+  const formattedData =
+    sortedData.map((user, index) => ({
+      ...user,
+      no: index + 1,
+      createdAt: new Date(user.createdAt).toLocaleDateString("en-GB"),
+    })) || [];
 
   // Add Student Form Toggle
   if (showAddStudentForm)
-    return <AddStudentForm onCancel={handleCancelAddStudent} />;
+    return <AddStudentForm onCancel={() => setShowAddStudentForm(false)} />;
 
   return (
-    <div className="flex items-start justify-center min-h-screen dark:bg-inherit dark:text-white bg-gray-100 p-6">
-      <div className="w-full max-w-6xl dark:bg-inherit dark:text-white bg-white p-8 rounded-lg shadow-md">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+    <div className="bg-gray-100 dark:bg-darkblack font-Poppins min-h-screen pt-8 p-6">
+      <div className="max-w-6xl mx-auto dark:bg-inherit dark:text-whitegrey3 dark:border bg-white rounded-lg shadow-lg p-6">
+        <header className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-bold">Student List</h1>
-          <input
-            type="text"
-            placeholder="Search here"
-            className="w-full md:w-1/3 px-4 py-2 border dark:bg-inherit border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <button
-            className="flex items-center bg-green-500 text-white px-4 py-2 rounded-md"
-            onClick={handleAddStudentClick}
-          >
-            <FaPlus className="mr-2" /> Add Student
-          </button>
-        </div>
+          <div className="flex items-center space-x-2">
+            <div className="relative flex-grow flex justify-center">
+              <input
+                type="text"
+                placeholder="Search here"
+                className="border dark:bg-inherit dark:text-whitegrey3 dark:border border-gray-300 rounded-full p-2 pl-4 w-full max-w-md"
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <div className="relative">
+              <button
+                onClick={handleFilterDropdownToggle}
+                className="border-2 px-4 py-1 rounded-lg flex items-center"
+              >
+                Filters
+                <svg
+                  className="w-4 h-4 ml-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M19 9l-7 7-7-7"
+                  ></path>
+                </svg>
+              </button>
+              {isFilterDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg">
+                  <button
+                    onClick={() => handleFilterSelect("status", "Published")}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Published
+                  </button>
+                  <button
+                    onClick={() => handleFilterSelect("status", "Upcoming")}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Upcoming
+                  </button>
+                </div>
+              )}
+            </div>
 
-        {/* Table Component with Filters */}
-        <MyTable
-          columns={columns}
-          data={filteredStudents}
-          showDate={true}
-          entryText="Total no. of entries:"
-        />
+            {/* Sort Button with Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md dark:bg-inherit dark:text-whitegrey3 dark:border hover:bg-gray-300 flex items-center space-x-1"
+              >
+                <span>
+                  {sortOrder === "newest" ? "New to Oldest" : "Oldest to New"}
+                </span>
+                <FaChevronDown />
+              </button>
+              {isSortDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                  <a
+                    href="#"
+                    onClick={() => handleSortChange("oldest")}
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Oldest to New
+                  </a>
+                  <a
+                    href="#"
+                    onClick={() => handleSortChange("newest")}
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Newest to Old
+                  </a>
+                </div>
+              )}
+            </div>
+
+            {/* Add Student Button */}
+            <button
+              onClick={() => setShowAddStudentForm(true)}
+              className="bg-customGreen text-white px-4 py-2 rounded-lg flex items-center"
+            >
+              <FaPlus className="mr-2" />
+              Add Student
+            </button>
+          </div>
+        </header>
+        {/* Student Table */}
+        <MyTable columns={columns} data={formattedData} />
       </div>
     </div>
   );
 };
 
-export default UsersTable;
-
-// "use client";
-// import { useRouter } from "next/navigation";
-// import React, { useState, useEffect } from "react";
-// import { FaPlus } from "react-icons/fa";
-// import AddStudentForm from "./AddStudentForm";
-// import { apiUrls } from "@/apis";
-// import useGetQuery from "@/hooks/getQuery.hook";
-// import MyTable from "@/components/shared/common-table/page";
-
-// const formatDate = (date) => {
-//   if (!date) return "";
-//   const options = { day: "2-digit", month: "2-digit", year: "numeric" };
-//   return new Date(date).toLocaleDateString("en-GB", options);
-// };
-
-// const UsersTable = () => {
-//   const [showAddStudentForm, setShowAddStudentForm] = useState(false);
-//   const [students, setStudents] = useState([]);
-//   const router = useRouter();
-//   const { getQuery } = useGetQuery();
-
-//   useEffect(() => {
-//     const fetchStudents = async () => {
-//       try {
-//         await getQuery({
-//           url: apiUrls?.Students?.getAllStudents,
-//           onSuccess: (data) => {
-//             setStudents(data);
-//           },
-//           onFail: (err) => {
-//             console.error(
-//               "API error:",
-//               err instanceof Error ? err.message : err
-//             );
-//           },
-//         });
-//       } catch (error) {
-//         console.error("Failed to fetch students:", error);
-//       }
-//     };
-
-//     fetchStudents();
-//   }, []);
-
-//   const toggleStatus = (userId) => {
-//     setStudents(
-//       students.map((user) =>
-//         user.id === userId ? { ...user, isActive: !user.isActive } : user
-//       )
-//     );
-//   };
-
-//   const StatusToggle = ({ isActive, onClick }) => (
-//     <div className="flex items-center">
-//       <button
-//         onClick={onClick}
-//         className={`w-10 h-5 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 ${
-//           isActive ? "bg-green-500" : "bg-gray-400"
-//         }`}
-//       >
-//         <div
-//           className={`w-4 h-4 bg-white rounded-full transform transition-transform duration-300 ${
-//             isActive ? "translate-x-5" : "translate-x-0"
-//           }`}
-//         ></div>
-//       </button>
-//       <span
-//         className={`ml-2 text-sm font-semibold ${
-//           isActive ? "text-green-700" : "text-red-700"
-//         }`}
-//       >
-//         {isActive ? "Active" : "Inactive"}
-//       </span>
-//     </div>
-//   );
-
-//   const columns = [
-//     { Header: "No.", Cell: ({ row }) => row.index + 1 },
-//     { Header: "Name", accessor: "full_name" },
-//     { Header: "Age", accessor: "age" },
-//     { Header: "Email ID", accessor: "email" },
-//     {
-//       Header: "Join Date",
-//       accessor: "createdAt",
-//       Cell: ({ value }) => formatDate(value),
-//     },
-//     { Header: "Course", accessor: "course_name" },
-//     {
-//       Header: "Status",
-//       accessor: "isActive",
-//       Cell: ({ row }) => (
-//         <StatusToggle
-//           isActive={row.original.isActive}
-//           onClick={() => toggleStatus(row.original.id)}
-//         />
-//       ),
-//     },
-//   ];
-
-//   const handleAddStudentClick = () => {
-//     setShowAddStudentForm(true);
-//   };
-
-//   const handleCancelAddStudent = () => {
-//     setShowAddStudentForm(false);
-//   };
-
-//   if (showAddStudentForm) {
-//     return <AddStudentForm onCancel={handleCancelAddStudent} />;
-//   }
-
-//   return (
-//     <div className="flex items-start justify-center min-h-screen bg-gray-100 p-6">
-//       <div className="w-full max-w-6xl bg-white p-8 rounded-lg shadow-md">
-//         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-//           <h1 className="text-2xl font-bold">Student List</h1>
-//           <button
-//             className="flex items-center bg-green-500 text-white px-4 py-2 rounded-md"
-//             onClick={handleAddStudentClick}
-//           >
-//             <FaPlus className="mr-2" /> Add Student
-//           </button>
-//         </div>
-
-//         {/* Integrating MyTable with Filters */}
-//         <MyTable
-//           columns={columns}
-//           data={students}
-//           // filterColumns={["course_name", "isActive"]}
-//           showDate={true}
-//           entryText="Total no. of entries:"
-//         />
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default UsersTable;
+export default UsersTableStudent;

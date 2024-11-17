@@ -41,7 +41,7 @@ const DownloadBrochureModal = ({ isOpen, onClose }) => {
           />
           <div className="flex space-x-2">
             <select
-              className="px-4 py-2 border rounded w-1/3 focus:outline-none focus:border-[#FFA63E]"
+              className="px-4 text-black py-2 border rounded w-1/3 focus:outline-none focus:border-[#FFA63E]"
               required
             >
               <option value="IN">IN (+91)</option>
