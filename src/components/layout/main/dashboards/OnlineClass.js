@@ -36,7 +36,7 @@ const OnlineMeeting = () => {
   const [courses, setCourses] = useState([]);
   const [isCopied, setIsCopied] = useState(false);
   const [copiedCardId, setCopiedCardId] = useState(null);
-  const [countdown, setCountdown] = useState("");
+  const [updateStatus, setUpdateStatus] = useState(false);
 
   const {
     register,
@@ -98,7 +98,7 @@ const OnlineMeeting = () => {
     };
 
     fetchMeetings();
-  }, []);
+  }, [updateStatus]);
 
   const onSubmit = async (data) => {
     try {
@@ -117,6 +117,7 @@ const OnlineMeeting = () => {
           setSelectedDate(null);
           setSelectedTime(null);
           closeModal();
+          setUpdateStatus((prev) => !prev);
         },
         onFail: () => {
           toast.error("Error scheduling meeting.");
@@ -388,6 +389,7 @@ const OnlineMeeting = () => {
                       name="date"
                       selected={selectedDate}
                       onChange={handleDateChange}
+                      placeholder="Select Date"
                       dateFormat="yyyy/MM/dd"
                       className="w-full p-2 border rounded-lg"
                     />

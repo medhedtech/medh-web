@@ -9,13 +9,16 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import toast from "react-toastify";
 import useGetQuery from "@/hooks/getQuery.hook";
 import Preloader from "@/components/shared/others/Preloader";
+import InstructorTable from "./InstructoreManage";
 
 // Validation Schema
 const schema = yup.object({
-  full_name: yup.string().required("Student name is required"),
-  age: yup.number().required("Age is required"),
+  full_name: yup.string().required("Instructor name is required"),
+  age: yup.number(),
+  phone_number: yup.string().required("Mobile number is required"),
   email: yup.string().email().required("Email is required"),
-  course_name: yup.string().required("Course name is required"),
+  course_name: yup.string(),
+  domain: yup.string().required("Domain is required"),
 });
 
 const AddInstructor = () => {
@@ -23,6 +26,7 @@ const AddInstructor = () => {
   const { postQuery, loading } = usePostQuery();
   const { getQuery } = useGetQuery();
   const [courses, setCourses] = useState([]);
+  const [showInstructorListing, setShowInstructorListing] = useState(false);
   const {
     register,
     handleSubmit,
@@ -62,24 +66,31 @@ const AddInstructor = () => {
         url: apiUrls?.Instructor?.createInstructor,
         postData: {
           full_name: data.full_name,
-          age: data.age,
           email: data.email,
-          course_name: data.course_name,
           phone_number: data.phone_number,
           domain: data.domain,
+          meta: {
+            course_name: data.course_name,
+            age: data.age,
+          },
         },
         onSuccess: () => {
-          toast.success("Student added successfully!");
+          setShowInstructorListing(true);
+          toast.success("Instructor added successfully!");
           reset();
         },
         onFail: () => {
-          toast.error("Error adding student.");
+          toast.error("Instructor already exists with same email or mobile.");
         },
       });
     } catch (error) {
       console.log("An unexpected error occurred. Please try again.");
     }
   };
+
+  if (showInstructorListing) {
+    return <InstructorTable onCancel={() => setShowInstructorListing(false)} />;
+  }
 
   if (loading) {
     return <Preloader />;
@@ -105,7 +116,7 @@ const AddInstructor = () => {
               <input
                 type="text"
                 id="full_name"
-                placeholder="Student Name"
+                placeholder="Instructor Name"
                 className="w-full border border-gray-300 dark:bg-inherit rounded-md py-2 pl-10 pr-3 focus:outline-none focus:ring-2 focus:ring-green-400"
                 {...register("full_name")}
               />
@@ -139,23 +150,28 @@ const AddInstructor = () => {
               </span>
             )}
           </div>
-          {/* Age Field */}
+
+          {/* phone_number */}
           <div className="flex flex-col">
             <label
-              htmlFor="age"
+              htmlFor=" phone_number"
               className="text-xs px-2 text-[#808080] font-medium mb-1"
             >
-              Age
+              Phone Number
             </label>
-            <input
-              type="number"
-              id="age"
-              placeholder="Age"
-              className="w-full border border-gray-300 dark:bg-inherit rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-green-400"
-              {...register("age")}
-            />
-            {errors.age && (
-              <span className="text-red-500 text-xs">{errors.age.message}</span>
+            <div className="relative">
+              <input
+                type="Phone"
+                id="phone_number"
+                placeholder="999999999"
+                className="w-full border border-gray-300 dark:bg-inherit rounded-md py-2 px-3 pr-3 focus:outline-none focus:ring-2 focus:ring-green-400"
+                {...register("phone_number")}
+              />
+            </div>
+            {errors.phone_number && (
+              <span className="text-red-500 text-xs">
+                {errors.phone_number.message}
+              </span>
             )}
           </div>
 
@@ -172,7 +188,7 @@ const AddInstructor = () => {
               <input
                 type="email"
                 id="email"
-                placeholder="enteremail@gmail.com"
+                placeholder="Enter your email"
                 className="w-full border border-gray-300 dark:bg-inherit rounded-md py-2 pl-10 pr-3 focus:outline-none focus:ring-2 focus:ring-green-400"
                 {...register("email")}
               />
@@ -199,66 +215,32 @@ const AddInstructor = () => {
               </span>
             )}
           </div>
-          {/* phone_number */}
+
           <div className="flex flex-col">
             <label
-              htmlFor=" phone_number"
+              htmlFor="domain"
               className="text-xs px-2 text-[#808080] font-medium mb-1"
             >
-              Phone Number
+              Domain
             </label>
             <div className="relative">
               <input
-                type="Phone"
-                id="phone_number"
-                placeholder="999999999"
+                type=""
+                id="domain"
+                placeholder="Domain Name"
                 className="w-full border border-gray-300 dark:bg-inherit rounded-md py-2 px-3 pr-3 focus:outline-none focus:ring-2 focus:ring-green-400"
-                {...register("phone_number")}
+                {...register("domain")}
               />
-              {/* <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                <span>
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6ZM20 6L12 11L4 6H20ZM20 18H4V8L12 13L20 8V18Z"
-                      fill="#808080"
-                    />
-                  </svg>
-                </span>
-              </span> */}
             </div>
-            {errors.phone_number && (
+            {errors.domain && (
               <span className="text-red-500 text-xs">
-                {errors.phone_number.message}
+                {errors.domain.message}
               </span>
             )}
           </div>
 
           {/* Course Name Field */}
           <div className="flex flex-col">
-            {/* <label
-              htmlFor="course_name"
-              className="text-xs px-2 text-[#808080] font-medium mb-1"
-            >
-              Course Name
-            </label>
-            <input
-              type="text"
-              id="course_name"
-              placeholder="Course Name"
-              className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-green-400"
-              {...register("course_name")}
-            />
-            {errors.course_name && (
-              <span className="text-red-500 text-xs">
-                {errors.course_name.message}
-              </span>
-            )} */}
             <label
               htmlFor="course_name"
               className="block text-sm font-medium text-gray-600 mb-2"
@@ -276,60 +258,29 @@ const AddInstructor = () => {
                 </option>
               ))}
             </select>
-
-            {errors.course_name && (
-              <p className="text-red-500 text-xs">
-                {errors.course_name.message}
-              </p>
-            )}
           </div>
 
+          {/* Age Field */}
           <div className="flex flex-col">
             <label
-              htmlFor="domain"
+              htmlFor="age"
               className="text-xs px-2 text-[#808080] font-medium mb-1"
             >
-              Domain
+              Age
             </label>
-            <div className="relative">
-              <input
-                type=""
-                id="domain"
-                placeholder="Domain Name"
-                className="w-full border border-gray-300 dark:bg-inherit rounded-md py-2 px-3 pr-3 focus:outline-none focus:ring-2 focus:ring-green-400"
-                {...register("domain")}
-              />
-              {/* <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                <span>
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6ZM20 6L12 11L4 6H20ZM20 18H4V8L12 13L20 8V18Z"
-                      fill="#808080"
-                    />
-                  </svg>
-                </span>
-              </span> */}
-            </div>
-            {errors.domain && (
-              <span className="text-red-500 text-xs">
-                {errors.domain.message}
-              </span>
-            )}
+            <input
+              type="number"
+              id="age"
+              placeholder="Age"
+              className="w-full border border-gray-300 dark:bg-inherit rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-green-400"
+              {...register("age")}
+            />
           </div>
-
           {/* Submit and Cancel Buttons */}
           <div className="flex justify-end items-center space-x-4 sm:col-span-2 mt-4">
             <button
               type="button"
-              onClick={() => {
-                router.back();
-              }}
+              onClick={() => setShowInstructorListing(true)}
               className="px-4 py-2 border border-gray-300 rounded-md text-gray-600 hover:bg-gray-200 focus:outline-none"
             >
               Cancel
