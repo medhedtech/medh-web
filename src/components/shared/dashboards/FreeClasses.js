@@ -1,11 +1,13 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import CourseCard from "./CourseCard";
 import reactImg from "@/assets/images/courses/React.jpeg";
 import os from "@/assets/images/courses/os.jpeg";
 import javascript from "@/assets/images/courses/javaScript.jpeg";
 import AiMl from "@/assets/images/courses/Ai&Ml.jpeg";
 import { useRouter } from "next/navigation";
+import useGetQuery from "@/hooks/getQuery.hook";
+import { apiUrls } from "@/apis";
 
 const FreeCourses = () => {
   const router = useRouter();
@@ -48,6 +50,29 @@ const FreeCourses = () => {
   const handleCardClick = (id) => {
     router.push(`/dashboards/my-courses/${id}`);
   };
+
+  const [freeCourses, setFreeCourses] = useState([]);
+  const { getQuery } = useGetQuery();
+  const [limit] = useState(4);
+  const [page] = useState(1);
+
+  useEffect(() => {
+    const fetchCourses = () => {
+      getQuery({
+        url: apiUrls?.courses?.getAllCoursesWithLimits(page,limit,'','','','Upcoming'),
+        onSuccess: (res) => {
+          setFreeCourses(res?.courses || []);
+        },
+        onFail: (err) => {
+          console.error("Error fetching courses:", err);
+        },
+      });
+    };
+    fetchCourses();
+  }, [page, limit]);
+
+
+
 
   return (
     <div className="container mx-auto p-8 px-10">
