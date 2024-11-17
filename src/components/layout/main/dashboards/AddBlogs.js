@@ -1,6 +1,5 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import usePostQuery from "@/hooks/postQuery.hook";
 import { useForm } from "react-hook-form";
 import { apiUrls } from "@/apis";
@@ -9,6 +8,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import toast from "react-toastify";
 import useGetQuery from "@/hooks/getQuery.hook";
 import Preloader from "@/components/shared/others/Preloader";
+import AdminBlogs from "./AdminBlogs";
 
 // Validation Schema
 const schema = yup.object({
@@ -18,12 +18,11 @@ const schema = yup.object({
 });
 
 const AddBlog = () => {
-  const router = useRouter();
   const { postQuery, loading } = usePostQuery();
   const { getQuery } = useGetQuery();
-  const [courses, setCourses] = useState([]);
+  const [blogs, setBlogs] = useState([]);
   const [blogImage, setBlogImage] = useState(null);
-  const [showAddBlogForm, setShowAddBlogForm] = useState(true);
+  const [showAddBlogListing, setShowAddBlogListing] = useState(true);
   const {
     register,
     handleSubmit,
@@ -40,7 +39,7 @@ const AddBlog = () => {
         await getQuery({
           url: apiUrls?.courses?.getCourseNames,
           onSuccess: (data) => {
-            setCourses(data);
+            setBlogs(data || []);
           },
           onFail: (err) => {
             console.error(
@@ -50,7 +49,7 @@ const AddBlog = () => {
           },
         });
       } catch (error) {
-        console.error("Failed to fetch courses:", error);
+        console.error("Failed to fetch blogs:", error);
       }
     };
 
@@ -100,9 +99,7 @@ const AddBlog = () => {
         onSuccess: () => {
           toast.success("Blog added successfully!");
           reset();
-          router.push(()=>{
-            setShowAddBlogForm(false)
-          })
+          setShowAddBlogListing(true);
         },
         onFail: () => {
           toast.error("Error adding blog.");
@@ -112,6 +109,10 @@ const AddBlog = () => {
       console.log("An unexpected error occurred. Please try again.");
     }
   };
+
+  if (showAddBlogListing) {
+    return <AdminBlogs onCancel={() => setShowAddBlogListing(false)} />;
+  }
 
   if (loading) {
     return <Preloader />;
@@ -204,7 +205,7 @@ const AddBlog = () => {
           <div className="flex justify-end items-center space-x-4 sm:col-span-2 mt-4">
             <button
               type="button"
-              onClick={() => router.back()}
+              onClick={() => setShowAddBlogListing(true)}
               className="px-4 py-2 border border-gray-300 rounded-md text-gray-600 hover:bg-gray-200 focus:outline-none"
             >
               Cancel

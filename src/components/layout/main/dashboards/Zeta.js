@@ -4,12 +4,26 @@ import Preloader from "@/components/shared/others/Preloader";
 import useGetQuery from "@/hooks/getQuery.hook";
 import React, { useEffect, useState } from "react";
 import MyTable from "@/components/shared/common-table/page";
-import { FaSort, FaPlus, FaChevronDown } from "react-icons/fa";
+import { FaPlus, FaChevronDown } from "react-icons/fa";
+import useDeleteQuery from "@/hooks/deleteQuery.hook";
+import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
 
 const UsersTable = () => {
+  const router = useRouter();
+  const { deleteQuery } = useDeleteQuery();
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
+  const [sortOrder, setSortOrder] = useState("newest");
+  const [searchQuery, setSearchQuery] = useState("");
   const { getQuery, data, loading } = useGetQuery();
+  const [deletedCourse, setDeletedCourse] = useState(null);
+  const [filterOptions, setFilterOptions] = useState({
+    full_name: "",
+    email: "",
+    phone_number: "",
+    status: "",
+  });
 
   useEffect(() => {
     getQuery({
@@ -21,7 +35,7 @@ const UsersTable = () => {
         console.error("Error fetching data:", error);
       },
     });
-  }, []);
+  }, [deletedCourse]);
 
   if (loading) {
     return <Preloader />;
@@ -33,16 +47,120 @@ const UsersTable = () => {
     { Header: "Email", accessor: "email" },
     { Header: "Phone Number", accessor: "phone_number" },
     { Header: "Join Date", accessor: "createdAt" },
-    { Header: "Role", accessor: "role" },
-    { Header: "Status", accessor: "status" },
+    // { Header: "Role", accessor: "role" },
+    {
+      Header: "Role",
+      accessor: "role",
+      Cell: ({ value }) => (Array.isArray(value) ? value.join(", ") : value),
+    },
+    {
+      Header: "Status",
+      accessor: "status",
+      render: (row) => (
+        <div className="flex gap-2 items-center">
+          <div
+            className={`rounded-md font-normal px-[10px] py-1 ${
+              row.status === "Inactive"
+                ? "bg-[#FBD0D0] text-[#F15252]"
+                : "bg-[#D9F2D9] text-[#3AA438]"
+            }`}
+          >
+            {row.status}
+          </div>
+        </div>
+      ),
+    },
+    {
+      Header: "Action",
+      accessor: "actions",
+      render: (row) => (
+        <div className="flex gap-2 items-center">
+          <button
+            onClick={() => {
+              deleteUser(row?._id);
+            }}
+            className="text-white bg-red-600 border border-red-600 rounded-md px-[10px] py-1"
+          >
+            Delete
+          </button>
+        </div>
+      ),
+    },
   ];
 
+  const handleSortChange = (order) => {
+    setSortOrder(order);
+    setIsSortDropdownOpen(false);
+  };
+
+  const handleSearchChange = (event) => {
+    setSearchQuery(event.target.value);
+  };
+
+  const handleFilterDropdownToggle = () => {
+    setIsFilterDropdownOpen(!isFilterDropdownOpen);
+  };
+
+  const handleFilterSelect = (filterType, value) => {
+    setFilterOptions((prev) => ({ ...prev, [filterType]: value }));
+    setIsFilterDropdownOpen(false);
+  };
+
+  // Filtering the data based on user inputs
+  const filteredData =
+    data?.data?.filter((user) => {
+      const matchesName = filterOptions.full_name
+        ? (user?.full_name || "")
+            .toLowerCase()
+            .includes(filterOptions.full_name.toLowerCase())
+        : true;
+
+      const matchesStatus = filterOptions.status
+        ? (user?.status || "")
+            .toLowerCase()
+            .includes(filterOptions.status.toLowerCase())
+        : true;
+
+      const matchesSearchQuery =
+        (user?.full_name || "")
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        (user?.email || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (user?.role || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (user?.phone_number || "").includes(searchQuery);
+
+      return matchesSearchQuery && matchesName && matchesStatus;
+    }) || [];
+
+  // Sorting the filtered data based on the `sortOrder`
+  const sortedData = [...filteredData].sort((a, b) => {
+    if (sortOrder === "newest") {
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    } else if (sortOrder === "oldest") {
+      return new Date(a.createdAt) - new Date(b.createdAt);
+    }
+    return 0;
+  });
+
   const formattedData =
-    data?.data?.map((user, index) => ({
+    sortedData.map((user, index) => ({
       ...user,
       no: index + 1,
       createdAt: new Date(user.createdAt).toLocaleDateString("en-GB"),
     })) || [];
+
+  const deleteUser = (id) => {
+    deleteQuery({
+      url: `${apiUrls?.user?.delete}/${id}`,
+      onSuccess: (res) => {
+        toast.success(res?.message);
+        setDeletedCourse(id);
+      },
+      onFail: (res) => {
+        console.log(res, "FAILED");
+      },
+    });
+  };
 
   return (
     <div className="flex items-start font-Poppins justify-center min-h-screen dark:bg-inherit bg-gray-100 p-4 pt-9">
@@ -51,41 +169,52 @@ const UsersTable = () => {
           <h2 className="text-xl font-semibold md:text-left dark:text-white">
             Users List
           </h2>
-          <input
-            type="text"
-            placeholder="Search here"
-            className="w-full md:w-1/3 px-4 py-2 border dark:bg-inherit dark:text-whitegrey3 border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
           <div className="flex space-x-2 justify-center md:justify-start">
+            <div className="relative flex-grow flex justify-center">
+              <input
+                type="text"
+                placeholder="Search here"
+                className="border dark:bg-inherit dark:text-whitegrey3 dark:border border-gray-300 rounded-full p-2 pl-4 w-full max-w-md"
+                value={searchQuery}
+                onChange={handleSearchChange}
+              />
+            </div>
             {/* Filter Button with Dropdown */}
             <div className="relative">
               <button
-                onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
+                onClick={handleFilterDropdownToggle}
                 className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md dark:bg-inherit dark:text-whitegrey3 dark:border hover:bg-gray-300 flex items-center space-x-1"
               >
-                <span>Filters</span>
-                <FaChevronDown />
+                Filters
+                <svg
+                  className="w-4 h-4 ml-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M19 9l-7 7-7-7"
+                  ></path>
+                </svg>
               </button>
               {isFilterDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
-                  <a
-                    href="#"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                <div className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg">
+                  <button
+                    onClick={() => handleFilterSelect("status", "Active")}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
-                    Filter Option 1
-                  </a>
-                  <a
-                    href="#"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    Active
+                  </button>
+                  <button
+                    onClick={() => handleFilterSelect("status", "Inactive")}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
-                    Filter Option 2
-                  </a>
-                  <a
-                    href="#"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    Filter Option 3
-                  </a>
+                    Inactive
+                  </button>
                 </div>
               )}
             </div>
@@ -94,224 +223,47 @@ const UsersTable = () => {
             <div className="relative">
               <button
                 onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md  dark:bg-inherit dark:text-whitegrey3 dark:border hover:bg-gray-300 flex items-center space-x-1"
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md dark:bg-inherit dark:text-whitegrey3 dark:border hover:bg-gray-300 flex items-center space-x-1"
               >
-                <span>New to oldest</span>
+                <span>
+                  {sortOrder === "newest" ? "New to Oldest" : "Oldest to New"}
+                </span>
                 <FaChevronDown />
               </button>
               {isSortDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
                   <a
                     href="#"
+                    onClick={() => handleSortChange("oldest")}
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
                     Oldest to New
                   </a>
                   <a
                     href="#"
+                    onClick={() => handleSortChange("newest")}
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
-                    Newest to Old
+                    New to Oldest
                   </a>
                 </div>
               )}
             </div>
-
-            {/* Create User Button with Icon */}
-            <button className="px-4 py-2 bg-customGreen text-white rounded-md flex items-center space-x-1">
-              <FaPlus />
-              <span>Create User</span>
+            <button
+              onClick={() => {
+                router.push("/dashboards/admin-subpage1");
+              }}
+              className="bg-customGreen text-white px-4 py-2 rounded-lg flex items-center"
+            >
+              Create User <FaPlus className="ml-2" />
             </button>
           </div>
         </div>
 
-        {/* <div className="flex justify-center items-center min-h-screen bg-gray-100">
-          <div className="w-full max-w-6xl"> */}
-            <MyTable
-              columns={columns}
-              data={formattedData}
-              filterColumns={["role", "status"]}
-              showDate={true}
-              entryText="Total no. of users: "
-            />
-          {/* </div>
-        </div> */}
+        <MyTable columns={columns} data={formattedData} />
       </div>
     </div>
   );
 };
 
 export default UsersTable;
-
-// "use client";
-// import { apiUrls } from "@/apis";
-// import Preloader from "@/components/shared/others/Preloader";
-// import useGetQuery from "@/hooks/getQuery.hook";
-// import React, { useEffect, useState } from "react";
-// import { FaSort, FaPlus, FaChevronDown } from "react-icons/fa";
-
-// const UsersTable = () => {
-//   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
-//   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
-//   const { getQuery, data, loading, error } = useGetQuery();
-
-//   useEffect(() => {
-//     // Fetching users data when the component mounts
-//     getQuery({
-//       url: apiUrls.user.getAll,
-//       onSuccess: (data) => {
-//         console.log(data, "this is Data");
-//       },
-//       onFail: (error) => {
-//         console.log("Error", error);
-//       },
-//     });
-//   }, []);
-
-//   if (loading) {
-//     return <Preloader />;
-//   }
-
-//   return (
-//     <div className="flex items-start font-Poppins justify-center min-h-screen bg-gray-100 p-4 pt-9">
-//       <div className="w-full max-w-6xl bg-white p-8 md:p-10 rounded-lg shadow-md">
-//         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 space-y-4 md:space-y-0">
-//           <h2 className="text-xl font-semibold md:text-left">Users List</h2>
-//           <input
-//             type="text"
-//             placeholder="Search here"
-//             className="w-full md:w-1/3 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
-//           />
-//           <div className="flex space-x-2 justify-center md:justify-start">
-//             {/* Filter Button with Dropdown */}
-//             <div className="relative">
-//               <button
-//                 onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
-//                 className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 flex items-center space-x-1"
-//               >
-//                 <span>Filters</span>
-//                 <FaChevronDown />
-//               </button>
-//               {isFilterDropdownOpen && (
-//                 <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
-//                   <a
-//                     href="#"
-//                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-//                   >
-//                     Filter Option 1
-//                   </a>
-//                   <a
-//                     href="#"
-//                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-//                   >
-//                     Filter Option 2
-//                   </a>
-//                   <a
-//                     href="#"
-//                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-//                   >
-//                     Filter Option 3
-//                   </a>
-//                 </div>
-//               )}
-//             </div>
-
-//             {/* Sort Button with Dropdown */}
-//             <div className="relative">
-//               <button
-//                 onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
-//                 className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 flex items-center space-x-1"
-//               >
-//                 <span>New to oldest</span>
-//                 <FaChevronDown />
-//               </button>
-//               {isSortDropdownOpen && (
-//                 <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
-//                   <a
-//                     href="#"
-//                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-//                   >
-//                     Oldest to New
-//                   </a>
-//                   <a
-//                     href="#"
-//                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-//                   >
-//                     Newest to Old
-//                   </a>
-//                 </div>
-//               )}
-//             </div>
-
-//             {/* Create User Button with Icon */}
-//             <button className="px-4 py-2 bg-customGreen text-white rounded-md flex items-center space-x-1">
-//               <FaPlus />
-//               <span>Create User</span>
-//             </button>
-//           </div>
-//         </div>
-
-//         <div className="overflow-x-auto">
-//           <table className="w-full text-left border-collapse">
-//             <thead>
-//               <tr>
-//                 <th className="px-4 py-2 border-b">Select</th>
-//                 <th className="px-4 py-2 border-b">No.</th>
-//                 <th className="px-4 py-2 border-b">Name</th>
-//                 <th className="px-4 py-2 border-b">Age</th>
-//                 <th className="px-4 py-2 border-b">Email ID</th>
-//                 <th className="px-4 py-2 border-b">Join Date</th>
-//                 <th className="px-4 py-2 border-b">Role</th>
-//                 {/* <th className="px-4 py-2 border-b">Course</th> */}
-//                 <th className="px-4 py-2 border-b">Status</th>
-//               </tr>
-//             </thead>
-//             <tbody>
-//               {!loading && data?.data?.length > 0 ? (
-//                 data.data.map((user, index) => (
-//                   <tr key={user._id} className="hover:bg-gray-100">
-//                     <td className="px-4 py-2 border-b">
-//                       <input
-//                         type="checkbox"
-//                         className="form-checkbox h-4 w-4 text-indigo-600"
-//                       />
-//                     </td>
-//                     <td className="px-4 py-2 border-b">
-//                       {String(index + 1).padStart(2, "0")}.
-//                     </td>
-//                     <td className="px-4 py-2 border-b">{user.full_name}</td>
-//                     <td className="px-4 py-2 border-b">{user.email}</td>
-//                     <td className="px-4 py-2 border-b">{user.phone_number}</td>
-//                     <td className="px-4 py-2 border-b">
-//                       {new Date(user.createdAt).toLocaleDateString("en-GB")}
-//                     </td>
-//                     <td className="px-4 py-2 border-b">{user.role}</td>
-//                     <td className="px-4 py-2 border-b">
-//                       <span
-//                         className={`px-2 py-1 rounded-full text-xs font-semibold ${
-//                           user.status === "active"
-//                             ? "bg-green-100 text-green-700"
-//                             : "bg-red-100 text-red-700"
-//                         }`}
-//                       >
-//                         {user.status}
-//                       </span>
-//                     </td>
-//                   </tr>
-//                 ))
-//               ) : (
-//                 <tr>
-//                   <td colSpan="8" className="text-center py-4">
-//                     {loading ? "Loading..." : "No users found"}
-//                   </td>
-//                 </tr>
-//               )}
-//             </tbody>
-//           </table>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default UsersTable;
