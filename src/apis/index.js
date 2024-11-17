@@ -1,23 +1,30 @@
-export const apiBaseUrl = "https://medh-backend.vercel.app/api/v1";
-// export const apiBaseUrl = 'http://localhost:8080/api/v1';
+// export const apiBaseUrl = "https://medh-backend.vercel.app/api/v1";
+export const apiBaseUrl = "http://localhost:8080/api/v1";
 
 export const apiUrls = {
   user: {
     register: "/auth/register",
     login: "/auth/login",
     update: "/auth/update/:id",
-    delete: "/auth/delete/:id",
+    delete: "/auth/delete",
     getDetailsbyId: "/auth/get/:id",
     getAll: "/auth/get-all",
+    updateByEmail: "/auth/update-by-email",
   },
   courses: {
-    getAllCoursesWithLimits: (page = 1, limit = 10,course_title,course_tag,course_category) =>
+    getAllCoursesWithLimits: (
+      page = 1,
+      limit = 10,
+      course_title,
+      course_tag,
+      course_category
+    ) =>
       `/courses/getLimitedCourses?page=${page}&limit=${limit}&course_title=${course_title}&course_tag=${course_tag}&course_category=${course_category}`,
     getAllCourses: "/courses/get",
     getCourseById: "/courses/get/:id",
     createCourse: "/courses/create",
     updateCourse: "/courses/update/:id",
-    deleteCourse: "/courses/delete/:id",
+    deleteCourse: "/courses/delete",
     getCourseNames: "/courses/course-names",
   },
   upload: {
@@ -37,14 +44,16 @@ export const apiUrls = {
     getInstructorById: "/instructors/get/:id",
     createInstructor: "/instructors/create",
     updateInstructor: "/instructors/update/:id",
-    deleteInstructor: "/instructors/delete/:id",
+    deleteInstructor: "/instructors/delete",
+    toggleInstructorsStatus: "/instructors/toggle-status",
   },
   Students: {
     getAllStudents: "/students/get",
     getStudentById: "/students/get/:id",
     createStudent: "/students/create",
     updateStudent: "/students/update/:id",
-    deleteStudent: "/students/delete/:id",
+    deleteStudent: "/students/delete",
+    toggleStudentStatus: "/students/toggle-status",
   },
   Contacts: {
     getAllContacts: "/contact/get",
@@ -59,5 +68,8 @@ export const apiUrls = {
     createBlog: "/blogs/create",
     updateBlog: "/blogs/update/:id",
     deleteBlog: "/blogs/delete",
+  },
+  adminDashboard: {
+    getDashboardCount: "/dashboard/admin-dashboard-count",
   },
 };
