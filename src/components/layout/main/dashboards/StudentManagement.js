@@ -36,7 +36,11 @@ const UsersTableStudent = () => {
       try {
         await getQuery({
           url: apiUrls?.Students?.getAllStudents,
-          onSuccess: (data) => setStudents(data),
+          onSuccess: (data) => {
+            console.log("Response data:", data);
+            setStudents(data?.students || []);
+          },
+
           onFail: () => setStudents([]),
         });
       } catch (error) {
