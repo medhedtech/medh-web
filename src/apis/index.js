@@ -73,6 +73,13 @@ export const apiUrls = {
   adminDashboard: {
     getDashboardCount: "/dashboard/admin-dashboard-count",
   },
+  assignedInstructors: {
+    getAllAssignedInstructors: "/assigned-instrutors/assigned",
+    getAssignedInstructorById: "/assigned-instrutors/get",
+    createAssignedInstructor: "/assigned-instrutors/create",
+    updateAssignedInstructor: "/assigned-instrutors/update",
+    deleteAssignedInstructor: "/assigned-instrutors/delete",
+  },
   placements: {},
   quzies: {},
   assignments: {},
