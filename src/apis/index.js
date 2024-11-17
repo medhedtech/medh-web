@@ -1,5 +1,7 @@
+export const apiBaseUrl = "https://medh-backend.vercel.app/api/v1";
+// export const apiBaseUrl = "http://localhost:8080/api/v1";
 // export const apiBaseUrl = "https://medh-backend.vercel.app/api/v1";
-export const apiBaseUrl = "http://localhost:8080/api/v1";
+
 
 export const apiUrls = {
   user: {
@@ -17,9 +19,10 @@ export const apiUrls = {
       limit = 10,
       course_title,
       course_tag,
-      course_category
+      course_category,
+      status
     ) =>
-      `/courses/getLimitedCourses?page=${page}&limit=${limit}&course_title=${course_title}&course_tag=${course_tag}&course_category=${course_category}`,
+      `/courses/getLimitedCourses?page=${page}&limit=${limit}&course_title=${course_title}&course_tag=${course_tag}&course_category=${course_category}&status=${status}`,
     getAllCourses: "/courses/get",
     getCourseById: "/courses/get/:id",
     createCourse: "/courses/create",
@@ -72,4 +75,17 @@ export const apiUrls = {
   adminDashboard: {
     getDashboardCount: "/dashboard/admin-dashboard-count",
   },
+  assignedInstructors: {
+    getAllAssignedInstructors: "/assigned-instrutors/assigned",
+    getAssignedInstructorById: "/assigned-instrutors/get",
+    createAssignedInstructor: "/assigned-instrutors/create",
+    updateAssignedInstructor: "/assigned-instrutors/update",
+    deleteAssignedInstructor: "/assigned-instrutors/delete",
+  },
+  placements: {},
+  quzies: {},
+  assignments: {},
+  feedbacks: {},
+  resources: {},
+  assignments: {},
 };
