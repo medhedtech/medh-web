@@ -8,18 +8,13 @@ export const metadata = {
 };
 const Admin_Contacts = () => {
   return (
-    // <PageWrapper>
     <main>
-      {/* <DsahboardWrapper> */}
       <DashboardContainer>
         <HeadingDashboard />
-
         <GetInTouch />
       </DashboardContainer>
-      {/* </DsahboardWrapper> */}
       <ThemeController />
     </main>
-    // </PageWrapper>
   );
 };
 

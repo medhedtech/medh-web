@@ -9,6 +9,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import toast from "react-toastify";
 import useGetQuery from "@/hooks/getQuery.hook";
 import Preloader from "@/components/shared/others/Preloader";
+import UsersTableStudent from "./StudentManagement";
 
 // Validation Schema
 const schema = yup.object({
@@ -19,8 +20,8 @@ const schema = yup.object({
 });
 
 const AddStudentForm = () => {
-  const router = useRouter();
   const { postQuery, loading } = usePostQuery();
+  const [showStudentListing, setShowStudentListing] = useState(false);
   const { getQuery } = useGetQuery();
   const [courses, setCourses] = useState([]);
   const {
@@ -67,18 +68,22 @@ const AddStudentForm = () => {
           course_name: data.course_name,
         },
         onSuccess: () => {
+          setShowStudentListing(true);
           toast.success("Student added successfully!");
           reset();
-          router.back();
         },
         onFail: () => {
           toast.error("Error adding student.");
         },
       });
     } catch (error) {
-      toast.error("An unexpected error occurred. Please try again.");
+      toast.error("User Alredy exists with same email.");
     }
   };
+
+  if (showStudentListing) {
+    return <UsersTableStudent onCancel={() => setShowStudentListing(false)} />;
+  }
 
   if (loading) {
     return <Preloader />;
@@ -201,24 +206,6 @@ const AddStudentForm = () => {
 
           {/* Course Name Field */}
           <div className="flex flex-col">
-            {/* <label
-              htmlFor="course_name"
-              className="text-xs px-2 text-[#808080] font-medium mb-1"
-            >
-              Course Name
-            </label>
-            <input
-              type="text"
-              id="course_name"
-              placeholder="Course Name"
-              className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-green-400"
-              {...register("course_name")}
-            />
-            {errors.course_name && (
-              <span className="text-red-500 text-xs">
-                {errors.course_name.message}
-              </span>
-            )} */}
             <label
               htmlFor="course_name"
               className="block text-sm font-medium text-gray-600 mb-2"
@@ -248,9 +235,7 @@ const AddStudentForm = () => {
           <div className="flex justify-end items-center space-x-4 sm:col-span-2 mt-4">
             <button
               type="button"
-              onClick={() => {
-                router.back();
-              }}
+              onClick={() => setShowStudentListing(true)}
               className="px-4 py-2 border border-gray-300 rounded-md text-gray-600 hover:bg-gray-200 focus:outline-none"
             >
               Cancel
@@ -260,7 +245,7 @@ const AddStudentForm = () => {
               className="px-4 py-2 bg-primaryColor text-white rounded-md hover:bg-green-500 focus:outline-none"
               disabled={loading}
             >
-              {loading ? "Adding..." : "Add Student"}
+              Add Student
             </button>
           </div>
         </form>
