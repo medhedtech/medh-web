@@ -1,3 +1,87 @@
+// "use client";
+// import { apiUrls } from "@/apis";
+// import useGetQuery from "@/hooks/getQuery.hook";
+// import Image from "next/image";
+// import { useRouter } from "next/navigation";
+// import { useEffect, useState } from "react";
+// import teacherImage1 from "@/assets/images/teacher/teacher__1.png";
+// import teacherImage2 from "@/assets/images/teacher/teacher__2.png";
+// import teacherImage3 from "@/assets/images/teacher/teacher__3.png";
+// import teacherImage4 from "@/assets/images/teacher/teacher__4.png";
+// import teacherImage5 from "@/assets/images/teacher/teacher__5.png";
+
+// const PopularInstructors = () => {
+//   const router = useRouter();
+//   const { getQuery, loading } = useGetQuery();
+//   const [courses, setCourses] = useState([]);
+
+//   // Fetch courses from API
+//   useEffect(() => {
+//     const fetchCourses = async () => {
+//       await getQuery({
+//         url: apiUrls?.courses?.getAllCourses,
+//         onSuccess: (data) => {
+//           if (Array.isArray(data)) {
+//             const formattedCourses = data.map((course, index) => ({
+//               id: course._id,
+//               name: course.course_title,
+//               description: course.course_description,
+//               avatar: [
+//                 teacherImage1,
+//                 teacherImage2,
+//                 teacherImage3,
+//                 teacherImage4,
+//                 teacherImage5,
+//               ][index % 5],
+//               reviews: `${Math.floor(Math.random() * 1000 + 100)} reviews`,
+//               students: `${Math.floor(Math.random() * 500 + 50)} students`, // Generate random student count
+//               courses: `${course.no_of_Sessions} sessions`, // Use sessions as course count
+//             }));
+//             setCourses(formattedCourses);
+//           }
+//         },
+//       });
+//     };
+
+//     fetchCourses();
+//   }, []);
+
+//   return (
+//     <div className="popular-instructors">
+//       <h2>Popular Instructors</h2>
+//       <div className="instructor-grid">
+//         {loading ? (
+//           <p>Loading...</p>
+//         ) : (
+//           courses.map((instructor) => (
+//             <div
+//               key={instructor.id}
+//               className="instructor-card"
+//               onClick={() => router.push(`/courses/${instructor.id}`)}
+//             >
+//               <Image
+//                 src={instructor.avatar}
+//                 alt={instructor.name}
+//                 className="instructor-avatar"
+//               />
+//               <h3>{instructor.name}</h3>
+//               <p>{instructor.description}</p>
+//               <p>{instructor.reviews}</p>
+//               <p>{instructor.students}</p>
+//               <p>{instructor.courses}</p>
+//             </div>
+//           ))
+//         )}
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default PopularInstructors;
+
+
+
+
 import teacherImage1 from "@/assets/images/teacher/teacher__1.png";
 import teacherImage2 from "@/assets/images/teacher/teacher__2.png";
 import teacherImage3 from "@/assets/images/teacher/teacher__3.png";
