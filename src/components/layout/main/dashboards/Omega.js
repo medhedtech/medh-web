@@ -1,6 +1,96 @@
-import React from "react";
+"use client";
 
-const DefineRoleForm = () => {
+import React, { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import usePostQuery from "@/hooks/postQuery.hook";
+import useGetQuery from "@/hooks/getQuery.hook";
+import { apiUrls } from "@/apis";
+import { useForm } from "react-hook-form";
+import * as yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { toast } from "react-toastify";
+import Preloader from "@/components/shared/others/Preloader";
+
+const schema = yup
+  .object({
+    role_description: yup.string().required("Description is required"),
+    email: yup
+      .string()
+      .email("Invalid email format")
+      .required("Email is required"),
+    role: yup.string().required("Role is required"),
+    permissions: yup.string().required("permissions is required"),
+  })
+  .required();
+
+const DefineRoleForm = ({ id }) => {
+  const router = useRouter();
+  const { postQuery, loading } = usePostQuery();
+  const { getQuery } = useGetQuery();
+  const [emails, setEmails] = React.useState([]);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm({
+    resolver: yupResolver(schema),
+  });
+
+  useEffect(() => {
+    const fetchEmails = async () => {
+      try {
+        const response = await getQuery({
+          url: apiUrls.user.getAll,
+        });
+        // Ensure response and response.data exist
+        if (response && response.data) {
+          const emails = response.data.map((user) => user.email);
+          setEmails(emails);
+        } else {
+          console.error("Unexpected response structure:", response);
+          toast.error("Error fetching email list.");
+        }
+      } catch (error) {
+        console.error("Failed to fetch emails:", error);
+        toast.error("Error fetching email list.");
+      }
+    };
+
+    fetchEmails();
+  }, []);
+
+  // Handle form submission
+  const onSubmit = async (data) => {
+    try {
+      await postQuery({
+        url: apiUrls?.user?.updateByEmail,
+        postData: {
+          email: data.email,
+          permissions: [data.permissions],
+          role: data.role,
+          role_description: data.role_description,
+        },
+        onSuccess: () => {
+          toast.success("User updated successfully!");
+          router.push("/dashboards/admin-subpage3");
+        },
+        onFail: (error) => {
+          console.error("Failed to update user:", error);
+          toast.error("Failed to update user. Please try again.");
+        },
+      });
+    } catch (error) {
+      console.error("Unexpected error during update:", error);
+      toast.error("An unexpected error occurred. Please try again.");
+    }
+  };
+
+  if (loading) {
+    return <Preloader />;
+  }
+
   return (
     <div className="flex items-start font-Poppins justify-center min-h-screen pt-9 dark:bg-inherit bg-gray-100 p-8">
       <div className="bg-white w-full max-w-6xl p-8 md:p-10 rounded-lg shadow-md dark:bg-inherit dark:border">
@@ -8,23 +98,32 @@ const DefineRoleForm = () => {
           Define Role
         </h2>
 
-        <form className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Email Input */}
           <div>
             <label
               htmlFor="email"
               className="block text-sm font-medium text-gray-700 dark:text-whitegrey1"
             >
-              Email id
+              Email ID
             </label>
-            <input
-              type="email"
+            <select
               id="email"
-              name="email"
-              placeholder="abc@gmail.com"
-              className="w-full mt-1 px-3 py-2 border dark:bg-inherit dark:text-whitegrey3 border-gray-300 rounded-md bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              required
-            />
+              {...register("email")}
+              className={`w-full mt-1 px-3 py-2 border dark:bg-inherit dark:text-whitegrey3 border-gray-300 rounded-md bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                errors.email ? "border-red-500" : ""
+              }`}
+            >
+              <option value="">Select</option>
+              {emails.map((email) => (
+                <option key={email} value={email}>
+                  {email}
+                </option>
+              ))}
+            </select>
+            {errors.email && (
+              <p className="text-red-500 text-sm">{errors.email.message}</p>
+            )}
           </div>
 
           {/* Role Selection */}
@@ -37,43 +136,57 @@ const DefineRoleForm = () => {
             </label>
             <select
               id="role"
-              name="role"
-              className="w-full mt-1 px-3 py-2 border dark:bg-inherit dark:text-whitegrey3 border-gray-300 rounded-md bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              required
+              {...register("role")}
+              className={`w-full mt-1 px-3 py-2 border dark:bg-inherit dark:text-whitegrey3 border-gray-300 rounded-md bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                errors.role ? "border-red-500" : ""
+              }`}
             >
-              <option value="cooperate-admin">Cooperate Admin</option>
+              <option value="">Select</option>
+              <option value="admin">Admin</option>
+              <option value="student">Student</option>
+              <option value="instructor">Instructor</option>
               <option value="user">User</option>
-              <option value="manager">Manager</option>
             </select>
+            {errors.role && (
+              <p className="text-red-500 text-sm">{errors.role.message}</p>
+            )}
           </div>
 
           {/* Role Description */}
           <div>
             <label
-              htmlFor="description"
+              htmlFor="role_description"
               className="block text-sm font-medium text-gray-700 dark:text-whitegrey1"
             >
               Role Description
             </label>
             <textarea
-              id="description"
-              name="description"
+              id="role_description"
+              {...register("role_description")}
               rows="3"
               placeholder="Write description"
-              className="w-full mt-1 px-3 py-2 border dark:bg-inherit dark:text-whitegrey3 border-gray-300 rounded-md bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className={`w-full mt-1 px-3 py-2 border dark:bg-inherit dark:text-whitegrey3 border-gray-300 rounded-md bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                errors.role_description ? "border-red-500" : ""
+              }`}
             ></textarea>
+            {errors.role_description && (
+              <p className="text-red-500 text-sm">
+                {errors.role_description.message}
+              </p>
+            )}
           </div>
 
           {/* Permissions */}
           <fieldset>
             <legend className="text-sm font-medium text-gray-700 mb-2 dark:text-whitegrey1">
-              Permission
+              Permissions
             </legend>
             <div className="space-y-2 dark:text-white">
               <label className="flex items-center">
                 <input
                   type="radio"
-                  name="permission"
+                  value="view_courses"
+                  {...register("permissions")}
                   className="mr-2 text-indigo-600 focus:ring-indigo-500"
                 />
                 View Courses
@@ -81,7 +194,8 @@ const DefineRoleForm = () => {
               <label className="flex items-center">
                 <input
                   type="radio"
-                  name="permission"
+                  value="edit_users"
+                  {...register("permissions")}
                   className="mr-2 text-indigo-600 focus:ring-indigo-500"
                 />
                 Edit Users
@@ -89,18 +203,25 @@ const DefineRoleForm = () => {
               <label className="flex items-center">
                 <input
                   type="radio"
-                  name="permission"
-                  className="mr-2 text-indigo-600 focus:ring-indigo-500 "
+                  value="create_report"
+                  {...register("permissions")}
+                  className="mr-2 text-indigo-600 focus:ring-indigo-500"
                 />
                 Create Report
               </label>
             </div>
+            {errors.permissions && (
+              <p className="text-red-500 text-sm">
+                {errors.permissions.message}
+              </p>
+            )}
           </fieldset>
 
           {/* Buttons */}
           <div className="flex justify-end space-x-4">
             <button
               type="button"
+              onClick={() => reset()}
               className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 dark:bg-inherit dark:border dark:text-white"
             >
               Cancel
