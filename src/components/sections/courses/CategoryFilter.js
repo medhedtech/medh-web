@@ -1,6 +1,19 @@
-const CategoryFilter = ({ categories, setSelectedCategory, heading }) => {
+const CategoryFilter = ({
+  categories,
+  selectedCategory,
+  setSelectedCategory,
+  heading,
+}) => {
+  const handleCategoryChange = (category) => {
+    if (selectedCategory === category) {
+      setSelectedCategory(null);
+    } else {
+      setSelectedCategory(category);
+    }
+  };
+
   return (
-    <div className="w-full dark:text-gray-300    rounded-md">
+    <div className="w-full dark:text-gray-300 rounded-md">
       <h2 className="text-2xl font-semibold mb-4 text-black dark:text-white">
         {heading}
       </h2>
@@ -10,7 +23,8 @@ const CategoryFilter = ({ categories, setSelectedCategory, heading }) => {
             <input
               type="checkbox"
               className="form-checkbox h-4 w-4"
-              onChange={() => setSelectedCategory(category)}
+              checked={selectedCategory === category}
+              onChange={() => handleCategoryChange(category)}
             />
             <span className="ml-2">{category}</span>
           </label>

@@ -36,14 +36,14 @@ const LoginForm = () => {
 
   const onSubmit = async (data) => {
     await postQuery({
-      url: apiUrls.login,
+      url: apiUrls?.user?.login,
       postData: {
         email: data.email,
         password: data.password,
       },
       onSuccess: (res) => {
-        localStorage.setItem("token", res.token);
         router.push("/dashboards/admin-dashboard");
+        localStorage.setItem("token", res.token);
         toast.success("Login successful!");
       },
       onFail: (error) => {
