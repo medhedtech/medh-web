@@ -9,6 +9,7 @@ import * as yup from "yup";
 import Preloader from "@/components/shared/others/Preloader";
 import { toast } from "react-toastify";
 import { apiUrls } from "@/apis";
+import { useRouter } from "next/navigation";
 
 const schema = yup
   .object({
@@ -21,23 +22,14 @@ const schema = yup
       .max(10, "Must be exactly 10 digits")
       .required("Phone number is required"),
     role: yup.string().required("Role is required"),
-    assign_department: yup
-      .string()
-      .required("Assign department is required"),
+    assign_department: yup.string().required("Assign department is required"),
   })
   .required();
 
 const Gamma = () => {
   const [apiError, setApiError] = useState(null);
-  const [formData, setFormData] = useState({
-    fullName: "",
-    age: "",
-    email: "",
-    phoneNumber: "",
-    role: "Student",
-    assign_department: "Student",
-  });
   const { postQuery, loading } = usePostQuery();
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -46,41 +38,28 @@ const Gamma = () => {
     resolver: yupResolver(schema),
   });
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
-  };
-
-  // const handleSubmit = (e) => {
-  //   e.preventDefault();
-  //   console.log(formData);
-  // };
-
   const onSubmit = async (data) => {
     setApiError(null);
     // const { confirm_password, ...rest } = data;
 
     try {
       await postQuery({
-        url: apiUrls.user.register,
+        url: apiUrls?.user?.register,
         postData: {
           full_name: data?.full_name,
           age: data?.age,
           email: data?.email,
           role: data?.role,
-          // assign_department: data?.assign_department,
           assign_department: [data?.assign_department],
           phone_number: data?.phone_number,
         },
         onSuccess: () => {
-          router.push("/admin-subpage3");
+          router.push("/dashboards/admin-subpage3");
           toast.success("Registration successful!");
         },
         onFail: (error) => {
           console.log("Registration failed:", error);
+          toast.error("User already registerd with same email!");
           setApiError(error.message);
         },
       });

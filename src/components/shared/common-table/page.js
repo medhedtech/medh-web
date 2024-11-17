@@ -108,6 +108,8 @@ const MyTable = ({
           border: "1px solid #E0E0E0",
           overflow: "hidden",
           boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
+          // maxWidth: "100%",
+          overflowX: "auto",
         }}
       >
         <Table>
@@ -180,16 +182,16 @@ const MyTable = ({
                             : "inherit",
                         fontWeight:
                           column.accessor === "status" ? "bold" : "normal",
-                        backgroundColor:
-                          column.accessor === "status"
-                            ? row[column.accessor] === "Failed"
-                              ? "#FEE2E2"
-                              : row[column.accessor] === "Successful"
-                              ? "#C6F6D5"
-                              : "#FEFCBF"
-                            : "transparent",
-                        borderRadius:
-                          column.accessor === "status" ? "24px" : "0",
+                        // backgroundColor:
+                        //   column.accessor === "status"
+                        //     ? row[column.accessor] === "Failed"
+                        //       ? "#FEE2E2"
+                        //       : row[column.accessor] === "Successful"
+                        //       ? "#C6F6D5"
+                        //       : "#FEFCBF"
+                        //     : "transparent",
+                        // borderRadius:
+                        //   column.accessor === "status" ? "24px" : "0",
                       }}
                     >
                       {column.render
