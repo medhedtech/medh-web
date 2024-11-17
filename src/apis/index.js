@@ -1,7 +1,5 @@
 export const apiBaseUrl = "https://medh-backend.vercel.app/api/v1";
 // export const apiBaseUrl = "http://localhost:8080/api/v1";
-// export const apiBaseUrl = "https://medh-backend.vercel.app/api/v1";
-
 
 export const apiUrls = {
   user: {
