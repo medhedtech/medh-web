@@ -9,12 +9,11 @@ import ThemeController from "@/components/shared/others/ThemeController";
 
 function CourseDetailedNew({ params }) {
   const { courseId } = params;
-  console.log("course id in the course detailded page new", courseId);
   return (
     <PageWrapper>
       <CourseEducation courseId={courseId} />
-      <AboutProgram />
-      <CaurseFaq />
+      <AboutProgram courseId={courseId} />
+      <CaurseFaq courseId={courseId}/>
       <CourceRalated />
       <CourseCertificate />
       <ThemeController />
