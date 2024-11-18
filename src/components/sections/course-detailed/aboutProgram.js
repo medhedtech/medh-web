@@ -37,7 +37,6 @@ export default function CombinedProgram({ courseId }) {
       console.error("Error in fetching course details:", error);
     }
   };
-  console.log("Course Details fetched for about section:", courseDetails1);
 
   const toggleAccordion = (index) => {
     setOpenAccordions(openAccordions === index ? null : index);
@@ -141,7 +140,7 @@ export default function CombinedProgram({ courseId }) {
                   Duration:
                   {"  "}
                   <u>
-                    (16 {courseDetails1?.course_duration},{" "}
+                    ({courseDetails1?.course_duration},{" "}
                     {courseDetails1?.no_of_Sessions} / sessions of{" "}
                     {courseDetails1?.session_duration} minutes each){" "}
                   </u>
