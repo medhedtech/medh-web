@@ -107,27 +107,55 @@ const UsersTable = () => {
   };
 
   // Filtering the data based on user inputs
+  // const filteredData =
+  //   data?.data?.filter((user) => {
+  //     const matchesName = filterOptions.full_name
+  //       ? (user?.full_name || "")
+  //           .toLowerCase()
+  //           .includes(filterOptions.full_name.toLowerCase())
+  //       : true;
+
+  //     const matchesStatus = filterOptions.status
+  //       ? (user?.status || "")
+  //           .toLowerCase()
+  //           .includes(filterOptions.status.toLowerCase())
+  //       : true;
+
+  //     const matchesSearchQuery =
+  //       (user?.full_name || "")
+  //         .toLowerCase()
+  //         .includes(searchQuery.toLowerCase()) ||
+  //       (user?.email || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+  //       (user?.role || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+  //       (user?.phone_number || "").includes(searchQuery);
+
+  //     return matchesSearchQuery && matchesName && matchesStatus;
+  //   }) || [];
   const filteredData =
     data?.data?.filter((user) => {
       const matchesName = filterOptions.full_name
-        ? (user?.full_name || "")
-            .toLowerCase()
-            .includes(filterOptions.full_name.toLowerCase())
+        ? (typeof user?.full_name === "string"
+            ? user?.full_name.toLowerCase()
+            : ""
+          ).includes(filterOptions.full_name.toLowerCase())
         : true;
 
       const matchesStatus = filterOptions.status
-        ? (user?.status || "")
-            .toLowerCase()
-            .includes(filterOptions.status.toLowerCase())
+        ? (typeof user?.status === "string"
+            ? user?.status.toLowerCase()
+            : ""
+          ).includes(filterOptions.status.toLowerCase())
         : true;
 
       const matchesSearchQuery =
-        (user?.full_name || "")
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase()) ||
-        (user?.email || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (user?.role || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (user?.phone_number || "").includes(searchQuery);
+        (typeof user?.full_name === "string" &&
+          user?.full_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (typeof user?.email === "string" &&
+          user?.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (typeof user?.role === "string" &&
+          user?.role.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (typeof user?.phone_number === "string" &&
+          user?.phone_number.toLowerCase().includes(searchQuery.toLowerCase()));
 
       return matchesSearchQuery && matchesName && matchesStatus;
     }) || [];
