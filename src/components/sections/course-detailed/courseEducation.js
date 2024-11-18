@@ -1,18 +1,22 @@
+"use client";
 import Image from "next/image";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Education from "@/assets/images/course-detailed/education.svg";
 import Emi from "@/assets/images/course-detailed/emi-card.svg";
 import Mode from "@/assets/images/course-detailed/mode.svg";
-import Course from "@/assets/images/course-detailed/course.svg"
+import Course from "@/assets/images/course-detailed/course.svg";
 import Session from "@/assets/images/course-detailed/session.svg";
 import Classes from "@/assets/images/course-detailed/classes.svg";
 import Projects from "@/assets/images/course-detailed/project.svg";
 import Couresegray from "@/assets/images/course-detailed/course-gray.svg";
 import Modegray from "@/assets/images/course-detailed/mode-gray.svg";
 import Sessiongray from "@/assets/images/course-detailed/session-gray.svg";
+import { apiUrls } from "@/apis";
+import useGetQuery from "@/hooks/getQuery.hook";
 
 // JSON data for course details
 const courseDetails = [
+  // { label: "EMI Options", value: courseDetails1?.emiOptions || "Not Available", icon: Emi },
   { label: "EMI Options", value: "Yes", icon: Emi },
   { label: "Certification", value: "Yes" }, // No icon here
   { label: "Mode", value: "Live Online", icon: Mode },
@@ -44,7 +48,34 @@ const courseInfo = [
   },
 ];
 
-function CourseEducation() {
+function CourseEducation({ courseId }) {
+  const { getQuery } = useGetQuery();
+  const [courseDetails1, setCourseDetails1] = useState(null);
+
+  useEffect(() => {
+    if (courseId) {
+      fetchCourseDetails(courseId);
+    }
+  }, [courseId]);
+
+  console.log("course details:", courseDetails1);
+
+  // Fetch course details from the API
+  const fetchCourseDetails = async (id) => {
+    try {
+      await getQuery({
+        url: `${apiUrls?.courses?.getCourseById}/${id}`,
+        onSuccess: (data) => {
+          setCourseDetails1(data);
+        },
+        onFail: (err) => {
+          console.error("Error fetching course details:", err);
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching course details:", error);
+    }
+  };
   return (
     <div className="flex flex-wrap justify-between bg-white dark:bg-[#050622] w-full lg:space-x-8">
       {/* Left Section */}
@@ -108,7 +139,9 @@ function CourseEducation() {
                 WISHLIST
               </button>
             </div>
-            <p className="text-gray-500 dark:text-gray-200">Enrollment validity: Lifetime</p>
+            <p className="text-gray-500 dark:text-gray-200">
+              Enrollment validity: Lifetime
+            </p>
           </div>
 
           {/* Dynamically Render Course Details */}
