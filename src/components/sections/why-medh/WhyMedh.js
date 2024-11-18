@@ -78,7 +78,12 @@ const WhyMedh = () => {
           </p>
 
           {/* More Info Button */}
-          <button className="bg-[#7ECA9D] text-white mt-6 px-4.5 py-2 flex items-center justify-center gap-6">
+          <button
+            onClick={() => {
+              router.push("/about");
+            }}
+            className="bg-[#7ECA9D] text-white mt-6 px-4.5 py-2 flex items-center justify-center gap-6"
+          >
             <span>
               <InfoIcon />
             </span>
