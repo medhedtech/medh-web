@@ -96,4 +96,11 @@ export const apiUrls = {
   },
   resources: {},
   assignments: {},
+  categories: {
+    getAllCategories: "/categories/getAll",
+    getCategoriesById: "/categories/get/:id",
+    createCategories: "/categories/create",
+    updateCategories: "/categories/update/:id",
+    deleteCategories: "/categories/delete",
+  },
 };
