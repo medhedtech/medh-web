@@ -35,7 +35,6 @@ export default function CaurseFaq({ courseId }) {
       console.error("Error in fetching course details:", error);
     }
   };
-  console.log("Course Details fetched for faq section:", courseDetails1);
 
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);

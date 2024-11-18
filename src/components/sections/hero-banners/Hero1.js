@@ -14,18 +14,19 @@ const Hero1 = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Banner Left */}
           <div data-aos="fade-up">
-            <HreoName >
-            <div className="flex " >
-              <span className="font-black text-[#7ECA9D]">|</span>
-              <p className="dark:text-white px-1">UNLOCK YOUR POTENTIAL WITH MEDH</p>
+            <HreoName>
+              <div className="flex ">
+                <span className="font-black text-[#7ECA9D]">|</span>
+                <p className="dark:text-white px-1">
+                  UNLOCK YOUR POTENTIAL WITH MEDH
+                </p>
               </div>
             </HreoName>
             <HeadingLg
               color={"#7ECA9D"}
               className="text-2xl sm:text-4xl lg:text-[40px] font-bold leading-tight"
             >
-             Skill Development Courses led by 
-              Seasoned Experts
+              Skill Development Courses led by Seasoned Experts
             </HeadingLg>
             <div className="flex  md:flex-row mt-6 mb-9 sm:gap-8">
               <div className="flex-shrink-0">
@@ -42,17 +43,21 @@ const Hero1 = () => {
                   Empowering people across all life stages from childhood and
                   teens to professionals and homemakers.
                 </p>
-                
+
                 {/* CTA Button */}
                 <div className="flex  sm:flex-row gap-4 sm:mt-6 mt-2">
-                  <Link href="/courses"
+                  <a
+                    href="#courses-section"
                     className="bg-[#7ECA9D] text-white border border-[#7ECA9D] w-fit font-bold sm:text-base text-[12px] sm:px-4 px-2 sm:py-2 py-1 inline-block"
                   >
                     Let&#39;s Connect
-                  </Link>
-                  <span className="mt-[6px] sm:text-base text-[12px] font-semibold underline underline-offset-8">
+                  </a>
+                  <a
+                    href="#certified-section"
+                    className="mt-[6px] sm:text-base text-[12px] font-semibold underline underline-offset-8"
+                  >
                     ISO CERTIFIED
-                  </span>
+                  </a>
                 </div>
               </div>
             </div>
