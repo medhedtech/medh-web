@@ -1,5 +1,5 @@
-export const apiBaseUrl = "https://medh-backend.vercel.app/api/v1";
-// export const apiBaseUrl = "http://localhost:8080/api/v1";
+// export const apiBaseUrl = "https://medh-backend.vercel.app/api/v1";
+export const apiBaseUrl = "http://localhost:8080/api/v1";
 
 export const apiUrls = {
   user: {
@@ -18,9 +18,10 @@ export const apiUrls = {
       course_title,
       course_tag,
       course_category,
-      status
+      status,
+      search
     ) =>
-      `/courses/getLimitedCourses?page=${page}&limit=${limit}&course_title=${course_title}&course_tag=${course_tag}&course_category=${course_category}&status=${status}`,
+      `/courses/getLimitedCourses?page=${page}&limit=${limit}&course_title=${course_title}&course_tag=${course_tag}&course_category=${course_category}&status=${status}&search=${search}`,
     getAllCourses: "/courses/get",
     getCourseById: "/courses/get",
     createCourse: "/courses/create",
