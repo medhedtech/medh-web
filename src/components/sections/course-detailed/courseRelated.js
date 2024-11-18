@@ -1,28 +1,59 @@
-import React from "react";
+"use client"
+import React, { useEffect, useState } from "react";
 import CardImg1 from "./../../../assets/images/course-detailed/card.svg";
 import CourseCard from "../courses/CourseCard";
+import { apiUrls } from "@/apis";
+import useGetQuery from "@/hooks/getQuery.hook";
 
 function CourceRalated() {
-  const courses = [
-    {
-      title: "Professional Edge Diploma in",
-      label: "Digital Marketing with Data Analytics",
-      duration: "18 Months Course",
-      image: CardImg1,
-    },
-    {
-      title: "Professional Edge Diploma in",
-      label: "AI & Data Science",
-      duration: "18 Months Course",
-      image: CardImg1,
-    },
-    {
-      title: "Executive Diploma in",
-      label: "AI & Data Science",
-      duration: "12 Months Course",
-      image: CardImg1,
-    },
-  ];
+  // const courses = [
+  //   {
+  //     title: "Professional Edge Diploma in",
+  //     label: "Digital Marketing with Data Analytics",
+  //     duration: "18 Months Course",
+  //     image: CardImg1,
+  //   },
+  //   {
+  //     title: "Professional Edge Diploma in",
+  //     label: "AI & Data Science",
+  //     duration: "18 Months Course",
+  //     image: CardImg1,
+  //   },
+  //   {
+  //     title: "Executive Diploma in",
+  //     label: "AI & Data Science",
+  //     duration: "12 Months Course",
+  //     image: CardImg1,
+  //   },
+  // ];
+
+  const [courses, setCourses] = useState([]);
+  const { getQuery } = useGetQuery();
+  const [limit] = useState(4);
+  const [page] = useState(1);
+
+  useEffect(() => {
+    const fetchCourses = () => {
+      getQuery({
+        url: apiUrls?.courses?.getAllCoursesWithLimits(
+          page,
+          limit,
+          "",
+          "",
+          "",
+          ""
+        ),
+        onSuccess: (res) => {
+          console.log("Response is:", res);
+          setCourses(res?.courses || []);
+        },
+        onFail: (err) => {
+          console.error("Error fetching courses:", err);
+        },
+      });
+    };
+    fetchCourses();
+  }, [page, limit]);
 
   return (
     <div className="w-full bg-white dark:bg-[#050622] h-auto pb-10 md:px-4">
