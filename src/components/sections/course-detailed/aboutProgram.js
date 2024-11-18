@@ -1,13 +1,43 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Pdf from "@/assets/images/course-detailed/pdf-icon.svg";
 import Download from "@/assets/images/course-detailed/download.svg";
+import useGetQuery from "@/hooks/getQuery.hook";
+import { apiUrls } from "@/apis";
+import Preloader from "@/components/shared/others/Preloader";
 
-export default function CombinedProgram() {
+export default function CombinedProgram({ courseId }) {
   const [activeTab, setActiveTab] = useState("ProgramInfo");
   const [openAccordions, setOpenAccordions] = useState(null);
   const [activeSubTab, setActiveSubTab] = useState("Foundation");
+  const { getQuery, loading } = useGetQuery();
+  const [courseDetails1, setCourseDetails1] = useState(null);
+
+  useEffect(() => {
+    if (courseId) {
+      fetchCourseDetails(courseId);
+    } else {
+      notFound();
+    }
+  }, []);
+
+  const fetchCourseDetails = async (id) => {
+    try {
+      await getQuery({
+        url: `${apiUrls?.courses?.getCourseById}/${id}`,
+        onSuccess: (data) => {
+          setCourseDetails1(data);
+        },
+        onFail: (err) => {
+          console.error("Error fetching course details:", err);
+        },
+      });
+    } catch (error) {
+      console.error("Error in fetching course details:", error);
+    }
+  };
+  console.log("Course Details fetched for about section:", courseDetails1);
 
   const toggleAccordion = (index) => {
     setOpenAccordions(openAccordions === index ? null : index);
@@ -15,9 +45,8 @@ export default function CombinedProgram() {
 
   const curriculum = [
     {
-      question: "Weeks 1-4: Introduction to Digital Marketing & Data Analytics",
-      answer:
-        "This module provides an introduction to digital marketing concepts, including online customer behavior, market research, and an overview of data analytics tools.",
+      question: `Weeks 1-4: Introduction to ${courseDetails1?.course_title}`,
+      answer: `This module provides an introduction to ${courseDetails1?.course_title} marketing concepts, including online customer behavior, market research, and an overview of data analytics tools.`,
     },
     {
       question: "Weeks 5-8: Website Analytics and SEO",
@@ -51,6 +80,9 @@ export default function CombinedProgram() {
     },
   ];
 
+  if (loading) {
+    return <Preloader />;
+  }
   return (
     <div className="bg-white dark:bg-[#050622] text-lightGrey14  md:py-10 py-5  px-4 md:px-4">
       <div className="lg:w-[62%] w-full lg:ml-[7%]  ">
@@ -58,9 +90,8 @@ export default function CombinedProgram() {
 
         {/* Tab Buttons */}
         <div className="border-b-2 mt-6 mb-5 pt-4 ">
-        
           <button
-            onClick={() => setActiveTab("ProgramInfo")} // Set active tab
+            onClick={() => setActiveTab("ProgramInfo")}
             className={`font-semibold ${
               activeTab === "ProgramInfo"
                 ? "text-primaryColor border-b-2 border-primaryColor"
@@ -70,7 +101,7 @@ export default function CombinedProgram() {
             Program Info
           </button>
           <button
-            onClick={() => setActiveTab("Reviews")} // Set active tab
+            onClick={() => setActiveTab("Reviews")}
             className={`ml-6 font-semibold ${
               activeTab === "Reviews"
                 ? "text-primaryColor border-b-2 border-primaryColor"
@@ -107,12 +138,12 @@ export default function CombinedProgram() {
               <div className="text-primaryColor font-medium pb-2 dark:text-gray-200">
                 <u>Curriculum</u>
                 <p>
-                  
                   Duration:
                   {"  "}
                   <u>
-                    4 Months Course (16 weeks/ 32 sessions of 90-120 minutes
-                    each){" "}
+                    (16 {courseDetails1?.course_duration},{" "}
+                    {courseDetails1?.no_of_Sessions} / sessions of{" "}
+                    {courseDetails1?.session_duration} minutes each){" "}
                   </u>
                 </p>
                 <strong>Chapters & Topics</strong>
@@ -120,7 +151,10 @@ export default function CombinedProgram() {
 
               {/* Accordion Items */}
               {curriculum.map((item, index) => (
-                <div key={index} className="border dark:border-gray-600 mb-1 text-[#41454F] dark:text-gray-300">
+                <div
+                  key={index}
+                  className="border dark:border-gray-600 mb-1 text-[#41454F] dark:text-gray-300"
+                >
                   <button
                     className="w-full p-3 flex items-center"
                     onClick={() => toggleAccordion(index)}
