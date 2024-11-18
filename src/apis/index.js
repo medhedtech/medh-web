@@ -19,9 +19,10 @@ export const apiUrls = {
       course_tag,
       course_category,
       status,
-      search
+      search,
+      isFree
     ) =>
-      `/courses/getLimitedCourses?page=${page}&limit=${limit}&course_title=${course_title}&course_tag=${course_tag}&course_category=${course_category}&status=${status}&search=${search}`,
+      `/courses/getLimitedCourses?page=${page}&limit=${limit}&course_title=${course_title}&course_tag=${course_tag}&course_category=${course_category}&status=${status}&search=${search}&isFree=${isFree}`,
     getAllCourses: "/courses/get",
     getCourseById: "/courses/get",
     createCourse: "/courses/create",
@@ -85,15 +86,14 @@ export const apiUrls = {
     addPlacements: "/placements/",
   },
   quzies: {
-    getQuizes: "",
+    getQuizes: "/quizes",
   },
   assignments: {
-    getAssignments: "",
+    getAssignments: "/assignments",
   },
   feedbacks: {
     createFeedback: "/feedback/",
     createComplaint: "/complaint/",
   },
   resources: {},
-  assignments: {},
 };
