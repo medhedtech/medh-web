@@ -34,7 +34,7 @@ const About1 = () => {
       });
     };
     fetchCourses();
-  }, [page, limit]);
+  }, [page, limit, getQuery]);
 
   return (
     <section className="dark:bg-screen-dark">
@@ -52,7 +52,7 @@ const About1 = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {courses?.slice(0, 4)?.map((course) => (
             // <Link href={`/courses/${course?._id}`} key={course?._id}>
-            <Link href={"/courses"}>
+            <Link href={"/courses"} key={course?._id}>
               <div className="bg-white border dark:border-whitegrey shadow-2xl flex flex-col overflow-hidden hover:scale-105 transition-transform duration-300 h-full">
                 <div className="relative w-full h-48">
                   <Image
