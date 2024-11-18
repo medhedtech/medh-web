@@ -244,9 +244,10 @@ const CoursesFilter = () => {
         currentPage,
         6,
         categoryQuery,
-        searchTerm,
         "",
-        ""
+        "",
+        "",
+        searchTerm
       ),
       onSuccess: (data) => {
         setAllCourses(data?.courses || []);
