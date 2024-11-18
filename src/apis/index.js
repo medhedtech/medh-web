@@ -18,9 +18,10 @@ export const apiUrls = {
       course_title,
       course_tag,
       course_category,
-      status
+      status,
+      search
     ) =>
-      `/courses/getLimitedCourses?page=${page}&limit=${limit}&course_title=${course_title}&course_tag=${course_tag}&course_category=${course_category}&status=${status}`,
+      `/courses/getLimitedCourses?page=${page}&limit=${limit}&course_title=${course_title}&course_tag=${course_tag}&course_category=${course_category}&status=${status}&search=${search}`,
     getAllCourses: "/courses/get",
     getCourseById: "/courses/get",
     createCourse: "/courses/create",

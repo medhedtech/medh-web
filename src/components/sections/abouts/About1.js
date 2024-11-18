@@ -22,6 +22,7 @@ const About1 = () => {
           "",
           "",
           "",
+          "",
           ""
         ),
         onSuccess: (res) => {
