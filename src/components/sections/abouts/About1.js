@@ -34,7 +34,7 @@ const About1 = () => {
       });
     };
     fetchCourses();
-  }, [page, limit, getQuery]);
+  }, [page, limit]);
 
   return (
     <section className="dark:bg-screen-dark">
