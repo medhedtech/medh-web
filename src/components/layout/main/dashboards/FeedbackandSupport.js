@@ -1,85 +1,153 @@
 "use client";
-import React, { useState } from "react";
+
+import React from "react";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+import usePostQuery from "@/hooks/postQuery.hook";
+import { apiUrls } from "@/apis";
+import { toast } from "react-toastify";
+
+const feedbackSchema = yup.object().shape({
+  feedbackType: yup.string().required("Feedback type is required"),
+  feedbackText: yup
+    .string()
+    .min(10, "Feedback must be at least 10 characters")
+    .required("Feedback is required"),
+});
+
+const complaintSchema = yup.object().shape({
+  complaintName: yup.string().required("Name is required"),
+  complaintText: yup
+    .string()
+    .min(10, "Complaint must be at least 10 characters")
+    .required("Complaint text is required"),
+});
 
 const FeedbackandSupport = () => {
-  const [feedbackType, setFeedbackType] = useState("course");
-  const [feedbackText, setFeedbackText] = useState("");
-  const [complaintName, setComplaintName] = useState("John");
-  const [complaintText, setComplaintText] = useState("");
+  const {postQuery,loading} = usePostQuery()
+  const {
+    register: registerFeedback,
+    handleSubmit: handleFeedbackSubmit,
+    reset: resetFeedback,
+    formState: { errors: feedbackErrors },
+  } = useForm({
+    resolver: yupResolver(feedbackSchema),
+    defaultValues: {
+      feedbackType: "course",
+      feedbackText: "",
+    },
+  });
 
-  const handleFeedbackSubmit = (e) => {
-    e.preventDefault();
-    // Handle feedback submission here
-    console.log("Feedback submitted:", feedbackText);
+  const {
+    register: registerComplaint,
+    handleSubmit: handleComplaintSubmit,
+    reset: resetComplaint,
+    formState: { errors: complaintErrors },
+  } = useForm({
+    resolver: yupResolver(complaintSchema),
+    defaultValues: {
+      complaintName: "",
+      complaintText: "",
+    },
+  });
+
+  const onFeedbackSubmit = (data) => {
+    postQuery({
+      url:apiUrls?.feedbacks?.createFeedback,
+      postData:{
+        feedback_text:data?.feedbackText,
+        feedback_for:data?.feedbackType
+      },
+      onSuccess:()  => {
+        toast.success("Feedback submitted successfully")
+        resetFeedback();
+      },
+      onFail:(error) => {
+       console.log(error,"SETERROR")
+      }   
+    })
   };
 
-  const handleComplaintSubmit = (e) => {
-    e.preventDefault();
-    // Handle complaint submission here
-    console.log("Complaint submitted:", complaintText);
+
+  const onComplaintSubmit = (data) => {
+    postQuery({
+      url:apiUrls?.feedbacks?.createComplaint,
+      postData:{
+        name:data?.complaintName,
+        description:data?.complaintText
+      },
+      onSuccess:()  => {
+        toast.success("Complaint submitted successfully")
+        resetComplaint();
+
+      },
+      onFail:(error) => {
+       console.log(error,"SETERROR")
+      }   
+    })
   };
 
   return (
     <div className="p-6 w-full mx-auto">
       <div className="mb-8">
-        <h1 className="text-size-32 dark:text-white ">Feedback</h1>
+        <h1 className="text-size-32 dark:text-white">Feedback</h1>
 
-        <form onSubmit={handleFeedbackSubmit}>
-          {/* Feedback Type Selector */}
-          <div className="flex items-center  space-x-4 mb-4">
+        <form onSubmit={handleFeedbackSubmit(onFeedbackSubmit)}>
+          <div className="flex items-center space-x-4 mb-4">
             <p className="mb-4 text-size-22 dark:text-white">
               Write Review about Course/Instructor
             </p>
             <div className="flex gap-3 mb-2.5">
               <label
                 className={`flex items-center text-lg ${
-                  feedbackType === "course"
-                    ? "text-primaryColor"
-                    : "text-[#B4BDC4]"
+                  feedbackErrors.feedbackType ? "text-red-500" : "text-[#B4BDC4]"
                 }`}
               >
                 <input
                   type="radio"
                   value="course"
-                  checked={feedbackType === "course"}
-                  onChange={() => setFeedbackType("course")}
+                  {...registerFeedback("feedbackType")}
                   className="mr-2"
                 />
                 Course
               </label>
               <label
                 className={`flex items-center text-lg ${
-                  feedbackType === "instructor"
-                    ? "text-primaryColor"
-                    : "text-[#B4BDC4]"
+                  feedbackErrors.feedbackType ? "text-red-500" : "text-[#B4BDC4]"
                 }`}
               >
                 <input
                   type="radio"
                   value="instructor"
-                  checked={feedbackType === "instructor"}
-                  onChange={() => setFeedbackType("instructor")}
+                  {...registerFeedback("feedbackType")}
                   className="mr-2"
                 />
                 Instructor
               </label>
             </div>
+            {feedbackErrors.feedbackType && (
+              <p className="text-red-500 text-sm">
+                {feedbackErrors.feedbackType.message}
+              </p>
+            )}
           </div>
 
-          {/* Feedback Text Area */}
-          <div className="relative w-full mb-4 ">
+          <div className="relative w-full mb-4">
             <textarea
               placeholder="Type Review................"
               rows="4"
-              value={feedbackText}
-              onChange={(e) => setFeedbackText(e.target.value)}
+              {...registerFeedback("feedbackText")}
               className="w-full p-3 border rounded-lg focus:outline-none focus:ring-1 dark:bg-inherit focus:ring-[#B4BDC4]"
             />
-
-            {/* Feedback Submit Button positioned inside the textarea */}
+            {feedbackErrors.feedbackText && (
+              <p className="text-red-500 text-sm">
+                {feedbackErrors.feedbackText.message}
+              </p>
+            )}
             <button
               type="submit"
-              className="absolute bottom-4 right-4 px-6 py-2 bg-primaryColor text-white rounded-full hover:bg-green-600"
+              className="absolute top-44 right-4 px-6 py-2 bg-primaryColor text-white rounded-full hover:bg-green-600"
             >
               Submit
             </button>
@@ -87,12 +155,13 @@ const FeedbackandSupport = () => {
         </form>
       </div>
 
+      {/* Complaints Section */}
       <div>
         <h1 className="text-size-32 dark:text-white mb-2">
           Complaints & Grievances
         </h1>
 
-        <form onSubmit={handleComplaintSubmit}>
+        <form onSubmit={handleComplaintSubmit(onComplaintSubmit)}>
           {/* Name Input */}
           <div className="mb-4">
             <label className="block text-gray-700 mb-2 dark:text-white">
@@ -100,24 +169,32 @@ const FeedbackandSupport = () => {
             </label>
             <input
               type="text"
-              value={complaintName}
-              onChange={(e) => setComplaintName(e.target.value)}
+              {...registerComplaint("complaintName")}
               className="w-full p-3 border dark:bg-inherit dark:text-white rounded-lg text-[#434343BF] focus:outline-none focus:ring-1 focus:ring-green-300"
             />
+            {complaintErrors.complaintName && (
+              <p className="text-red-500 text-sm">
+                {complaintErrors.complaintName.message}
+              </p>
+            )}
           </div>
 
           {/* Complaint Text Area */}
           <div className="mb-11">
-            <label className="block dark:text-white text-gray-700 mb-2 dark:bg-inherit">
+            <label className="block dark:text-white text-gray-700 mb-2">
               Write Complaint
             </label>
             <textarea
               placeholder="Write....."
               rows="4"
-              value={complaintText}
-              onChange={(e) => setComplaintText(e.target.value)}
+              {...registerComplaint("complaintText")}
               className="w-1/2 p-3 border rounded-lg dark:bg-inherit dark:text-white text-[#434343BF] focus:outline-none focus:ring-1 focus:ring-green-300"
             />
+            {complaintErrors.complaintText && (
+              <p className="text-red-500 text-sm">
+                {complaintErrors.complaintText.message}
+              </p>
+            )}
           </div>
 
           {/* Complaint Submit Button */}
