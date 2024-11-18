@@ -41,7 +41,8 @@ const CourseCard = ({ course }) => {
           Download Brochure
         </button>
         <button
-          onClick={() => router.push(`/courses/${course._id}`)}
+          // onClick={() => router.push(`/courses/${course._id}`)}
+          onClick={() => router.push("/courses")}
           className="bg-[#F6B335] text-sm text-white px-4 w-1/2 leading-none py-3.5"
         >
           Program Details

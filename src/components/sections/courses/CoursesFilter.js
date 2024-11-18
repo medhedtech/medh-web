@@ -245,6 +245,7 @@ const CoursesFilter = () => {
         6,
         categoryQuery,
         searchTerm,
+        "",
         ""
       ),
       onSuccess: (data) => {
