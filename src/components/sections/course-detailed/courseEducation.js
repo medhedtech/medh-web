@@ -44,8 +44,6 @@ function CourseEducation({ courseId }) {
     }
   };
 
-  console.log("Course Details fetched:", courseDetails1);
-
   // JSON data for course details
   const courseDetails = [
     { label: "EMI Options", value: "Yes", icon: Emi },
@@ -138,7 +136,7 @@ function CourseEducation({ courseId }) {
             <div className="flex justify-between items-center">
               <div className="mb-2">
                 <p className="text-[1rem] font-normal font-Popins leading-6 text-[#41454F] dark:text-gray-200">
-                  {4 + " " + courseDetails1?.course_duration ||
+                  {courseDetails1?.course_duration ||
                     "4 Months Course"}
                 </p>
                 <h3 className="text-2xl font-bold text-[#5C6574] dark:text-gray-50">

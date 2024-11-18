@@ -1,4 +1,3 @@
-"use client";
 import CourseDetailsSidebar from "@/components/shared/courses/CourseDetailsSidebar";
 import Image from "next/image";
 import blogImag8 from "@/assets/images/blog/blog_8.png";
@@ -8,54 +7,13 @@ import CommentFome from "@/components/shared/forms/CommentFome";
 import CourseDetailsTab from "@/components/shared/course-details/CourseDetailsTab";
 import InstrutorOtherCourses from "@/components/shared/course-details/InstrutorOtherCourses";
 import getAllCourses from "@/libs/getAllCourses";
-import { apiUrls } from "@/apis";
-import { useEffect, useState } from "react";
-import useGetQuery from "@/hooks/getQuery.hook";
 let cid = 0;
-
-function formatDate(dateString) {
-  if (!dateString) return "";
-  const date = new Date(dateString);
-  return date.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
 const CourseDetailsPrimary = ({ id: currentId, type }) => {
   const allCourses = getAllCourses();
-  const { getQuery } = useGetQuery();
   const course = allCourses?.find(({ id }) => parseInt(currentId) === id);
   const { title, price, lesson, insName, categories, id } = course || {};
-  const [courseDetails, setCourseDetails] = useState("");
   cid = id;
   cid = cid % 6 ? cid % 6 : 6;
-
-  useEffect(() => {
-    fetchCourseDetails(currentId);
-  }, [currentId]);
-
-  console.log("course details:", courseDetails);
-
-  const fetchCourseDetails = async (id) => {
-    try {
-      await getQuery({
-        url: `${apiUrls?.courses?.getCourseById}/${id}`,
-        onSuccess: (data) => {
-          setCourseDetails(data);
-        },
-        onFail: (err) => {
-          toast.error(
-            `Failed to fetch instructor details: ${
-              err instanceof Error ? err.message : err
-            }`
-          );
-        },
-      });
-    } catch (error) {
-      console.error("Error fetching instructor details:", error);
-    }
-  };
 
   return (
     <section>
@@ -92,17 +50,14 @@ const CourseDetailsPrimary = ({ id: currentId, type }) => {
                           Featured
                         </button>
                         <button className="text-sm text-whiteColor bg-indigo border border-indigo px-22px py-0.5 leading-23px font-semibold hover:text-indigo hover:bg-whiteColor rounded inline-block dark:hover:bg-whiteColor-dark dark:hover:text-indigo">
-                          {/* {categories} */}
-                          {courseDetails?.course_category}
+                          {categories}
                         </button>
                       </div>
                       <div>
                         <p className="text-sm text-contentColor dark:text-contentColor-dark font-medium">
                           Last Update:{" "}
                           <span className="text-blackColor dark:text-blackColor-dark">
-                            {/* Sep 29, 2024 */}
-                            {formatDate(courseDetails?.updatedAt) ||
-                              "Sep 29, 2024"}
+                            Sep 29, 2024
                           </span>
                         </p>
                       </div>
@@ -113,8 +68,7 @@ const CourseDetailsPrimary = ({ id: currentId, type }) => {
                       className="text-size-32 md:text-4xl font-bold text-blackColor dark:text-blackColor-dark mb-15px leading-43px md:leading-14.5"
                       data-aos="fade-up"
                     >
-                      {courseDetails?.course_title ||
-                        "Making Music with Other People"}
+                      {title || "Making Music with Other People"}
                     </h4>
                     {/* price and rating  */}
                     <div
@@ -133,7 +87,7 @@ const CourseDetailsPrimary = ({ id: currentId, type }) => {
                         </div>
                         <div>
                           <span className=" text-black dark:text-blackColor-dark">
-                            {courseDetails?.no_of_Sessions || "23 Lesson"}
+                            {lesson || "23 Lesson"}
                           </span>
                         </div>
                       </div>
@@ -152,8 +106,14 @@ const CourseDetailsPrimary = ({ id: currentId, type }) => {
                       className="text-sm md:text-lg text-contentColor dark:contentColor-dark mb-25px !leading-30px"
                       data-aos="fade-up"
                     >
-                      {courseDetails?.course_description ||
-                        " Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur vulputate vestibulum rhoncus, dolor eget viverra pretium, dolor tellus aliquet nunc, vitae ultricies erat elit eu lacus. Vestibulum non justo consectetur, cursus ante, tincidunt sapien. Nulla quis diam sit amet turpis interd enim. Vivamus faucibus ex sed nibh egestas elementum. Mauris et bibendum dui. Aenean consequat pulvinar luctus. Suspendisse consectetur tristique"}
+                      Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                      Curabitur vulputate vestibulum rhoncus, dolor eget viverra
+                      pretium, dolor tellus aliquet nunc, vitae ultricies erat
+                      elit eu lacus. Vestibulum non justo consectetur, cursus
+                      ante, tincidunt sapien. Nulla quis diam sit amet turpis
+                      interd enim. Vivamus faucibus ex sed nibh egestas
+                      elementum. Mauris et bibendum dui. Aenean consequat
+                      pulvinar luctus. Suspendisse consectetur tristique
                     </p>
                     {/* details  */}
                     <div>
@@ -181,8 +141,7 @@ const CourseDetailsPrimary = ({ id: currentId, type }) => {
                             <p className="text-contentColor2 dark:text-contentColor2-dark flex justify-between items-center">
                               Lectures :
                               <span className="text-base lg:text-sm 2xl:text-base text-blackColor dark:text-deepgreen-dark font-medium text-opacity-100">
-                                {/* 120 sub */}
-                                {courseDetails?.no_of_Sessions || "120"} sub
+                                120 sub
                               </span>
                             </p>
                           </li>
@@ -190,9 +149,7 @@ const CourseDetailsPrimary = ({ id: currentId, type }) => {
                             <p className="text-contentColor2 dark:text-contentColor2-dark flex justify-between items-center">
                               Duration :
                               <span className="text-base lg:text-sm 2xl:text-base text-blackColor dark:text-deepgreen-dark font-medium text-opacity-100">
-                                {/* {"20h 41m 32s"} */}
-                                {courseDetails?.session_duration ||
-                                  "20h 41m 32s"}
+                                {"20h 41m 32s"}
                               </span>
                             </p>
                           </li>
@@ -250,8 +207,7 @@ const CourseDetailsPrimary = ({ id: currentId, type }) => {
                             <p className="text-contentColor2 dark:text-contentColor2-dark flex justify-between items-center">
                               Course Status :
                               <span className="text-base lg:text-sm 2xl:text-base text-blackColor dark:text-deepgreen-dark font-medium text-opacity-100">
-                                {/* Available */}
-                                {courseDetails?.status || "Available"}
+                                Available
                               </span>
                             </p>
                           </li>
