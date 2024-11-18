@@ -1,0 +1,239 @@
+"use client";
+import React, { useState, useEffect } from "react";
+import { FaPlus, FaChevronDown } from "react-icons/fa";
+import { apiUrls } from "@/apis";
+import useGetQuery from "@/hooks/getQuery.hook";
+import MyTable from "@/components/shared/common-table/page";
+import useDeleteQuery from "@/hooks/deleteQuery.hook";
+import { toast } from "react-toastify";
+import usePostQuery from "@/hooks/postQuery.hook";
+import AddCategories from "./AddCategories";
+
+const CategoriesManage = () => {
+  const { deleteQuery } = useDeleteQuery();
+  const [instructors, setInstructors] = useState([]);
+  const [sortOrder, setSortOrder] = useState("newest");
+  const [searchQuery, setSearchQuery] = useState("");
+  const { postQuery } = usePostQuery();
+  const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
+  const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
+  const [showInstructorForm, setShowInstructorForm] = useState(false);
+  const [filterOptions, setFilterOptions] = useState({
+    full_name: "",
+    course_name: "",
+  });
+
+  const { getQuery } = useGetQuery();
+  const [deletedInsturctors, setDeletedInsturctors] = useState(null);
+  const [updateStatus, setUpdateStatus] = useState(null);
+
+  // Fetch instructors Data from API
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        await getQuery({
+          url: apiUrls?.Instructor?.getAllInstructors,
+          onSuccess: (data) => setInstructors(data),
+          onFail: () => setInstructors([]),
+        });
+      } catch (error) {
+        console.error("Failed to fetch instructors:", error);
+      }
+    };
+    fetchStudents();
+  }, [deletedInsturctors, updateStatus]);
+
+  // Delete User
+  const deleteStudent = (id) => {
+    deleteQuery({
+      url: `${apiUrls?.Instructor?.deleteInstructor}/${id}`,
+      onSuccess: (res) => {
+        toast.success(res?.message);
+        setDeletedInsturctors(id);
+      },
+      onFail: (res) => console.log(res, "FAILED"),
+    });
+  };
+
+  // Table Columns Configuration
+  const columns = [
+    { Header: "No.", accessor: "no" },
+    { Header: "Category Name", accessor: "full_name" },
+    { Header: "Date", accessor: "createdAt" },
+    {
+      Header: "Action",
+      accessor: "actions",
+      render: (row) => (
+        <div className="flex gap-2 items-center">
+          <button
+            onClick={() => deleteStudent(row?._id)}
+            className="text-white bg-red-600 border border-red-600 rounded-md px-[10px] py-1"
+          >
+            Delete
+          </button>
+        </div>
+      ),
+    },
+  ];
+
+  const handleSortChange = (order) => {
+    setSortOrder(order);
+    setIsSortDropdownOpen(false);
+  };
+
+  const handleFilterDropdownToggle = () => {
+    setIsFilterDropdownOpen(!isFilterDropdownOpen);
+  };
+
+  const handleFilterSelect = (filterType, value) => {
+    setFilterOptions((prev) => ({ ...prev, [filterType]: value }));
+    setIsFilterDropdownOpen(false);
+  };
+
+  // Filtering the data based on user inputs
+  const filteredData =
+    instructors?.filter((instructors) => {
+      const matchesName = filterOptions.full_name
+        ? (instructors.full_name || "")
+            .toLowerCase()
+            .includes(filterOptions.full_name.toLowerCase())
+        : true;
+
+      const matchesStatus = filterOptions.status
+        ? (instructors.status || "")
+            .toLowerCase()
+            .includes(filterOptions.status.toLowerCase())
+        : true;
+
+      const matchesSearchQuery =
+        instructors.full_name
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        instructors.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        instructors.phone_number.includes(searchQuery);
+
+      return matchesSearchQuery && matchesName && matchesStatus;
+    }) || [];
+
+  const sortedData = [...filteredData].sort((a, b) => {
+    if (sortOrder === "newest") {
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    } else if (sortOrder === "oldest") {
+      return new Date(a.createdAt) - new Date(b.createdAt);
+    }
+    return 0;
+  });
+
+  const formattedData =
+    sortedData.map((user, index) => ({
+      ...user,
+      no: index + 1,
+      createdAt: new Date(user.createdAt).toLocaleDateString("en-GB"),
+    })) || [];
+
+  // Add Student Form Toggle
+  if (showInstructorForm)
+    return <AddCategories onCancel={() => setShowInstructorForm(false)} />;
+
+  return (
+    <div className="bg-gray-100 dark:bg-darkblack font-Poppins min-h-screen pt-8 p-6">
+      <div className="max-w-6xl mx-auto dark:bg-inherit dark:text-whitegrey3 dark:border bg-white rounded-lg shadow-lg p-6">
+        <header className="flex items-center justify-between mb-4">
+          <h1 className="text-2xl font-bold">Categories List</h1>
+          <div className="flex items-center space-x-2">
+            <div className="relative flex-grow flex justify-center">
+              <input
+                type="text"
+                placeholder="Search here"
+                className="border dark:bg-inherit dark:text-whitegrey3 dark:border border-gray-300 rounded-full p-2 pl-4 w-full max-w-md"
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <div className="relative">
+              <button
+                onClick={handleFilterDropdownToggle}
+                className="border-2 px-4 py-1 rounded-lg flex items-center"
+              >
+                Filters
+                <svg
+                  className="w-4 h-4 ml-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M19 9l-7 7-7-7"
+                  ></path>
+                </svg>
+              </button>
+              {isFilterDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg">
+                  <button
+                    onClick={() => handleFilterSelect("status", "Active")}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Active
+                  </button>
+                  <button
+                    onClick={() => handleFilterSelect("status", "Inactive")}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Inactive
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Sort Button with Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md dark:bg-inherit dark:text-whitegrey3 dark:border hover:bg-gray-300 flex items-center space-x-1"
+              >
+                <span>
+                  {sortOrder === "newest" ? "New to Oldest" : "Oldest to New"}
+                </span>
+                <FaChevronDown />
+              </button>
+              {isSortDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                  <a
+                    href="#"
+                    onClick={() => handleSortChange("oldest")}
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Oldest to New
+                  </a>
+                  <a
+                    href="#"
+                    onClick={() => handleSortChange("newest")}
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Newest to Old
+                  </a>
+                </div>
+              )}
+            </div>
+
+            {/* Add Student Button */}
+            <button
+              onClick={() => setShowInstructorForm(true)}
+              className="bg-customGreen text-white px-4 py-2 rounded-lg flex items-center"
+            >
+              <FaPlus className="mr-2" />
+              Add Categories
+            </button>
+          </div>
+        </header>
+        {/* Student Table */}
+        <MyTable columns={columns} data={formattedData} />
+      </div>
+    </div>
+  );
+};
+
+export default CategoriesManage;
