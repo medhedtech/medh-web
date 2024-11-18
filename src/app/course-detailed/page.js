@@ -1,14 +1,12 @@
-"use client"
+"use client";
 import React from "react";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import ThemeController from "@/components/shared/others/ThemeController";
-import CourseDetailedNew from "./[id]/page";
-import { useRouter } from "next/navigation";
+import CourseDetailedNew from "./[courseId]/page";
 
-function CourseDetailed() {
-  const router = useRouter();
-  const { courseId } = router.query;
-  console.log("course id in the course detailded page", courseId);
+function CourseDetailed({ params }) {
+  const { courseId } = params;
+  console.log("course id in course detailed", courseId);
   return (
     <PageWrapper>
       <CourseDetailedNew courseId={courseId} />
