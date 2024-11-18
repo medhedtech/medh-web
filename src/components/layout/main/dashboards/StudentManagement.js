@@ -152,27 +152,45 @@ const UsersTableStudent = () => {
   };
 
   // Filtering the data based on user inputs
+  // const filteredData =
+  //   students?.filter((students) => {
+  //     const matchesName = filterOptions.full_name
+  //       ? (students.full_name || "")
+  //           .toLowerCase()
+  //           .includes(filterOptions.full_name.toLowerCase())
+  //       : true;
+
+  //     const matchesStatus = filterOptions.status
+  //       ? (students.status || "")
+  //           .toLowerCase()
+  //           .includes(filterOptions.status.toLowerCase())
+  //       : true;
+
+  //     const matchesSearchQuery =
+  //       students.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  //       students.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  //       students.phone_number.includes(searchQuery);
+
+  //     return matchesSearchQuery && matchesName && matchesStatus;
+  //   }) || [];
+
   const filteredData =
-    students?.filter((students) => {
-      const matchesName = filterOptions.full_name
-        ? (students.full_name || "")
-            .toLowerCase()
-            .includes(filterOptions.full_name.toLowerCase())
-        : true;
+  students?.filter((student) => {
+    const matchesName = filterOptions.full_name
+      ? (student.full_name || "").toLowerCase().includes(filterOptions.full_name.toLowerCase())
+      : true;
 
-      const matchesStatus = filterOptions.status
-        ? (students.status || "")
-            .toLowerCase()
-            .includes(filterOptions.status.toLowerCase())
-        : true;
+    const matchesStatus = filterOptions.status
+      ? (student.status || "").toLowerCase().includes(filterOptions.status.toLowerCase())
+      : true;
 
-      const matchesSearchQuery =
-        students.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        students.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        students.phone_number.includes(searchQuery);
+    const matchesSearchQuery =
+      (student.full_name && student.full_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (student.email && student.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (student.phone_number && student.phone_number.includes(searchQuery));
 
-      return matchesSearchQuery && matchesName && matchesStatus;
-    }) || [];
+    return matchesSearchQuery && matchesName && matchesStatus;
+  }) || [];
 
   const sortedData = [...filteredData].sort((a, b) => {
     if (sortOrder === "newest") {
@@ -232,16 +250,16 @@ const UsersTableStudent = () => {
               {isFilterDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg">
                   <button
-                    onClick={() => handleFilterSelect("status", "Published")}
+                    onClick={() => handleFilterSelect("status", "Active")}
                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
-                    Published
+                    All
                   </button>
                   <button
-                    onClick={() => handleFilterSelect("status", "Upcoming")}
+                    onClick={() => handleFilterSelect("status", "Inactive")}
                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
-                    Upcoming
+                    Inactive
                   </button>
                 </div>
               )}
