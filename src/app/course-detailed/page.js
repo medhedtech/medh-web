@@ -1,24 +1,20 @@
-import React from 'react'
+"use client"
+import React from "react";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
-import CourseEducation from '@/components/sections/course-detailed/courseEducation'
-import AboutProgram from '@/components/sections/course-detailed/aboutProgram'
-import CaurseFaq from '@/components/sections/course-detailed/caurseFaq'
-import CourseCertificate from '@/components/sections/course-detailed/courseCertificate'
-import CourceRalated from '@/components/sections/course-detailed/courseRelated'
 import ThemeController from "@/components/shared/others/ThemeController";
+import CourseDetailedNew from "./[id]/page";
+import { useRouter } from "next/navigation";
 
 function CourseDetailed() {
+  const router = useRouter();
+  const { courseId } = router.query;
+  console.log("course id in the course detailded page", courseId);
   return (
     <PageWrapper>
-        <CourseEducation/>
-        <AboutProgram/>
-        <CaurseFaq/>
-        <CourceRalated/>
-        <CourseCertificate/>
-        <ThemeController/>
-        </PageWrapper>
-    
-  )
+      <CourseDetailedNew courseId={courseId} />
+      <ThemeController />
+    </PageWrapper>
+  );
 }
 
-export default CourseDetailed
+export default CourseDetailed;

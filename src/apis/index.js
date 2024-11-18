@@ -22,7 +22,7 @@ export const apiUrls = {
     ) =>
       `/courses/getLimitedCourses?page=${page}&limit=${limit}&course_title=${course_title}&course_tag=${course_tag}&course_category=${course_category}&status=${status}`,
     getAllCourses: "/courses/get",
-    getCourseById: "/courses/get/:id",
+    getCourseById: "/courses/get",
     createCourse: "/courses/create",
     updateCourse: "/courses/update/:id",
     deleteCourse: "/courses/delete",
