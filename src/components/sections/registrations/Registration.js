@@ -77,7 +77,10 @@ const Registration = () => {
   }
 
   return (
-    <section className="bg-register bg-cover bg-center bg-no-repeat">
+    <section
+      id="courses-section"
+      className="bg-register bg-cover bg-center bg-no-repeat"
+    >
       <div className="overlay bg-blueDark bg-opacity-90 py-4 lg:pb-0 relative z-0">
         <div>
           <Image
