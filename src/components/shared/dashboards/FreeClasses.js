@@ -59,7 +59,7 @@ const FreeCourses = () => {
   useEffect(() => {
     const fetchCourses = () => {
       getQuery({
-        url: apiUrls?.courses?.getAllCoursesWithLimits(page,limit,'','','','Upcoming'),
+        url: apiUrls?.courses?.getAllCoursesWithLimits(page,limit,'','','','Upcoming',''),
         onSuccess: (res) => {
           setFreeCourses(res?.courses || []);
         },
