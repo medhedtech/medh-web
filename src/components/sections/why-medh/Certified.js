@@ -1,15 +1,15 @@
-'use client';
-import Image from 'next/image';
-import React from 'react';
-import 'slick-carousel/slick/slick.css';
-import 'slick-carousel/slick/slick-theme.css';
-import Slider from 'react-slick';
-import iso27001 from '@/assets/images/iso/iso27001.png';
-import iso10002 from '@/assets/images/iso/iso10002.png';
-import iso20000 from '@/assets/images/iso/iso20000.png';
-import iso22301 from '@/assets/images/iso/iso22301.png';
-import iso9001 from '@/assets/images/iso/iso9001.png';
-import iso270001 from '@/assets/images/iso/iso27001.png';
+"use client";
+import Image from "next/image";
+import React from "react";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import Slider from "react-slick";
+import iso27001 from "@/assets/images/iso/iso27001.png";
+import iso10002 from "@/assets/images/iso/iso10002.png";
+import iso20000 from "@/assets/images/iso/iso20000.png";
+import iso22301 from "@/assets/images/iso/iso22301.png";
+import iso9001 from "@/assets/images/iso/iso9001.png";
+import iso270001 from "@/assets/images/iso/iso27001.png";
 
 const Certified = () => {
   var settings = {
@@ -20,7 +20,7 @@ const Certified = () => {
     slidesToShow: 5, // Show 5 slides
     slidesToScroll: 1,
     centerMode: true, // Center the cards
-    centerPadding: '0',
+    centerPadding: "0",
     // Remove extra padding around the center slide
     responsive: [
       {
@@ -51,7 +51,10 @@ const Certified = () => {
   };
 
   return (
-    <div className="py-12 w-full dark:bg-screen-dark flex justify-center items-center">
+    <div
+      id="certified-section"
+      className="py-12 w-full dark:bg-screen-dark flex justify-center items-center"
+    >
       <div className="w-[80%] ">
         <h3 className="text-center text-[#5C6574] dark:text-gray-200 text-size-32 leading-34px font-bold mb-8">
           Certified & Recognized By
