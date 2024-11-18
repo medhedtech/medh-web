@@ -21,7 +21,7 @@ const BrandHero = () => {
               In high-demand domains like AI, Cybersecurity Career Development,
               Data Analytics, etc.
             </span>
-            <a href="#" className="underline mt-4">
+            <a href="/view-all-courses" className="underline mt-4">
               View Courses +
             </a>
           </div>
@@ -37,14 +37,14 @@ const BrandHero = () => {
             />
             <div className="relative z-10 flex flex-col gap-4 lg:gap-6 bg-opacity-70">
               <h1 className="font-bold text-xl lg:text-2xl pt-2">
-                Earn a Course Certificate
+                Explore Medh Membership
               </h1>
               <span>
-                Nurture skills and elevate your career with industry-recognized
-                certifications upon completion.
+                Achieve mastery in your chosen domain by gaining comprehensive
+                expertise.
               </span>
-              <a href="#" className="underline">
-                View More +
+              <a href="/membership" className="underline">
+                View Memberships +
               </a>
             </div>
           </div>
@@ -58,7 +58,7 @@ const BrandHero = () => {
               Nurture skills and elevate your career with industry-recognized
               certifications upon completion.
             </span>
-            <a href="#" className="underline mt-4">
+            <a href="#certified-section" className="underline mt-4">
               View More +
             </a>
           </div>
@@ -74,14 +74,14 @@ const BrandHero = () => {
             />
             <div className="relative z-10 flex flex-col gap-4 lg:gap-6 bg-opacity-70">
               <h1 className="font-bold text-xl lg:text-2xl pt-2">
-                Earn a Course Certificate
+                100% Placement Guranteed
               </h1>
               <span>
-                Nurture skills and elevate your career with industry-recognized
-                certifications upon completion.
+                Secure your future with assured placement in our selected job-
+                guaranteed Courses.
               </span>
-              <a href="#" className="underline">
-                View More +
+              <a href="/view-all-courses" className="underline">
+                View Courses +
               </a>
             </div>
           </div>
@@ -96,7 +96,7 @@ const BrandHero = () => {
             Skill Development for every stage of life.
           </h1>
           <div className="mt-4 text-base lg:text-lg font-Open font-medium lg:w-[820px] text-[#5C6574] dark:text-gray-300">
-          MEDH, the leading global EdTech innovator, is dedicated to
+            MEDH, the leading global EdTech innovator, is dedicated to
             delivering skill development courses through cutting-edge technology
             and bespoke mentorship. To empower individuals at every stage of
             life, from early childhood and adolescence (preschool, school,
