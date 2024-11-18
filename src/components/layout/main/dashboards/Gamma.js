@@ -14,7 +14,11 @@ import { useRouter } from "next/navigation";
 const schema = yup
   .object({
     full_name: yup.string().required("Name is required"),
-    age: yup.string().required("Age is required"),
+    age: yup
+      .number()
+      .typeError("Age must be a number")
+      .required("Age is required")
+      .min(13, "Age must be above 13 years"),
     email: yup.string().email().required("Email is required"),
     phone_number: yup
       .string()
@@ -55,7 +59,7 @@ const Gamma = () => {
         },
         onSuccess: () => {
           router.push("/dashboards/admin-subpage3");
-          toast.success("Registration successful!");
+          toast.success("User created successfully!");
         },
         onFail: (error) => {
           console.log("Registration failed:", error);
@@ -115,8 +119,6 @@ const Gamma = () => {
               {...register("age")}
               type="text"
               name="age"
-              // value={formData.age}
-              // onChange={handleInputChange}
               placeholder="27 years"
               className="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 dark:bg-inherit focus:ring-indigo-500"
             />
@@ -166,6 +168,7 @@ const Gamma = () => {
                 {...register("phone_number")}
                 type="text"
                 name="phone_number"
+                maxLength={10}
                 // value={formData.phoneNumber}
                 // onChange={handleInputChange}
                 placeholder="8317074259"
@@ -194,7 +197,7 @@ const Gamma = () => {
               <option value="student">Student</option>
               <option value="instructor">Instructor</option>
               <option value="admin">Admin</option>
-              <option value="user">User</option>
+              {/* <option value="user">User</option> */}
             </select>
             {errors.role && (
               <p className="text-xs text-red-500 font-normal mt-[2px] ml-2">
