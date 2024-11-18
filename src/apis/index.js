@@ -76,9 +76,20 @@ export const apiUrls = {
   placements: {
     addPlacements:"/placements/",
   },
-  quzies: {},
-  assignments: {},
-  feedbacks: {},
-  resources: {},
-  assignments: {},
+  quzies: {
+    getQuizes:"",
+  },
+  assignments: {
+    getAssignments:""
+  },
+  feedbacks: {
+    createFeedback:"/feedback/",
+    createComplaint:"/complaint/"
+  },
+  resources: {
+    
+  },
+  assignments: {
+
+  },
 };
