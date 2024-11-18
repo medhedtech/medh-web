@@ -80,10 +80,19 @@ export const apiUrls = {
     updateAssignedInstructor: "/assigned-instrutors/update",
     deleteAssignedInstructor: "/assigned-instrutors/delete",
   },
-  placements: {},
-  quzies: {},
-  assignments: {},
-  feedbacks: {},
+  placements: {
+    addPlacements: "/placements/",
+  },
+  quzies: {
+    getQuizes: "",
+  },
+  assignments: {
+    getAssignments: "",
+  },
+  feedbacks: {
+    createFeedback: "/feedback/",
+    createComplaint: "/complaint/",
+  },
   resources: {},
   assignments: {},
 };
