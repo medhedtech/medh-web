@@ -1,29 +1,50 @@
-import React from "react";
+import React,{useEffect,useState} from "react";
 import AssignmentCard from "./AssignmentCard";
 import Qize from "@/assets/images/dashbord/quize.png";
+import useGetQuery from "@/hooks/getQuery.hook";
+import { apiUrls } from "@/apis";
+import Preloader from "@/components/shared/others/Preloader";
 
-const assignments = [
-  {
-    title: "Web Development",
-    instructor: "John Doe",
-    daysLeft: 3,
-    image: Qize,
-  },
-  {
-    title: "Web Development",
-    instructor: "John Doe",
-    daysLeft: 1,
-    image: Qize,
-  },
-  {
-    title: "Web Development",
-    instructor: "John Doe",
-    daysLeft: 0,
-    image: Qize,
-  },
-];
+// const assignments = [
+//   {
+//     title: "Web Development",
+//     instructor: "John Doe",
+//     daysLeft: 3,
+//     image: Qize,
+//   },
+//   {
+//     title: "Web Development",
+//     instructor: "John Doe",
+//     daysLeft: 1,
+//     image: Qize,
+//   },
+//   {
+//     title: "Web Development",
+//     instructor: "John Doe",
+//     daysLeft: 0,
+//     image: Qize,
+//   },
+// ];
+
 
 const AssignmentsSection = ({ onQuizClick }) => {
+  const {getQuery,loading} = useGetQuery();
+  const [assignments,setAssignments] = useState()
+
+  useEffect(() => {
+    getQuery({
+      url:apiUrls?.assignments?.getAssignments,
+      onSuccess:(data) => {
+        setAssignments(data);
+        console.log(data,"Svhfdh")
+      }
+    })
+  },[])
+  
+  if (loading) return <Preloader/>;
+
+
+
   return (
     <div className="p-8 font-Open">
       <h2 className="text-size-32 mb-4 font-Open dark:text-white">
@@ -107,13 +128,13 @@ const AssignmentsSection = ({ onQuizClick }) => {
         </div>
       </div>
       <div className="space-y-4">
-        {assignments.map((assignment, index) => (
+        {assignments?.map((assignment, index) => (
           <AssignmentCard
             key={index}
-            title={assignment.title}
-            instructor={assignment.instructor}
-            daysLeft={assignment.daysLeft}
-            image={assignment.image}
+            title={assignment?.title}
+            instructor={assignment?.instructor}
+            daysLeft={assignment?.deadline}
+            image={Qize}
           />
         ))}
       </div>

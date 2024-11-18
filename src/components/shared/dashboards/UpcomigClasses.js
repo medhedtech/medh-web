@@ -46,7 +46,7 @@ const UpcomigClasses = () => {
   useEffect(() => {
     const fetchCourses = () => {
       getQuery({
-        url: apiUrls?.courses?.getAllCoursesWithLimits(page,limit,'','','','Upcoming',''),
+        url: apiUrls?.courses?.getAllCoursesWithLimits(page,limit,'','','','Upcoming','',false),
         onSuccess: (res) => {
           setCourses(res?.courses || []);
         },

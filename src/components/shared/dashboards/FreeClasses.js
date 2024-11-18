@@ -59,7 +59,7 @@ const FreeCourses = () => {
   useEffect(() => {
     const fetchCourses = () => {
       getQuery({
-        url: apiUrls?.courses?.getAllCoursesWithLimits(page,limit,'','','','Upcoming',''),
+        url: apiUrls?.courses?.getAllCoursesWithLimits(page,limit,'','','','Upcoming','',true),
         onSuccess: (res) => {
           setFreeCourses(res?.courses || []);
         },
@@ -91,9 +91,10 @@ const FreeCourses = () => {
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {courses.map((course) => (
+        {freeCourses?.map((course) => (
           <CourseCard
-            key={course.id}
+            // title={}
+            key={course?._id}
             {...course}
             onClick={() => handleCardClick(course.id)}
           />
