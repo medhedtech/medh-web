@@ -1,10 +1,13 @@
+"use client";
 import Image from "next/image";
 import React from "react";
 import logoImage from "@/assets/images/logo/logo_2.png";
 import useIsSecondary from "@/hooks/useIsSecondary";
 import qr from "@/assets/images/footer/qr.png";
+import { useRouter } from "next/navigation";
 const CopyRight = () => {
   const { isSecondary } = useIsSecondary();
+  const router = useRouter();
   return (
     <div>
       <div className="relative mx-auto mt-6 w-[150px] h-[150px]">
@@ -48,8 +51,41 @@ const CopyRight = () => {
         </ul>
       </div>
       <div className="text-white flex justify-center gap-1 mt-2 text-sm">
-        <span>Terms of Service </span>|<span>Privacy Policy</span>|
-        <span>Reschedule Policy</span>|<span>Cancellation & Refund Policy</span>
+        <span
+          onClick={() => {
+            router.push("/terms-and-services");
+          }}
+          className="cursor-pointer"
+        >
+          Terms of Service{" "}
+        </span>
+        |
+        <span
+          onClick={() => {
+            router.push("/privacy-policy");
+          }}
+          className="cursor-pointer"
+        >
+          Privacy Policy{" "}
+        </span>
+        |
+        <span
+          onClick={() => {
+            router.push("/reschedule-policy");
+          }}
+          className="cursor-pointer"
+        >
+          Reschedule Policy
+        </span>
+        |
+        <span
+          onClick={() => {
+            router.push("/cancellation-and-refund-policy");
+          }}
+          className="cursor-pointer"
+        >
+          Cancellation & Refund Policy
+        </span>
       </div>
       <div>
         <h3 className="text-sm text-white text-center mt-4">
