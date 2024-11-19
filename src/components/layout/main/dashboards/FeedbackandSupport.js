@@ -25,12 +25,13 @@ const complaintSchema = yup.object().shape({
 });
 
 const FeedbackandSupport = () => {
-  const {postQuery,loading} = usePostQuery()
+  const { postQuery, loading } = usePostQuery();
   const {
     register: registerFeedback,
     handleSubmit: handleFeedbackSubmit,
     reset: resetFeedback,
     formState: { errors: feedbackErrors },
+    watch,
   } = useForm({
     resolver: yupResolver(feedbackSchema),
     defaultValues: {
@@ -38,6 +39,9 @@ const FeedbackandSupport = () => {
       feedbackText: "",
     },
   });
+
+
+  const feedbackType = watch("feedbackType");
 
   const {
     register: registerComplaint,
@@ -54,38 +58,36 @@ const FeedbackandSupport = () => {
 
   const onFeedbackSubmit = (data) => {
     postQuery({
-      url:apiUrls?.feedbacks?.createFeedback,
-      postData:{
-        feedback_text:data?.feedbackText,
-        feedback_for:data?.feedbackType
+      url: apiUrls?.feedbacks?.createFeedback,
+      postData: {
+        feedback_text: data?.feedbackText,
+        feedback_for: data?.feedbackType,
       },
-      onSuccess:()  => {
-        toast.success("Feedback submitted successfully")
+      onSuccess: () => {
+        toast.success("Feedback submitted successfully");
         resetFeedback();
       },
-      onFail:(error) => {
-       console.log(error,"SETERROR")
-      }   
-    })
+      onFail: (error) => {
+        console.log(error, "SETERROR");
+      },
+    });
   };
-
 
   const onComplaintSubmit = (data) => {
     postQuery({
-      url:apiUrls?.feedbacks?.createComplaint,
-      postData:{
-        name:data?.complaintName,
-        description:data?.complaintText
+      url: apiUrls?.feedbacks?.createComplaint,
+      postData: {
+        name: data?.complaintName,
+        description: data?.complaintText,
       },
-      onSuccess:()  => {
-        toast.success("Complaint submitted successfully")
+      onSuccess: () => {
+        toast.success("Complaint submitted successfully");
         resetComplaint();
-
       },
-      onFail:(error) => {
-       console.log(error,"SETERROR")
-      }   
-    })
+      onFail: (error) => {
+        console.log(error, "SETERROR");
+      },
+    });
   };
 
   return (
@@ -99,33 +101,42 @@ const FeedbackandSupport = () => {
               Write Review about Course/Instructor
             </p>
             <div className="flex gap-3 mb-2.5">
+              {/* Course radio button */}
               <label
                 className={`flex items-center text-lg ${
-                  feedbackErrors.feedbackType ? "text-red-500" : "text-[#B4BDC4]"
+                  feedbackType === "course"
+                    ? "text-[#7ECA9D] font-semibold"
+                    : "text-[#B4BDC4]"
                 }`}
               >
                 <input
                   type="radio"
                   value="course"
                   {...registerFeedback("feedbackType")}
-                  className="mr-2"
+                  className="mr-2 peer"
                 />
                 Course
               </label>
+
+              {/* Instructor radio button */}
               <label
                 className={`flex items-center text-lg ${
-                  feedbackErrors.feedbackType ? "text-red-500" : "text-[#B4BDC4]"
+                  feedbackType === "instructor"
+                    ? "text-[#7ECA9D] font-semibold"
+                    : "text-[#B4BDC4]"
                 }`}
               >
                 <input
                   type="radio"
                   value="instructor"
                   {...registerFeedback("feedbackType")}
-                  className="mr-2"
+                  className="mr-2 custom-radio"
                 />
                 Instructor
               </label>
             </div>
+
+            {/* Display error message if no radio button is selected */}
             {feedbackErrors.feedbackType && (
               <p className="text-red-500 text-sm">
                 {feedbackErrors.feedbackType.message}
