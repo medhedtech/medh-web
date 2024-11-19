@@ -16,7 +16,7 @@ const schema = yup.object({
   name: yup.string().required("Category name is required"),
 });
 
-const AddCategories = () => {
+const AddCategories = ({ selectedCategory }) => {
   const router = useRouter();
   const { postQuery, loading } = usePostQuery();
   const { getQuery } = useGetQuery();
@@ -33,33 +33,12 @@ const AddCategories = () => {
     resolver: yupResolver(schema),
   });
 
-  // Fetch categories on component mount
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        await getQuery({
-          url: apiUrls?.categories?.getAllCategories,
-          onSuccess: (data) => {
-            if (Array.isArray(data.categories)) {
-              setCategories(data.categories);
-            } else {
-              console.error("Unexpected response:", data);
-              setCategories([]);
-            }
-          },
-          onFail: (err) => {
-            console.error("API error:", err);
-            toast.error("Failed to fetch categories.");
-          },
-        });
-      } catch (error) {
-        console.error("Failed to fetch Categories:", error);
-        toast.error("An unexpected error occurred. Please try again.");
-      }
-    };
-
-    fetchCategories();
-  }, []);
+  useEffect(()=>{
+    if(selectedCategory){
+      setValue('name', selectedCategory.name);
+      setCategoryImage(selectedCategory.image)
+    }
+  })
 
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
@@ -93,30 +72,57 @@ const AddCategories = () => {
 
   // Handle form submission
   const onSubmit = async (data) => {
-    console.log("Submitting:", data);
-    try {
-      await postQuery({
-        url: apiUrls?.categories?.createCategories,
-        postData: {
-          category_name: data.name,
-          category_image: categoryImage,
-        },
-        headers: {
-          "Content-Type": "application/json",
-        },
-        onSuccess: () => {
-          setShowCategoryListing(true);
-          toast.success("Category added successfully!");
-          reset();
-        },
-        onFail: (error) => {
-          console.error("Post error:", error);
-          toast.error(error?.message || "Category already exists.");
-        },
-      });
-    } catch (error) {
-      console.error("An unexpected error occurred:", error);
-      toast.error("An unexpected error occurred. Please try again.");
+    if (selectedCategory) {
+      try {
+        await postQuery({
+          url: `${apiUrls?.categories?.updateCategories}/${selectedCategory.id}`,
+          postData: {
+            category_name: data.name,
+            category_image: categoryImage || selectedCategory.image,
+          },
+          headers: {
+            "Content-Type": "application/json",
+          },
+          onSuccess: () => {
+            setShowCategoryListing(true);
+            toast.success("Category updated successfully!");
+            reset();
+          },
+          onFail: (error) => {
+            console.error("Update error:", error);
+            toast.error(error?.message || "Category update error.");
+          },
+        });
+      } catch (error) {
+        console.error("An unexpected error occurred:", error);
+        toast.error("An unexpected error occurred. Please try again.");
+      }
+    } else {
+      console.log("Submitting:", data);
+      try {
+        await postQuery({
+          url: apiUrls?.categories?.createCategories,
+          postData: {
+            category_name: data.name,
+            category_image: categoryImage,
+          },
+          headers: {
+            "Content-Type": "application/json",
+          },
+          onSuccess: () => {
+            setShowCategoryListing(true);
+            toast.success("Category added successfully!");
+            reset();
+          },
+          onFail: (error) => {
+            console.error("Post error:", error);
+            toast.error(error?.message || "Category already exists.");
+          },
+        });
+      } catch (error) {
+        console.error("An unexpected error occurred:", error);
+        toast.error("An unexpected error occurred. Please try again.");
+      }
     }
   };
 
@@ -131,7 +137,7 @@ const AddCategories = () => {
   return (
     <div className="flex items-start justify-center w-full dark:bg-inherit dark:text-white bg-gray-100 p-4 pt-9">
       <div className="w-[95%] mx-auto p-6 dark:bg-inherit dark:text-white dark:border bg-white rounded-lg shadow-md font-Poppins">
-        <h2 className="text-2xl font-semibold mb-6">Add Category</h2>
+        <h2 className="text-2xl font-semibold mb-6">{selectedCategory?'Update':'Add'} Category</h2>
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-8">
           {/* Category Name Field */}
           <div className="flex flex-col">
@@ -218,7 +224,7 @@ const AddCategories = () => {
               className="px-4 py-2 bg-primaryColor text-white rounded-md hover:bg-green-500 focus:outline-none"
               disabled={loading}
             >
-              Add Category
+              {selectedCategory?'Update':'Add'} Category
             </button>
           </div>
         </form>
