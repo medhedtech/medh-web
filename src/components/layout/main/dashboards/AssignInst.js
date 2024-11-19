@@ -381,7 +381,7 @@ const AssignInstructor = () => {
                       full_name: e.target.value,
                     })
                   }
-                  disabled
+                  // disabled
                   className="w-full px-4 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring focus:border-blue-300"
                 >
                   <option value="">Select Instructor</option>
@@ -427,7 +427,7 @@ const AssignInstructor = () => {
                       email: e.target.value,
                     })
                   }
-                  disabled
+                  // disabled
                   placeholder="Instructor Email"
                   className="w-full px-4 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring focus:border-blue-300"
                 />

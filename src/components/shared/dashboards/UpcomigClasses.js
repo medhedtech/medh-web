@@ -1,4 +1,5 @@
-import React,{useEffect, useState} from "react";
+"use client"
+import React, { useEffect, useState } from "react";
 import ClassCard from "./ClassCard";
 import AiMl from "@/assets/images/courses/Ai&Ml.jpeg";
 import reactImg from "@/assets/images/courses/React.jpeg";
@@ -58,15 +59,19 @@ const UpcomigClasses = () => {
     fetchCourses();
   }, [page, limit]);
 
-
-
-
   return (
     <div className="px-10 pb-12">
-      {/* <h2 className="text-size-32  text-start mb-4"> */}
-      <h2 className="text-size-32 font-Open dark:text-white">
-        Upcoming Classes
-      </h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-size-32 font-Open dark:text-white">
+          Upcoming Classes
+        </h2>
+        <a
+          href="/dashboards/student-upcoming-classes"
+          className="text-green-500 hover:underline"
+        >
+          View All
+        </a>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {courses?.map((classItem, index) => (
           <ClassCard
