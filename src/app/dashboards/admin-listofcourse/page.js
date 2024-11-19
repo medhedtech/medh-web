@@ -11,16 +11,18 @@ export const metadata = {
 const Admin_Reviews = () => {
   return (
     // <PageWrapper>
-      <main>
-        {/* <DsahboardWrapper> */}
-          <DashboardContainer>
-           <HeadingDashboard />
-           
-            <ListOfCourse />
-          </DashboardContainer>
-        {/* </DsahboardWrapper> */}
-        <ThemeController />
-      </main>
+    <main>
+      {/* <DsahboardWrapper> */}
+      <DashboardContainer>
+        <div className="px-6">
+          <HeadingDashboard />
+        </div>
+
+        <ListOfCourse />
+      </DashboardContainer>
+      {/* </DsahboardWrapper> */}
+      <ThemeController />
+    </main>
     // </PageWrapper>
   );
 };

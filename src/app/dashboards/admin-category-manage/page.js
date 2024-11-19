@@ -10,7 +10,9 @@ const Admin_Categories = () => {
   return (
     <main>
       <DashboardContainer>
-        <HeadingDashboard />
+        <div className="px-6">
+          <HeadingDashboard />
+        </div>
         <CategoriesManage />
       </DashboardContainer>
       <ThemeController />
