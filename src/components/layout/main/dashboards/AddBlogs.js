@@ -22,7 +22,7 @@ const AddBlog = () => {
   const { getQuery } = useGetQuery();
   const [blogs, setBlogs] = useState([]);
   const [blogImage, setBlogImage] = useState(null);
-  const [showAddBlogListing, setShowAddBlogListing] = useState(true);
+  const [showAddBlogListing, setShowAddBlogListing] = useState(false);
   const {
     register,
     handleSubmit,
