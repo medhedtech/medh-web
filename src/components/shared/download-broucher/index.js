@@ -5,7 +5,7 @@ const DownloadBrochureModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+    <div className="fixed z-50 inset-0 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white rounded-lg w-100 py-6 px-4 relative">
         <div className="flex border-b-2">
           <button

@@ -24,9 +24,14 @@ const ProgressOverview = () => {
   return (
     <div className="w-full py-6 px-10">
       <div className="flex justify-between items-center mb-4">
-      <h2 className="text-size-32 font-Open dark:text-white">Progress Overview</h2>
+        <h2 className="text-size-32 font-Open dark:text-white">
+          Progress Overview
+        </h2>
         {/* <h2 className="text-size-32 font-Open ">Progress Overview</h2> */}
-        <a href="#" className="text-green-500 hover:underline">
+        <a
+          href="/dashboards/student-progress-overview"
+          className="text-green-500 hover:underline"
+        >
           View All
         </a>
       </div>
