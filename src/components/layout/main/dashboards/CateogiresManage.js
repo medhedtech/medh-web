@@ -186,44 +186,7 @@ const CategoriesManage = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <div className="relative">
-              <button
-                onClick={handleFilterDropdownToggle}
-                className="border-2 px-4 py-1 rounded-lg flex items-center"
-              >
-                Filters
-                <svg
-                  className="w-4 h-4 ml-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M19 9l-7 7-7-7"
-                  ></path>
-                </svg>
-              </button>
-              {isFilterDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg">
-                  <button
-                    onClick={() => handleFilterSelect("status", "Active")}
-                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    Active
-                  </button>
-                  <button
-                    onClick={() => handleFilterSelect("status", "Inactive")}
-                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    Inactive
-                  </button>
-                </div>
-              )}
-            </div>
+            
 
             {/* Sort Button with Dropdown */}
             <div className="relative">
