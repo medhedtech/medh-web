@@ -13,7 +13,7 @@ const CopyRight = () => {
       <div className="relative mx-auto mt-6 w-[150px] h-[150px]">
         <Image src={qr} alt="qr" fill className="object-contain" />
       </div>
-      <div className="mx-auto flex justify-center mt-3">
+      <div className="mx-auto flex justify-center mt-3 mb-6">
         <ul className="flex gap-3 lg:gap-2 2xl:gap-3 lg:justify-end">
           <li>
             <a
