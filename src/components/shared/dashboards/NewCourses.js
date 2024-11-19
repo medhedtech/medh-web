@@ -126,7 +126,7 @@ const NewCourses = () => {
           </div>
         </div>
         <div>
-          <a href="#" className="text-primaryColor hover:underline">
+          <a href="/dashboards/student-enroll-new-courses" className="text-primaryColor hover:underline">
             View All
           </a>
         </div>

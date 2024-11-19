@@ -13,54 +13,21 @@ import Modegray from "@/assets/images/course-detailed/mode-gray.svg";
 import Sessiongray from "@/assets/images/course-detailed/session-gray.svg";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
-
-// JSON data for course details
-const courseDetails = [
-  // { label: "EMI Options", value: courseDetails1?.emiOptions || "Not Available", icon: Emi },
-  { label: "EMI Options", value: "Yes", icon: Emi },
-  { label: "Certification", value: "Yes" }, // No icon here
-  { label: "Mode", value: "Live Online", icon: Mode },
-  { label: "Duration", value: "4 months / 16 weeks", icon: Course },
-  { label: "Online Sessions", value: "32 (90-120 min each)", icon: Session },
-  { label: "Efforts", value: "4-6 hours per week" }, // No icon here
-  { label: "Classes", value: "Weekends / Weekdays", icon: Classes },
-  { label: "Assignments", value: "Yes" }, // No icon here
-  { label: "Quizzes", value: "Yes" }, // No icon here
-  { label: "Projects", value: "No", icon: Projects },
-];
-
-// Simplified block details
-const courseInfo = [
-  {
-    label: "DURATION",
-    value: "4 months / 16 weeks",
-    icon: Couresegray,
-  },
-  {
-    label: "ONLINE SESSIONS",
-    value: "32 (90-120 min each)",
-    icon: Modegray,
-  },
-  {
-    label: "MODE",
-    value: "Live Online",
-    icon: Sessiongray,
-  },
-];
+import { notFound } from "next/navigation";
+import Preloader from "@/components/shared/others/Preloader";
 
 function CourseEducation({ courseId }) {
-  const { getQuery } = useGetQuery();
+  const { getQuery, loading } = useGetQuery();
   const [courseDetails1, setCourseDetails1] = useState(null);
 
   useEffect(() => {
     if (courseId) {
       fetchCourseDetails(courseId);
+    } else {
+      notFound();
     }
-  }, [courseId]);
+  }, []);
 
-  console.log("course details:", courseDetails1);
-
-  // Fetch course details from the API
   const fetchCourseDetails = async (id) => {
     try {
       await getQuery({
@@ -73,9 +40,55 @@ function CourseEducation({ courseId }) {
         },
       });
     } catch (error) {
-      console.error("Error fetching course details:", error);
+      console.error("Error in fetching course details:", error);
     }
   };
+
+  // JSON data for course details
+  const courseDetails = [
+    { label: "EMI Options", value: "Yes", icon: Emi },
+    { label: "Certification", value: "Yes" },
+    { label: "Mode", value: "Live Online", icon: Mode },
+    {
+      label: "Duration",
+      value: courseDetails1?.course_duration || "4 months / 16 weeks",
+      icon: Course,
+    },
+    {
+      label: "Online Sessions",
+      value: courseDetails1?.session_duration || "(90-120 min each)",
+      icon: Session,
+    },
+    { label: "Efforts", value: "4-6 hours per week" },
+    { label: "Classes", value: "Weekends / Weekdays", icon: Classes },
+    { label: "Assignments", value: "Yes" },
+    { label: "Quizzes", value: "Yes" },
+    { label: "Projects", value: "No", icon: Projects },
+  ];
+
+  // Simplified block details
+  const courseInfo = [
+    {
+      label: "DURATION",
+      value: courseDetails1?.course_duration || "4 months / 16 weeks",
+      icon: Couresegray,
+    },
+    {
+      label: "ONLINE SESSIONS",
+      value: courseDetails1?.session_duration || "(90-120 min each)",
+      icon: Modegray,
+    },
+    {
+      label: "MODE",
+      value: courseDetails1?.course_category + " " + "Online",
+      icon: Sessiongray,
+    },
+  ];
+
+  if (loading) {
+    return <Preloader />;
+  }
+
   return (
     <div className="flex flex-wrap justify-between bg-white dark:bg-[#050622] w-full lg:space-x-8">
       {/* Left Section */}
@@ -91,7 +104,9 @@ function CourseEducation({ courseId }) {
         </div>
         <div className="lg:ml-[11%] px-5 lg:p-0 lg:mt-10 mt-6">
           <h1 className="lg:text-3xl text-[22px] font-bold text-[#5C6574] mb-2 lg:w-[70%] w-full dark:text-gray-50">
-            Digital Marketing with Data Analytics Foundation Certificate
+            {/* Digital Marketing with Data Analytics Foundation Certificate */}
+            {courseDetails1?.course_title ||
+              "Digital Marketing with Data Analytics Foundation Certificate"}
           </h1>
           <div className="flex space-x-0 lg:text-sm text-[12px] text-gray-500 mb-4 lg:space-x-12">
             {courseInfo.map((info, index) => (
@@ -121,7 +136,8 @@ function CourseEducation({ courseId }) {
             <div className="flex justify-between items-center">
               <div className="mb-2">
                 <p className="text-[1rem] font-normal font-Popins leading-6 text-[#41454F] dark:text-gray-200">
-                  4 Months Course
+                  {courseDetails1?.course_duration ||
+                    "4 Months Course"}
                 </p>
                 <h3 className="text-2xl font-bold text-[#5C6574] dark:text-gray-50">
                   USD $595.00
