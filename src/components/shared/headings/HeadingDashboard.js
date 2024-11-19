@@ -97,6 +97,7 @@ import { BellIcon, SearchIcon } from "@/assets/images/icon/SearchIcon";
 import Image from "next/image";
 import { useState } from "react";
 import teacherImage1 from "@/assets/images/teacher/teacher__1.png";
+import Link from "next/link";
 
 const HeadingDashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -125,11 +126,13 @@ const HeadingDashboard = () => {
         <BellIcon className="text-gray-500 hover:text-black cursor-pointer dark:text-gray-300 dark:hover:text-white transition duration-150 ease-in-out" />
         <div className="border-l-2 border-gray-300 h-12 mx-2" />
         <div className="flex items-center gap-2">
-          <Image
-            src={teacherImage1}
-            alt="User Avatar"
-            className="w-8 h-8 rounded-full object-cover"
-          />
+          <Link href="/dashboards/student-profile">
+            <Image
+              src={teacherImage1}
+              alt="User Avatar"
+              className="w-8 h-8 rounded-full object-cover"
+            />
+          </Link>
           <select className="bg-transparent text-gray-700 font-medium dark:text-white border-none cursor-pointer focus:outline-none">
             <option value="ram">Ram</option>
             <option value="john">John</option>

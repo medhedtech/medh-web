@@ -14,7 +14,9 @@ const Student_Enrolled_Courses = () => {
   return (
     <main>
       <DashboardContainer>
-        <HeadingDashboard />
+        <div className="px-12">
+          <HeadingDashboard />
+        </div>
         <StudentEnrolledCoursesMain />
       </DashboardContainer>
       <ThemeController />

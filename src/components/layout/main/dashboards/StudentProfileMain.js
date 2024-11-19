@@ -9,7 +9,9 @@ const StudentProfileMain = () => {
   return (
     <div>
       {isEditing ? (
-        <EditProfile onBackClick={() => setIsEditing(false)} />
+        <div className="px-4 mt-[-20px] py-6">
+          <EditProfile onBackClick={() => setIsEditing(false)} />
+        </div>
       ) : (
         <ProfileDetails onEditClick={() => setIsEditing(true)} />
       )}
