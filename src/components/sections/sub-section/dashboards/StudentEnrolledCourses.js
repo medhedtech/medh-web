@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import img2 from "@/assets/images/resources/img2.png";
 import img3 from "@/assets/images/resources/img3.png";
 import img4 from "@/assets/images/resources/img4.png";
@@ -9,6 +9,7 @@ import Qize from "@/assets/images/dashbord/quize.png";
 import PDFImage from "@/assets/images/dashbord/bxs_file-pdf.png";
 import Image from "next/image";
 import { apiUrls } from "@/apis";
+import useGetQuery from "@/hooks/getQuery.hook";
 
 const courses = [
   {
@@ -99,6 +100,7 @@ const selfPacedCourses = [
 const StudentEnrolledCourses = () => {
   const [currentTab, setCurrentTab] = useState(0);
   const [students, setStudents] = useState([]);
+  const { getQuery } = useGetQuery();
 
   useEffect(() => {
     fetchStudents();
