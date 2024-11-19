@@ -43,7 +43,7 @@ export const apiUrls = {
   },
   Instructor: {
     getAllInstructors: "/instructors/get",
-    getInstructorById: "/instructors/get/:id",
+    getInstructorById: "/instructors/get",
     createInstructor: "/instructors/create",
     updateInstructor: "/instructors/update/:id",
     deleteInstructor: "/instructors/delete",
