@@ -16,6 +16,7 @@ import { toast } from "react-toastify";
 import Preloader from "@/components/shared/others/Preloader";
 import { apiUrls } from "@/apis";
 import moment from "moment";
+import { FaShare } from "react-icons/fa";
 
 // Validation Schema
 const schema = yup.object({
@@ -25,6 +26,28 @@ const schema = yup.object({
   time: yup.string().required("Please select the time."),
   date: yup.date().required("Date is required"),
 });
+
+const getTimeDifference = (meetingDate, meetingTime) => {
+  const now = moment();
+  const meetingMoment = moment(
+    `${meetingDate} ${meetingTime}`,
+    "YYYY-MM-DD HH:mm"
+  );
+  const diffMinutes = meetingMoment.diff(now, "minutes");
+
+  if (diffMinutes > 1440) {
+    // More than 24 hours, calculate in days
+    const diffDays = Math.ceil(diffMinutes / 1440);
+    return `Starts in ${diffDays} day${diffDays > 1 ? "s" : ""}`;
+  } else if (diffMinutes > 0) {
+    // Less than 24 hours, calculate in minutes
+    return `Starts in ${diffMinutes} minutes`;
+  } else if (diffMinutes === 0) {
+    return "Meeting is starting now!";
+  } else {
+    return "Meeting has already started.";
+  }
+};
 
 const OnlineMeeting = () => {
   const { postQuery, loading } = usePostQuery();
@@ -156,6 +179,28 @@ const OnlineMeeting = () => {
     }
   };
 
+  const handleShare = async (meetingLink) => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Join the Meeting",
+          text: "Here's the link to join the meeting:",
+          url: meetingLink,
+        });
+        console.log("Successfully shared!");
+      } catch (error) {
+        console.error("Error sharing:", error);
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(meetingLink);
+        alert("Link copied to clipboard!");
+      } catch (error) {
+        console.error("Error copying link:", error);
+      }
+    }
+  };
+
   if (loading) return <Preloader />;
 
   return (
@@ -196,10 +241,12 @@ const OnlineMeeting = () => {
                       fill="#7ECA9D"
                     />
                   </svg>
-                  <div className="ml-4">{meeting.time}</div>
+                  <div className="ml-2">
+                    {getTimeDifference(meeting.date, meeting.time)}
+                  </div>
                 </p>
               )}
-              <div className="flex items-center text-gray-600 text-sm mb-2">
+              <div className="flex items-center text-gray-600 text-sm mt-6 mb-2">
                 <FaCalendarAlt className="mr-2" />
                 <span>{formatDate(meeting.date)}</span>
               </div>
@@ -216,7 +263,7 @@ const OnlineMeeting = () => {
                 </span>
               </div>
               {/* Copy | Share Section */}
-              <div className="flex items-center justify-center gap-2 text-customGreen text-sm mt-auto">
+              <div className="flex items-center justify-center gap-4 text-customGreen text-sm mt-auto">
                 <button
                   className="flex items-center gap-1 hover:text-customGreen"
                   onClick={() => handleCopy(meeting._id, meeting.meet_link)}
@@ -256,20 +303,11 @@ const OnlineMeeting = () => {
                   </svg>
                   Copy
                 </button>
-
-                <button className="flex items-center gap-1 hover:text-customGreen">
-                  <svg
-                    width="17"
-                    height="17"
-                    viewBox="0 0 17 17"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M16.4 9.8L15.2 8.6V6.2C15.2 5.7 14.7 5.2 14.2 5.2H2.8C2.3 5.2 1.8 5.7 1.8 6.2V10.4C1.8 10.9 2.3 11.4 2.8 11.4H14.2C14.7 11.4 15.2 10.9 15.2 10.4V9.8L16.4 9.8C16.8 9.8 17 9.5 17 9.2V8.6C17 8.3 16.8 8 16.4 8L16.4 9.8Z"
-                      fill="#7ECA9D"
-                    />
-                  </svg>
+                <button
+                  className="flex items-center gap-1 hover:text-customGreen"
+                  onClick={() => handleShare(meeting.meet_link)}
+                >
+                  <FaShare className="text-customGreen" size={17} />
                   Share
                 </button>
               </div>

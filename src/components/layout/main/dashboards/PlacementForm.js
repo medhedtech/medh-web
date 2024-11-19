@@ -46,16 +46,16 @@ const PlacementForm = () => {
       postQuery({
         url: apiUrls?.placements?.addPlacements,
         postData: {
-          studentId:"673842146e127d858bf73322",
-          name:data?.name,
-          area_of_interest:data?.area_of_interest,
-          apply_for_role:data?.apply_for_role,
-          message:data?.message,
-          course_completed_year:data?.course_completed_year,
-          completed_course:data?.completed_course,
-          email_id:data?.email,
-          city:data?.city,
-          mobile_number:data?.mobile,
+          studentId: "673842146e127d858bf73322",
+          name: data?.name,
+          area_of_interest: data?.area_of_interest,
+          apply_for_role: data?.apply_for_role,
+          message: data?.message,
+          course_completed_year: data?.course_completed_year,
+          completed_course: data?.completed_course,
+          email_id: data?.email,
+          city: data?.city,
+          mobile_number: data?.mobile,
         },
         onSuccess: () => {
           toast.success("Placement details submitted successfully!");
@@ -76,7 +76,7 @@ const PlacementForm = () => {
 
   return (
     <div className="flex items-center justify-center w-full p-4">
-      <div className="w-[90%] max-w-[900px] bg-white dark:bg-inherit dark:text-white p-6 rounded-lg shadow-md font-Poppins">
+      <div className="w-[98%] bg-white dark:bg-inherit dark:text-white p-6 rounded-lg shadow-md font-Poppins">
         <h2 className="text-xl font-semibold mb-4">Add Placement Details</h2>
         <form
           onSubmit={handleSubmit(onSubmit)}
@@ -101,7 +101,7 @@ const PlacementForm = () => {
           {/* Email */}
           <div>
             <label htmlFor="email" className="text-sm font-medium">
-              Email
+              Email Id
             </label>
             <input
               type="email"
@@ -119,7 +119,7 @@ const PlacementForm = () => {
           {/* Mobile */}
           <div>
             <label htmlFor="mobile" className="text-sm font-medium">
-              Mobile
+              Mobile Number
             </label>
             <input
               type="text"
@@ -169,7 +169,7 @@ const PlacementForm = () => {
           </div>
 
           {/* Course Completed Year */}
-          <div>
+          {/* <div>
             <label
               htmlFor="course_completed_year"
               className="text-sm font-medium"
@@ -182,6 +182,34 @@ const PlacementForm = () => {
               className="w-full border border-gray-300 rounded-md py-2 px-3"
               {...register("course_completed_year")}
             />
+            {errors.course_completed_year && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors.course_completed_year.message}
+              </p>
+            )}
+          </div> */}
+          <div>
+            <label
+              htmlFor="course_completed_year"
+              className="text-sm font-medium"
+            >
+              Course Completed Year
+            </label>
+            <select
+              id="course_completed_year"
+              className="w-full border border-gray-300 rounded-md py-3 px-3"
+              {...register("course_completed_year")}
+            >
+              <option value="">Select Year</option>
+              {[...Array(5)].map((_, index) => {
+                const year = new Date().getFullYear() - index;
+                return (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                );
+              })}
+            </select>
             {errors.course_completed_year && (
               <p className="text-red-500 text-xs mt-1">
                 {errors.course_completed_year.message}

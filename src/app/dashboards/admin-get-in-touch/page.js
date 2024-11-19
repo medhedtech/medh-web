@@ -10,7 +10,9 @@ const Admin_Contacts = () => {
   return (
     <main>
       <DashboardContainer>
-        <HeadingDashboard />
+        <div className="px-6">
+          <HeadingDashboard />
+        </div>
         <GetInTouch />
       </DashboardContainer>
       <ThemeController />

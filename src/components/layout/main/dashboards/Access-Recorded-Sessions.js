@@ -6,8 +6,9 @@ import AiMl from "@/assets/images/courses/Ai&Ml.jpeg";
 import reactImg from "@/assets/images/courses/React.jpeg";
 import os from "@/assets/images/courses/os.jpeg";
 import javascript from "@/assets/images/courses/javaScript.jpeg";
+import { FaArrowLeft } from "react-icons/fa";
 
-const RecordedSessions = () => {
+const StudentRecordedSessions = () => {
   const router = useRouter();
 
   const sessions = [
@@ -39,6 +40,34 @@ const RecordedSessions = () => {
       date: "21th October 2024",
       image: javascript,
     },
+    {
+      id: 5,
+      title: "AI & ML Masterclasses",
+      instructor: "Sayef Mamud, PixelCo",
+      date: "21th October 2024",
+      image: AiMl,
+    },
+    {
+      id: 6,
+      title: "React Masterclasses",
+      instructor: "Sayef Mamud, PixelCo",
+      date: "21th October 2024",
+      image: reactImg,
+    },
+    {
+      id: 7,
+      title: "OS Masterclasses",
+      instructor: "Sayef Mamud, PixelCo",
+      date: "21th October 2024",
+      image: os,
+    },
+    {
+      id: 8,
+      title: "JavaScript Masterclasses",
+      instructor: "Sayef Mamud, PixelCo",
+      date: "21th October 2024",
+      image: javascript,
+    },
   ];
 
   const handleCardClick = (id) => {
@@ -46,17 +75,22 @@ const RecordedSessions = () => {
   };
 
   return (
-    <div className="container mx-auto p-8">
-      <div className="flex items-center justify-between font-normal font-Open  pb-4 ">
-        <h2 className="text-size-32 font-Open dark:text-white">
-          Access Recorded Sessions
-        </h2>
-        <a
-          href="/dashboards/access-recorded-sessions"
-          className="text-green-500 text-sm font-semibold hover:underline"
+    <div className="container mx-auto p-8 mt-[-40px]">
+      <div className="flex justify-between items-center mb-4">
+        <div
+          onClick={() => {
+            router.push("/dashboards/my-courses");
+          }}
+          className="flex items-center gap-2"
         >
-          View All
-        </a>
+          <FaArrowLeft
+            className="cursor-pointer text-gray-700 dark:text-white"
+            size={20}
+          />
+          <h2 className="text-size-32 font-Open dark:text-white">
+            Access Recorded Sessions
+          </h2>
+        </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {sessions.map((session) => (
@@ -91,4 +125,4 @@ const RecordedSessions = () => {
   );
 };
 
-export default RecordedSessions;
+export default StudentRecordedSessions;
