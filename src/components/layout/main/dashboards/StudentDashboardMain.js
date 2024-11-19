@@ -13,7 +13,9 @@ const StudentDashboardMain = () => {
 
   return (
     <>
-      <HeadingDashboard setIsFocused={setIsFocused} />
+      <div className="px-12">
+        <HeadingDashboard setIsFocused={setIsFocused} />
+      </div>
       {isFocused ? (
         <SearchDetails />
       ) : (

@@ -6,7 +6,9 @@ import FeedbackandSupport from "./FeedbackandSupport";
 const FeedbackPage = () => {
   return (
     <div>
-      <HeadingDashboard />
+      <div className="px-6">
+        <HeadingDashboard />
+      </div>
       <FeedbackandSupport />
     </div>
   );

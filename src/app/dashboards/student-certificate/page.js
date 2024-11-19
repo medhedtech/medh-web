@@ -17,9 +17,13 @@ const StudentCertificate = () => {
     <div>
       <main>
         <DashboardContainer>
-          <HeadingDashboard />
+          <div className="px-6">
+            <HeadingDashboard />
+          </div>
           {showCertificate ? (
-            <ViewCertificate />
+            <div className="px-6 pb-4">
+              <ViewCertificate />
+            </div>
           ) : (
             <CertificateCoursesEnroll
               onViewCertificate={handleViewCertificate}

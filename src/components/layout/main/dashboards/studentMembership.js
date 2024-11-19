@@ -4,8 +4,12 @@ import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 function StudentMembership() {
   return (
     <div>
-      <HeadingDashboard />
-      <StudentMembershipCard />
+      <div className="px-8">
+        <HeadingDashboard />
+      </div>
+      <div className="px-4">
+        <StudentMembershipCard />
+      </div>
     </div>
   );
 }
