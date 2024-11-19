@@ -44,8 +44,9 @@ const UsersTable = () => {
   const columns = [
     { Header: "No.", accessor: "no" },
     { Header: "Name", accessor: "full_name" },
+    { Header: "Age", accessor: "age" },
     { Header: "Email", accessor: "email" },
-    { Header: "Phone Number", accessor: "phone_number" },
+    // { Header: "Phone Number", accessor: "phone_number" },
     { Header: "Join Date", accessor: "createdAt" },
     // { Header: "Role", accessor: "role" },
     {

@@ -1,21 +1,19 @@
-import PaymentTable from "@/components/layout/main/dashboards/Payments";
+import StudentProgressOverview from "@/components/layout/main/dashboards/Student-ProgressOverview";
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 import ThemeController from "@/components/shared/others/ThemeController";
 import React from "react";
 
-const StudentPayment = () => {
+const Student_Progress_Overview = () => {
   return (
     <div>
       <DashboardContainer>
-        <div className="px-12">
-          <HeadingDashboard />
-        </div>
-        <PaymentTable />
+        <HeadingDashboard />
+        <StudentProgressOverview />
         <ThemeController />
       </DashboardContainer>
     </div>
   );
 };
 
-export default StudentPayment;
+export default Student_Progress_Overview;

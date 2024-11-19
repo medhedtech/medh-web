@@ -23,20 +23,61 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const { getQuery, loading } = useGetQuery();
   const [deletedCourse, setDeletedCourse] = useState(null);
+  const [instructorNames, setInstructorNames] = useState({});
 
   // Fetch courses from API
+  // useEffect(() => {
+  //   const fetchCourses = async () => {
+  //     await getQuery({
+  //       url: apiUrls?.courses?.getAllCourses,
+  //       onSuccess: (data) => {
+  //         console.log("Courses fetched successfully:", data);
+  //         setCourses(data || []);
+  //       },
+  //       onFail: (err) => {
+  //         console.error("Failed to fetch courses:", err);
+  //       },
+  //     });
+  //   };
+
+  //   fetchCourses();
+  // }, [deletedCourse]);
+
+  // Fetch courses and instructor details
   useEffect(() => {
     const fetchCourses = async () => {
       await getQuery({
         url: apiUrls?.courses?.getAllCourses,
-        onSuccess: (data) => {
+        onSuccess: async (data) => {
           console.log("Courses fetched successfully:", data);
           setCourses(data || []);
+          await fetchInstructors(data);
         },
         onFail: (err) => {
           console.error("Failed to fetch courses:", err);
         },
       });
+    };
+
+    const fetchInstructors = async (courses) => {
+      const instructorsMap = {};
+      await Promise.all(
+        courses.map(async (course) => {
+          if (course.assigned_instructor) {
+            await getQuery({
+              url: `${apiUrls?.assignedInstructors?.getAssignedInstructorById}/${course.assigned_instructor}`,
+              onSuccess: (instructorData) => {
+                instructorsMap[course.assigned_instructor] =
+                  instructorData?.full_name || "-";
+              },
+              onFail: () => {
+                instructorsMap[course.assigned_instructor] = "-";
+              },
+            });
+          }
+        })
+      );
+      setInstructorNames(instructorsMap);
     };
 
     fetchCourses();
@@ -61,7 +102,12 @@ export default function Home() {
     { Header: "Category", accessor: "course_category" },
     { Header: "Course Name", accessor: "course_title" },
     { Header: "Instructor", accessor: "instructor" },
-    { Header: "Price", accessor: "course_fee" },
+    // { Header: "Price", accessor: "course_fee" },
+    {
+      Header: "Price",
+      accessor: "course_fee",
+      render: (row) => `$${row.course_fee}`,
+    },
     { Header: "Sessions", accessor: "no_of_Sessions" },
     { Header: "Time", accessor: "session_duration" },
     {
@@ -120,9 +166,10 @@ export default function Home() {
       (course.course_category || "")
         .toLowerCase()
         .includes(searchQuery.toLowerCase()) ||
-      (course.instructor || "")
+      (instructorNames[course.assigned_instructor] || "")
         .toLowerCase()
         .includes(searchQuery.toLowerCase());
+    (course.instructor || "").toLowerCase().includes(searchQuery.toLowerCase());
 
     return matchesCategory && matchesStatus && matchesSearchQuery;
   });
@@ -142,6 +189,7 @@ export default function Home() {
   const formattedData = sortedData.map((course, index) => ({
     ...course,
     no: index + 1,
+    instructor: instructorNames[course.assigned_instructor] || "-",
     createdAt: course.createdAt
       ? new Date(course.createdAt).toLocaleDateString("en-GB")
       : "N/A",
