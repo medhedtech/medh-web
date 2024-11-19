@@ -306,6 +306,37 @@ const SidebarDashboard = () => {
           ),
         },
         {
+          name: "Categories Management",
+          path: "/dashboards/admin-category-manage",
+          // tag: 12,
+          icon: (
+            <svg
+              width="16"
+              height="24"
+              viewBox="0 0 24 20"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <g clip-path="url(#clip0_563_2039)">
+                <path
+                  d="M7.80006 13.5984C7.71044 13.5984 7.62081 13.6116 7.53531 13.6393C7.04931 13.7972 6.53819 13.8984 6.00006 13.8984C5.46194 13.8984 4.95081 13.7972 4.46444 13.6393C4.37894 13.6116 4.28969 13.5984 4.20006 13.5984C1.87281 13.5984 -0.0123144 15.4914 6.05804e-05 17.8217C0.00531058 18.8064 0.814935 19.5984 1.80006 19.5984H10.2001C11.1852 19.5984 11.9948 18.8064 12.0001 17.8217C12.0124 15.4914 10.1273 13.5984 7.80006 13.5984ZM6.00006 12.3984C7.98831 12.3984 9.60006 10.7867 9.60006 8.79844C9.60006 6.81019 7.98831 5.19844 6.00006 5.19844C4.01181 5.19844 2.40006 6.81019 2.40006 8.79844C2.40006 10.7867 4.01181 12.3984 6.00006 12.3984ZM22.2001 0.398438H7.80006C6.80744 0.398438 6.00006 1.23281 6.00006 2.25806V3.99844C6.87831 3.99844 7.69131 4.25269 8.40006 4.66594V2.79844H21.6001V13.5984H19.2001V11.1984H14.4001V13.5984H11.5411C12.2573 14.2243 12.7831 15.0508 13.0294 15.9984H22.2001C23.1927 15.9984 24.0001 15.1641 24.0001 14.1388V2.25806C24.0001 1.23281 23.1927 0.398438 22.2001 0.398438Z"
+                  fill="#808080"
+                />
+              </g>
+              <defs>
+                <clipPath id="clip0_563_2039">
+                  <rect
+                    width="24"
+                    height="19.2"
+                    fill="white"
+                    transform="translate(0 0.398438)"
+                  />
+                </clipPath>
+              </defs>
+            </svg>
+          ),
+        },
+        {
           name: "Generate Certificate",
           path: "/dashboards/admin-GenrateCertificate",
           // tag: 12,
@@ -393,32 +424,32 @@ const SidebarDashboard = () => {
       ),
     },
     {
-      title: "HELP & SETTINGS",
+      title: "SETTINGS",
       items: [
-        {
-          name: "Settings",
-          path: "#",
-          icon: (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="feather feather-settings"
-            >
-              <circle cx="12" cy="12" r="3"></circle>
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-            </svg>
-          ),
-        },
+        // {
+        //   name: "Settings",
+        //   path: "#",
+        //   icon: (
+        //     <svg
+        //       xmlns="http://www.w3.org/2000/svg"
+        //       width="16"
+        //       height="24"
+        //       viewBox="0 0 24 24"
+        //       fill="none"
+        //       stroke="currentColor"
+        //       strokeWidth="2"
+        //       strokeLinecap="round"
+        //       strokeLinejoin="round"
+        //       className="feather feather-settings"
+        //     >
+        //       <circle cx="12" cy="12" r="3"></circle>
+        //       <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        //     </svg>
+        //   ),
+        // },
         {
           name: "Logout",
-          path: "#",
+          path: "/login",
           icon: (
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -438,28 +469,28 @@ const SidebarDashboard = () => {
             </svg>
           ),
         },
-        {
-          name: "Help Center",
-          path: "#",
-          icon: (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="feather feather-help-circle"
-            >
-              <circle cx="12" cy="12" r="10"></circle>
-              <path d="M9.09 9a3 3 0 1 1 5.82 1c0 1.5-1.5 2-1.5 2"></path>
-              <line x1="12" y1="17" x2="12" y2="17"></line>
-            </svg>
-          ),
-        },
+        // {
+        //   name: "Help Center",
+        //   path: "#",
+        //   icon: (
+        //     <svg
+        //       xmlns="http://www.w3.org/2000/svg"
+        //       width="16"
+        //       height="24"
+        //       viewBox="0 0 24 24"
+        //       fill="none"
+        //       stroke="currentColor"
+        //       strokeWidth="2"
+        //       strokeLinecap="round"
+        //       strokeLinejoin="round"
+        //       className="feather feather-help-circle"
+        //     >
+        //       <circle cx="12" cy="12" r="10"></circle>
+        //       <path d="M9.09 9a3 3 0 1 1 5.82 1c0 1.5-1.5 2-1.5 2"></path>
+        //       <line x1="12" y1="17" x2="12" y2="17"></line>
+        //     </svg>
+        //   ),
+        // },
       ],
     },
   ];
