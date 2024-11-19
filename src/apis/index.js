@@ -100,7 +100,7 @@ export const apiUrls = {
     getAllCategories: "/categories/getAll",
     getCategoriesById: "/categories/get/:id",
     createCategories: "/categories/create",
-    updateCategories: "/categories/update/:id",
+    updateCategories: "/categories/update",
     deleteCategories: "/categories/delete",
   },
 };
