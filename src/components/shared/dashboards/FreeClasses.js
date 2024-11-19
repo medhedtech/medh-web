@@ -59,7 +59,15 @@ const FreeCourses = () => {
   useEffect(() => {
     const fetchCourses = () => {
       getQuery({
-        url: apiUrls?.courses?.getAllCoursesWithLimits(page,limit,'','','','Upcoming',''),
+        url: apiUrls?.courses?.getAllCoursesWithLimits(
+          page,
+          limit,
+          "",
+          "",
+          "",
+          "Upcoming",
+          ""
+        ),
         onSuccess: (res) => {
           setFreeCourses(res?.courses || []);
         },
@@ -71,21 +79,20 @@ const FreeCourses = () => {
     fetchCourses();
   }, [page, limit]);
 
-
-
-
   return (
     <div className="container mx-auto p-8 px-10">
       <div className="flex justify-between">
         <div className="flex gap-4 mb-4">
           <div className="flex justify-between items-center mb-4">
             {/* <h2 className="text-3xl "> */}
-            <h2 className="text-3xl font-Open dark:text-white">
-              Free Courses</h2>
+            <h2 className="text-3xl font-Open dark:text-white">Free Courses</h2>
           </div>
         </div>
         <div>
-          <a href="#" className="text-primaryColor hover:underline">
+          <a
+            href="/dashboards/students-free-courses"
+            className="text-primaryColor hover:underline"
+          >
             View All
           </a>
         </div>

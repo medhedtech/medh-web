@@ -15,7 +15,9 @@ const Student_Profile = () => {
     <main>
       {/* <DsahboardWrapper> */}
       <DashboardContainer>
-        <HeadingDashboard />
+        <div className="px-4">
+          <HeadingDashboard />
+        </div>
         <StudentProfileMain />
       </DashboardContainer>
       {/* </DsahboardWrapper> */}
