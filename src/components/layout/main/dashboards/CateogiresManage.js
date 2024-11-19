@@ -25,6 +25,7 @@ const CategoriesManage = () => {
   const { getQuery } = useGetQuery();
   const [deletedCategories, setDeletedCategories] = useState(null);
   const [updateStatus, setUpdateStatus] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
 
   // Fetch instructors Data from API
   useEffect(() => {
@@ -78,8 +79,9 @@ const CategoriesManage = () => {
     });
   };
 
-  const updateCategory = (id) => {
-    console.log("updating category: ", id);
+  const updateCategory = (category) => {
+    setSelectedCategory(category)
+    setShowCategoryForm(true)
   };
 
   // Table Columns Configuration
@@ -102,7 +104,7 @@ const CategoriesManage = () => {
       render: (row) => (
         <div className="flex gap-2 items-center">
           <button
-            onClick={() => updateCategory(row?.id)}
+            onClick={() => updateCategory(row)}
             className="text-white bg-green-600 border border-green-600 rounded-md px-[10px] py-1"
           >
             Update
@@ -168,7 +170,7 @@ const CategoriesManage = () => {
   console.log("Categories:", categories);
   // Add Student Form Toggle
   if (showCategoryForm)
-    return <AddCategories onCancel={() => setShowCategoryForm(false)} />;
+    return <AddCategories onCancel={() => setShowCategoryForm(false)} selectedCategory={selectedCategory} />;
 
   return (
     <div className="bg-gray-100 dark:bg-darkblack font-Poppins min-h-screen pt-8 p-6">
