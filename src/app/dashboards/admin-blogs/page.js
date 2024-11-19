@@ -10,7 +10,9 @@ const Admin_Blogs = () => {
   return (
     <main>
       <DashboardContainer>
-        <HeadingDashboard />
+        <div className="px-6">
+          <HeadingDashboard />
+        </div>
         <AdminBlogs />
       </DashboardContainer>
       <ThemeController />

@@ -1,5 +1,5 @@
-// export const apiBaseUrl = "https://medh-backend.vercel.app/api/v1";
-export const apiBaseUrl = "http://localhost:8080/api/v1";
+export const apiBaseUrl = "https://medh-backend.vercel.app/api/v1";
+// export const apiBaseUrl = "http://localhost:8080/api/v1";
 
 export const apiUrls = {
   user: {
@@ -44,7 +44,7 @@ export const apiUrls = {
   },
   Instructor: {
     getAllInstructors: "/instructors/get",
-    getInstructorById: "/instructors/get/:id",
+    getInstructorById: "/instructors/get",
     createInstructor: "/instructors/create",
     updateInstructor: "/instructors/update/:id",
     deleteInstructor: "/instructors/delete",
@@ -96,4 +96,11 @@ export const apiUrls = {
     createComplaint: "/complaint/",
   },
   resources: {},
+  categories: {
+    getAllCategories: "/categories/getAll",
+    getCategoriesById: "/categories/get/:id",
+    createCategories: "/categories/create",
+    updateCategories: "/categories/update",
+    deleteCategories: "/categories/delete",
+  },
 };

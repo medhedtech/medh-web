@@ -8,7 +8,9 @@ const StudentPayment = () => {
   return (
     <div>
       <DashboardContainer>
-        <HeadingDashboard />
+        <div className="px-12">
+          <HeadingDashboard />
+        </div>
         <PaymentTable />
         <ThemeController />
       </DashboardContainer>

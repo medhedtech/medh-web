@@ -52,7 +52,7 @@ const RecordedSessions = () => {
           Access Recorded Sessions
         </h2>
         <a
-          href="#"
+          href="/dashboards/access-recorded-sessions"
           className="text-green-500 text-sm font-semibold hover:underline"
         >
           View All
