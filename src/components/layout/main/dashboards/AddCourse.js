@@ -13,7 +13,7 @@ import Preloader from "@/components/shared/others/Preloader";
 const schema = yup.object({
   course_category: yup
     .string()
-    .oneOf(["Live Courses", "Blended Courses", "Cooporate Training Courses"])
+    .oneOf(["Live Courses", "Blended Courses", "Corporate Training Courses"])
     .required("Course category is required"),
   course_title: yup.string().trim().required("Course title is required"),
   course_tag: yup
@@ -23,13 +23,25 @@ const schema = yup.object({
   no_of_Sessions: yup
     .number()
     .typeError("Number of sessions must be a number")
+    .positive("Number of sessions must be a positive number")
     .required("Number of sessions is required"),
   course_duration: yup.string().required("Course duration is required"),
-  session_duration: yup.string().required("Session duration is required"),
+  // session_duration: yup.string().required("Session duration is required"),
+  session_duration: yup
+    .string()
+    .test(
+      "positive-number",
+      "Session duration must be a positive number",
+      (value) => {
+        return value && !isNaN(value) && Number(value) > 0;
+      }
+    )
+    .required("Session duration is required"),
   course_description: yup.string().required("Course description is required"),
   course_fee: yup
     .number()
     .typeError("Course fee must be a number")
+    .positive("Course fee must be a positive number")
     .required("Course fee is required"),
 });
 
@@ -305,8 +317,14 @@ const AddCourse = () => {
                 {...register("course_duration")}
               >
                 <option value="">Select type</option>
-                <option value="Month">Month</option>
-                <option value="Weeks">Weeks</option>
+                <option value="4 Weeks">4-Weeks</option>
+                <option value="6 Weeks">6-Weeks</option>
+                <option value="12 Weeks">12-Weeks</option>
+                <option value="24 Weeks">24-Weeks</option>
+                <option value="2 Months">2-Months</option>
+                <option value="3 Months">3-Months</option>
+                <option value="6 Months">6-Months</option>
+                <option value="12 Months">12-Months</option>
               </select>
               {errors.course_duration && (
                 <p className="text-red-500 text-xs">
@@ -321,7 +339,7 @@ const AddCourse = () => {
               </label>
               <input
                 type="text"
-                placeholder="Enter session duration"
+                placeholder="Session duration in Hours / Minutes"
                 className="p-3 border rounded-lg w-full text-gray-600 dark:bg-inherit placeholder-gray-400"
                 {...register("session_duration")}
               />

@@ -14,7 +14,12 @@ import InstructorTable from "./InstructoreManage";
 // Validation Schema
 const schema = yup.object({
   full_name: yup.string().required("Instructor name is required"),
-  age: yup.number(),
+  // age: yup.number(),
+  age: yup
+    .number()
+    .typeError("Age must be a number")
+    .required("Age is required")
+    .min(18, "Age must be above 18 years"),
   phone_number: yup.string().required("Mobile number is required"),
   email: yup.string().email().required("Email is required"),
   course_name: yup.string(),
@@ -275,6 +280,9 @@ const AddInstructor = () => {
               className="w-full border border-gray-300 dark:bg-inherit rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-green-400"
               {...register("age")}
             />
+            {errors.age && (
+              <span className="text-red-500 text-xs">{errors.age.message}</span>
+            )}
           </div>
           {/* Submit and Cancel Buttons */}
           <div className="flex justify-end items-center space-x-4 sm:col-span-2 mt-4">
