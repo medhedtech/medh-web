@@ -11,54 +11,92 @@ import AddCategories from "./AddCategories";
 
 const CategoriesManage = () => {
   const { deleteQuery } = useDeleteQuery();
-  const [instructors, setInstructors] = useState([]);
-  const [sortOrder, setSortOrder] = useState("newest");
+  const [categories, setCategories] = useState([]);
+  const [sortOrder, setSortOrder] = useState("oldest");
   const [searchQuery, setSearchQuery] = useState("");
   const { postQuery } = usePostQuery();
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
-  const [showInstructorForm, setShowInstructorForm] = useState(false);
+  const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [filterOptions, setFilterOptions] = useState({
-    full_name: "",
-    course_name: "",
+    name: "",
   });
 
   const { getQuery } = useGetQuery();
-  const [deletedInsturctors, setDeletedInsturctors] = useState(null);
+  const [deletedCategories, setDeletedCategories] = useState(null);
   const [updateStatus, setUpdateStatus] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
 
   // Fetch instructors Data from API
   useEffect(() => {
-    const fetchStudents = async () => {
+    const fetchCategories = async () => {
       try {
         await getQuery({
-          url: apiUrls?.Instructor?.getAllInstructors,
-          onSuccess: (data) => setInstructors(data),
-          onFail: () => setInstructors([]),
+          url: apiUrls?.categories?.getAllCategories,
+          onSuccess: (data) => {
+            const fetchedCategories = data.data;
+            if (Array.isArray(fetchedCategories)) {
+              const normalizedData = fetchedCategories.map((item) => ({
+                id: item._id,
+                name: item.name || item.category_name || "Unnamed Category",
+                image: item.category_image || null,
+                createdAt: item.createdAt,
+                updatedAt: item.updatedAt,
+              }));
+              setCategories(normalizedData);
+              console.log('Normalized categories: ', normalizedData);
+            } else {
+              console.error("Unexpected response:", data);
+              setCategories([]);
+            }
+          },
+          onFail: (error) => {
+            console.error("Failed to fetch categories:", error);
+            setCategories([]);
+          },
         });
       } catch (error) {
-        console.error("Failed to fetch instructors:", error);
+        console.error("Fetch error:", error);
+        setCategories([]);
       }
     };
-    fetchStudents();
-  }, [deletedInsturctors, updateStatus]);
+    fetchCategories();
+  }, [deletedCategories, updateStatus]);
 
   // Delete User
-  const deleteStudent = (id) => {
+  const deleteCategory = (id) => {
+    console.log('del id: ', id)
     deleteQuery({
-      url: `${apiUrls?.Instructor?.deleteInstructor}/${id}`,
+      url: `${apiUrls?.categories?.deleteCategories}/${id}`,
       onSuccess: (res) => {
-        toast.success(res?.message);
-        setDeletedInsturctors(id);
+        toast.success(res?.message || "Category deleted successfully.");
+        setDeletedCategories(id);
       },
-      onFail: (res) => console.log(res, "FAILED"),
+      onFail: (error) => {
+        console.error("Delete failed:", error);
+        toast.error("Failed to delete category.");
+      },
     });
+  };
+
+  const updateCategory = (category) => {
+    setSelectedCategory(category)
+    setShowCategoryForm(true)
   };
 
   // Table Columns Configuration
   const columns = [
     { Header: "No.", accessor: "no" },
-    { Header: "Category Name", accessor: "full_name" },
+    {
+      Header: "Image",
+      accessor: "image",
+      render: (row) => (
+        <div>
+          <img src={row?.image} className="h-10 w-10 rounded-full" />
+        </div>
+      ),
+    },
+    { Header: "Category Name", accessor: "name" },
     { Header: "Date", accessor: "createdAt" },
     {
       Header: "Action",
@@ -66,7 +104,13 @@ const CategoriesManage = () => {
       render: (row) => (
         <div className="flex gap-2 items-center">
           <button
-            onClick={() => deleteStudent(row?._id)}
+            onClick={() => updateCategory(row)}
+            className="text-white bg-green-600 border border-green-600 rounded-md px-[10px] py-1"
+          >
+            Update
+          </button>
+          <button
+            onClick={() => deleteCategory(row?.id)}
             className="text-white bg-red-600 border border-red-600 rounded-md px-[10px] py-1"
           >
             Delete
@@ -92,27 +136,18 @@ const CategoriesManage = () => {
 
   // Filtering the data based on user inputs
   const filteredData =
-    instructors?.filter((instructors) => {
-      const matchesName = filterOptions.full_name
-        ? (instructors.full_name || "")
+    categories?.filter((category) => {
+      const matchesName = filterOptions.name
+        ? (category.name || "")
             .toLowerCase()
-            .includes(filterOptions.full_name.toLowerCase())
+            .includes(filterOptions.name.toLowerCase())
         : true;
 
-      const matchesStatus = filterOptions.status
-        ? (instructors.status || "")
-            .toLowerCase()
-            .includes(filterOptions.status.toLowerCase())
-        : true;
+      const matchesSearchQuery = category.name
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
 
-      const matchesSearchQuery =
-        instructors.full_name
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase()) ||
-        instructors.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        instructors.phone_number.includes(searchQuery);
-
-      return matchesSearchQuery && matchesName && matchesStatus;
+      return matchesSearchQuery && matchesName;
     }) || [];
 
   const sortedData = [...filteredData].sort((a, b) => {
@@ -124,16 +159,18 @@ const CategoriesManage = () => {
     return 0;
   });
 
-  const formattedData =
-    sortedData.map((user, index) => ({
-      ...user,
-      no: index + 1,
-      createdAt: new Date(user.createdAt).toLocaleDateString("en-GB"),
-    })) || [];
-
+  const formattedData = Array.isArray(sortedData)
+    ? sortedData.map((user, index) => ({
+        ...user,
+        no: index + 1,
+        createdAt: new Date(user.createdAt).toLocaleDateString("en-GB"),
+      }))
+    : [];
+  console.log("Formatted Data:", formattedData);
+  console.log("Categories:", categories);
   // Add Student Form Toggle
-  if (showInstructorForm)
-    return <AddCategories onCancel={() => setShowInstructorForm(false)} />;
+  if (showCategoryForm)
+    return <AddCategories onCancel={() => setShowCategoryForm(false)} selectedCategory={selectedCategory} />;
 
   return (
     <div className="bg-gray-100 dark:bg-darkblack font-Poppins min-h-screen pt-8 p-6">
@@ -149,44 +186,7 @@ const CategoriesManage = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <div className="relative">
-              <button
-                onClick={handleFilterDropdownToggle}
-                className="border-2 px-4 py-1 rounded-lg flex items-center"
-              >
-                Filters
-                <svg
-                  className="w-4 h-4 ml-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M19 9l-7 7-7-7"
-                  ></path>
-                </svg>
-              </button>
-              {isFilterDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg">
-                  <button
-                    onClick={() => handleFilterSelect("status", "Active")}
-                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    Active
-                  </button>
-                  <button
-                    onClick={() => handleFilterSelect("status", "Inactive")}
-                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    Inactive
-                  </button>
-                </div>
-              )}
-            </div>
+            
 
             {/* Sort Button with Dropdown */}
             <div className="relative">
@@ -221,7 +221,7 @@ const CategoriesManage = () => {
 
             {/* Add Student Button */}
             <button
-              onClick={() => setShowInstructorForm(true)}
+              onClick={() => setShowCategoryForm(true)}
               className="bg-customGreen text-white px-4 py-2 rounded-lg flex items-center"
             >
               <FaPlus className="mr-2" />
