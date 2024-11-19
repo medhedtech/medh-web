@@ -10,7 +10,7 @@ const AdminDashboardMain = () => {
   return (
     <>
       <CounterAdmin />
-      <ChartDashboard />
+      {/* <ChartDashboard /> */}
       <div className="px-10">
         <AdminFeedbacks />
       </div>
