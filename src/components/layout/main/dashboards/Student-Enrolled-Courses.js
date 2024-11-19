@@ -6,8 +6,9 @@ import hockey from "@/assets/images/courses/hockey.jpeg";
 import os from "@/assets/images/courses/os.jpeg";
 import javascript from "@/assets/images/courses/javaScript.jpeg";
 import { useRouter } from "next/navigation";
+import { FaArrowLeft } from "react-icons/fa";
 
-const EnrollCourses = () => {
+const StudentEnrollCourses = () => {
   const router = useRouter();
 
   const courses = [
@@ -39,6 +40,34 @@ const EnrollCourses = () => {
       isLive: true,
       progress: 40,
     },
+    {
+      id: 5,
+      title: "Learn to play hockey",
+      image: hockey,
+      isLive: false,
+      progress: 40,
+    },
+    {
+      id: 6,
+      title: "React Masterclasses",
+      image: reactImg,
+      isLive: true,
+      progress: 40,
+    },
+    {
+      id: 7,
+      title: "OS Masterclasses",
+      image: os,
+      isLive: true,
+      progress: 40,
+    },
+    {
+      id: 8,
+      title: "JavaScript Masterclasses",
+      image: javascript,
+      isLive: true,
+      progress: 40,
+    },
   ];
 
   const handleCardClick = (id) => {
@@ -46,17 +75,22 @@ const EnrollCourses = () => {
   };
 
   return (
-    <div className="container mx-auto mt-[-40px] p-8">
-      <div className="flex items-center justify-between font-normal font-Open  pb-4 ">
-        <h2 className="text-size-32 font-Open dark:text-white">
-          Enrolled Courses
-        </h2>
-        <a
-          href="/dashboards/enrolled-courses"
-          className="text-green-500 text-sm font-semibold hover:underline "
+    <div className="container mx-auto p-8 mt-[-40px]">
+      <div className="flex justify-between items-center mb-4">
+        <div
+          onClick={() => {
+            router.push("/dashboards/my-courses");
+          }}
+          className="flex items-center gap-2"
         >
-          View All
-        </a>
+          <FaArrowLeft
+            className="cursor-pointer text-gray-700 dark:text-white"
+            size={20}
+          />
+          <h2 className="text-size-32 font-Open dark:text-white">
+            Enrolled Courses
+          </h2>
+        </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {courses.map((course) => (
@@ -73,4 +107,4 @@ const EnrollCourses = () => {
     </div>
   );
 };
-export default EnrollCourses;
+export default StudentEnrollCourses;
