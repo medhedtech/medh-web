@@ -46,13 +46,13 @@ const EnrollCourses = () => {
   };
 
   return (
-    <div className="container mx-auto p-8">
+    <div className="container mx-auto mt-[-40px] p-8">
       <div className="flex items-center justify-between font-normal font-Open  pb-4 ">
         <h2 className="text-size-32 font-Open dark:text-white">
           Enrolled Courses
         </h2>
         <a
-          href="#"
+          href="/dashboards/enrolled-courses"
           className="text-green-500 text-sm font-semibold hover:underline "
         >
           View All

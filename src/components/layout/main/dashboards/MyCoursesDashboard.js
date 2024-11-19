@@ -7,7 +7,9 @@ import NewCourses from "@/components/shared/dashboards/NewCourses";
 const MyCoursesDashboard = () => {
   return (
     <div>
-      <HeadingDashboard />
+      <div className="px-9">
+        <HeadingDashboard />
+      </div>
       <EnrollCourses />
       <RecordedSessions />
       <NewCourses />

@@ -7,7 +7,9 @@ const ApplyForPlacement = () => {
   return (
     <div>
       <DashboardContainer>
-        <HeadingDashboard />
+        <div className="px-8">
+          <HeadingDashboard />
+        </div>
         <PlacementForm />
       </DashboardContainer>
     </div>
