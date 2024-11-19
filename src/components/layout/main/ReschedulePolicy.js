@@ -3,7 +3,7 @@ import React from "react";
 const ReschedulePolicy = () => {
   return (
     <div className="flex flex-col px-40 py-8 bg-gray-100 dark:bg-screen-dark">
-      <h1 className="text-2xl font-bold text-[#7ECA9D] mb-6">
+      <h1 className="text-3xl font-bold text-[#7ECA9D] mb-6">
         Reschedule Policy
       </h1>
 
@@ -20,7 +20,7 @@ const ReschedulePolicy = () => {
       </section>
 
       <section className="mb-6">
-        <h2 className="text-lg font-semibold text-[#252525] mb-2">
+        <h2 className="text-lg font-bold text-[#252525] mb-2">
           Reschedule Requests
         </h2>
         <p className="text-gray-600">
@@ -32,7 +32,7 @@ const ReschedulePolicy = () => {
       </section>
 
       <section className="mb-6">
-        <h2 className="text-lg font-semibold text-[#252525] mb-2">
+        <h2 className="text-lg font-bold text-[#252525] mb-2">
           Deadline for Reschedule Requests
         </h2>
         <p className="text-gray-600">
@@ -44,7 +44,7 @@ const ReschedulePolicy = () => {
       </section>
 
       <section className="mb-6">
-        <h2 className="text-lg font-semibold text-[#252525] mb-2">
+        <h2 className="text-lg font-bold text-[#252525] mb-2">
           Reschedule Processing
         </h2>
         <p className="text-gray-600">
@@ -55,7 +55,7 @@ const ReschedulePolicy = () => {
       </section>
 
       <section className="mb-6">
-        <h2 className="text-lg font-semibold text-[#252525] mb-2">
+        <h2 className="text-lg font-bold text-[#252525] mb-2">
           Reschedule Fees
         </h2>
         <p className="text-gray-600">
@@ -68,7 +68,7 @@ const ReschedulePolicy = () => {
       </section>
 
       <section className="mb-6">
-        <h2 className="text-lg font-semibold text-[#252525] mb-2">
+        <h2 className="text-lg font-bold text-[#252525] mb-2">
           Course/Program Transfer
         </h2>
         <p className="text-gray-600">
@@ -79,7 +79,7 @@ const ReschedulePolicy = () => {
       </section>
 
       <section className="mb-6">
-        <h2 className="text-lg font-semibold text-[#252525] mb-2">
+        <h2 className="text-lg font-bold text-[#252525] mb-2">
           Multiple Reschedule Requests
         </h2>
         <p className="text-gray-600">
@@ -90,7 +90,7 @@ const ReschedulePolicy = () => {
       </section>
 
       <section className="mb-6">
-        <h2 className="text-lg font-semibold text-[#252525] mb-2">
+        <h2 className="text-lg font-bold text-[#252525] mb-2">
           Exceptions
         </h2>
         <p className="text-gray-600">
@@ -102,7 +102,7 @@ const ReschedulePolicy = () => {
       </section>
 
       <section className="mb-6">
-        <h2 className="text-lg font-semibold text-[#252525] mb-2">
+        <h2 className="text-lg font-bold text-[#252525] mb-2">
           Refund Policy for Reschedule Requests
         </h2>
         <p className="text-gray-600">
@@ -113,7 +113,7 @@ const ReschedulePolicy = () => {
       </section>
 
       <section className="mb-6">
-        <h2 className="text-lg font-semibold text-[#252525] mb-2">
+        <h2 className="text-lg font-bold text-[#252525] mb-2">
           Modification of Reschedule Policy
         </h2>
         <p className="text-gray-600">
