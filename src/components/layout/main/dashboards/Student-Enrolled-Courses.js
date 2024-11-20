@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import EnrollCoursesCard from "./EnrollCoursesCard";
 import reactImg from "@/assets/images/courses/React.jpeg";
 import hockey from "@/assets/images/courses/hockey.jpeg";
@@ -7,9 +7,13 @@ import os from "@/assets/images/courses/os.jpeg";
 import javascript from "@/assets/images/courses/javaScript.jpeg";
 import { useRouter } from "next/navigation";
 import { FaArrowLeft } from "react-icons/fa";
+import { apiUrls } from "@/apis";
+import useGetQuery from "@/hooks/getQuery.hook";
 
 const StudentEnrollCourses = () => {
   const router = useRouter();
+  const [enrollCourses, setEnrollCourses] = useState([]);
+  const { getQuery, loading } = useGetQuery();
 
   const courses = [
     {
@@ -69,6 +73,24 @@ const StudentEnrollCourses = () => {
       progress: 40,
     },
   ];
+  const studentId = localStorage.userId;
+
+  useEffect(() => {
+    getQuery({
+      url: `${apiUrls?.EnrollCourse?.getEnrolledCoursesByStudentId}/${studentId}`,
+      onSuccess: (data) => {
+        // Extract course data from the response
+        const courses = data
+          .map((enrollment) => enrollment.course_id);
+        setEnrollCourses(courses);
+        console.log(courses, "Extracted Course Data");
+      },
+      onFail: (error) => {
+        // Log the error or handle it
+        console.error("Failed to fetch enrolled courses:", error);
+      },
+    });
+  }, []);
 
   const handleCardClick = (id) => {
     router.push(`/dashboards/my-courses/${id}`);
@@ -93,14 +115,14 @@ const StudentEnrollCourses = () => {
         </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {courses.map((course) => (
+        {enrollCourses.map((course) => (
           <EnrollCoursesCard
-            key={course.id}
-            title={course.title}
-            image={course.image}
-            isLive={course.isLive}
-            progress={course.progress}
-            onClick={() => handleCardClick(course.id)}
+            key={course._id}
+            title={course.course_title}
+            image={course.course_image}
+            isLive={course.course_tag === "Live"}
+            progress={40}
+            onClick={() => handleCardClick(course._id)}
           />
         ))}
       </div>
