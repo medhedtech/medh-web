@@ -82,10 +82,6 @@ const CertificatePage = () => {
       <div className="w-full max-w-6xl dark:bg-inherit dark:border bg-white rounded-lg shadow-md p-8">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-semibold">Certificate</h2>
-          <button className="flex items-center text-gray-500 hover:text-gray-700">
-            <span className="mr-1">View all</span>
-            <FaChevronRight />
-          </button>
         </div>
 
         <h3 className="text-xl font-semibold mb-4">Issue Certificate</h3>

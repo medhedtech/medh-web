@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import React, { useEffect, useState } from "react";
 import ClassCard from "./ClassCard";
 import AiMl from "@/assets/images/courses/Ai&Ml.jpeg";
@@ -47,7 +47,16 @@ const UpcomigClasses = () => {
   useEffect(() => {
     const fetchCourses = () => {
       getQuery({
-        url: apiUrls?.courses?.getAllCoursesWithLimits(page,limit,'','','','Upcoming','',false),
+        url: apiUrls?.courses?.getAllCoursesWithLimits(
+          page,
+          limit,
+          "",
+          "",
+          "",
+          "Upcoming",
+          "",
+          false
+        ),
         onSuccess: (res) => {
           setCourses(res?.courses || []);
         },
@@ -80,7 +89,9 @@ const UpcomigClasses = () => {
             // instructor={classItem.instructor}
             dateTime={moment(classItem?.createdAt).format("DD/MM/YYYY")}
             // isLive={classItem.isLive}
-            image={AiMl}
+            // image={AiMl}
+            image={classItem.course_image || AiMl}
+            courseId={classItem._id}
           />
         ))}
       </div>
