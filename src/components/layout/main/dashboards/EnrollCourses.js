@@ -1,14 +1,18 @@
 "use client";
-import React from "react";
+import React, { useEffect,useState } from "react";
 import EnrollCoursesCard from "./EnrollCoursesCard";
 import reactImg from "@/assets/images/courses/React.jpeg";
 import hockey from "@/assets/images/courses/hockey.jpeg";
 import os from "@/assets/images/courses/os.jpeg";
 import javascript from "@/assets/images/courses/javaScript.jpeg";
 import { useRouter } from "next/navigation";
+import useGetQuery from "@/hooks/getQuery.hook";
+import { apiUrls } from "@/apis";
 
 const EnrollCourses = () => {
   const router = useRouter();
+  const [enrollCourses,setEnrollCourses] = useState();
+  const {getQuery,loading} = useGetQuery()
 
   const courses = [
     {
@@ -44,6 +48,16 @@ const EnrollCourses = () => {
   const handleCardClick = (id) => {
     router.push(`/dashboards/my-courses/${id}`);
   };
+
+
+  useEffect(() => {
+    getQuery({
+      url:`${apiUrls?.courses?.getEnrolledCoursesByStudentId}/67363564f444afc238133f6b`,
+      onSuccess:(data) => {
+        console.log(data,"NNNNNNHHHHHJHJ")
+      }
+    })
+  },[])
 
   return (
     <div className="container mx-auto mt-[-40px] p-8">

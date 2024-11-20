@@ -1,5 +1,5 @@
-export const apiBaseUrl = "https://medh-backend.vercel.app/api/v1";
-// export const apiBaseUrl = "http://localhost:8080/api/v1";
+// export const apiBaseUrl = "https://medh-backend.vercel.app/api/v1";
+export const apiBaseUrl = "http://localhost:8080/api/v1";
 
 export const apiUrls = {
   user: {
@@ -19,15 +19,17 @@ export const apiUrls = {
       course_tag,
       course_category,
       status,
-      search
+      search,
+      isFree
     ) =>
-      `/courses/getLimitedCourses?page=${page}&limit=${limit}&course_title=${course_title}&course_tag=${course_tag}&course_category=${course_category}&status=${status}&search=${search}`,
+      `/courses/getLimitedCourses?page=${page}&limit=${limit}&course_title=${course_title}&course_tag=${course_tag}&course_category=${course_category}&status=${status}&search=${search}&isFree=${isFree}`,
     getAllCourses: "/courses/get",
     getCourseById: "/courses/get",
     createCourse: "/courses/create",
     updateCourse: "/courses/update/:id",
     deleteCourse: "/courses/delete",
     getCourseNames: "/courses/course-names",
+    getEnrolledCoursesByStudentId:"/enroll/student"
   },
   upload: {
     uploadImage: "/upload/uploadImage",
@@ -85,17 +87,16 @@ export const apiUrls = {
     addPlacements: "/placements/",
   },
   quzies: {
-    getQuizes: "",
+    getQuizes: "/quizes",
   },
   assignments: {
-    getAssignments: "",
+    getAssignments: "/assignments",
   },
   feedbacks: {
     createFeedback: "/feedback/",
     createComplaint: "/complaint/",
   },
   resources: {},
-  assignments: {},
   categories: {
     getAllCategories: "/categories/getAll",
     getCategoriesById: "/categories/get/:id",
