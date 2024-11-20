@@ -1,16 +1,20 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import CourseCard from "./CourseCard";
 import reactImg from "@/assets/images/courses/React.jpeg";
 import os from "@/assets/images/courses/os.jpeg";
 import javascript from "@/assets/images/courses/javaScript.jpeg";
 import AiMl from "@/assets/images/courses/Ai&Ml.jpeg";
 import { useRouter } from "next/navigation";
+import { apiUrls } from "@/apis";
+import useGetQuery from "@/hooks/getQuery.hook";
 
 const NewCourses = () => {
   const router = useRouter();
+  const [courses, setCourses] = useState([]);
+  const { getQuery, loading } = useGetQuery();
 
-  const courses = [
+  const courses1 = [
     {
       id: 1,
       title: "AI & ML Masterclasses",
@@ -44,6 +48,25 @@ const NewCourses = () => {
       image: javascript,
     },
   ];
+
+  const [limit] = useState(4);
+  const [page] = useState(1);
+
+  useEffect(() => {
+    const fetchCourses = () => {
+      getQuery({
+        url: apiUrls?.courses?.getAllCoursesWithLimits(page,limit,'','','','Upcoming','',true),
+        onSuccess: (res) => {
+          setCourses(res?.courses || []);
+          console.log("fetched: ", res?.courses)
+        },
+        onFail: (err) => {
+          console.error("Error fetching courses:", err);
+        },
+      });
+    };
+    fetchCourses();
+  }, [page, limit]);
 
   const handleCardClick = (id) => {
     router.push(`/dashboards/my-courses/${id}`);
@@ -126,7 +149,10 @@ const NewCourses = () => {
           </div>
         </div>
         <div>
-          <a href="/dashboards/student-enroll-new-courses" className="text-primaryColor hover:underline">
+          <a
+            href="/dashboards/student-enroll-new-courses"
+            className="text-primaryColor hover:underline"
+          >
             View All
           </a>
         </div>
@@ -134,9 +160,9 @@ const NewCourses = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {courses.map((course) => (
           <CourseCard
-            key={course.id}
+            key={course._id}
             {...course}
-            onClick={() => handleCardClick(course.id)}
+            onClick={() => handleCardClick(course._id)}
           />
         ))}
       </div>
