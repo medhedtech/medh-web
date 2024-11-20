@@ -65,6 +65,7 @@ const StudentUpcomigClasses = () => {
             dateTime={moment(classItem?.createdAt).format("DD/MM/YYYY")}
             // isLive={classItem.isLive}
             image={AiMl}
+            courseId={classItem._id}
           />
         ))}
       </div>
