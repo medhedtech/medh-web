@@ -103,13 +103,14 @@ const StudentEnrolledCourses = () => {
   const { getQuery } = useGetQuery();
 
   useEffect(() => {
-    fetchStudents();
+    fetchEntrolledCourses();
   }, []);
 
-  const fetchStudents = async () => {
+  const fetchEntrolledCourses = async () => {
+    const studentId = localStorage.getItem("userId");
     try {
       await getQuery({
-        url: apiUrls?.Students?.getAllStudents,
+        url: `apiUrls?.EnrollCourse?.getEnrolledCourseById/${studentId}`,
         onSuccess: (response) => {
           if (response.success) {
             setStudents(response.data);
