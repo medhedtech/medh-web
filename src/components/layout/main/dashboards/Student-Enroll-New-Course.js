@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import reactImg from "@/assets/images/courses/React.jpeg";
 import os from "@/assets/images/courses/os.jpeg";
 import javascript from "@/assets/images/courses/javaScript.jpeg";
@@ -7,11 +7,16 @@ import AiMl from "@/assets/images/courses/Ai&Ml.jpeg";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { FaArrowLeft } from "react-icons/fa";
+import useGetQuery from "@/hooks/getQuery.hook";
+import { apiUrls } from "@/apis";
+import CourseCard from "@/components/shared/dashboards/CourseCard";
 
 const StudentNewCourses = () => {
   const router = useRouter();
+  const [courses, setCourses] = useState([]);
+  const { getQuery, loading } = useGetQuery();
 
-  const courses = [
+  const courses1 = [
     {
       id: 1,
       title: "AI & ML Masterclasses",
@@ -78,6 +83,34 @@ const StudentNewCourses = () => {
     },
   ];
 
+  const [limit] = useState(20);
+  const [page] = useState(1);
+
+  useEffect(() => {
+    const fetchCourses = () => {
+      getQuery({
+        url: apiUrls?.courses?.getAllCoursesWithLimits(
+          page,
+          limit,
+          "",
+          "",
+          "",
+          "Upcoming",
+          "",
+          true
+        ),
+        onSuccess: (res) => {
+          setCourses(res?.courses || []);
+          console.log("fetched: ", res?.courses);
+        },
+        onFail: (err) => {
+          console.error("Error fetching courses:", err);
+        },
+      });
+    };
+    fetchCourses();
+  }, [page, limit]);
+
   const handleCardClick = (id) => {
     router.push(`/dashboards/my-courses/${id}`);
   };
@@ -87,17 +120,17 @@ const StudentNewCourses = () => {
       <div className="flex justify-between">
         <div className="flex gap-4 mb-4">
           <div className="flex justify-between items-center mb-4">
-          <div
-          onClick={() => {
-            router.push("/dashboards/student-dashboard");
-          }}
-          className="flex items-center gap-2"
-        >
-          <FaArrowLeft
-            className="cursor-pointer text-gray-700 mr-2 dark:text-white"
-            size={20}
-          />
-          </div>
+            <div
+              onClick={() => {
+                router.push("/dashboards/student-dashboard");
+              }}
+              className="flex items-center gap-2"
+            >
+              <FaArrowLeft
+                className="cursor-pointer text-gray-700 mr-2 dark:text-white"
+                size={20}
+              />
+            </div>
             <h2 className="text-3xl dark:text-white">Enroll in New Course</h2>
           </div>
           <div className="flex gap-7 mb-4 ">
@@ -170,33 +203,40 @@ const StudentNewCourses = () => {
 
       {/* Display Courses */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {courses.map((course) => (
+        {/* {courses.map((course) => (
           <div
-            key={course.id}
+            key={course._id}
             className="border border-[#BDB7B7] rounded-lg overflow-hidden cursor-pointer"
-            onClick={() => handleCardClick(course.id)}
+            onClick={() => handleCardClick(course._id)}
           >
             <Image
               width={200}
               height={200}
-              src={course.image}
-              alt={course.title}
+              src={course.course_image}
+              alt={course.course_title}
               className="w-full h-48 object-cover"
             />
             <div className="p-4">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
-                {course.title}
+                {course.course_title}
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
-                Instructor: {course.instructor}
+                Instructor: {course.course_instructor}
               </p>
               <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-300">
-                <span className="flex items-center gap-1">{course.rating}</span>
+                <span className="flex items-center gap-1">{course.course_rating}</span>
                 <span className="text-yellow-500"> ⭐⭐⭐⭐</span>
-                <span>{course.reviews}</span>
+                <span>{course.course_reviews}</span>
               </div>
             </div>
           </div>
+        ))} */}
+        {courses.map((course) => (
+          <CourseCard
+            key={course._id}
+            {...course}
+            onClick={() => handleCardClick(course._id)}
+          />
         ))}
       </div>
     </div>
