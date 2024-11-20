@@ -28,7 +28,7 @@ const NavItems = () => {
       id: 3,
       name: "Hire From Medh",
       path: "/hire-from-medh",
-      dropdown: <DropdownDashboard />,
+      // dropdown: <DropdownDashboard />,
       isRelative: true,
     },
 
