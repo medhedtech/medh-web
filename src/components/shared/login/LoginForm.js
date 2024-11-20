@@ -12,6 +12,7 @@ import lock from "@/assets/images/log-sign/lock.svg";
 import Email from "@/assets/images/log-sign/Email.svg";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
+import { jwtDecode } from "jwt-decode";
 
 const schema = yup
   .object({
@@ -42,8 +43,15 @@ const LoginForm = () => {
         password: data.password,
       },
       onSuccess: (res) => {
-        router.push("/dashboards/admin-dashboard");
+        const decoded = jwtDecode(res.token);
+        const userRole = decoded.user.role[0];
         localStorage.setItem("token", res.token);
+        if (userRole === 'admin' || userRole === 'instructor' || userRole === 'student') {
+          router.push(`/dashboards/${userRole}-dashboard`);
+        } else {
+          // Default case if the role doesn't match any predefined roles
+          router.push('/')
+        }
         toast.success("Login successful!");
       },
       onFail: (error) => {
