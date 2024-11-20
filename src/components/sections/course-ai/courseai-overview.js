@@ -97,7 +97,7 @@ const CourseAiOverview = () => {
             Science with MEDH.
           </h1>
           <p className="text-center md:text-[15px] text-[14px] leading-6 md:leading-7 md:w-[70%] text-[#727695] dark:text-gray-300">
-            Medh’s Artificial Intelligence and Data Science course combines
+            Medh&#39;s Artificial Intelligence and Data Science course combines
             advanced AI techniques and technologies with the principles of Data
             Science.
             <br />
