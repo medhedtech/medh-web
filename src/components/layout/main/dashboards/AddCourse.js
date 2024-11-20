@@ -494,7 +494,7 @@ const AddCourse = () => {
             {/* Thumbnail Image Upload */}
             <div>
               <p className="font-semibold mb-2 text-left text-2xl">
-                Upload Image
+                Add Image
               </p>
               <div className="border-dashed border-2 dark:bg-inherit bg-purple border-gray-300 rounded-lg p-3 w-[210px] h-[140px] text-center relative">
                 <svg
