@@ -1,5 +1,7 @@
-import React from "react";
+"use client";
+import React, { useRef } from "react";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function MainBanner({
   bannerImage,
@@ -17,12 +19,21 @@ export default function MainBanner({
   isoTextColor,
   subheadingColor,
 }) {
+  const sectionRef = useRef(null);
+  const handleScrollToSection = () => {
+    if (sectionRef.current) {
+      sectionRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  };
   return (
     <div className="bg-black h-full text-white w-full relative flex justify-center  border-black py-10 md:py-0">
       {/* Banner Image (hidden on small screens) */}
       <div className="relative w-full h-[350px] md:h-[500px] hidden lg:block">
         <Image
-          src={bannerImage} // Dynamic banner image
+          src={bannerImage}
           alt="Banner Image"
           layout="fill"
           objectFit="cover"
@@ -65,20 +76,27 @@ export default function MainBanner({
                 {description} {/* Dynamic description */}
               </p>
               <div className="flex">
-                <button className="flex items-center bg-white md:text-[15px] text-[10px] text-primaryColor font-bold px-2 py-1 md:px-4 md:py-2 mt-6">
-                  <Image
-                    src={buttonImage} // Dynamic button image
-                    alt="Button Icon"
-                    className="md:w-[28px] w-[18px] lg:h-[28px] h-[20px] lg:mr-4 mr-2"
-                  />
-                  {buttonText}
-                </button>
-                <p
-                  className="border-b-2 border-gray-500 mt-10 ml-3 text-[12px] md:text-[15px]"
-                  style={{ color: isoTextColor }}
-                >
-                  {isoText}
-                </p>
+                <Link href="#enroll-section" passHref>
+                  <button
+                    onClick={handleScrollToSection}
+                    className="flex items-center bg-white md:text-[15px] text-[10px] text-primaryColor font-bold px-2 py-1 md:px-4 md:py-2 mt-6"
+                  >
+                    <Image
+                      src={buttonImage} // Dynamic button image
+                      alt="Button Icon"
+                      className="md:w-[28px] w-[18px] lg:h-[28px] h-[20px] lg:mr-4 mr-2"
+                    />
+                    {buttonText}
+                  </button>
+                </Link>
+                <Link href="#courses-section" passHref>
+                  <p
+                    className="border-b-2 border-gray-500 mt-10 ml-3 text-[12px] md:text-[15px]"
+                    style={{ color: isoTextColor }}
+                  >
+                    {isoText}
+                  </p>
+                </Link>
               </div>
             </div>
           </div>

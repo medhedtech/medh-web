@@ -19,8 +19,7 @@ export const apiUrls = {
       course_tag,
       course_category,
       status,
-      search,
-      
+      search
     ) =>
       `/courses/getLimitedCourses?page=${page}&limit=${limit}&course_title=${course_title}&course_tag=${course_tag}&course_category=${course_category}&status=${status}&search=${search}`,
     getAllCourses: "/courses/get",
@@ -65,6 +64,13 @@ export const apiUrls = {
     createContact: "/contact/create",
     updateContact: "/contact/update/:id",
     deleteContact: "/contact/delete",
+  },
+  enrollWebsiteform: {
+    createEnrollWebsiteForm: "/enroll-form/create",
+    getAllEnrollWebsiteForms: "/enroll-form/getAll",
+    getEnrollWebsiteFormById: "/enroll-form/get/:id",
+    updateEnrollWebsiteForm: "/enroll-form/update/:id",
+    deleteEnrollWebsiteForm: "/enroll-form/delete",
   },
   Blogs: {
     getAllBlogs: "/blogs/get",
