@@ -934,7 +934,7 @@ const SidebarDashboard = () => {
         // },
         {
           name: "Assignments & Quizzes",
-          path: "/dashboards/student-quize",
+          path: "/dashboards/student-quiz",
           icon: (
             <svg
               width="16"
