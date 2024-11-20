@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import reactImg from "@/assets/images/courses/React.jpeg";
 import os from "@/assets/images/courses/os.jpeg";
 import javascript from "@/assets/images/courses/javaScript.jpeg";
@@ -7,76 +7,34 @@ import AiMl from "@/assets/images/courses/Ai&Ml.jpeg";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { FaArrowLeft } from "react-icons/fa";
+import useGetQuery from "@/hooks/getQuery.hook";
+import { apiUrls } from "@/apis";
+import CourseCard from "@/components/shared/dashboards/CourseCard";
+
 
 const StundentFreeCourses = () => {
   const router = useRouter();
 
-  const courses = [
-    {
-      id: 1,
-      title: "AI & ML Masterclasses",
-      instructor: "Sayef Mamud, PixelCo",
-      rating: 4.0,
-      reviews: 4051,
-      image: reactImg,
-    },
-    {
-      id: 2,
-      title: "React Masterclasses",
-      instructor: "Sayef Mamud, PixelCo",
-      rating: 4.0,
-      reviews: 4051,
-      image: AiMl,
-    },
-    {
-      id: 3,
-      title: "OS Masterclasses",
-      instructor: "Sayef Mamud, PixelCo",
-      rating: 4.0,
-      reviews: 4051,
-      image: os,
-    },
-    {
-      id: 4,
-      title: "JavaScript Masterclasses",
-      instructor: "Sayef Mamud, PixelCo",
-      rating: 4.0,
-      reviews: 4051,
-      image: javascript,
-    },
-    {
-      id: 5,
-      title: "AI & ML Masterclasses",
-      instructor: "Sayef Mamud, PixelCo",
-      rating: 4.0,
-      reviews: 4051,
-      image: os,
-    },
-    {
-      id: 6,
-      title: "React Masterclasses",
-      instructor: "Sayef Mamud, PixelCo",
-      rating: 4.0,
-      reviews: 4051,
-      image: javascript,
-    },
-    {
-      id: 7,
-      title: "OS Masterclasses",
-      instructor: "Sayef Mamud, PixelCo",
-      rating: 4.0,
-      reviews: 4051,
-      image: os,
-    },
-    {
-      id: 8,
-      title: "JavaScript Masterclasses",
-      instructor: "Sayef Mamud, PixelCo",
-      rating: 4.0,
-      reviews: 4051,
-      image: javascript,
-    },
-  ];
+  const [freeCourses, setFreeCourses] = useState([]);
+  const { getQuery } = useGetQuery();
+  const [limit] = useState(20);
+  const [page] = useState(1);
+
+  useEffect(() => {
+    const fetchCourses = () => {
+      getQuery({
+        url: apiUrls?.courses?.getAllCoursesWithLimits(page,limit,'','','','Upcoming','',true),
+        onSuccess: (res) => {
+          setFreeCourses(res?.courses || []);
+          console.log("fetched: ", res?.courses)
+        },
+        onFail: (err) => {
+          console.error("Error fetching courses:", err);
+        },
+      });
+    };
+    fetchCourses();
+  }, [page, limit]);
 
   const handleCardClick = (id) => {
     router.push(`/dashboards/my-courses/${id}`);
@@ -105,33 +63,13 @@ const StundentFreeCourses = () => {
 
       {/* Display Courses */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {courses.map((course) => (
-          <div
-            key={course.id}
-            className="border border-[#BDB7B7] rounded-lg overflow-hidden cursor-pointer"
+        {freeCourses?.map((course) => (
+          <CourseCard
+            // title={}
+            key={course?._id}
+            {...course}
             onClick={() => handleCardClick(course.id)}
-          >
-            <Image
-              width={200}
-              height={200}
-              src={course.image}
-              alt={course.title}
-              className="w-full h-48 object-cover"
-            />
-            <div className="p-4">
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
-                {course.title}
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
-                Instructor: {course.instructor}
-              </p>
-              <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-300">
-                <span className="flex items-center gap-1">{course.rating}</span>
-                <span className="text-yellow-500"> ⭐⭐⭐⭐</span>
-                <span>{course.reviews}</span>
-              </div>
-            </div>
-          </div>
+          />
         ))}
       </div>
     </div>
