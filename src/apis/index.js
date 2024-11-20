@@ -1,5 +1,5 @@
-// export const apiBaseUrl = "https://medh-backend.vercel.app/api/v1";
-export const apiBaseUrl = "http://localhost:8080/api/v1";
+export const apiBaseUrl = "https://medh-backend.vercel.app/api/v1";
+// export const apiBaseUrl = "http://localhost:8080/api/v1";
 
 export const apiUrls = {
   user: {
@@ -19,10 +19,9 @@ export const apiUrls = {
       course_tag,
       course_category,
       status,
-      search,
-      isFree
+      search
     ) =>
-      `/courses/getLimitedCourses?page=${page}&limit=${limit}&course_title=${course_title}&course_tag=${course_tag}&course_category=${course_category}&status=${status}&search=${search}&isFree=${isFree}`,
+      `/courses/getLimitedCourses?page=${page}&limit=${limit}&course_title=${course_title}&course_tag=${course_tag}&course_category=${course_category}&status=${status}&search=${search}`,
     getAllCourses: "/courses/get",
     getCourseById: "/courses/get",
     createCourse: "/courses/create",
@@ -66,6 +65,13 @@ export const apiUrls = {
     updateContact: "/contact/update/:id",
     deleteContact: "/contact/delete",
   },
+  enrollWebsiteform: {
+    createEnrollWebsiteForm: "/enroll-form/create",
+    getAllEnrollWebsiteForms: "/enroll-form/getAll",
+    getEnrollWebsiteFormById: "/enroll-form/get/:id",
+    updateEnrollWebsiteForm: "/enroll-form/update/:id",
+    deleteEnrollWebsiteForm: "/enroll-form/delete",
+  },
   Blogs: {
     getAllBlogs: "/blogs/get",
     getBlogById: "/blogs/get/:id",
@@ -107,5 +113,6 @@ export const apiUrls = {
   EnrollCourse: {
     enrollCourse: "/enroll/create",
     getEnrolledCourse: "/enroll/get",
+    getEnrolledCourseById: "/enroll/get",
   },
 };

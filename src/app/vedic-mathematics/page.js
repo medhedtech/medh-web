@@ -7,6 +7,7 @@ import VedicFaq from "@/components/sections/vedic-mathematics/vedicFaq";
 import VedicCourceBanner from "@/components/sections/vedic-mathematics/vedicCourseBanner";
 import ThemeController from "@/components/shared/others/ThemeController";
 import VedicRalatedCource from "@/components/sections/vedic-mathematics/vedicRalatedCource";
+import ExploreJourney from "@/components/sections/explore-journey/Enroll-Form";
 
 function VedicMathematics() {
   return (
@@ -14,6 +15,10 @@ function VedicMathematics() {
       <VedicBanner />
       <VedicOverview />
       <VedicCource />
+      <ExploreJourney
+        mainText="Discover the Art of Quick Problem-Solving. Turn Math Fear into Math Fun."
+        subText="Enroll in Vedic Math Course Today!"
+      />
       <VedicFaq />
       <VedicCourceBanner />
       <VedicRalatedCource />

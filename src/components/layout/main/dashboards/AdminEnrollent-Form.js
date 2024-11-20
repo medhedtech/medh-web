@@ -15,43 +15,42 @@ const formatDate = (date) => {
   return `${day}-${month}-${year}`;
 };
 
-export default function GetInTouch() {
-  const [courses, setCourses] = useState([]);
+export default function EnrollmentFormsAdmin() {
+  const [enrollments, setEnrollments] = useState([]);
   const { getQuery, loading } = useGetQuery();
   const { deleteQuery } = useDeleteQuery();
 
-  // Fetch courses from API
-  const fetchContacts = async () => {
+  // Fetch enrollments from API
+  const fetchEnrollments = async () => {
     await getQuery({
-      url: apiUrls?.Contacts?.getAllContacts,
+      url: apiUrls?.enrollWebsiteform?.getAllEnrollWebsiteForms,
       onSuccess: (response) => {
-        console.log("Contacts fetched successfully:", response);
         if (response?.success && Array.isArray(response.data)) {
-          setCourses(response.data);
+          setEnrollments(response.data);
         } else {
-          console.error(
-            "Fetched data is not valid. Setting courses to empty array."
+          console.log(
+            "Fetched data is not valid. Setting enrollments to empty array."
           );
-          setCourses([]);
+          setEnrollments([]);
         }
       },
-      onFail: (err) => {
-        console.error("Failed to fetch contacts:", err);
-        setCourses([]);
+      onFail: () => {
+        console.log("Failed to fetch contacts:");
+        setEnrollments([]);
       },
     });
   };
 
   useEffect(() => {
-    fetchContacts();
+    fetchEnrollments();
   }, []);
 
   const deleteGetInTouch = (id) => {
     deleteQuery({
-      url: `${apiUrls?.Contacts?.deleteContact}/${id}`,
+      url: `${apiUrls?.enrollWebsiteform?.deleteEnrollWebsiteForm}/${id}`,
       onSuccess: (res) => {
         toast.success(res?.message);
-        fetchContacts();
+        fetchEnrollments();
       },
       onFail: (res) => {
         console.log(res, "FAILED");
@@ -64,6 +63,8 @@ export default function GetInTouch() {
     { Header: "Email", accessor: "email" },
     { Header: "Country", accessor: "country" },
     { Header: "Phone", accessor: "phone_number" },
+    { Header: "Course Category", accessor: "course_category" },
+    { Header: "Course Type", accessor: "course_type" },
     { Header: "Message", accessor: "message" },
     {
       Header: "Date",
@@ -97,12 +98,12 @@ export default function GetInTouch() {
     <div className="bg-gray-100 dark:bg-inherit dark:text-white font-Poppins min-h-screen pt-8 p-6">
       <div className="max-w-6xl dark:bg-inherit dark:text-white  mx-auto bg-white rounded-lg shadow-lg p-6">
         <header className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-semibold">Get In Touch</h1>
+          <h1 className="text-xl font-semibold">Enrollments</h1>
         </header>
         <MyTable
           columns={columns}
-          data={courses}
-          entryText="Total no. of courses: "
+          data={enrollments}
+          entryText="Total no. of enrollments: "
         />
       </div>
     </div>

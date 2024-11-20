@@ -41,7 +41,7 @@ function PersonalityFaq() {
   ];
 
   return (
-    <div className="bg-white dark:bg-screen-dark text-lightGrey14 dark:text-gray300 flex justify-center items-center flex-col py-4">
+    <div className="bg-white pt-4 sm:pt-12 dark:bg-screen-dark text-lightGrey14 dark:text-gray300 flex justify-center items-center flex-col py-4">
       <div className="md:w-[80%] w-[90%]">
         <h2 className="md:text-3xl text-[22px] font-bold mb-4 text-center text-[#5C6574] dark:text-gray50">
           Frequently Asked Questions (FAQs)
