@@ -50,6 +50,7 @@ const AddCourse = () => {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [courseVideo, setCourseVideo] = useState(null);
   const [pdfBrochure, setPdfBrochure] = useState(null);
+  const [thumbnailImage, setThumbnailImage] = useState(null);
   const { postQuery, loading } = usePostQuery();
   const [courseData, setCourseData] = useState(null);
 
@@ -129,6 +130,36 @@ const AddCourse = () => {
     }
   };
 
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      try {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = async () => {
+          const base64 = reader.result.split(",")[1];
+          const postData = { base64String: base64, fileType: "image" };
+
+          await postQuery({
+            url: apiUrls?.upload?.uploadImage,
+            postData,
+            onSuccess: (data) => {
+              setThumbnailImage(data?.data);
+              setValue("upload_image", data?.data);
+              console.log("Image uploaded successfully:", data?.data);
+            },
+            onError: (error) => {
+              toast.error("Image upload failed. Please try again.");
+              console.error("Upload error:", error);
+            },
+          });
+        };
+      } catch (error) {
+        console.error("Error uploading Image:", error);
+      }
+    }
+  };
+
   // // Handle form submission
   // const onSubmit = async (data) => {
   //   try {
@@ -163,6 +194,7 @@ const AddCourse = () => {
         ...data,
         course_videos: courseVideo ? [courseVideo] : [],
         brochures: pdfBrochure ? [pdfBrochure] : [],
+        course_image: thumbnailImage,
       };
 
       // Save data to localStorage
@@ -416,7 +448,7 @@ const AddCourse = () => {
                 />
                 {courseVideo && (
                   <p className="mt-1 text-xs text-gray-500">
-                    Uploaded: {courseVideo.name}
+                     ✔ Uploaded
                   </p>
                 )}
               </div>
@@ -453,7 +485,44 @@ const AddCourse = () => {
                 />
                 {pdfBrochure && (
                   <p className="mt-1 text-xs text-gray-500">
-                    Uploaded: {pdfBrochure.name}
+                   ✔ Uploaded
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Thumbnail Image Upload */}
+            <div>
+              <p className="font-semibold mb-2 text-left text-2xl">
+                Upload Image
+              </p>
+              <div className="border-dashed border-2 dark:bg-inherit bg-purple border-gray-300 rounded-lg p-3 w-[210px] h-[140px] text-center relative">
+                <svg
+                  width="36"
+                  height="36"
+                  viewBox="0 0 48 48"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="mt-2 mx-auto"
+                >
+                  <path
+                    d="M8 40C6.9 40 5.95867 39.6087 5.176 38.826C4.39333 38.0433 4.00133 37.1013 4 36V22C4.86667 22.6667 5.81667 23.1667 6.85 23.5C7.88333 23.8333 8.93333 24 10 24C12.7667 24 15.1253 23.0247 17.076 21.074C19.0267 19.1233 20.0013 16.7653 20 14C20 12.9333 19.8333 11.8833 19.5 10.85C19.1667 9.81667 18.6667 8.86667 18 8H32C33.1 8 34.042 8.392 34.826 9.176C35.61 9.96 36.0013 10.9013 36 12V21L44 13V35L36 27V36C36 37.1 35.6087 38.042 34.826 38.826C34.0433 39.61 33.1013 40.0013 32 40H8ZM8 20V16H4V12H8V8H12V12H16V16H12V20H8ZM10 32H30L23.25 23L18 30L14.75 25.65L10 32Z"
+                    fill="#808080"
+                  />
+                </svg>
+                <p className="text-customGreen cursor-pointer text-sm">
+                  Click to upload thumbnail
+                </p>
+                <p className="text-gray-400 text-xs">or drag & drop the file</p>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="absolute inset-0 opacity-0 cursor-pointer"
+                  onChange={handleImageUpload}
+                />
+                {thumbnailImage && (
+                  <p className="mt-1 text-xs text-gray-500">
+                   ✔ Uploaded
                   </p>
                 )}
               </div>
