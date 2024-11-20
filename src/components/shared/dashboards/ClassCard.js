@@ -1,8 +1,46 @@
 // components/ClassCard.js
 import React from "react";
 import Image from "next/image";
+import usePostQuery from "@/hooks/postQuery.hook";
+import { apiUrls } from "@/apis";
+import { toast } from "react-toastify";
 
-const ClassCard = ({ title, instructor, dateTime, isLive, image }) => {
+const ClassCard = ({
+  title,
+  instructor,
+  dateTime,
+  isLive,
+  image,
+  courseId,
+}) => {
+  const { postQuery } = usePostQuery();
+
+  const handleEnrollCourse = async () => {
+    try {
+      const studentId = localStorage.getItem("userId");
+      if (!studentId) {
+        toast.error("Please log in to join classes.");
+        return;
+      }
+      await postQuery({
+        url: apiUrls?.EnrollCourse?.enrollCourse,
+        postData: {
+          student_id: studentId,
+          course_id: courseId,
+        },
+        onSuccess: () => {
+          toast.success("Hurray ! You are enrolled successfully.");
+        },
+        onFail: () => {
+          toast.error("Error enrolling in the course. Please try again.");
+        },
+      });
+    } catch (error) {
+      console.error("An error occurred:", error);
+      toast.error("An unexpected error occurred. Please try again.");
+    }
+  };
+
   return (
     <div className="relative">
       {isLive && (
@@ -23,7 +61,10 @@ const ClassCard = ({ title, instructor, dateTime, isLive, image }) => {
           <h3 className="text-base font-Open text-[#282F3E]">{title}</h3>
           <p className="text-xs text-[#585D69]">{instructor}</p>
           <p className="text-xs text-[#888C94] mt-2">{dateTime}</p>
-          <button className="mt-4 w-fit px-4 bg-primaryColor text-white font-semibold rounded-xl hover:bg-green-600">
+          <button
+            onClick={handleEnrollCourse}
+            className="mt-4 w-fit px-4 bg-primaryColor text-white font-semibold rounded-xl hover:bg-green-600"
+          >
             Join
           </button>
         </div>
