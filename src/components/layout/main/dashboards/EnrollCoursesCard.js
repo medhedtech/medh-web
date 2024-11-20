@@ -1,7 +1,9 @@
 import React from "react";
 import Image from "next/image";
+import AiMl from "@/assets/images/courses/Ai&Ml.jpeg";
 
 const EnrollCoursesCard = ({ title, image, isLive, progress, onClick }) => {
+  const displayImage = image || AiMl
   return (
     <div
       onClick={onClick}
@@ -17,7 +19,7 @@ const EnrollCoursesCard = ({ title, image, isLive, progress, onClick }) => {
       {/* Course Image */}
       <div className="w-full h-48">
         <Image
-          src={image}
+          src={displayImage}
           alt={title}
           className="w-full h-full object-cover rounded-lg"
         />
