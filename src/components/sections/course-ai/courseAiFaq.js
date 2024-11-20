@@ -60,15 +60,15 @@ function CourseAiFaq() {
   ];
 
   return (
-    <div className="bg-white dark:bg-screen-dark text-lightGrey14 dark:text-gray300 flex justify-center items-center flex-col py-4">
+    <div className="bg-white pt-4 sm:pt-12 dark:bg-screen-dark text-lightGrey14 dark:text-gray300 flex justify-center items-center flex-col py-4">
       <div className="md:w-[80%] w-[90%]">
         <h2 className="md:text-3xl text-[22px] font-bold mb-4 text-center text-[#5C6574] dark:text-gray-100">
           Frequently Asked Questions (FAQs)
         </h2>
         <p className="text-center md:text-[15px] text-[14px] mb-8 md:px-14 px-3">
-          Find answers to common questions about MEDH&#39;s Personality Development
-          Course. Learn about course structure, prerequisites, career prospects,
-          and more.
+          Find answers to common questions about MEDH&#39;s Personality
+          Development Course. Learn about course structure, prerequisites,
+          career prospects, and more.
         </p>
         <div className="space-y-4">
           {faqs.map((faq, index) => (
@@ -82,10 +82,15 @@ function CourseAiFaq() {
                 </h3>
                 <span className="md:text-[15px] text-[14px]">
                   {openIndex === index ? (
-                    <i class="icofont-caret-down" style={{ fontSize: '20px'  }}></i>
-                   
+                    <i
+                      class="icofont-caret-down"
+                      style={{ fontSize: "20px" }}
+                    ></i>
                   ) : (
-                    <i class="icofont-caret-right" style={{ fontSize: '20px' }}></i>
+                    <i
+                      class="icofont-caret-right"
+                      style={{ fontSize: "20px" }}
+                    ></i>
                   )}
                 </span>
               </div>

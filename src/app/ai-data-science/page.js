@@ -8,6 +8,7 @@ import Registration from "@/components/sections/registrations/Registration";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import ThemeController from "@/components/shared/others/ThemeController";
 import React from "react";
+import ExploreJourney from "@/components/sections/explore-journey/Enroll-Form";
 
 function CouseAi() {
   return (
@@ -15,11 +16,15 @@ function CouseAi() {
       <CourseAiBanner />
       <CourseAiOverview />
       <CourseOptions />
-      <Registration />
+      {/* <Registration /> */}
+      <ExploreJourney 
+        mainText="Transform Your Career. Explore Your Journey in AI and Data Science."
+        subText="Enroll Now !"
+      />
       <CourseAiFaq />
       <CourseAiCourseBanner />
       <CourseAiRelatedCourses />
-      <ThemeController/>
+      <ThemeController />
     </PageWrapper>
   );
 }
