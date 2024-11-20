@@ -106,7 +106,8 @@ export const apiUrls = {
   },
   EnrollCourse: {
     enrollCourse: "/enroll/create",
-    getEnrolledCourse: "/enroll/get",
+    getEnrolledCourse: "/enroll/getAll",
     getEnrolledCourseById: "/enroll/get",
+    getEnrolledCoursesByStudentId: "/enroll/student"
   },
 };
