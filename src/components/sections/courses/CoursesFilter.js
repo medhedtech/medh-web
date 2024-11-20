@@ -233,6 +233,7 @@ const CoursesFilter = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
+  const [sortOrder, setSortOrder] = useState("A-Z");
   const { getQuery, loading } = useGetQuery();
 
   // Fetch courses from API
@@ -277,12 +278,30 @@ const CoursesFilter = () => {
           course.course_title.toLowerCase() === selectedCategory.toLowerCase()
       );
     }
+    // Sorting the filtered courses based on the selected sort order
+    if (sortOrder === "A-Z") {
+      filtered = filtered.sort((a, b) => {
+        if (a.course_title.toLowerCase() < b.course_title.toLowerCase())
+          return -1;
+        if (a.course_title.toLowerCase() > b.course_title.toLowerCase())
+          return 1;
+        return 0;
+      });
+    } else if (sortOrder === "Z-A") {
+      filtered = filtered.sort((a, b) => {
+        if (a.course_title.toLowerCase() < b.course_title.toLowerCase())
+          return 1;
+        if (a.course_title.toLowerCase() > b.course_title.toLowerCase())
+          return -1;
+        return 0;
+      });
+    }
     setFilteredCourses(filtered);
   };
 
   useEffect(() => {
     fetchCourses();
-  }, [currentPage, searchTerm, selectedCategory]);
+  }, [currentPage, searchTerm, selectedCategory, sortOrder]);
 
   useEffect(() => {
     applyFilters();
@@ -294,6 +313,10 @@ const CoursesFilter = () => {
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
+  };
+
+  const handleSortChange = (e) => {
+    setSortOrder(e.target.value);
   };
 
   return (
@@ -319,16 +342,26 @@ const CoursesFilter = () => {
               </button>
             </div>
           </div>
-
-          {/* Search and Filter Section */}
-          <div className="flex flex-col md:flex-row justify-between mt-10">
-            <input
-              type="text"
-              placeholder="Search by category ......"
-              value={searchTerm}
-              onChange={handleSearch}
-              className="border rounded-md p-2 w-full md:w-[20%] dark:bg-[#0C0E2B]"
-            />
+          <div className="flex flex-col md:flex-row justify-between items-center mb-12 space-y-4 md:space-y-10">
+            <div className="flex items-center mt-8 border border-[#CDCFD5] px-3 py-2 rounded-md w-full md:w-[50%] lg:w-[25%]">
+              <input
+                type="text"
+                placeholder="Search by category ......"
+                value={searchTerm}
+                onChange={handleSearch}
+                className="outline-none ml-2 w-full dark:bg-screen-dark dark:text-gray50"
+              />
+            </div>
+            <div className="border border-[#CDCFD5] px-2 py-2 rounded-md w-full md:w-auto">
+              <select
+                className="w-full outline-none dark:bg-screen-dark"
+                value={sortOrder}
+                onChange={handleSortChange}
+              >
+                <option value="A-Z">Program Title (A-Z)</option>
+                <option value="Z-A">Program Title (Z-A)</option>
+              </select>
+            </div>
           </div>
 
           <div className="flex flex-col md:flex-row mt-6">
@@ -343,45 +376,28 @@ const CoursesFilter = () => {
                 setSelectedCategory={setSelectedCategory}
               />
             </div>
-
-            {/* Courses Section */}
-            {/* <div className="w-full md:w-[70%] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {loading ? (
-                <div className="col-span-full text-center">
-                  <Preloader />
-                </div>
-              ) : filteredCourses.length > 0 ? (
-                filteredCourses.map((course, index) => (
-                  <CourseCard key={index} course={course} />
-                ))
-              ) : (
-                <div className="col-span-full text-center text-[#5C6574]">
-                  No courses found.
-                </div>
-              )}
-            </div> */}
-            <div className="w-full md:w-[70%] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {loading ? (
-                <div className="col-span-full text-center">Loading...</div>
-              ) : filteredCourses.length > 0 ? (
-                filteredCourses.map((course, index) => (
-                  <CourseCard key={index} course={course} />
-                ))
-              ) : (
-                <div className="col-span-full text-center text-[#5C6574]">
-                  No courses found.
-                </div>
-              )}
+            <div className="w-full md:w-3/4">
+              <div className="w-full md:w-[100%] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {loading ? (
+                  <div className="col-span-full text-center">Loading...</div>
+                ) : filteredCourses.length > 0 ? (
+                  filteredCourses.map((course, index) => (
+                    <CourseCard key={index} course={course} />
+                  ))
+                ) : (
+                  <div className="col-span-full text-center text-[#5C6574]">
+                    No courses found.
+                  </div>
+                )}
+              </div>
+              <div className="w-full mt-12 mb-8 px-4 text-[#5C6574] border rounded-md border-[#CDCFD5]">
+                <Pagination
+                  pages={totalPages}
+                  currentPage={currentPage}
+                  onPageChange={handlePageChange}
+                />
+              </div>
             </div>
-          </div>
-
-          {/* Pagination Section */}
-          <div className="flex justify-end mt-4">
-            <Pagination
-              totalPages={totalPages}
-              currentPage={currentPage}
-              onPageChange={handlePageChange}
-            />
           </div>
         </div>
       </div>
