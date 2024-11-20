@@ -247,7 +247,8 @@ const CoursesFilter = () => {
         "",
         "",
         "",
-        searchTerm
+        searchTerm,
+        false
       ),
       onSuccess: (data) => {
         setAllCourses(data?.courses || []);
