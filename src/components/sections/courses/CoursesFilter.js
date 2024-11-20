@@ -200,7 +200,6 @@ import CourseCard from "./CourseCard";
 import Pagination from "@/components/shared/pagination/Pagination";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
-import ArrowIcon from "@/assets/images/icon/ArrowIcon";
 import { useRouter } from "next/navigation";
 import Preloader from "@/components/shared/others/Preloader";
 
@@ -225,7 +224,7 @@ const categories = [
   "Vedic Mathematics",
 ];
 
-const CoursesFilter = () => {
+const CoursesFilter = ({ CustomButton, CustomText }) => {
   const router = useRouter();
   const [allCourses, setAllCourses] = useState([]);
   const [filteredCourses, setFilteredCourses] = useState([]);
@@ -326,10 +325,12 @@ const CoursesFilter = () => {
           {/* Header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
             <h1 className="text-3xl md:text-4xl font-bold text-[#7ECA9D] mb-4 md:mb-0">
-              Skill Development Courses
+              {/* Skill Development Courses */}
+              {CustomText}
             </h1>
             <div>
-              <button
+              {CustomButton}
+              {/* <button
                 onClick={() => {
                   router.push("/view-all-courses");
                 }}
@@ -339,7 +340,7 @@ const CoursesFilter = () => {
                   <ArrowIcon />
                 </span>{" "}
                 Explore More Courses
-              </button>
+              </button> */}
             </div>
           </div>
           <div className="flex flex-col md:flex-row justify-between items-center mb-12 space-y-4 md:space-y-10">
