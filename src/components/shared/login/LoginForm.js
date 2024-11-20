@@ -46,11 +46,16 @@ const LoginForm = () => {
         const decoded = jwtDecode(res.token);
         const userRole = decoded.user.role[0];
         localStorage.setItem("token", res.token);
-        if (userRole === 'admin' || userRole === 'instructor' || userRole === 'student') {
+        localStorage.setItem("userId", res.id);
+        if (
+          userRole === "admin" ||
+          userRole === "instructor" ||
+          userRole === "student"
+        ) {
           router.push(`/dashboards/${userRole}-dashboard`);
         } else {
           // Default case if the role doesn't match any predefined roles
-          router.push('/')
+          router.push("/");
         }
         toast.success("Login successful!");
       },
