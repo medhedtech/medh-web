@@ -62,6 +62,7 @@ const FreeCourses = () => {
         url: apiUrls?.courses?.getAllCoursesWithLimits(page,limit,'','','','Upcoming','',true),
         onSuccess: (res) => {
           setFreeCourses(res?.courses || []);
+          console.log(res?.courses)
         },
         onFail: (err) => {
           console.error("Error fetching courses:", err);
