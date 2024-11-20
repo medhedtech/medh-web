@@ -7,6 +7,7 @@ import Registration from "@/components/sections/registrations/Registration";
 import RelatedCourses from "@/components/sections/personality-development/relatedCourses";
 import ThemeController from "@/components/shared/others/ThemeController";
 import PersonalityCourseBanner from "@/components/sections/personality-development/personalityCourseBanner";
+import ExploreJourney from "@/components/sections/explore-journey/Enroll-Form";
 
 function PersonalityDevelopment() {
   return (
@@ -14,11 +15,15 @@ function PersonalityDevelopment() {
       <PersonalityBanner />
       <PersonalityOvereveiw />
       <PersonalityCourse />
-      <Registration />
+      <ExploreJourney
+        mainText="Discover Your Potential. Empower Yourself. Elevate Your Self-Image."
+        subText="Enroll Today!"
+      />
+      {/* <Registration /> */}
       <PersonalityFaq />
       <PersonalityCourseBanner />
       <RelatedCourses />
-      <ThemeController/>
+      <ThemeController />
     </PageWrapper>
   );
 }
