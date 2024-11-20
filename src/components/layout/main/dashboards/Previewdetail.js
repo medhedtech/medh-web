@@ -24,6 +24,7 @@ export default function CoursePreview() {
         ...courseData,
         course_videos: courseData?.course_videos || [],
         brochures: courseData?.brochures || [],
+        course_image: courseData?.course_image,
       };
       await postQuery({
         url: apiUrls?.courses?.createCourse,
@@ -69,6 +70,7 @@ export default function CoursePreview() {
 
   console.log("Course Data", courseData);
   console.log("Course Video", courseData?.course_videos);
+  console.log("Course Image:", courseData?.course_image);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 p-9">
@@ -176,34 +178,42 @@ export default function CoursePreview() {
         <h3 className="mt-10 text-xl font-semibold text-gray-800 mb-4">
           All Videos Uploaded
         </h3>
-
-        {courseData?.course_videos &&
-        Array.isArray(courseData.course_videos) &&
-        courseData.course_videos.length > 0 ? (
-          <div className="grid grid-cols-6 gap-4 mb-4">
-            {courseData.course_videos.map((video, index) => (
-              <div key={index} className="relative">
-                <video
-                  width={150}
-                  height={150}
-                  controls
-                  src={video}
-                  className="w-full h-[150px] object-cover rounded-lg"
-                >
-                  Your browser does not support the video tag.
-                </video>
-                <button
-                  onClick={() => handleRemoveVideo(index)}
-                  className="absolute top-1 right-1 text-white bg-red-600 rounded-full px-2 py-1"
-                >
-                  X
-                </button>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-gray-600">No videos uploaded</p>
-        )}
+        {(courseData?.course_image || 
+  (courseData?.course_videos && courseData.course_videos.length > 0)) ? (
+  <div className="grid grid-cols-6 gap-4 mb-4">
+    {courseData?.course_image && (
+      <div className="relative">
+        <img
+          src={courseData.course_image}
+          alt="Course Thumbnail"
+          className="w-[150px] h-[150px] object-cover rounded-lg"
+        />
+      </div>
+    )}
+    {courseData?.course_videos &&
+      courseData.course_videos.map((video, index) => (
+        <div key={index} className="relative">
+          <video
+            width={150}
+            height={150}
+            controls
+            src={video}
+            className="w-full h-[150px] object-cover rounded-lg"
+          >
+            Your browser does not support the video tag.
+          </video>
+          <button
+            onClick={() => handleRemoveVideo(index)}
+            className="absolute top-1 right-1 text-white bg-red-600 rounded-full px-2 py-1"
+          >
+            X
+          </button>
+        </div>
+      ))}
+  </div>
+) : (
+  <p className="text-gray-600">No image or videos uploaded</p>
+)}
 
         {/* Progress bar */}
         <div className="w-full h-2 rounded-lg bg-gray-200 mt-4">
