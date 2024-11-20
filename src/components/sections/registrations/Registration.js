@@ -35,16 +35,10 @@ const Registration = () => {
     register,
     handleSubmit,
     formState: { errors },
-    setValue,
     reset,
   } = useForm({
     resolver: yupResolver(schema),
   });
-  const [country, setCountry] = useState("");
-
-  const handleCountryChange = (value) => {
-    setCountry(value);
-  };
 
   // Handle form submission
   const onSubmit = async (data) => {
@@ -61,7 +55,14 @@ const Registration = () => {
         },
         onSuccess: () => {
           toast.success("Form submitted successfully!");
-          reset(); // Reset form fields
+          reset({
+            full_name: "",
+            email: "",
+            country: "",
+            phone_number: "",
+            message: "",
+            accept: "",
+          });
         },
         onFail: () => {
           toast.error("Error submitting form.");
@@ -81,7 +82,9 @@ const Registration = () => {
       id="courses-section"
       className="bg-register bg-cover bg-center bg-no-repeat"
     >
-      <div className="overlay bg-blueDark bg-opacity-90 py-4 lg:pb-0 relative z-0">
+      {/* background: #7ECA9DEE; */}
+
+      <div className="overlay bg-[#7ECA9DEE] bg-opacity-90 py-4 lg:pb-0 relative z-0">
         <div>
           <Image
             className="absolute top-40 left-0 lg:left-[8%] 2xl:top-20 animate-move-hor block z--1"
