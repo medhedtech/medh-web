@@ -22,15 +22,12 @@ const CourseCard = ({ course }) => {
         height={200}
       />
       <div className="text-center py-3">
-        <h3 className="dark:text-gray300">{course?.course_title}</h3>
+        <h3 className="dark:text-gray300">{course?.course_category}</h3>
         <h3 className="font-bold text-[#5C6574] dark:text-gray300 text-lg ">
-          {course?.course_category}
-        </h3>
-        <h3 className="font-semibold text-md dark:text-gray300">
-          {course?.course_fee}
+          {course?.course_title}
         </h3>
         <p className="text-gray-500 dark:text-gray-300">
-          {course?.course_duration}
+          {course?.course_duration || course?.course_category} course
         </p>
       </div>
       <div className="flex  mt-2 ">

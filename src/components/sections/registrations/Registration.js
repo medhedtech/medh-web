@@ -211,7 +211,7 @@ const Registration = () => {
                   >
                     By submitting this form, I accept
                     <span className="text-[#7ECA9D] ml-1">
-                      Terms of Service
+                      Terms of Service {" "}
                     </span>
                     & <br />
                     <span className="text-[#7ECA9D]">Privacy Policy.</span>

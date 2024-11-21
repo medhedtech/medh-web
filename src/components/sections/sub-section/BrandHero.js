@@ -58,7 +58,7 @@ const BrandHero = () => {
               Nurture skills and elevate your career with industry-recognized
               certifications upon completion.
             </span>
-            <a href="#certified-section" className="underline mt-4">
+            <a href="/about" className="underline mt-4">
               View More +
             </a>
           </div>
