@@ -14,7 +14,7 @@ function DigiMarketingBanner() {
         bannerImage={Banner}           
         logoImage={Cource}             
         isoImage={Iso}                 
-        heading="Comprehensive Course in Vedic Mathematics"  
+        heading="Digital Marketing with Data Analytics Course"  
         subheading="OVERCOMING MATH FEAR THE VEDIC WAY." 
         description="Ancient Wisdom, Modern Techniques. Eliminate Math Phobia and Transform It into a Joyful and Engaging Experience."  // Dynamic description
         buttonText="Enroll now"        

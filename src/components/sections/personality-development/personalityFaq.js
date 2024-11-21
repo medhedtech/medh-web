@@ -38,6 +38,50 @@ function PersonalityFaq() {
       answer:
         "Absolutely! The skills learned in this course are highly beneficial for career growth and personal development.",
     },
+    {
+      question: "Is this Personality Development Course from Medh is suitable for homemakers / housewives?",
+      answer:"Certainly! Our Personality Development Course is well-suited for homemakers and housewives, equipping them with essential life skills, confidence, and interpersonal abilities. It fosters personal growth, enhances communication and leadership skills, and provides valuable tools for managing stress, time, and relationships. Our program aims to boost confidence, improve family life, and empower women in their roles as homemakers, offering practical guidance and support to help them effectively manage their responsibilities and find fulfillment in their daily lives."
+    },
+    {
+      question: "Are there any prerequisites for enrolling in the course?",  
+      answer:"There are no specific prerequisites for enrolling in the course. It is open to individuals from all backgrounds and professions. The only requirement is the willingness to learn and grow personally and professionally."
+    },
+    {
+      question: "How long is the course, and can I study at my own pace?",
+      answer:"The course duration can vary based on the specific curriculum, but it is generally structured for completion within a range of 3 to 9 months (12-36 weeks). This encompasses a weekly commitment of 2-3 hours only, providing the flexibility to align the course pace with your other commitments and schedules."
+    },
+    {
+      question: "Will I receive a certificate upon completing the course?",
+      answer:"Yes, upon successful completion of the AI with Data Analytics course, you will receive a certificate of completion issued by MEDH. This esteemed certificate can be included in your portfolio. Additionally, you can showcase your newly acquired skills by sharing the certificate on professional networking platforms."
+    },
+    {
+      question:"Will I have access to course materials after completing the course?",
+      answer:"Yes, you will retain lifetime access to the course materials even after completing the course. You can refer back to the content for future review or to refresh your knowledge as needed."
+    },
+    {
+      question:"How do I enroll in the course, and what are the payment options?",
+      answer:"To enroll in the course, simply visit our website and find the Personality Development Course page. From there, you can follow the instructions to sign up and make the payment using the available payment options, such as credit/debit cards, online banking, or other supported methods."
+    },
+    {
+      question:"Can I interact with other students during the course?",
+      answer:"Yes, our platform fosters an engaging and collaborative learning environment. You can connect with fellow learners, participate in discussions, and exchange ideas, enhancing your overall learning experience."
+    },
+    {
+      question:"What if I have questions or need additional support during the course?",
+      answer:"Yes, you will have access to: Dedicated Support Forum to Interact with instructors and teaching assistants. Doubts Clarification: Throughout the course. Guidance and Mentorship: Even post completion of the course."
+    },
+    {
+      question:"Is there any technical support available if I encounter issues during the course?",
+      answer:"Absolutely! Our technical support team is available to assist you throughout your learning journey. If you encounter any technical difficulties or have questions related to the course platform, you can reach out to our support team, and they will be happy to help you resolve any issues."
+    },
+    {
+      question:"Is the course delivered entirely online?",
+      answer:"Yes, the course is delivered through a comprehensive online platform, featuring live sessions as well as recordings for convenient access. The online format enables flexibility and accessibility for individuals with diverse schedules and commitments."
+    },
+    {
+      question:"Is financial assistance available for the course?",
+      answer:"Yes, we strive to make our courses accessible to everyone. Financial assistance and/or scholarships may be available based on eligibility. Please reach out to our support team for more information on financial assistance option."
+    }
   ];
 
   return (
