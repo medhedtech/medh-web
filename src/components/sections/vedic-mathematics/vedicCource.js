@@ -341,6 +341,7 @@ function VedicCource() {
         "",
         "",
         searchTerm || "Vedic Mathematics",
+        "",
         false
       ),
       onSuccess: (data) => {
