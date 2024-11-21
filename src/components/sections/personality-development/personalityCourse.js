@@ -191,6 +191,7 @@ function PersonalityCourse() {
         "",
         "",
         searchTerm || "Personality Development",
+        "",
         false
       ),
       onSuccess: (data) => {

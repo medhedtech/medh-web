@@ -248,6 +248,7 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
         "",
         "",
         searchTerm,
+        "",
         false
       ),
       onSuccess: (data) => {

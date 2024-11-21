@@ -67,6 +67,7 @@ function RelatedCourses() {
         "",
         "",
         "Personality Development",
+        "",
         false
       ),
       onSuccess: (data) => {
