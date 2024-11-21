@@ -97,6 +97,7 @@ const StudentNewCourses = () => {
           "",
           "Upcoming",
           "",
+          "",
           true
         ),
         onSuccess: (res) => {
