@@ -34,14 +34,13 @@ function VedicFaq() {
     },
     {
       question:
-        "Will Vedic Math classes complement a student&#39;s academic performance?",
+        "Will Vedic Math classes complement a students academic performance?",
       answer:
         "Absolutely! The skills learned in this course are highly beneficial for career growth and personal development.",
     },
     {
       question: "Is Vedic Math course different from Math tuitions?",
-      answer:
-        "The Personality Development Course is designed to help individuals enhance their personal and professional skills through various interactive sessions and practical exercises.",
+      answer: `It is an (after-school) math-learning program. Unlike home-based tuition that primarily focuses on the school syllabus and test preparation, Vedic Math is a skill development program aimed at enhancing a child’s ability to perform calculations. This proficiency not only benefits their performance in school mathematics but also in math Olympiads. \nImportantly, Vedic Mathematics should not be seen as a replacement for traditional math but rather as a valuable complement to it. While some of the techniques may be intriguing and advantageous for certain calculations, a thorough grasp of the fundamental concepts of regular mathematics remains essential for a comprehensive understanding of the subject.`,
     },
     {
       question: "How long is the course, and can I study at my own pace?",
@@ -72,7 +71,7 @@ function VedicFaq() {
     {
       question: "Will I have access to support during the course?",
       answer:
-        "The Personality Development Course is designed to help individuals enhance their personal and professional skills through various interactive sessions and practical exercises.",
+        "Yes, you will retain lifetime access to the course materials even after completing the course. You can refer back to the content for future review or to refresh your knowledge as needed.",
     },
     {
       question:
@@ -104,9 +103,8 @@ function VedicFaq() {
           Frequently Asked Questions (FAQs)
         </h2>
         <p className="text-center md:text-[15px] text-[14px] mb-8 md:px-14 px-3">
-          Find answers to common questions about MEDH&#39;s Personality Development
-          Course. Learn about course structure, prerequisites, career prospects,
-          and more.
+          Find answers to common questions about MEDH&#39;s Vedic Maths Course.
+          Learn about course structure, prerequisites, certifications, and more.
         </p>
         <div className="space-y-4">
           {faqs.map((faq, index) => (
@@ -120,10 +118,15 @@ function VedicFaq() {
                 </h3>
                 <span className="md:text-[15px] text-[14px]">
                   {openIndex === index ? (
-                    <i class="icofont-caret-down" style={{ fontSize: '20px'  }}></i>
-                   
+                    <i
+                      class="icofont-caret-down"
+                      style={{ fontSize: "20px" }}
+                    ></i>
                   ) : (
-                    <i class="icofont-caret-right" style={{ fontSize: '20px' }}></i>
+                    <i
+                      class="icofont-caret-right"
+                      style={{ fontSize: "20px" }}
+                    ></i>
                   )}
                 </span>
               </div>
