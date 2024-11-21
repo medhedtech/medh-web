@@ -202,6 +202,7 @@ import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
 import { useRouter } from "next/navigation";
 import Preloader from "@/components/shared/others/Preloader";
+import { FaTimes } from "react-icons/fa";
 
 const categories = [
   "AI and Data Science",
@@ -319,6 +320,13 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
     setSortOrder(e.target.value);
   };
 
+  const handleClearFilters = () => {
+    setSelectedCategory(null);
+    setSearchTerm("");
+    setSortOrder("A-Z");
+    setCurrentPage(1);
+  };
+
   return (
     <section>
       <div className="min-h-screen bg-white dark:bg-screen-dark dark:text-white p-4">
@@ -377,6 +385,19 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
                 selectedCategory={selectedCategory}
                 setSelectedCategory={setSelectedCategory}
               />
+              <div className="w-full mt-12 mb-8 px-4 text-[#5C6574]">
+                {(selectedCategory || searchTerm || sortOrder !== "A-Z") && (
+                  <div className="flex justify-between items-center">
+                    <button
+                      onClick={handleClearFilters}
+                      className="flex items-center border border-[#7ECA9D] text-[#7ECA9D] px-4 py-2 rounded-md hover:bg-[#7ECA9D] hover:text-white transition duration-300"
+                      >
+                      <FaTimes className="mr-2" />
+                      Clear All Filters
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
             <div className="w-full md:w-3/4">
               <div className="w-full md:w-[100%] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -394,7 +415,7 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
               </div>
               <div className="w-full mt-12 mb-8 px-4 text-[#5C6574] border rounded-md border-[#CDCFD5]">
                 <Pagination
-                  pages={totalPages}
+                  totalPages={totalPages}
                   currentPage={currentPage}
                   onPageChange={handlePageChange}
                 />

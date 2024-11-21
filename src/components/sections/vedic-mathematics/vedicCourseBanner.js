@@ -12,8 +12,8 @@ export default function VedicCourceBanner() {
       description: "Embark on a journey of mathematical discovery and empowerment.",
       buttonText: "Enroll Now",
       imageUrl: CourseBannerImg,
-      buttonBgColor: "#7ECA9D", // Dynamic background color
-      icon: DotIcon, // Icon to display in the button
+      buttonBgColor: "#7ECA9D",
+      icon: DotIcon,
     },
   ];
 
