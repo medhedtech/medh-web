@@ -18,7 +18,7 @@ const BrowseCategories = () => {
       {/* Browse Trending Categories Section */}
       <div className="flex flex-col md:flex-row justify-between items-center mb-8">
         <div className="md:px-6 mb-4 md:mb-0">
-          <h3 className="text-purple-600 uppercase tracking-wider text-sm text-center md:text-left">
+          <h3 className="text-[#7ECA9D] font-semibold uppercase tracking-wider text-xl text-center md:text-left">
             Course Categories
           </h3>
           <h1 className="text-gray-800 dark:text-white font-bold text-2xl md:text-3xl text-center md:text-left mt-2">
