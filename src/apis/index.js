@@ -117,4 +117,11 @@ export const apiUrls = {
     getEnrolledCourseById: "/enroll/get",
     getEnrolledCoursesByStudentId: "/enroll/student",
   },
+  jobForm: {
+    getAllJobPosts: "/job-post/getAll",
+    getJobPostById: "/job-post/get",
+    addJobPost: "/job-post/create",
+    updateJobPost: "/job-post/update",
+    deleteJobPost: "/job-post/delete",
+  },
 };

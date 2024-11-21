@@ -10,7 +10,6 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { toast } from "react-toastify";
-import { Spinner } from "react-icons/fa";
 import Preloader from "@/components/shared/others/Preloader";
 
 // Validation schema using yup
@@ -88,7 +87,7 @@ const ExploreJourney = ({ mainText, subText }) => {
       id="enroll-section"
       className="bg-register bg-cover bg-center bg-no-repeat"
     >
-      <div className="overlay bg-opacity-90 py-4 lg:pb-0 relative z-0">
+      <div className="bg-[#7ECA9D] overlay bg-opacity-90 py-4 lg:pb-0 relative z-0">
         <div>
           <Image
             className="absolute top-40 left-0 lg:left-[8%] 2xl:top-20 animate-move-hor block z--1"
