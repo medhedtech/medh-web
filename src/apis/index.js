@@ -19,9 +19,10 @@ export const apiUrls = {
       course_tag,
       course_category,
       status,
-      search
+      search,
+      course_grade
     ) =>
-      `/courses/getLimitedCourses?page=${page}&limit=${limit}&course_title=${course_title}&course_tag=${course_tag}&course_category=${course_category}&status=${status}&search=${search}`,
+      `/courses/getLimitedCourses?page=${page}&limit=${limit}&course_title=${course_title}&course_tag=${course_tag}&course_category=${course_category}&status=${status}&search=${search}&course_grade=${course_grade}`,
     getAllCourses: "/courses/get",
     getCourseById: "/courses/get",
     createCourse: "/courses/create",
@@ -114,6 +115,6 @@ export const apiUrls = {
     enrollCourse: "/enroll/create",
     getEnrolledCourse: "/enroll/getAll",
     getEnrolledCourseById: "/enroll/get",
-    getEnrolledCoursesByStudentId: "/enroll/student"
+    getEnrolledCoursesByStudentId: "/enroll/student",
   },
 };

@@ -170,6 +170,16 @@ export default function CoursePreview() {
                 className="w-full p-3 border rounded-lg bg-gray-50 border-gray-300"
               />
             </div>
+
+            <div>
+              <label className="block text-gray-600 mb-2">Course Grade</label>
+              <input
+                type="text"
+                value={courseData.course_grade || ""}
+                readOnly
+                className="w-full p-3 border rounded-lg bg-gray-50 border-gray-300"
+              />
+            </div>
           </form>
         ) : (
           <p className="text-red-500 mt-4">No course data available</p>
@@ -178,42 +188,42 @@ export default function CoursePreview() {
         <h3 className="mt-10 text-xl font-semibold text-gray-800 mb-4">
           All Videos Uploaded
         </h3>
-        {(courseData?.course_image || 
-  (courseData?.course_videos && courseData.course_videos.length > 0)) ? (
-  <div className="grid grid-cols-6 gap-4 mb-4">
-    {courseData?.course_image && (
-      <div className="relative">
-        <img
-          src={courseData.course_image}
-          alt="Course Thumbnail"
-          className="w-[150px] h-[150px] object-cover rounded-lg"
-        />
-      </div>
-    )}
-    {courseData?.course_videos &&
-      courseData.course_videos.map((video, index) => (
-        <div key={index} className="relative">
-          <video
-            width={150}
-            height={150}
-            controls
-            src={video}
-            className="w-full h-[150px] object-cover rounded-lg"
-          >
-            Your browser does not support the video tag.
-          </video>
-          <button
-            onClick={() => handleRemoveVideo(index)}
-            className="absolute top-1 right-1 text-white bg-red-600 rounded-full px-2 py-1"
-          >
-            X
-          </button>
-        </div>
-      ))}
-  </div>
-) : (
-  <p className="text-gray-600">No image or videos uploaded</p>
-)}
+        {courseData?.course_image ||
+        (courseData?.course_videos && courseData.course_videos.length > 0) ? (
+          <div className="grid grid-cols-6 gap-4 mb-4">
+            {courseData?.course_image && (
+              <div className="relative">
+                <img
+                  src={courseData.course_image}
+                  alt="Course Thumbnail"
+                  className="w-[150px] h-[150px] object-cover rounded-lg"
+                />
+              </div>
+            )}
+            {courseData?.course_videos &&
+              courseData.course_videos.map((video, index) => (
+                <div key={index} className="relative">
+                  <video
+                    width={150}
+                    height={150}
+                    controls
+                    src={video}
+                    className="w-full h-[150px] object-cover rounded-lg"
+                  >
+                    Your browser does not support the video tag.
+                  </video>
+                  <button
+                    onClick={() => handleRemoveVideo(index)}
+                    className="absolute top-1 right-1 text-white bg-red-600 rounded-full px-2 py-1"
+                  >
+                    X
+                  </button>
+                </div>
+              ))}
+          </div>
+        ) : (
+          <p className="text-gray-600">No image or videos uploaded</p>
+        )}
 
         {/* Progress bar */}
         <div className="w-full h-2 rounded-lg bg-gray-200 mt-4">

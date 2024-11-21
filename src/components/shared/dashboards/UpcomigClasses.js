@@ -55,6 +55,7 @@ const UpcomigClasses = () => {
           "",
           "Upcoming",
           "",
+          "",
           false
         ),
         onSuccess: (res) => {
