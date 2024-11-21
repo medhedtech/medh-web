@@ -1270,7 +1270,7 @@ eastasianwidth@^0.2.0:
     axios "^1.7.7"
     axios-retry "^4.5.0"
     chart.js "^4.4.2"
-    edurock "file:../../../Library/Caches/Yarn/v6/npm-edurock-0.1.0-a06ed662-1195-48f9-8fed-bb20c9234a71-1732084734371/node_modules/edurock"
+    edurock "file:../../../Library/Caches/Yarn/v6/npm-edurock-0.1.0-eb45266d-27a9-4b09-9898-c1aba92680b7-1732191596512/node_modules/edurock"
     isotope-layout "^3.0.6"
     jwt-decode "^4.0.0"
     moment "^2.30.1"
@@ -3295,6 +3295,7 @@ string-convert@^0.2.0:
   integrity sha512-u/1tdPl4yQnPBjnVrmdLo9gtuLvELKsAoRapekWggdiQNvvvum+jYF329d84NAa660KQw7pB2n36KrIKVoXa3A==
 
 "string-width-cjs@npm:string-width@^4.2.0", string-width@^4.1.0:
+  name string-width-cjs
   version "4.2.3"
   resolved "https://registry.npmjs.org/string-width/-/string-width-4.2.3.tgz"
   integrity sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==
@@ -3444,6 +3445,11 @@ swiper@^11.1.14:
   version "11.1.14"
   resolved "https://registry.npmjs.org/swiper/-/swiper-11.1.14.tgz"
   integrity sha512-VbQLQXC04io6AoAjIUWuZwW4MSYozkcP9KjLdrsG/00Q/yiwvhz9RQyt0nHXV10hi9NVnDNy1/wv7Dzq1lkOCQ==
+
+swiper@^11.1.15:
+  version "11.1.15"
+  resolved "https://registry.yarnpkg.com/swiper/-/swiper-11.1.15.tgz#e2258c8d38282e2f115ca463d6e8c5b84cdcf1ca"
+  integrity sha512-IzWeU34WwC7gbhjKsjkImTuCRf+lRbO6cnxMGs88iVNKDwV+xQpBCJxZ4bNH6gSrIbbyVJ1kuGzo3JTtz//CBw==
 
 tabbable@^6.0.0:
   version "6.2.0"

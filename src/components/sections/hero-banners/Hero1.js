@@ -61,7 +61,7 @@ const Hero1 = () => {
                 </div>
               </div>
             </div>
-            <span className="text-[#7ECA9D] text-2xl sm:text-3xl mumkinMedh font-medium">
+            <span className="text-[#F6B335] text-2xl sm:text-3xl mumkinMedh font-medium">
               Medh Hain Toh Mumkin Hain!
             </span>
           </div>
