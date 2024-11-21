@@ -338,15 +338,16 @@ const CourseAiOverview = () => {
     <div className="bg-white dark:bg-screen-dark h-auto py-6  w-full flex justify-center items-center">
       <div className="w-full md:w-[80%]">
         <div className="flex items-center flex-col w-80% md:mb-20 mb-10 px-4">
-          <h1 className="text-[24px] leading-7 md:text-4xl font-bold md:mb-3 mb-2 text-[#41454F] dark:text-gray-50">
-            Welcome to Medh&#39;s Transformative Personality Development Course
+          <h1 className="text-[24px] text-center leading-7 md:text-4xl font-bold md:mb-3 mb-2 text-[#41454F] dark:text-gray-50">
+            Empower Your Journey to Success in the Modern Era of AI and Data
+            Science with MEDH.
           </h1>
-          <p className="text-center md:text-[15px] text-[14px] leading-6 md:leading-7 md:w-[70%] text-[#727695] dark:text-gray-300">
-            Our course is designed to foster crucial life skills and character
-            traits, offering inclusivity for individuals at every stage of life.
-            Whether you&#39;re a student, professional, or homemaker, this
-            program empowers you with essential life skills, confidence, and
-            interpersonal abilities.
+          <p className="text-center md:text-[15px] text-[14px] leading-6 md:leading-7 md:w-[80%] text-[#727695] dark:text-gray-300">
+            Medh&#39;s Artificial Intelligence and Data Science course combines
+            advanced AI techniques and technologies with the principles of Data
+            Science. This fusion leverages AI algorithms, models, and tools to
+            efficiently analyze data, extract valuable insights, automate
+            processes, and support data-driven decision-making.
           </p>
         </div>
 

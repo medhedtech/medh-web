@@ -28,7 +28,7 @@ const WhyMedh = () => {
           </p>
           <button
             onClick={() => {
-              router.push("/courses");
+              router.push("/view-all-courses");
             }}
             className="cursor-pointer bg-[#F6B335] px-4 py-3 w-fit mx-auto text-white flex gap-4"
           >
@@ -56,8 +56,7 @@ const WhyMedh = () => {
       >
         {/* Content Box */}
         <div
-          className="bg-white h-60 md:h-auto py-6 px-6 md:px-10 lg:px-16 relative shadow-lg w-full max-w-[630px] 
-    overflow-x-hidden md:overflow-visible sm:h-60 sm:overflow-x-scroll dark:bg-screen-dark"
+          className="bg-white h-60 md:h-auto py-6 px-6 md:px-10 lg:px-16 relative shadow-lg w-full max-w-[630px] overflow-x-hidden md:overflow-visible sm:h-60 sm:overflow-x-scroll dark:bg-screen-dark"
         >
           <h2 className="text-[#7ECA9D] font-bold text-3xl md:text-4xl">
             WHY MEDH?
