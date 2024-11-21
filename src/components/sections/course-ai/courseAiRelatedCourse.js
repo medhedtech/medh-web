@@ -73,6 +73,7 @@ function CourseAiRelatedCourses() {
         "",
         "",
         "AI and Data Science",
+        "",
         false
       ),
       onSuccess: (data) => {
