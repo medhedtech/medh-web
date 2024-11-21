@@ -383,7 +383,7 @@ function VedicCource() {
   };
 
   return (
-    <div className="bg-white dark:bg-screen-dark text-lightGrey14 flex justify-center md:py-10 py-5">
+    <div id="courses-section" className="bg-white dark:bg-screen-dark text-lightGrey14 flex justify-center md:py-10 py-5">
       <div className="w-[96%] px-4 md:px-8 lg:px-10 md:w-[90%] max-w-[1200px]">
         <h2 className="text-[22px] md:text-3xl font-bold mb-4 text-center text-[#5C6574] dark:text-gray50 pb-10">
         Course Options in Vedic Mathematics (Grade Wise)
