@@ -210,7 +210,10 @@ const data = {
                   "Square Root, Cube, Cube Root, HCF, LCM, and Algebra",
               },
             ].map((feature, index) => (
-              <li key={index}>
+              <li
+                key={index}
+                className="relative pl-6 before:content-[''] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:w-2 before:h-[2px] before:bg-gray-400 before:border-dotted dark:before:bg-gray-300"
+              >
                 <strong className="text-[1rem] font-bold tracking-wide dark:text-gray50">
                   {feature.title}:
                 </strong>{" "}
@@ -372,7 +375,7 @@ const data = {
     },
     {
       id: 4,
-      name: "Sutras and Sub-Sutras",
+      name: "Sutras and Sub-sutras",
       content: (
         <>
           <p className="text-lightGrey14 mb-6 md:text-[15px] text-[14px] dark:text-gray300 ">
@@ -383,6 +386,242 @@ const data = {
             efficient way to perform calculations mentally.
           </p>
 
+          <table className="table-auto border-collapse border border-gray-300 w-full text-center text-[#41454F] dark:text-gray50 my-6">
+            <thead>
+              <tr>
+                <th className="border border-gray-300 px-4 py-2 font-bold">
+                  Main Sutras (aphorisms)
+                </th>
+                <th className="border border-gray-300 px-4 py-2 font-bold">
+                  Sub-Sutras (corollaries)
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="border border-gray-300 px-4 py-2">
+                  <div className="font-bold">Ekādhikena Purvena</div>
+                  <div className=" text-[#727695] dark:text-gray300">
+                    By one more than the previous one.
+                  </div>
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  <div className="font-bold">Antyayor Dasakepi.</div>
+                  <div className=" text-[#727695] dark:text-gray300">
+                    The last digit of the sum of the last terms.
+                  </div>
+                </td>
+              </tr>
+
+              <tr>
+                <td className="border border-gray-300 px-4 py-2">
+                  <div className="font-bold">
+                    Nikhilam Navatashcaramam Dashatah.
+                  </div>
+                  <div className=" text-[#727695] dark:text-gray300">
+                    All from 9 and the last from 10.
+                  </div>
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  <div className="font-bold">Antyayor Niyamah.</div>
+                  <div className=" text-[#727695] dark:text-gray300">
+                    Only the last terms.
+                  </div>
+                </td>
+              </tr>
+
+              <tr>
+                <td className="border border-gray-300 px-4 py-2">
+                  <div className="font-bold">Urdhva-Tiryagbhyam.</div>
+                  <div className=" text-[#727695] dark:text-gray300">
+                    Vertically and crosswise.
+                  </div>
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  <div className="font-bold">Adyamādyenantyamantyena.</div>
+                  <div className=" text-[#727695] dark:text-gray300">
+                    The first by the first and the last by the last.
+                  </div>
+                </td>
+              </tr>
+
+              <tr>
+                <td className="border border-gray-300 px-4 py-2">
+                  <div className="font-bold">Parāvartya Yojayet.</div>
+                  <div className=" text-[#727695] dark:text-gray300">
+                    Transpose and adjust.
+                  </div>
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  <div className="font-bold">Yāvadūnena Vargānām</div>
+                  <div className=" text-[#727695] dark:text-gray300">
+                    Whatever the extent of the square.
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td className="border border-gray-300 px-4 py-2">
+                  <div className="font-bold">Shunyam Saamyasamuccaye.</div>
+                  <div className=" text-[#727695] dark:text-gray300">
+                    When the sum is the same, that sum is zero.
+                  </div>
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  <div className="font-bold">Lopanasthāpanabhyām.</div>
+                  <div className=" text-[#727695] dark:text-gray300">
+                    By alternately less and more.
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td className="border border-gray-300 px-4 py-2">
+                  <div className="font-bold">Anurūpyena</div>
+                  <div className=" text-[#727695] dark:text-gray300">
+                    Proportionately.
+                  </div>
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  <div className="font-bold">Vilokanam.</div>
+                  <div className=" text-[#727695] dark:text-gray300">
+                    By mere observation.
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td className="border border-gray-300 px-4 py-2">
+                  <div className="font-bold">Shesanyādiyamantyamāntyena.</div>
+                  <div className=" text-[#727695] dark:text-gray300">
+                    The remainders by the last digit.
+                  </div>
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  <div className="font-bold">Gatāvakāśe Dvayena.</div>
+                  <div className=" text-[#727695] dark:text-gray300">
+                    In the case of duplexes, twice the number.
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td className="border border-gray-300 px-4 py-2">
+                  <div className="font-bold">Sankalana-vyavakalana.</div>
+                  <div className=" text-[#727695] dark:text-gray300">
+                    By addition and by subtraction.
+                  </div>
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  <div className="font-bold">Gunitasamuchyah.</div>
+                  <div className=" text-[#727695] dark:text-gray300">
+                    The product of the sum.
+                  </div>
+                </td>
+              </tr>
+
+              <tr>
+                <td className="border border-gray-300 px-4 py-2">
+                  <div className="font-bold">Puranāpūranābhyām.</div>
+                  <div className=" text-[#727695] dark:text-gray300">
+                    By the completion or non-completion.
+                  </div>
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  <div className="font-bold">Dhvajanka.</div>
+                  <div className=" text-[#727695] dark:text-gray300">
+                    Flag method.
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td className="border border-gray-300 px-4 py-2">
+                  <div className="font-bold">Chalana-Kalanābyhām.</div>
+                  <div className=" text-[#727695] dark:text-gray300">
+                    Differences and Similarities.
+                  </div>
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  <div className="font-bold">Antyayoreva.</div>
+                  <div className=" text-[#727695] dark:text-gray300">
+                    Only the last terms.
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td className="border border-gray-300 px-4 py-2">
+                  <div className="font-bold">Yaavadūnam</div>
+                  <div className=" text-[#727695] dark:text-gray300">
+                    Whatever the extent of its deficiency.
+                  </div>
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  <div className="font-bold">Yāvadūnam Tāvadūnam.</div>
+                  <div className=" text-[#727695] dark:text-gray300">
+                    The first by the first and the last by the last.
+                  </div>
+                </td>
+              </tr>
+
+              <tr>
+                <td className="border border-gray-300 px-4 py-2">
+                  <div className="font-bold">Vyāshtisamanstih</div>
+                  <div className=" text-[#727695] dark:text-gray300">
+                    Part and Whole.
+                  </div>
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  <div className="font-bold">Antyayorsamāsutih</div>
+                  <div className=" text-[#727695] dark:text-gray300">
+                    The sum of the last terms.
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td className="border border-gray-300 px-4 py-2">
+                  <div className="font-bold">Sheshtasamucchayah</div>
+                  <div className=" text-[#727695] dark:text-gray300">
+                    The remainders by the last digit.
+                  </div>
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  <div className="font-bold"></div>
+                  <div></div>
+                </td>
+              </tr>
+
+              <tr>
+                <td className="border border-gray-300 px-4 py-2">
+                  <div className="font-bold">Sopaantyadvayamantyam</div>
+                  <div className=" text-[#727695] dark:text-gray300">
+                    The ultimate and twice the penultimate.
+                  </div>
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  <div className="font-bold"></div>
+                  <div></div>
+                </td>
+              </tr>
+              <tr>
+                <td className="border border-gray-300 px-4 py-2">
+                  <div className="font-bold">Ekanyūnena.</div>
+                  <div className=" text-[#727695] dark:text-gray300">
+                    By one less than the one before.
+                  </div>
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  <div className="font-bold text-gray-300"></div>
+                  <div></div>
+                </td>
+              </tr>
+              <tr>
+                <td className="border border-gray-300 px-4 py-2">
+                  <div className="font-bold">Gunitasamuchyah.</div>
+                  <div>The product of the sum.</div>
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  <div className="font-bold"></div>
+                  <div></div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
           <p className="text-lightGrey14 mb-6 md:text-[15px] text-[14px] dark:text-gray300 ">
             Vedic Mathematics core principles, represented by these sutras and
             sub-sutras, enable fast and efficient mental calculations for
@@ -419,7 +658,7 @@ const PersonalityOverview = () => {
             At MEDH, the Vedic Mathematics course is tailored to revolutionize
             math problem-solving, aiming to unleash your inner mathematician. It
             offers a holistic approach to conquer math anxiety and embrace the
-            beauty of mathematics.{" "}
+            beauty of mathematics.
           </p>
         </div>
 

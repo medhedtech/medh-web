@@ -95,6 +95,7 @@ function CourseOptions() {
         "",
         "",
         "AI and Data Science",
+        "",
         false
       ),
       onSuccess: (data) => {
