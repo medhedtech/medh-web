@@ -1,27 +1,127 @@
 "use client";
 import Image from "next/image";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import MLimg from "@/assets/images/dashbord/MLimg.png";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import StarIcon from "@/assets/images/icon/StarIcon";
+import { apiUrls } from "@/apis";
+import useGetQuery from "@/hooks/getQuery.hook";
+
+// Add Razorpay script
+const loadRazorpayScript = () => {
+  return new Promise((resolve) => {
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = () => {
+      resolve(true);
+    };
+    script.onerror = () => {
+      resolve(false);
+    };
+    document.body.appendChild(script);
+  });
+};
 
 const BillDetails = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
+  const courseId = useParams().id;
+  const userId =
+    typeof window !== "undefined" ? localStorage.getItem("userId") : null;
+  const [courseInfo, setCourseInfo] = useState(null);
+  const [userInfo, setUserInfo] = useState(null);
+  const { getQuery } = useGetQuery();
 
-  const handleProceedToPay = () => {
-    setIsModalOpen(true);
+  useEffect(() => {
+    // Fetch Course Details
+    const fetchCourseDetailsById = () => {
+      getQuery({
+        url: `${apiUrls?.courses?.getCourseById}/${courseId}`,
+        onSuccess: (res) => {
+          setCourseInfo(res);
+          console.log("Course Info: ", res);
+        },
+        onFail: (err) => {
+          console.error("Error fetching course details:", err);
+        },
+      });
+    };
+    fetchCourseDetailsById();
+
+    // Fetch User Details
+    const fetchUserDetailsById = () => {
+      getQuery({
+        url: `${apiUrls?.user?.getDetailsbyId}/${userId}`,
+        onSuccess: (res) => {
+          setUserInfo(res.data);
+          console.log("User Info: ", res.data);
+        },
+        onFail: (err) => {
+          console.error("Error fetching user details:", err);
+        },
+      });
+    };
+    fetchUserDetailsById();
+  }, []);
+
+  const handleProceedToPay = async () => {
+    const isScriptLoaded = await loadRazorpayScript();
+    if (!isScriptLoaded) {
+      console.error("Failed to load Razorpay script. Please check your connection.");
+      return;
+    }
+    handlePayment();
   };
+  
+  const handlePayment = () => {
+    if (!courseInfo || !userInfo) {
+      console.error("Course or user information is missing.");
+      return;
+    }
+  
+    const options = {
+      key: "rzp_test_Rz8NSLJbl4LBA5", // Replace with your Razorpay key
+      amount: courseInfo.course_fee * 100, // Amount in paisa (₹1 = 100 paisa)
+      currency: "INR",
+      name: "Course Payment",
+      description: "Course fee for the enrolled course",
+      handler: function (response) {
+        console.log("Payment Successful:", response);
+        setIsModalOpen(true); // Open modal on payment success
+      },
+      prefill: {
+        name: userInfo.full_name,
+        email: userInfo.email,
+      },
+      theme: {
+        color: "#3FAC67",
+      },
+    };
+  
+    const rzp = new window.Razorpay(options);
+  
+    rzp.on("payment.failed", function (response) {
+      console.error("Payment Failed:", response);
+      alert("Payment failed. Please try again."); // Optionally replace with toast notifications
+    });
+  
+    rzp.open();
+  };
+  
 
   const closeModal = () => {
     setIsModalOpen(false);
+  };
+
+  const handleGoBack = () => {
+    router.back();
   };
 
   return (
     <div className="container py-7">
       {/* Header Section */}
       <div className="flex items-center gap-4">
-        <button className="text-blue-500 text-xl">
+        <button className="text-blue-500 text-xl" onClick={handleGoBack}>
           <div>
             <svg
               width="32"
@@ -48,7 +148,9 @@ const BillDetails = () => {
         {/* Image Section */}
         <div className="w-1/2">
           <Image
-            src={MLimg}
+            src={courseInfo?.course_image || MLimg}
+            width={800}
+            height={0}
             className="w-full rounded-xl h-96"
             alt="ML Course Image"
           />
@@ -56,7 +158,9 @@ const BillDetails = () => {
 
         <div className="w-1/2 px-4">
           <div className="flex justify-between">
-            <p className="font-bold text-xs text-[#FF6B00]">Diploma</p>
+            <p className="font-bold text-xs text-[#FF6B00]">
+              {courseInfo?.course_tag}
+            </p>
             <p className="text-gray-500 text-sm">
               <span className="text-yellow-500 flex gap-0.5">
                 <span className="my-auto">
@@ -67,36 +171,42 @@ const BillDetails = () => {
             </p>
           </div>
           <h3 className="text-xl font-bold text-black dark:text-white mb-2">
-            Advance Machine Learning for Beginners
+            {courseInfo?.course_title}
           </h3>
 
           <div className="flex justify-between dark:text-gray-300 mb-4">
             <span className="font-semibold text-[#202244] text-sm">Name:</span>{" "}
-            <span className="text-[#545454] text-sm">Manik Das</span>
+            <span className="text-[#545454] text-sm">
+              {userInfo?.full_name}
+            </span>
           </div>
           <div className="flex justify-between dark:text-gray-300 mb-4">
             <span className="font-semibold text-[#202244] text-sm">
               Email ID:
             </span>{" "}
-            <span className="text-[#545454] text-sm">manik@gmail.com</span>
+            <span className="text-[#545454] text-sm">{userInfo?.email}</span>
           </div>
           <div className="flex justify-between dark:text-gray-300 mb-4">
             <span className="font-semibold text-[#202244] text-sm">
               Course:
             </span>{" "}
             <span className="text-[#545454] text-sm">
-              Advance Machine Learning
+              {courseInfo?.course_title}
             </span>
           </div>
           <div className="flex justify-between dark:text-gray-300 mb-4">
             <span className="font-semibold text-[#202244] text-sm">
               Category:
             </span>{" "}
-            <span className="text-[#545454] text-sm">Tech</span>
+            <span className="text-[#545454] text-sm">
+              {courseInfo?.course_category}
+            </span>
           </div>
           <div className="flex justify-between dark:text-gray-300 mb-4">
             <span className="font-semibold text-[#202244] text-sm">Price:</span>{" "}
-            <span className="text-[#545454] text-sm">29,000 /-</span>
+            <span className="text-[#545454] text-sm">
+              {courseInfo?.course_fee} /-
+            </span>
           </div>
 
           <button
