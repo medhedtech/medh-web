@@ -71,6 +71,7 @@ function DigiMarketingRalatedCource() {
         "",
         "",
         "Digital Marketing with Data Analytics",
+        "",
         false
       ),
       onSuccess: (data) => {
