@@ -43,6 +43,7 @@ const schema = yup.object({
     .typeError("Course fee must be a number")
     .positive("Course fee must be a positive number")
     .required("Course fee is required"),
+    course_grade: yup.string().required("Grade is required"),
 });
 
 const AddCourse = () => {
@@ -410,6 +411,31 @@ const AddCourse = () => {
               {errors.course_fee && (
                 <p className="text-red-500 text-xs">
                   {errors.course_fee.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm px-2 font-semibold mb-1">
+                Course Grade
+              </label>
+              <select
+                className="p-3 border rounded-lg w-full dark:bg-inherit text-gray-600"
+                {...register("course_grade")}
+              >
+                <option value="">Select Grade</option>
+                <option value="Preschool">Preschool</option>
+                <option value="Grade 1-2">Grade 1-2</option>
+                <option value="Grade 3-4">Grade 3-4</option>
+                <option value="Grade 5-6">Grade 5-6</option>
+                <option value="Grade 7-8">Grade 7-8</option>
+                <option value="Grade 9-10">Grade 9-10</option>
+                <option value="Grade 11-12">Grade 11-12</option>
+                <option value="UG - Graduate - Professionals">UG - Graduate - Professionals</option>
+              </select>
+              {errors.course_grade && (
+                <p className="text-red-500 text-xs">
+                  {errors.course_grade.message}
                 </p>
               )}
             </div>
