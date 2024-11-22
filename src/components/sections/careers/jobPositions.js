@@ -194,48 +194,73 @@
 
 // export default JobOpening;
 
-
-import React, { useState } from "react";
+"use client";
+import React, { useEffect, useState } from "react";
 import JobApply from "./jobApply";
+import { apiUrls } from "@/apis";
+import useGetQuery from "@/hooks/getQuery.hook";
+import { toast } from "react-toastify";
+import Preloader from "@/components/shared/others/Preloader";
 
 const JobOpening = () => {
   const [activeJob, setActiveJob] = useState(null);
+  const { getQuery, loading } = useGetQuery();
+  const [arriveData, setArrivedData] = useState([]);
 
-  const jobs = [
-    {
-      id: 1,
-      title: "Vedic Mathematics Instructor",
-      description: "We are seeking experienced Vedic Mathematics Instructors...",
-      responsibilities: ["Deliver live online classes...", "Tailor instructional strategies..."],
-      qualifications: ["Bachelor’s or Master’s degree...", "Prior experience in teaching..."],
-      mode: "Hybrid",
-      market: "INDIA, US, UK, and AUSTRALIA",
-      selectionProcess: ["Telephonic Call...", "Online aptitude Test..."],
-      officeLocation: "Andheri East, Mumbai",
-      homeRequirements: ["Laptop, headset...", "Consistent availability..."],
-      note: "Professional head-set can be provided if needed.",
-      note_description: "This position offers the opportunity...",
-      remuneration: "Best in the industry...",
-    },
-    {
-      id: 2,
-      title: "Personality Development Instructor",
-      description: "Seeking instructors to deliver online Personality Development Programs...",
-      responsibilities: ["Conduct live online classes...", "Tailor instructional strategies..."],
-      qualifications: ["Bachelor’s or Master’s degree...", "Prior experience in teaching..."],
-      mode: "Hybrid",
-      market: "INDIA, US, UK, and AUSTRALIA",
-      selectionProcess: ["Telephonic Call...", "Online aptitude Test..."],
-      officeLocation: "",
-      homeRequirements: ["Laptop, headset...", "Consistent availability..."],
-      note: "Professional head-set can be provided if needed.",
-      note_description: "",
-      remuneration: "Best in the industry...",
-    },
-  ];
+  // Default job fields
+  const defaultJobFields = {
+    responsibilities: [
+      "Deliver live online classes...",
+      "Tailor instructional strategies...",
+    ],
+    qualifications: [
+      "Bachelor's or Master's degree...",
+      "Prior experience in teaching...",
+    ],
+    mode: "Hybrid",
+    market: "INDIA, US, UK, and AUSTRALIA",
+    selectionProcess: ["Telephonic Call...", "Online aptitude Test..."],
+    officeLocation: "Andheri East, Mumbai",
+    homeRequirements: ["Laptop, headset...", "Consistent availability..."],
+    note: "Professional head-set can be provided if needed.",
+    note_description: "This position offers the opportunity...",
+    remuneration: "Best in the industry...",
+  };
+
+  // Fetch data from API (generic fetch function)
+  const fetchData = async (url) => {
+    await getQuery({
+      url,
+      onSuccess: (response) => {
+        if (response?.success && Array.isArray(response.data)) {
+          setArrivedData(response.data);
+          // Set the first job as active if available
+          if (response.data.length > 0) {
+            setActiveJob(response.data[0].title);
+          }
+        } else {
+          toast.error("Failed to fetch data.");
+          setArrivedData([]);
+        }
+      },
+      onFail: () => {
+        toast.error("Failed to fetch data.");
+        setArrivedData([]);
+      },
+    });
+  };
+
+  // Fetch job openings data
+  useEffect(() => {
+    fetchData(apiUrls?.jobForm?.getAllNewJobs);
+  }, []);
 
   // Find the active job based on the selected title
-  const job = jobs.find((job) => job.title === activeJob);
+  const job = arriveData.find((jobItem) => jobItem.title === activeJob);
+
+  if (loading) {
+    return <Preloader />;
+  }
 
   return (
     <div className="w-full flex justify-center items-center p-4 bg-white dark:bg-screen-dark">
@@ -247,11 +272,13 @@ const JobOpening = () => {
           {/* Left Section - Job Title Navigation */}
           <div className="w-full lg:w-[15%]">
             <div className="flex flex-col">
-              {jobs.map((jobItem) => (
+              {arriveData.map((jobItem) => (
                 <button
                   key={jobItem.title}
                   className={`${
-                    activeJob === jobItem.title ? "bg-[#7ECA9D] text-white" : "bg-gray-200"
+                    activeJob === jobItem.title
+                      ? "bg-[#7ECA9D] text-white"
+                      : "bg-gray-200"
                   } p-2`}
                   onClick={() => setActiveJob(jobItem.title)}
                 >
@@ -265,58 +292,76 @@ const JobOpening = () => {
           <div className="w-full lg:w-[42%] p-6 text-[#727695] text-[15px] list-none border-2 dark:text-gray300 dark:border-gray600 border-[#D5D8DC]">
             {job && (
               <>
-                <h2 className="mb-3 font-bold text-lg dark:text-white">Job Description:</h2>
+                {/* Dynamic Job Description */}
+                <h2 className="mb-3 font-bold text-lg dark:text-white">
+                  Job Description:
+                </h2>
                 <p className="mb-3">{job.description}</p>
 
-                <h3 className="mb-2 font-bold dark:text-white">Key Responsibilities:</h3>
+                {/* Default Job Fields */}
+                <h3 className="mb-2 font-bold dark:text-white">
+                  Key Responsibilities:
+                </h3>
                 <ul className="mb-3 list-disc pl-5">
-                  {job.responsibilities.map((item, index) => (
+                  {defaultJobFields.responsibilities.map((item, index) => (
                     <li key={index}>{item}</li>
                   ))}
                 </ul>
 
-                <h3 className="mb-2 font-bold dark:text-white">Qualifications:</h3>
+                <h3 className="mb-2 font-bold dark:text-white">
+                  Qualifications:
+                </h3>
                 <ul className="mb-3 list-disc pl-5">
-                  {job.qualifications.map((item, index) => (
+                  {defaultJobFields.qualifications.map((item, index) => (
                     <li key={index}>{item}</li>
                   ))}
                 </ul>
 
                 <h3 className="mb-2 font-bold dark:text-white">Mode:</h3>
-                <p className="mb-3">{job.mode}</p>
+                <p className="mb-3">{defaultJobFields.mode}</p>
 
                 <h3 className="mb-2 font-bold dark:text-white">Market:</h3>
-                <p className="mb-3">{job.market}</p>
+                <p className="mb-3">{defaultJobFields.market}</p>
 
-                <h3 className="mb-2 font-bold dark:text-white">Selection Process:</h3>
+                <h3 className="mb-2 font-bold dark:text-white">
+                  Selection Process:
+                </h3>
                 <ul className="mb-3 list-disc pl-5">
-                  {job.selectionProcess.map((item, index) => (
+                  {defaultJobFields.selectionProcess.map((item, index) => (
                     <li key={index}>{item}</li>
                   ))}
                 </ul>
 
-                <h3 className="mb-2 font-bold dark:text-white">Office Location:</h3>
-                <p className="mb-3">{job.officeLocation || "Not Provided"}</p>
+                <h3 className="mb-2 font-bold dark:text-white">
+                  Office Location:
+                </h3>
+                <p className="mb-3">{defaultJobFields.officeLocation}</p>
 
-                <h3 className="mb-2 font-bold dark:text-white">Work-from-Home Requirements:</h3>
+                <h3 className="mb-2 font-bold dark:text-white">
+                  Work-from-Home Requirements:
+                </h3>
                 <ul className="mb-3 list-disc pl-5">
-                  {job.homeRequirements.map((item, index) => (
+                  {defaultJobFields.homeRequirements.map((item, index) => (
                     <li key={index}>{item}</li>
                   ))}
                 </ul>
 
-                {job.note && (
+                {defaultJobFields.note && (
                   <>
                     <h3 className="mb-2 font-bold dark:text-white">Note:</h3>
-                    <p className="mb-3 font-semibold">{job.note}</p>
-                    <p className="mb-3">{job.note_description}</p>
+                    <p className="mb-3 font-semibold">
+                      {defaultJobFields.note}
+                    </p>
+                    <p className="mb-3">{defaultJobFields.note_description}</p>
                   </>
                 )}
 
-                {job.remuneration && (
+                {defaultJobFields.remuneration && (
                   <>
-                    <h3 className="mb-2 font-bold dark:text-white">Remuneration:</h3>
-                    <p className="mb-3">{job.remuneration}</p>
+                    <h3 className="mb-2 font-bold dark:text-white">
+                      Remuneration:
+                    </h3>
+                    <p className="mb-3">{defaultJobFields.remuneration}</p>
                   </>
                 )}
               </>
