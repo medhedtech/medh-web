@@ -17,7 +17,7 @@ const StundentFreeCourses = () => {
 
   const [freeCourses, setFreeCourses] = useState([]);
   const { getQuery } = useGetQuery();
-  const [limit] = useState(20);
+  const [limit] = useState(90);
   const [page] = useState(1);
 
   useEffect(() => {
@@ -68,7 +68,7 @@ const StundentFreeCourses = () => {
             // title={}
             key={course?._id}
             {...course}
-            onClick={() => handleCardClick(course.id)}
+            onClick={() => handleCardClick(course?._id)}
           />
         ))}
       </div>
