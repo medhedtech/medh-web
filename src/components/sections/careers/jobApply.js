@@ -84,23 +84,19 @@ function JobApply() {
           accept: data?.accept,
         },
         onSuccess: () => {
-          toast.success("Form submitted successfully!");
+          console.log("Form submitted successfully!");
           reset();
           setPdfBrochure(null);
           setFileName("No file chosen");
         },
         onFail: () => {
-          toast.error("Error submitting form.");
+          console.log("Error submitting form.");
         },
       });
     } catch (error) {
-      toast.error("An unexpected error occurred. Please try again.");
+      console.log("An unexpected error occurred. Please try again.");
     }
   };
-
-  if (loading) {
-    return <Preloader />;
-  }
 
   return (
     <div className="w-full bg-white dark:bg-screen-dark rounded-md">
@@ -221,7 +217,7 @@ function JobApply() {
           type="submit"
           className="bg-[#7ECA9D] text-white px-4 py-2 rounded-md hover:bg-[#7ECA9D] transition duration-300"
         >
-          Submit
+          {loading ? "Submitting..." : "Submit"}
         </button>
       </form>
     </div>
