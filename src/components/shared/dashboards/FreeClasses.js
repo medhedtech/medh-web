@@ -96,7 +96,7 @@ const FreeCourses = () => {
             // title={}
             key={course?._id}
             {...course}
-            onClick={() => handleCardClick(course.id)}
+            onClick={() => handleCardClick(course?._id)}
           />
         ))}
       </div>

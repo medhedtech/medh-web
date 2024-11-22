@@ -3,15 +3,16 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import StarIcon from "@/assets/images/icon/StarIcon";
 
-const CourseHeader = ({ title, classes, rating, hour, price }) => {
+const CourseHeader = ({ id, title, classes, category, rating, hour, price, desc }) => {
   const router = useRouter();
+  const courseId = id;
 
   return (
     <div className=" justify-between items-start md:items-center mt-6 w-[531px]">
       <div>
         <div className="">
           <div className="flex justify-between ">
-            <div className="text-[#FF6B00] font-bold text-size-12">Diploma</div>
+            <div className="text-[#FF6B00] font-bold text-size-12">{category}</div>
             <div className="text-yellow-500 text-sm flex gap-0.5">
               <span className="my-auto">
                 <StarIcon />
@@ -95,7 +96,7 @@ const CourseHeader = ({ title, classes, rating, hour, price }) => {
                 />
               </svg>
             </div>{" "}
-            {classes} class
+            {classes} sessions
           </span>
           <span className="text-gray-500 text-sm flex gap-2">
             |{" "}
@@ -121,13 +122,13 @@ const CourseHeader = ({ title, classes, rating, hour, price }) => {
                 />
               </svg>
             </div>{" "}
-            {hour} Hour{" "}
+            {hour.split(" ")[0]} hours
           </span>
         </div>
       </div>
       <button
         onClick={() => {
-          router.push("/dashboards/billing-details");
+          router.push(`/dashboards/billing-details/${courseId}`);
         }}
         className="mt-4 md:mt-0 px-4 py-2 rounded-[150px] bg-primaryColor w-[530px] text-white font-semibold  hover:bg-green-600"
       >
@@ -137,16 +138,7 @@ const CourseHeader = ({ title, classes, rating, hour, price }) => {
       <div className="mt-6">
         <h2>About Course</h2>
         <div className="border-t-4 text-[#565656] text-size-11">
-          <p className="mb-5">
-            Lorem ipsum dolor sit amet consectetur. Cras erat varius malesuada
-            iaculis sapien nec massa faucibus sed. Sodales urna neque turpis
-            sociis senectus. Cras ultricies.
-          </p>
-          <p>
-            Lorem ipsum dolor sit amet consectetur. Cras erat varius malesuada
-            iaculis sapien nec massa faucibus sed. Sodales urna neque turpis
-            sociis senectus. Cras ultricies.
-          </p>
+          <p>{desc}</p>
         </div>
       </div>
     </div>
