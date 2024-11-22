@@ -49,18 +49,20 @@ export default function AdminJobApplicants() {
     fetchData(apiUrls?.jobForm?.getAllNewJobs, setNewPosts);
   }, []);
 
-  const deleteJobPost = (id) => {
-    deleteQuery({
-      url: `${apiUrls?.jobForm?.deleteJobPost}/${id}`,
+  const handleDelete = async (url, id, fetchUrl, setState) => {
+    setLoading(true);
+    await deleteQuery({
+      url: `${url}/${id}`,
       onSuccess: (res) => {
-        toast.success(res?.message);
-        fetchData(apiUrls?.jobForm?.getAllJobPosts, setEnrollments);
+        toast.success(res?.message || "Deleted successfully.");
+        fetchData(fetchUrl, setState);
       },
-      onFail: (res) => {
-        toast.error("Failed to delete job post.");
-        console.log(res, "Failed to delete");
+      onFail: (err) => {
+        console.error("Delete failed", err);
+        toast.error("Failed to delete.");
       },
     });
+    setLoading(false);
   };
 
   const columns = [
@@ -87,7 +89,14 @@ export default function AdminJobApplicants() {
             <FaEye className="h-4 w-4 text-inherit" />
           </button>
           <button
-            onClick={() => deleteJobPost(row?._id)}
+            onClick={() =>
+              handleDelete(
+                apiUrls?.jobForm?.deleteJobPost,
+                row?._id,
+                apiUrls?.jobForm?.getAllJobPosts,
+                setEnrollments
+              )
+            }
             className="text-[#7ECA9D] border border-[#7ECA9D] rounded-md px-[10px] py-1"
           >
             Delete
@@ -112,7 +121,14 @@ export default function AdminJobApplicants() {
       render: (row) => (
         <div className="flex gap-2 items-center">
           <button
-            onClick={() => deleteJobPost(row?._id)}
+            onClick={() =>
+              handleDelete(
+                apiUrls?.jobForm?.deleteNewJobPost,
+                row?._id,
+                apiUrls?.jobForm?.getAllNewJobs,
+                setNewPosts
+              )
+            }
             className="text-[#7ECA9D] border border-[#7ECA9D] rounded-md px-[10px] py-1"
           >
             Delete
