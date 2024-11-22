@@ -53,7 +53,7 @@ const BillDetails = () => {
       });
     };
     fetchUserDetailsById();
-  }, []);
+  }, [userId]);
 
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
