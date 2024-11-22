@@ -21,6 +21,8 @@ const EnrollCoursesCard = ({ title, image, isLive, progress, onClick }) => {
         <Image
           src={displayImage}
           alt={title}
+          height={400}
+          width={400}
           className="w-full h-full object-cover rounded-lg"
         />
       </div>
