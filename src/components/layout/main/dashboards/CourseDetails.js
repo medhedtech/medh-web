@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import CourseHeader from "./CourseHeader";
 import WhatYouGet from "./WhatYouGet";
 import CurriculumSection from "./Curriculum";
@@ -7,8 +7,30 @@ import Review from "./Reviews";
 import reviewimg from "@/assets/images/dashbord/review.png";
 import Image from "next/image";
 import MLBanner from "@/assets/images/dashbord/MLBanner.png";
+import { useParams, useRouter } from "next/navigation";
+import useGetQuery from "@/hooks/getQuery.hook";
+import { apiUrls } from "@/apis";
+import ReactPlayer from "react-player";
 
 const CourseDetails = () => {
+  const courseId = useParams().id;
+  const [courseDetails, setCourseDetails] = useState(null);
+  const { getQuery } = useGetQuery();
+  const router = useRouter();
+  const [selectedVideo, setSelectedVideo] = useState(null); // Track the selected video
+  const [isPlaying, setIsPlaying] = useState(false); // Control video player visibility
+
+  const handlePlayVideo = (videoUrl) => {
+    setSelectedVideo(videoUrl); // Set the selected video URL
+    setIsPlaying(true); // Show the video player
+    console.log("Playing video:", videoUrl);
+  };
+
+  const handleCloseVideo = () => {
+    setSelectedVideo(null);
+    setIsPlaying(false);
+  };
+
   const course = {
     title: "Advance Machine Learning for Beginners",
     classes: 21,
@@ -95,10 +117,31 @@ const CourseDetails = () => {
     ],
   };
 
+  // MAKE API CALL TO GET THE COURSE DETAILS BY ID
+  useEffect(() => {
+    const fetchCourseDetailsById = () => {
+      getQuery({
+        url: `${apiUrls?.courses?.getCourseById}/${courseId}`,
+        onSuccess: (res) => {
+          setCourseDetails(res);
+          console.log(res);
+        },
+        onFail: (err) => {
+          console.error("Error fetching course details:", err);
+        },
+      });
+    };
+    fetchCourseDetailsById();
+  }, []);
+
+  const handleGoBack = () => {
+    router.back();
+  };
+
   return (
     <div className="container mx-auto p-8">
       <div className="flex items-center gap-4">
-        <button className="text-blue-500 text-xl">
+        <button className="text-blue-500 text-xl" onClick={handleGoBack}>
           <div>
             <svg
               width="32"
@@ -121,29 +164,124 @@ const CourseDetails = () => {
         </h2>
       </div>
       <div className="mt-6">
-        <Image src={MLBanner} alt="banner" className="" />
+        <Image
+          src={courseDetails?.course_image || MLBanner}
+          alt="banner"
+          width={1200}
+          height={0}
+          className="w-full h-[50vh] object-cover rounded-2xl"
+        />
       </div>
       <div className=" flex gap-12">
         <div className="w-[70%]">
           <CourseHeader
-            title={course.title || "Untitled Course"}
-            classes={course.classes || "Unknown"}
+            id={courseId}
+            title={courseDetails?.course_title || "Untitled Course"}
+            classes={courseDetails?.no_of_Sessions || "Unknown"}
+            category={courseDetails?.course_category || "Tech"}
             rating={course.rating || 0}
-            hour={course.hour || "0"}
-            price={course.price || 0}
+            hour={courseDetails?.session_duration || "- hours"}
+            price={courseDetails?.course_fee || 0}
+            desc={courseDetails?.course_description || "No Description"}
           />
           <h3 className="text-lg font-semibold text-gray-800 mt-8">
             Course Curriculum
           </h3>
-          {course.curriculum.map((section, index) => (
+          {/* {course.curriculum.map((section, index) => (
             <CurriculumSection
               key={index}
               title={section.title || "No Title"}
               duration={section.duration || "No Duration"}
               lessons={section.lessons || []}
             />
-          ))}
+          ))} */}
+          <ul>
+            {courseDetails?.course_videos.map((video, index) => (
+              <li
+                key={index}
+                className="flex justify-between items-center w-1/2 border-b border-gray-200 py-3 text-[#202244] "
+              >
+                <div className="flex items-center space-x-3 ">
+                  <span className="w-8 h-8 flex bg-slate-200 items-center justify-center bg-blue-100 text-blue-600 rounded-full text-sm font-semibold">
+                    {index + 1}
+                  </span>
+                  <div>
+                    <p className="text-base font-medium">Video {index + 1}</p>
+                  </div>
+                </div>
+                <div
+                  className="cursor-pointer"
+                  onClick={() => handlePlayVideo(video)}
+                >
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 18 18"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      clipRule="evenodd"
+                      d="M7.2 13.05V4.95L12.6 9L7.2 13.05ZM9 0C4.02705 0 0 4.02705 0 9C0 13.9729 4.02705 18 9 18C13.9729 18 18 13.9729 18 9C18 4.02705 13.9729 0 9 0Z"
+                      fill="#7ECA9D"
+                    />
+                  </svg>
+                </div>
+              </li>
+            ))}
+            {courseDetails?.course_videos.length === 0 && (
+              <p className="text-[#202244] pt-1">No Videos available</p>
+            )}
+          </ul>
         </div>
+
+        {/* Video Player */}
+        {isPlaying && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <div className="bg-white rounded-lg p-4 w-[90%] max-w-3xl relative">
+              <button
+                onClick={handleCloseVideo}
+                className="absolute -top-3 -right-3 text-gray-600 hover:text-gray-800 bg-red-200 hover:bg-red-300 rounded-full p-2 focus:outline-none shadow-lg transition duration-200 ease-in-out"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="1.5"
+                  stroke="currentColor"
+                  className="w-6 h-6"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+
+              {/* <video
+                controls
+                autoPlay
+                className="w-full h-auto rounded-lg"
+                src={selectedVideo}
+              /> */}
+              <ReactPlayer
+                url={selectedVideo}
+                controls
+                width="100%"
+                height="auto"
+                config={{
+                  file: {
+                    attributes: {
+                      controlsList: "nodownload", // Prevent downloads
+                    },
+                  },
+                }}
+              />
+            </div>
+          </div>
+        )}
 
         <div className="mt-8 ">
           <WhatYouGet />
