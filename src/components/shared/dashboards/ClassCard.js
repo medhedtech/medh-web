@@ -54,6 +54,8 @@ const ClassCard = ({
           <Image
             src={image}
             alt={title}
+            width={320}
+            height={0}
             className="w-full h-full object-cover"
           />
         </div>
