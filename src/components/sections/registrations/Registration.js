@@ -12,6 +12,8 @@ import { apiUrls } from "@/apis";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
+import { FaCamera } from "react-icons/fa";
+import Link from "next/link";
 
 // Validation schema using yup
 const schema = yup.object({
@@ -27,10 +29,13 @@ const schema = yup.object({
     .boolean()
     .oneOf([true], "You must accept the terms and privacy policy")
     .required(),
+    resume_image: yup.string()
 });
 
-const Registration = () => {
+const Registration = ({ showUploadField = false }) => {
   const { postQuery, loading } = usePostQuery();
+  const [fileName, setFileName] = useState("No file chosen");
+  const [pdfBrochure, setPdfBrochure] = useState(null);
   const {
     register,
     handleSubmit,
@@ -38,21 +43,63 @@ const Registration = () => {
     reset,
   } = useForm({
     resolver: yupResolver(schema),
+    defaultValues: {
+      showUploadField,
+    },
   });
+
+  const handlePdfUpload = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFileName(file.name);
+      try {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = async () => {
+          const base64 = reader.result;
+          const postData = { base64String: base64 };
+
+          await postQuery({
+            url: apiUrls?.upload?.uploadDocument,
+            postData,
+            onSuccess: (data) => {
+              console.log("PDF uploaded successfully!");
+              setPdfBrochure(data?.data);
+            },
+            onError: () => {
+              console.log("PDF upload failed. Please try again.");
+            },
+          });
+        };
+      } catch (error) {
+        console.log("Error uploading PDF. Please try again.");
+      }
+    } else {
+      setFileName("No file chosen");
+    }
+  };
 
   // Handle form submission
   const onSubmit = async (data) => {
     try {
+      // Prepare the postData to send
+      const postData = {
+        full_name: data.full_name,
+        country: data.country,
+        email: data.email,
+        phone_number: data.phone_number,
+        message: data.message,
+        accept: data.accept,
+      };
+
+      // Add resume_image if pdfBrochure is available
+      if (pdfBrochure) {
+        postData.resume_image = pdfBrochure;
+      }
+
       await postQuery({
         url: apiUrls?.Contacts?.createContact,
-        postData: {
-          full_name: data.full_name,
-          country: data.country,
-          email: data.email,
-          phone_number: data.phone_number,
-          message: data.message,
-          accept: data.accept,
-        },
+        postData,
         onSuccess: () => {
           toast.success("Form submitted successfully!");
           reset({
@@ -72,10 +119,6 @@ const Registration = () => {
       console.log("An unexpected error occurred. Please try again.");
     }
   };
-
-  if (loading) {
-    return <Preloader />;
-  }
 
   return (
     <section
@@ -198,7 +241,32 @@ const Registration = () => {
                   <span className="text-red-500">{errors.message.message}</span>
                 )}
 
-                <div className="flex items-start space-x-2 mb-12">
+                {showUploadField && (
+                  <>
+                    <h2 className="text-[1rem] font-bold font-Poppins text-[#000000D9] dark:text-white">
+                      Upload Your Resume*
+                    </h2>
+                    <div className="w-full">
+                      <label
+                        htmlFor="fileInput"
+                        className="flex items-center gap-2 border border-gray-300 rounded-lg p-2 cursor-pointer w-full text-gray-700 dark:text-white"
+                      >
+                        <FaCamera className="text-gray-500" />
+                        {fileName}
+                      </label>
+                      <input
+                        {...register("resume_image")}
+                        id="fileInput"
+                        type="file"
+                        accept=".pdf"
+                        className="hidden"
+                        onChange={handlePdfUpload}
+                      />
+                    </div>
+                  </>
+                )}
+
+                <div className="flex items-start space-x-2 mt-4 mb-12">
                   <input
                     {...register("accept")}
                     type="checkbox"
@@ -210,11 +278,15 @@ const Registration = () => {
                     className="text-sm text-gray-700 dark:text-gray-300"
                   >
                     By submitting this form, I accept
-                    <span className="text-[#7ECA9D] ml-1">
-                      Terms of Service {" "}
-                    </span>
+                    <Link href="/terms-and-services">
+                      <span className="text-[#7ECA9D] ml-1">
+                        Terms of Service
+                      </span>
+                    </Link>{" "}
                     & <br />
-                    <span className="text-[#7ECA9D]">Privacy Policy.</span>
+                    <Link href="/privacy-policy">
+                      <span className="text-[#7ECA9D]">Privacy Policy.</span>
+                    </Link>
                   </label>
                 </div>
                 {errors.accept && (
@@ -228,7 +300,7 @@ const Registration = () => {
                     type="submit"
                     className="bg-[#F6B335] text-white px-6 py-2"
                   >
-                    Submit
+                    {loading ? "Loading..." : "Submit"}
                   </button>
                 </div>
               </form>
