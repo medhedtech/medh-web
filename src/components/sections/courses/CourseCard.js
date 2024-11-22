@@ -44,7 +44,11 @@ const CourseCard = ({ course }) => {
           Program Details
         </button>
       </div>
-      <DownloadBrochureModal isOpen={isModalOpen} onClose={closeModal} />
+      <DownloadBrochureModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        courseTitle={course?.course_title}
+      />
     </div>
   );
 };
