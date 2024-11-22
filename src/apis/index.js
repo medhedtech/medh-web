@@ -7,7 +7,7 @@ export const apiUrls = {
     login: "/auth/login",
     update: "/auth/update/:id",
     delete: "/auth/delete",
-    getDetailsbyId: "/auth/get/:id",
+    getDetailsbyId: "/auth/get",
     getAll: "/auth/get-all",
     updateByEmail: "/auth/update-by-email",
   },
