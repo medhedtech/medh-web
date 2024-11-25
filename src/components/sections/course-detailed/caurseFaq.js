@@ -44,7 +44,7 @@ export default function CaurseFaq({ courseId }) {
     {
       question: `What are the key highlights of the 3 months Certificate course in ${courseDetails1?.course_title} with Data Analytics?`,
       answer:
-        "The Personality Development Course is designed to help individuals enhance their personal and professional skills through various interactive sessions and practical exercises.",
+        `The ${courseDetails1?.course_title} Course is designed to help individuals enhance their personal and professional skills through various interactive sessions and practical exercises.`,
     },
     {
       question: `How will this course prepare me for entry-level roles in ${courseDetails1?.course_title} and data analytics?`,
@@ -68,9 +68,9 @@ export default function CaurseFaq({ courseId }) {
         "Absolutely! The skills learned in this course are highly beneficial for career growth and personal development.",
     },
     {
-      question: "Is Vedic Math course different from Math tuitions?",
+      question: `Is ${courseDetails1?.course_title} course different from Math tuitions?`,
       answer:
-        "The Personality Development Course is designed to help individuals enhance their personal and professional skills through various interactive sessions and practical exercises.",
+        `The ${courseDetails1?.course_title} Course is designed to help individuals enhance their personal and professional skills through various interactive sessions and practical exercises.`,
     },
     {
       question:

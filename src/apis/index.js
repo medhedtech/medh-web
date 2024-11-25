@@ -123,5 +123,8 @@ export const apiUrls = {
     addJobPost: "/job-post/create",
     updateJobPost: "/job-post/update",
     deleteJobPost: "/job-post/delete",
+    addNewJobPost: "/add-job-post/create",
+    getAllNewJobs: "/add-job-post/getAll",
+    deleteNewJobPost: "/add-job-post/delete",
   },
 };
