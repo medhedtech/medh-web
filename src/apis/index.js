@@ -114,6 +114,7 @@ export const apiUrls = {
   EnrollCourse: {
     enrollCourse: "/enroll/create",
     getEnrolledCourse: "/enroll/getAll",
+    getCountByStudentId: "/enroll/getCount",
     getEnrolledCourseById: "/enroll/get",
     getEnrolledCoursesByStudentId: "/enroll/student",
   },
