@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { FaPaperPlane } from "react-icons/fa";
 
-const DownloadBrochureModal = ({ isOpen, onClose }) => {
+const DownloadBrochureModal = ({ isOpen, onClose, courseTitle }) => {
   if (!isOpen) return null;
 
   return (
@@ -22,7 +22,7 @@ const DownloadBrochureModal = ({ isOpen, onClose }) => {
           Certificate Course in
           <br />
           <span className="font-bold text-2xl text-[#FFA63E]">
-            Learning Mandarin Language
+             {courseTitle || "Course Title"}
           </span>
         </h3>
 
