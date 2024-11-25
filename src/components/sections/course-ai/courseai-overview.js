@@ -270,7 +270,7 @@ const data = {
       content: (
         <>
           <h1 className="text-[23px] font-bold text-primaryColor dark:text-gray50">
-            Career Prospects: Unlock Limitless Opportunities with AI and Data
+            Unlock Limitless Opportunities with AI and Data
             Science Course
           </h1>
           <p className="text-lightGrey14 mb-6 md:text-[15px] text-[14px] dark:text-gray300 ">
