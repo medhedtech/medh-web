@@ -1,33 +1,82 @@
+"use client";
+import { useEffect, useState } from "react";
 import counter1 from "@/assets/images/counter/books.png";
 import counter2 from "@/assets/images/counter/Live.png";
 import counter3 from "@/assets/images/counter/Student.png";
-import CounterDashboard from "@/components/shared/dashboards/CounterDashboard";
 import CounterStudentdashboard from "@/components/shared/dashboards/CounterStudentdashboard";
-import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
+import useGetQuery from "@/hooks/getQuery.hook";
+import { apiUrls } from "@/apis";
 
 const CounterStudent = () => {
-  const counts = [
+  const { getQuery } = useGetQuery();
+  const [counts, setCounts] = useState({
+    enrolledCourses: 0,
+    liveCourses: 0,
+    selfPacedCourses: 0,
+  });
+  const [studentId, setStudentId] = useState(null);
+
+  // Retrieve student ID from localStorage when component mounts
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const student_id = localStorage.getItem("userId");
+      if (student_id) {
+        setStudentId(student_id);
+      } else {
+        console.log("Student ID not found in localStorage");
+      }
+    }
+  }, []);
+
+  console.log("student ki id:", studentId);
+
+  // Fetch counts data once studentId is available
+  useEffect(() => {
+    if (studentId) {
+      const fetchCounts = async () => {
+        try {
+          const response = await getQuery({
+            url: `${apiUrls?.EnrollCourse?.getCountByStudentId}/${studentId}`,
+          });
+
+          if (response) {
+            setCounts({
+              enrolledCourses: response?.totalEnrollments || 0,
+              liveCourses: response?.liveCoursesCount || 0,
+              selfPacedCourses: 0,
+            });
+          } else {
+            console.log("No response from API");
+          }
+        } catch (error) {
+          console.error("Failed to fetch counts:", error);
+        }
+      };
+
+      fetchCounts();
+    }
+  }, [studentId]);
+
+  // Prepare dashboard data
+  const dashboardCounts = [
     {
       name: "Enrolled Courses",
       image: counter1,
-      data: 2,
+      data: counts.enrolledCourses,
     },
     {
       name: "Live Courses",
       image: counter2,
-      data: 1,
-      // symbol: "+",
+      data: counts.liveCourses,
     },
     {
       name: "Self-paced Courses",
       image: counter3,
-      data: 1,
+      data: counts.selfPacedCourses,
     },
   ];
-  return (
-    // <CounterDashboard counts={counts}/>
-    <CounterStudentdashboard counts={counts} />
-  );
+
+  return <CounterStudentdashboard counts={dashboardCounts} />;
 };
 
 export default CounterStudent;
