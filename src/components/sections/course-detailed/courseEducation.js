@@ -112,19 +112,17 @@ function CourseEducation({ courseId }) {
       setIsModalOpen(true);
       return;
     }
-
     // Load Razorpay script
     const scriptLoaded = await loadRazorpayScript();
     if (!scriptLoaded) {
-      toast.error("Please log in first..");
+      toast.error("Please log in first.");
       return;
     }
-
-    // If the user is logged in, open Razorpay payment
     if (courseDetails1) {
+      const courseFee = Number(courseDetails1?.course_fee) || 59500;
       const options = {
         key: "rzp_test_Rz8NSLJbl4LBA5",
-        amount: 59500,
+        amount: courseFee * 100,
         currency: "INR",
         name: courseDetails1?.course_title,
         description: `Payment for ${courseDetails1?.course_title}`,
@@ -132,8 +130,8 @@ function CourseEducation({ courseId }) {
         handler: async function (response) {
           toast.success("Payment Successful!");
 
-          // Call enrollCourse API after successful payment
-          await enrollCourse(studentId, courseId);
+          // Call subscription API after successful payment
+          await subscribeCourse(studentId, courseId, courseFee);
         },
         prefill: {
           name: "Medh Student",
@@ -153,6 +151,32 @@ function CourseEducation({ courseId }) {
     }
   };
 
+  const subscribeCourse = async (studentId, courseId, amount) => {
+    try {
+      await postQuery({
+        url: apiUrls?.Subscription?.AddSubscription,
+        postData: {
+          student_id: studentId,
+          course_id: courseId,
+          amount: amount,
+        },
+        onSuccess: async () => {
+          toast.success("Payment successful!");
+
+          // Call enrollCourse API after successful subscription
+          await enrollCourse(studentId, courseId);
+        },
+        onFail: (err) => {
+          console.error("Subscription failed:", err);
+          toast.error("Error in subscription. Please try again.");
+        },
+      });
+    } catch (error) {
+      console.error("Error in subscribing course:", error);
+      toast.error("Something went wrong! Please try again later.");
+    }
+  };
+
   const enrollCourse = async (studentId, courseId) => {
     try {
       await postQuery({
@@ -164,7 +188,8 @@ function CourseEducation({ courseId }) {
         onSuccess: () => {
           toast.success("Hurray! You are enrolled successfully.");
         },
-        onFail: () => {
+        onFail: (err) => {
+          console.error("Enrollment failed:", err);
           toast.error("Error enrolling in the course. Please try again!");
         },
       });

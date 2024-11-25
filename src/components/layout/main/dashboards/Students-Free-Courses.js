@@ -23,16 +23,19 @@ const StundentFreeCourses = () => {
   useEffect(() => {
     const fetchCourses = () => {
       getQuery({
-        url: apiUrls?.courses?.getAllCoursesWithLimits(page,limit,'','','','Upcoming','',true),
+        url: apiUrls?.courses?.getAllCoursesWithLimits(page, limit, '', '', '', 'Upcoming', '', '', true),
         onSuccess: (res) => {
-          setFreeCourses(res?.courses || []);
-          console.log("fetched: ", res?.courses)
+          // Filter the courses where isFree is true
+          const freeCourses = res?.courses?.filter(course => course.isFree === true) || [];
+          setFreeCourses(freeCourses);
+          console.log(freeCourses); // Logging the filtered courses
         },
         onFail: (err) => {
           console.error("Error fetching courses:", err);
         },
       });
     };
+  
     fetchCourses();
   }, [page, limit]);
 
