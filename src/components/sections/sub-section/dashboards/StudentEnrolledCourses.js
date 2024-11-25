@@ -1,140 +1,72 @@
 "use client";
 import { useEffect, useState } from "react";
-import img2 from "@/assets/images/resources/img2.png";
-import img3 from "@/assets/images/resources/img3.png";
-import img4 from "@/assets/images/resources/img4.png";
-import img5 from "@/assets/images/resources/img5.png";
-import img6 from "@/assets/images/resources/img6.png";
-import Qize from "@/assets/images/dashbord/quize.png";
-import PDFImage from "@/assets/images/dashbord/bxs_file-pdf.png";
 import Image from "next/image";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
-
-const courses = [
-  {
-    id: 1,
-    title: "Web Development",
-    instructor: "John Doe",
-    image: Qize,
-    downloadLink: PDFImage,
-  },
-  {
-    id: 2,
-    title: "Communication Skills",
-    instructor: "John Doe",
-    image: img2,
-    downloadLink: PDFImage,
-  },
-  {
-    id: 3,
-    title: "Leadership is everything",
-    instructor: "John Doe",
-    image: img3,
-    downloadLink: PDFImage,
-  },
-  {
-    id: 4,
-    title: "Team work hard work",
-    instructor: "John Doe",
-    image: img4,
-    downloadLink: PDFImage,
-  },
-  {
-    id: 5,
-    title: "Master the art of Psychology",
-    instructor: "John Doe",
-    image: img5,
-    downloadLink: PDFImage,
-  },
-  {
-    id: 6,
-    title: "React Basics",
-    instructor: "John Doe",
-    image: img6,
-    downloadLink: PDFImage,
-  },
-];
-
-const liveCourses = [
-  {
-    id: 1,
-    title: "Team work hard work",
-    instructor: "John Doe",
-    image: Qize,
-    downloadLink: PDFImage,
-  },
-  {
-    id: 2,
-    title: "Communication Skills",
-    instructor: "John Doe",
-    image: img2,
-    downloadLink: PDFImage,
-  },
-  {
-    id: 3,
-    title: "Leadership is everything",
-    instructor: "John Doe",
-    image: img3,
-    downloadLink: PDFImage,
-  },
-];
+import img3 from "@/assets/images/resources/img3.png";
+import img4 from "@/assets/images/resources/img4.png";
+import img5 from "@/assets/images/resources/img5.png";
+import PDFImage from "@/assets/images/dashbord/bxs_file-pdf.png";
+import Preloader from "@/components/shared/others/Preloader";
 
 const selfPacedCourses = [
   {
     id: 1,
     title: "Communication Skills",
     instructor: "John Doe",
-    image: img4,
+    image: img3,
     downloadLink: PDFImage,
   },
   {
     id: 2,
-    title: "Leadership is everything",
-    instructor: "John Doe",
-    image: img5,
+    title: "Leadership Basics",
+    instructor: "Jane Doe",
+    image: img4,
     downloadLink: PDFImage,
   },
 ];
 
 const StudentEnrolledCourses = () => {
   const [currentTab, setCurrentTab] = useState(0);
-  const [students, setStudents] = useState([]);
-  const { getQuery } = useGetQuery();
+  const [enrolledCourses, setEnrolledCourses] = useState([]);
+  const [liveCourses, setLiveCourses] = useState([]);
+  const { getQuery, loading } = useGetQuery();
 
   useEffect(() => {
-    fetchEntrolledCourses();
+    const storedUserId = localStorage.getItem("userId");
+    if (storedUserId) {
+      fetchEnrolledCourses(storedUserId);
+    }
   }, []);
 
-  const fetchEntrolledCourses = async () => {
-    const studentId = localStorage.getItem("userId");
-    try {
-      await getQuery({
-        url: `apiUrls?.EnrollCourse?.getEnrolledCourseById/${studentId}`,
-        onSuccess: (response) => {
-          if (response.success) {
-            setStudents(response.data);
-          } else {
-            console.error("Failed to fetch students: ", response.message);
-            setStudents([]);
-          }
-        },
-        onFail: (err) => {
-          console.error("API error:", err);
-          setStudents([]);
-        },
-      });
-    } catch (error) {
-      console.error("Failed to fetch blogs:", error);
-      setBlogs([]);
-    }
+  const fetchEnrolledCourses = (studentId) => {
+    getQuery({
+      url: `${apiUrls?.EnrollCourse?.getEnrolledCoursesByStudentId}/${studentId}`,
+      onSuccess: (data) => {
+        const allCourses = data.map((enrollment) => enrollment.course_id);
+        setEnrolledCourses(allCourses);
+
+        // Filter live courses based on category
+        const liveCoursesFiltered = allCourses.filter(
+          (course) => course.course_category === "Live Courses"
+        );
+        setLiveCourses(liveCoursesFiltered);
+      },
+      onFail: (error) => {
+        console.error("Failed to fetch enrolled courses:", error);
+      },
+    });
   };
 
   const tabs = [
-    { name: "Enrolled Courses", content: courses },
+    { name: "Enrolled Courses", content: enrolledCourses },
     { name: "Live Courses", content: liveCourses },
     { name: "Self-Paced Courses", content: selfPacedCourses },
   ];
+
+  if (loading) {
+    return <Preloader />;
+  }
 
   return (
     <div className="p-12 rounded-lg max-w-full mx-auto font-Open">
@@ -143,7 +75,7 @@ const StudentEnrolledCourses = () => {
       </h2>
 
       {/* Tab Buttons */}
-      <div className="flex mb-6 ">
+      <div className="flex mb-6">
         {tabs.map((tab, idx) => (
           <button
             key={idx}
@@ -164,38 +96,40 @@ const StudentEnrolledCourses = () => {
         {tabs.map((tab, idx) => (
           <div key={idx} className={idx === currentTab ? "block" : "hidden"}>
             {tab.content.length > 0 ? (
-              <div className="space-y-4 ">
-                {tab.content.map((course) => (
+              <div className="space-y-4">
+                {tab.content.map((course, index) => (
                   <div
-                    key={course.id}
+                    key={index}
                     className="p-5 bg-white dark:bg-inherit dark:border shadow rounded-lg flex gap-4 items-start font-Open"
                   >
                     <Image
-                      src={course.image}
-                      alt={course.title}
+                      src={course.course_image || img5}
+                      alt={course.course_title}
                       width={100}
                       height={100}
                       className="rounded-md object-cover"
                     />
                     <div>
                       <h3 className="text-xl text-[#171A1F] font-normal font-Open dark:text-white">
-                        {course.title}
+                        {course.course_title}
                       </h3>
                       <p className="text-[#9095A0]">
-                        Instructor: {course.instructor}
+                        Instructor:{" "}
+                        {course.assigned_instructor?.full_name || "N/A"}
                       </p>
                       <a
-                        href={course.downloadLink}
+                        href={course.brochures?.[0] || PDFImage}
                         className="text-[#7ECA9D] font-medium flex items-center mt-2 hover:underline font-Open"
+                        target="_blank"
+                        rel="noopener noreferrer"
                       >
-                        <span className="material-icons mr-1">
-                          <Image
-                            src={course.downloadLink}
-                            width={20}
-                            height={20}
-                            className="rounded-md object-cover"
-                          />
-                        </span>
+                        <Image
+                          src={img3}
+                          width={20}
+                          height={20}
+                          alt="Download"
+                          className="rounded-md object-cover mr-2"
+                        />
                         Download Course Materials
                       </a>
                     </div>
