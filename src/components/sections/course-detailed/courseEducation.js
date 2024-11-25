@@ -183,14 +183,25 @@ function CourseEducation({ courseId }) {
       {/* Left Section */}
       <div className="lg:w-[60%] w-full md:px-4 dark:pt-12 ">
         <div className="relative lg:bottom-12 bottom-5">
-          <Image
-            src={Education}
-            alt="Education"
-            width={730}
-            height={400}
-            className="rounded-md"
-          />
+          {courseDetails1 && courseDetails1.course_image ? (
+            <Image
+              src={courseDetails1.course_image}
+              alt="Education"
+              width={730}
+              height={400}
+              className="rounded-md"
+            />
+          ) : (
+            <Image
+              src={Education}
+              alt="Education"
+              width={730}
+              height={400}
+              className="rounded-md"
+            />
+          )}
         </div>
+
         <div className="lg:ml-[11%] px-5 lg:p-0 lg:mt-10 mt-6">
           <h1 className="lg:text-3xl text-[22px] font-bold text-[#5C6574] mb-2 lg:w-[70%] w-full dark:text-gray-50">
             {/* Digital Marketing with Data Analytics Foundation Certificate */}
