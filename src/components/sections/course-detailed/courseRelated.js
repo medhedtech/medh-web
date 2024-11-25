@@ -29,7 +29,7 @@ function CourceRalated() {
 
   const [courses, setCourses] = useState([]);
   const { getQuery } = useGetQuery();
-  const [limit] = useState(4);
+  const [limit] = useState(3);
   const [page] = useState(1);
 
   useEffect(() => {
@@ -38,6 +38,7 @@ function CourceRalated() {
         url: apiUrls?.courses?.getAllCoursesWithLimits(
           page,
           limit,
+          "",
           "",
           "",
           "",

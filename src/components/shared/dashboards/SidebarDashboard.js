@@ -392,7 +392,7 @@ const SidebarDashboard = () => {
           ),
         },
         {
-          name: "Job Applications",
+          name: "Post Job",
           path: "/dashboards/admin-job-applicants",
           icon: (
             <svg
