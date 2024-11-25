@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -39,39 +39,48 @@ const PlacementForm = () => {
 
   const [loading, setLoading] = useState(false);
   const { postQuery } = usePostQuery();
+  const [studentId, setStudentId] = useState(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedUserId = localStorage.getItem("userId");
+      setStudentId(storedUserId);
+    }
+  }, []);
 
   const onSubmit = async (data) => {
-    setLoading(true);
-    try {
-      postQuery({
-        url: apiUrls?.placements?.addPlacements,
-        postData: {
-          studentId: "673842146e127d858bf73322",
-          name: data?.name,
-          area_of_interest: data?.area_of_interest,
-          apply_for_role: data?.apply_for_role,
-          message: data?.message,
-          course_completed_year: data?.course_completed_year,
-          completed_course: data?.completed_course,
-          email_id: data?.email,
-          city: data?.city,
-          mobile_number: data?.mobile,
-        },
-        onSuccess: () => {
-          toast.success("Placement details submitted successfully!");
-          reset();
-        },
-        onFail: (error) => {
-          console.error("Error submitting form:", error);
-          toast.error("Failed to submit form. Please try again.");
-        },
-      });
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      toast.error("Failed to submit form. Please try again.");
-    } finally {
-      setLoading(false);
+    if (!studentId) {
+      toast.error("Student ID is missing. Please log in again.");
+      return;
     }
+
+    setLoading(true);
+
+    postQuery({
+      url: apiUrls?.placements?.addPlacements,
+      postData: {
+        studentId,
+        name: data?.name,
+        area_of_interest: data?.area_of_interest,
+        apply_for_role: data?.apply_for_role,
+        message: data?.message,
+        course_completed_year: data?.course_completed_year,
+        completed_course: data?.completed_course,
+        email_id: data?.email,
+        city: data?.city,
+        mobile_number: data?.mobile,
+      },
+      onSuccess: () => {
+        toast.success("Placement details submitted successfully!");
+        reset();
+      },
+      onFail: (error) => {
+        console.error("Error submitting form:", error);
+        toast.error("Failed to submit form. Please try again.");
+      },
+    }).finally(() => {
+      setLoading(false);
+    });
   };
 
   return (

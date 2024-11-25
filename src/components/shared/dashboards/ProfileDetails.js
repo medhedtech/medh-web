@@ -1,8 +1,41 @@
+"use client";
 import Image from "next/image";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import ProfileImg from "@/assets/images/dashbord/profileImg.png";
+import useGetQuery from "@/hooks/getQuery.hook";
+import { apiUrls } from "@/apis";
+import Preloader from "../others/Preloader";
 
 const ProfileDetails = ({ onEditClick }) => {
+  const [studentId, setStudentId] = useState(null);
+  const [profileData, setProfileData] = useState(null);
+  const { getQuery, loading } = useGetQuery();
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedUserId = localStorage.getItem("userId");
+      setStudentId(storedUserId);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (studentId) {
+      getQuery({
+        url: `${apiUrls?.user?.getDetailsbyId}/${studentId}`,
+        onSuccess: (data) => {
+          setProfileData(data?.data);
+        },
+        onFail: (error) => {
+          console.error("Failed to fetch user details:", error);
+        },
+      });
+    }
+  }, [studentId]);
+
+  if (loading || !profileData) {
+    return <Preloader />;
+  }
+
   return (
     <div className=" md:py-50px mb-30px  dark:bg-whiteColor-dark shadow-accordion dark:shadow-accordion-dark rounded-5">
       <div className="px-5 mb-4 mt-[-24px] dark:border-borderColor-dark flex justify-between">
@@ -41,27 +74,22 @@ const ProfileDetails = ({ onEditClick }) => {
         style={{ boxShadow: "0px 4px 24px 0px #0000001F" }}
       >
         <div className="py-4.5 px-5">
-          <Image src={ProfileImg} alt="profile img" width={192} height={173} />
+          <Image
+            src={profileData?.user_image || ProfileImg}
+            alt="profile img"
+            width={192}
+            height={173}
+          />
         </div>
         <ul className="px-4 ">
           <li className=" grid grid-cols-1 md:grid-cols-12 mb-3">
             <div className="md:col-start-1 md:col-span-4">
-              <span className="inline-block text-[20px]">First Name</span>
+              <span className="inline-block text-[20px]">Full Name</span>
             </div>
             <div className="md:col-start-5 md:col-span-8">
               <span className="inline-block text-[20px] text-[#544C4C]">
-                Manik Yadav
-              </span>
-            </div>
-          </li>
-
-          <li className=" grid grid-cols-1 md:grid-cols-12 mb-3">
-            <div className="md:col-start-1 md:col-span-4">
-              <span className="inline-block text-[20px]">Last Name</span>
-            </div>
-            <div className="md:col-start-5 md:col-span-8">
-              <span className="inline-block text-[20px] text-[#544C4C]">
-                Yadav Naresh
+                {/* Manik Yadav */}
+                {profileData?.full_name || "N/A"}
               </span>
             </div>
           </li>
@@ -71,7 +99,7 @@ const ProfileDetails = ({ onEditClick }) => {
             </div>
             <div className="md:col-start-5 md:col-span-8">
               <span className="inline-block text-[20px] text-[#544C4C]">
-                manikyadav123@gmail.com
+                {profileData?.email || "N/A"}
               </span>
             </div>
           </li>
@@ -82,20 +110,18 @@ const ProfileDetails = ({ onEditClick }) => {
             </div>
             <div className="md:col-start-5 md:col-span-8">
               <span className="inline-block text-[20px] text-[#544C4C]">
-                {" "}
-                +91 8765428929
+                {profileData?.phone_number || "N/A"}
               </span>
             </div>
           </li>
 
           <li className=" grid grid-cols-1 md:grid-cols-12 mb-3">
             <div className="md:col-start-1 md:col-span-4">
-              <span className="inline-block text-[20px]">Date of Birth</span>
+              <span className="inline-block text-[20px]">Age</span>
             </div>
             <div className="md:col-start-5 md:col-span-8">
               <span className="inline-block text-[20px] text-[#544C4C]">
-                {" "}
-                12-11-1994
+                {profileData?.age || "N/A"}
               </span>
             </div>
           </li>
@@ -105,7 +131,7 @@ const ProfileDetails = ({ onEditClick }) => {
             </div>
             <div className="md:col-start-5 md:col-span-8">
               <span className="inline-block text-[20px] text-[#544C4C]">
-                10-10-2023
+                {profileData?.createdAt?.split("T")[0] || "N/A"}
               </span>
             </div>
           </li>
@@ -131,7 +157,7 @@ const ProfileDetails = ({ onEditClick }) => {
             </div>
             <div className="md:col-start-5 md:col-span-8">
               <span className="inline-block text-[20px] text-[#544C4C]">
-                Student
+                {profileData?.role || "N/A"}
               </span>
             </div>
           </li>
@@ -143,88 +169,110 @@ const ProfileDetails = ({ onEditClick }) => {
             </div>
             <div className="md:col-start-5 md:col-span-8">
               <div className="flex gap-2">
-                <span>
-                  <svg
-                    width="40"
-                    height="40"
-                    viewBox="0 0 40 40"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <g clip-path="url(#clip0_269_2834)">
-                      <path
-                        d="M20 40C31.0457 40 40 31.0457 40 20C40 8.9543 31.0457 0 20 0C8.9543 0 0 8.9543 0 20C0 31.0457 8.9543 40 20 40Z"
-                        fill="#3C5A9A"
-                      />
-                      <path
-                        d="M26.5023 6.13916H22.0718C19.4426 6.13916 16.5182 7.24497 16.5182 11.0561C16.531 12.384 16.5182 13.6558 16.5182 15.0871H13.4766V19.9273H16.6123V33.8612H22.3744V19.8353H26.1776L26.5217 15.0736H22.2751C22.2751 15.0736 22.2846 12.9553 22.2751 12.3402C22.2751 10.8341 23.8423 10.9203 23.9365 10.9203C24.6823 10.9203 26.1323 10.9225 26.5045 10.9203V6.13916H26.5023Z"
-                        fill="white"
-                      />
-                    </g>
-                    <defs>
-                      <clipPath id="clip0_269_2834">
-                        <rect width="40" height="40" fill="white" />
-                      </clipPath>
-                    </defs>
-                  </svg>
-                </span>
-                <span>
-                  <svg
-                    width="40"
-                    height="40"
-                    viewBox="0 0 40 40"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <g clip-path="url(#clip0_269_2837)">
-                      <path
-                        d="M20 0C8.95422 0 0 8.95421 0 20C0 31.0457 8.95422 39.9999 20 39.9999C31.0457 39.9999 40 31.0457 40 20C39.9999 8.95421 31.0455 0 20 0ZM14.6639 29.669H10.2727V15.4823H14.6639V29.669ZM12.4474 13.6245C11.0133 13.6245 9.85069 12.4524 9.85069 11.0068C9.85069 9.56102 11.0135 8.38902 12.4474 8.38902C13.8814 8.38902 15.044 9.56102 15.044 11.0068C15.0441 12.4525 13.8814 13.6245 12.4474 13.6245ZM31.1199 29.669H26.75V22.2222C26.75 20.1797 25.9742 19.0396 24.3592 19.0396C22.6015 19.0396 21.6833 20.227 21.6833 22.2222V29.669H17.4716V15.4823H21.6833V17.393C21.6833 17.393 22.9501 15.0496 25.9583 15.0496C28.9665 15.0496 31.12 16.8864 31.12 20.6862L31.1199 29.669Z"
-                        fill="url(#paint0_linear_269_2837)"
-                      />
-                    </g>
-                    <defs>
-                      <linearGradient
-                        id="paint0_linear_269_2837"
-                        x1="5.85785"
-                        y1="5.85785"
-                        x2="34.1421"
-                        y2="34.1421"
-                        gradientUnits="userSpaceOnUse"
-                      >
-                        <stop stop-color="#2489BE" />
-                        <stop offset="1" stop-color="#0575B3" />
-                      </linearGradient>
-                      <clipPath id="clip0_269_2837">
-                        <rect width="40" height="40" fill="white" />
-                      </clipPath>
-                    </defs>
-                  </svg>
-                </span>
-                <span>
-                  <svg
-                    width="40"
-                    height="40"
-                    viewBox="0 0 40 40"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <g clip-path="url(#clip0_269_2839)">
-                      <path
-                        d="M20 40C31.0457 40 40 31.0457 40 20C40 8.9543 31.0457 0 20 0C8.9543 0 0 8.9543 0 20C0 31.0457 8.9543 40 20 40Z"
-                        fill="#2DAAE1"
-                      />
-                      <path
-                        d="M32.8232 12.0446C31.8798 12.4632 30.8666 12.7462 29.8013 12.8734C30.8885 12.2223 31.7215 11.1906 32.1147 9.96265C31.0819 10.5761 29.9516 11.0079 28.7729 11.2395C27.8136 10.217 26.4457 9.57861 24.9324 9.57861C22.0276 9.57861 19.6718 11.9335 19.6718 14.8399C19.6718 15.2518 19.7182 15.6535 19.8074 16.0393C15.4346 15.8195 11.5579 13.7249 8.96295 10.5421C8.50984 11.3195 8.25048 12.2232 8.25048 13.1875C8.25048 15.0126 9.17945 16.623 10.591 17.5663C9.75538 17.5404 8.93811 17.3148 8.2075 16.9085V16.9749C8.2075 19.5244 10.0208 21.6501 12.4279 22.1336C11.9857 22.2547 11.5217 22.318 11.0416 22.318C10.7022 22.318 10.3729 22.2859 10.0512 22.2254C10.7207 24.315 12.6638 25.836 14.9655 25.879C13.1648 27.2905 10.8958 28.132 8.43154 28.132C8.00709 28.132 7.5876 28.1066 7.17578 28.057C9.50454 29.5502 12.2696 30.4219 15.2409 30.4219C24.9181 30.4219 30.2106 22.4048 30.2106 15.4523C30.2106 15.224 30.2055 14.9975 30.1945 14.7718C31.2257 14.0259 32.1158 13.1024 32.8232 12.0446Z"
-                        fill="white"
-                      />
-                    </g>
-                    <defs>
-                      <clipPath id="clip0_269_2839">
-                        <rect width="40" height="40" fill="white" />
-                      </clipPath>
-                    </defs>
-                  </svg>
-                </span>
+                <a
+                  href={profileData.facebook_link || ""}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary px-[15px] py-1 flex justify-center items-center"
+                >
+                  <span>
+                    <svg
+                      width="40"
+                      height="40"
+                      viewBox="0 0 40 40"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <g clip-path="url(#clip0_269_2834)">
+                        <path
+                          d="M20 40C31.0457 40 40 31.0457 40 20C40 8.9543 31.0457 0 20 0C8.9543 0 0 8.9543 0 20C0 31.0457 8.9543 40 20 40Z"
+                          fill="#3C5A9A"
+                        />
+                        <path
+                          d="M26.5023 6.13916H22.0718C19.4426 6.13916 16.5182 7.24497 16.5182 11.0561C16.531 12.384 16.5182 13.6558 16.5182 15.0871H13.4766V19.9273H16.6123V33.8612H22.3744V19.8353H26.1776L26.5217 15.0736H22.2751C22.2751 15.0736 22.2846 12.9553 22.2751 12.3402C22.2751 10.8341 23.8423 10.9203 23.9365 10.9203C24.6823 10.9203 26.1323 10.9225 26.5045 10.9203V6.13916H26.5023Z"
+                          fill="white"
+                        />
+                      </g>
+                      <defs>
+                        <clipPath id="clip0_269_2834">
+                          <rect width="40" height="40" fill="white" />
+                        </clipPath>
+                      </defs>
+                    </svg>
+                  </span>
+                </a>
+
+                <a
+                  href={profileData.linkedin_link || ""}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary px-[15px] py-1 flex justify-center items-center"
+                >
+                  <span>
+                    <svg
+                      width="40"
+                      height="40"
+                      viewBox="0 0 40 40"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <g clip-path="url(#clip0_269_2837)">
+                        <path
+                          d="M20 0C8.95422 0 0 8.95421 0 20C0 31.0457 8.95422 39.9999 20 39.9999C31.0457 39.9999 40 31.0457 40 20C39.9999 8.95421 31.0455 0 20 0ZM14.6639 29.669H10.2727V15.4823H14.6639V29.669ZM12.4474 13.6245C11.0133 13.6245 9.85069 12.4524 9.85069 11.0068C9.85069 9.56102 11.0135 8.38902 12.4474 8.38902C13.8814 8.38902 15.044 9.56102 15.044 11.0068C15.0441 12.4525 13.8814 13.6245 12.4474 13.6245ZM31.1199 29.669H26.75V22.2222C26.75 20.1797 25.9742 19.0396 24.3592 19.0396C22.6015 19.0396 21.6833 20.227 21.6833 22.2222V29.669H17.4716V15.4823H21.6833V17.393C21.6833 17.393 22.9501 15.0496 25.9583 15.0496C28.9665 15.0496 31.12 16.8864 31.12 20.6862L31.1199 29.669Z"
+                          fill="url(#paint0_linear_269_2837)"
+                        />
+                      </g>
+                      <defs>
+                        <linearGradient
+                          id="paint0_linear_269_2837"
+                          x1="5.85785"
+                          y1="5.85785"
+                          x2="34.1421"
+                          y2="34.1421"
+                          gradientUnits="userSpaceOnUse"
+                        >
+                          <stop stop-color="#2489BE" />
+                          <stop offset="1" stop-color="#0575B3" />
+                        </linearGradient>
+                        <clipPath id="clip0_269_2837">
+                          <rect width="40" height="40" fill="white" />
+                        </clipPath>
+                      </defs>
+                    </svg>
+                  </span>
+                </a>
+                <a
+                  href={profileData.twitter_link || ""}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary px-[15px] py-1 flex justify-center items-center"
+                >
+                  <span>
+                    <svg
+                      width="40"
+                      height="40"
+                      viewBox="0 0 40 40"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <g clip-path="url(#clip0_269_2839)">
+                        <path
+                          d="M20 40C31.0457 40 40 31.0457 40 20C40 8.9543 31.0457 0 20 0C8.9543 0 0 8.9543 0 20C0 31.0457 8.9543 40 20 40Z"
+                          fill="#2DAAE1"
+                        />
+                        <path
+                          d="M32.8232 12.0446C31.8798 12.4632 30.8666 12.7462 29.8013 12.8734C30.8885 12.2223 31.7215 11.1906 32.1147 9.96265C31.0819 10.5761 29.9516 11.0079 28.7729 11.2395C27.8136 10.217 26.4457 9.57861 24.9324 9.57861C22.0276 9.57861 19.6718 11.9335 19.6718 14.8399C19.6718 15.2518 19.7182 15.6535 19.8074 16.0393C15.4346 15.8195 11.5579 13.7249 8.96295 10.5421C8.50984 11.3195 8.25048 12.2232 8.25048 13.1875C8.25048 15.0126 9.17945 16.623 10.591 17.5663C9.75538 17.5404 8.93811 17.3148 8.2075 16.9085V16.9749C8.2075 19.5244 10.0208 21.6501 12.4279 22.1336C11.9857 22.2547 11.5217 22.318 11.0416 22.318C10.7022 22.318 10.3729 22.2859 10.0512 22.2254C10.7207 24.315 12.6638 25.836 14.9655 25.879C13.1648 27.2905 10.8958 28.132 8.43154 28.132C8.00709 28.132 7.5876 28.1066 7.17578 28.057C9.50454 29.5502 12.2696 30.4219 15.2409 30.4219C24.9181 30.4219 30.2106 22.4048 30.2106 15.4523C30.2106 15.224 30.2055 14.9975 30.1945 14.7718C31.2257 14.0259 32.1158 13.1024 32.8232 12.0446Z"
+                          fill="white"
+                        />
+                      </g>
+                      <defs>
+                        <clipPath id="clip0_269_2839">
+                          <rect width="40" height="40" fill="white" />
+                        </clipPath>
+                      </defs>
+                    </svg>
+                  </span>
+                </a>
               </div>
             </div>
           </li>

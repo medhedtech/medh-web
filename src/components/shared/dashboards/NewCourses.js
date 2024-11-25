@@ -55,10 +55,20 @@ const NewCourses = () => {
   useEffect(() => {
     const fetchCourses = () => {
       getQuery({
-        url: apiUrls?.courses?.getAllCoursesWithLimits(page,limit,'','','','Upcoming','','',true),
+        url: apiUrls?.courses?.getAllCoursesWithLimits(
+          page,
+          limit,
+          "",
+          "",
+          "",
+          "Upcoming",
+          "",
+          "",
+          true
+        ),
         onSuccess: (res) => {
           setCourses(res?.courses || []);
-          console.log("fetched: ", res?.courses)
+          console.log("fetched: ", res?.courses);
         },
         onFail: (err) => {
           console.error("Error fetching courses:", err);
@@ -80,29 +90,7 @@ const NewCourses = () => {
             <h2 className="text-3xl dark:text-white">Enroll in New Course</h2>
           </div>
           <div className="flex gap-7 mb-4 ">
-            <div className="relative ">
-              <select className="appearance-none dark:bg-inherit border border-[#BDB7B7] text-[#808080] outline-none rounded-[20px] pr-7 pl-3 py-1">
-                <option>By Age</option>
-              </select>
-              <div className="absolute  top-1/2 right-2 transform -translate-y-1/2 pointer-events-none ">
-                {/* Replace this with your custom SVG */}
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-4 h-4 text-[#808080]"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </div>
-            </div>
-            <div className="relative ">
+            <div className="relative">
               <select className="appearance-none dark:bg-inherit border border-[#BDB7B7] text-[#808080] outline-none rounded-[20px] pr-7 pl-3 py-1">
                 <option>By Grade</option>
               </select>
