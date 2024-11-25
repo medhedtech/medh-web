@@ -1,9 +1,8 @@
 // components/ClassCard.js
 import React from "react";
 import Image from "next/image";
-import usePostQuery from "@/hooks/postQuery.hook";
-import { apiUrls } from "@/apis";
-import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
+import PropTypes from "prop-types";
 
 const ClassCard = ({
   title,
@@ -13,59 +12,50 @@ const ClassCard = ({
   image,
   courseId,
 }) => {
-  const { postQuery } = usePostQuery();
+  const router = useRouter();
 
-  const handleEnrollCourse = async () => {
-    try {
-      const studentId = localStorage.getItem("userId");
-      if (!studentId) {
-        toast.error("Please log in to join classes.");
-        return;
-      }
-      await postQuery({
-        url: apiUrls?.EnrollCourse?.enrollCourse,
-        postData: {
-          student_id: studentId,
-          course_id: courseId,
-        },
-        onSuccess: () => {
-          toast.success("Hurray ! You are enrolled successfully.");
-        },
-        onFail: () => {
-          toast.error("Error enrolling in the course. Please try again.");
-        },
-      });
-    } catch (error) {
-      console.error("An error occurred:", error);
-      toast.error("An unexpected error occurred. Please try again.");
+  const handleEnrollCourse = () => {
+    if (courseId) {
+      router.push(`/dashboards/my-courses/${courseId}`);
+    } else {
+      console.error("Course ID is missing!");
     }
   };
 
   return (
     <div className="relative">
+      {/* Live Badge */}
       {isLive && (
         <div className="flex items-center space-x-1 absolute top-3 left-3">
           <div className="w-2.5 h-2.5 rounded-full bg-[#FF0000]"></div>
-          <span className="text-size-11  text-[#888C94]">Live</span>
+          <span className="text-xs text-[#888C94]">Live</span>
         </div>
       )}
+
+      {/* Card Content */}
       <div className="max-w-xs rounded-xl overflow-hidden border border-gray-200 bg-white shadow-lg">
-        <div className="w-full h-48 p-0.5">
+        {/* Image */}
+        <div className="w-full h-48">
           <Image
             src={image}
             alt={title}
             width={320}
-            height={0}
+            height={192}
             className="w-full h-full object-cover"
+            priority
           />
         </div>
+
+        {/* Card Details */}
         <div className="p-4">
-          <h3 className="text-base font-Open text-[#282F3E]">{title}</h3>
+          <h3 className="text-base font-semibold text-[#282F3E]">{title}</h3>
           <p className="text-xs text-[#585D69]">{instructor}</p>
           <p className="text-xs text-[#888C94] mt-2">{dateTime}</p>
+
+          {/* Join Button */}
           <button
             onClick={handleEnrollCourse}
-            className="mt-4 w-fit px-4 bg-primaryColor text-white font-semibold rounded-xl hover:bg-green-600"
+            className="mt-4 px-4 py-2 bg-primaryColor text-white font-semibold rounded-xl hover:bg-green-600 transition"
           >
             Join
           </button>
@@ -75,4 +65,43 @@ const ClassCard = ({
   );
 };
 
+// Prop Validation
+ClassCard.propTypes = {
+  title: PropTypes.string.isRequired,
+  instructor: PropTypes.string.isRequired,
+  dateTime: PropTypes.string.isRequired,
+  isLive: PropTypes.bool,
+  image: PropTypes.string.isRequired,
+  courseId: PropTypes.string.isRequired,
+};
+
+// Default Props
+ClassCard.defaultProps = {
+  isLive: false,
+};
+
 export default ClassCard;
+
+// try {
+//   const studentId = localStorage.getItem("userId");
+//   if (!studentId) {
+//     toast.error("Please log in to join classes.");
+//     return;
+//   }
+//   await postQuery({
+//     url: apiUrls?.EnrollCourse?.enrollCourse,
+//     postData: {
+//       student_id: studentId,
+//       course_id: courseId,
+//     },
+//     onSuccess: () => {
+//       toast.success("Hurray ! You are enrolled successfully.");
+//     },
+//     onFail: () => {
+//       toast.error("Error enrolling in the course. Please try again.");
+//     },
+//   });
+// } catch (error) {
+//   console.error("An error occurred:", error);
+//   toast.error("An unexpected error occurred. Please try again.");
+// }
