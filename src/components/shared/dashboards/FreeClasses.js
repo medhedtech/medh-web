@@ -53,22 +53,25 @@ const FreeCourses = () => {
 
   const [freeCourses, setFreeCourses] = useState([]);
   const { getQuery } = useGetQuery();
-  const [limit] = useState(4);
+  const [limit] = useState(90);
   const [page] = useState(1);
 
   useEffect(() => {
     const fetchCourses = () => {
       getQuery({
-        url: apiUrls?.courses?.getAllCoursesWithLimits(page,limit,'','','','Upcoming','','',true),
+        url: apiUrls?.courses?.getAllCoursesWithLimits(page, limit, '', '', '', 'Upcoming', '', '', true),
         onSuccess: (res) => {
-          setFreeCourses(res?.courses || []);
-          console.log(res?.courses)
+          // Filter the courses where isFree is true
+          const freeCourses = res?.courses?.filter(course => course.isFree === true) || [];
+          setFreeCourses(freeCourses.slice(0, 4));
+          console.log(freeCourses); // Logging the filtered courses
         },
         onFail: (err) => {
           console.error("Error fetching courses:", err);
         },
       });
     };
+  
     fetchCourses();
   }, [page, limit]);
 
