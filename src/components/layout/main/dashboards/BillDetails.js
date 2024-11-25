@@ -6,6 +6,10 @@ import { useParams, useRouter } from "next/navigation";
 import StarIcon from "@/assets/images/icon/StarIcon";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
+import usePostQuery from "@/hooks/postQuery.hook";
+import Preloader from "@/components/shared/others/Preloader";
+import { toast } from "react-toastify";
+import Education from "@/assets/images/course-detailed/education.svg";
 
 const BillDetails = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -14,7 +18,8 @@ const BillDetails = () => {
   const [userId, setUserId] = useState(null);
   const [courseInfo, setCourseInfo] = useState(null);
   const [userInfo, setUserInfo] = useState(null);
-  const { getQuery } = useGetQuery();
+  const { getQuery, loading: GetLoading } = useGetQuery();
+  const { postQuery, loading } = usePostQuery();
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -53,7 +58,7 @@ const BillDetails = () => {
       });
     };
     fetchUserDetailsById();
-  }, []);
+  }, [userId]);
 
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
@@ -66,39 +71,99 @@ const BillDetails = () => {
   };
 
   const handleProceedToPay = async () => {
-    const scriptLoaded = await loadRazorpayScript();
+    const token = localStorage.getItem("token");
+    const studentId = localStorage.getItem("userId");
 
-    if (!scriptLoaded) {
-      alert("Failed to load Razorpay SDK. Please try again later.");
+    if (!token || !studentId) {
+      setIsModalOpen(true);
       return;
     }
-    const options = {
-      key: "rzp_test_Rz8NSLJbl4LBA5",
-      amount: courseInfo?.course_fee * 100 || 10000,
-      currency: "INR",
-      name: courseInfo?.course_title || "Course Payment",
-      description: `Payment for ${courseInfo?.course_title || "Sample Course"}`,
-      image: "/your-logo.png",
-      handler: function (response) {
-        console.log("Payment Success:", response);
-        setIsModalOpen(true);
-      },
-      prefill: {
-        name: userInfo?.full_name || "Student",
-        email: userInfo?.email || "student@gmail.com",
-      },
-      theme: {
-        color: "#7ECA9D",
-      },
-    };
+    // Load Razorpay script
+    const scriptLoaded = await loadRazorpayScript();
+    if (!scriptLoaded) {
+      toast.error("Please log in first.");
+      return;
+    }
+    if (courseInfo) {
+      const courseFee = Number(courseInfo?.course_fee) || 59500;
+      const options = {
+        key: "rzp_test_Rz8NSLJbl4LBA5",
+        amount: courseFee * 100,
+        currency: "INR",
+        name: courseInfo?.course_title,
+        description: `Payment for ${courseInfo?.course_title}`,
+        image: Education,
+        handler: async function (response) {
+          toast.success("Payment Successful!");
 
-    const rzp1 = new Razorpay(options);
+          // Call subscription API after successful payment
+          await subscribeCourse(studentId, courseId, courseFee);
+        },
+        prefill: {
+          name: "Medh Student",
+          email: "medh@student.com",
+          contact: "9876543210",
+        },
+        notes: {
+          address: "Razorpay address",
+        },
+        theme: {
+          color: "#7ECA9D",
+        },
+      };
 
-    rzp1.on("payment.failed", function (response) {
-      console.error("Payment Failed:", response);
-      alert("Payment failed. Please try again.");
-    });
-    rzp1.open();
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+    }
+  };
+
+  const subscribeCourse = async (studentId, courseId, amount) => {
+    try {
+      await postQuery({
+        url: apiUrls?.Subscription?.AddSubscription,
+        postData: {
+          student_id: studentId,
+          course_id: courseId,
+          amount: amount,
+        },
+        onSuccess: async () => {
+          console.log("Payment successful!");
+
+          // Call enrollCourse API after successful subscription
+          await enrollCourse(studentId, courseId);
+        },
+        onFail: (err) => {
+          console.error("Subscription failed:", err);
+          toast.error("Error in subscription. Please try again.");
+        },
+      });
+    } catch (error) {
+      console.error("Error in subscribing course:", error);
+      toast.error("Something went wrong! Please try again later.");
+    }
+  };
+
+  const enrollCourse = async (studentId, courseId) => {
+    try {
+      await postQuery({
+        url: apiUrls?.EnrollCourse?.enrollCourse,
+        postData: {
+          student_id: studentId,
+          course_id: courseId,
+        },
+        onSuccess: () => {
+          setIsModalOpen(true);
+          console.log("Student enrolled successfully!");
+        },
+        onFail: (err) => {
+          console.error("Enrollment failed:", err);
+          toast.error("Error enrolling in the course. Please try again!");
+        },
+      });
+    } catch (error) {
+      console.error("Error enrolling course:", error);
+      toast.error("Something went wrong! Please try again later.");
+    }
   };
 
   const closeModal = () => {
@@ -108,6 +173,10 @@ const BillDetails = () => {
   const handleGoBack = () => {
     router.back();
   };
+
+  if (GetLoading || loading) {
+    return <Preloader />;
+  }
 
   return (
     <>

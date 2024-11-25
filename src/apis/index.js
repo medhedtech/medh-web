@@ -5,11 +5,11 @@ export const apiUrls = {
   user: {
     register: "/auth/register",
     login: "/auth/login",
-    update: "/auth/update/:id",
+    update: "/auth/update",
     delete: "/auth/delete",
     getDetailsbyId: "/auth/get",
     getAll: "/auth/get-all",
-    updateByEmail: "/auth/update-by-email",
+    updateByEmail: "/auth/update-by-email"
   },
   courses: {
     getAllCoursesWithLimits: (
@@ -117,6 +117,13 @@ export const apiUrls = {
     getCountByStudentId: "/enroll/getCount",
     getEnrolledCourseById: "/enroll/get",
     getEnrolledCoursesByStudentId: "/enroll/student",
+  },
+  Subscription: {
+    AddSubscription: "/subscription/create",
+    getSubscription: "/subscription/getAll",
+    getSubscriptionById: "/subscription/get",
+    updateSubscription: "/subscription/update",
+    deleteSubscription: "/subscription/delete",
   },
   jobForm: {
     getAllJobPosts: "/job-post/getAll",
