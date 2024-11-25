@@ -43,7 +43,7 @@ const DropdownMore = () => {
   ];
   return (
     <div>
-      <DropdownContainer>
+      <DropdownContainer> 
         <div className="w-fit ">
           {lists?.map((list, idx) => (
             <DropdownItems key={idx} list={list} />
