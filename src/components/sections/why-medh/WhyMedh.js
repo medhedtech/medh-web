@@ -1,20 +1,65 @@
-"use client";
+import React, { useRef, useEffect } from "react";
 import Image from "next/image";
-import React from "react";
-import placement from "@/assets/images/iso/Placement.png";
-import bgImg from "@/assets/images/herobanner/bg-img.jpeg";
-import hire from "@/assets/images/hire/Hire.png";
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+import { Navigation, Autoplay } from "swiper/modules";
 import ArrowIcon from "@/assets/images/icon/ArrowIcon";
 import InfoIcon from "@/assets/images/icon/InfoIcon";
+import placement from "@/assets/images/iso/Placement.png";
+import hire from "@/assets/images/hire/Hire.png";
+import bgImg from "@/assets/images/herobanner/bg-img.jpeg";
 import Certified from "./Certified";
 import { useRouter } from "next/navigation";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 
 const WhyMedh = () => {
   const router = useRouter();
+
+  // Custom navigation refs
+  const prevRef = useRef(null);
+  const nextRef = useRef(null);
+  const swiperRef = useRef(null);
+
+  const content = [
+    {
+      id: 1,
+      title: "Quality of Content and Curriculum",
+      desc: "We assess content quality, effectiveness, and engagement, ensuring up-to-date, well-structured materials that drive learning outcomes.",
+    },
+    {
+      id: 2,
+      title: "Comprehensive Learning Resources",
+      desc: "Our platform provides diverse, inclusive materials tailored to learners of all backgrounds and skill levels.",
+    },
+    {
+      id: 3,
+      title: "Expert Mentorship",
+      desc: "Learn from highly qualified instructors dedicated to your success through practical projects and assignments.",
+    },
+    {
+      id: 4,
+      title: "Personalized Learning",
+      desc: "Customize your learning path with flexible modules and tailored recommendations to fit your goals.",
+    },
+  ];
+
+  useEffect(() => {
+    if (swiperRef.current) {
+      // Attach custom navigation refs to Swiper instance
+      swiperRef.current.params.navigation.prevEl = prevRef.current;
+      swiperRef.current.params.navigation.nextEl = nextRef.current;
+
+      // Manually update navigation since refs might not be set during initialization
+      swiperRef.current.navigation.update();
+    }
+  }, []);
+
   return (
     <div>
       {/* Job Guarantee Section */}
-      <div className=" flex flex-col dark:bg-screen-dark md:flex-row items-center px-4 md:px-8 lg:px-20 py-7 gap-6">
+      <div className="flex flex-col md:flex-row items-center px-4 md:px-8 lg:px-20 py-7 gap-6">
         <div className="text-center md:w-1/2 px-4 md:px-6 flex flex-col gap-3">
           <Image
             src={placement}
@@ -27,9 +72,7 @@ const WhyMedh = () => {
             100% Job-guaranteed Courses from Medh.
           </p>
           <button
-            onClick={() => {
-              router.push("/view-all-courses");
-            }}
+            onClick={() => router.push("/view-all-courses")}
             className="cursor-pointer bg-[#F6B335] px-4 py-3 w-fit mx-auto text-white flex gap-4"
           >
             <span>
@@ -51,13 +94,10 @@ const WhyMedh = () => {
 
       {/* Why Medh Section */}
       <div
-        className="bg-cover bg-center h-[80vh] max-sm:px-10 dark:bg-screen-dark md:h-[600px] flex items-center justify-start px-14"
+        className="bg-cover bg-center h-auto max-lg:py-10 max-sm:px-10 dark:bg-screen-dark md:h-[600px] flex items-center justify-start px-14"
         style={{ backgroundImage: `url(${bgImg.src})` }}
       >
-        {/* Content Box */}
-        <div
-          className="bg-white h-[66vh] md:h-auto py-6 px-6 md:px-10 lg:px-16 relative shadow-lg w-full max-w-[630px] overflow-x-hidden md:overflow-visible sm:overflow-x-scroll dark:bg-screen-dark"
-        >
+        <div className="bg-white h-auto md:h-auto py-6 px-6 md:px-10 lg:px-16 relative shadow-lg w-full max-w-[630px] dark:bg-screen-dark">
           <h2 className="text-[#7ECA9D] font-bold text-3xl md:text-4xl">
             WHY MEDH?
           </h2>
@@ -68,43 +108,74 @@ const WhyMedh = () => {
             and pursue their aspirations.
           </p>
 
-          <h3 className="text-[#252525] mt-7 font-semibold text-lg dark:text-white">
-            Quality of Content and Curriculum
-          </h3>
-          <p className="text-gray-600 mt-4 dark:text-gray300">
-            We assess content quality, effectiveness, and engagement, ensuring
-            up-to-date, well-structured materials that drive learning outcomes.
-          </p>
-
-          {/* More Info Button */}
-          <button
-            onClick={() => {
-              router.push("/about");
+          <Swiper
+            modules={[Navigation, Autoplay]}
+            loop={true}
+            autoplay={{
+              delay: 3000, 
+              disableOnInteraction: false, 
             }}
-            className="bg-[#7ECA9D] text-white mt-6 px-4.5 py-2 flex items-center justify-center gap-6"
+            onBeforeInit={(swiper) => {
+              swiperRef.current = swiper; // Assign swiper instance to the ref
+            }}
+            spaceBetween={10}
+            slidesPerView={1}
+            navigation={{
+              prevEl: prevRef.current,
+              nextEl: nextRef.current,
+            }}
+            className="mt-6"
           >
-            <span>
-              <InfoIcon />
-            </span>
-            More info..
-          </button>
+            {content.map((item) => (
+              <SwiperSlide key={item.id}>
+                <div className="cursor-grab">
+                  <h3 className="text-[#252525] mt-7 font-semibold text-lg dark:text-white">
+                    {item.title}
+                  </h3>
+                  <p className="text-gray-600 mt-4 dark:text-gray300">
+                    {item.desc}
+                  </p>
+                  <button
+                    onClick={() => router.push("/about")}
+                    className="bg-[#7ECA9D] text-white mt-6 px-4.5 py-2 flex items-center justify-center gap-6"
+                  >
+                    <span>
+                      <InfoIcon />
+                    </span>
+                    More info..
+                  </button>
+                </div>
+              </SwiperSlide>
+            ))}
+          </Swiper>
 
-          {/* Carousel Navigation */}
-          <div className="absolute -left-6 top-1/2  transform -translate-y-1/2">
-            <button className="bg-white dark:bg-black dark:text-white text-black rounded-full w-10 h-10 flex items-center justify-center">
-              &larr;
+          {/* Custom Navigation Buttons */}
+          <div
+            ref={prevRef}
+            className="absolute -left-6 top-[75%] transform -translate-y-1/2"
+          >
+            <button
+              className="bg-white font-bold shadow-lg focus:bg-green-500 focus:text-white dark:bg-black dark:text-white text-black rounded-full w-10 h-10 flex items-center justify-center"
+              aria-label="Previous Slide"
+            >
+              <ArrowLeft/>
             </button>
           </div>
-          <div className="absolute -right-6 top-1/2 transform -translate-y-1/2">
-            <button className="bg-white dark:bg-black dark:text-white text-black rounded-full w-10 h-10 flex items-center justify-center">
-              &rarr;
+          <div
+            ref={nextRef}
+            className="absolute -right-6 top-[75%] transform -translate-y-1/2"
+          >
+            <button
+              className="bg-white font-bold shadow-lg focus:bg-green-500 focus:text-white dark:bg-black dark:text-white text-black rounded-full w-10 h-10 flex items-center justify-center"
+              aria-label="Next Slide"
+            >
+              <ArrowRight/>
             </button>
           </div>
         </div>
       </div>
 
       {/* Certified & Recognized By Section */}
-
       <Certified />
     </div>
   );
