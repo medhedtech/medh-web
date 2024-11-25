@@ -6,6 +6,7 @@ import Download from "@/assets/images/course-detailed/download.svg";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
 import Preloader from "@/components/shared/others/Preloader";
+import DownloadBrochureModal from "@/components/shared/download-broucher";
 
 export default function CombinedProgram({ courseId }) {
   const [activeTab, setActiveTab] = useState("ProgramInfo");
@@ -13,6 +14,10 @@ export default function CombinedProgram({ courseId }) {
   const [activeSubTab, setActiveSubTab] = useState("Foundation");
   const { getQuery, loading } = useGetQuery();
   const [courseDetails1, setCourseDetails1] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
 
   useEffect(() => {
     if (courseId) {
@@ -189,7 +194,10 @@ export default function CombinedProgram({ courseId }) {
                 </div>
 
                 <div className="flex-1 flex justify-center items-center mb-4 min-w-[200px] text-white">
-                  <button className="bg-[#F6B335] flex justify-center items-center px-8 py-3 font-bold text-[1rem]">
+                  <button
+                    onClick={openModal}
+                    className="bg-[#F6B335] flex justify-center items-center px-8 py-3 font-bold text-[1rem]"
+                  >
                     <Image src={Download} width={30} className="mr-3" />
                     Download
                   </button>
@@ -206,6 +214,11 @@ export default function CombinedProgram({ courseId }) {
           </div>
         )}
       </div>
+      <DownloadBrochureModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        courseTitle={courseDetails1?.course_title}
+      />
     </div>
   );
 }

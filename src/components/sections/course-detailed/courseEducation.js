@@ -3,6 +3,10 @@ import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import Education from "@/assets/images/course-detailed/education.svg";
 import Emi from "@/assets/images/course-detailed/emi-card.svg";
+import Cer from "@/assets/images/course-detailed/certificate.png";
+import Efforts from "@/assets/images/course-detailed/efforts.png";
+import Assignments from "@/assets/images/course-detailed/assignment.png";
+import Quizzes from "@/assets/images/course-detailed/quizzes.png";
 import Mode from "@/assets/images/course-detailed/mode.svg";
 import Course from "@/assets/images/course-detailed/course.svg";
 import Session from "@/assets/images/course-detailed/session.svg";
@@ -15,6 +19,12 @@ import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { notFound } from "next/navigation";
 import Preloader from "@/components/shared/others/Preloader";
+import {
+  FaCertificate,
+  FaClock,
+  FaChalkboardTeacher,
+  FaProjectDiagram,
+} from "react-icons/fa";
 
 function CourseEducation({ courseId }) {
   const { getQuery, loading } = useGetQuery();
@@ -47,7 +57,7 @@ function CourseEducation({ courseId }) {
   // JSON data for course details
   const courseDetails = [
     { label: "EMI Options", value: "Yes", icon: Emi },
-    { label: "Certification", value: "Yes" },
+    { label: "Certification", value: "Yes", icon: Cer },
     { label: "Mode", value: "Live Online", icon: Mode },
     {
       label: "Duration",
@@ -59,10 +69,10 @@ function CourseEducation({ courseId }) {
       value: courseDetails1?.session_duration || "(90-120 min each)",
       icon: Session,
     },
-    { label: "Efforts", value: "4-6 hours per week" },
+    { label: "Efforts", value: "4-6 hours per week", icon: Efforts },
     { label: "Classes", value: "Weekends / Weekdays", icon: Classes },
-    { label: "Assignments", value: "Yes" },
-    { label: "Quizzes", value: "Yes" },
+    { label: "Assignments", value: "Yes", icon: Assignments },
+    { label: "Quizzes", value: "Yes", icon: Quizzes },
     { label: "Projects", value: "No", icon: Projects },
   ];
 
@@ -84,6 +94,54 @@ function CourseEducation({ courseId }) {
       icon: Sessiongray,
     },
   ];
+
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const handleBuyNow = async () => {
+    const scriptLoaded = await loadRazorpayScript();
+
+    if (!scriptLoaded) {
+      alert("Failed to load Razorpay SDK. Please try again later.");
+      return;
+    }
+    if (courseDetails1) {
+      const options = {
+        key: "rzp_test_Rz8NSLJbl4LBA5",
+        amount: 59500,
+        currency: "INR",
+        name: courseDetails1?.course_title,
+        description: `Payment for ${courseDetails1?.course_title}`,
+        image: Education,
+        handler: function (response) {
+          alert(
+            "Payment Successful! Payment ID: " + response.razorpay_payment_id
+          );
+        },
+        prefill: {
+          name: "John Doe",
+          email: "john.doe@example.com",
+          contact: "9876543210",
+        },
+        notes: {
+          address: "Razorpay address",
+        },
+        theme: {
+          color: "#FCA400",
+        },
+      };
+
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+    }
+  };
 
   if (loading) {
     return <Preloader />;
@@ -136,22 +194,24 @@ function CourseEducation({ courseId }) {
             <div className="flex justify-between items-center">
               <div className="mb-2">
                 <p className="text-[1rem] font-normal font-Popins leading-6 text-[#41454F] dark:text-gray-200">
-                  {courseDetails1?.course_duration ||
-                    "4 Months Course"}
+                  {courseDetails1?.course_duration || "4 Months Course"}
                 </p>
                 <h3 className="text-2xl font-bold text-[#5C6574] dark:text-gray-50">
                   USD $595.00
                 </h3>
               </div>
               <div className="text-right text-gray-500">
-                <button className="text-[#F6B335]">Share</button>
+                <button className="text-[#FCA400]">Share</button>
               </div>
             </div>
-            <div className="flex gap-4 my-2 text-sm  md:text-[15px]">
-              <button className="bg-[#F6B335] text-white px-8 py-1 rounded-[30px] hover:bg-pink-600">
+            <div className="flex gap-4 my-2 text-sm  md:text-[16px]">
+              <button
+                onClick={handleBuyNow}
+                className="bg-[#FCA400] text-white px-8 py-2 rounded-[30px] hover:bg-[#F6B335]"
+              >
                 BUY NOW
               </button>
-              <button className="bg-inherit text-[#F6B335] border border-[#F6B335] px-5 py-1 rounded-[30px] hover:bg-[#F6B335] hover:text-white">
+              <button className="bg-inherit text-[#FCA400] border border-[#FCA400] px-5 py-1 rounded-[30px] hover:bg-[#F6B335] hover:text-white">
                 WISHLIST
               </button>
             </div>
@@ -168,12 +228,17 @@ function CourseEducation({ courseId }) {
                 className="flex justify-between my-[6px] pb-2 border-b border-dashed"
               >
                 <div className="flex items-center">
-                  <Image
-                    src={detail.icon || ""}
-                    width={24}
-                    height={24}
-                    alt={detail.label}
-                  />
+                  {/* Display Font Awesome icons properly */}
+                  {detail.icon && React.isValidElement(detail.icon) ? (
+                    <detail.icon size={24} className="text-primaryColor" />
+                  ) : (
+                    <Image
+                      src={detail.icon}
+                      width={24}
+                      height={24}
+                      alt={detail.label}
+                    />
+                  )}
                   <span className="ml-2">{detail.label}:</span>
                 </div>
                 <div>
