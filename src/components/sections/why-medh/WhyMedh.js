@@ -14,7 +14,7 @@ const WhyMedh = () => {
   return (
     <div>
       {/* Job Guarantee Section */}
-      <div className="flex flex-col dark:bg-screen-dark md:flex-row items-center px-4 md:px-8 lg:px-20 py-7 gap-6">
+      <div className=" flex flex-col dark:bg-screen-dark md:flex-row items-center px-4 md:px-8 lg:px-20 py-7 gap-6">
         <div className="text-center md:w-1/2 px-4 md:px-6 flex flex-col gap-3">
           <Image
             src={placement}
@@ -51,12 +51,12 @@ const WhyMedh = () => {
 
       {/* Why Medh Section */}
       <div
-        className="bg-cover bg-center h-[400px] dark:bg-screen-dark md:h-[600px] flex items-center justify-start px-14"
+        className="bg-cover bg-center h-[80vh] max-sm:px-10 dark:bg-screen-dark md:h-[600px] flex items-center justify-start px-14"
         style={{ backgroundImage: `url(${bgImg.src})` }}
       >
         {/* Content Box */}
         <div
-          className="bg-white h-60 md:h-auto py-6 px-6 md:px-10 lg:px-16 relative shadow-lg w-full max-w-[630px] overflow-x-hidden md:overflow-visible sm:h-60 sm:overflow-x-scroll dark:bg-screen-dark"
+          className="bg-white h-[66vh] md:h-auto py-6 px-6 md:px-10 lg:px-16 relative shadow-lg w-full max-w-[630px] overflow-x-hidden md:overflow-visible sm:overflow-x-scroll dark:bg-screen-dark"
         >
           <h2 className="text-[#7ECA9D] font-bold text-3xl md:text-4xl">
             WHY MEDH?
