@@ -19,16 +19,15 @@ import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { notFound } from "next/navigation";
 import Preloader from "@/components/shared/others/Preloader";
-import {
-  FaCertificate,
-  FaClock,
-  FaChalkboardTeacher,
-  FaProjectDiagram,
-} from "react-icons/fa";
+import SignInModal from "@/components/shared/signin-modal";
+import usePostQuery from "@/hooks/postQuery.hook";
+import { toast } from "react-toastify";
 
 function CourseEducation({ courseId }) {
   const { getQuery, loading } = useGetQuery();
+  const { postQuery } = usePostQuery();
   const [courseDetails1, setCourseDetails1] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     if (courseId) {
@@ -106,12 +105,22 @@ function CourseEducation({ courseId }) {
   };
 
   const handleBuyNow = async () => {
-    const scriptLoaded = await loadRazorpayScript();
+    const token = localStorage.getItem("token");
+    const studentId = localStorage.getItem("userId");
 
-    if (!scriptLoaded) {
-      alert("Failed to load Razorpay SDK. Please try again later.");
+    if (!token || !studentId) {
+      setIsModalOpen(true);
       return;
     }
+
+    // Load Razorpay script
+    const scriptLoaded = await loadRazorpayScript();
+    if (!scriptLoaded) {
+      toast.error("Please log in first..");
+      return;
+    }
+
+    // If the user is logged in, open Razorpay payment
     if (courseDetails1) {
       const options = {
         key: "rzp_test_Rz8NSLJbl4LBA5",
@@ -120,26 +129,48 @@ function CourseEducation({ courseId }) {
         name: courseDetails1?.course_title,
         description: `Payment for ${courseDetails1?.course_title}`,
         image: Education,
-        handler: function (response) {
-          alert(
-            "Payment Successful! Payment ID: " + response.razorpay_payment_id
-          );
+        handler: async function (response) {
+          toast.success("Payment Successful!");
+
+          // Call enrollCourse API after successful payment
+          await enrollCourse(studentId, courseId);
         },
         prefill: {
-          name: "John Doe",
-          email: "john.doe@example.com",
+          name: "Medh Student",
+          email: "medh@student.com",
           contact: "9876543210",
         },
         notes: {
           address: "Razorpay address",
         },
         theme: {
-          color: "#FCA400",
+          color: "#7ECA9D",
         },
       };
 
       const razorpay = new window.Razorpay(options);
       razorpay.open();
+    }
+  };
+
+  const enrollCourse = async (studentId, courseId) => {
+    try {
+      await postQuery({
+        url: apiUrls?.EnrollCourse?.enrollCourse,
+        postData: {
+          student_id: studentId,
+          course_id: courseId,
+        },
+        onSuccess: () => {
+          toast.success("Hurray! You are enrolled successfully.");
+        },
+        onFail: () => {
+          toast.error("Error enrolling in the course. Please try again!");
+        },
+      });
+    } catch (error) {
+      console.error("Error enrolling course:", error);
+      toast.error("Something went wrong! Please try again later.");
     }
   };
 
@@ -197,7 +228,7 @@ function CourseEducation({ courseId }) {
                   {courseDetails1?.course_duration || "4 Months Course"}
                 </p>
                 <h3 className="text-2xl font-bold text-[#5C6574] dark:text-gray-50">
-                  USD $595.00
+                  USD $ {courseDetails1?.course_fee || "595.00"}
                 </h3>
               </div>
               <div className="text-right text-gray-500">
@@ -249,6 +280,7 @@ function CourseEducation({ courseId }) {
           </div>
         </div>
       </div>
+      <SignInModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   );
 }
