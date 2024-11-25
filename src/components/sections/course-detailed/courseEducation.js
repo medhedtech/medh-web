@@ -182,24 +182,18 @@ function CourseEducation({ courseId }) {
     <div className="flex flex-wrap justify-between bg-white dark:bg-[#050622] w-full lg:space-x-8">
       {/* Left Section */}
       <div className="lg:w-[60%] w-full md:px-4 dark:pt-12 ">
-        <div className="relative lg:bottom-12 bottom-5">
-          {courseDetails1 && courseDetails1.course_image ? (
-            <Image
-              src={courseDetails1.course_image}
-              alt="Education"
-              width={730}
-              height={400}
-              className="rounded-md"
-            />
-          ) : (
-            <Image
-              src={Education}
-              alt="Education"
-              width={730}
-              height={400}
-              className="rounded-md"
-            />
-          )}
+        <div className="relative lg:top-5 lg:bottom-12 bottom-5 lg:ml-[11%]">
+          <Image
+            src={
+              courseDetails1 && courseDetails1.course_image
+                ? courseDetails1.course_image
+                : Education
+            }
+            alt="Education"
+            width={830}
+            height={200}
+            className="rounded-md object-cover"
+          />
         </div>
 
         <div className="lg:ml-[11%] px-5 lg:p-0 lg:mt-10 mt-6">
