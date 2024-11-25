@@ -5,11 +5,11 @@ export const apiUrls = {
   user: {
     register: "/auth/register",
     login: "/auth/login",
-    update: "/auth/update/:id",
+    update: "/auth/update",
     delete: "/auth/delete",
     getDetailsbyId: "/auth/get",
     getAll: "/auth/get-all",
-    updateByEmail: "/auth/update-by-email",
+    updateByEmail: "/auth/update-by-email"
   },
   courses: {
     getAllCoursesWithLimits: (
