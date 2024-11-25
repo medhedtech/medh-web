@@ -1,11 +1,15 @@
 "use client";
 import Image from "next/image";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AiMl from "@/assets/images/courses/Ai&Ml.jpeg";
 import reactImg from "@/assets/images/courses/React.jpeg";
 import os from "@/assets/images/courses/os.jpeg";
 import javascript from "@/assets/images/courses/javaScript.jpeg";
+import useGetQuery from "@/hooks/getQuery.hook";
+import { apiUrls } from "@/apis";
+import CourseCard from "@/components/shared/dashboards/CourseCard";
+import Preloader from "../others/Preloader";
 
 const RecordedSessions = () => {
   const router = useRouter();
@@ -41,9 +45,37 @@ const RecordedSessions = () => {
     },
   ];
 
+  const [freeCourses, setFreeCourses] = useState([]);
+  const { getQuery, loading } = useGetQuery();
+  const [limit] = useState(90);
+  const [page] = useState(1);
+
+  useEffect(() => {
+    const fetchCourses = () => {
+      getQuery({
+        url: apiUrls?.courses?.getAllCoursesWithLimits(page, limit, '', '', '', 'Upcoming', '', '', true),
+        onSuccess: (res) => {
+          // Filter the courses where isFree is true
+          const freeCourses = res?.courses?.filter(course => course.course_tag === "Pre-Recorded") || [];
+          setFreeCourses(freeCourses.slice(0, 4));
+          console.log(freeCourses); // Logging the filtered courses
+        },
+        onFail: (err) => {
+          console.error("Error fetching courses:", err);
+        },
+      });
+    };
+  
+    fetchCourses();
+  }, [page, limit]);
+
   const handleCardClick = (id) => {
     router.push(`/dashboards/my-courses/${id}`);
   };
+
+  if(loading){
+    return <Preloader/>
+  }
 
   return (
     <div className="container mx-auto p-8">
@@ -58,7 +90,7 @@ const RecordedSessions = () => {
           View All
         </a>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {sessions.map((session) => (
           <div
             key={session.id}
@@ -85,6 +117,16 @@ const RecordedSessions = () => {
               </p>
             </div>
           </div>
+        ))}
+      </div> */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {freeCourses?.map((course) => (
+          <CourseCard
+            // title={}
+            key={course?._id}
+            {...course}
+            onClick={() => handleCardClick(course?._id)}
+          />
         ))}
       </div>
     </div>
