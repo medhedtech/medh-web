@@ -106,7 +106,7 @@ const ExploreJourney = ({ mainText, subText }) => {
           />
         </div>
         <div className="container">
-          <div className="grid grid-cols-1 lg:grid-cols-14 gap-x-30px">
+          <div className="grid grid-cols-1 lg:grid-cols-14 gap-x-30px justify-items-center">
             <div
               className="mb-30px lg:mb-0 pb-0 md:pb-30px xl:pb-0 lg:col-start-1 lg:col-span-7"
               data-aos="fade-up"
@@ -120,7 +120,7 @@ const ExploreJourney = ({ mainText, subText }) => {
               </div>
             </div>
             {/* Form Section */}
-            <div className="overflow-visible w-[600px] lg:col-start-8 lg:col-span-5 relative z-1 mb-4">
+            <div className="overflow-visible w-[90vw] sm:w-[600px]  lg:col-start-8 lg:col-span-5 relative z-1 mb-4">
               <h3 className="text-3xl bg-[#7ECA9D] text-[#FFFFFF] dark:text-blackColor-dark py-6 text-center font-semibold font-inter">
                 {/* Enroll Now ! */}
                 {subText}
@@ -130,13 +130,13 @@ const ExploreJourney = ({ mainText, subText }) => {
                 className="p-[35px] bg-lightGrey10 dark:bg-lightGrey10-dark shadow-experience"
                 data-aos="fade-up"
               >
-                <div className="flex gap-4">
+                <div className="flex gap-4 flex-col md:flex-row mb-2.5">
                   <div className="flex-col w-full">
                     <input
                       {...register("full_name")}
                       type="text"
                       placeholder="Your Name*"
-                      className="w-full px-14px py-2 dark:bg-inherit bg-lightGrey8 text-base mb-1.5 border border-gray-300"
+                      className="w-full px-14px py-2 dark:bg-inherit bg-lightGrey8 text-base mb-0 sm:mb-1.5 border border-gray-300"
                     />
                     {errors.full_name && (
                       <span className="text-red-500">
@@ -144,12 +144,12 @@ const ExploreJourney = ({ mainText, subText }) => {
                       </span>
                     )}
                   </div>
-                  <div className="flex-col w-full">
+                  <div className="flex-col w-full mb-1.5 sm:mb-0">
                     <input
                       {...register("email")}
                       type="email"
                       placeholder="Your Email*"
-                      className="w-full px-14px py-2 dark:bg-inherit bg-lightGrey8 text-base mb-1.5 border border-gray-300"
+                      className="w-full px-14px py-2 dark:bg-inherit bg-lightGrey8 text-base sm:mb-1.5 mb-0 border border-gray-300"
                     />
                     {errors.email && (
                       <span className="text-red-500">
@@ -160,7 +160,7 @@ const ExploreJourney = ({ mainText, subText }) => {
                 </div>
 
                 {/* Phone Number Input with Country Dropdown */}
-                <div className="flex flex-col lg:flex-row mb-2 gap-4">
+                <div className="flex flex-col lg:flex-row mb-4 gap-4">
                   <div className="w-full lg:w-1/3">
                     <select
                       {...register("country")}
@@ -190,11 +190,11 @@ const ExploreJourney = ({ mainText, subText }) => {
                   </div>
                 )}
 
-                <div className="flex gap-4">
+                <div className="flex gap-4 mb-2.5 flex-col lg:flex-row">
                   <select
                     {...register("course_category")}
                     type="text"
-                    className="w-full px-14px py-2 dark:bg-inherit bg-lightGrey8 text-base border mb-1.5 border-gray-300"
+                    className="w-full px-14px py-2 dark:bg-inherit bg-lightGrey8 text-base border mb-0 sm:mb-1.5 border-gray-300"
                   >
                     <option value="" disabled>
                       Select Category
