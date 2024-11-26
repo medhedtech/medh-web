@@ -30,10 +30,17 @@ const schema = yup.object({
   session_duration: yup
     .string()
     .test(
-      "positive-number",
-      "Session duration must be a positive number",
+      "valid-session-duration",
+      "Session duration must be a positive number or a valid time format (e.g., 5 Months or 2 Hours)",
       (value) => {
-        return value && !isNaN(value) && Number(value) > 0;
+        // Check if it's a positive number
+        const isValidNumber = value && !isNaN(value) && Number(value) > 0;
+
+        // Regex to match "X Hours", "X Months", or "X Hours/Month"
+        const validTimeFormat =
+          /^(\d+(\.\d+)?\s*(Hours?|Months?)|(\d+(\.\d+)?\s*Hours?\/Months?))$/i;
+
+        return isValidNumber || validTimeFormat.test(value);
       }
     )
     .required("Session duration is required"),
@@ -43,7 +50,7 @@ const schema = yup.object({
     .typeError("Course fee must be a number")
     .positive("Course fee must be a positive number")
     .required("Course fee is required"),
-    course_grade: yup.string().required("Grade is required"),
+  course_grade: yup.string().required("Grade is required"),
 });
 
 const AddCourse = () => {
@@ -431,7 +438,9 @@ const AddCourse = () => {
                 <option value="Grade 7-8">Grade 7-8</option>
                 <option value="Grade 9-10">Grade 9-10</option>
                 <option value="Grade 11-12">Grade 11-12</option>
-                <option value="UG - Graduate - Professionals">UG - Graduate - Professionals</option>
+                <option value="UG - Graduate - Professionals">
+                  UG - Graduate - Professionals
+                </option>
               </select>
               {errors.course_grade && (
                 <p className="text-red-500 text-xs">
@@ -473,9 +482,7 @@ const AddCourse = () => {
                   onChange={handleVideoUpload}
                 />
                 {courseVideo && (
-                  <p className="mt-1 text-xs text-gray-500">
-                     ✔ Uploaded
-                  </p>
+                  <p className="mt-1 text-xs text-gray-500">✔ Uploaded</p>
                 )}
               </div>
             </div>
@@ -510,18 +517,14 @@ const AddCourse = () => {
                   onChange={handlePdfUpload}
                 />
                 {pdfBrochure && (
-                  <p className="mt-1 text-xs text-gray-500">
-                   ✔ Uploaded
-                  </p>
+                  <p className="mt-1 text-xs text-gray-500">✔ Uploaded</p>
                 )}
               </div>
             </div>
 
             {/* Thumbnail Image Upload */}
             <div>
-              <p className="font-semibold mb-2 text-left text-2xl">
-                Add Image
-              </p>
+              <p className="font-semibold mb-2 text-left text-2xl">Add Image</p>
               <div className="border-dashed border-2 dark:bg-inherit bg-purple border-gray-300 rounded-lg p-3 w-[210px] h-[140px] text-center relative">
                 <svg
                   width="36"
@@ -547,9 +550,7 @@ const AddCourse = () => {
                   onChange={handleImageUpload}
                 />
                 {thumbnailImage && (
-                  <p className="mt-1 text-xs text-gray-500">
-                   ✔ Uploaded
-                  </p>
+                  <p className="mt-1 text-xs text-gray-500">✔ Uploaded</p>
                 )}
               </div>
             </div>
