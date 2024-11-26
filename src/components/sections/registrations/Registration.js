@@ -14,6 +14,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { FaCamera } from "react-icons/fa";
 import Link from "next/link";
+import { toast } from "react-toastify";
 
 // Validation schema using yup
 const schema = yup.object({
@@ -29,7 +30,7 @@ const schema = yup.object({
     .boolean()
     .oneOf([true], "You must accept the terms and privacy policy")
     .required(),
-    resume_image: yup.string()
+  resume_image: yup.string(),
 });
 
 const Registration = ({ showUploadField = false }) => {
@@ -102,14 +103,9 @@ const Registration = ({ showUploadField = false }) => {
         postData,
         onSuccess: () => {
           toast.success("Form submitted successfully!");
-          reset({
-            full_name: "",
-            email: "",
-            country: "",
-            phone_number: "",
-            message: "",
-            accept: "",
-          });
+
+          // Reset the form fields after a successful submission
+          reset();
         },
         onFail: () => {
           toast.error("Error submitting form.");
@@ -201,17 +197,17 @@ const Registration = ({ showUploadField = false }) => {
 
                 {/* Phone Number Input with Country Dropdown */}
                 <div className="flex flex-col lg:flex-row mb-2 gap-4">
-                  <div className="w-full lg:w-1/4">
+                  <div className="w-full lg:w-2/6">
                     <select
                       {...register("country")}
                       className="w-full px-2 py-2 dark:bg-inherit bg-lightGrey8 border border-gray-300 text-[#5C6574]"
                     >
-                      <option value="">Country</option>
-                      <option value="US">United States</option>
-                      <option value="CA">Canada</option>
-                      <option value="UK">United Kingdom</option>
-                      <option value="IN">India</option>
-                      <option value="AU">Australia</option>
+                      <option value="IN">IN (+91)</option>
+                      <option value="AUS">AUS (+61)</option>
+                      <option value="CA">CA (+1)</option>
+                      <option value="SGP">SGP (+65) </option>
+                      <option value="UAE">UAE (+971)</option>
+                      <option value="UK">Uk (+44) </option>
                     </select>
                   </div>
 

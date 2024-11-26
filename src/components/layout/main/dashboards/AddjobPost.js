@@ -1,14 +1,12 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import usePostQuery from "@/hooks/postQuery.hook";
 import { useForm } from "react-hook-form";
 import { apiUrls } from "@/apis";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import toast from "react-toastify";
-import useGetQuery from "@/hooks/getQuery.hook";
 import Preloader from "@/components/shared/others/Preloader";
-import AdminBlogs from "./AdminBlogs";
 import AdminJobAplicants from "./AdminJobApplicants";
 
 // Validation Schema
@@ -39,8 +37,8 @@ const AddJobPost = () => {
         },
         onSuccess: () => {
           toast.success("Post added successfully!");
-          reset();
           setShowAddPostListing(true);
+          reset();
         },
         onFail: () => {
           toast.error("Error adding post.");
@@ -63,9 +61,7 @@ const AddJobPost = () => {
     <div className="flex items-start dark:bg-inherit dark:text-white justify-center w-full bg-gray-100 p-4 pt-9">
       <div className="w-[95%] mx-auto dark:bg-inherit dark:text-white p-6 bg-white rounded-lg shadow-md dark:shadow-white font-Poppins">
         <h2 className="text-2xl font-semibold mb-6">Create New Job Post</h2>
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-        >
+        <form onSubmit={handleSubmit(onSubmit)}>
           {/* Title Field */}
           <div className="flex flex-col w-[50%]">
             <label
