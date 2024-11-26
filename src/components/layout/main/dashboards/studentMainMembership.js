@@ -7,10 +7,10 @@ import FallBackUrl from "@/assets/images/courses/image1.png";
 
 const StudentMainMembership = ({ membership }) => (
   <>
-    {membership.courses?.map((course, index) => (
+    {membership.courses?.map((course) => (
       <div
-        key={index}
-        className="flex items-center dark:border shadow-student-dashboard  p-5 rounded-lg overflow-hidden hover:scale-105 transform transition-transform duration-300"
+        key={course.course_id || `${membership._id}-${course.course_title}`} // Use a unique course id or combination
+        className="flex items-center dark:border shadow-student-dashboard p-5 rounded-lg overflow-hidden hover:scale-105 transform transition-transform duration-300"
       >
         <div className="relative h-40 w-[40%]">
           <Image
@@ -23,7 +23,7 @@ const StudentMainMembership = ({ membership }) => (
         </div>
 
         {/* Course Info Section */}
-        <div className=" px-4 w-[60%] font-Open">
+        <div className="px-4 w-[60%] font-Open">
           <span className="text-orange-500 text-xs font-bold text-[#FFA927]">
             {membership.category_type === "Live Courses"
               ? "Certificate"

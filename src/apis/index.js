@@ -117,6 +117,7 @@ export const apiUrls = {
     getCountByStudentId: "/enroll/getCount",
     getEnrolledCourseById: "/enroll/get",
     getEnrolledCoursesByStudentId: "/enroll/student",
+    getUpcomingCoursesByStudentId: "/enroll/get-upcoming-meetings",
   },
   Subscription: {
     AddSubscription: "/subscription/create",
@@ -125,6 +126,7 @@ export const apiUrls = {
     getEnrollmentStatus: "/subscription/enrollStatus",
     updateSubscription: "/subscription/update",
     deleteSubscription: "/subscription/delete",
+    getAllSubscriptionByStudentId: "/subscription/get-subscription",
   },
   Membership: {
     addMembership: "/memberships/create",
