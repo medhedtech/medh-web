@@ -126,6 +126,14 @@ export const apiUrls = {
     updateSubscription: "/subscription/update",
     deleteSubscription: "/subscription/delete",
   },
+  Membership: {
+    addMembership: "/membership/create",
+    getMembership: "/membership/getAll",
+    getMembershipById: "/membership/get",
+    renewMembershipById: "/membership/renew",
+    updateMembership: "/membership/update",
+    deleteMembership: "/membership/delete",
+  },
   jobForm: {
     getAllJobPosts: "/job-post/getAll",
     getJobPostById: "/job-post/get",
