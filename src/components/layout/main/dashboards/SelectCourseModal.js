@@ -2,19 +2,87 @@ import React, { useState, useEffect } from "react";
 import { Search, X } from "lucide-react";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
-import SelectCourseCard from './SelectCourseCard'
+import SelectCourseCard from "./SelectCourseCard";
+import usePostQuery from "@/hooks/postQuery.hook";
+import Education from "@/assets/images/course-detailed/education.svg";
+import { toast } from "react-toastify";
 
-export default function SelectCourseModal({ isOpen, onClose, planType, closeParent }) {
+export default function SelectCourseModal({
+  isOpen,
+  onClose,
+  planType,
+  amount,
+  selectedPlan,
+  closeParent,
+}) {
+  const studentId = localStorage.getItem("userId");
   const [courses, setCourses] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCourses, setSelectedCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { getQuery } = useGetQuery();
+  const { postQuery } = usePostQuery();
+  const [planAmount, setPlanAmount] = useState(Number(amount.replace("$", "")) || 0)
 
   const maxSelections = planType === "silver" ? 1 : 3;
   const [limit] = useState(4);
   const [page] = useState(1);
+
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const handleProceedToPay = async () => {
+    const token = localStorage.getItem("token");
+    const studentId = localStorage.getItem("userId");
+
+    if (!token || !studentId) {
+      return;
+    }
+    // Load Razorpay script
+    const scriptLoaded = await loadRazorpayScript();
+    if (!scriptLoaded) {
+      toast.error("Please log in first.");
+      return;
+    }
+    if (planType) {
+      const options = {
+        key: "rzp_test_Rz8NSLJbl4LBA5",
+        amount: planAmount * 100,
+        currency: "INR",
+        name: `${capitalize(planType)} Membership`,
+        description: `Payment for ${capitalize(planType)} Membership`,
+        image: Education,
+        handler: async function (response) {
+          toast.success("Payment Successful!");
+
+          // Call subscription API after successful payment
+          await handleSubmit();
+        },
+        prefill: {
+          name: "Medh Student",
+          email: "medh@student.com",
+          contact: "9876543210",
+        },
+        notes: {
+          address: "Razorpay address",
+        },
+        theme: {
+          color: "#7ECA9D",
+        },
+      };
+
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+    }
+  };
 
   useEffect(() => {
     const fetchCourses = () => {
@@ -65,8 +133,37 @@ export default function SelectCourseModal({ isOpen, onClose, planType, closePare
     }
   };
 
+  const handleSubscribe = async () => {
+    try {
+      await postQuery({
+        url: apiUrls?.Membership?.addMembership,
+        postData: {
+          student_id: studentId,
+          course_ids: selectedCourses.map((course) => course._id),
+          amount: planAmount,
+          plan_type: planType,
+          duration: selectedPlan.toLowerCase(),
+        },
+        onSuccess: (res) => {
+          console.log("Membership Created", res);
+        },
+        onFail: (err) => {
+          console.error("Error while creating subscription", err);
+        },
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  function capitalize(str) {
+    if (!str) return ""; // Handle empty or null strings
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  }
+
   const handleSubmit = () => {
-    console.log(selectedCourses);
+    console.log("in sub")
+    handleSubscribe();
     onClose();
     closeParent();
   };
@@ -142,12 +239,12 @@ export default function SelectCourseModal({ isOpen, onClose, planType, closePare
                 Cancel
               </button>
               <button
-                onClick={handleSubmit}
+                onClick={handleProceedToPay}
                 disabled={selectedCourses.length === 0}
                 className={`px-6 py-2.5 rounded-lg transition-all ${
                   selectedCourses.length === 0
-                    ? 'bg-gray-300 cursor-not-allowed'
-                    : 'bg-[#3B82F6] hover:bg-[#2563EB] active:bg-[#1D4ED8] text-white shadow-md hover:shadow-lg'
+                    ? "bg-gray-300 cursor-not-allowed"
+                    : "bg-[#3B82F6] hover:bg-[#2563EB] active:bg-[#1D4ED8] text-white shadow-md hover:shadow-lg"
                 }`}
               >
                 Proceed with Selection
