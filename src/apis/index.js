@@ -9,7 +9,7 @@ export const apiUrls = {
     delete: "/auth/delete",
     getDetailsbyId: "/auth/get",
     getAll: "/auth/get-all",
-    updateByEmail: "/auth/update-by-email"
+    updateByEmail: "/auth/update-by-email",
   },
   courses: {
     getAllCoursesWithLimits: (
@@ -127,13 +127,13 @@ export const apiUrls = {
     deleteSubscription: "/subscription/delete",
   },
   Membership: {
-    addMembership: "/membership/create",
-    getMembership: "/membership/getAll",
-    getMembershipById: "/membership/get",
-    renewMembershipById: "/membership/renew",
-    updateMembership: "/membership/update",
-    deleteMembership: "/membership/delete",
-  },
+    addMembership: "/memberships/create",
+    getMembership: "/memberships/getAll",
+    getMembershipById: "/memberships/get",
+    renewMembershipById: "/memberships/renew",
+    updateMembership: "/memberships/update",
+    deleteMembership: "/memberships/delete",
+  },
   jobForm: {
     getAllJobPosts: "/job-post/getAll",
     getJobPostById: "/job-post/get",
