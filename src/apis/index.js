@@ -122,6 +122,7 @@ export const apiUrls = {
     AddSubscription: "/subscription/create",
     getSubscription: "/subscription/getAll",
     getSubscriptionById: "/subscription/get",
+    getEnrollmentStatus: "/subscription/enrollStatus",
     updateSubscription: "/subscription/update",
     deleteSubscription: "/subscription/delete",
   },
