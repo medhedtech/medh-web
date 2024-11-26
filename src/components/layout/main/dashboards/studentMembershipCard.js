@@ -184,6 +184,83 @@
 
 // export default StudentMembershipCard;
 
+// "use client";
+// import React, { useState, useEffect } from "react";
+// import StudentMainMembership from "./studentMainMembership";
+// import Image from "next/image";
+// import MembershipModal from "./MembershipModal";
+// import SubscriptionLogo from "@/assets/images/student-dashboard/subscription.svg";
+// import { apiUrls } from "@/apis";
+// import useGetQuery from "@/hooks/getQuery.hook";
+
+// const StudentMembershipCard = () => {
+//   const [isModalOpen, setIsModalOpen] = useState(false);
+//   const [studentId, setStudentId] = useState(null);
+//   const { getQuery } = useGetQuery();
+//   const [memberships, setMemberships] = useState([]);
+
+//   useEffect(() => {
+//     if (typeof window !== "undefined") {
+//       const storedUserId = localStorage.getItem("userId");
+//       setStudentId(storedUserId);
+//     }
+//   }, []);
+
+//   // Fetch memberships using useGetQuery
+//   useEffect(() => {
+//     const fetchMemberships = () => {
+//       getQuery({
+//         url: `${apiUrls?.Membership?.getMembershipBbyStudentId}/${studentId}`,
+//         onSuccess: (res) => {
+//           setMemberships(res?.memberships || []);
+//         },
+//         onFail: (err) => {
+//           console.error("Error fetching memberships:", err);
+//         },
+//       });
+//     };
+
+//     if (studentId) {
+//       fetchMemberships();
+//     }
+//   }, [studentId]);
+
+//   return (
+//     <section className="py-10 px-4">
+//       <div className="max-w-7xl mx-auto">
+//         <div className="flex flex-wrap justify-between items-center mb-8 font-Open">
+//           <h2 className="text-3xl font-bold text-gray-800 font-Open dark:text-white">
+//             Membership
+//           </h2>
+//           <button
+//             className="flex items-center bg-[#FCA400] gap-x-2 text-white font-bold py-2 px-4 rounded-3xl hover:bg-orange-600 transition font-Open"
+//             onClick={() => setIsModalOpen(true)}
+//           >
+//             <Image src={SubscriptionLogo} width={30} alt="Subscription Logo" />
+//             <p>Upgrade Membership</p>
+//           </button>
+//         </div>
+//         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
+//           {memberships?.map((membership) => (
+//             <StudentMainMembership
+//               key={membership._id}
+//               membership={membership}
+//             />
+//           ))}
+//         </div>
+//       </div>
+
+//       {/* Membership Modal */}
+//       <MembershipModal
+//         isOpen={isModalOpen}
+//         onClose={() => setIsModalOpen(false)}
+//       />
+//     </section>
+//   );
+// };
+
+// export default StudentMembershipCard;
+
 "use client";
 import React, { useState, useEffect } from "react";
 import StudentMainMembership from "./studentMainMembership";
@@ -198,6 +275,7 @@ const StudentMembershipCard = () => {
   const [studentId, setStudentId] = useState(null);
   const { getQuery } = useGetQuery();
   const [memberships, setMemberships] = useState([]);
+  const [hasFetched, setHasFetched] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -209,21 +287,32 @@ const StudentMembershipCard = () => {
   // Fetch memberships using useGetQuery
   useEffect(() => {
     const fetchMemberships = () => {
+      if (hasFetched) return;
+  
       getQuery({
         url: `${apiUrls?.Membership?.getMembershipBbyStudentId}/${studentId}`,
         onSuccess: (res) => {
-          setMemberships(res?.memberships || []);
+          const uniqueMemberships = [
+            ...new Map(res?.memberships.map((m) => [m._id, m])).values(),
+          ];
+          setMemberships(uniqueMemberships || []);
+          setHasFetched(true);  // Mark data as fetched
         },
         onFail: (err) => {
           console.error("Error fetching memberships:", err);
         },
       });
     };
-
-    if (studentId) {
+  
+    if (studentId && !hasFetched) {
       fetchMemberships();
     }
-  }, [studentId]);
+  }, [studentId, hasFetched]);
+
+  useEffect(() => {
+    console.log("Fetched Memberships:", memberships);
+  }, [memberships]);
+  
 
   return (
     <section className="py-10 px-4">

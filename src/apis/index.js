@@ -1,5 +1,5 @@
-export const apiBaseUrl = "https://medh-backend.vercel.app/api/v1";
-// export const apiBaseUrl = "http://localhost:8080/api/v1";
+// export const apiBaseUrl = "https://medh-backend.vercel.app/api/v1";
+export const apiBaseUrl = "http://localhost:8080/api/v1";
 
 export const apiUrls = {
   user: {
@@ -117,6 +117,7 @@ export const apiUrls = {
     getCountByStudentId: "/enroll/getCount",
     getEnrolledCourseById: "/enroll/get",
     getEnrolledCoursesByStudentId: "/enroll/student",
+    getUpcomingCoursesByStudentId: "/enroll/get-upcoming-meetings",
   },
   Subscription: {
     AddSubscription: "/subscription/create",
@@ -125,6 +126,7 @@ export const apiUrls = {
     getEnrollmentStatus: "/subscription/enrollStatus",
     updateSubscription: "/subscription/update",
     deleteSubscription: "/subscription/delete",
+    getAllSubscriptionByStudentId: "/subscription/get-subscription",
   },
   Membership: {
     addMembership: "/memberships/create",

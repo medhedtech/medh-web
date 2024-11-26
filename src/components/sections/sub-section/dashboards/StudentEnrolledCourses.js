@@ -4,38 +4,22 @@ import Image from "next/image";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import img3 from "@/assets/images/resources/img3.png";
-import img4 from "@/assets/images/resources/img4.png";
 import img5 from "@/assets/images/resources/img5.png";
 import PDFImage from "@/assets/images/dashbord/bxs_file-pdf.png";
 import Preloader from "@/components/shared/others/Preloader";
-
-const selfPacedCourses = [
-  {
-    id: 1,
-    title: "Communication Skills",
-    instructor: "John Doe",
-    image: img3,
-    downloadLink: PDFImage,
-  },
-  {
-    id: 2,
-    title: "Leadership Basics",
-    instructor: "Jane Doe",
-    image: img4,
-    downloadLink: PDFImage,
-  },
-];
 
 const StudentEnrolledCourses = () => {
   const [currentTab, setCurrentTab] = useState(0);
   const [enrolledCourses, setEnrolledCourses] = useState([]);
   const [liveCourses, setLiveCourses] = useState([]);
+  const [selfPacedCourses, setSelfPacedCourses] = useState([]);
   const { getQuery, loading } = useGetQuery();
 
   useEffect(() => {
     const storedUserId = localStorage.getItem("userId");
     if (storedUserId) {
       fetchEnrolledCourses(storedUserId);
+      fetchSelfPacedCourses(storedUserId);
     }
   }, []);
 
@@ -54,6 +38,25 @@ const StudentEnrolledCourses = () => {
       },
       onFail: (error) => {
         console.error("Failed to fetch enrolled courses:", error);
+      },
+    });
+  };
+
+  const fetchSelfPacedCourses = (studentId) => {
+    getQuery({
+      url: `${apiUrls?.Membership?.getMembershipBbyStudentId}/${studentId}`,
+      onSuccess: (data) => {
+        const courses = data?.memberships?.flatMap((membership) =>
+          membership.courses.map((course) => ({
+            course_title: course.course_title,
+            assigned_instructor: course.assigned_instructor?.full_name || "N/A",
+            brochures: course.brochures || [],
+          }))
+        );
+        setSelfPacedCourses(courses || []);
+      },
+      onFail: (error) => {
+        console.error("Failed to fetch self-paced courses:", error);
       },
     });
   };

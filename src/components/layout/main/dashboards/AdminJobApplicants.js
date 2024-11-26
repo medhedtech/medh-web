@@ -50,7 +50,6 @@ export default function AdminJobApplicants() {
   }, []);
 
   const handleDelete = async (url, id, fetchUrl, setState) => {
-    setLoading(true);
     await deleteQuery({
       url: `${url}/${id}`,
       onSuccess: (res) => {
@@ -62,7 +61,6 @@ export default function AdminJobApplicants() {
         toast.error("Failed to delete.");
       },
     });
-    setLoading(false);
   };
 
   const columns = [
