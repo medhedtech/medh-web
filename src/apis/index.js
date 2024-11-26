@@ -133,6 +133,8 @@ export const apiUrls = {
     renewMembershipById: "/memberships/renew",
     updateMembership: "/memberships/update",
     deleteMembership: "/memberships/delete",
+    getSelfPackedCount: "/memberships/membership-count",
+    getMembershipBbyStudentId: "/memberships/getmembership",
   },
   jobForm: {
     getAllJobPosts: "/job-post/getAll",
