@@ -8,7 +8,9 @@ const Student_Upcoming_Classes = () => {
   return (
     <div>
       <DashboardContainer>
-        <HeadingDashboard />
+        <div className="px-12">
+          <HeadingDashboard />
+        </div>
         <StudentUpcomigClasses />
         <ThemeController />
       </DashboardContainer>
