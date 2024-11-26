@@ -19,8 +19,8 @@ const CourseDetails = () => {
   const [courseDetails, setCourseDetails] = useState(null);
   const { getQuery } = useGetQuery();
   const router = useRouter();
-  const [selectedVideo, setSelectedVideo] = useState(null); // Track the selected video
-  const [isPlaying, setIsPlaying] = useState(false); // Control video player visibility
+  const [selectedVideo, setSelectedVideo] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
 
   const handlePlayVideo = (videoUrl) => {
@@ -44,15 +44,6 @@ const CourseDetails = () => {
     rating: 4.8,
     hour: "42",
     price: "29,000",
-    // benefits: [
-    //   "20 Video hours",
-    //   "Live Sessions",
-    //   "Beginner to Advanced Level",
-    //   "Lifetime Access",
-    //   "100 Quizzes",
-    //   "Certificate of Completion",
-    // ],
-
     curriculum: [
       {
         title: "Introduction",

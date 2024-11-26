@@ -5,12 +5,6 @@ const WhatYouGet = ({ benefits }) => {
     <div className="p-4 mb-4">
       <h3 className="text-lg font-semibold mb-4">What You&#39;ll Get</h3>
       <div className="">
-        {/* {benefits.map((benefit, index) => (
-          <li key={index} className="text-sm text-gray-600 flex items-center">
-            <span className="text-green-500 mr-2">✔</span>
-            {benefit}
-          </li>
-        ))} */}
         <div className="flex gap-2 items-center text-[#545454] text-sm py-1">
           <div className="">
             <svg
