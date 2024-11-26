@@ -161,7 +161,7 @@ function CourseEducation({ courseId }) {
           amount: amount,
         },
         onSuccess: async () => {
-          toast.success("Payment successful!");
+          console.log("Payment successful!");
 
           // Call enrollCourse API after successful subscription
           await enrollCourse(studentId, courseId);
