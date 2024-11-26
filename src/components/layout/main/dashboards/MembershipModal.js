@@ -322,6 +322,8 @@ const MembershipModal = ({ isOpen, onClose }) => {
           onClose={() => setSelectCourseModalOpen(false)}
           planType={planType}
           closeParent={onClose}
+          amount={plans[selectedPlan][planType]}
+          selectedPlan={selectedPlan}
         />
       )}
     </>
