@@ -28,22 +28,23 @@ const CounterStudent = () => {
     }
   }, []);
 
-  console.log("student ki id:", studentId);
-
   // Fetch counts data once studentId is available
   useEffect(() => {
     if (studentId) {
       const fetchCounts = async () => {
         try {
-          const response = await getQuery({
+          const enrollResponse = await getQuery({
             url: `${apiUrls?.EnrollCourse?.getCountByStudentId}/${studentId}`,
           });
+          const membershipResponse = await getQuery({
+            url: `${apiUrls?.Membership?.getSelfPackedCount}/${studentId}`,
+          });
 
-          if (response) {
+          if (enrollResponse && membershipResponse) {
             setCounts({
-              enrolledCourses: response?.totalEnrollments || 0,
-              liveCourses: response?.liveCoursesCount || 0,
-              selfPacedCourses: 0,
+              enrolledCourses: enrollResponse?.totalEnrollments || 0,
+              liveCourses: enrollResponse?.liveCoursesCount || 0,
+              selfPacedCourses: membershipResponse?.totalMemberships || 0,
             });
           } else {
             console.log("No response from API");

@@ -201,8 +201,8 @@ import Pagination from "@/components/shared/pagination/Pagination";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
 import { useRouter } from "next/navigation";
-import Preloader from "@/components/shared/others/Preloader";
 import { FaTimes } from "react-icons/fa";
+import Preloader2 from "@/components/shared/others/Preloader2";
 
 const categories = [
   "AI and Data Science",
@@ -402,7 +402,9 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
             <div className="w-full md:w-3/4">
               <div className="w-full md:w-[100%] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {loading ? (
-                  <div className="col-span-full text-center">Loading...</div>
+                  <div className="col-span-full text-center bg-red-500">
+                    <Preloader2/>
+                  </div>
                 ) : filteredCourses.length > 0 ? (
                   filteredCourses.map((course, index) => (
                     <CourseCard key={index} course={course} />
