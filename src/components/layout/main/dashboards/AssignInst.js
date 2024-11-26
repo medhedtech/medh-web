@@ -233,6 +233,14 @@ const AssignInstructor = () => {
     },
   ];
 
+  const courseTypeOptions = [
+    { value: "", label: "Select Type" },
+    { value: "Live", label: "Live" },
+    { value: "Demo", label: "Demo" },
+    { value: "Corporate", label: "Corporate" },
+    { value: "Institute", label: "Institute" },
+  ];
+
   if (loading) {
     return <Preloader />;
   }
@@ -347,7 +355,7 @@ const AssignInstructor = () => {
               <button
                 type="submit"
                 className="bg-customGreen text-white px-4 py-2 rounded-lg flex items-center"
-                >
+              >
                 Assign Instructor
               </button>
             </div>

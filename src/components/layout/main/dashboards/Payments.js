@@ -17,19 +17,35 @@ const PaymentTable = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
   const [sortOrder, setSortOrder] = useState("newToOld");
+  const [studentId, setStudentId] = useState(null);
   const { getQuery } = useGetQuery();
 
   useEffect(() => {
-    fetchSubscriptions();
+    if (typeof window !== "undefined") {
+      const storedUserId = localStorage.getItem("userId");
+      if (storedUserId) {
+        setStudentId(storedUserId);
+      } else {
+        setLoading(false);
+        console.error("Student ID not found in localStorage");
+      }
+    }
   }, []);
+
+  useEffect(() => {
+    if (studentId) {
+      fetchSubscriptions();
+    }
+  }, [studentId]);
 
   useEffect(() => {
     filterAndSortData();
   }, [searchQuery, selectedStatus, sortOrder, users]);
 
   const fetchSubscriptions = () => {
+    setLoading(true);
     getQuery({
-      url: apiUrls?.Subscription?.getSubscription,
+      url: `${apiUrls?.Subscription?.getAllSubscriptionByStudentId}/${studentId}`,
       onSuccess: (response) => {
         if (response?.success) {
           const formattedUsers = response.data.map((subscription) => {
