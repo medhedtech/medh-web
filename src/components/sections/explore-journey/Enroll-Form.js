@@ -58,16 +58,9 @@ const ExploreJourney = ({ mainText, subText }) => {
         },
         onSuccess: () => {
           toast.success("Form submitted successfully!");
-          reset({
-            full_name: "",
-            email: "",
-            country: "",
-            phone_number: "",
-            course_category: "",
-            course_type: "",
-            message: "",
-            accept: "",
-          });
+
+          // Reset the form fields after a successful submission
+          reset();
         },
         onFail: () => {
           toast.error("Error submitting form.");
@@ -166,12 +159,12 @@ const ExploreJourney = ({ mainText, subText }) => {
                       {...register("country")}
                       className="w-full px-2 py-2 dark:bg-inherit bg-lightGrey8 border border-gray-300 text-[#5C6574]"
                     >
-                      <option value="">Country</option>
-                      <option value="US">United States</option>
-                      <option value="CA">Canada</option>
-                      <option value="UK">United Kingdom</option>
-                      <option value="IN">India</option>
-                      <option value="AU">Australia</option>
+                      <option value="IN">IN (+91)</option>
+                      <option value="AUS">AUS (+61)</option>
+                      <option value="CA">CA (+1)</option>
+                      <option value="SGP">SGP (+65) </option>
+                      <option value="UAE">UAE (+971)</option>
+                      <option value="UK">Uk (+44) </option>
                     </select>
                   </div>
 
@@ -259,10 +252,15 @@ const ExploreJourney = ({ mainText, subText }) => {
                     className="text-[16px] text-gray-700 dark:text-gray-300"
                   >
                     By submitting this form, I accept
-                    <span className="text-[#7ECA9D] ml-1">
-                      Terms of Service{" "}
-                    </span>
-                    & <span className="text-[#7ECA9D]">Privacy Policy.</span>
+                    <a href="/terms-and-services">
+                      <span className="text-[#7ECA9D] ml-1">
+                        Terms of Service
+                      </span>
+                    </a>{" "}
+                    &{" "}
+                    <a href="/privacy-policy">
+                      <span className="text-[#7ECA9D]">Privacy Policy.</span>
+                    </a>
                   </label>
                 </div>
                 {errors.accept && (
