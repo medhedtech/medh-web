@@ -21,7 +21,7 @@ const About1 = () => {
           limit,
           "",
           "",
-          "",
+          "Live Courses",
           "",
           "",
           "",
