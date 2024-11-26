@@ -3,7 +3,7 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import StarIcon from "@/assets/images/icon/StarIcon";
 
-const CourseHeader = ({ id, title, classes, category, rating, hour, price, desc }) => {
+const CourseHeader = ({ id, isEnrolled, title, classes, category, rating, hour, price, desc }) => {
   const router = useRouter();
   const courseId = id;
 
@@ -128,11 +128,13 @@ const CourseHeader = ({ id, title, classes, category, rating, hour, price, desc 
       </div>
       <button
         onClick={() => {
-          router.push(`/dashboards/billing-details/${courseId}`);
+          if (!isEnrolled) {
+            router.push(`/dashboards/billing-details/${courseId}`);
+          }
         }}
         className="mt-4 md:mt-0 px-4 py-2 rounded-[150px] bg-primaryColor w-[530px] text-white font-semibold  hover:bg-green-600"
       >
-        Enroll @{price}
+        {isEnrolled ? 'Enrolled' : `Enroll @${price}`}
       </button>
 
       <div className="mt-6">
