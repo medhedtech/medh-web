@@ -3,7 +3,17 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import StarIcon from "@/assets/images/icon/StarIcon";
 
-const CourseHeader = ({ id, isEnrolled, title, classes, category, rating, hour, price, desc }) => {
+const CourseHeader = ({
+  id,
+  isEnrolled,
+  title,
+  classes,
+  category,
+  rating,
+  hour,
+  price,
+  desc,
+}) => {
   const router = useRouter();
   const courseId = id;
 
@@ -12,7 +22,9 @@ const CourseHeader = ({ id, isEnrolled, title, classes, category, rating, hour, 
       <div>
         <div className="">
           <div className="flex justify-between ">
-            <div className="text-[#FF6B00] font-bold text-size-12">{category}</div>
+            <div className="text-[#FF6B00] font-bold text-size-12">
+              {category}
+            </div>
             <div className="text-yellow-500 text-sm flex gap-0.5">
               <span className="my-auto">
                 <StarIcon />
@@ -126,7 +138,7 @@ const CourseHeader = ({ id, isEnrolled, title, classes, category, rating, hour, 
           </span>
         </div>
       </div>
-      <button
+      {/* <button
         onClick={() => {
           if (!isEnrolled) {
             router.push(`/dashboards/billing-details/${courseId}`);
@@ -134,7 +146,18 @@ const CourseHeader = ({ id, isEnrolled, title, classes, category, rating, hour, 
         }}
         className="mt-4 md:mt-0 px-4 py-2 rounded-[150px] bg-primaryColor w-[530px] text-white font-semibold  hover:bg-green-600"
       >
-        {isEnrolled ? 'Enrolled' : `Enroll @${price}`}
+        {isEnrolled ? "Enrolled" : `Enroll @${price}`}
+      </button> */}
+      <button
+        className={`${
+          isEnrolled
+            ? "mt-4 md:mt-0 px-4 py-2 rounded-[150px] bg-primaryColor w-[530px] text-white font-semibold cursor-not-allowed opacity-50" // Style for disabled state
+            : "mt-4 md:mt-0 px-4 py-2 rounded-[150px] bg-primaryColor w-[530px] text-white font-semibold hover:bg-green-600" // Style for active state
+        }`}
+        disabled={isEnrolled}
+        onClick={() => !isEnrolled && router.push(`/dashboards/billing-details/${courseId}`)}
+      >
+        {isEnrolled ? "Enrolled" : `Enroll @${price}`}
       </button>
 
       <div className="mt-6">

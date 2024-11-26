@@ -6,6 +6,7 @@ import SelectCourseCard from "./SelectCourseCard";
 import usePostQuery from "@/hooks/postQuery.hook";
 import Education from "@/assets/images/course-detailed/education.svg";
 import { toast } from "react-toastify";
+import Preloader from "@/components/shared/others/Preloader";
 
 export default function SelectCourseModal({
   isOpen,
@@ -21,12 +22,14 @@ export default function SelectCourseModal({
   const [selectedCourses, setSelectedCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { getQuery } = useGetQuery();
-  const { postQuery } = usePostQuery();
-  const [planAmount, setPlanAmount] = useState(Number(amount.replace("$", "")) || 0)
+  const { getQuery, loading: getLoading } = useGetQuery();
+  const { postQuery, loading: postLoading } = usePostQuery();
+  const [planAmount, setPlanAmount] = useState(
+    Number(amount.replace("$", "")) || 0
+  );
 
   const maxSelections = planType === "silver" ? 1 : 3;
-  const [limit] = useState(4);
+  const [limit] = useState(40);
   const [page] = useState(1);
 
   const loadRazorpayScript = () => {
@@ -61,13 +64,13 @@ export default function SelectCourseModal({
         description: `Payment for ${capitalize(planType)} Membership`,
         image: Education,
         handler: async function (response) {
-          toast.success("Payment Successful!");
+          console.log("Payment Successful!");
 
           // Call subscription API after successful payment
           await handleSubmit();
         },
         prefill: {
-          name: "Medh Student",
+          name: "Medh Membership Plan",
           email: "medh@student.com",
           contact: "9876543210",
         },
@@ -133,6 +136,30 @@ export default function SelectCourseModal({
     }
   };
 
+  // const handleSubscribe = async () => {
+  //   try {
+  //     await postQuery({
+  //       url: apiUrls?.Membership?.addMembership,
+  //       postData: {
+  //         student_id: studentId,
+  //         course_ids: selectedCourses.map((course) => course._id),
+  //         amount: planAmount,
+  //         plan_type: planType,
+  //         duration: selectedPlan.toLowerCase(),
+  //       },
+  //       onSuccess: (res) => {
+  //         toast.success("Membership successfully taken!");
+  //         console.log("Membership Created", res);
+  //       },
+  //       onFail: (err) => {
+  //         console.error("Error while creating subscription", err);
+  //       },
+  //     });
+  //   } catch (err) {
+  //     console.error(err);
+  //   }
+  // };
+
   const handleSubscribe = async () => {
     try {
       await postQuery({
@@ -144,15 +171,52 @@ export default function SelectCourseModal({
           plan_type: planType,
           duration: selectedPlan.toLowerCase(),
         },
-        onSuccess: (res) => {
-          console.log("Membership Created", res);
+        onSuccess: async (res) => {
+          toast.success("Membership successfully taken!");
+
+          // Extract expiry_date from the membership response
+          const membershipId = res?.data?._id;
+          const expiryDate = res?.data?.expiry_date;
+
+          if (!membershipId || !expiryDate) {
+            toast.error("Membership response is missing required data.");
+            return;
+          }
+
+          // Enroll courses with the same expiry date
+          const enrollmentPromises = selectedCourses.map((course) =>
+            postQuery({
+              url: apiUrls?.EnrollCourse?.enrollCourse,
+              postData: {
+                student_id: studentId,
+                course_id: course._id,
+                membership_id: membershipId,
+                expiry_date: expiryDate,
+              },
+              onSuccess: () => {
+                console.log(`Successfully enrolled in course: ${course._id}`);
+              },
+              onFail: (err) => {
+                console.error(`Failed to enroll in course: ${course._id}`, err);
+                // toast.error(
+                //   `Failed to enroll in course: ${course.course_title}`
+                // );
+              },
+            })
+          );
+
+          // Wait for all enrollments to complete
+          await Promise.all(enrollmentPromises);
+          toast.success("Courses enrolled successfully!");
         },
         onFail: (err) => {
           console.error("Error while creating subscription", err);
+          // toast.error("Failed to create membership. Please try again.");
         },
       });
     } catch (err) {
       console.error(err);
+      toast.error("An unexpected error occurred. Please try again.");
     }
   };
 
@@ -162,13 +226,17 @@ export default function SelectCourseModal({
   }
 
   const handleSubmit = () => {
-    console.log("in sub")
+    console.log("in sub");
     handleSubscribe();
     onClose();
     closeParent();
   };
 
   if (!isOpen) return null;
+
+  if (postLoading) {
+    return <Preloader />;
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
