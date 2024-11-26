@@ -51,6 +51,10 @@ const NewCourses = () => {
 
   const [limit] = useState(4);
   const [page] = useState(1);
+  const [gradeFilter, setGradeFilter] = useState("");
+  const [priceFilter, setPriceFilter] = useState("");
+  const [minFee, setMinFee] = useState("");
+  const [maxFee, setMaxFee] = useState("");
 
   useEffect(() => {
     const fetchCourses = () => {
@@ -82,6 +86,25 @@ const NewCourses = () => {
     router.push(`/dashboards/my-courses/${id}`);
   };
 
+  const handleGradeChange = (e) => {
+    setGradeFilter(e.target.value);
+  };
+
+  const handlePriceChange = (e) => {
+    const value = e.target.value;
+    if (value === "lessThan500") {
+      setMinFee("");
+      setMaxFee(500);
+    } else if (value === "500to1000") {
+      setMinFee(500);
+      setMaxFee(1000);
+    } else if (value === "moreThan1000") {
+      setMinFee(1000);
+      setMaxFee("");
+    }
+    setPriceFilter(value);
+  };
+
   return (
     <div className="container mx-auto p-8">
       <div className="flex justify-between">
@@ -91,48 +114,28 @@ const NewCourses = () => {
           </div>
           <div className="flex gap-7 mb-4 ">
             <div className="relative">
-              <select className="appearance-none dark:bg-inherit border border-[#BDB7B7] text-[#808080] outline-none rounded-[20px] pr-7 pl-3 py-1">
-                <option>By Grade</option>
+              <select
+                value={gradeFilter}
+                onChange={handleGradeChange}
+                className="appearance-none dark:bg-inherit border border-[#BDB7B7] text-[#808080] outline-none rounded-[20px] pr-7 pl-3 py-1"
+              >
+                <option value="">By Grade</option>
+                <option value="Grade 1">Grade 1</option>
+                <option value="Grade 2">Grade 2</option>
+                <option value="Grade 3">Grade 3</option>
               </select>
-              <div className="absolute  top-1/2 right-2 transform -translate-y-1/2 pointer-events-none ">
-                {/* Replace this with your custom SVG */}
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-4 h-4 text-[#808080]"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </div>
             </div>
-            <div className="relative ">
-              <select className="appearance-none dark:bg-inherit border border-[#BDB7B7] text-[#808080] outline-none rounded-[20px] pr-7 pl-3 py-1">
-                <option>Price</option>
+            <div className="relative">
+              <select
+                value={priceFilter}
+                onChange={handlePriceChange}
+                className="appearance-none dark:bg-inherit border border-[#BDB7B7] text-[#808080] outline-none rounded-[20px] pr-7 pl-3 py-1"
+              >
+                <option value="">Price</option>
+                <option value="lessThan500">Less than 500</option>
+                <option value="500to1000">500 - 1000</option>
+                <option value="moreThan1000">More than 1000</option>
               </select>
-              <div className="absolute  top-1/2 right-2 transform -translate-y-1/2 pointer-events-none ">
-                {/* Replace this with your custom SVG */}
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-4 h-4 text-[#808080]"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </div>
             </div>
           </div>
         </div>

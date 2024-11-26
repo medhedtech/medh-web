@@ -2,19 +2,90 @@ import React, { useState, useEffect } from "react";
 import { Search, X } from "lucide-react";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
-import SelectCourseCard from './SelectCourseCard'
+import SelectCourseCard from "./SelectCourseCard";
+import usePostQuery from "@/hooks/postQuery.hook";
+import Education from "@/assets/images/course-detailed/education.svg";
+import { toast } from "react-toastify";
+import Preloader from "@/components/shared/others/Preloader";
 
-export default function SelectCourseModal({ isOpen, onClose, planType, closeParent }) {
+export default function SelectCourseModal({
+  isOpen,
+  onClose,
+  planType,
+  amount,
+  selectedPlan,
+  closeParent,
+}) {
+  const studentId = localStorage.getItem("userId");
   const [courses, setCourses] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCourses, setSelectedCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { getQuery } = useGetQuery();
+  const { getQuery, loading: getLoading } = useGetQuery();
+  const { postQuery, loading: postLoading } = usePostQuery();
+  const [planAmount, setPlanAmount] = useState(
+    Number(amount.replace("$", "")) || 0
+  );
 
   const maxSelections = planType === "silver" ? 1 : 3;
-  const [limit] = useState(4);
+  const [limit] = useState(40);
   const [page] = useState(1);
+
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const handleProceedToPay = async () => {
+    const token = localStorage.getItem("token");
+    const studentId = localStorage.getItem("userId");
+
+    if (!token || !studentId) {
+      return;
+    }
+    // Load Razorpay script
+    const scriptLoaded = await loadRazorpayScript();
+    if (!scriptLoaded) {
+      toast.error("Please log in first.");
+      return;
+    }
+    if (planType) {
+      const options = {
+        key: "rzp_test_Rz8NSLJbl4LBA5",
+        amount: planAmount * 100,
+        currency: "INR",
+        name: `${capitalize(planType)} Membership`,
+        description: `Payment for ${capitalize(planType)} Membership`,
+        image: Education,
+        handler: async function (response) {
+          console.log("Payment Successful!");
+
+          // Call subscription API after successful payment
+          await handleSubmit();
+        },
+        prefill: {
+          name: "Medh Membership Plan",
+          email: "medh@student.com",
+          contact: "9876543210",
+        },
+        notes: {
+          address: "Razorpay address",
+        },
+        theme: {
+          color: "#7ECA9D",
+        },
+      };
+
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+    }
+  };
 
   useEffect(() => {
     const fetchCourses = () => {
@@ -65,13 +136,107 @@ export default function SelectCourseModal({ isOpen, onClose, planType, closePare
     }
   };
 
+  // const handleSubscribe = async () => {
+  //   try {
+  //     await postQuery({
+  //       url: apiUrls?.Membership?.addMembership,
+  //       postData: {
+  //         student_id: studentId,
+  //         course_ids: selectedCourses.map((course) => course._id),
+  //         amount: planAmount,
+  //         plan_type: planType,
+  //         duration: selectedPlan.toLowerCase(),
+  //       },
+  //       onSuccess: (res) => {
+  //         toast.success("Membership successfully taken!");
+  //         console.log("Membership Created", res);
+  //       },
+  //       onFail: (err) => {
+  //         console.error("Error while creating subscription", err);
+  //       },
+  //     });
+  //   } catch (err) {
+  //     console.error(err);
+  //   }
+  // };
+
+  const handleSubscribe = async () => {
+    try {
+      await postQuery({
+        url: apiUrls?.Membership?.addMembership,
+        postData: {
+          student_id: studentId,
+          course_ids: selectedCourses.map((course) => course._id),
+          amount: planAmount,
+          plan_type: planType,
+          duration: selectedPlan.toLowerCase(),
+        },
+        onSuccess: async (res) => {
+          toast.success("Membership successfully taken!");
+
+          // Extract expiry_date from the membership response
+          const membershipId = res?.data?._id;
+          const expiryDate = res?.data?.expiry_date;
+
+          if (!membershipId || !expiryDate) {
+            toast.error("Membership response is missing required data.");
+            return;
+          }
+
+          // Enroll courses with the same expiry date
+          const enrollmentPromises = selectedCourses.map((course) =>
+            postQuery({
+              url: apiUrls?.EnrollCourse?.enrollCourse,
+              postData: {
+                student_id: studentId,
+                course_id: course._id,
+                membership_id: membershipId,
+                expiry_date: expiryDate,
+              },
+              onSuccess: () => {
+                console.log(`Successfully enrolled in course: ${course._id}`);
+              },
+              onFail: (err) => {
+                console.error(`Failed to enroll in course: ${course._id}`, err);
+                // toast.error(
+                //   `Failed to enroll in course: ${course.course_title}`
+                // );
+              },
+            })
+          );
+
+          // Wait for all enrollments to complete
+          await Promise.all(enrollmentPromises);
+          toast.success("Courses enrolled successfully!");
+        },
+        onFail: (err) => {
+          console.error("Error while creating subscription", err);
+          // toast.error("Failed to create membership. Please try again.");
+        },
+      });
+    } catch (err) {
+      console.error(err);
+      toast.error("An unexpected error occurred. Please try again.");
+    }
+  };
+
+  function capitalize(str) {
+    if (!str) return ""; // Handle empty or null strings
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  }
+
   const handleSubmit = () => {
-    console.log(selectedCourses);
+    console.log("in sub");
+    handleSubscribe();
     onClose();
     closeParent();
   };
 
   if (!isOpen) return null;
+
+  if (postLoading) {
+    return <Preloader />;
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -142,12 +307,12 @@ export default function SelectCourseModal({ isOpen, onClose, planType, closePare
                 Cancel
               </button>
               <button
-                onClick={handleSubmit}
+                onClick={handleProceedToPay}
                 disabled={selectedCourses.length === 0}
                 className={`px-6 py-2.5 rounded-lg transition-all ${
                   selectedCourses.length === 0
-                    ? 'bg-gray-300 cursor-not-allowed'
-                    : 'bg-[#3B82F6] hover:bg-[#2563EB] active:bg-[#1D4ED8] text-white shadow-md hover:shadow-lg'
+                    ? "bg-gray-300 cursor-not-allowed"
+                    : "bg-[#3B82F6] hover:bg-[#2563EB] active:bg-[#1D4ED8] text-white shadow-md hover:shadow-lg"
                 }`}
               >
                 Proceed with Selection
