@@ -5,7 +5,7 @@ import SelectCourseModal from "./SelectCourseModal";
 const MembershipModal = ({ isOpen, onClose }) => {
   const [selectedPlan, setSelectedPlan] = useState("Monthly");
   const [isSelectCourseModalOpen, setSelectCourseModalOpen] = useState(false);
-  const [planType, setPlanType] = useState()
+  const [planType, setPlanType] = useState();
 
   if (!isOpen) return null;
 
@@ -21,7 +21,7 @@ const MembershipModal = ({ isOpen, onClose }) => {
   };
 
   const handleSelectCourseModal = (ptype) => {
-    setPlanType(ptype)
+    setPlanType(ptype);
     setSelectCourseModalOpen(true);
   };
 
@@ -37,23 +37,23 @@ const MembershipModal = ({ isOpen, onClose }) => {
           </button>
 
           {/* Header Section */}
-          <h2 className="text-[1.5rem] font-semibold text-center text-[#1B223C] dark:text-white">
+          <h2 className="text-[1.5rem] font-Open font-normal text-center text-[#1B223C] dark:text-white">
             Find Your Perfect Plan
           </h2>
-          <p className="text-[#797878] w-3/4 mx-auto text-center mt-2 text-[1rem] font-light">
+          <p className="text-[#797878] w-3/4 mx-auto text-center mt-1 text-[1rem] font-light">
             Discover the ideal plan to fuel your business growth. Our pricing
             options are carefully crafted to cater to your learnings.
           </p>
 
           {/* Toggle Buttons */}
-          <div className="flex justify-center mt-1 border rounded-lg w-fit mx-auto mb-2">
+          <div className="flex justify-center mt-1 border bg-[#566EE81A] rounded-lg w-fit mx-auto mb-4">
             {Object.keys(plans).map((plan) => (
               <button
                 key={plan}
-                className={`px-4 py-0 m-2 border-2 rounded-lg ${
+                className={`px-4 py-0 m-2 rounded-lg ${
                   selectedPlan === plan
-                    ? "text-[#1B223C] dark:text-white font-semibold"
-                    : "text-[#797878]"
+                    ? "bg-white border border-gray-300 text-[#1B223C] dark:text-white font-normal"
+                    : "bg-transparent font-light font-Sans text-[#797878]"
                 }`}
                 onClick={() => handlePlanChange(plan)}
               >
@@ -63,7 +63,7 @@ const MembershipModal = ({ isOpen, onClose }) => {
           </div>
 
           <div className="flex space-x-6">
-            <div className="py-2 px-6 border rounded-lg w-1/2 dark:bg-inherit bg-white">
+            <div className="py-2 px-6 border rounded-[26px] w-1/2 dark:bg-inherit bg-white">
               <div className="flex flex-col">
                 <svg
                   width="30"
@@ -158,16 +158,16 @@ const MembershipModal = ({ isOpen, onClose }) => {
               <h3 className="text-[1.5rem] font-semibold text-[#1B223C] mt-2 dark:text-white">
                 Silver
               </h3>
-              <p className="text-gray-500 mb-2">
+              <p className="text-[#797878] font-Sans font-light text-base mb-2">
                 Unleash the Power with Silver Plan.
               </p>
-              <p className="text-gray-700 dark:text-white text-[1.5rem] font-bold border-b-2 mb-2">
+              <p className="text-[#1B223C] font-base font-semibold dark:text-white text-[1.5rem] border-b-2 mb-2">
                 {plans[selectedPlan].silver}{" "}
                 <span className="text-[1rem] font-normal">
                   {plans[selectedPlan].period}
                 </span>
               </p>
-              <ul className="text-gray-700 space-y-3 dark:text-whitegrey mb-6">
+              <ul className="text-[#797878] font-Sans font-light text-base space-y-3 dark:text-whitegrey mb-6">
                 <li>✔ Learn Offline</li>
                 <li>✔ Download Materials</li>
                 <li>✔ Early Access</li>
@@ -175,15 +175,15 @@ const MembershipModal = ({ isOpen, onClose }) => {
                 <li>✔ Advanced Security</li>
               </ul>
               <button
-                className="bg-white dark:bg-inherit dark:text-white dark:border-white text-black font-Open  py-2 w-full rounded-xl border-[#1B223C] border"
-                onClick={()=>handleSelectCourseModal('silver')}
+                className="bg-white dark:bg-inherit dark:text-white dark:border-white text-[#1B223C] font-light font-Sans py-2 w-full rounded-xl border-[#1B223C] border"
+                onClick={() => handleSelectCourseModal("silver")}
               >
                 Get Started
               </button>
             </div>
 
             {/* Gold Plan */}
-            <div className="py-2 px-6 border rounded-md w-1/2 bg-primaryColor">
+            <div className="py-2 px-6 border rounded-[26px] w-1/2 bg-[#7ECA9D]">
               <div className="flex flex-col">
                 <svg
                   width="30"
@@ -289,11 +289,11 @@ const MembershipModal = ({ isOpen, onClose }) => {
                 <h3 className="font-semibold text-[1.5rem] mt-1 text-[#1B223C] ">
                   Gold
                 </h3>
-                <span className="text-[1rem] text-white border border-white my-auto px-2.5 rounded-md">
+                <span className="text-base text-[#ffffff] font-light border border-white my-auto px-2.5 rounded-md">
                   Best Offer
                 </span>
               </div>
-              <p className="text-[#1B223C] text-[1rem] ">
+              <p className="text-[#1B223C] font-Sans font-light text-base">
                 Take Your Learning to the Next Level with Gold Plan.
               </p>
               <p className="text-gray-700 text-[1.5rem] font-bold border-b-2 mb-2">
@@ -302,14 +302,17 @@ const MembershipModal = ({ isOpen, onClose }) => {
                   {plans[selectedPlan].period}
                 </span>
               </p>
-              <ul className="text-[#1B223C]  mb-3 space-y-2">
+              <ul className="text-[#1B223C] font-Sans font-light text-base mb-3 space-y-2">
                 <li>✔ Advanced Learning Tools</li>
                 <li>✔ Dedicated Mentor</li>
                 <li>✔ Multi-user Access</li>
                 <li>✔ Third-party Integrations</li>
                 <li>✔ 24/7 Priority Support</li>
               </ul>
-              <button className="bg-green-500 text-white py-2 px-4 rounded-md w-full" onClick={()=>handleSelectCourseModal('gold')}>
+              <button
+                className="bg-gradient-to-r from-[#7ECA9D] to-[#7ECA9D] text-white font-light font-Sans py-2 px-4 rounded-md w-full border-[#ffffff] border"
+                onClick={() => handleSelectCourseModal("gold")}
+              >
                 Get Started
               </button>
             </div>
