@@ -25,6 +25,7 @@ const StudentUpcomigClasses = () => {
           "",
           "",
           "Upcoming",
+          "",
           ""
         ),
         onSuccess: (res) => {
