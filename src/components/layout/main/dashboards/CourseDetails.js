@@ -11,19 +11,26 @@ import { useParams, useRouter } from "next/navigation";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
 import ReactPlayer from "react-player";
+import { toast } from "react-toastify";
 
 const CourseDetails = () => {
   const courseId = useParams().id;
+  const studentId = localStorage.getItem("userId");
   const [courseDetails, setCourseDetails] = useState(null);
   const { getQuery } = useGetQuery();
   const router = useRouter();
   const [selectedVideo, setSelectedVideo] = useState(null); // Track the selected video
   const [isPlaying, setIsPlaying] = useState(false); // Control video player visibility
+  const [isEnrolled, setIsEnrolled] = useState(false);
 
   const handlePlayVideo = (videoUrl) => {
-    setSelectedVideo(videoUrl); // Set the selected video URL
-    setIsPlaying(true); // Show the video player
-    console.log("Playing video:", videoUrl);
+    if (isEnrolled) {
+      setSelectedVideo(videoUrl);
+      setIsPlaying(true);
+      console.log("Playing video:", videoUrl);
+    } else {
+      toast.error("Enroll to access course curriculum.");
+    }
   };
 
   const handleCloseVideo = () => {
@@ -132,7 +139,21 @@ const CourseDetails = () => {
       });
     };
     fetchCourseDetailsById();
-  }, []);
+
+    const getEnrollmentStatus = () => {
+      getQuery({
+        url: `${apiUrls?.Subscription?.getEnrollmentStatus}?studentId=${studentId}&courseId=${courseId}`,
+        onSuccess: (res) => {
+          setIsEnrolled(res.enrolled);
+          console.log(res);
+        },
+        onFail: (err) => {
+          console.error("Error fetching enrollment status:", err);
+        },
+      });
+    };
+    getEnrollmentStatus();
+  }, [courseId]);
 
   const handleGoBack = () => {
     router.back();
@@ -176,6 +197,7 @@ const CourseDetails = () => {
         <div className="w-[70%]">
           <CourseHeader
             id={courseId}
+            isEnrolled={isEnrolled}
             title={courseDetails?.course_title || "Untitled Course"}
             classes={courseDetails?.no_of_Sessions || "Unknown"}
             category={courseDetails?.course_category || "Tech"}
