@@ -21,7 +21,7 @@ function JoinEducator() {
         <MedhOffering />
         <Benefits />
         <HiringProcess />
-        <Registration />
+        <Registration showUploadField={true} />
         <EducatorFaq />
         <div className="pb-16">
           <EducatorCourceBanner />
