@@ -27,19 +27,21 @@ const QuizQuestion = ({
   return (
     <div className="p-6 bg-white dark:bg-inherit rounded-lg shadow-md w-full mx-auto">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between md:flex-row md:items-center mb-6 flex-col items-start">
         <button
           onClick={handleGoBack}
           className="text-size-32 text-gray-700 dark:text-white"
         >
           &larr; Quizzes
         </button>
+        <div className="md:flex-none md:w-1/2 flex justify-between w-full items-center">
         <div className="text-gray-800 text-lg font-semibold dark:text-white">
           {questionNumber}/{totalQuestions}
         </div>
         <div className="font-semibold dark:text-white">
-          Time <br />
+          Time: &nbsp;
           <span>{time}</span>
+        </div>
         </div>
       </div>
 
