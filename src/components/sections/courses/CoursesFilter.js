@@ -391,7 +391,7 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
                     <button
                       onClick={handleClearFilters}
                       className="flex items-center border border-[#7ECA9D] text-[#7ECA9D] px-4 py-2 rounded-md hover:bg-[#7ECA9D] hover:text-white transition duration-300"
-                      >
+                    >
                       <FaTimes className="mr-2" />
                       Clear All Filters
                     </button>
@@ -403,11 +403,15 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
               <div className="w-full md:w-[100%] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {loading ? (
                   <div className="col-span-full text-center bg-red-500">
-                    <Preloader2/>
+                    <Preloader2 />
                   </div>
                 ) : filteredCourses.length > 0 ? (
                   filteredCourses.map((course, index) => (
-                    <CourseCard key={index} course={course} />
+                    <CourseCard
+                      key={index}
+                      course={course}
+                      onBrochureClick={() => handleOpenModal(course)}
+                    />
                   ))
                 ) : (
                   <div className="col-span-full text-center text-[#5C6574]">
