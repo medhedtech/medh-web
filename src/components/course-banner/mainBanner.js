@@ -100,7 +100,7 @@ export default function MainBanner({
               </div>
             </div>
           </div>
-          <p className="mt-6 text-[20px] mumkinMedh lg:text-[29px] font-semibold text-[#F6B335]">
+          <p className="mt-6 text-[20px] mumkinMedh font-Bugatti lg:text-[29px] font-semibold text-[#F6B335]">
             {slogan}
           </p>
         </div>
