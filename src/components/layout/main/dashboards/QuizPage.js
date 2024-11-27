@@ -34,7 +34,7 @@ const quizData = [
   },
 ];
 
-export default function QuizPage() {
+export default function QuizPage({closeQuiz}) {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [showPopup, setShowPopup] = useState(false);
   const totalQuestions = quizData.length;
@@ -69,6 +69,7 @@ export default function QuizPage() {
         time={time}
         onNext={handleNext}
         onBack={handleBack}
+        closeQuiz={closeQuiz}
         isLastQuestion={currentQuestion === totalQuestions - 1}
       />
 

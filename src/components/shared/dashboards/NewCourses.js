@@ -112,7 +112,7 @@ const NewCourses = () => {
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-3xl dark:text-white">Enroll in New Course</h2>
           </div>
-          <div className="flex gap-7 mb-4 ">
+          {/* <div className="flex gap-7 mb-4 ">
             <div className="relative">
               <select
                 value={gradeFilter}
@@ -137,7 +137,7 @@ const NewCourses = () => {
                 <option value="moreThan1000">More than 1000</option>
               </select>
             </div>
-          </div>
+          </div> */}
         </div>
         <div>
           <a

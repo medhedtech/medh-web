@@ -58,7 +58,7 @@ export default function SelectCourseModal({
     if (planType) {
       const options = {
         key: "rzp_test_Rz8NSLJbl4LBA5",
-        amount: planAmount * 100,
+        amount: planAmount * 100 * 84.47,
         currency: "INR",
         name: `${capitalize(planType)} Membership`,
         description: `Payment for ${capitalize(planType)} Membership`,
