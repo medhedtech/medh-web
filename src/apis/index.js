@@ -1,5 +1,6 @@
-export const apiBaseUrl = "https://medh-backend.vercel.app/api/v1";
-// export const apiBaseUrl = "http://localhost:8080/api/v1";
+// export const apiBaseUrl = "https://medh-backend.vercel.app/api/v1";  //vercel URL
+export const apiBaseUrl = "https://3.111.36.160.nip.io/api/v1"; //live instance URL
+// export const apiBaseUrl = "http://localhost:8080/api/v1";   // local URL
 
 export const apiUrls = {
   user: {
@@ -147,5 +148,9 @@ export const apiUrls = {
     addNewJobPost: "/add-job-post/create",
     getAllNewJobs: "/add-job-post/getAll",
     deleteNewJobPost: "/add-job-post/delete",
+  },
+  brouchers: {
+    getAllBrouchers: "/broucher/get",
+    addBroucher: "/broucher/create",
   },
 };
