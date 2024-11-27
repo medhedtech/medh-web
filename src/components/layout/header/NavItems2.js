@@ -32,7 +32,7 @@ const NavItems2 = () => {
     {
       id: 4,
       name: "Courses",
-      path: "/courses",
+      path: "",
       dropdown: <DropdownCourses2 />,
       isRelative: true,
     },
