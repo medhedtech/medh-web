@@ -123,7 +123,7 @@ const HeadingDashboard = () => {
 
       {/* Notification and User Section */}
       <div className="flex items-center gap-6">
-        <BellIcon className="text-gray-500 hover:text-black cursor-pointer dark:text-gray-300 dark:hover:text-white transition duration-150 ease-in-out" />
+        {/* <BellIcon className="text-gray-500 hover:text-black cursor-pointer dark:text-gray-300 dark:hover:text-white transition duration-150 ease-in-out" /> */}
         <div className="border-l-2 border-gray-300 h-12 mx-2" />
         <div className="flex items-center gap-2">
           <Link href="/dashboards/student-profile">
