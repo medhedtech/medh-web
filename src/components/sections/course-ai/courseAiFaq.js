@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import Left from "@/assets/images/personality/left.svg";
 import Down from "@/assets/images/personality/down.svg";
+import DOMPurify from "dompurify";
 
 function CourseAiFaq() {
   const [openIndex, setOpenIndex] = useState(null);
@@ -13,49 +14,54 @@ function CourseAiFaq() {
 
   const faqs = [
     {
-      question: "Who is This AI and Data Science Course Designed For?",
-      answer:
-        "The Personality Development Course is designed to help individuals enhance their personal and professional skills through various interactive sessions and practical exercises.",
+      question: "Who is this AI and Data Science course designed for?",
+      answer: `
+        <p>This course is designed for individuals interested in Artificial Intelligence and Data Science. It is suitable for:</p>
+        <ul>
+          <li><strong>Beginners</strong>: No prior AI or programming experience needed.</li>
+          <li><strong>Professionals</strong>: Enhance your skills and knowledge in AI and Data Science.</li>
+        </ul>
+      `,
     },
     {
       question: "What is Data Science?",
       answer:
-        "The duration of the course is typically 6 weeks, with classes held twice a week.",
+        `<p>The duration of the course is typically 6 weeks, with classes held twice a week.</p>`,
     },
     {
       question: "What is Artificial Intelligence (AI)?",
       answer:
-        "Yes, the course is suitable for individuals of all ages, from students to professionals.",
+        `<p>Yes, the course is suitable for individuals of all ages, from students to professionals.</p>`,
     },
     {
       question: "Why combine AI and Data Science in one course?",
       answer:
-        "The course covers various topics such as communication skills, leadership, teamwork, and self-awareness.",
+        `<p>The course covers various topics such as communication skills, leadership, teamwork, and self-awareness.</p>`,
     },
     {
       question: "What programming language is used in the course?",
       answer:
-        "Absolutely! The skills learned in this course are highly beneficial for career growth and personal development.",
+        `<p>Absolutely! The skills learned in this course are highly beneficial for career growth and personal development.</p>`,
     },
     {
       question: "Are there any prerequisites for enrolling in this course?",
       answer:
-        " Lorem ipsum dolor sit amet consectetur adipisicing elit. Sapiente, quam?",
+        `<p> Lorem ipsum dolor sit amet consectetur adipisicing elit. Sapiente, quam?</p>`,
     },
     {
       question: "How is the course structured?",
       answer:
-        " Lorem ipsum dolor sit amet consectetur adipisicing elit. Sapiente, quam?",
+        `<p> Lorem ipsum dolor sit amet consectetur adipisicing elit. Sapiente, quam?</p>`,
     },
     {
       question: "Are there any real-world projects included in the course?",
       answer:
-        " Lorem ipsum dolor sit amet consectetur adipisicing elit. Sapiente, quam?",
+        `<p> Lorem ipsum dolor sit amet consectetur adipisicing elit. Sapiente, quam?</p>`,
     },
     {
       question: "What makes MEDH's AI and Data Science course unique?",
       answer:
-        " Lorem ipsum dolor sit amet consectetur adipisicing elit. Sapiente, quam?",
+        `<p> Lorem ipsum dolor sit amet consectetur adipisicing elit. Sapiente, quam?</p>`,
     },
   ];
 
@@ -66,9 +72,7 @@ function CourseAiFaq() {
           Frequently Asked Questions (FAQs)
         </h2>
         <p className="text-center md:text-[15px] text-[14px] mb-8 md:px-14 px-3">
-          Find answers to common questions about MEDH&#39;s Personality
-          Development Course. Learn about course structure, prerequisites,
-          career prospects, and more.
+        Find answers to common questions about MEDH’s AI and Data Science Course. Learn about course structure, prerequisites, career prospects, and more.
         </p>
         <div className="space-y-4">
           {faqs.map((faq, index) => (
@@ -95,9 +99,12 @@ function CourseAiFaq() {
                 </span>
               </div>
               {openIndex === index && (
-                <p className="text-lightGrey14 pb-4 px-2 md:pr-12 sm:px-4 md:text-[15px] text-[14px] dark:text-gray-300 ">
-                  {faq.answer}
-                </p>
+                <div
+                className="text-lightGrey14 pb-4 px-2 md:pr-12 sm:px-4 md:text-[15px] text-[14px] dark:text-gray-300"
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(faq.answer),
+                }}
+              ></div>
               )}
             </div>
           ))}

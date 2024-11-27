@@ -122,7 +122,7 @@ function CourseEducation({ courseId }) {
       const courseFee = Number(courseDetails1?.course_fee) || 59500;
       const options = {
         key: "rzp_test_Rz8NSLJbl4LBA5",
-        amount: courseFee * 100,
+        amount: courseFee * 100 * 84.47,
         currency: "INR",
         name: courseDetails1?.course_title,
         description: `Payment for ${courseDetails1?.course_title}`,
@@ -261,20 +261,20 @@ function CourseEducation({ courseId }) {
                   USD $ {courseDetails1?.course_fee || "595.00"}
                 </h3>
               </div>
-              <div className="text-right text-gray-500">
+              {/* <div className="text-right text-gray-500">
                 <button className="text-[#FCA400]">Share</button>
-              </div>
+              </div> */}
             </div>
             <div className="flex gap-4 my-2 text-sm  md:text-[16px]">
               <button
                 onClick={handleBuyNow}
-                className="bg-[#FCA400] text-white px-8 py-2 rounded-[30px] hover:bg-[#F6B335]"
+                className="bg-[#7eca9d] text-white px-8 py-2 rounded-[30px] hover:bg-[#40b36e]"
               >
                 BUY NOW
               </button>
-              <button className="bg-inherit text-[#FCA400] border border-[#FCA400] px-5 py-1 rounded-[30px] hover:bg-[#F6B335] hover:text-white">
+              {/* <button className="bg-inherit text-[#FCA400] border border-[#FCA400] px-5 py-1 rounded-[30px] hover:bg-[#F6B335] hover:text-white">
                 WISHLIST
-              </button>
+              </button> */}
             </div>
             <p className="text-gray-500 dark:text-gray-200">
               Enrollment validity: Lifetime

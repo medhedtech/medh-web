@@ -13,7 +13,7 @@ const NavItems = () => {
     {
       id: 1,
       name: "Courses",
-      path: "/courses",
+      path: "#",
       dropdown: <DropdownCourses />,
       isRelative: false,
     },
