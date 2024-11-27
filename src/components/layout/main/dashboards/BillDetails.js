@@ -88,7 +88,7 @@ const BillDetails = () => {
       const courseFee = Number(courseInfo?.course_fee) || 59500;
       const options = {
         key: "rzp_test_Rz8NSLJbl4LBA5",
-        amount: courseFee * 100,
+        amount: courseFee * 100 * 84.47,
         currency: "INR",
         name: courseInfo?.course_title,
         description: `Payment for ${courseInfo?.course_title}`,
