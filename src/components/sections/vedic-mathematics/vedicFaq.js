@@ -15,7 +15,7 @@ function VedicFaq() {
     {
       question: "What is Vedic Math?",
       answer:
-        "The Personality Development Course is designed to help individuals enhance their personal and professional skills through various interactive sessions and practical exercises.",
+        "Vedic Math is an ancient Indian system of mathematics, also known as “Veda Ganita.” It’s based on a collection of sutras (aphorisms) and sub-sutras (corollaries) that provide efficient and quick methods for arithmetic and algebraic calculations. Vedic Math emphasizes mental math techniques to perform calculations with ease and speed.",
     },
     {
       question: "Who can take the Vedic Maths Course?",
