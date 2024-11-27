@@ -1,4 +1,5 @@
 "use client";
+import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 
 const QuizQuestion = ({
@@ -9,12 +10,18 @@ const QuizQuestion = ({
   time,
   onNext,
   onBack,
+  closeQuiz,
   isLastQuestion,
 }) => {
   const [selectedOption, setSelectedOption] = useState(null);
+  const router = useRouter();
 
   const handleOptionSelect = (index) => {
     setSelectedOption(index);
+  };
+
+  const handleGoBack = () => {
+    closeQuiz();
   };
 
   return (
@@ -22,7 +29,7 @@ const QuizQuestion = ({
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <button
-          onClick={onBack}
+          onClick={handleGoBack}
           className="text-size-32 text-gray-700 dark:text-white"
         >
           &larr; Quizzes
@@ -67,10 +74,14 @@ const QuizQuestion = ({
       <div className="flex justify-end gap-4 mt-6">
         <button
           onClick={onBack}
-          className="px-8 py-3.5 border rounded-full text-primaryColor border-primaryColor text-size-15 hover:bg-primaryColor hover:text-white"
+          disabled={questionNumber == 1}
+          className={`px-8 py-3.5 border rounded-full text-primaryColor border-primaryColor text-size-15   ${
+            questionNumber == 1 ? "cursor-not-allowed" : "hover:bg-primaryColor hover:text-white"
+          }`}
         >
           Go Back
         </button>
+
         <button
           onClick={onNext}
           className="px-8 py-3.5 border rounded-full bg-primaryColor text-white text-size-15 hover:bg-green-600"

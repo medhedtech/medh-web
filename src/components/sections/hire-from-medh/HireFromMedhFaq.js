@@ -14,49 +14,59 @@ function HireFromMedhFaq() {
 
   const faqs = [
     {
-      question: "Who is This AI and Data Science Course Designed For?",
+      question: "What is Recruit@Medh?",
       answer:
-        "The Personality Development Course is designed to help individuals enhance their personal and professional skills through various interactive sessions and practical exercises.",
+        "Recruit@Medh is our dedicated department that facilitates the recruitment of highly skilled and qualified IT professionals for various job roles in the IT industry. We work closely with both our students, professional job-seekers and industry partners to bridge the gap between talent and opportunities.",
     },
     {
-      question: "What is Data Science?",
+      question: "What types of IT professionals does Recruit@Medh cater to?",
       answer:
-        "The duration of the course is typically 6 weeks, with classes held twice a week.",
+        "We cater to a wide range of IT professionals, including AI Platform Developers, Web Developers, Data Scientists, Cybersecurity specialists, System administrators, Database administrators, UX/UI designers, and more. We strive to meet the diverse hiring needs of organizations within the IT sector.",
     },
     {
-      question: "What is Artificial Intelligence (AI)?",
+      question: "How to hire the right candidate?",
       answer:
-        "Yes, the course is suitable for individuals of all ages, from students to professionals.",
+        "We have a pool of trained candidates with hands on experience, and have worked on industry relevant capstones in IT domain. Hiring companies can review, shortlist, assess and interview the candidates based on their requirements and hire the best candidates.",
     },
     {
-      question: "Why combine AI and Data Science in one course?",
+      question: "What is the benefit of hiring employees from Recruit@Medh?",
       answer:
-        "The course covers various topics such as communication skills, leadership, teamwork, and self-awareness.",
+        "Organisations will get trained and certified IT candidates with hands on experience from Recruit@Medh. We also offer dedicated hiring support so hiring becomes easier.",
     },
     {
-      question: "What programming language is used in the course?",
+      question: "How can my company collaborate with Recruit@Medh for hiring?",
       answer:
-        "Absolutely! The skills learned in this course are highly beneficial for career growth and personal development.",
+        "To collaborate with our Placement Cell, you can reach out to our placement coordinator or contact our placement cell through email or phone. We will understand your specific hiring requirements and work with you to identify suitable candidates from our pool of talented IT professionals.",
     },
     {
-      question: "Are there any prerequisites for enrolling in this course?",
+      question: "Is there any limit to hiring employees from Recruit@Medh?",
       answer:
-        " Lorem ipsum dolor sit amet consectetur adipisicing elit. Sapiente, quam?",
+        "You can hire as many candidates as you want from us.",
     },
     {
-      question: "How is the course structured?",
+      question: "For which locations can I hire candidates from Recruit@Medh?",
       answer:
-        " Lorem ipsum dolor sit amet consectetur adipisicing elit. Sapiente, quam?",
+        "Candidates are available across India as well as globally.",
     },
     {
-      question: "Are there any real-world projects included in the course?",
+      question: "What sets the candidates from Recruit@Medh apart from others?",
       answer:
-        " Lorem ipsum dolor sit amet consectetur adipisicing elit. Sapiente, quam?",
+        "Our candidates undergo rigorous training and skill development. They receive a well-rounded education, gain hands-on experience through projects, and are mentored by experienced professionals. This ensures that our candidates are well-prepared to meet the demands of the IT industry.",
     },
     {
-      question: "What makes MEDH's AI and Data Science course unique?",
+      question: "Are there any opportunities for companies to interact with potential candidates directly?",
       answer:
-        " Lorem ipsum dolor sit amet consectetur adipisicing elit. Sapiente, quam?",
+        "Yes, we regularly organize placement drives, job fairs, and recruitment events where companies can interact with our students and alumni directly. These events provide a platform for companies to showcase their organization and job opportunities while allowing candidates to learn more about the company culture and job roles available.",
+    },
+    {
+      question: "Can companies offer internships to IT students through Recruit@Medh?",
+      answer:
+        "Absolutely! We encourage companies to offer internships to our IT students. Internships are an excellent way for students to gain practical experience and understand the real-world dynamics of the IT industry. It also allows companies to assess the intern’s potential for future full-time roles.",
+    },
+    {
+      question: "What support does Recruit@Medh provide during the recruitment process?",
+      answer:
+        "We offer end-to-end support during the recruitment process. We assist with job postings, candidate shortlisting, scheduling interviews, coordinating with candidates and companies, and facilitating the final selection process. We act as a bridge between the company and the candidates to ensure a smooth hiring experience for both parties.",
     },
   ];
 
@@ -66,11 +76,7 @@ function HireFromMedhFaq() {
         <h2 className="md:text-3xl text-[22px] font-bold mb-4 text-center dark:text-white text-[#5C6574]">
           Frequently Asked Questions (FAQs)
         </h2>
-        <p className="text-center md:text-[15px] text-[14px] dark:text-gray300 mb-8 md:px-14 px-3">
-          Find answers to common questions about MEDH&#39;s Personality Development
-          Course. Learn about course structure, prerequisites, career prospects,
-          and more.
-        </p>
+        
         <div className="space-y-4">
           {faqs.map((faq, index) => (
             <div key={index} className="border dark:border-gray600 shadow-sm">
