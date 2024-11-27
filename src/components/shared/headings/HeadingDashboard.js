@@ -117,7 +117,7 @@ const HeadingDashboard = () => {
           placeholder="Search..........."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full ml-2 pl-10 py-2 dark:rounded-lg sm:rounded-xs focus:rounded-lg focus:border-r-0 focus:ring-2 focus:ring-gray-300 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+          className="w-1/2 ml-2 pl-10 py-2 dark:rounded-lg sm:rounded-xs focus:rounded-lg focus:border-r-0 focus:ring-2 focus:ring-gray-300 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
         />
       </div>
 
