@@ -22,7 +22,7 @@ const StudentQuizedashboard = () => {
       </div>
       {showQuizPage ? (
         <div className="px-6">
-          <QuizPage onBack={handleBackToAssignments} />
+          <QuizPage closeQuiz={handleBackToAssignments} />
         </div>
       ) : (
         <AssignmentsSection onQuizClick={handleQuizClick} />
