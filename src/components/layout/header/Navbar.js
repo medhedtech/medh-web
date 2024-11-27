@@ -26,7 +26,7 @@ const Navbar = () => {
     >
       <nav>
         <div
-          className={`py-15px lg:py-0 px-15px ${
+          className={`py-15px lg:py-0 px-4 md:px-6 xl:px-0 ${
             isHome1 ||
             isHome1Dark ||
             isHome4 ||
@@ -44,7 +44,7 @@ const Navbar = () => {
           ) : (
             ""
           )}
-          <div className="flex justify-between lg:grid-cols-12 items-center w-[90vw]">
+          <div className="flex justify-between lg:grid-cols-12 items-center  ">
             {/* navbar left */}
             <NavbarLogo />
             {/* Main menu */}
