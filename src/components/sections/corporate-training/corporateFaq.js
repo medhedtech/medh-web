@@ -17,7 +17,7 @@ export default function CorporateFaq() {
       question:
         "What is the course curriculum and learning objectives of MEDH's Corporate Training Courses?",
       answer:
-        "The Personality Development Course is designed to help individuals enhance their personal and professional skills through various interactive sessions and practical exercises.",
+        "Our courses are designed to cover a wide range of topics, from technical skills such as AI, Data Science, Cybersecurity, and Cloud Computing to soft skills like Leadership, Communication and Personality Development Courses. The learning objectives are tailored to equip participants with practical, industry-relevant skills and knowledge.",
     },
     {
       question:
@@ -47,7 +47,7 @@ export default function CorporateFaq() {
       question:
         "What are the qualifications and industry experience of MEDH's instructors?",
       answer:
-        "The Personality Development Course is designed to help individuals enhance their personal and professional skills through various interactive sessions and practical exercises.",
+        "Our instructors are seasoned IT professionals with extensive industry experience and a proven track record of providing high-quality training. They bring real-world insights and practical knowledge to the training sessions.",
     },
     {
       question: "What post-training support and resources does MEDH provide?",
