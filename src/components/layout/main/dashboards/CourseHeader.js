@@ -151,8 +151,8 @@ const CourseHeader = ({
       <button
         className={`${
           isEnrolled
-            ? "mt-4 md:mt-0 px-4 py-2 rounded-[150px] bg-primaryColor w-[530px] text-white font-semibold cursor-not-allowed opacity-50" // Style for disabled state
-            : "mt-4 md:mt-0 px-4 py-2 rounded-[150px] bg-primaryColor w-[530px] text-white font-semibold hover:bg-green-600" // Style for active state
+            ? "mt-4 md:mt-0 px-4 py-2 rounded-[150px] bg-primaryColor w-1/2 md:w-[450px] lg:w-[530px] text-white font-semibold cursor-not-allowed opacity-50" 
+            : "mt-4 md:mt-0 px-4 py-2 rounded-[150px] bg-primaryColor w-1/2 md:w-[450px] lg:w-[530px] text-white font-semibold hover:bg-green-600" 
         }`}
         disabled={isEnrolled}
         onClick={() => !isEnrolled && router.push(`/dashboards/billing-details/${courseId}`)}
@@ -162,7 +162,7 @@ const CourseHeader = ({
 
       <div className="mt-6">
         <h2>About Course</h2>
-        <div className="border-t-4 text-[#565656] text-size-11">
+        <div className="border-t-4 text-[#565656] w-1/2 md:w-[450px] lg:w-[530px] text-size-11">
           <p>{desc}</p>
         </div>
       </div>
