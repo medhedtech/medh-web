@@ -14,6 +14,7 @@ const feedbackSchema = yup.object().shape({
     .string()
     .min(10, "Feedback must be at least 10 characters")
     .required("Feedback is required"),
+  feedbackTitle: yup.string().required("Feedback title is required"),
 });
 
 const complaintSchema = yup.object().shape({
@@ -37,9 +38,9 @@ const FeedbackandSupport = () => {
     defaultValues: {
       feedbackType: "course",
       feedbackText: "",
+      feedbackTitle: "",
     },
   });
-
 
   const feedbackType = watch("feedbackType");
 
@@ -62,6 +63,7 @@ const FeedbackandSupport = () => {
       postData: {
         feedback_text: data?.feedbackText,
         feedback_for: data?.feedbackType,
+        feedback_title: data?.feedbackTitle,
       },
       onSuccess: () => {
         toast.success("Feedback submitted successfully");
@@ -144,12 +146,29 @@ const FeedbackandSupport = () => {
             )}
           </div>
 
+          {/* Title Input */}
+          <div className="mb-4">
+            <label className="block text-gray-700 mb-2 dark:text-white">
+              Title
+            </label>
+            <input
+              type="text"
+              {...registerFeedback("feedbackTitle")}
+              className="w-1/2 p-3 border rounded-lg dark:bg-inherit dark:text-white text-[#434343BF] focus:outline-none focus:ring-1 focus:ring-green-300"
+            />
+            {feedbackErrors.feedbackTitle && (
+              <p className="text-red-500 text-sm">
+                {feedbackErrors.feedbackTitle.message}
+              </p>
+            )}
+          </div>
+
           <div className="relative w-full mb-4">
             <textarea
               placeholder="Type Review................"
               rows="4"
               {...registerFeedback("feedbackText")}
-              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-1 dark:bg-inherit focus:ring-[#B4BDC4]"
+              className="w-full p-3 border dark:bg-inherit dark:text-white rounded-lg text-[#434343BF] focus:outline-none focus:ring-1 focus:ring-green-300"
             />
             {feedbackErrors.feedbackText && (
               <p className="text-red-500 text-sm">
@@ -173,15 +192,15 @@ const FeedbackandSupport = () => {
         </h1>
 
         <form onSubmit={handleComplaintSubmit(onComplaintSubmit)}>
-          {/* Name Input */}
+          {/* Title Input */}
           <div className="mb-4">
             <label className="block text-gray-700 mb-2 dark:text-white">
-              Name
+              Title
             </label>
             <input
               type="text"
               {...registerComplaint("complaintName")}
-              className="w-full p-3 border dark:bg-inherit dark:text-white rounded-lg text-[#434343BF] focus:outline-none focus:ring-1 focus:ring-green-300"
+              className="w-1/2 p-3 border rounded-lg dark:bg-inherit dark:text-white text-[#434343BF] focus:outline-none focus:ring-1 focus:ring-green-300"
             />
             {complaintErrors.complaintName && (
               <p className="text-red-500 text-sm">
@@ -199,7 +218,7 @@ const FeedbackandSupport = () => {
               placeholder="Write....."
               rows="4"
               {...registerComplaint("complaintText")}
-              className="w-1/2 p-3 border rounded-lg dark:bg-inherit dark:text-white text-[#434343BF] focus:outline-none focus:ring-1 focus:ring-green-300"
+              className="w-full p-3 border dark:bg-inherit dark:text-white rounded-lg text-[#434343BF] focus:outline-none focus:ring-1 focus:ring-green-300"
             />
             {complaintErrors.complaintText && (
               <p className="text-red-500 text-sm">

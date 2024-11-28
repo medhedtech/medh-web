@@ -49,7 +49,7 @@ const AssignmentCard = ({ title, instructor, status, daysLeft, image }) => {
             Instructor: {instructor}
           </p>
 
-          <div className="flex justify-between">
+          <div className="flex items-start flex-col md:flex-row md:justify-between">
             <p className={`text-sm font-medium mt-5 ${statusColor}`}>
               {statusText}
             </p>

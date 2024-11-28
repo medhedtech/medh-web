@@ -6,6 +6,7 @@ import useGetQuery from "@/hooks/getQuery.hook";
 import Preloader from "@/components/shared/others/Preloader";
 import useDeleteQuery from "@/hooks/deleteQuery.hook";
 import { toast } from "react-toastify";
+import { FaEye } from "react-icons/fa";
 
 const formatDate = (date) => {
   if (!date) return "";
@@ -76,6 +77,17 @@ export default function GetInTouch() {
       accessor: "actions",
       render: (row) => (
         <div className="flex gap-2 items-center">
+          {row?.resume_image ? (
+            <button
+              onClick={() => window.open(row?.resume_image, "_blank")}
+              className="text-[#7ECA9D] px-2 py-1 hover:bg-blue-500 rounded-md transition-all duration-200"
+            >
+              <FaEye className="h-4 w-4 text-inherit" />
+            </button>
+          ) : (
+            <span className="h-4 w-4 mr-2 ml-2 text-inherit">--</span>
+          )}
+
           <button
             onClick={() => {
               deleteGetInTouch(row?._id);
