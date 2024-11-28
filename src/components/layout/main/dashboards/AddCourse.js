@@ -10,6 +10,8 @@ import { toast } from "react-toastify";
 import Preloader from "@/components/shared/others/Preloader";
 import useGetQuery from "@/hooks/getQuery.hook";
 import Image from "next/image";
+import { Upload } from "lucide-react";
+import ResourceUploadModal from "./ResourceUploadModal";
 
 // Validation Schema
 const schema = yup.object({
@@ -62,6 +64,7 @@ const schema = yup.object({
     .positive("Course fee must be a positive number")
     .required("Course fee is required"),
   course_grade: yup.string().required("Grade is required"),
+  
 });
 
 const AddCourse = () => {
@@ -82,6 +85,9 @@ const AddCourse = () => {
   const [courseDurationUnit, setCourseDurationUnit] = useState("");
   const [sessionDurationValue, setSessionDurationValue] = useState();
   const [sessionDurationUnit, setSessionDurationUnit] = useState("");
+  const [isResourceModatOpen, setResourceModalOpen] = useState(false);
+  const [resourceVideos, setResourceVideos] = useState([]);
+  const [resourcePdfs, setResourcePdfs] = useState([]);
 
   const {
     register,
@@ -136,7 +142,7 @@ const AddCourse = () => {
 
   const selectCategory = (categoryName) => {
     setSelected(categoryName);
-    setValue("category", categoryName)
+    setValue("category", categoryName);
     setDropdownOpen(false);
     setSearchTerm("");
   };
@@ -262,6 +268,7 @@ const AddCourse = () => {
   // };
 
   const onSubmit = async (data) => {
+    
     try {
       // Gather form data along with uploaded video and PDF brochure links
       const postData = {
@@ -269,10 +276,13 @@ const AddCourse = () => {
         course_videos: courseVideo ? [courseVideo] : [],
         brochures: pdfBrochure ? [pdfBrochure] : [],
         course_image: thumbnailImage,
+        resource_videos: resourceVideos.length>0 ? resourceVideos : [],
+        resource_pdfs: resourcePdfs.length>0 ? resourcePdfs : [],
       };
 
       // Save data to localStorage
       localStorage.setItem("courseData", JSON.stringify(postData));
+      console.log('POSTDATA: ', postData)
 
       // Navigate to the preview page
       router.push("/dashboards/admin-add-data");
@@ -284,14 +294,20 @@ const AddCourse = () => {
   };
 
   const handleCourseDuration = (unit) => {
-    setCourseDurationUnit(unit)
-    setValue("course_duration", `${courseDurationValue} ${unit}`)
-  }
+    setCourseDurationUnit(unit);
+    setValue("course_duration", `${courseDurationValue} ${unit}`);
+  };
 
   const handleSessionDuration = (unit) => {
-    setSessionDurationUnit(unit)
-    setValue("session_duration", `${sessionDurationValue} ${unit}`)
-  }
+    setSessionDurationUnit(unit);
+    setValue("session_duration", `${sessionDurationValue} ${unit}`);
+  };
+
+  const handleResourceModal = (e) => {
+    e.preventDefault();
+    setResourceModalOpen(true);
+    console.log("opened");
+  };
 
   useEffect(() => {
     if (courseData) {
@@ -475,15 +491,14 @@ const AddCourse = () => {
                 Duration (In months/weeks)
               </label>
               <div className="flex items-center gap-2">
-                
                 <input
                   type="number"
                   className="p-3 border rounded-lg w-1/2 dark:bg-inherit text-gray-600"
                   placeholder="Enter duration"
                   value={courseDurationValue}
-                  onChange={(e)=>setCourseDurationValue(e.target.value)}
+                  onChange={(e) => setCourseDurationValue(e.target.value)}
                 />
-                
+
                 <div className="flex gap-4 items-center">
                   <label
                     className={`flex items-center gap-1 cursor-pointer p-2 border rounded-lg ${
@@ -496,7 +511,7 @@ const AddCourse = () => {
                       type="radio"
                       className="hidden"
                       value="Weeks"
-                      onClick={(e)=>handleCourseDuration(e.target.value)}
+                      onClick={(e) => handleCourseDuration(e.target.value)}
                     />
                     Weeks
                   </label>
@@ -511,19 +526,18 @@ const AddCourse = () => {
                       type="radio"
                       value="Months"
                       className="hidden"
-                      onClick={(e)=>handleCourseDuration(e.target.value)}
+                      onClick={(e) => handleCourseDuration(e.target.value)}
                     />
                     Months
                   </label>
                 </div>
-              </div> 
+              </div>
               {/* Error messages */}
               {errors.course_duration && (
                 <p className="text-red-500 text-xs mt-1">
                   {errors.course_duration.message}
                 </p>
               )}
-              
             </div>
 
             <div>
@@ -537,7 +551,7 @@ const AddCourse = () => {
                   placeholder="Enter duration"
                   className="p-3 border rounded-lg w-1/2 text-gray-600 dark:bg-inherit placeholder-gray-400"
                   value={sessionDurationValue}
-                  onChange={(e)=>setSessionDurationValue(e.target.value)}
+                  onChange={(e) => setSessionDurationValue(e.target.value)}
                 />
                 {/* Radio buttons for selecting Hours or Minutes */}
                 <div className="flex gap-4 items-center">
@@ -552,7 +566,7 @@ const AddCourse = () => {
                       type="radio"
                       value="Minutes"
                       className="hidden"
-                      onClick={(e)=>handleSessionDuration(e.target.value)}
+                      onClick={(e) => handleSessionDuration(e.target.value)}
                     />
                     Minutes
                   </label>
@@ -579,7 +593,6 @@ const AddCourse = () => {
                   {errors.session_duration.message}
                 </p>
               )}
-              
             </div>
 
             <div>
@@ -641,6 +654,18 @@ const AddCourse = () => {
                   {errors.course_grade.message}
                 </p>
               )}
+            </div>
+            <div>
+              <label className="block text-sm px-2 font-semibold mb-1">
+                Add Resources
+              </label>
+              <button
+                onClick={handleResourceModal}
+                className="flex items-center w-full justify-center gap-2 px-4 py-2.5 border border-gray-200 rounded-md hover:bg-gray-100 transition-colors"
+              >
+                <Upload className="w-4 h-4" />
+                <span>Upload Files</span>
+              </button>
             </div>
           </div>
 
@@ -765,6 +790,14 @@ const AddCourse = () => {
           </div>
         </form>
       </div>
+      {isResourceModatOpen && (
+        <ResourceUploadModal onClose={() => setResourceModalOpen(false)} 
+          resourceVideos={resourceVideos}
+          setResourceVideos={setResourceVideos}
+          resourcePdfs={resourcePdfs}
+          setResourcePdfs={setResourcePdfs}
+        />
+      )}
     </div>
   );
 };
