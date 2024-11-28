@@ -81,15 +81,26 @@ export default function CoursePreview() {
 
         {courseData ? (
           <form className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <div className="col-span-2">
-              <label className="block text-gray-600 mb-2">Category</label>
-              <input
-                type="text"
-                value={courseData.course_category || ""}
-                readOnly
-                className="w-full p-3 border rounded-lg bg-gray-50 border-gray-300"
-              />
-            </div>
+              <div>
+                <label className="block text-gray-600 mb-2">Category</label>
+                <input
+                  type="text"
+                  value={courseData.course_category || ""}
+                  readOnly
+                  className="w-full p-3 border rounded-lg bg-gray-50 border-gray-300"
+                />
+              </div>
+              <div>
+                <label className="block text-gray-600 mb-2">
+                  Course Category
+                </label>
+                <input
+                  type="text"
+                  value={courseData.category || ""}
+                  readOnly
+                  className="w-full p-3 border rounded-lg bg-gray-50 border-gray-300"
+                />
+              </div>
 
             <div>
               <label className="block text-gray-600 mb-2">Course Title</label>

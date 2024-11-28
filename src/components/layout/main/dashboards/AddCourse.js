@@ -600,11 +600,11 @@ const AddCourse = () => {
             </div>
             <div>
               <label className="block text-sm px-2 font-semibold mb-1">
-                Course Fee
+                Course Fee (USD)
               </label>
               <input
                 type="text"
-                placeholder="Enter fee"
+                placeholder="Enter amount in USD"
                 className="p-3 border rounded-lg w-full text-gray-600 dark:bg-inherit placeholder-gray-400"
                 {...register("course_fee")}
               />
