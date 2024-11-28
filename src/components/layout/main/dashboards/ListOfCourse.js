@@ -97,6 +97,24 @@ export default function Home() {
     setIsFilterDropdownOpen(false);
   };
 
+  const toggleStatus = async (id) => {
+    try {
+      await postQuery({
+        url: `${apiUrls?.courses?.toggleCourseStatus}/${id}`,
+        postData: {},
+        onSuccess: (response) => {
+          toast.success(`Status changed to ${courses?.status}`);
+          setUpdateStatus(id);
+        },
+        onFail: () => {
+          toast.error("Student status cannot be changed!");
+        },
+      });
+    } catch (error) {
+      toast.error("Something went wrong!");
+    }
+  };
+
   const columns = [
     { Header: "No.", accessor: "no" },
     { Header: "Category", accessor: "course_category" },
@@ -110,22 +128,52 @@ export default function Home() {
     },
     { Header: "Sessions", accessor: "no_of_Sessions" },
     { Header: "Time", accessor: "session_duration" },
+    // {
+    //   Header: "Status",
+    //   accessor: "status",
+    //   render: (row) => (
+    //     <div className="flex gap-2 items-center">
+    //       <div
+    //         className={`rounded-md font-normal px-[10px] py-1 ${
+    //           row.status === "Published"
+    //             ? "bg-[#D9F2D9] text-[#3AA438]"
+    //             : "bg-[#FFF0D9] text-[#FFA927]"
+    //         }`}
+    //       >
+    //         {row.status}
+    //       </div>
+    //     </div>
+    //   ),
+    // },
     {
       Header: "Status",
       accessor: "status",
-      render: (row) => (
-        <div className="flex gap-2 items-center">
-          <div
-            className={`rounded-md font-normal px-[10px] py-1 ${
-              row.status === "Published"
-                ? "bg-[#D9F2D9] text-[#3AA438]"
-                : "bg-[#FFF0D9] text-[#FFA927]"
-            }`}
-          >
-            {row.status}
+      render: (row) => {
+        const isPublished = row?.status === "Published";
+        return (
+          <div className="flex gap-2 items-center">
+            <button
+              onClick={() => toggleStatus(row?._id)}
+              className={`w-10 h-5 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 ${
+                isPublished ? "bg-green-500" : "bg-gray-400"
+              }`}
+            >
+              <div
+                className={`w-4 h-4 bg-white rounded-full transform transition-transform duration-300 ${
+                  isPublished ? "translate-x-5" : "translate-x-0"
+                }`}
+              ></div>
+            </button>
+            <span
+              className={`ml-2 text-sm ${
+                isPublished ? "text-green-700" : "text-red-700"
+              }`}
+            >
+              {isPublished ? "Published" : "Upcoming"}
+            </span>
           </div>
-        </div>
-      ),
+        );
+      },
     },
     {
       Header: "Action",
