@@ -63,8 +63,8 @@ export default function EnrollmentFormsAdmin() {
     { Header: "Email", accessor: "email" },
     { Header: "Country", accessor: "country" },
     { Header: "Phone", accessor: "phone_number" },
-    { Header: "Course Category", accessor: "course_category" },
-    { Header: "Course Type", accessor: "course_type" },
+    { Header: "Course Name", accessor: "course_category" },
+    // { Header: "Course Type", accessor: "course_type" },
     { Header: "Message", accessor: "message" },
     {
       Header: "Date",

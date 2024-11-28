@@ -16,9 +16,9 @@ const AdminDashboardMain = () => {
       </div>
       <div className="px-10 grid grid-cols-1 xl:grid-cols-2 gap-30px">
         {/* popular instructor */}
-        <PopularInstructors />
+        {/* <PopularInstructors /> */}
         {/* Recent Course */}
-        <RecentCourses />
+        {/* <RecentCourses /> */}
       </div>
 
       {/* <div className="grid grid-cols-1 xl:grid-cols-2 gap-30px">
