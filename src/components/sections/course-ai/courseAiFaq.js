@@ -25,43 +25,69 @@ function CourseAiFaq() {
     },
     {
       question: "What is Data Science?",
-      answer:
-        `<p>The duration of the course is typically 6 weeks, with classes held twice a week.</p>`,
+      answer: `<p>Data science is a cross-disciplinary field focused on extracting useful knowledge from data. It combines:</p>
+          <ul>
+            <li><strong>Statistics and Machine Learning: </strong> To analyze and interpret data.</li>
+            <li><strong>Computational Techniques: </strong> For handling large-scale data.</li>
+            <li><strong>Application Areas: </strong> Biology, healthcare, business, finance, and internet data.</li>
+          </ul>
+        `,
     },
     {
       question: "What is Artificial Intelligence (AI)?",
-      answer:
-        `<p>Yes, the course is suitable for individuals of all ages, from students to professionals.</p>`,
+      answer: `<p>AI involves building intelligent systems that can perform complex tasks without explicit programming. Key areas include:</p>
+          <ul>
+            <li>- Machine Translation</li>
+            <li>- Computer Vision</li>
+            <li>- Game Playing</li>
+            <li>- Self-Driving Vehicles, etc.</li>
+          </ul>
+        `,
     },
     {
       question: "Why combine AI and Data Science in one course?",
-      answer:
-        `<p>The course covers various topics such as communication skills, leadership, teamwork, and self-awareness.</p>`,
+      answer: `<p>Combining AI and Data Science provides a comprehensive skill set that:</p>
+        <ul>
+            <li><strong>Integrates Analysis and AI Model Building: </strong> For deriving valuable insights.</li>
+            <li><strong>Interdisciplinary Approach: </strong> Enhances understanding of real-world data problems.</li>
+            <li><strong>Meets Industry Demand: </strong> Prepares students for roles requiring both AI and Data Science expertise.</li>
+          </ul>`,
     },
     {
       question: "What programming language is used in the course?",
-      answer:
-        `<p>Absolutely! The skills learned in this course are highly beneficial for career growth and personal development.</p>`,
+      answer: `<p>The course primarily uses Python for implementing AI and Data Science concepts. Python is widely used in the industry due to its extensive libraries and ease of use, making it an ideal language for AI and Data Science applications.</p>`,
     },
     {
       question: "Are there any prerequisites for enrolling in this course?",
-      answer:
-        `<p> Lorem ipsum dolor sit amet consectetur adipisicing elit. Sapiente, quam?</p>`,
+      answer: `<p>While there are no strict prerequisites, having a basic understanding of programming concepts and familiarity with mathematics (algebra, calculus, and probability) will be beneficial. Basic programming knowledge, preferably in Python, is recommended but not mandatory.</p>`,
     },
     {
       question: "How is the course structured?",
-      answer:
-        `<p> Lorem ipsum dolor sit amet consectetur adipisicing elit. Sapiente, quam?</p>`,
+      answer: `<p>The course spans 16 to 48 weeks, with 3-4 hours of content per week. It includes:</p> 
+          <ul>
+            <li>- Online Classes and Video Lectures</li>
+            <li>- Hands-on Exercises and Quizzes</li>
+            <li>- <strong>Capstone Project: </strong> In the final week.</li>
+          </ul>`,
     },
     {
       question: "Are there any real-world projects included in the course?",
-      answer:
-        `<p> Lorem ipsum dolor sit amet consectetur adipisicing elit. Sapiente, quam?</p>`,
+      answer: `<p>Yes, the course includes:</p>
+          <ul>
+            <li>- Capstone Project(s)</li>
+            <li>- <strong>Practical Experience: </strong> Apply knowledge to hands-on AI and Data Science projects.</li>
+          </ul>`,
     },
     {
       question: "What makes MEDH's AI and Data Science course unique?",
-      answer:
-        `<p> Lorem ipsum dolor sit amet consectetur adipisicing elit. Sapiente, quam?</p>`,
+      answer: `<p>MEDH's AI and Data Science course stands out for its:</p>
+          <ul>
+            <li><strong>Comprehensive Curriculum: </strong> Covering both AI and Data Science in-depth.</li>
+            <li><strong>Expert Instructors: </strong> With extensive industry experience.</li>
+            <li><strong>Hands-on Projects: </strong> Ensuring practical experience.</li>
+            <li><strong>Flexible Learning: </strong> Access course materials anytime, anywhere.</li>
+            <li><strong>Career Support: </strong> Assisting you beyond course completion.</li>
+          </ul>`,
     },
   ];
 
@@ -72,7 +98,9 @@ function CourseAiFaq() {
           Frequently Asked Questions (FAQs)
         </h2>
         <p className="text-center md:text-[15px] text-[14px] mb-8 md:px-14 px-3">
-        Find answers to common questions about MEDH’s AI and Data Science Course. Learn about course structure, prerequisites, career prospects, and more.
+          Find answers to common questions about MEDH’s AI and Data Science
+          Course. Learn about course structure, prerequisites, career prospects,
+          and more.
         </p>
         <div className="space-y-4">
           {faqs.map((faq, index) => (
@@ -100,11 +128,11 @@ function CourseAiFaq() {
               </div>
               {openIndex === index && (
                 <div
-                className="text-lightGrey14 pb-4 px-2 md:pr-12 sm:px-4 md:text-[15px] text-[14px] dark:text-gray-300"
-                dangerouslySetInnerHTML={{
-                  __html: DOMPurify.sanitize(faq.answer),
-                }}
-              ></div>
+                  className="text-lightGrey14 pb-4 px-2 md:pr-12 sm:px-4 md:text-[15px] text-[14px] dark:text-gray-300"
+                  dangerouslySetInnerHTML={{
+                    __html: DOMPurify.sanitize(faq.answer),
+                  }}
+                ></div>
               )}
             </div>
           ))}
