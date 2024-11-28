@@ -1,6 +1,6 @@
 // export const apiBaseUrl = "https://medh-backend.vercel.app/api/v1";  //vercel URL
-export const apiBaseUrl = "https://3.111.36.160.nip.io/api/v1"; //live instance URL
-// export const apiBaseUrl = "http://localhost:8080/api/v1"; // local URL
+// export const apiBaseUrl = "https://3.111.36.160.nip.io/api/v1"; //live instance URL
+export const apiBaseUrl = "http://localhost:8080/api/v1"; // local URL
 
 export const apiUrls = {
   user: {
@@ -11,6 +11,7 @@ export const apiUrls = {
     getDetailsbyId: "/auth/get",
     getAll: "/auth/get-all",
     updateByEmail: "/auth/update-by-email",
+    toggleStudentStatus: "/auth/toggle-status",
   },
   courses: {
     getAllCoursesWithLimits: (
@@ -58,7 +59,7 @@ export const apiUrls = {
     createStudent: "/students/create",
     updateStudent: "/students/update/:id",
     deleteStudent: "/students/delete",
-    toggleStudentStatus: "/students/toggle-status",
+    // toggleStudentStatus: "/students/toggle-status",
   },
   Contacts: {
     getAllContacts: "/contact/get",
