@@ -121,9 +121,9 @@ const AdminBlogs = () => {
   }
 
   return (
-    <div className="bg-gray-100 dark:bg-darkblack font-Poppins min-h-screen pt-8 p-6">
-      <div className="max-w-6xl mx-auto dark:bg-inherit dark:text-whitegrey3 dark:border bg-white rounded-lg shadow-lg p-6">
-        <header className="flex items-center justify-between mb-4">
+    <div className=" bg-white dark:bg-darkblack font-Poppins min-h-screen">
+      <div className="max-w-6xl mx-auto dark:bg-inherit dark:text-whitegrey3 dark:border bg-white ">
+        <header className="flex px-6 items-center justify-between mb-4">
           <h1 className="text-2xl font-bold">Blogs List</h1>
           <div className="flex items-center space-x-2">
             <button
