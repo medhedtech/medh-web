@@ -16,13 +16,13 @@ export default function SelectCourseModal({
   selectedPlan,
   closeParent,
 }) {
-  const studentId = localStorage.getItem("userId");
+  // const studentId = localStorage.getItem("userId");
   const [courses, setCourses] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCourses, setSelectedCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { getQuery, loading: getLoading } = useGetQuery();
+  const { getQuery } = useGetQuery();
   const { postQuery, loading: postLoading } = usePostQuery();
   const [planAmount, setPlanAmount] = useState(
     Number(amount.replace("$", "")) || 0
