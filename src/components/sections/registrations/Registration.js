@@ -219,7 +219,7 @@ const Registration = ({ showUploadField = false }) => {
                         {...register("phone_number")}
                         type="tel"
                         placeholder="Your Phone Number*"
-                        className="w-full px-14px py-2 dark:bg-inherit bg-lightGrey8 text-base border border-gray-300"
+                        className="w-full px-14px py-3 dark:bg-inherit bg-lightGrey8 text-base border border-gray-300"
                       />
                     </div>
                   </div>

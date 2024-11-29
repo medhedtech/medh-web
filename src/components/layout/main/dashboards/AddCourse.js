@@ -64,7 +64,6 @@ const schema = yup.object({
     .positive("Course fee must be a positive number")
     .required("Course fee is required"),
   course_grade: yup.string().required("Grade is required"),
-  
 });
 
 const AddCourse = () => {
@@ -268,7 +267,6 @@ const AddCourse = () => {
   // };
 
   const onSubmit = async (data) => {
-    
     try {
       // Gather form data along with uploaded video and PDF brochure links
       const postData = {
@@ -276,13 +274,13 @@ const AddCourse = () => {
         course_videos: courseVideo ? [courseVideo] : [],
         brochures: pdfBrochure ? [pdfBrochure] : [],
         course_image: thumbnailImage,
-        resource_videos: resourceVideos.length>0 ? resourceVideos : [],
-        resource_pdfs: resourcePdfs.length>0 ? resourcePdfs : [],
+        resource_videos: resourceVideos.length > 0 ? resourceVideos : [],
+        resource_pdfs: resourcePdfs.length > 0 ? resourcePdfs : [],
       };
 
       // Save data to localStorage
       localStorage.setItem("courseData", JSON.stringify(postData));
-      console.log('POSTDATA: ', postData)
+      console.log("POSTDATA: ", postData);
 
       // Navigate to the preview page
       router.push("/dashboards/admin-add-data");
@@ -333,6 +331,7 @@ const AddCourse = () => {
           <div className="flex items-center gap-7 mb-2">
             <label className="block text-[#323232] font-semibold text-xl dark:text-white">
               Select Category
+              <span className="text-red-500 ml-1">*</span>
             </label>
             <label
               className={`flex text-lg font-medium items-center space-x-2 ${
@@ -348,7 +347,7 @@ const AddCourse = () => {
                 onChange={() => handleChange("Live Courses")}
                 {...register("course_category")}
               />
-              <span>Live Courses</span>
+              <span className="block text-sm font-normal">Live Courses</span>
             </label>
             <label
               className={`flex text-lg font-medium items-center space-x-2 ${
@@ -364,7 +363,7 @@ const AddCourse = () => {
                 onChange={() => handleChange("Blended Courses")}
                 {...register("course_category")}
               />
-              <span>Blended Courses</span>
+              <span className="block text-sm font-normal">Blended Courses</span>
             </label>
             <label
               className={`flex text-lg font-medium items-center space-x-2 ${
@@ -380,7 +379,7 @@ const AddCourse = () => {
                 onChange={() => handleChange("Corporate Training Courses")}
                 {...register("course_category")}
               />
-              <span>Corporate Training Courses</span>
+              <span className="block text-sm font-normal">Corporate Training Courses</span>
             </label>
           </div>
         </div>
@@ -389,8 +388,9 @@ const AddCourse = () => {
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8 text-[#808080]">
             <div>
-              <label className="block text-sm px-2 font-semibold mb-1">
+              <label className="block text-sm font-normal mb-1">
                 Course Title
+                <span className="text-red-500 ml-1">*</span>
               </label>
               <input
                 type="text"
@@ -405,8 +405,8 @@ const AddCourse = () => {
               )}
             </div>
             <div className="relative" ref={dropdownRef}>
-              <label className="block text-sm px-2 font-semibold mb-1">
-                Course Category
+              <label className="block text-sm font-normal mb-1">
+                Course Category <span className="text-red-500">*</span>
               </label>
               <div className="p-3 border rounded-lg w-full dark:bg-inherit text-gray-600">
                 <button className="w-full text-left" onClick={toggleDropdown}>
@@ -451,8 +451,9 @@ const AddCourse = () => {
             </div>
 
             <div>
-              <label className="block text-sm px-2  font-semibold mb-1">
-                Category Type (Live/ Hybrid/ Pre-Recorded)
+              <label className="block text-sm font-normal mb-1">
+                Category Type<span className="text-red-500 ml-1">*</span> (Live/
+                Hybrid/ Pre-Recorded)
               </label>
               <select
                 className="p-3 border rounded-lg w-full dark:bg-inherit text-gray-600"
@@ -470,8 +471,8 @@ const AddCourse = () => {
               )}
             </div>
             <div>
-              <label className="block text-sm px-2 font-semibold mb-1">
-                No. of Sessions
+              <label className="block text-sm font-normal mb-1">
+                No. of Sessions<span className="text-red-500 ml-1">*</span>
               </label>
               <input
                 type="number"
@@ -487,8 +488,9 @@ const AddCourse = () => {
             </div>
 
             <div>
-              <label className="block text-sm px-2 font-semibold mb-1">
-                Duration (In months/weeks)
+              <label className="block text-sm font-normal mb-1">
+                Duration
+                <span className="text-red-500 ml-1">*</span> (In Months/Weeks)
               </label>
               <div className="flex items-center gap-2">
                 <input
@@ -541,8 +543,9 @@ const AddCourse = () => {
             </div>
 
             <div>
-              <label className="block text-sm px-2 font-semibold mb-1">
+              <label className="block text-sm font-normal mb-1">
                 Session Duration
+                <span className="text-red-500 ml-1">*</span>
               </label>
               <div className="flex items-center gap-2">
                 {/* Numeric input for session duration */}
@@ -596,24 +599,9 @@ const AddCourse = () => {
             </div>
 
             <div>
-              <label className="block text-sm px-2 font-semibold mb-1">
-                Course Description
-              </label>
-              <input
-                type="text"
-                placeholder="Write description"
-                className="p-3 border rounded-lg w-full text-gray-600 dark:bg-inherit placeholder-gray-400"
-                {...register("course_description")}
-              />
-              {errors.course_description && (
-                <p className="text-red-500 text-xs">
-                  {errors.course_description.message}
-                </p>
-              )}
-            </div>
-            <div>
-              <label className="block text-sm px-2 font-semibold mb-1">
-                Course Fee (USD)
+              <label className="block text-sm font-normal mb-1">
+                Course Fee
+                <span className="text-red-500 ml-1">*</span> (USD)
               </label>
               <input
                 type="text"
@@ -629,8 +617,9 @@ const AddCourse = () => {
             </div>
 
             <div>
-              <label className="block text-sm px-2 font-semibold mb-1">
+              <label className="block text-sm font-normal mb-1">
                 Course Grade
+                <span className="text-red-500 ml-1">*</span>
               </label>
               <select
                 className="p-3 border rounded-lg w-full dark:bg-inherit text-gray-600"
@@ -655,15 +644,50 @@ const AddCourse = () => {
                 </p>
               )}
             </div>
+
+            {/* <div>
+              <label className="block text-sm font-normal mb-1">
+                Course Description
+                <span className="text-red-500 ml-1">*</span>
+              </label>
+              <input
+                type="textarea"
+                placeholder="Write description"
+                className="p-3 border rounded-lg w-full text-gray-600 dark:bg-inherit placeholder-gray-400"
+                {...register("course_description")}
+              />
+              {errors.course_description && (
+                <p className="text-red-500 text-xs">
+                  {errors.course_description.message}
+                </p>
+              )}
+            </div> */}
             <div>
-              <label className="block text-sm px-2 font-semibold mb-1">
+              <label className="block text-sm font-normal mb-1">
+                Course Description
+                <span className="text-red-500 ml-1">*</span>
+              </label>
+              <textarea
+                placeholder="Write description........."
+                className="p-3 border rounded-lg w-full text-gray-600 dark:bg-inherit placeholder-gray-400"
+                {...register("course_description")}
+              />
+              {errors.course_description && (
+                <p className="text-red-500 text-xs">
+                  {errors.course_description.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-normal mb-1">
                 Add Resources
               </label>
               <button
                 onClick={handleResourceModal}
                 className="flex items-center w-full justify-center gap-2 px-4 py-2.5 border border-gray-200 rounded-md hover:bg-gray-100 transition-colors"
               >
-                <Upload className="w-4 h-4" />
+                <Upload className="w-4 h-16" />
                 <span>Upload Files</span>
               </button>
             </div>
@@ -791,7 +815,8 @@ const AddCourse = () => {
         </form>
       </div>
       {isResourceModatOpen && (
-        <ResourceUploadModal onClose={() => setResourceModalOpen(false)} 
+        <ResourceUploadModal
+          onClose={() => setResourceModalOpen(false)}
           resourceVideos={resourceVideos}
           setResourceVideos={setResourceVideos}
           resourcePdfs={resourcePdfs}
