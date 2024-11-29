@@ -74,7 +74,8 @@ const UsersTableStudent = () => {
           toast.success(
             `${student?.full_name}'s status changed to ${student?.status}.`
           );
-          setUpdateStatus(id);
+          // setUpdateStatus(id);
+          setUpdateStatus((prev) => (prev === id ? `${id}-updated` : id));
         },
         onFail: () => {
           toast.error("Student status cannot be changed!");
