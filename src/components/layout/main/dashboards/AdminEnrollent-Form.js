@@ -95,9 +95,9 @@ export default function EnrollmentFormsAdmin() {
   }
 
   return (
-    <div className="bg-gray-100 dark:bg-inherit dark:text-white font-Poppins min-h-screen pt-8 p-6">
-      <div className="max-w-6xl dark:bg-inherit dark:text-white  mx-auto bg-white rounded-lg shadow-lg p-6">
-        <header className="flex items-center justify-between mb-4">
+    <div className="bg-gray-100 dark:bg-inherit dark:text-white font-Poppins min-h-screen">
+      <div className="max-w-6xl dark:bg-inherit dark:text-white  mx-auto bg-white rounded-lg shadow-lg">
+        <header className="flex pt-4 px-6 items-center justify-between mb-4">
           <h1 className="text-xl font-semibold">Enrollments</h1>
         </header>
         <MyTable
