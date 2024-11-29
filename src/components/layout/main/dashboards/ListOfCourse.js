@@ -8,10 +8,12 @@ import { useRouter } from "next/navigation";
 import { FaPlus, FaChevronDown } from "react-icons/fa";
 import useDeleteQuery from "@/hooks/deleteQuery.hook";
 import { toast } from "react-toastify";
+import usePostQuery from "@/hooks/postQuery.hook";
 
 export default function Home() {
   const router = useRouter();
   const { deleteQuery } = useDeleteQuery();
+  const { postQuery } = usePostQuery();
   const [courses, setCourses] = useState([]);
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
@@ -24,6 +26,7 @@ export default function Home() {
   const { getQuery, loading } = useGetQuery();
   const [deletedCourse, setDeletedCourse] = useState(null);
   const [instructorNames, setInstructorNames] = useState({});
+  const [updateStatus, setUpdateStatus] = useState(null);
 
   // Fetch courses from API
   // useEffect(() => {
@@ -81,7 +84,7 @@ export default function Home() {
     };
 
     fetchCourses();
-  }, [deletedCourse]);
+  }, [deletedCourse, updateStatus]);
 
   const handleSortChange = (order) => {
     setSortOrder(order);
@@ -103,21 +106,28 @@ export default function Home() {
         url: `${apiUrls?.courses?.toggleCourseStatus}/${id}`,
         postData: {},
         onSuccess: (response) => {
-          toast.success(`Status changed to ${courses?.status}`);
-          setUpdateStatus(id);
+          const updatedStatus = response?.course?.status;
+          if (updatedStatus) {
+            toast.success(`Status changed to ${updatedStatus}`);
+            setUpdateStatus((prev) => (prev === id ? `${id}-updated` : id));
+          } else {
+            toast.error("Failed to retrieve updated status.");
+          }
         },
-        onFail: () => {
-          toast.error("Student status cannot be changed!");
+        onFail: (error) => {
+          console.error("Toggle Status API Error:", error);
+          toast.error(error?.message || "Course status cannot be changed!");
         },
       });
     } catch (error) {
+      console.error("Something went wrong:", error);
       toast.error("Something went wrong!");
     }
   };
 
   const columns = [
     { Header: "No.", accessor: "no" },
-    { Header: "Category", accessor: "course_category" },
+    { Header: "Category", accessor: "category" },
     { Header: "Course Name", accessor: "course_title" },
     { Header: "Instructor", accessor: "instructor" },
     // { Header: "Price", accessor: "course_fee" },
@@ -261,9 +271,9 @@ export default function Home() {
   }
 
   return (
-    <div className="bg-gray-100 dark:bg-darkblack font-Poppins min-h-screen pt-8 p-6">
-      <div className="max-w-6xl mx-auto dark:bg-inherit dark:text-whitegrey3 dark:border bg-white rounded-lg shadow-lg p-6">
-        <header className="flex items-center justify-between mb-4">
+    <div className="bg-gray-100 dark:bg-darkblack font-Poppins min-h-screen">
+      <div className="max-w-6xl mx-auto dark:bg-inherit dark:text-whitegrey3 dark:border bg-white shadow-lg p-6">
+        <header className="flex items-center justify-between px-6 mb-4">
           <h1 className="text-xl font-semibold">Course List</h1>
           <div className="flex items-center space-x-2">
             <div className="relative flex-grow flex justify-center">
