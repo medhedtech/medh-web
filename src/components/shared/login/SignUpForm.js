@@ -13,9 +13,9 @@ import Name from "@/assets/images/log-sign/Name.svg";
 import lock from "@/assets/images/log-sign/lock.svg";
 import Email from "@/assets/images/log-sign/Email.svg";
 import phone from "@/assets/images/log-sign/phone.svg";
-import eyeOff from "@/assets/images/log-sign/eyeIcon.svg";
-import eye from "@/assets/images/log-sign/eye.svg";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const schema = yup
   .object({
@@ -45,6 +45,7 @@ const SignUpForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [apiError, setApiError] = useState(null);
   const { postQuery, loading } = usePostQuery();
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const {
     register,
     handleSubmit,
@@ -53,9 +54,9 @@ const SignUpForm = () => {
     resolver: yupResolver(schema),
   });
 
-  const togglePasswordVisibility = () => {
-    setShowPassword((prev) => !prev);
-  };
+  const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
+  const toggleConfirmPasswordVisibility = () =>
+    setShowConfirmPassword((prev) => !prev);
 
   const onSubmit = async (data) => {
     setApiError(null);
@@ -74,12 +75,30 @@ const SignUpForm = () => {
           toast.success("Registration successful!");
         },
         onFail: (error) => {
-          console.log("Registration failed:", error);
-          setApiError(error.message);
+          console.log("Full error object:", error);
+
+          const errorMessage = error?.response?.data?.message;
+          if (!errorMessage) {
+            toast.error("An unexpected error occurred.");
+            setApiError("An unexpected error occurred.");
+            return;
+          }
+
+          if (errorMessage === "User already exists") {
+            toast.error(
+              "This email is already registered. Please try logging in."
+            );
+          } else if (errorMessage.toLowerCase().includes("validation")) {
+            toast.error("Please check your input fields and try again.");
+          } else {
+            toast.error("Registration failed. Please try again.");
+          }
+          setApiError(errorMessage);
         },
       });
     } catch (error) {
       setApiError("An unexpected error occurred. Please try again.");
+      toast.error("An unexpected error occurred. Please try again.");
     }
   };
 
@@ -98,7 +117,11 @@ const SignUpForm = () => {
     <div className="mx-auto md:flex md:justify-between p-5 h-auto max-w-[1064px] shadow-2xl border-2">
       <div className="hidden md:flex mx-auto">
         <div className="w-[504px] h-[774px] my-auto flex justify-center">
-          <Image src={SignIn} className="w-full h-full object-contain" />
+          <Image
+            src={SignIn}
+            alt="sign-up image"
+            className="w-full h-full object-contain"
+          />
         </div>
       </div>
       <div className="transition-opacity duration-150 ease-linear md:w-[50%] w-full md:px-3 pt-3">
@@ -126,12 +149,13 @@ const SignUpForm = () => {
                 <Image
                   src={Name}
                   className="absolute left-4 top-1/2 transform -translate-y-1/2"
+                  alt="name-icon"
                 />
                 <input
                   {...register("full_name")}
                   type="text"
                   placeholder="Enter Your Name"
-                  className="w-full h-12 pl-10 text-sm focus:outline-none text-black bg-[#F7F7F7] dark:text-contentColor-dark border-2 border-borderColor dark:border-borderColor-dark placeholder:text-black placeholder:opacity-80 font-medium rounded-[162px]"
+                  className="w-full h-12 pl-10 text-sm focus:outline-none text-black bg-[#F7F7F7] dark:text-contentColor-dark border-2 border-borderColor dark:border-borderColor-dark placeholder:text-black placeholder:opacity-80 font-medium rounded-[12px]"
                 />
               </div>
               {errors.full_name && (
@@ -146,12 +170,13 @@ const SignUpForm = () => {
                 <Image
                   src={Email}
                   className="absolute left-4 top-1/2 transform -translate-y-1/2"
+                  alt="email-icon"
                 />
                 <input
                   {...register("email")}
                   type="email"
                   placeholder="Enter Your E-Mail"
-                  className="w-full h-12 pl-10 text-sm focus:outline-none text-black bg-[#F7F7F7] dark:text-contentColor-dark border-2 border-borderColor dark:border-borderColor-dark placeholder:text-black placeholder:opacity-80 font-medium rounded-[162px]"
+                  className="w-full h-12 pl-10 text-sm focus:outline-none text-black bg-[#F7F7F7] dark:text-contentColor-dark border-2 border-borderColor dark:border-borderColor-dark placeholder:text-black placeholder:opacity-80 font-medium  rounded-[12px]"
                 />
               </div>
               {errors.email && (
@@ -166,12 +191,13 @@ const SignUpForm = () => {
                 <Image
                   src={phone}
                   className="absolute left-4 top-1/2 transform -translate-y-1/2"
+                  alt="phone-icon"
                 />
                 <input
                   {...register("phone_number")}
                   type="phone"
                   placeholder="Phone Number"
-                  className="w-full h-12 pl-10 text-sm focus:outline-none text-black bg-[#F7F7F7] dark:text-contentColor-dark border-2 border-borderColor dark:border-borderColor-dark placeholder:text-black placeholder:opacity-80 font-medium rounded-[162px]"
+                  className="w-full h-12 pl-10 text-sm focus:outline-none text-black bg-[#F7F7F7] dark:text-contentColor-dark border-2 border-borderColor dark:border-borderColor-dark placeholder:text-black placeholder:opacity-80 font-medium  rounded-[12px]"
                 />
               </div>
               {errors.phone_number && (
@@ -186,13 +212,25 @@ const SignUpForm = () => {
                 <Image
                   src={lock}
                   className="absolute left-4 top-1/2 transform -translate-y-1/2"
+                  alt="lock-icon"
                 />
                 <input
                   {...register("password")}
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="Password"
-                  className="w-full h-12 pl-10 text-sm focus:outline-none text-black bg-[#F7F7F7] dark:text-contentColor-dark border-2 border-borderColor dark:border-borderColor-dark placeholder:text-black placeholder:opacity-80 font-medium rounded-[162px]"
+                  className="w-full h-12 pl-10 pr-10 text-sm focus:outline-none text-black bg-[#F7F7F7] dark:text-contentColor-dark border-2 border-borderColor dark:border-borderColor-dark placeholder:text-black placeholder:opacity-80 font-medium  rounded-[12px]"
                 />
+                <button
+                  type="button"
+                  onClick={togglePasswordVisibility}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                >
+                  {showPassword ? (
+                    <FaEyeSlash size={20} />
+                  ) : (
+                    <FaEye size={20} />
+                  )}
+                </button>
               </div>
               {errors.password && (
                 <p className="text-xs text-red-500 font-normal mt-[2px] ml-2">
@@ -201,27 +239,30 @@ const SignUpForm = () => {
               )}
             </div>
 
+            {/* Confirm Password Field */}
             <div className="gap-4 mb-4">
               <div className="relative">
                 <Image
                   src={lock}
                   className="absolute left-4 top-1/2 transform -translate-y-1/2"
+                  alt="lock-icon"
                 />
                 <input
                   {...register("confirm_password")}
-                  type={showPassword ? "text" : "password"}
+                  type={showConfirmPassword ? "text" : "password"}
                   placeholder="Confirm Password"
-                  className="w-full h-12 pl-10 text-sm focus:outline-none text-black bg-[#F7F7F7] dark:text-contentColor-dark border-2 border-borderColor dark:border-borderColor-dark placeholder:text-[#000000] placeholder:opacity-80 font-medium rounded-[162px]"
+                  className="w-full h-12 pl-10 pr-10 text-sm focus:outline-none text-black bg-[#F7F7F7] dark:text-contentColor-dark border-2 border-borderColor dark:border-borderColor-dark placeholder:text-[#000000] placeholder:opacity-80 font-medium  rounded-[12px]"
                 />
                 <button
                   type="button"
-                  onClick={togglePasswordVisibility}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 focus:outline-none"
+                  onClick={toggleConfirmPasswordVisibility}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
                 >
-                  <Image
-                    src={showPassword ? eyeOff : eye}
-                    alt="Toggle Password Visibility"
-                  />
+                  {showConfirmPassword ? (
+                    <FaEyeSlash size={20} />
+                  ) : (
+                    <FaEye size={20} />
+                  )}
                 </button>
               </div>
               {errors.confirm_password && (
@@ -231,18 +272,6 @@ const SignUpForm = () => {
               )}
             </div>
 
-            {/* <div className="flex items-center cursor-pointer mb-4">
-              <input type="checkbox" id="terms" className="hidden peer" />
-              <label
-                htmlFor="terms"
-                className="flex items-center cursor-pointer text-xs text-[#545454]"
-              >
-                <div className="w-5 h-5 rounded-full border-2 ml-2 border-gray-400 flex items-center justify-center mr-2 peer-checked:bg-primaryColor">
-                  <div className="w-3 h-3 rounded-full bg-white peer-checked:block hidden"></div>
-                </div>
-                Agree to Terms & Conditions
-              </label>
-            </div> */}
             <div className="flex items-center cursor-pointer mb-4">
               <input
                 type="checkbox"
@@ -254,7 +283,7 @@ const SignUpForm = () => {
                 htmlFor="terms"
                 className="text-xs text-[#545454] cursor-pointer"
               >
-                Agree to Terms & Conditions
+                Agree to <a href="/terms-and-conditions">Terms & Conditions</a>
               </label>
             </div>
             {errors.agree_terms && (
