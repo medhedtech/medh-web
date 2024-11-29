@@ -152,7 +152,7 @@ const ResourceUploadModal = ({ onClose, resourceVideos, setResourceVideos, resou
 
                   <div>
                     <p className="font-semibold mb-2 text-center text-[16px]">
-                      Add Resource PDF's
+                      Add Resource PDF&#39;s
                     </p>
                     <div className="border-dashed border-2 dark:bg-inherit bg-purple border-gray-300 rounded-lg p-3 w-[180px] h-[140px] text-center relative">
                       <svg
