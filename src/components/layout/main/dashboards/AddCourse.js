@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import usePostQuery from "@/hooks/postQuery.hook";
 import { apiUrls } from "@/apis";
@@ -8,6 +8,10 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { toast } from "react-toastify";
 import Preloader from "@/components/shared/others/Preloader";
+import useGetQuery from "@/hooks/getQuery.hook";
+import Image from "next/image";
+import { Upload } from "lucide-react";
+import ResourceUploadModal from "./ResourceUploadModal";
 
 // Validation Schema
 const schema = yup.object({
@@ -16,6 +20,7 @@ const schema = yup.object({
     .oneOf(["Live Courses", "Blended Courses", "Corporate Training Courses"])
     .required("Course category is required"),
   course_title: yup.string().trim().required("Course title is required"),
+  category: yup.string(),
   course_tag: yup
     .string()
     .oneOf(["Live", "Hybrid", "Pre-Recorded"])
@@ -26,7 +31,15 @@ const schema = yup.object({
     .positive("Number of sessions must be a positive number")
     .required("Number of sessions is required"),
   course_duration: yup.string().required("Course duration is required"),
+  // course_duration_value: yup
+  //   .number()
+  //   .required("Course duration value is required"),
+  // course_duration_unit: yup
+  //   .string()
+  //   .required("Course duration unit is required"),
   // session_duration: yup.string().required("Session duration is required"),
+  // session_duration_value: yup.number().required("Session duration value is required"),
+  // session_duration_unit: yup.string().required("Session duration unit is required"),
   session_duration: yup
     .string()
     .test(
@@ -51,6 +64,7 @@ const schema = yup.object({
     .positive("Course fee must be a positive number")
     .required("Course fee is required"),
   course_grade: yup.string().required("Grade is required"),
+  
 });
 
 const AddCourse = () => {
@@ -61,6 +75,19 @@ const AddCourse = () => {
   const [thumbnailImage, setThumbnailImage] = useState(null);
   const { postQuery, loading } = usePostQuery();
   const [courseData, setCourseData] = useState(null);
+  const [categories, setCategories] = useState(null);
+  const { getQuery } = useGetQuery();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [selected, setSelected] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const dropdownRef = useRef(null);
+  const [courseDurationValue, setCourseDurationValue] = useState();
+  const [courseDurationUnit, setCourseDurationUnit] = useState("");
+  const [sessionDurationValue, setSessionDurationValue] = useState();
+  const [sessionDurationUnit, setSessionDurationUnit] = useState("");
+  const [isResourceModatOpen, setResourceModalOpen] = useState(false);
+  const [resourceVideos, setResourceVideos] = useState([]);
+  const [resourcePdfs, setResourcePdfs] = useState([]);
 
   const {
     register,
@@ -68,6 +95,7 @@ const AddCourse = () => {
     formState: { errors },
     setValue,
     reset,
+    watch,
   } = useForm({
     resolver: yupResolver(schema),
   });
@@ -77,7 +105,51 @@ const AddCourse = () => {
     if (storedData) {
       setCourseData(JSON.parse(storedData));
     }
+
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    fetchAllCategories();
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
+
+  const fetchAllCategories = () => {
+    try {
+      getQuery({
+        url: apiUrls?.categories?.getAllCategories,
+        onSuccess: (res) => {
+          setCategories(res.data);
+          console.log("All categories", res);
+        },
+        onFail: (err) => {
+          console.error("Failed to fetch categories: ", err);
+        },
+      });
+    } catch (err) {
+      console.error("Error fetching categories: ", err);
+    }
+  };
+
+  const toggleDropdown = (e) => {
+    e.preventDefault();
+    setDropdownOpen((prev) => !prev);
+  };
+
+  const selectCategory = (categoryName) => {
+    setSelected(categoryName);
+    setValue("category", categoryName);
+    setDropdownOpen(false);
+    setSearchTerm("");
+  };
+
+  const filteredCategories = categories?.filter((category) =>
+    category.category_name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const handleVideoUpload = async (e) => {
     const file = e.target.files[0];
@@ -196,6 +268,7 @@ const AddCourse = () => {
   // };
 
   const onSubmit = async (data) => {
+    
     try {
       // Gather form data along with uploaded video and PDF brochure links
       const postData = {
@@ -203,10 +276,13 @@ const AddCourse = () => {
         course_videos: courseVideo ? [courseVideo] : [],
         brochures: pdfBrochure ? [pdfBrochure] : [],
         course_image: thumbnailImage,
+        resource_videos: resourceVideos.length>0 ? resourceVideos : [],
+        resource_pdfs: resourcePdfs.length>0 ? resourcePdfs : [],
       };
 
       // Save data to localStorage
       localStorage.setItem("courseData", JSON.stringify(postData));
+      console.log('POSTDATA: ', postData)
 
       // Navigate to the preview page
       router.push("/dashboards/admin-add-data");
@@ -215,6 +291,22 @@ const AddCourse = () => {
       console.error("An error occurred:", error);
       toast.error("An unexpected error occurred. Please try again.");
     }
+  };
+
+  const handleCourseDuration = (unit) => {
+    setCourseDurationUnit(unit);
+    setValue("course_duration", `${courseDurationValue} ${unit}`);
+  };
+
+  const handleSessionDuration = (unit) => {
+    setSessionDurationUnit(unit);
+    setValue("session_duration", `${sessionDurationValue} ${unit}`);
+  };
+
+  const handleResourceModal = (e) => {
+    e.preventDefault();
+    setResourceModalOpen(true);
+    console.log("opened");
   };
 
   useEffect(() => {
@@ -312,6 +404,52 @@ const AddCourse = () => {
                 </p>
               )}
             </div>
+            <div className="relative" ref={dropdownRef}>
+              <label className="block text-sm px-2 font-semibold mb-1">
+                Course Category
+              </label>
+              <div className="p-3 border rounded-lg w-full dark:bg-inherit text-gray-600">
+                <button className="w-full text-left" onClick={toggleDropdown}>
+                  {selected || "Select type"}
+                </button>
+                {dropdownOpen && (
+                  <div className="absolute z-10 left-0 top-20 bg-white border border-gray-600 rounded-lg w-full shadow-xl">
+                    <input
+                      type="text"
+                      className="w-full p-2 border-b focus:outline-none rounded-lg"
+                      placeholder="Search..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                    <ul className="max-h-56 overflow-auto">
+                      {filteredCategories.length > 0 ? (
+                        filteredCategories.map((category) => (
+                          <li
+                            key={category._id}
+                            className=" hover:bg-gray-100 rounded-lg cursor-pointer flex gap-3 px-3 py-3"
+                            onClick={() =>
+                              selectCategory(category.category_name)
+                            }
+                          >
+                            <Image
+                              src={category.category_image}
+                              alt={category.category_title}
+                              width={32}
+                              height={32}
+                              className="rounded-full"
+                            />
+                            {category.category_name}
+                          </li>
+                        ))
+                      ) : (
+                        <li className="p-2 text-gray-500">No results found</li>
+                      )}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
+
             <div>
               <label className="block text-sm px-2  font-semibold mb-1">
                 Category Type (Live/ Hybrid/ Pre-Recorded)
@@ -352,22 +490,51 @@ const AddCourse = () => {
               <label className="block text-sm px-2 font-semibold mb-1">
                 Duration (In months/weeks)
               </label>
-              <select
-                className="p-3 border rounded-lg w-full dark:bg-inherit text-gray-600"
-                {...register("course_duration")}
-              >
-                <option value="">Select type</option>
-                <option value="4 Weeks">4-Weeks</option>
-                <option value="6 Weeks">6-Weeks</option>
-                <option value="12 Weeks">12-Weeks</option>
-                <option value="24 Weeks">24-Weeks</option>
-                <option value="2 Months">2-Months</option>
-                <option value="3 Months">3-Months</option>
-                <option value="6 Months">6-Months</option>
-                <option value="12 Months">12-Months</option>
-              </select>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  className="p-3 border rounded-lg w-1/2 dark:bg-inherit text-gray-600"
+                  placeholder="Enter duration"
+                  value={courseDurationValue}
+                  onChange={(e) => setCourseDurationValue(e.target.value)}
+                />
+
+                <div className="flex gap-4 items-center">
+                  <label
+                    className={`flex items-center gap-1 cursor-pointer p-2 border rounded-lg ${
+                      courseDurationUnit === "Weeks"
+                        ? "bg-[#3B82F6] text-white"
+                        : "hover:bg-gray-100 dark:bg-inherit dark:border-gray-700"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      className="hidden"
+                      value="Weeks"
+                      onClick={(e) => handleCourseDuration(e.target.value)}
+                    />
+                    Weeks
+                  </label>
+                  <label
+                    className={`flex items-center gap-1 cursor-pointer p-2 border rounded-lg ${
+                      courseDurationUnit === "Months"
+                        ? "bg-[#3B82F6] text-white"
+                        : "hover:bg-gray-100 dark:bg-inherit dark:border-gray-700"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      value="Months"
+                      className="hidden"
+                      onClick={(e) => handleCourseDuration(e.target.value)}
+                    />
+                    Months
+                  </label>
+                </div>
+              </div>
+              {/* Error messages */}
               {errors.course_duration && (
-                <p className="text-red-500 text-xs">
+                <p className="text-red-500 text-xs mt-1">
                   {errors.course_duration.message}
                 </p>
               )}
@@ -377,18 +544,57 @@ const AddCourse = () => {
               <label className="block text-sm px-2 font-semibold mb-1">
                 Session Duration
               </label>
-              <input
-                type="text"
-                placeholder="Session duration in Hours / Minutes"
-                className="p-3 border rounded-lg w-full text-gray-600 dark:bg-inherit placeholder-gray-400"
-                {...register("session_duration")}
-              />
+              <div className="flex items-center gap-2">
+                {/* Numeric input for session duration */}
+                <input
+                  type="number"
+                  placeholder="Enter duration"
+                  className="p-3 border rounded-lg w-1/2 text-gray-600 dark:bg-inherit placeholder-gray-400"
+                  value={sessionDurationValue}
+                  onChange={(e) => setSessionDurationValue(e.target.value)}
+                />
+                {/* Radio buttons for selecting Hours or Minutes */}
+                <div className="flex gap-4 items-center">
+                  <label
+                    className={`flex items-center gap-1 cursor-pointer p-2 border rounded-lg ${
+                      sessionDurationUnit === "Minutes"
+                        ? "bg-[#3B82F6] text-white"
+                        : "hover:bg-gray-100 dark:bg-inherit dark:border-gray-700"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      value="Minutes"
+                      className="hidden"
+                      onClick={(e) => handleSessionDuration(e.target.value)}
+                    />
+                    Minutes
+                  </label>
+                  <label
+                    className={`flex items-center gap-1 cursor-pointer p-2 border rounded-lg ${
+                      sessionDurationUnit === "Hours"
+                        ? "bg-[#3B82F6] text-white"
+                        : "hover:bg-gray-100 dark:bg-inherit dark:border-gray-700"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      value="Hours"
+                      className="hidden"
+                      onClick={(e) => handleSessionDuration(e.target.value)}
+                    />
+                    Hours
+                  </label>
+                </div>
+              </div>
+              {/* Error messages */}
               {errors.session_duration && (
-                <p className="text-red-500 text-xs">
+                <p className="text-red-500 text-xs mt-1">
                   {errors.session_duration.message}
                 </p>
               )}
             </div>
+
             <div>
               <label className="block text-sm px-2 font-semibold mb-1">
                 Course Description
@@ -407,11 +613,11 @@ const AddCourse = () => {
             </div>
             <div>
               <label className="block text-sm px-2 font-semibold mb-1">
-                Course Fee
+                Course Fee (USD)
               </label>
               <input
                 type="text"
-                placeholder="Enter fee"
+                placeholder="Enter amount in USD"
                 className="p-3 border rounded-lg w-full text-gray-600 dark:bg-inherit placeholder-gray-400"
                 {...register("course_fee")}
               />
@@ -441,12 +647,25 @@ const AddCourse = () => {
                 <option value="UG - Graduate - Professionals">
                   UG - Graduate - Professionals
                 </option>
+                <option value="none">None of these</option>
               </select>
               {errors.course_grade && (
                 <p className="text-red-500 text-xs">
                   {errors.course_grade.message}
                 </p>
               )}
+            </div>
+            <div>
+              <label className="block text-sm px-2 font-semibold mb-1">
+                Add Resources
+              </label>
+              <button
+                onClick={handleResourceModal}
+                className="flex items-center w-full justify-center gap-2 px-4 py-2.5 border border-gray-200 rounded-md hover:bg-gray-100 transition-colors"
+              >
+                <Upload className="w-4 h-4" />
+                <span>Upload Files</span>
+              </button>
             </div>
           </div>
 
@@ -564,12 +783,21 @@ const AddCourse = () => {
             <button
               className="bg-customGreen text-white py-2 px-4 rounded-lg mt-6"
               // onClick={handleContinueClick}
+              type="submit"
             >
               Continue
             </button>
           </div>
         </form>
       </div>
+      {isResourceModatOpen && (
+        <ResourceUploadModal onClose={() => setResourceModalOpen(false)} 
+          resourceVideos={resourceVideos}
+          setResourceVideos={setResourceVideos}
+          resourcePdfs={resourcePdfs}
+          setResourcePdfs={setResourcePdfs}
+        />
+      )}
     </div>
   );
 };
