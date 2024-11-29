@@ -173,9 +173,9 @@ const CategoriesManage = () => {
     return <AddCategories onCancel={() => setShowCategoryForm(false)} selectedCategory={selectedCategory} />;
 
   return (
-    <div className="bg-gray-100 dark:bg-darkblack font-Poppins min-h-screen pt-8 p-6">
-      <div className="max-w-6xl mx-auto dark:bg-inherit dark:text-whitegrey3 dark:border bg-white rounded-lg shadow-lg p-6">
-        <header className="flex items-center justify-between mb-4">
+    <div className=" dark:bg-darkblack font-Poppins min-h-screen">
+      <div className="max-w-6xl mx-auto dark:bg-inherit dark:text-whitegrey3 dark:border bg-white p-2">
+        <header className="flex items-center px-6 justify-between mb-4">
           <h1 className="text-2xl font-bold">Categories List</h1>
           <div className="flex items-center space-x-2">
             <div className="relative flex-grow flex justify-center">

@@ -146,10 +146,10 @@ export default function AdminJobApplicants() {
   };
 
   return (
-    <div className="bg-gray-100 dark:bg-inherit dark:text-white font-Poppins min-h-screen pt-8 p-6">
+    <div className="bg-gray-100 dark:bg-inherit dark:text-white font-Poppins min-h-screen">
       {/* Job Posts Section */}
-      <div className="max-w-6xl dark:bg-inherit dark:text-white mx-auto bg-white rounded-lg shadow-lg p-6">
-        <header className="flex items-center justify-between mb-4">
+      <div className="max-w-6xl dark:bg-inherit dark:text-white mx-auto bg-white rounded-lg shadow-lg">
+        <header className="flex px-6 items-center justify-between mb-4">
           <h1 className="text-2xl font-bold">Job Posts</h1>
           <div className="flex items-center space-x-2">
             <button
@@ -168,8 +168,8 @@ export default function AdminJobApplicants() {
       </div>
 
       {/* Applicants List Section */}
-      <div className="max-w-6xl mt-20 dark:bg-inherit dark:text-white mx-auto bg-white rounded-lg shadow-lg p-6">
-        <header className="flex items-center justify-between mb-4">
+      <div className="max-w-6xl mt-20 dark:bg-inherit dark:text-white mx-auto bg-white rounded-lg shadow-lg">
+        <header className="flex px-6 items-center justify-between mb-4">
           <h1 className="text-2xl font-bold">Applicants List</h1>
         </header>
         <MyTable

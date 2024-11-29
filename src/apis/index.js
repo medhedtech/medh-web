@@ -11,6 +11,7 @@ export const apiUrls = {
     getDetailsbyId: "/auth/get",
     getAll: "/auth/get-all",
     updateByEmail: "/auth/update-by-email",
+    toggleStudentStatus: "/auth/toggle-status",
   },
   courses: {
     getAllCoursesWithLimits: (
@@ -31,6 +32,7 @@ export const apiUrls = {
     deleteCourse: "/courses/delete",
     getCourseNames: "/courses/course-names",
     getEnrolledCoursesByStudentId: "/enroll/student",
+    toggleCourseStatus: "/courses/toggle-status",
   },
   upload: {
     uploadImage: "/upload/uploadImage",
@@ -58,7 +60,7 @@ export const apiUrls = {
     createStudent: "/students/create",
     updateStudent: "/students/update/:id",
     deleteStudent: "/students/delete",
-    toggleStudentStatus: "/students/toggle-status",
+    // toggleStudentStatus: "/students/toggle-status",
   },
   Contacts: {
     getAllContacts: "/contact/get",

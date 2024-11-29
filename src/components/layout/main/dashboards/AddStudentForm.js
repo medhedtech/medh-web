@@ -21,7 +21,11 @@ const schema = yup.object({
     .required("Age is required")
     .min(13, "Age must be above 13 years"),
   email: yup.string().email().required("Email is required"),
-  course_name: yup.string().required("Course name is required"),
+  // role: yup
+  //   .array()
+  //   .of(yup.string().oneOf(["student", "admin", "user", "instructor"]))
+  //   .required("Role is required"),
+  user_image: yup.string().optional(),
 });
 
 const AddStudentForm = () => {
@@ -77,7 +81,7 @@ const AddStudentForm = () => {
             postData,
             onSuccess: (data) => {
               setStudentImage(data?.data);
-              setValue("upload_image", data?.data);
+              setValue("user_image", data?.data);
               console.log("Image uploaded successfully:", data?.data);
             },
             onError: (error) => {
@@ -96,13 +100,13 @@ const AddStudentForm = () => {
   const onSubmit = async (data) => {
     try {
       await postQuery({
-        url: apiUrls?.Students?.createStudent,
+        url: apiUrls?.user?.register,
         postData: {
           full_name: data.full_name,
           age: data.age,
           email: data.email,
-          course_name: data.course_name,
-          upload_image: studentImage || data.upload_image,
+          // user_image: studentImage || data.user_image,
+          role: "student",
         },
         onSuccess: () => {
           setShowStudentListing(true);
@@ -114,7 +118,7 @@ const AddStudentForm = () => {
         },
       });
     } catch (error) {
-      toast.error("User Alredy exists with same email.");
+      console.log("User Alredy exists with same email.");
     }
   };
 
@@ -241,34 +245,7 @@ const AddStudentForm = () => {
             )}
           </div>
 
-          {/* Course Name Field */}
-          <div className="flex flex-col">
-            <label
-              htmlFor="course_name"
-              className="block text-sm font-medium text-gray-600 mb-2"
-            >
-              Course Name
-            </label>
-            <select
-              {...register("course_name")}
-              className="w-full p-2 border rounded-lg text-gray-600"
-            >
-              <option value="">Select Course</option>
-              {courses.map((course, index) => (
-                <option key={index} value={course.course_title}>
-                  {course.course_title}
-                </option>
-              ))}
-            </select>
-
-            {errors.course_name && (
-              <p className="text-red-500 text-xs">
-                {errors.course_name.message}
-              </p>
-            )}
-          </div>
-
-          <div>
+          {/* <div>
             <p className="text-xs px-2 text-[#808080] font-medium mb-1">
               Add Image
             </p>
@@ -297,7 +274,7 @@ const AddStudentForm = () => {
                 onChange={handleImageUpload}
               />
             </div>
-          </div>
+          </div> */}
 
           {/* Submit and Cancel Buttons */}
           <div className="flex justify-end items-center space-x-4 sm:col-span-2 mt-4">
