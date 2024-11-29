@@ -12,6 +12,9 @@ export const apiUrls = {
     getAll: "/auth/get-all",
     updateByEmail: "/auth/update-by-email",
     toggleStudentStatus: "/auth/toggle-status",
+    sendResetEmail: "/auth/forgot-password",
+    verfiySystemPassword: "/auth//verify-temp-password",
+    resetPassword: "/auth/reset-password",
   },
   courses: {
     getAllCoursesWithLimits: (

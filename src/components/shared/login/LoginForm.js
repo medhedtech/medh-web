@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import LogIn from "@/assets/images/log-sign/logIn.png";
 import logo1 from "@/assets/images/logo/medh_logo.png";
@@ -13,6 +13,7 @@ import Email from "@/assets/images/log-sign/Email.svg";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const schema = yup
   .object({
@@ -27,6 +28,7 @@ const schema = yup
 const LoginForm = () => {
   const router = useRouter();
   const { postQuery, loading } = usePostQuery();
+  const [showPassword, setShowPassword] = useState(false);
   const {
     register,
     handleSubmit,
@@ -101,9 +103,10 @@ const LoginForm = () => {
                   {...register("email")}
                   type="email"
                   placeholder="E-Mail"
-                  className="w-full h-12 pl-12 text-sm focus:outline-none text-black bg-[#F7F7F7] dark:text-contentColor-dark border-2 border-borderColor dark:border-borderColor-dark placeholder:text-black placeholder:opacity-80 font-medium rounded-[162px]"
+                  className="w-full h-12 pl-12 text-sm focus:outline-none text-black bg-[#F7F7F7] dark:text-contentColor-dark border-2 border-borderColor dark:border-borderColor-dark placeholder:text-black placeholder:opacity-80 font-medium  rounded-[12px]"
                 />
               </div>
+
               {errors.email && (
                 <p className="text-xs text-red-500 font-normal mt-1 ml-2">
                   {errors.email?.message}
@@ -119,10 +122,21 @@ const LoginForm = () => {
                 />
                 <input
                   {...register("password")}
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="Password"
-                  className="w-full h-12 pl-12 text-sm focus:outline-none text-black bg-[#F7F7F7] dark:text-contentColor-dark border-2 border-borderColor dark:border-borderColor-dark placeholder:text-black placeholder:opacity-80 font-medium rounded-[162px]"
+                  className="w-full h-12 pl-12 pr-10 text-sm focus:outline-none text-black bg-[#F7F7F7] dark:text-contentColor-dark border-2 border-borderColor dark:border-borderColor-dark placeholder:text-black placeholder:opacity-80 font-medium  rounded-[12px]"
                 />
+                {/* Toggle Icon */}
+                <span
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-500 hover:text-gray-700"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                >
+                  {showPassword ? (
+                    <FaEyeSlash size={20} />
+                  ) : (
+                    <FaEye size={20} />
+                  )}
+                </span>
               </div>
               {errors.password && (
                 <p className="text-xs text-red-500 font-normal mt-1 ml-2">
@@ -134,7 +148,7 @@ const LoginForm = () => {
             <div className="flex justify-between items-center cursor-pointer mb-4">
               <div></div>
               <div className="text-primaryColor font-semibold font-Open">
-                Forgot Password?
+                <a href="/forgot-password"> Forgot Password?</a>
               </div>
             </div>
 
