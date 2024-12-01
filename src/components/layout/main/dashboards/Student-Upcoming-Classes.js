@@ -33,9 +33,9 @@ const StudentUpcomigClasses = () => {
     if (studentId) {
       const fetchUpcomingClasses = () => {
         getQuery({
-          url: `${apiUrls?.EnrollCourse?.getUpcomingCoursesByStudentId}/${studentId}`,
+          url: `${apiUrls?.onlineMeeting?.getMeetingByStudentId}/${studentId}`,
           onSuccess: (res) => {
-            setClasses(res?.upcomingMeetings || []);
+            setClasses(res || []);
           },
           onFail: (err) => {
             console.error("Error fetching upcoming classes:", err);
