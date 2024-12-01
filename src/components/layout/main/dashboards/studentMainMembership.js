@@ -69,6 +69,7 @@
 import React from "react";
 import Image from "next/image";
 import PropTypes from "prop-types";
+import { CalendarClock } from "lucide-react";
 
 const StudentMainMembership = ({
   courseImage,
@@ -78,10 +79,26 @@ const StudentMainMembership = ({
   duration,
   sessionDuration,
   membershipName,
+  expiryDate,
   iconVideo,
   iconClock,
   fallbackImage,
 }) => {
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are zero-indexed
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
+
+  const hasExpired = (expiryDate) => {
+    const today = new Date(); 
+    const expiry = new Date(expiryDate); 
+  
+    return expiry < today; // Returns true if expiry date is in the past
+  };
+
   return (
     <div className="flex items-center dark:border shadow-student-dashboard p-5 rounded-lg overflow-hidden hover:scale-105 transform transition-transform duration-300">
       <div className="relative h-40 w-[40%]">
@@ -122,9 +139,25 @@ const StudentMainMembership = ({
           />
           {duration} | {sessionDuration}
         </div>
-        <p className="text-[#7ECA9D] font-bold text-xs mt-4">
-          Membership Name: {membershipName}
-        </p>
+        <div className="flex items-center font-semibold dark:text-white text-[#202244] text-[11px] mt-1">
+          <CalendarClock className="w-5 mr-2 h-5" />
+          Expiry Date: {formatDate(expiryDate)}
+        </div>
+        <div className="flex items-center justify-between mt-2">
+          <p className="text-[#7ECA9D] font-bold text-xs mt-2">
+            Membership Name: {membershipName}
+          </p>
+          <button
+            disabled={!hasExpired(expiryDate)}
+            className={`px-4 py-2.5 rounded-lg transition-all text-xs ${
+              !hasExpired(expiryDate)
+                ? "bg-gray-300 cursor-not-allowed"
+                : "bg-[#3B82F6] hover:bg-[#2563EB] active:bg-[#1D4ED8] text-white shadow-md hover:shadow-lg"
+            }`}
+          >
+            Renew
+          </button>
+        </div>
       </div>
     </div>
   );

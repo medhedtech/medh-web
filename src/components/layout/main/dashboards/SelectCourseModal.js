@@ -3,6 +3,7 @@ import { Search, X } from "lucide-react";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
 import SelectCourseCard from "./SelectCourseCard";
+import SelectCategoryCard from "./SelectCategoryCard";
 import usePostQuery from "@/hooks/postQuery.hook";
 import Education from "@/assets/images/course-detailed/education.svg";
 import { toast } from "react-toastify";
@@ -16,10 +17,12 @@ export default function SelectCourseModal({
   selectedPlan,
   closeParent,
 }) {
-  // const studentId = localStorage.getItem("userId");
+  const studentId = localStorage.getItem("userId");
   const [courses, setCourses] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCourses, setSelectedCourses] = useState([]);
+  const [selectedCategories, setSelectedCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { getQuery } = useGetQuery();
@@ -27,6 +30,8 @@ export default function SelectCourseModal({
   const [planAmount, setPlanAmount] = useState(
     Number(amount.replace("$", "")) || 0
   );
+  const [enrolledCategories, setEnrolledCategories] = useState([]);
+  const [enrolledCourses, setEnrolledCourses] = useState([]);
 
   const maxSelections = planType === "silver" ? 1 : 3;
   const [limit] = useState(40);
@@ -92,19 +97,9 @@ export default function SelectCourseModal({
       try {
         setLoading(true);
         getQuery({
-          url: apiUrls?.courses?.getAllCoursesWithLimits(
-            page,
-            limit,
-            "",
-            "",
-            "",
-            "Upcoming",
-            "",
-            "",
-            true
-          ),
+          url: apiUrls?.courses?.getAllCourses,
           onSuccess: (res) => {
-            setCourses(res?.courses || []);
+            setCourses(res || []);
           },
           onFail: (err) => {
             console.error("Error fetching courses:", err);
@@ -119,13 +114,36 @@ export default function SelectCourseModal({
       }
     };
 
+    const fetchCategories = () => {
+      try {
+        setLoading(true);
+        getQuery({
+          url: apiUrls?.categories?.getAllCategories,
+          onSuccess: (res) => {
+            console.log("response", res);
+            setCategories(res?.data || []);
+          },
+          onFail: (err) => {
+            console.error("Error fetching categories:", err);
+            setError("Failed to load categories. Please try again later.");
+          },
+        });
+      } catch (err) {
+        console.error(err);
+        setError("Failed to load courses. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
     if (isOpen) {
       fetchCourses();
+      fetchCategories();
     }
   }, [isOpen]);
 
-  const filteredCourses = courses.filter((course) =>
-    course.course_title.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredCategories = categories.filter((category) =>
+    category.category_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const toggleCourseSelection = (course) => {
@@ -133,6 +151,16 @@ export default function SelectCourseModal({
       setSelectedCourses(selectedCourses.filter((c) => c._id !== course._id));
     } else if (selectedCourses.length < maxSelections) {
       setSelectedCourses([...selectedCourses, course]);
+    }
+  };
+
+  const toggleCategorySelection = (category) => {
+    if (selectedCategories.find((c) => c._id === category._id)) {
+      setSelectedCategories(
+        selectedCategories.filter((c) => c._id !== category._id)
+      );
+    } else if (selectedCategories.length < maxSelections) {
+      setSelectedCategories([...selectedCategories, category]);
     }
   };
 
@@ -166,7 +194,7 @@ export default function SelectCourseModal({
         url: apiUrls?.Membership?.addMembership,
         postData: {
           student_id: studentId,
-          course_ids: selectedCourses.map((course) => course._id),
+          category_ids: selectedCategories.map((category) => category._id),
           amount: planAmount,
           plan_type: planType,
           duration: selectedPlan.toLowerCase(),
@@ -177,6 +205,19 @@ export default function SelectCourseModal({
           // Extract expiry_date from the membership response
           const membershipId = res?.data?._id;
           const expiryDate = res?.data?.expiry_date;
+          const categoryNames =
+            res?.data?.category_ids?.map(
+              (category) => category.category_name
+            ) || [];
+          console.log("All Categories: ", categoryNames);
+
+          const groupedCourses = categoryNames.map((category) => courses.filter((course) => course.category === category));
+          console.log("Enrolled Courses: ", groupedCourses);
+
+          const enrolledCourses = groupedCourses.flatMap((group) =>
+            group.map((course) => course._id) 
+          );
+          console.log("Enrolled Course IDs: ", enrolledCourses);
 
           if (!membershipId || !expiryDate) {
             toast.error("Membership response is missing required data.");
@@ -184,20 +225,20 @@ export default function SelectCourseModal({
           }
 
           // Enroll courses with the same expiry date
-          const enrollmentPromises = selectedCourses.map((course) =>
+          const enrollmentPromises = enrolledCourses.map((id) =>
             postQuery({
               url: apiUrls?.EnrollCourse?.enrollCourse,
               postData: {
                 student_id: studentId,
-                course_id: course._id,
+                course_id: id,
                 membership_id: membershipId,
                 expiry_date: expiryDate,
               },
               onSuccess: () => {
-                console.log(`Successfully enrolled in course: ${course._id}`);
+                console.log(`Successfully enrolled in course: ${id}`);
               },
               onFail: (err) => {
-                console.error(`Failed to enroll in course: ${course._id}`, err);
+                console.error(`Failed to enroll in course: ${id}`, err);
                 // toast.error(
                 //   `Failed to enroll in course: ${course.course_title}`
                 // );
@@ -230,6 +271,7 @@ export default function SelectCourseModal({
     handleSubscribe();
     onClose();
     closeParent();
+
   };
 
   if (!isOpen) return null;
@@ -269,7 +311,7 @@ export default function SelectCourseModal({
         </div>
 
         {/* Course List */}
-        <div
+        {/* <div
           className="overflow-y-auto p-4"
           style={{ maxHeight: "calc(90vh - 200px)" }}
         >
@@ -291,13 +333,42 @@ export default function SelectCourseModal({
               ))}
             </div>
           )}
+        </div> */}
+        <div
+          className="overflow-y-auto p-4"
+          style={{
+            maxHeight: "calc(90vh - 200px)",
+            minHeight: "calc(90vh - 200px)",
+          }}
+        >
+          {loading ? (
+            <div className="flex justify-center items-center h-40">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3B82F6]"></div>
+            </div>
+          ) : error ? (
+            <div className="text-red-500 text-center p-4">{error}</div>
+          ) : (
+            <div className="grid grid-cols-1 gap-6">
+              {filteredCategories &&
+                filteredCategories.map((category) => (
+                  <SelectCategoryCard
+                    key={category._id}
+                    category={category}
+                    isSelected={selectedCategories.some(
+                      (c) => c._id === category._id
+                    )}
+                    onClick={() => toggleCategorySelection(category)}
+                  />
+                ))}
+            </div>
+          )}
         </div>
 
         {/* Footer */}
         <div className="p-4 border-t border-gray-200 bg-gray-50">
           <div className="flex items-center justify-between">
             <div className="text-sm text-gray-600">
-              {selectedCourses.length} of {maxSelections} selected
+              {selectedCategories.length} of {maxSelections} selected
             </div>
             <div className="flex gap-3">
               <button
@@ -308,9 +379,9 @@ export default function SelectCourseModal({
               </button>
               <button
                 onClick={handleProceedToPay}
-                disabled={selectedCourses.length === 0}
+                disabled={selectedCategories.length === 0}
                 className={`px-6 py-2.5 rounded-lg transition-all ${
-                  selectedCourses.length === 0
+                  selectedCategories.length === 0
                     ? "bg-gray-300 cursor-not-allowed"
                     : "bg-[#3B82F6] hover:bg-[#2563EB] active:bg-[#1D4ED8] text-white shadow-md hover:shadow-lg"
                 }`}

@@ -364,15 +364,36 @@ import useGetQuery from "@/hooks/getQuery.hook";
 const StudentMembershipCard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [studentId, setStudentId] = useState(null);
+  const [courses, setCourses] = useState([]);
   const { getQuery } = useGetQuery();
   const [memberships, setMemberships] = useState([]);
   const [hasFetched, setHasFetched] = useState(false);
+  const [membershipDetails, setMembershipDetails] = useState();
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedUserId = localStorage.getItem("userId");
       setStudentId(storedUserId);
     }
+
+    const fetchCourses = () => {
+      try {
+        getQuery({
+          url: apiUrls?.courses?.getAllCourses,
+          onSuccess: (res) => {
+            setCourses(res || []);
+          },
+          onFail: (err) => {
+            console.error("Error fetching courses:", err);
+          },
+        });
+      } catch (err) {
+        console.error(err);
+        
+      } 
+    };
+
+    fetchCourses();
   }, []);
 
   // Fetch memberships using useGetQuery
@@ -384,8 +405,34 @@ const StudentMembershipCard = () => {
         url: `${apiUrls?.Membership?.getMembershipBbyStudentId}/${studentId}`,
         onSuccess: (res) => {
           // Ensure memberships are extracted from the response structure
-          setMemberships(res.memberships || []);
+          setMemberships(res?.data || []);
           setHasFetched(true);
+          console.log("Membership data: ", res?.data);
+
+          const memberships = res?.data || [];
+          const membershipDetails = memberships.map((membership) => {
+            const categoryNames =
+              membership.category_ids?.map(
+                (category) => category.category_name
+              ) || [];
+            console.log("All Categories: ", categoryNames);
+
+            const groupedCourses = categoryNames.map((category) =>
+              courses.filter((course) => course.category === category)
+            );
+            console.log("grouped Courses: ", groupedCourses);
+
+            const enrolledCourses = groupedCourses.flat();
+            console.log("Enrolled Courses: ", enrolledCourses);
+
+            return {
+              ...membership,
+              courses: enrolledCourses,
+            };
+          });
+
+          console.log("Membership Details: ", membershipDetails);
+          setMembershipDetails(membershipDetails);
         },
         onFail: (err) => {
           console.error("Error fetching memberships:", err);
@@ -393,10 +440,11 @@ const StudentMembershipCard = () => {
       });
     };
 
-    if (studentId && !hasFetched) {
+    if (studentId && !hasFetched && courses.length > 0) {
       fetchMemberships();
     }
-  }, [studentId, hasFetched]);
+  }, [studentId, courses, hasFetched]);
+
 
   return (
     <section className="py-10 px-4">
@@ -414,7 +462,7 @@ const StudentMembershipCard = () => {
           </button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
-          {memberships?.map((membership) =>
+          {membershipDetails?.map((membership) =>
             membership.courses.map((course) => (
               <StudentMainMembership
                 key={
@@ -423,7 +471,7 @@ const StudentMembershipCard = () => {
                 courseImage={course.course_image}
                 title={course.course_title}
                 typeLabel={
-                  membership.category_type === "Live Courses"
+                  course.course_category === "Live Courses"
                     ? "Certificate"
                     : "Diploma"
                 }
@@ -431,9 +479,10 @@ const StudentMembershipCard = () => {
                 duration={course.course_duration}
                 sessionDuration={course.session_duration}
                 membershipName={
-                  membership.membership_type.charAt(0).toUpperCase() +
-                  membership.membership_type.slice(1).toLowerCase()
+                  membership.plan_type.charAt(0).toUpperCase() +
+                  membership.plan_type.slice(1).toLowerCase()
                 }
+                expiryDate={membership.expiry_date}
                 iconVideo={VideoClass}
                 iconClock={ClockLogo}
                 fallbackImage={FallBackUrl}
