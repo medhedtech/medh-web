@@ -20,6 +20,7 @@ import { FaShare } from "react-icons/fa";
 
 // Validation Schema
 const schema = yup.object({
+  category: yup.string().required("Course Category is required"),
   course_name: yup.string().required("Course name is required"),
   meet_link: yup.string().required("Meet link is required"),
   meet_title: yup.string().required("Meet title is required"),
@@ -60,6 +61,13 @@ const OnlineMeeting = () => {
   const [isCopied, setIsCopied] = useState(false);
   const [copiedCardId, setCopiedCardId] = useState(null);
   const [updateStatus, setUpdateStatus] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState();
+  const [filteredCourses, setFilteredCourses] = useState([]);
+  const [selectedCourseId, setSelectedCourseId] = useState();
+  const [enrolledStudents, setEnrolledStudents] = useState([]);
+  const [selectedStudents, setSelectedStudents] = useState([]);
+  const [fetchAgain, setFetchAgain] = useState(false);
 
   const {
     register,
@@ -78,12 +86,27 @@ const OnlineMeeting = () => {
   };
 
   useEffect(() => {
-    const fetchCourseNames = async () => {
+    // Fetch course categories and course names when the component mounts
+    const fetchInitialData = async () => {
       try {
+        // Fetch categories
         await getQuery({
-          url: apiUrls?.courses?.getCourseNames,
+          url: apiUrls?.categories?.getAllCategories,
+          onSuccess: (data) => {
+            setCategories(data.data);
+            console.log("Categories: ", data.data);
+          },
+          onFail: (err) => {
+            console.error("Error fetching categories", err);
+          },
+        });
+
+        // Fetch courses
+        await getQuery({
+          url: apiUrls?.courses?.getAllCourses,
           onSuccess: (data) => {
             setCourses(data);
+            console.log("Courses: ", data);
           },
           onFail: (err) => {
             console.error(
@@ -93,12 +116,68 @@ const OnlineMeeting = () => {
           },
         });
       } catch (error) {
-        console.error("Failed to fetch courses:", error);
+        console.error("Failed to fetch initial data:", error);
       }
     };
 
-    fetchCourseNames();
-  }, []);
+    fetchInitialData();
+    setFetchAgain(false);
+  }, [fetchAgain]);
+
+  useEffect(() => {
+    if (!selectedCategory) {
+      // Clear everything if no category is selected
+      setFilteredCourses([]);
+      setEnrolledStudents([]);
+      setSelectedCourseId();
+      console.log("No category selected, clearing states.");
+      return; // Exit early
+    }
+
+    console.log("Selected Category: ", selectedCategory);
+
+    // Reset dependent states
+    setFilteredCourses([]);
+    setEnrolledStudents([]);
+    setSelectedCourseId();
+
+    // Filter courses based on the selected category
+    const filteredCourses = courses.filter(
+      (course) => course.category === selectedCategory
+    );
+    setFilteredCourses(filteredCourses);
+
+    console.log("Filtered Courses: ", filteredCourses);
+  }, [selectedCategory, courses]);
+
+  useEffect(() => {
+    // Fetch enrolled students when a course is selected
+    const fetchEnrolledStudents = async () => {
+      try {
+        await getQuery({
+          url: `${apiUrls?.EnrollCourse?.getEnrolledStudentsByCourseId}/${selectedCourseId}`,
+          onSuccess: (data) => {
+            const enrolledStudents = data.map((s) => s.student_id);
+            console.log("Enrolled Students: ", enrolledStudents);
+            setEnrolledStudents(enrolledStudents);
+          },
+          onFail: (err) => {
+            console.error("Error fetching enrolled students: ", err);
+          },
+        });
+      } catch (err) {
+        console.error("Error fetching enrolled students: ", err);
+      }
+    };
+
+    if (selectedCourseId) {
+      console.log("Selected Course ID: ", selectedCourseId);
+
+      // Reset enrolled students before fetching
+      setEnrolledStudents([]);
+      fetchEnrolledStudents();
+    }
+  }, [selectedCourseId]);
 
   useEffect(() => {
     const fetchMeetings = async () => {
@@ -128,7 +207,11 @@ const OnlineMeeting = () => {
       await postQuery({
         url: apiUrls?.onlineMeeting?.createMeeting,
         postData: {
-          course_name: data.course_name,
+          category: data.category,
+          course_name: filteredCourses.find(
+            (course) => course._id === selectedCourseId
+          ).course_title,
+          students: selectedStudents || [],
           meet_link: data.meet_link,
           meet_title: data.meet_title,
           time: selectedTime ? selectedTime.format("HH:mm") : null,
@@ -141,6 +224,8 @@ const OnlineMeeting = () => {
           setSelectedTime(null);
           closeModal();
           setUpdateStatus((prev) => !prev);
+          resetStates();
+          setFetchAgain(true);
         },
         onFail: () => {
           toast.error("Error scheduling meeting.");
@@ -152,8 +237,19 @@ const OnlineMeeting = () => {
     }
   };
 
+  const resetStates = () => {
+    setCategories([]);
+    setSelectedCategory();
+    setFilteredCourses([]);
+    setSelectedCourseId();
+    setEnrolledStudents([]);
+    setSelectedStudents([]);
+  };
+
   const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
+  const closeModal = () => {
+    setIsModalOpen(false);
+  }
 
   const handleDateChange = (date) => {
     setSelectedDate(date);
@@ -318,9 +414,9 @@ const OnlineMeeting = () => {
         {/* Modal */}
         {isModalOpen && (
           <div className="fixed inset-0 flex justify-center items-center bg-gray-700 bg-opacity-50 z-50">
-            <div className="bg-white dark:bg-black p-4 rounded-lg w-[400px] md:w-[550px]">
+            <div className="bg-white dark:bg-black p-4 max-h-[90vh] overflow-auto rounded-lg w-[400px] md:w-[550px]">
               {/* <div className="flex justify-between items-center mb-2"> */}
-              <div className="bg-white dark:bg-black p-6 rounded-lg w-full relative">
+              <div className="bg-white dark:bg-black p-4  rounded-lg w-full relative">
                 <h3 className="text-2xl font-semibold mb-4">Create Meeting</h3>
                 <button
                   className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
@@ -348,6 +444,34 @@ const OnlineMeeting = () => {
                 {/* Course Name Dropdown */}
                 <div className="mb-4">
                   <label
+                    htmlFor="category"
+                    className="block text-sm font-medium  text-gray-600 mb-2"
+                  >
+                    Course Category
+                  </label>
+                  <select
+                    {...register("category")}
+                    className="w-full p-2 border rounded-lg text-gray-600"
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                  >
+                    <option value="">Select Category</option>
+                    {categories &&
+                      categories.map((category, index) => (
+                        <option key={index} value={category.category_name}>
+                          {category.category_name}
+                        </option>
+                      ))}
+                  </select>
+
+                  {errors.category && (
+                    <p className="text-red-500 text-xs">
+                      {errors.category.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="mb-4">
+                  <label
                     htmlFor="course_name"
                     className="block text-sm font-medium  text-gray-600 mb-2"
                   >
@@ -356,18 +480,111 @@ const OnlineMeeting = () => {
                   <select
                     {...register("course_name")}
                     className="w-full p-2 border rounded-lg text-gray-600"
+                    value={selectedCourseId || ""}
+                    onChange={(e) => setSelectedCourseId(e.target.value)}
                   >
                     <option value="">Select Course</option>
-                    {courses.map((course, index) => (
-                      <option key={index} value={course.course_title}>
-                        {course.course_title}
-                      </option>
-                    ))}
+                    {filteredCourses &&
+                      filteredCourses.map((course, index) => (
+                        <option key={index} value={course._id}>
+                          {course.course_title}
+                        </option>
+                      ))}
                   </select>
 
                   {errors.course_name && (
                     <p className="text-red-500 text-xs">
                       {errors.course_name.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="mb-4">
+                  <label
+                    htmlFor="students"
+                    className="flex justify-between text-sm font-medium text-gray-600 mb-2"
+                  >
+                    <p>Enrolled Students</p>
+                    <p className="text-green-500">
+                      Selected: {selectedStudents.length} /{" "}
+                      {enrolledStudents.length}
+                    </p>
+                  </label>
+
+                  {/* Check if students are available */}
+                  {enrolledStudents.length > 0 ? (
+                    <>
+                      {/* Select All Option */}
+                      <div className="flex items-center mb-2">
+                        <input
+                          type="checkbox"
+                          id="selectAll"
+                          checked={
+                            selectedStudents.length ===
+                              enrolledStudents.length &&
+                            enrolledStudents.length > 0
+                          }
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              // Select all students
+                              setSelectedStudents(
+                                enrolledStudents.map((student) => student._id)
+                              );
+                            } else {
+                              // Deselect all students
+                              setSelectedStudents([]);
+                            }
+                          }}
+                          className="mr-2"
+                        />
+                        <label htmlFor="selectAll" className="text-gray-600">
+                          Select All
+                        </label>
+                      </div>
+
+                      {/* List of Students */}
+                      <div className="max-h-40 overflow-y-auto border p-2 rounded-lg">
+                        {enrolledStudents.map((student) => (
+                          <div
+                            key={student._id}
+                            className="flex items-center mb-2"
+                          >
+                            <input
+                              type="checkbox"
+                              id={`student-${student._id}`}
+                              checked={selectedStudents.includes(student._id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  // Add the student to selected list
+                                  setSelectedStudents([
+                                    ...selectedStudents,
+                                    student._id,
+                                  ]);
+                                } else {
+                                  // Remove the student from selected list
+                                  setSelectedStudents(
+                                    selectedStudents.filter(
+                                      (id) => id !== student._id
+                                    )
+                                  );
+                                }
+                              }}
+                              className="mr-2"
+                            />
+                            <label
+                              htmlFor={`student-${student._id}`}
+                              className="text-gray-600"
+                            >
+                              {student.full_name}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    // Show this message if no students are enrolled
+                    <p className="text-gray-500 text-sm">
+                      No students available.
                     </p>
                   )}
                 </div>

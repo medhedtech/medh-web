@@ -48,6 +48,7 @@ export const apiUrls = {
     getMeetingDetails: "/online-meeting/get/:id",
     updateMeeting: "/online-meeting/update/:id",
     deleteMeeting: "/online-meeting/delete/:id",
+    getMeetingByStudentId: '/online-meeting/student'
   },
   Instructor: {
     getAllInstructors: "/instructors/get",
@@ -129,6 +130,7 @@ export const apiUrls = {
     getEnrolledCourseById: "/enroll/get",
     getEnrolledCoursesByStudentId: "/enroll/student",
     getUpcomingCoursesByStudentId: "/enroll/get-upcoming-meetings",
+    getEnrolledStudentsByCourseId: "/enroll/course",
   },
   Subscription: {
     AddSubscription: "/subscription/create",
