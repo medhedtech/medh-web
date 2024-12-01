@@ -28,10 +28,11 @@ const UpcomigClasses = () => {
     if (studentId) {
       const fetchUpcomingClasses = () => {
         getQuery({
-          url: `${apiUrls?.EnrollCourse?.getUpcomingCoursesByStudentId}/${studentId}`,
+          url: `${apiUrls?.onlineMeeting?.getMeetingByStudentId}/${studentId}`,
           onSuccess: (res) => {
             // Assuming response contains an array of classes
-            const sortedClasses = res?.upcomingMeetings || [];
+            console.log('upcoming', res)
+            const sortedClasses = res || [];
 
             // Separate ongoing classes
             const ongoingClasses = sortedClasses.filter((classItem) => {
