@@ -1,6 +1,6 @@
 // export const apiBaseUrl = "https://medh-backend.vercel.app/api/v1";  //vercel URL
-export const apiBaseUrl = "https://3.111.36.160.nip.io/api/v1"; //live instance URL
-// export const apiBaseUrl = "http://localhost:8080/api/v1"; // local URL
+// export const apiBaseUrl = "https://3.111.36.160.nip.io/api/v1"; //live instance URL
+export const apiBaseUrl = "http://localhost:8080/api/v1"; // local URL
 
 export const apiUrls = {
   user: {
@@ -25,13 +25,14 @@ export const apiUrls = {
       course_category,
       status,
       search,
-      course_grade
+      course_grade,
+      category
     ) =>
-      `/courses/getLimitedCourses?page=${page}&limit=${limit}&course_title=${course_title}&course_tag=${course_tag}&course_category=${course_category}&status=${status}&search=${search}&course_grade=${course_grade}`,
+      `/courses/getLimitedCourses?page=${page}&limit=${limit}&course_title=${course_title}&course_tag=${course_tag}&course_category=${course_category}&status=${status}&search=${search}&course_grade=${course_grade}&category=${category}`,
     getAllCourses: "/courses/get",
     getCourseById: "/courses/get",
     createCourse: "/courses/create",
-    updateCourse: "/courses/update/:id",
+    updateCourse: "/courses/update",
     deleteCourse: "/courses/delete",
     getCourseNames: "/courses/course-names",
     getEnrolledCoursesByStudentId: "/enroll/student",
