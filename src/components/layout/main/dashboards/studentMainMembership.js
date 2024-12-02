@@ -99,6 +99,10 @@ const StudentMainMembership = ({
     return expiry < today; // Returns true if expiry date is in the past
   };
 
+  const handleRenewMembership = () => {
+    console.log('Membership Renewed');
+  }
+
   return (
     <div className="flex items-center dark:border shadow-student-dashboard p-5 rounded-lg overflow-hidden hover:scale-105 transform transition-transform duration-300">
       <div className="relative h-40 w-[40%]">
@@ -148,11 +152,12 @@ const StudentMainMembership = ({
             Membership Name: {membershipName}
           </p>
           <button
+            onClick={handleRenewMembership}
             disabled={!hasExpired(expiryDate)}
             className={`px-4 py-2.5 rounded-lg transition-all text-xs ${
               !hasExpired(expiryDate)
                 ? "bg-gray-300 cursor-not-allowed"
-                : "bg-[#3B82F6] hover:bg-[#2563EB] active:bg-[#1D4ED8] text-white shadow-md hover:shadow-lg"
+                : "bg-[#3B82F6] hover:bg-[#2563EB] active:bg-[#1D4ED8] text-white shadow-md hover:shadow-lg cursor-pointer"
             }`}
           >
             Renew
