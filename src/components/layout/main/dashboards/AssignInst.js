@@ -257,6 +257,7 @@ const AssignInstructor = () => {
               <div>
                 <label className="block text-[#808080] text-xs px-2 font-medium mb-1">
                   Full Name
+                  <span className="text-red-500 ml-1">*</span>
                 </label>
                 <select
                   className="w-full px-4 py-2 border rounded-lg dark:bg-inherit dark:text-white text-gray-700 focus:outline-none"
@@ -280,6 +281,7 @@ const AssignInstructor = () => {
               <div>
                 <label className="block text-[#808080] text-xs px-2 font-medium mb-1">
                   Email
+                  <span className="text-red-500 ml-1">*</span>
                 </label>
                 <select
                   className="w-full px-4 py-2 border rounded-lg dark:bg-inherit dark:text-white text-gray-700 focus:outline-none"
@@ -303,6 +305,7 @@ const AssignInstructor = () => {
               <div>
                 <label className="block text-[#808080] text-xs px-2 font-medium mb-1">
                   Course Title
+                  <span className="text-red-500 ml-1">*</span>
                 </label>
                 <select
                   className="w-full px-4 py-2 border rounded-lg dark:bg-inherit dark:text-white text-gray-700 focus:outline-none"
@@ -326,6 +329,7 @@ const AssignInstructor = () => {
               <div>
                 <label className="block text-[#808080] text-xs px-2 font-medium mb-1">
                   Course Type
+                  <span className="text-red-500 ml-1">*</span>
                 </label>
                 <select
                   className="w-full px-4 py-2 border rounded-lg dark:bg-inherit dark:text-white text-gray-700 focus:outline-none"

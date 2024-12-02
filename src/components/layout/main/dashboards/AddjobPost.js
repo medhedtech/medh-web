@@ -69,6 +69,7 @@ const AddJobPost = () => {
               className="text-xs text-[#808080] font-medium mb-1"
             >
               Title
+              <span className="text-red-500 ml-1">*</span>
             </label>
             <input
               type="text"
@@ -91,6 +92,7 @@ const AddJobPost = () => {
               className="text-xs text-[#808080] font-medium mb-1"
             >
               Description
+              <span className="text-red-500 ml-1">*</span>
             </label>
             <textarea
               id="description"

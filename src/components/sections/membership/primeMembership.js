@@ -28,7 +28,7 @@ const membershipData = [
 
 const PrimeMembership = () => {
   return (
-    <div className="flex items-center justify-center py-12 w-full dark:bg-screen-dark bg-white">
+    <div id="enroll-section" className="flex items-center justify-center py-12 w-full dark:bg-screen-dark bg-white">
       <div className=" lg:w-[80%] w-[92%] flex justify-center items-center dark:text-white flex-col">
         <h1 className="text-2xl md:text-3xl font-bold mb-10 dark:text-gray50">
           Medh-SDP-Membership
