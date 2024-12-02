@@ -65,7 +65,7 @@ function CourseEducation({ courseId }) {
     },
     {
       label: "Online Sessions",
-      value: courseDetails1?.session_duration || "(90-120 min each)",
+      value: courseDetails1?.no_of_Sessions || "10",
       icon: Session,
     },
     { label: "Efforts", value: "4-6 hours per week", icon: Efforts },
@@ -84,7 +84,7 @@ function CourseEducation({ courseId }) {
     },
     {
       label: "ONLINE SESSIONS",
-      value: courseDetails1?.session_duration || "(90-120 min each)",
+      value: courseDetails1?.no_of_Sessions || "10",
       icon: Modegray,
     },
     {

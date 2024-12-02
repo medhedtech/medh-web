@@ -145,6 +145,7 @@ const AddStudentForm = () => {
               className="text-xs px-2 text-[#808080] font-medium mb-1"
             >
               Full Name
+              <span className="text-red-500 ml-1">*</span>
             </label>
             <div className="relative">
               <input
@@ -192,6 +193,7 @@ const AddStudentForm = () => {
               className="text-xs px-2 text-[#808080] font-medium mb-1"
             >
               Age
+              <span className="text-red-500 ml-1">*</span>
             </label>
             <input
               type="number"
@@ -212,6 +214,7 @@ const AddStudentForm = () => {
               className="text-xs px-2 text-[#808080] font-medium mb-1"
             >
               Email
+              <span className="text-red-500 ml-1">*</span>
             </label>
             <div className="relative">
               <input

@@ -11,6 +11,7 @@ import TechEducator from "@/components/sections/join-educator/techEducator";
 import MedhOffering from "@/components/sections/join-educator/medhOffering";
 import EducatorFaq from "@/components/sections/join-educator/educatorFaq";
 import ThemeController from "@/components/shared/others/ThemeController";
+import Certified from "@/components/sections/why-medh/Certified";
 
 function JoinEducator() {
   return (
@@ -22,6 +23,7 @@ function JoinEducator() {
         <Benefits />
         <HiringProcess />
         <Registration showUploadField={true} />
+        <Certified />
         <EducatorFaq />
         <div className="pb-16">
           <EducatorCourceBanner />
