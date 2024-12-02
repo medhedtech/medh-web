@@ -324,6 +324,8 @@ function VedicCource() {
     "Grade 5-6",
     "Grade 7-8",
     "Grade 9-10",
+    "Grade 11-12",
+    "UG - Graduate - Professionals",
   ];
 
   const coursesPerPage = 3;
@@ -337,11 +339,12 @@ function VedicCource() {
         currentPage,
         coursesPerPage,
         "",
+        "",
+        "",
+        "Published",
+        searchTerm,
         gradeQuery,
-        "",
-        "",
-        searchTerm || "Vedic Mathematics",
-        "",
+        "Vedic Mathematics",
         false
       ),
       onSuccess: (data) => {
@@ -421,6 +424,7 @@ function VedicCource() {
           <div className="w-full md:w-1/4">
             <CategoryFilter
               categories={categories}
+              selectedCategory={selectedGrade}
               setSelectedCategory={setSelectedGrade}
               heading="Grade"
             />

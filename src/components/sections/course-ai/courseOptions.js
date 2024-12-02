@@ -93,16 +93,18 @@ function CourseOptions() {
         "",
         "",
         "",
+        "Published",
+        "",
         "",
         "AI and Data Science",
-        "",
         false
       ),
       onSuccess: (data) => {
         const filtered = (data?.courses || [])
-          .filter((course) => course.course_title === "AI and Data Science")
+          .filter((course) => course.category === "AI and Data Science")
           .slice(0, 3);
         setFilteredCourses(filtered);
+        console.log(data)
       },
       onFail: (error) => {
         console.error("Error fetching courses:", error);

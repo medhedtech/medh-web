@@ -187,16 +187,17 @@ function PersonalityCourse() {
         currentPage,
         coursesPerPage,
         "",
+        "",
+        "",
+        "Published",
+        searchTerm,
         gradeQuery,
-        "",
-        "",
-        searchTerm || "Personality Development",
-        "",
+        "Personality Development",
         false
       ),
       onSuccess: (data) => {
         let courses = data?.courses || [];
-
+        console.log('per dev courses: ', courses)
         // Apply sorting
         if (sortOrder === "A-Z") {
           courses = courses.sort((a, b) =>
@@ -274,6 +275,7 @@ function PersonalityCourse() {
           <div className="w-full md:w-1/4">
             <CategoryFilter
               categories={categories}
+              selectedCategory={selectedGrade}
               setSelectedCategory={setSelectedGrade}
               heading="Grade"
             />
