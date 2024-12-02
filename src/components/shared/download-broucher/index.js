@@ -3,6 +3,7 @@ import { FaPaperPlane } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { apiUrls } from "@/apis";
 import usePostQuery from "@/hooks/postQuery.hook";
+import { FaTimes } from "react-icons/fa";
 
 const DownloadBrochureModal = ({ isOpen, onClose, courseTitle }) => {
   const { postQuery, loading } = usePostQuery();
