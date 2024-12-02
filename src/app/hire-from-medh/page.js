@@ -26,7 +26,9 @@ function HireFromMedh() {
         mainText="Start Hiring Skilled Professionals Now! Discover your next IT talent here…"
         subText="Let's Connect"
       /> */}
-      <Certified />
+      <div className="bg-white py-6">
+        <Certified />
+      </div>
       <HireFromMedhFaq />
       <HireFromMedhCourseBanner />
       <ThemeController />
