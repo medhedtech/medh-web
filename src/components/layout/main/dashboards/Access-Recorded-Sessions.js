@@ -27,7 +27,8 @@ const StudentRecordedSessions = () => {
           "Upcoming",
           "",
           "",
-          true
+          "",
+          true,
         ),
         onSuccess: (res) => {
           const freeCourses =
