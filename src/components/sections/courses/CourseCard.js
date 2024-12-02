@@ -15,7 +15,7 @@ const CourseCard = ({ course }) => {
   return (
     <div className="bg-white dark:bg-screen-dark flex flex-col justify-between shadow-md  dark:border-whitegrey border">
       <Image
-        src={image6}
+        src={course?.course_image || image6}
         alt={course?.course_title}
         className="rounded-md w-full"
         width={300}
