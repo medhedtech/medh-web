@@ -68,8 +68,9 @@ const VedicRalatedCource = () => {
         "",
         "",
         "",
-        "Vedic Mathematics",
         "",
+        "",
+        "Vedic Mathematics",
         false
       ),
       onSuccess: (data) => {
