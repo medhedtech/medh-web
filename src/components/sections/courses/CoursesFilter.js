@@ -244,15 +244,16 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
       url: apiUrls?.courses?.getAllCoursesWithLimits(
         currentPage,
         6,
-        categoryQuery,
         "",
         "",
         "",
+        "Published",
         searchTerm,
         "",
-        false
+        categoryQuery
       ),
       onSuccess: (data) => {
+        console.log("got data: ", data)
         setAllCourses(data?.courses || []);
         setTotalPages(data?.totalPages || 1);
       },
@@ -264,6 +265,7 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
 
   const applyFilters = () => {
     let filtered = allCourses;
+    console.log(allCourses)
     if (searchTerm) {
       filtered = filtered.filter(
         (course) =>
@@ -274,10 +276,11 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
 
     if (selectedCategory && selectedCategory !== "") {
       filtered = filtered.filter(
-        (course) =>
-          course.course_title &&
-          course.course_title.toLowerCase() === selectedCategory.toLowerCase()
+        (course) => course.category && course.category.toLowerCase() === selectedCategory.toLowerCase()
       );
+
+      console.log('Selected Category: ', selectedCategory)
+      console.log("filtered: ", filtered)
     }
     // Sorting the filtered courses based on the selected sort order
     if (sortOrder === "A-Z") {
@@ -399,10 +402,10 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
                 )}
               </div>
             </div>
-            <div className="w-full md:w-3/4">
+            <div className="w-full md:w-3/4 ">
               <div className="w-full md:w-[100%] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {loading ? (
-                  <div className="col-span-full text-center bg-red-500">
+                  <div className="col-span-full min-h-[70vh] text-center">
                     <Preloader2 />
                   </div>
                 ) : filteredCourses.length > 0 ? (
@@ -414,7 +417,7 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
                     />
                   ))
                 ) : (
-                  <div className="col-span-full text-center text-[#5C6574]">
+                  <div className="col-span-full flex justify-center items-center min-h-[70vh] text-center text-[#5C6574]">
                     No courses found.
                   </div>
                 )}
