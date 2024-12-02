@@ -17,74 +17,73 @@ export default function SchoolFaq() {
       question:
         "What is the process for schools/institutes to partner with Medh?",
       answer:
-        "The Personality Development Course is designed to help individuals enhance their personal and professional skills through various interactive sessions and practical exercises.",
+        "To partner with Medh, visit our Collaboration Page, fill out the partnership inquiry form, and our team will get in touch to discuss the details and tailor a collaboration plan that fits your institution’s needs.",
     },
     {
       question: "What are the key benefits of partnering with Medh?",
       answer:
-        "The duration of the course is typically 6 weeks, with classes held twice a week.",
+        "Partnering with Medh offers numerous benefits including enhanced curriculum, diversified skill sets, access to specialized expertise, integration of advanced technology, cost-effective solutions, scalability, increased student engagement, data-driven insights, teacher empowerment, and better preparation for future careers.",
     },
     {
       question: "How does Medh enhance the existing curriculum?",
       answer:
-        "Yes, the course is suitable for individuals of all ages, from students to professionals.",
+        "MEDH enriches the existing curriculum by integrating cutting-edge technologies and innovative teaching methods, making learning more engaging, interactive, and effective for students.",
     },
     {
       question: "What kind of skill development programs does Medh offer?",
       answer:
-        "The course covers various topics such as communication skills, leadership, teamwork, and self-awareness.",
+        "MEDH offers a diverse range of skill development programs that prepare students for a rapidly evolving job market, equipping them with a broader range of competencies tailored to specific skills and industries.",
     },
     {
       question: "How does Medh ensure the quality of its courses?",
       answer:
-        "Absolutely! The skills learned in this course are highly beneficial for career growth and personal development.",
+        "Our subject matter experts design and deliver specialized courses, ensuring that students receive high-quality education tailored to specific skills and industries. We also provide regular updates based on the latest educational research and feedback from students and educators.",
     },
     {
       question: "How does Medh integrate technology into teaching methods?",
       answer:
-        "The Personality Development Course is designed to help individuals enhance their personal and professional skills through various interactive sessions and practical exercises.",
+        "Medh collaborates with institutions to integrate state-of-the-art tools, platforms, and applications into their teaching methods, enhancing students’ digital literacy and technological proficiency.",
     },
     {
       question: "Is partnering with Medh cost-effective?",
       answer:
-        "The duration of the course is typically 6 weeks, with classes held twice a week.",
+        "Yes, collaborating with Medh provides cost-effective alternatives compared to developing in-house skill development courses, offering a broader range of skill development opportunities without straining budgets.",
     },
     {
       question: "Can Medh's solutions accommodate a large number of students?",
       answer:
-        "Yes, the course is suitable for individuals of all ages, from students to professionals.",
+        "Yes, Medh’s solutions are scalable, making it easier to accommodate a larger number of students without compromising the quality of education. Additionally, these courses can be tailored to suit various academic schedules.",
     },
     {
       question: "How does Medh increase student engagement and motivation?",
       answer:
-        "The course covers various topics such as communication skills, leadership, teamwork, and self-awareness.",
+        "Medh uses gamified learning, interactive quizzes, and real-time progress tracking to make the learning process more enjoyable and encourage active participation and motivation among students.",
     },
     {
       question:
         "What kind of data-driven insights does Medh provide to educators?",
       answer:
-        "Yes, the course is suitable for individuals of all ages, from students to professionals.",
+        "We provide comprehensive data analytics and insights to educators, enabling them to track students’ progress, identify areas for improvement, and personalize instruction based on individual learning patterns.",
     },
     {
       question: "How does Medh empower teachers?",
       answer:
-        "The course covers various topics such as communication skills, leadership, teamwork, and self-awareness.",
+        "Skill development collaboration with Medh empowers teachers by providing them with training and resources to implement modern teaching methodologies, boosting their confidence and teaching abilities, ultimately benefiting the students.",
     },
     {
       question: "How does Medh prepare students for future careers?",
       answer:
-        "Absolutely! The skills learned in this course are highly beneficial for career growth and personal development.",
+        "Medh prepares students for future careers by aligning the curriculum with industry demands, ensuring that students are equipped with the necessary skills and knowledge required to excel in their chosen professions.",
     },
     {
       question: "What makes Medh’s approach to education innovative?",
       answer:
-        "The Personality Development Course is designed to help individuals enhance their personal and professional skills through various interactive sessions and practical exercises.",
+        "Medh’s approach to education promotes independence, enhances creativity, encourages teamwork, develops social skills, improves communication skills, and prepares students to think on their feet and take calculated risks.",
     },
-
     {
       question: "How can we get started with Medh?",
       answer:
-        "The course covers various topics such as communication skills, leadership, teamwork, and self-awareness.",
+        "To get started with Medh, visit our Collaboration Page or contact our support team at support@medh.co. We look forward to collaborating with you to bring innovative and effective education solutions to your institution.",
     },
   ];
 

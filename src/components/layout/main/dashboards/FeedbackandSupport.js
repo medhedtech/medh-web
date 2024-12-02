@@ -101,6 +101,7 @@ const FeedbackandSupport = () => {
           <div className="flex items-center space-x-4 mb-4">
             <p className="mb-4 text-size-22 dark:text-white">
               Write Review about Course/Instructor
+              <span className="text-red-500 ml-1">*</span>
             </p>
             <div className="flex gap-3 mb-2.5">
               {/* Course radio button */}
@@ -150,6 +151,7 @@ const FeedbackandSupport = () => {
           <div className="mb-4">
             <label className="block text-gray-700 mb-2 dark:text-white">
               Title
+              <span className="text-red-500 ml-1">*</span>
             </label>
             <input
               type="text"
@@ -165,7 +167,7 @@ const FeedbackandSupport = () => {
 
           <div className="relative w-full mb-4">
             <textarea
-              placeholder="Type Review................"
+              placeholder="Type Review * ................"
               rows="4"
               {...registerFeedback("feedbackText")}
               className="w-full p-3 border dark:bg-inherit dark:text-white rounded-lg text-[#434343BF] focus:outline-none focus:ring-1 focus:ring-green-300"
@@ -196,6 +198,7 @@ const FeedbackandSupport = () => {
           <div className="mb-4">
             <label className="block text-gray-700 mb-2 dark:text-white">
               Title
+              <span className="text-red-500 ml-1">*</span>
             </label>
             <input
               type="text"
@@ -213,6 +216,7 @@ const FeedbackandSupport = () => {
           <div className="mb-11">
             <label className="block dark:text-white text-gray-700 mb-2">
               Write Complaint
+              <span className="text-red-500 ml-1">*</span>
             </label>
             <textarea
               placeholder="Write....."
