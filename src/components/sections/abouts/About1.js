@@ -25,6 +25,7 @@ const About1 = () => {
           "",
           "",
           "",
+          "",
           false
         ),
         onSuccess: (res) => {
@@ -59,8 +60,7 @@ const About1 = () => {
               <div className="bg-white border dark:border-whitegrey shadow-2xl flex flex-col overflow-hidden hover:scale-105 transition-transform duration-300 h-full">
                 <div className="relative w-full h-48">
                   <Image
-                    src={aidata}
-                    // src={course.course_videos?.[0] || aidata}
+                    src={course?.course_image || aidata}
                     alt={course?.course_title}
                     fill
                     objectFit="cover"

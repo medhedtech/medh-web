@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import usePostQuery from "@/hooks/postQuery.hook";
 import { apiUrls } from "@/apis";
 import { useForm } from "react-hook-form";
@@ -10,7 +10,7 @@ import { toast } from "react-toastify";
 import Preloader from "@/components/shared/others/Preloader";
 import useGetQuery from "@/hooks/getQuery.hook";
 import Image from "next/image";
-import { CircleCheckBig, Upload } from "lucide-react";
+import { Upload } from "lucide-react";
 import ResourceUploadModal from "./ResourceUploadModal";
 
 // Validation Schema
@@ -66,8 +66,9 @@ const schema = yup.object({
   course_grade: yup.string().required("Grade is required"), 
 });
 
-const AddCourse = () => {
+const UpdateCourse = () => {
   const router = useRouter();
+  const courseId = useParams().courseId;
   const [selectedCategory, setSelectedCategory] = useState("");
   const [courseVideos, setCourseVideos] = useState([]);
   const [pdfBrochures, setPdfBrochures] = useState([]);
@@ -87,6 +88,8 @@ const AddCourse = () => {
   const [isResourceModatOpen, setResourceModalOpen] = useState(false);
   const [resourceVideos, setResourceVideos] = useState([]);
   const [resourcePdfs, setResourcePdfs] = useState([]);
+
+  const [fetchedCourseDetails , setFetchedCourseDetails] = useState(null);
 
   const {
     register,
@@ -115,7 +118,49 @@ const AddCourse = () => {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+
+}, []);
+
+useEffect(()=>{
+    const fetchCourseDetails = async () => {
+        try{
+            await getQuery({
+                url: `${apiUrls?.courses?.getCourseById}/${courseId}`,
+                onSuccess: (res) => {
+                    console.log("Fetched: ", res)
+                    setFetchedCourseDetails(res);
+                },
+                onFail: (err) => {
+                    console.error('Error Fetching Course details: ', err);
+                }
+            })
+        } catch(err){
+            console.log('Error Fetching course details: ', err);
+        }
+    }
+
+    fetchCourseDetails();
+}, [courseId])
+
+useEffect(()=>{
+    if (!fetchedCourseDetails) return;
+    const {course_category, course_title, category, course_tag, no_of_Sessions, session_duration, course_duration, course_fee, course_grade, course_description, course_videos, course_image, brochures, resource_pdfs, resource_videos} = fetchedCourseDetails;
+    if(course_category){setSelectedCategory(course_category); setValue("course_category", course_category)}
+    if(course_title){setValue("course_title", course_title);}
+    if(category){setSelected(category); setValue('category', category);}
+    if(course_tag){setValue('course_tag', course_tag)}
+    if(no_of_Sessions){setValue('no_of_Sessions', no_of_Sessions)}
+    if(session_duration){setValue('session_duration', session_duration); setSessionDurationValue(session_duration.split(" ")[0]); setSessionDurationUnit(session_duration.split(" ")[1])}
+    if(course_duration){setValue('course_duration', course_duration), setCourseDurationValue(course_duration.split(" ")[0]); setCourseDurationUnit(course_duration.split(" ")[1])}
+    if(course_fee){setValue("course_fee", course_fee);}
+    if(course_grade){setValue("course_grade", course_grade);}
+    if(course_description){setValue("course_description", course_description);}
+    if(course_videos){setCourseVideos(course_videos)}
+    if(brochures){setPdfBrochures(brochures)}
+    if(course_image){setThumbnailImage(course_image)}
+    if(resource_videos){setResourceVideos(resource_videos)}
+    if(resource_pdfs){setResourcePdfs(resource_pdfs)}
+}, [fetchedCourseDetails])
 
   const fetchAllCategories = () => {
     try {
@@ -216,65 +261,6 @@ const AddCourse = () => {
     }
   };
 
-  // const handleVideoUpload = async (e) => {
-  //   const file = e.target.files[0];
-  //   if (file) {
-  //     try {
-  //       const reader = new FileReader();
-  //       reader.readAsDataURL(file);
-  //       reader.onload = async () => {
-  //         const base64 = reader.result.split(",")[1];
-  //         const postData = { base64String: base64, fileType: "video" };
-
-  //         await postQuery({
-  //           url: apiUrls?.upload?.uploadMedia,
-  //           postData,
-  //           onSuccess: (data) => {
-  //             setCourseVideo(data?.data);
-  //             setValue("video", data?.data);
-  //             console.log("Video uploaded successfully:", data?.data);
-  //           },
-  //           onError: (error) => {
-  //             toast.error("Video upload failed. Please try again.");
-  //             console.error("Upload error:", error);
-  //           },
-  //         });
-  //       };
-  //     } catch (error) {
-  //       console.error("Error uploading video:", error);
-  //     }
-  //   }
-  // };
-
-  // const handlePdfUpload = async (e) => {
-  //   const file = e.target.files[0];
-  //   if (file) {
-  //     try {
-  //       const reader = new FileReader();
-  //       reader.readAsDataURL(file);
-  //       reader.onload = async () => {
-  //         const base64 = reader.result;
-  //         const postData = { base64String: base64 };
-
-  //         await postQuery({
-  //           url: apiUrls?.upload?.uploadDocument,
-  //           postData,
-  //           onSuccess: (data) => {
-  //             console.log("PDF uploaded successfully:", data?.data);
-  //             setPdfBrochure(data?.data);
-  //           },
-  //           onError: (error) => {
-  //             toast.error("PDF upload failed. Please try again.");
-  //             console.error("Upload error:", error);
-  //           },
-  //         });
-  //       };
-  //     } catch (error) {
-  //       console.error("Error uploading PDF:", error);
-  //     }
-  //   }
-  // };
-
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -305,33 +291,6 @@ const AddCourse = () => {
     }
   };
 
-  // // Handle form submission
-  // const onSubmit = async (data) => {
-  //   try {
-  //     const postData = {
-  //       ...data,
-  //       course_videos: courseVideo ? [courseVideo] : [],
-  //       brochures: pdfBrochure ? [pdfBrochure] : [],
-  //     };
-
-  //     await postQuery({
-  //       url: apiUrls?.courses?.createCourse,
-  //       postData,
-  //       onSuccess: () => {
-  //         router.push("/dashboards/admin-add-data");
-  //         toast.success("Course added successfully!");
-  //       },
-  //       onFail: (error) => {
-  //         toast.error("Adding course failed. Please try again.");
-  //         console.log("Adding course failed:", error);
-  //       },
-  //     });
-  //   } catch (error) {
-  //     console.error("An unexpected error occurred:", error);
-  //     toast.error("An unexpected error occurred. Please try again.");
-  //   }
-  // };
-
   const onSubmit = async (data) => {
     try {
       // Gather form data along with uploaded video and PDF brochure links
@@ -349,7 +308,7 @@ const AddCourse = () => {
       console.log("POSTDATA: ", postData);
 
       // Navigate to the preview page
-      router.push("/dashboards/admin-add-data");
+      router.push(`/dashboards/admin-update-data/${courseId}`);
     toast.success("Course details saved locally!");
     } catch (error) {
       console.error("An error occurred:", error);
@@ -390,7 +349,7 @@ const AddCourse = () => {
   return (
     <div className="min-h-screen font-Poppins flex items-center justify-center pt-8  dark:bg-inherit dark:text-whitegrey3  bg-gray-100">
       <div className="bg-white p-8 rounded-lg  dark:bg-inherit dark:text-whitegrey3 dark:border shadow-lg w-full max-w-6xl">
-        <h2 className="text-2xl font-semibold mb-6">Add Course Details</h2>
+        <h2 className="text-2xl font-semibold mb-6">Update Course Details</h2>
 
         {/* Select Category */}
         <div className="mb-6">
@@ -753,9 +712,8 @@ const AddCourse = () => {
                 onClick={handleResourceModal}
                 className="flex items-center w-full justify-center gap-2 px-4 py-2.5 border border-gray-200 rounded-md hover:bg-gray-100 transition-colors"
               >
-                {(resourceVideos.length > 0 || resourcePdfs.length > 0) ? <CircleCheckBig className="w-4 h-16 text-customGreen" /> : <Upload className="w-4 h-16" /> }
-                {(resourceVideos.length > 0 || resourcePdfs.length > 0) ? <span className="text-customGreen">Files Uploaded</span> : <span>Upload Files</span> }
-                
+                <Upload className="w-4 h-16" />
+                <span>Upload Files</span>
               </button>
             </div>
           </div>
@@ -896,4 +854,4 @@ const AddCourse = () => {
   );
 };
 
-export default AddCourse;
+export default UpdateCourse;
