@@ -68,9 +68,10 @@ function DigiMarketingCource() {
         "",
         "",
         "",
+        "Published",
+        "",
         "",
         "Digital Marketing with Data Analytics",
-        "",
         false
       ),
       onSuccess: (data) => {
