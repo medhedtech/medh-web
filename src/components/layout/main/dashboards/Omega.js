@@ -106,6 +106,7 @@ const DefineRoleForm = ({ id }) => {
               className="block text-sm font-medium text-gray-700 dark:text-whitegrey1"
             >
               Email ID
+              <span className="text-red-500 ml-1">*</span>
             </label>
             <select
               id="email"
@@ -133,6 +134,7 @@ const DefineRoleForm = ({ id }) => {
               className="block text-sm font-medium text-gray-700 dark:text-whitegrey1"
             >
               Select Role
+              <span className="text-red-500 ml-1">*</span>
             </label>
             <select
               id="role"
@@ -159,6 +161,7 @@ const DefineRoleForm = ({ id }) => {
               className="block text-sm font-medium text-gray-700 dark:text-whitegrey1"
             >
               Role Description
+              <span className="text-red-500 ml-1">*</span>
             </label>
             <textarea
               id="role_description"
@@ -180,6 +183,7 @@ const DefineRoleForm = ({ id }) => {
           <fieldset>
             <legend className="text-sm font-medium text-gray-700 mb-2 dark:text-whitegrey1">
               Permissions
+              <span className="text-red-500 ml-1">*</span>
             </legend>
             <div className="space-y-2 dark:text-white">
               <label className="flex items-center">
