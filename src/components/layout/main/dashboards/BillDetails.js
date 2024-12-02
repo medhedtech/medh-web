@@ -125,6 +125,7 @@ const BillDetails = () => {
           student_id: studentId,
           course_id: courseId,
           amount: amount,
+          status: 'success'
         },
         onSuccess: async () => {
           console.log("Payment successful!");
