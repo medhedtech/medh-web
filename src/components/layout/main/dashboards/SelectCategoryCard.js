@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Users, Clock, FileText, ChevronDown } from "lucide-react";
+import { Users, Clock, FileText, ChevronDown, ChevronUp } from "lucide-react";
 import AiMl from "@/assets/images/courses/Ai&Ml.jpeg";
 import Image from "next/image";
 import SelectCourseCard from './SelectCourseCard'
@@ -13,7 +13,7 @@ export default function CategoryCard({ category, isSelected, onClick }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [courses, setCourses] = useState([]);
-  const [membershipPostData, setMembershipPostData] = useState()
+  const [isDown, setIsDown] = useState(false);
 
   const imgSrc = category?.category_image || AiMl;
   useEffect(()=>{
@@ -94,9 +94,10 @@ export default function CategoryCard({ category, isSelected, onClick }) {
         onClick={(e) => {
           e.stopPropagation(); // Prevent the click event from triggering the parent onClick
           setIsPreviewOpen(!isPreviewOpen);
+          setIsDown((prev) => !prev)
         }}
       >
-        <ChevronDown />
+        {!isDown ? <ChevronDown /> : <ChevronUp />}
       </div>
 
       {/* Preview Section */}
