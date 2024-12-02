@@ -146,6 +146,7 @@ const AddCategories = ({ selectedCategory }) => {
               className="text-xs px-2 text-[#808080] font-medium mb-1"
             >
               Category Name
+              <span className="text-red-500 ml-1">*</span>
             </label>
             <div className="relative w-1/2">
               <input
@@ -167,7 +168,8 @@ const AddCategories = ({ selectedCategory }) => {
           <div className="flex items-center gap-8 flex-col sm:flex-row">
             <div>
               <p className="text-xs px-2 text-[#808080] font-medium mb-1">
-                Upload Blog Image
+                Upload Category Image
+                {/* <span className="text-red-500 ml-1">*</span> */}
               </p>
               <div className="border-dashed border-2 bg-purple border-gray-300 rounded-lg p-3 w-[210px] h-[140px] text-center relative">
                 <svg

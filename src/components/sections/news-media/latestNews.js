@@ -19,7 +19,7 @@ const latestNewsData = {
 
 function LatestNews() {
   return (
-    <section className="py-12 px-6 bg-white dark:bg-black">
+    <section id="enroll-section" className="py-12 px-6 bg-white dark:bg-black">
       <div className="mx-auto w-[80%]  flex flex-col ">
         <div className="text-center lg:px-35 font-popins">
           <h1 className=" text-3xl font-bold text-[#252525] dark:text-white mb-2">

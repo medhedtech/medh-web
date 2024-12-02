@@ -16,33 +16,27 @@ export default function CareerFaq() {
     {
       question: "What is Medh’s work culture like?",
       answer:
-        "The Personality Development Course is designed to help individuals enhance their personal and professional skills through various interactive sessions and practical exercises.",
+        "At Medh, we foster a collaborative, inclusive, and innovative work culture. We believe in supporting each other, encouraging creativity, and celebrating successes together.",
     },
     {
       question: "What career development opportunities does Medh offer?",
       answer:
-        "The duration of the course is typically 6 weeks, with classes held twice a week.",
+        "Medh is committed to your professional growth. We offer access to training sessions, workshops, and mentorship programs to help you advance in your career.",
     },
     {
       question: "What benefits can I expect as a Medh employee?",
       answer:
-        "Yes, the course is suitable for individuals of all ages, from students to professionals.",
-    },
-    {
-      question: "What benefits can I expect as a Medh employee?",
-      answer:
-        "The Personality Development Course is designed to help individuals enhance their personal and professional skills through various interactive sessions and practical exercises.",
+        "As a Medh employee, you can expect competitive compensation, flexible work arrangements, comprehensive health and wellness programs, and a supportive work environment.",
     },
     {
       question: "How can I apply for a job at Medh?",
       answer:
-        "Absolutely! The skills learned in this course are highly beneficial for career growth and personal development.",
+        "To apply, visit our Careers Page and click on the “Apply Now” button next to the job listing that interests you. Follow the instructions to submit your resume and cover letter.",
     },
-
     {
       question: "What is the recruitment process at Medh?",
       answer:
-        "The duration of the course is typically 6 weeks, with classes held twice a week.",
+        "Our recruitment process typically involves an initial application review, followed by a phone/video interview, an assessment or task related to the role, and a final interview. We strive to make the process smooth and efficient for all candidates.",
     },
   ];
 
