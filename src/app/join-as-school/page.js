@@ -9,6 +9,7 @@ import SchoolCourceBanner from "@/components/sections/join-as-school/schoolCours
 import SchoolFaq from "@/components/sections/join-as-school/schoolFaq";
 import AdvanceEducational from "@/components/sections/join-as-school/advanceEducational";
 import ThemeController from "@/components/shared/others/ThemeController";
+import Certified from "@/components/sections/why-medh/Certified";
 
 function JoinSchool() {
   return (
@@ -17,6 +18,9 @@ function JoinSchool() {
       <KeyAdvantages />
       <AdvanceEducational />
       <Registration />
+      <div className="bg-white">
+        <Certified />
+      </div>
       <SchoolFaq />
       <SchoolCourceBanner />
       <ThemeController />

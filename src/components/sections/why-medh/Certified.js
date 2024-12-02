@@ -55,7 +55,7 @@ const Certified = () => {
       id="certified-section"
       className="py-12 w-full dark:bg-screen-dark flex justify-center items-center"
     >
-      <div className="w-[80%] ">
+      <div id="courses-section" className="w-[80%] ">
         <h3 className="text-center text-[#5C6574] dark:text-gray-200 text-size-32 leading-34px font-bold mb-8">
           Certified & Recognized By
         </h3>
