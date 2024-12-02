@@ -90,6 +90,7 @@ const Gamma = () => {
           <div className="relative">
             <label className="block text-sm font-medium text-gray-600 dark:text-whitegrey3">
               Full Name
+              <span className="text-red-500 ml-1">*</span>
             </label>
             <div className="relative">
               <FontAwesomeIcon
@@ -114,6 +115,7 @@ const Gamma = () => {
           <div>
             <label className="block text-sm font-medium text-gray-600 dark:text-whitegrey3">
               Age
+              <span className="text-red-500 ml-1">*</span>
             </label>
             <input
               {...register("age")}
@@ -132,6 +134,7 @@ const Gamma = () => {
           <div className="relative">
             <label className="block text-sm font-medium text-gray-600 dark:text-whitegrey3">
               Email
+              <span className="text-red-500 ml-1">*</span>
             </label>
             <div className="relative">
               <FontAwesomeIcon
@@ -158,6 +161,7 @@ const Gamma = () => {
           <div className="relative">
             <label className="block text-sm font-medium text-gray-600 dark:text-whitegrey3">
               Phone number
+              <span className="text-red-500 ml-1">*</span>
             </label>
             <div className="relative">
               <FontAwesomeIcon
@@ -185,6 +189,7 @@ const Gamma = () => {
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-600 dark:text-whitegrey3">
               Select Role
+              <span className="text-red-500 ml-1">*</span>
             </label>
             <select
               {...register("role")}
@@ -209,6 +214,7 @@ const Gamma = () => {
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-600 dark:text-whitegrey3">
               Assign department
+              <span className="text-red-500 ml-1">*</span>
             </label>
             <select
               {...register("assign_department")}

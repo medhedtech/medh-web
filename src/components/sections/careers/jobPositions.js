@@ -263,7 +263,10 @@ const JobOpening = () => {
   }
 
   return (
-    <div className="w-full flex justify-center items-center p-4 bg-white dark:bg-screen-dark">
+    <div
+      id="enroll-section"
+      className="w-full flex justify-center items-center p-4 bg-white dark:bg-screen-dark"
+    >
       <div className="lg:w-[80%] w-[95%]">
         <h2 className="text-[#5C6574] text-center text-3xl dark:text-gray50 font-Poppins font-bold pb-6">
           Job Positions / Openings

@@ -28,6 +28,8 @@ export default function MainBanner({
       });
     }
   };
+
+  const condition = true;
   return (
     <div className="bg-black h-full text-white w-full relative flex justify-center  border-black py-10 md:py-0">
       {/* Banner Image (hidden on small screens) */}
@@ -89,7 +91,12 @@ export default function MainBanner({
                     {buttonText}
                   </button>
                 </Link>
-                <Link href="#courses-section" passHref>
+                <Link
+                  href={
+                    condition ? "#courses-section" : "/about#certified-section"
+                  }
+                  passHref
+                >
                   <p
                     className="border-b-2 border-gray-500 mt-10 ml-3 text-[12px] md:text-[15px]"
                     style={{ color: isoTextColor }}
