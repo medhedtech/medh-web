@@ -40,9 +40,10 @@ const DownloadBrochureModal = ({ isOpen, onClose, courseTitle }) => {
           course_title: courseTitle || "Default Course Title",
         },
         onSuccess: () => {
-          // toast.success("Brochure created and sent successfully!");
-          onClose();
+          console.log("API Success triggered");
           setShowModal(true);
+          toast.success("Brochure request submitted successfully!");
+          onClose();
         },
         onFail: () => {
           toast.error("An error occurred while sending the brochure.");
@@ -164,7 +165,6 @@ const DownloadBrochureModal = ({ isOpen, onClose, courseTitle }) => {
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-lg w-96 p-6 relative">
-            {/* Close Icon */}
             <button
               onClick={() => setShowModal(false)}
               className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 focus:outline-none"
@@ -172,13 +172,13 @@ const DownloadBrochureModal = ({ isOpen, onClose, courseTitle }) => {
               <FaTimes size={20} />
             </button>
 
-            {/* Modal Content */}
             <div className="text-center">
               <h2 className="text-lg md:text-[28px] font-semibold text-green-500">
                 🎉 Success!
               </h2>
               <p className="text-gray-700 mt-2">
-                Your form has been submitted successfully!
+                Your brochure has been sent successfully to your email! Please
+                check your inbox and download the brochure from there.
               </p>
               <button
                 onClick={() => setShowModal(false)}
