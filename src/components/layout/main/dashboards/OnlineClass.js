@@ -249,7 +249,7 @@ const OnlineMeeting = () => {
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => {
     setIsModalOpen(false);
-  }
+  };
 
   const handleDateChange = (date) => {
     setSelectedDate(date);
@@ -448,6 +448,7 @@ const OnlineMeeting = () => {
                     className="block text-sm font-medium  text-gray-600 mb-2"
                   >
                     Course Category
+                    <span className="text-red-500 ml-1">*</span>
                   </label>
                   <select
                     {...register("category")}
@@ -476,6 +477,7 @@ const OnlineMeeting = () => {
                     className="block text-sm font-medium  text-gray-600 mb-2"
                   >
                     Course Name
+                    <span className="text-red-500 ml-1">*</span>
                   </label>
                   <select
                     {...register("course_name")}
@@ -504,7 +506,10 @@ const OnlineMeeting = () => {
                     htmlFor="students"
                     className="flex justify-between text-sm font-medium text-gray-600 mb-2"
                   >
-                    <p>Enrolled Students</p>
+                    <p>
+                      Enrolled Students
+                      <span className="text-red-500 ml-1">*</span>
+                    </p>
                     <p className="text-green-500">
                       Selected: {selectedStudents.length} /{" "}
                       {enrolledStudents.length}
@@ -596,6 +601,7 @@ const OnlineMeeting = () => {
                     className="block text-sm font-medium text-gray-600 mb-2"
                   >
                     Meet Link
+                    <span className="text-red-500 ml-1">*</span>
                   </label>
                   <input
                     {...register("meet_link")}
@@ -617,6 +623,7 @@ const OnlineMeeting = () => {
                     className="block text-sm font-medium text-gray-600 mb-2"
                   >
                     Meet Title
+                    <span className="text-red-500 ml-1">*</span>
                   </label>
                   <input
                     {...register("meet_title")}
@@ -639,6 +646,7 @@ const OnlineMeeting = () => {
                       className="block text-sm font-medium text-gray-600 mb-2"
                     >
                       Date
+                      <span className="text-red-500 ml-1">*</span>
                     </label>
                     <DatePicker
                       name="date"
@@ -662,6 +670,7 @@ const OnlineMeeting = () => {
                       className="block text-sm font-medium text-gray-600 mb-2"
                     >
                       Time
+                      <span className="text-red-500 ml-1">*</span>
                     </label>
                     <TimePicker
                       value={selectedTime}

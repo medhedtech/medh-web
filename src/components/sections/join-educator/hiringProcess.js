@@ -63,7 +63,7 @@ const HiringProcess = () => {
   ];
 
   return (
-    <div className="w-full px-4 py-12 bg-white dark:bg-screen-dark  flex justify-center items-center">
+    <div id="enroll-section" className="w-full px-4 py-12 bg-white dark:bg-screen-dark  flex justify-center items-center">
       <div className="lg:w-[80%] w-[96%]">
         <h1 className="text-center text-4xl font-bold mb-12 dark:text-gray50">
           Process of Hiring an Educator at Medh!

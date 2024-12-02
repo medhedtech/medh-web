@@ -16,32 +16,37 @@ export default function MembershipFaq() {
     {
       question: "What is MEDH Membership?",
       answer:
-        "The Personality Development Course is designed to help individuals enhance their personal and professional skills through various interactive sessions and practical exercises.",
+        "MEDH Membership is a program designed to provide members with exclusive access to educational resources, discounts on courses, personalized support, and more. It aims to enhance the learning experience and support the professional development of individuals, students, and educational institutions.",
+    },
+    {
+      question: "What are the benefits of the Silver Membership?",
+      answer:
+        "You have the flexibility to explore and learn any or all courses within a ‘Single-Course-Category’ of your choice. Additionally, Silver Membership provides exclusive content access, discounts on courses, community engagement opportunities, and a monthly newsletter. It is perfect for those seeking high-quality educational resources and a chance to connect with a like-minded community.",
     },
     {
       question: "What additional benefits does the Gold Membership provide?",
       answer:
-        "The duration of the course is typically 6 weeks, with classes held twice a week.",
+        "You have the flexibility to explore and learn any programs within the ‘Three Course Categories’ of your choice. Additionally, the Gold Membership includes all the benefits of the Silver Membership, plus premium content access, personalized support, early access to new courses, and higher discount rates on all MEDH courses and programs. This membership is ideal for those seeking a more personalized and advanced learning experience.",
     },
     {
       question: "How can I join MEDH Membership?",
       answer:
-        "Yes, the course is suitable for individuals of all ages, from students to professionals.",
+        "To join MEDH Membership, simply visit our Membership Page, choose the membership level that suits your needs (Silver or Gold), and complete the registration process. Once registered, you will gain immediate access to all the benefits of your chosen membership level.",
     },
     {
       question: "Can I upgrade from Silver to Gold Membership?",
       answer:
-        "The course covers various topics such as communication skills, leadership, teamwork, and self-awareness.",
+        "Yes, you can upgrade from Silver to Gold Membership at any time. Simply visit your account settings and select the upgrade option to enjoy the additional benefits of Gold Membership.",
     },
     {
       question: "Are there any discounts for educational institutions?",
       answer:
-        "Absolutely! The skills learned in this course are highly beneficial for career growth and personal development.",
+        "Yes, MEDH offers special discounts and tailored membership plans for educational institutions. Please contact our support team at support@medh.co for more information on institutional memberships and discounts.",
     },
     {
       question: "How often is new content added to the membership library?",
       answer:
-        "The Personality Development Course is designed to help individuals enhance their personal and professional skills through various interactive sessions and practical exercises.",
+        "New content is added to the membership library on a regular basis. Members will receive notifications about new additions through our monthly newsletter and member forums",
     },
   ];
 
