@@ -4,7 +4,7 @@ import EducationalFeatureCard from "./educationalFeatureCard";
 function AdvanceEducational() {
   return (
     <>
-      <section className="py-10 bg-white dark:bg-screen-dark w-full flex justify-center items-center">
+      <section id="enroll-section" className="py-10 bg-white dark:bg-screen-dark w-full flex justify-center items-center">
         <div className="w-[92%] lg:w-[75%]">
           <h2 className="text-3xl font-bold text-center text-[#252525] dark:text-white">
             Creating future-ready students through advanced educational

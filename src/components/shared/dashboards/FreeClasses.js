@@ -59,10 +59,21 @@ const FreeCourses = () => {
   useEffect(() => {
     const fetchCourses = () => {
       getQuery({
-        url: apiUrls?.courses?.getAllCoursesWithLimits(page, limit, '', '', '', 'Upcoming', '', '', true),
+        url: apiUrls?.courses?.getAllCoursesWithLimits(
+          page,
+          limit,
+          "",
+          "",
+          "",
+          "Upcoming",
+          "",
+          "",
+          true
+        ),
         onSuccess: (res) => {
           // Filter the courses where isFree is true
-          const freeCourses = res?.courses?.filter(course => course.isFree === true) || [];
+          const freeCourses =
+            res?.courses?.filter((course) => course.isFree === true) || [];
           setFreeCourses(freeCourses.slice(0, 4));
           console.log(freeCourses); // Logging the filtered courses
         },
@@ -71,7 +82,7 @@ const FreeCourses = () => {
         },
       });
     };
-  
+
     fetchCourses();
   }, [page, limit]);
 
