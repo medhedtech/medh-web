@@ -14,13 +14,15 @@ const CourseCard = ({ course }) => {
 
   return (
     <div className="bg-white dark:bg-screen-dark flex flex-col justify-between shadow-md  dark:border-whitegrey border">
-      <Image
-        src={image6}
-        alt={course?.course_title}
-        className="rounded-md w-full"
-        width={300}
-        height={200}
-      />
+      <div className="relative w-full h-[200px] overflow-hidden">
+        <Image
+          src={course?.course_image || image6}
+          alt={course?.course_title}
+          layout="fill"
+          objectFit="cover"
+          className="rounded-md"
+        />
+      </div>
       <div className="text-center py-3">
         <h3 className="dark:text-gray300">{course?.course_category}</h3>
         <h3 className="font-bold text-[#5C6574] dark:text-gray300 text-lg ">

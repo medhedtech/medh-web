@@ -53,7 +53,7 @@ const RecordedSessions = () => {
   useEffect(() => {
     const fetchCourses = () => {
       getQuery({
-        url: apiUrls?.courses?.getAllCoursesWithLimits(page, limit, '', '', '', 'Upcoming', '', '', true),
+        url: apiUrls?.courses?.getAllCoursesWithLimits(page, limit, '', '', '', 'Upcoming', '', '', '', true),
         onSuccess: (res) => {
           // Filter the courses where isFree is true
           const freeCourses = res?.courses?.filter(course => course.course_tag === "Pre-Recorded") || [];
