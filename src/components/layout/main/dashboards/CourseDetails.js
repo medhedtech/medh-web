@@ -283,7 +283,7 @@ const CourseDetails = () => {
                 url={selectedVideo}
                 controls
                 width="100%"
-                height="auto"
+                height="70vh"
                 config={{
                   file: {
                     attributes: {
