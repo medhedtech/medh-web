@@ -4,6 +4,13 @@ import { usePathname } from "next/navigation";
 import ItemsDashboard from "./ItemsDashboard";
 import Image from "next/image";
 import NavbarLogo from "@/components/layout/header/NavbarLogo";
+import {
+  MdContactPhone,
+  MdWorkOutline,
+  MdFeedback,
+  MdCategory,
+} from "react-icons/md";
+import { FaUsers, FaBlog, FaUserGraduate } from "react-icons/fa";
 
 const SidebarDashboard = () => {
   const pathname = usePathname();
@@ -248,31 +255,7 @@ const SidebarDashboard = () => {
         {
           name: "Student Management",
           path: "/dashboards/admin-studentmange",
-          // tag: 12,
-          icon: (
-            <svg
-              width="16"
-              height="17"
-              viewBox="0 0 16 17"
-              fill="none"
-              stroke="currentColor"
-              xmlns="http://www.w3.org/2000/svg"
-              className="my-auto"
-            >
-              <path
-                d="M7.99996 8.41764C9.84091 8.41764 11.3333 6.92526 11.3333 5.08431C11.3333 3.24336 9.84091 1.75098 7.99996 1.75098C6.15901 1.75098 4.66663 3.24336 4.66663 5.08431C4.66663 6.92526 6.15901 8.41764 7.99996 8.41764Z"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-              <path
-                d="M13.7266 15.0841C13.7266 12.5041 11.16 10.4175 7.99998 10.4175C4.83998 10.4175 2.27332 12.5041 2.27332 15.0841"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          ),
+          icon: <FaUserGraduate size={18} color="#808080" />,
         },
         {
           name: "Instructor Management",
@@ -308,33 +291,7 @@ const SidebarDashboard = () => {
         {
           name: "Categories Management",
           path: "/dashboards/admin-category-manage",
-          // tag: 12,
-          icon: (
-            <svg
-              width="16"
-              height="24"
-              viewBox="0 0 24 20"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <g clip-path="url(#clip0_563_2039)">
-                <path
-                  d="M7.80006 13.5984C7.71044 13.5984 7.62081 13.6116 7.53531 13.6393C7.04931 13.7972 6.53819 13.8984 6.00006 13.8984C5.46194 13.8984 4.95081 13.7972 4.46444 13.6393C4.37894 13.6116 4.28969 13.5984 4.20006 13.5984C1.87281 13.5984 -0.0123144 15.4914 6.05804e-05 17.8217C0.00531058 18.8064 0.814935 19.5984 1.80006 19.5984H10.2001C11.1852 19.5984 11.9948 18.8064 12.0001 17.8217C12.0124 15.4914 10.1273 13.5984 7.80006 13.5984ZM6.00006 12.3984C7.98831 12.3984 9.60006 10.7867 9.60006 8.79844C9.60006 6.81019 7.98831 5.19844 6.00006 5.19844C4.01181 5.19844 2.40006 6.81019 2.40006 8.79844C2.40006 10.7867 4.01181 12.3984 6.00006 12.3984ZM22.2001 0.398438H7.80006C6.80744 0.398438 6.00006 1.23281 6.00006 2.25806V3.99844C6.87831 3.99844 7.69131 4.25269 8.40006 4.66594V2.79844H21.6001V13.5984H19.2001V11.1984H14.4001V13.5984H11.5411C12.2573 14.2243 12.7831 15.0508 13.0294 15.9984H22.2001C23.1927 15.9984 24.0001 15.1641 24.0001 14.1388V2.25806C24.0001 1.23281 23.1927 0.398438 22.2001 0.398438Z"
-                  fill="#808080"
-                />
-              </g>
-              <defs>
-                <clipPath id="clip0_563_2039">
-                  <rect
-                    width="24"
-                    height="19.2"
-                    fill="white"
-                    transform="translate(0 0.398438)"
-                  />
-                </clipPath>
-              </defs>
-            </svg>
-          ),
+          icon: <MdCategory size={18} color="#808080" />,
         },
         {
           name: "Generate Certificate",
@@ -358,93 +315,27 @@ const SidebarDashboard = () => {
         {
           name: "Get In Touch",
           path: "/dashboards/admin-get-in-touch",
-          icon: (
-            <svg
-              width="16"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M13 21L15 20L17 21V14H13M17 9V7L15 8L13 7V9L11 10L13 11V13L15 12L17 13V11L19 10M20 3H4C3.46957 3 2.96086 3.21071 2.58579 3.58579C2.21071 3.96086 2 4.46957 2 5V15C2 15.5304 2.21071 16.0391 2.58579 16.4142C2.96086 16.7893 3.46957 17 4 17H11V15H4V5H20V15H19V17H20C20.5304 17 21.0391 16.7893 21.4142 16.4142C21.7893 16.0391 22 15.5304 22 15V5C22 4.46957 21.7893 3.96086 21.4142 3.58579C21.0391 3.21071 20.5304 3 20 3ZM11 8H5V6H11M9 11H5V9H9M11 14H5V12H11V14Z"
-                fill="#808080"
-              />
-            </svg>
-          ),
+          icon: <MdContactPhone size={18} color="#808080" />,
         },
         {
           name: "Enrollments",
           path: "/dashboards/admin-enrollments",
-          icon: (
-            <svg
-              width="16"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M13 21L15 20L17 21V14H13M17 9V7L15 8L13 7V9L11 10L13 11V13L15 12L17 13V11L19 10M20 3H4C3.46957 3 2.96086 3.21071 2.58579 3.58579C2.21071 3.96086 2 4.46957 2 5V15C2 15.5304 2.21071 16.0391 2.58579 16.4142C2.96086 16.7893 3.46957 17 4 17H11V15H4V5H20V15H19V17H20C20.5304 17 21.0391 16.7893 21.4142 16.4142C21.7893 16.0391 22 15.5304 22 15V5C22 4.46957 21.7893 3.96086 21.4142 3.58579C21.0391 3.21071 20.5304 3 20 3ZM11 8H5V6H11M9 11H5V9H9M11 14H5V12H11V14Z"
-                fill="#808080"
-              />
-            </svg>
-          ),
+          icon: <FaUsers size={18} color="#808080" />,
         },
         {
           name: "Post Job",
           path: "/dashboards/admin-job-applicants",
-          icon: (
-            <svg
-              width="16"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M13 21L15 20L17 21V14H13M17 9V7L15 8L13 7V9L11 10L13 11V13L15 12L17 13V11L19 10M20 3H4C3.46957 3 2.96086 3.21071 2.58579 3.58579C2.21071 3.96086 2 4.46957 2 5V15C2 15.5304 2.21071 16.0391 2.58579 16.4142C2.96086 16.7893 3.46957 17 4 17H11V15H4V5H20V15H19V17H20C20.5304 17 21.0391 16.7893 21.4142 16.4142C21.7893 16.0391 22 15.5304 22 15V5C22 4.46957 21.7893 3.96086 21.4142 3.58579C21.0391 3.21071 20.5304 3 20 3ZM11 8H5V6H11M9 11H5V9H9M11 14H5V12H11V14Z"
-                fill="#808080"
-              />
-            </svg>
-          ),
+          icon: <MdWorkOutline size={18} color="#808080" />,
         },
-        
         {
           name: "Feedback & Complaints",
           path: "/dashboards/admin-feedback-and-complaints",
-          icon: (
-            <svg
-              width="16"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M13 21L15 20L17 21V14H13M17 9V7L15 8L13 7V9L11 10L13 11V13L15 12L17 13V11L19 10M20 3H4C3.46957 3 2.96086 3.21071 2.58579 3.58579C2.21071 3.96086 2 4.46957 2 5V15C2 15.5304 2.21071 16.0391 2.58579 16.4142C2.96086 16.7893 3.46957 17 4 17H11V15H4V5H20V15H19V17H20C20.5304 17 21.0391 16.7893 21.4142 16.4142C21.7893 16.0391 22 15.5304 22 15V5C22 4.46957 21.7893 3.96086 21.4142 3.58579C21.0391 3.21071 20.5304 3 20 3ZM11 8H5V6H11M9 11H5V9H9M11 14H5V12H11V14Z"
-                fill="#808080"
-              />
-            </svg>
-          ),
+          icon: <MdFeedback size={18} color="#808080" />,
         },
         {
           name: "Blogs",
           path: "/dashboards/admin-blogs",
-          icon: (
-            <svg
-              width="16"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M13 21L15 20L17 21V14H13M17 9V7L15 8L13 7V9L11 10L13 11V13L15 12L17 13V11L19 10M20 3H4C3.46957 3 2.96086 3.21071 2.58579 3.58579C2.21071 3.96086 2 4.46957 2 5V15C2 15.5304 2.21071 16.0391 2.58579 16.4142C2.96086 16.7893 3.46957 17 4 17H11V15H4V5H20V15H19V17H20C20.5304 17 21.0391 16.7893 21.4142 16.4142C21.7893 16.0391 22 15.5304 22 15V5C22 4.46957 21.7893 3.96086 21.4142 3.58579C21.0391 3.21071 20.5304 3 20 3ZM11 8H5V6H11M9 11H5V9H9M11 14H5V12H11V14Z"
-                fill="#808080"
-              />
-            </svg>
-          ),
+          icon: <FaBlog size={18} color="#808080" />,
         },
       ],
     },
