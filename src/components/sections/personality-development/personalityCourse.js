@@ -257,7 +257,7 @@ function PersonalityCourse() {
           </div>
 
           {/* Sorting Filter */}
-          <div className="border border-[#CDCFD5] px-2 py-2 rounded-md w-full md:w-auto">
+          <div className="border border-[#CDCFD5] px-2 py-0 rounded-md w-full md:w-auto">
             <select
               className="w-full outline-none dark:bg-screen-dark"
               value={sortOrder}
