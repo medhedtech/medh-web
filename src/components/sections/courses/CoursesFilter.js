@@ -225,6 +225,17 @@ const categories = [
   "Vedic Mathematics",
 ];
 
+const grades = [
+  "Preschool",
+  "Grade 1-2",
+  "Grade 3-4",
+  "Grade 5-6",
+  "Grade 7-8",
+  "Grade 9-10",
+  "Grade 11-12",
+  "UG - Graduate - Professionals",
+];
+
 const CoursesFilter = ({ CustomButton, CustomText }) => {
   const router = useRouter();
   const [allCourses, setAllCourses] = useState([]);
@@ -235,10 +246,12 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("A-Z");
   const { getQuery, loading } = useGetQuery();
+  const [selectedGrade, setSelectedGrade] = useState(null);
 
   // Fetch courses from API
   const fetchCourses = () => {
     const categoryQuery = selectedCategory ? selectedCategory : "";
+    const gradeQuery = selectedGrade || "";
 
     getQuery({
       url: apiUrls?.courses?.getAllCoursesWithLimits(
@@ -249,11 +262,12 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
         "",
         "Published",
         searchTerm,
-        "",
+        // "",
+        gradeQuery,
         categoryQuery
       ),
       onSuccess: (data) => {
-        console.log("got data: ", data)
+        console.log("got data: ", data);
         setAllCourses(data?.courses || []);
         setTotalPages(data?.totalPages || 1);
       },
@@ -265,7 +279,7 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
 
   const applyFilters = () => {
     let filtered = allCourses;
-    console.log(allCourses)
+    console.log(allCourses);
     if (searchTerm) {
       filtered = filtered.filter(
         (course) =>
@@ -276,11 +290,13 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
 
     if (selectedCategory && selectedCategory !== "") {
       filtered = filtered.filter(
-        (course) => course.category && course.category.toLowerCase() === selectedCategory.toLowerCase()
+        (course) =>
+          course.category &&
+          course.category.toLowerCase() === selectedCategory.toLowerCase()
       );
 
-      console.log('Selected Category: ', selectedCategory)
-      console.log("filtered: ", filtered)
+      console.log("Selected Category: ", selectedCategory);
+      console.log("filtered: ", filtered);
     }
     // Sorting the filtered courses based on the selected sort order
     if (sortOrder === "A-Z") {
@@ -305,7 +321,7 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
 
   useEffect(() => {
     fetchCourses();
-  }, [currentPage, searchTerm, selectedCategory, sortOrder]);
+  }, [currentPage, searchTerm, selectedCategory, sortOrder, selectedGrade]);
 
   useEffect(() => {
     applyFilters();
@@ -340,20 +356,7 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
               {/* Skill Development Courses */}
               {CustomText}
             </h1>
-            <div>
-              {CustomButton}
-              {/* <button
-                onClick={() => {
-                  router.push("/view-all-courses");
-                }}
-                className="cursor-pointer bg-[#7ECA9D] text-white px-4 py-2 mt-2 md:mt-0 flex gap-2"
-              >
-                <span>
-                  <ArrowIcon />
-                </span>{" "}
-                Explore More Courses
-              </button> */}
-            </div>
+            <div>{CustomButton}</div>
           </div>
           <div className="flex flex-col md:flex-row justify-between items-center mb-12 space-y-4 md:space-y-10">
             <div className="flex items-center mt-8 border border-[#CDCFD5] px-3 py-2 rounded-md w-full md:w-[50%] lg:w-[25%]">
@@ -365,7 +368,24 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
                 className="outline-none ml-2 w-full dark:bg-screen-dark dark:text-gray50"
               />
             </div>
-            <div className="border border-[#CDCFD5] px-2 py-2 rounded-md w-full md:w-auto">
+            {/* Grade Filter as Dropdown */}
+            <div className="w-full md:w-1/4">
+              <select
+                id="gradeFilter"
+                className="w-full border border-[#CDCFD5] px-2 py-2 rounded-md outline-none dark:bg-screen-dark dark:text-gray50"
+                value={selectedGrade || ""}
+                onChange={(e) => setSelectedGrade(e.target.value)}
+              >
+                <option value="">Select Grade</option>
+                {grades.map((grade, index) => (
+                  <option key={index} value={grade}>
+                    {grade}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {/* Sidebar Filter */}
+            <div className="border border-[#CDCFD5] px-2 py-0 rounded-md w-full md:w-auto">
               <select
                 className="w-full outline-none dark:bg-screen-dark"
                 value={sortOrder}
