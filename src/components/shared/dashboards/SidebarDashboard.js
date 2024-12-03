@@ -409,7 +409,7 @@ const SidebarDashboard = () => {
             </svg>
           ),
         },
-        
+
         {
           name: "Feedback & Complaints",
           path: "/dashboards/admin-feedback-and-complaints",
@@ -551,7 +551,7 @@ const SidebarDashboard = () => {
   ];
   const instructorItems = [
     {
-      title: "MICHLE OBEMA",
+      // title: "MICHLE OBEMA",
       items: [
         {
           name: "Dashboard",
@@ -575,271 +575,328 @@ const SidebarDashboard = () => {
           ),
         },
         {
-          name: "My Profile",
-          path: "/dashboards/instructor-profile",
+          name: "My Demo Class",
+          path: "/dashboards/instructor-class",
           icon: (
             <svg
-              xmlns="http://www.w3.org/2000/svg"
               width="16"
-              height="24"
-              viewBox="0 0 24 24"
+              height="17"
+              viewBox="0 0 16 17"
               fill="none"
+              className="my-auto"
               stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="feather feather-user"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-              <circle cx="12" cy="7" r="4"></circle>
+              <g clip-path="url(#clip0_220_2886)">
+                <path
+                  d="M1.33334 2.18066H14.6667V3.514H14V12.8473H9.60934L12.276 15.514L11.3333 16.4567L8.00001 13.1233L4.66668 16.4567L3.72401 15.514L6.39068 12.8473H2.00001V3.514H1.33334V2.18066ZM3.33334 3.514V11.514H12.6667V3.514H3.33334ZM6.66668 5.18066L9.77801 7.514L6.66668 9.84733V5.18066Z"
+                  fill="white"
+                />
+              </g>
+              <defs>
+                <clipPath id="clip0_220_2886">
+                  <rect
+                    width="16"
+                    height="16"
+                    fill="white"
+                    // transform="translate(0 0.847656)"
+                  />
+                </clipPath>
+              </defs>
             </svg>
           ),
         },
         {
-          name: "Message",
-          path: "/dashboards/instructor-message",
-          tag: 12,
+          name: "My Main Classes",
+          path: "/dashboards/instructor-mainclass",
           icon: (
             <svg
-              xmlns="http://www.w3.org/2000/svg"
               width="16"
-              height="24"
-              viewBox="0 0 24 24"
+              height="17"
+              viewBox="0 0 16 17"
               fill="none"
+              className="my-auto"
               stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="feather feather-book-open"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+              <g clip-path="url(#clip0_220_2886)">
+                <path
+                  d="M1.33334 2.18066H14.6667V3.514H14V12.8473H9.60934L12.276 15.514L11.3333 16.4567L8.00001 13.1233L4.66668 16.4567L3.72401 15.514L6.39068 12.8473H2.00001V3.514H1.33334V2.18066ZM3.33334 3.514V11.514H12.6667V3.514H3.33334ZM6.66668 5.18066L9.77801 7.514L6.66668 9.84733V5.18066Z"
+                  fill="white"
+                />
+              </g>
+              <defs>
+                <clipPath id="clip0_220_2886">
+                  <rect
+                    width="16"
+                    height="16"
+                    fill="white"
+                    // transform="translate(0 0.847656)"
+                  />
+                </clipPath>
+              </defs>
             </svg>
           ),
         },
+        // {
+        //   name: "Message",
+        //   path: "/dashboards/instructor-message",
+        //   tag: 12,
+        //   icon: (
+        //     <svg
+        //       xmlns="http://www.w3.org/2000/svg"
+        //       width="16"
+        //       height="24"
+        //       viewBox="0 0 24 24"
+        //       fill="none"
+        //       stroke="currentColor"
+        //       strokeWidth="2"
+        //       strokeLinecap="round"
+        //       strokeLinejoin="round"
+        //       className="feather feather-book-open"
+        //     >
+        //       <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+        //       <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+        //     </svg>
+        //   ),
+        // },
+        // {
+        //   name: "Wishlist",
+        //   path: "/dashboards/instructor-wishlist",
+        //   icon: (
+        //     <svg
+        //       xmlns="http://www.w3.org/2000/svg"
+        //       width="16"
+        //       height="24"
+        //       viewBox="0 0 24 24"
+        //       fill="none"
+        //       stroke="currentColor"
+        //       strokeWidth="2"
+        //       strokeLinecap="round"
+        //       strokeLinejoin="round"
+        //       className="feather feather-bookmark"
+        //     >
+        //       <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+        //     </svg>
+        //   ),
+        // },
+        // {
+        //   name: "Reviews",
+        //   path: "/dashboards/instructor-reviews",
+        //   icon: (
+        //     <svg
+        //       xmlns="http://www.w3.org/2000/svg"
+        //       width="16"
+        //       height="24"
+        //       viewBox="0 0 24 24"
+        //       fill="none"
+        //       stroke="currentColor"
+        //       strokeWidth="2"
+        //       strokeLinecap="round"
+        //       strokeLinejoin="round"
+        //       className="feather feather-star"
+        //     >
+        //       <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+        //     </svg>
+        //   ),
+        // },
         {
-          name: "Wishlist",
-          path: "/dashboards/instructor-wishlist",
-          icon: (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="feather feather-bookmark"
-            >
-              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-            </svg>
-          ),
-        },
-        {
-          name: "Reviews",
-          path: "/dashboards/instructor-reviews",
-          icon: (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="feather feather-star"
-            >
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-            </svg>
-          ),
-        },
-        {
-          name: "My Quiz Attempts",
+          name: "Assignments & Quizzes",
           path: "/dashboards/instructor-my-quiz-attempts",
           icon: (
             <svg
-              xmlns="http://www.w3.org/2000/svg"
               width="16"
-              height="24"
-              viewBox="0 0 24 24"
+              height="17"
+              viewBox="0 0 16 17"
               fill="none"
+              className="my-auto"
               stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="feather feather-help-circle"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <circle cx="12" cy="12" r="10"></circle>
-              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              <path
+                d="M3.74396 13.751C3.44529 13.751 3.19107 13.6461 2.98129 13.4363C2.77151 13.2265 2.66663 12.9725 2.66663 12.6743V4.16098C2.66663 3.8632 2.77151 3.6092 2.98129 3.39898C3.19107 3.1892 3.44529 3.08431 3.74396 3.08431H6.87729C6.8164 2.74387 6.89774 2.43653 7.12129 2.16231C7.3444 1.88809 7.63729 1.75098 7.99996 1.75098C8.37107 1.75098 8.6684 1.88809 8.89196 2.16231C9.11552 2.43653 9.19263 2.74387 9.12329 3.08431H12.2566C12.5544 3.08431 12.8084 3.1892 13.0186 3.39898C13.2284 3.60875 13.3333 3.86298 13.3333 4.16164V12.6743C13.3333 12.9721 13.2284 13.2261 13.0186 13.4363C12.8088 13.6461 12.5548 13.751 12.2566 13.751H3.74396ZM3.74396 13.0843H12.2566C12.3588 13.0843 12.4528 13.0416 12.5386 12.9563C12.6244 12.871 12.6671 12.7768 12.6666 12.6736V4.16164C12.6666 4.05898 12.624 3.96475 12.5386 3.87898C12.4533 3.7932 12.3591 3.75053 12.256 3.75098H3.74396C3.64129 3.75098 3.54707 3.79364 3.46129 3.87898C3.37551 3.96431 3.33285 4.05853 3.33329 4.16164V12.6743C3.33329 12.7765 3.37596 12.8705 3.46129 12.9563C3.54663 13.0421 3.64063 13.0848 3.74329 13.0843M4.99996 11.2643H8.99996V10.5976H4.99996V11.2643ZM4.99996 8.75098H11V8.08431H4.99996V8.75098ZM4.99996 6.23764H11V5.57098H4.99996V6.23764ZM7.99996 3.37964C8.1444 3.37964 8.26396 3.33253 8.35863 3.23831C8.45329 3.14409 8.5004 3.02453 8.49996 2.87964C8.49952 2.73475 8.45218 2.61542 8.35796 2.52164C8.26374 2.42787 8.1444 2.38031 7.99996 2.37898C7.85552 2.37764 7.73618 2.42498 7.64196 2.52098C7.54774 2.61698 7.5004 2.73631 7.49996 2.87898C7.49952 3.02164 7.54685 3.1412 7.64196 3.23764C7.73707 3.33409 7.8564 3.38187 7.99996 3.37964Z"
+                fill="#70747E"
+              />
             </svg>
           ),
         },
         {
-          name: "Order History",
-          path: "/dashboards/instructor-order-history",
+          name: "Feedback",
+          path: "/dashboards/instructor-feedback",
           icon: (
             <svg
-              xmlns="http://www.w3.org/2000/svg"
               width="16"
-              height="24"
-              viewBox="0 0 24 24"
+              height="16"
+              viewBox="0 0 16 16"
               fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="feather feather-shopping-bag"
+              className="my-auto"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-              <line x1="3" y1="6" x2="21" y2="6"></line>
-              <path d="M16 10a4 4 0 0 1-8 0"></path>
+              <path
+                d="M6.66668 8.00033C5.93334 8.00033 5.30557 7.73921 4.78334 7.21699C4.26112 6.69477 4.00001 6.06699 4.00001 5.33366C4.00001 4.60033 4.26112 3.97255 4.78334 3.45033C5.30557 2.9281 5.93334 2.66699 6.66668 2.66699C7.40001 2.66699 8.02779 2.9281 8.55001 3.45033C9.07223 3.97255 9.33334 4.60033 9.33334 5.33366C9.33334 6.06699 9.07223 6.69477 8.55001 7.21699C8.02779 7.73921 7.40001 8.00033 6.66668 8.00033ZM1.33334 13.3337V11.467C1.33334 11.1003 1.42779 10.7559 1.61668 10.4337C1.80557 10.1114 2.06668 9.86699 2.40001 9.70033C2.96668 9.41144 3.60557 9.16699 4.31668 8.96699C5.02779 8.76699 5.81112 8.66699 6.66668 8.66699H6.90001C6.96668 8.66699 7.03334 8.6781 7.10001 8.70033C7.01112 8.90033 6.93623 9.10877 6.87534 9.32566C6.81445 9.54255 6.76712 9.76744 6.73334 10.0003H6.66668C5.87779 10.0003 5.16957 10.1003 4.54201 10.3003C3.91445 10.5003 3.40045 10.7003 3.00001 10.9003C2.90001 10.9559 2.81934 11.0337 2.75801 11.1337C2.69668 11.2337 2.66623 11.3448 2.66668 11.467V12.0003H6.86668C6.93334 12.2337 7.02223 12.4643 7.13334 12.6923C7.24445 12.9203 7.36668 13.1341 7.50001 13.3337H1.33334ZM10.6667 14.0003L10.4667 13.0003C10.3333 12.9448 10.2085 12.8865 10.092 12.8257C9.97557 12.7648 9.85601 12.6897 9.73334 12.6003L8.76668 12.9003L8.10001 11.767L8.86668 11.1003C8.84445 10.9448 8.83334 10.8003 8.83334 10.667C8.83334 10.5337 8.84445 10.3892 8.86668 10.2337L8.10001 9.56699L8.76668 8.43366L9.73334 8.73366C9.85557 8.64477 9.97512 8.56988 10.092 8.50899C10.2089 8.4481 10.3338 8.38966 10.4667 8.33366L10.6667 7.33366H12L12.2 8.33366C12.3333 8.38921 12.4585 8.45033 12.5753 8.51699C12.6922 8.58366 12.8116 8.66699 12.9333 8.76699L13.9 8.43366L14.5667 9.60032L13.8 10.267C13.8222 10.4003 13.8333 10.5392 13.8333 10.6837C13.8333 10.8281 13.8222 10.967 13.8 11.1003L14.5667 11.767L13.9 12.9003L12.9333 12.6003C12.8111 12.6892 12.6918 12.7643 12.5753 12.8257C12.4589 12.887 12.3338 12.9452 12.2 13.0003L12 14.0003H10.6667ZM11.3333 12.0003C11.7 12.0003 12.014 11.8699 12.2753 11.609C12.5367 11.3481 12.6671 11.0341 12.6667 10.667C12.6662 10.2999 12.5358 9.9861 12.2753 9.72566C12.0149 9.46521 11.7009 9.33455 11.3333 9.33366C10.9658 9.33277 10.652 9.46344 10.392 9.72566C10.132 9.98788 10.0013 10.3017 10 10.667C9.99868 11.0323 10.1293 11.3463 10.392 11.609C10.6547 11.8717 10.9685 12.0021 11.3333 12.0003ZM6.66668 6.66699C7.03334 6.66699 7.34734 6.53655 7.60868 6.27566C7.87001 6.01477 8.00045 5.70077 8.00001 5.33366C7.99957 4.96655 7.86912 4.65277 7.60868 4.39233C7.34823 4.13188 7.03423 4.00121 6.66668 4.00033C6.29912 3.99944 5.98534 4.1301 5.72534 4.39233C5.46534 4.65455 5.33468 4.96833 5.33334 5.33366C5.33201 5.69899 5.46268 6.01299 5.72534 6.27566C5.98801 6.53833 6.30179 6.66877 6.66668 6.66699Z"
+                fill="black"
+              />
+            </svg>
+          ),
+        },
+        {
+          name: "Track Session",
+          path: "/dashboards/instructor-track",
+          icon: (
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              className="my-auto"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M6.66668 8.00033C5.93334 8.00033 5.30557 7.73921 4.78334 7.21699C4.26112 6.69477 4.00001 6.06699 4.00001 5.33366C4.00001 4.60033 4.26112 3.97255 4.78334 3.45033C5.30557 2.9281 5.93334 2.66699 6.66668 2.66699C7.40001 2.66699 8.02779 2.9281 8.55001 3.45033C9.07223 3.97255 9.33334 4.60033 9.33334 5.33366C9.33334 6.06699 9.07223 6.69477 8.55001 7.21699C8.02779 7.73921 7.40001 8.00033 6.66668 8.00033ZM1.33334 13.3337V11.467C1.33334 11.1003 1.42779 10.7559 1.61668 10.4337C1.80557 10.1114 2.06668 9.86699 2.40001 9.70033C2.96668 9.41144 3.60557 9.16699 4.31668 8.96699C5.02779 8.76699 5.81112 8.66699 6.66668 8.66699H6.90001C6.96668 8.66699 7.03334 8.6781 7.10001 8.70033C7.01112 8.90033 6.93623 9.10877 6.87534 9.32566C6.81445 9.54255 6.76712 9.76744 6.73334 10.0003H6.66668C5.87779 10.0003 5.16957 10.1003 4.54201 10.3003C3.91445 10.5003 3.40045 10.7003 3.00001 10.9003C2.90001 10.9559 2.81934 11.0337 2.75801 11.1337C2.69668 11.2337 2.66623 11.3448 2.66668 11.467V12.0003H6.86668C6.93334 12.2337 7.02223 12.4643 7.13334 12.6923C7.24445 12.9203 7.36668 13.1341 7.50001 13.3337H1.33334ZM10.6667 14.0003L10.4667 13.0003C10.3333 12.9448 10.2085 12.8865 10.092 12.8257C9.97557 12.7648 9.85601 12.6897 9.73334 12.6003L8.76668 12.9003L8.10001 11.767L8.86668 11.1003C8.84445 10.9448 8.83334 10.8003 8.83334 10.667C8.83334 10.5337 8.84445 10.3892 8.86668 10.2337L8.10001 9.56699L8.76668 8.43366L9.73334 8.73366C9.85557 8.64477 9.97512 8.56988 10.092 8.50899C10.2089 8.4481 10.3338 8.38966 10.4667 8.33366L10.6667 7.33366H12L12.2 8.33366C12.3333 8.38921 12.4585 8.45033 12.5753 8.51699C12.6922 8.58366 12.8116 8.66699 12.9333 8.76699L13.9 8.43366L14.5667 9.60032L13.8 10.267C13.8222 10.4003 13.8333 10.5392 13.8333 10.6837C13.8333 10.8281 13.8222 10.967 13.8 11.1003L14.5667 11.767L13.9 12.9003L12.9333 12.6003C12.8111 12.6892 12.6918 12.7643 12.5753 12.8257C12.4589 12.887 12.3338 12.9452 12.2 13.0003L12 14.0003H10.6667ZM11.3333 12.0003C11.7 12.0003 12.014 11.8699 12.2753 11.609C12.5367 11.3481 12.6671 11.0341 12.6667 10.667C12.6662 10.2999 12.5358 9.9861 12.2753 9.72566C12.0149 9.46521 11.7009 9.33455 11.3333 9.33366C10.9658 9.33277 10.652 9.46344 10.392 9.72566C10.132 9.98788 10.0013 10.3017 10 10.667C9.99868 11.0323 10.1293 11.3463 10.392 11.609C10.6547 11.8717 10.9685 12.0021 11.3333 12.0003ZM6.66668 6.66699C7.03334 6.66699 7.34734 6.53655 7.60868 6.27566C7.87001 6.01477 8.00045 5.70077 8.00001 5.33366C7.99957 4.96655 7.86912 4.65277 7.60868 4.39233C7.34823 4.13188 7.03423 4.00121 6.66668 4.00033C6.29912 3.99944 5.98534 4.1301 5.72534 4.39233C5.46534 4.65455 5.33468 4.96833 5.33334 5.33366C5.33201 5.69899 5.46268 6.01299 5.72534 6.27566C5.98801 6.53833 6.30179 6.66877 6.66668 6.66699Z"
+                fill="black"
+              />
             </svg>
           ),
         },
       ],
     },
-    {
-      title: "INSTRUCTOR",
-      items: [
-        {
-          name: "My Course",
-          path: "/dashboards/instructor-course",
-          icon: (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="feather feather-monitor"
-            >
-              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-              <line x1="8" y1="21" x2="16" y2="21"></line>
-              <line x1="12" y1="17" x2="12" y2="21"></line>
-            </svg>
-          ),
-        },
-        {
-          name: "Announcments",
-          path: "/dashboards/instructor-announcments",
-          icon: (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="feather feather-volume-1"
-            >
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-              <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-            </svg>
-          ),
-        },
-        {
-          name: "Quiz Attempt",
-          path: "/dashboards/instructor-quiz-attempts",
-          icon: (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="feather feather-message-square"
-            >
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-            </svg>
-          ),
-        },
-        {
-          name: "Assignments",
-          path: "/dashboards/instructor-assignments",
-          icon: (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="feather feather-volume-1"
-            >
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-              <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-            </svg>
-          ),
-        },
-      ],
-    },
+    // {
+    //   title: "INSTRUCTOR",
+    //   items: [
+    //     {
+    //       name: "My Course",
+    //       path: "/dashboards/instructor-course",
+    //       icon: (
+    //         <svg
+    //           xmlns="http://www.w3.org/2000/svg"
+    //           width="16"
+    //           height="24"
+    //           viewBox="0 0 24 24"
+    //           fill="none"
+    //           stroke="currentColor"
+    //           strokeWidth="2"
+    //           strokeLinecap="round"
+    //           strokeLinejoin="round"
+    //           className="feather feather-monitor"
+    //         >
+    //           <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+    //           <line x1="8" y1="21" x2="16" y2="21"></line>
+    //           <line x1="12" y1="17" x2="12" y2="21"></line>
+    //         </svg>
+    //       ),
+    //     },
+    //     {
+    //       name: "Announcments",
+    //       path: "/dashboards/instructor-announcments",
+    //       icon: (
+    //         <svg
+    //           xmlns="http://www.w3.org/2000/svg"
+    //           width="16"
+    //           height="24"
+    //           viewBox="0 0 24 24"
+    //           fill="none"
+    //           stroke="currentColor"
+    //           strokeWidth="2"
+    //           strokeLinecap="round"
+    //           strokeLinejoin="round"
+    //           className="feather feather-volume-1"
+    //         >
+    //           <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+    //           <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+    //         </svg>
+    //       ),
+    //     },
+    //     {
+    //       name: "Quiz Attempt",
+    //       path: "/dashboards/instructor-quiz-attempts",
+    //       icon: (
+    //         <svg
+    //           xmlns="http://www.w3.org/2000/svg"
+    //           width="16"
+    //           height="24"
+    //           viewBox="0 0 24 24"
+    //           fill="none"
+    //           stroke="currentColor"
+    //           strokeWidth="2"
+    //           strokeLinecap="round"
+    //           strokeLinejoin="round"
+    //           className="feather feather-message-square"
+    //         >
+    //           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+    //         </svg>
+    //       ),
+    //     },
+    //     {
+    //       name: "Assignments",
+    //       path: "/dashboards/instructor-assignments",
+    //       icon: (
+    //         <svg
+    //           xmlns="http://www.w3.org/2000/svg"
+    //           width="16"
+    //           height="24"
+    //           viewBox="0 0 24 24"
+    //           fill="none"
+    //           stroke="currentColor"
+    //           strokeWidth="2"
+    //           strokeLinecap="round"
+    //           strokeLinejoin="round"
+    //           className="feather feather-volume-1"
+    //         >
+    //           <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+    //           <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+    //         </svg>
+    //       ),
+    //     },
+    //   ],
+    // },
 
-    {
-      title: "USER",
-      items: [
-        {
-          name: "Settings",
-          path: "/dashboards/instructor-settings",
-          icon: (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="feather feather-settings"
-            >
-              <circle cx="12" cy="12" r="3"></circle>
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-            </svg>
-          ),
-        },
-        {
-          name: "Logout",
-          path: "#",
-          icon: (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="feather feather-volume-1"
-            >
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-              <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-            </svg>
-          ),
-        },
-      ],
-    },
+    // {
+    //   title: "USER",
+    //   items: [
+    // {
+    //   name: "Settings",
+    //   path: "/dashboards/instructor-settings",
+    //   icon: (
+    //     <svg
+    //       xmlns="http://www.w3.org/2000/svg"
+    //       width="16"
+    //       height="24"
+    //       viewBox="0 0 24 24"
+    //       fill="none"
+    //       stroke="currentColor"
+    //       strokeWidth="2"
+    //       strokeLinecap="round"
+    //       strokeLinejoin="round"
+    //       className="feather feather-settings"
+    //     >
+    //       <circle cx="12" cy="12" r="3"></circle>
+    //       <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+    //     </svg>
+    //   ),
+    // },
+    // {
+    //   name: "Logout",
+    //   path: "#",
+    //   icon: (
+    //     <svg
+    //       xmlns="http://www.w3.org/2000/svg"
+    //       width="16"
+    //       height="24"
+    //       viewBox="0 0 24 24"
+    //       fill="none"
+    //       stroke="currentColor"
+    //       strokeWidth="2"
+    //       strokeLinecap="round"
+    //       strokeLinejoin="round"
+    //       className="feather feather-volume-1"
+    //     >
+    //       <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+    //       <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+    //     </svg>
+    //   ),
+    // },
+    // ],
+    // },
   ];
 
   const studentItems = [
@@ -1133,9 +1190,9 @@ const SidebarDashboard = () => {
     ? instructorItems
     : studentItems;
   return (
-    <div className="w-72 font-Open">
+    <div className="w-72  font-Open">
       {/* navigation menu */}
-      <div className=" pt-5 2xl:pr-4 2xl:pt-5 rounded-lg2 shadow-accordion dark:shadow-accordion-dark bg-whiteColor dark:bg-whiteColor-dark h-full">
+      <div className=" pt-5 2xl:pr-4 h-screen 2xl:pt-5 rounded-lg2 shadow-accordion dark:shadow-accordion-dark bg-whiteColor dark:bg-whiteColor-dark">
         <div className="pt-6 px-8">
           <NavbarLogo />
         </div>
