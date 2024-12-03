@@ -849,6 +849,7 @@ const AddCourse = () => {
                 ) : (
                   <span>Add Curriculum</span>
                 )}
+=
               </button>
             </div>
           </div>
