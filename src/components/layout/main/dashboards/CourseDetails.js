@@ -22,9 +22,10 @@ const CourseDetails = () => {
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
+  const [courseIsFreeOrPr, setCourseIsFreeOrPr] = useState(false);
 
   const handlePlayVideo = (videoUrl) => {
-    if (isEnrolled) {
+    if (isEnrolled || courseIsFreeOrPr) {
       setSelectedVideo(videoUrl);
       setIsPlaying(true);
       console.log("Playing video:", videoUrl);
@@ -122,6 +123,8 @@ const CourseDetails = () => {
         url: `${apiUrls?.courses?.getCourseById}/${courseId}`,
         onSuccess: (res) => {
           setCourseDetails(res);
+          const status = (res?.course_tag?.toLowerCase() === 'pre-recorded') || (res?.course_fee === 0 && res?.isFree === true)
+          setCourseIsFreeOrPr(status);
           console.log(res);
         },
         onFail: (err) => {
@@ -192,6 +195,7 @@ const CourseDetails = () => {
             title={courseDetails?.course_title || "Untitled Course"}
             classes={courseDetails?.no_of_Sessions || "Unknown"}
             category={courseDetails?.course_category || "Tech"}
+            tag={courseDetails?.course_tag}
             rating={course.rating || 0}
             hour={courseDetails?.session_duration || "- hours"}
             price={courseDetails?.course_fee || 0}
