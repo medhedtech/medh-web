@@ -9,6 +9,7 @@ import { FaPlus, FaChevronDown } from "react-icons/fa";
 import useDeleteQuery from "@/hooks/deleteQuery.hook";
 import { toast } from "react-toastify";
 import usePostQuery from "@/hooks/postQuery.hook";
+import { MdEdit } from "react-icons/md";
 
 export default function Home() {
   const router = useRouter();
@@ -190,15 +191,22 @@ export default function Home() {
       accessor: "actions",
       render: (row) => (
         <div className="flex gap-2 items-center">
-
           <button
+            onClick={() => {
+              editCourse(row?._id);
+            }}
+            className="text-green-600 hover:text-green-800 p-2 rounded-full"
+          >
+            <MdEdit size={24} />
+          </button>
+          {/* <button
             onClick={() => {
               editCourse(row?._id);
             }}
             className="text-white bg-green-600 border border-green-600 rounded-md px-[10px] py-1"
           >
             Edit
-          </button>
+          </button> */}
           <button
             onClick={() => {
               deleteCourse(row?._id);
@@ -280,9 +288,9 @@ export default function Home() {
   }
 
   const editCourse = (id) => {
-    console.log('Edit course: ', id)
-    router.push(`admin-updateCourse/${id}`)
-  }
+    console.log("Edit course: ", id);
+    router.push(`admin-updateCourse/${id}`);
+  };
 
   return (
     <div className="bg-gray-100 dark:bg-darkblack font-Poppins min-h-screen">
