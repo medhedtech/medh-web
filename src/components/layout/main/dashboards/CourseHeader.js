@@ -9,6 +9,7 @@ const CourseHeader = ({
   title,
   classes,
   category,
+  tag,
   rating,
   hour,
   price,
@@ -16,6 +17,8 @@ const CourseHeader = ({
 }) => {
   const router = useRouter();
   const courseId = id;
+  const showEnroll =
+    tag?.toLowerCase() !== "pre-recorded" && tag?.toLowerCase() !== "free";
 
   return (
     <div className=" justify-between items-start md:items-center mt-6 w-[531px]">
@@ -148,17 +151,22 @@ const CourseHeader = ({
       >
         {isEnrolled ? "Enrolled" : `Enroll @${price}`}
       </button> */}
-      <button
-        className={`${
-          isEnrolled
-            ? "mt-4 md:mt-0 px-4 py-2 rounded-[150px] bg-primaryColor w-1/2 md:w-[450px] lg:w-[530px] text-white font-semibold cursor-not-allowed opacity-50" 
-            : "mt-4 md:mt-0 px-4 py-2 rounded-[150px] bg-primaryColor w-1/2 md:w-[450px] lg:w-[530px] text-white font-semibold hover:bg-green-600" 
-        }`}
-        disabled={isEnrolled}
-        onClick={() => !isEnrolled && router.push(`/dashboards/billing-details/${courseId}`)}
-      >
-        {isEnrolled ? "Enrolled" : `Enroll @${price}`}
-      </button>
+      {showEnroll && (
+        <button
+          className={`${
+            isEnrolled
+              ? "mt-4 md:mt-0 px-4 py-2 rounded-[150px] bg-primaryColor w-1/2 md:w-[450px] lg:w-[530px] text-white font-semibold cursor-not-allowed opacity-50"
+              : "mt-4 md:mt-0 px-4 py-2 rounded-[150px] bg-primaryColor w-1/2 md:w-[450px] lg:w-[530px] text-white font-semibold hover:bg-green-600"
+          }`}
+          disabled={isEnrolled}
+          onClick={() =>
+            !isEnrolled &&
+            router.push(`/dashboards/billing-details/${courseId}`)
+          }
+        >
+          {isEnrolled ? "Enrolled" : `Enroll @${price}`}
+        </button>
+      )}
 
       <div className="mt-6">
         <h2>About Course</h2>
