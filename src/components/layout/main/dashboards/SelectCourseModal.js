@@ -248,7 +248,7 @@ export default function SelectCourseModal({
 
           // Wait for all enrollments to complete
           await Promise.all(enrollmentPromises);
-          toast.success("Courses enrolled successfully!");
+          // toast.success("Courses enrolled successfully!");
         },
         onFail: (err) => {
           console.error("Error while creating subscription", err);
