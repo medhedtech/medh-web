@@ -10,8 +10,9 @@ import { toast } from "react-toastify";
 import Preloader from "@/components/shared/others/Preloader";
 import useGetQuery from "@/hooks/getQuery.hook";
 import Image from "next/image";
-import { CircleCheckBig, Upload } from "lucide-react";
+import { BookOpen, CircleCheckBig, Upload } from "lucide-react";
 import ResourceUploadModal from "./ResourceUploadModal";
+import CurriculumModal from "./CurriculumModal";
 
 // Validation Schema
 const schema = yup.object({
@@ -23,7 +24,7 @@ const schema = yup.object({
   category: yup.string(),
   course_tag: yup
     .string()
-    .oneOf(["Live", "Hybrid", "Pre-Recorded"])
+    .oneOf(["Live", "Hybrid", "Pre-Recorded", "Free"])
     .required("Course tag is required"),
   no_of_Sessions: yup
     .number()
@@ -61,9 +62,8 @@ const schema = yup.object({
   course_fee: yup
     .number()
     .typeError("Course fee must be a number")
-    .positive("Course fee must be a positive number")
     .required("Course fee is required"),
-  course_grade: yup.string().required("Grade is required"), 
+  course_grade: yup.string().required("Grade is required"),
 });
 
 const AddCourse = () => {
@@ -87,6 +87,10 @@ const AddCourse = () => {
   const [isResourceModatOpen, setResourceModalOpen] = useState(false);
   const [resourceVideos, setResourceVideos] = useState([]);
   const [resourcePdfs, setResourcePdfs] = useState([]);
+  const [isCurriculumModalOpen, setCurriculumModalOpen] = useState(false);
+  const [curriculum, setCurriculum] = useState([]);
+  const [courseTag, setCourseTag] = useState();
+  const [courseIsFree, setCourseIsFree] = useState(false);
 
   const {
     register,
@@ -116,6 +120,16 @@ const AddCourse = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  useEffect(() => {
+    if(courseTag === 'Free'){
+      setCourseIsFree(true)
+      setValue('course_fee', 0);
+    }else{
+      setCourseIsFree(false)
+      reset({ course_fee: '' });
+    }
+  }, [courseTag])
 
   const fetchAllCategories = () => {
     try {
@@ -342,6 +356,7 @@ const AddCourse = () => {
         course_image: thumbnailImage,
         resource_videos: resourceVideos.length > 0 ? resourceVideos : [],
         resource_pdfs: resourcePdfs.length > 0 ? resourcePdfs : [],
+        curriculum: curriculum.length > 0 ? curriculum : [],
       };
 
       // Save data to localStorage
@@ -350,7 +365,7 @@ const AddCourse = () => {
 
       // Navigate to the preview page
       router.push("/dashboards/admin-add-data");
-    toast.success("Course details saved locally!");
+      toast.success("Course details saved locally!");
     } catch (error) {
       console.error("An error occurred:", error);
       toast.error("An unexpected error occurred. Please try again.");
@@ -371,6 +386,12 @@ const AddCourse = () => {
     e.preventDefault();
     setResourceModalOpen(true);
     console.log("opened");
+  };
+
+  const handleCurriculumModal = (e) => {
+    e.preventDefault();
+    setCurriculumModalOpen(true);
+    setValue("curriculum", curriculum);
   };
 
   useEffect(() => {
@@ -445,7 +466,9 @@ const AddCourse = () => {
                 onChange={() => handleChange("Corporate Training Courses")}
                 {...register("course_category")}
               />
-              <span className="block text-sm font-normal">Corporate Training Courses</span>
+              <span className="block text-sm font-normal">
+                Corporate Training Courses
+              </span>
             </label>
           </div>
         </div>
@@ -519,16 +542,18 @@ const AddCourse = () => {
             <div>
               <label className="block text-sm font-normal mb-1">
                 Category Type<span className="text-red-500 ml-1">*</span> (Live/
-                Hybrid/ Pre-Recorded)
+                Hybrid/ Pre-Recorded/ Free)
               </label>
               <select
                 className="p-3 border rounded-lg w-full dark:bg-inherit text-gray-600"
                 {...register("course_tag")}
+                onChange={(e) => setCourseTag(e.target.value)}
               >
                 <option value="">Select type</option>
                 <option value="Live">Live</option>
                 <option value="Hybrid">Hybrid</option>
                 <option value="Pre-Recorded">Pre-Recorded</option>
+                <option value="Free">Free</option>
               </select>
               {errors.course_tag && (
                 <p className="text-red-500 text-xs">
@@ -672,7 +697,13 @@ const AddCourse = () => {
               <input
                 type="text"
                 placeholder="Enter amount in USD"
-                className="p-3 border rounded-lg w-full text-gray-600 dark:bg-inherit placeholder-gray-400"
+                disabled={courseIsFree}
+                // className="p-3 border rounded-lg w-full text-gray-600 dark:bg-inherit placeholder-gray-400"
+                className={`p-3 border rounded-lg w-full ${
+                  courseIsFree
+                    ? "bg-gray-200 cursor-not-allowed"
+                    : "text-gray-600 dark:bg-inherit"
+                } placeholder-gray-400`}
                 {...register("course_fee")}
               />
               {errors.course_fee && (
@@ -753,9 +784,36 @@ const AddCourse = () => {
                 onClick={handleResourceModal}
                 className="flex items-center w-full justify-center gap-2 px-4 py-2.5 border border-gray-200 rounded-md hover:bg-gray-100 transition-colors"
               >
-                {(resourceVideos.length > 0 || resourcePdfs.length > 0) ? <CircleCheckBig className="w-4 h-16 text-customGreen" /> : <Upload className="w-4 h-16" /> }
-                {(resourceVideos.length > 0 || resourcePdfs.length > 0) ? <span className="text-customGreen">Files Uploaded</span> : <span>Upload Files</span> }
-                
+                {resourceVideos.length > 0 || resourcePdfs.length > 0 ? (
+                  <CircleCheckBig className="w-4 h-16 text-customGreen" />
+                ) : (
+                  <Upload className="w-4 h-16" />
+                )}
+                {resourceVideos.length > 0 || resourcePdfs.length > 0 ? (
+                  <span className="text-customGreen">Files Uploaded</span>
+                ) : (
+                  <span>Upload Files</span>
+                )}
+              </button>
+            </div>
+            <div>
+              <label className="block text-sm font-normal mb-1">
+                Add Course Curriculum
+              </label>
+              <button
+                onClick={handleCurriculumModal}
+                className="flex items-center w-full justify-center gap-2 px-4 py-2.5 border border-gray-200 rounded-md hover:bg-gray-100 transition-colors"
+              >
+                {curriculum.length > 0 ? (
+                  <CircleCheckBig className="w-4 h-16 text-customGreen" />
+                ) : (
+                  <BookOpen className="w-4 h-16" />
+                )}
+                {curriculum.length > 0 ? (
+                  <span className="text-customGreen">Curriculum Added</span>
+                ) : (
+                  <span>Add Curriculum</span>
+                )}
               </button>
             </div>
           </div>
@@ -784,7 +842,9 @@ const AddCourse = () => {
                 <p className="text-customGreen cursor-pointer text-sm">
                   Click to upload
                 </p>
-                <p className="text-gray-400 text-xs">or drag & drop the files</p>
+                <p className="text-gray-400 text-xs">
+                  or drag & drop the files
+                </p>
                 <input
                   type="file"
                   multiple
@@ -820,7 +880,9 @@ const AddCourse = () => {
                 <p className="text-customGreen cursor-pointer text-sm">
                   Click to upload
                 </p>
-                <p className="text-gray-400 text-xs">or drag & drop the files</p>
+                <p className="text-gray-400 text-xs">
+                  or drag & drop the files
+                </p>
                 <input
                   type="file"
                   multiple
@@ -890,6 +952,13 @@ const AddCourse = () => {
           setResourceVideos={setResourceVideos}
           resourcePdfs={resourcePdfs}
           setResourcePdfs={setResourcePdfs}
+        />
+      )}
+      {isCurriculumModalOpen && (
+        <CurriculumModal
+          onClose={() => setCurriculumModalOpen(false)}
+          curriculum={curriculum}
+          setCurriculum={setCurriculum}
         />
       )}
     </div>
