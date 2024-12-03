@@ -7,6 +7,7 @@ import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import CourseCard from "@/components/shared/dashboards/CourseCard";
 import Preloader from "@/components/shared/others/Preloader";
+import RecordedCard from "@/components/shared/dashboards/RecordedCourses";
 
 const StudentRecordedSessions = () => {
   const router = useRouter();
@@ -28,7 +29,7 @@ const StudentRecordedSessions = () => {
           "",
           "",
           "",
-          true,
+          true
         ),
         onSuccess: (res) => {
           const freeCourses =
@@ -75,9 +76,12 @@ const StudentRecordedSessions = () => {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {freeCourses?.map((course) => (
-          <CourseCard
+          <RecordedCard
             key={course?._id}
-            {...course}
+            course_title={course?.course_title}
+            course_tag={course?.course_tag}
+            rating={course?.rating}
+            course_image={course?.course_image}
             onClick={() => handleCardClick(course?._id)}
           />
         ))}
