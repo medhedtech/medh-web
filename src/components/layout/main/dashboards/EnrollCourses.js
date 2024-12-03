@@ -123,7 +123,7 @@ const EnrollCourses = () => {
           View All
         </a>
       </div>
-      {/* <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {enrollCourses.map((course) => (
           <EnrollCoursesCard
             key={course._id}
@@ -134,28 +134,7 @@ const EnrollCourses = () => {
             onClick={() => handleCardClick(course._id)}
           />
         ))}
-      </div> */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-  {enrollCourses.map((course) => {
-    // Check if course or course.course_id is null or undefined
-    if (!course || !course.course_id) {
-      return null; // Skip the invalid entries
-    }
-
-    const courseInfo = course.course_id; // Now we are sure course_id exists
-
-    return (
-      <EnrollCoursesCard
-        key={course._id}
-        title={courseInfo.course_title || 'Course Title Not Available'} // Provide a fallback value
-        image={courseInfo.course_image || 'default-image.jpg'} // Provide a fallback image
-        isLive={courseInfo.course_tag === "Live"}
-        progress={40}
-        onClick={() => handleCardClick(course._id)}
-      />
-    );
-  })}
-</div>
+      </div>
     </div>
   );
 };
