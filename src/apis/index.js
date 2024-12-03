@@ -49,7 +49,7 @@ export const apiUrls = {
     getMeetingDetails: "/online-meeting/get/:id",
     updateMeeting: "/online-meeting/update/:id",
     deleteMeeting: "/online-meeting/delete/:id",
-    getMeetingByStudentId: '/online-meeting/student'
+    getMeetingByStudentId: "/online-meeting/student",
   },
   Instructor: {
     getAllInstructors: "/instructors/get",
