@@ -44,14 +44,14 @@ const schema = yup.object({
     .string()
     .test(
       "valid-session-duration",
-      "Session duration must be a positive number or a valid time format (e.g., 5 Months or 2 Hours)",
+      "Session duration must be a positive number or a valid time format (e.g., 5 Minutes or 2 Hours)",
       (value) => {
         // Check if it's a positive number
         const isValidNumber = value && !isNaN(value) && Number(value) > 0;
 
-        // Regex to match "X Hours", "X Months", or "X Hours/Month"
+        // Regex to match "X Hours", "X Minutes", or "X Hours/Month"
         const validTimeFormat =
-          /^(\d+(\.\d+)?\s*(Hours?|Months?)|(\d+(\.\d+)?\s*Hours?\/Months?))$/i;
+          /^(\d+(\.\d+)?\s*(Hours?|Minutes?)|(\d+(\.\d+)?\s*Hours?\/Minutes?))$/i;
 
         return isValidNumber || validTimeFormat.test(value);
       }
@@ -63,7 +63,7 @@ const schema = yup.object({
     .typeError("Course fee must be a number")
     .positive("Course fee must be a positive number")
     .required("Course fee is required"),
-  course_grade: yup.string().required("Grade is required"), 
+  course_grade: yup.string().required("Grade is required"),
 });
 
 const AddCourse = () => {
@@ -350,7 +350,7 @@ const AddCourse = () => {
 
       // Navigate to the preview page
       router.push("/dashboards/admin-add-data");
-    toast.success("Course details saved locally!");
+      // toast.success("Course details saved locally!");
     } catch (error) {
       console.error("An error occurred:", error);
       toast.error("An unexpected error occurred. Please try again.");
@@ -445,7 +445,9 @@ const AddCourse = () => {
                 onChange={() => handleChange("Corporate Training Courses")}
                 {...register("course_category")}
               />
-              <span className="block text-sm font-normal">Corporate Training Courses</span>
+              <span className="block text-sm font-normal">
+                Corporate Training Courses
+              </span>
             </label>
           </div>
         </div>
@@ -476,7 +478,7 @@ const AddCourse = () => {
               </label>
               <div className="p-3 border rounded-lg w-full dark:bg-inherit text-gray-600">
                 <button className="w-full text-left" onClick={toggleDropdown}>
-                  {selected || "Select type"}
+                  {selected || "Select Category"}
                 </button>
                 {dropdownOpen && (
                   <div className="absolute z-10 left-0 top-20 bg-white border border-gray-600 rounded-lg w-full shadow-xl">
@@ -682,6 +684,41 @@ const AddCourse = () => {
               )}
             </div>
 
+            {/* <div>
+              <label className="block text-sm font-normal mb-1">
+                Course Fee
+                <span className="text-red-500 ml-1">*</span>
+              </label>
+              <div className="flex gap-2">
+                <select
+                  className="p-3 border rounded-lg text-gray-600 dark:bg-inherit"
+                  {...register("currency", { required: true })}
+                >
+                  <option value="USD">USD</option>
+                  <option value="INR">INR</option>
+                </select>
+
+                <input
+                  type="text"
+                  placeholder="Enter amount"
+                  className="p-3 border rounded-lg w-full text-gray-600 dark:bg-inherit placeholder-gray-400"
+                  {...register("course_fee", {
+                    required: "Course fee is required",
+                  })}
+                />
+              </div> */}
+
+            {/* Error messages */}
+            {/* {errors.currency && (
+                <p className="text-red-500 text-xs">Currency is required.</p>
+              )}
+              {errors.course_fee && (
+                <p className="text-red-500 text-xs">
+                  {errors.course_fee.message}
+                </p>
+              )}
+            </div> */}
+
             <div>
               <label className="block text-sm font-normal mb-1">
                 Course Grade
@@ -753,9 +790,16 @@ const AddCourse = () => {
                 onClick={handleResourceModal}
                 className="flex items-center w-full justify-center gap-2 px-4 py-2.5 border border-gray-200 rounded-md hover:bg-gray-100 transition-colors"
               >
-                {(resourceVideos.length > 0 || resourcePdfs.length > 0) ? <CircleCheckBig className="w-4 h-16 text-customGreen" /> : <Upload className="w-4 h-16" /> }
-                {(resourceVideos.length > 0 || resourcePdfs.length > 0) ? <span className="text-customGreen">Files Uploaded</span> : <span>Upload Files</span> }
-                
+                {resourceVideos.length > 0 || resourcePdfs.length > 0 ? (
+                  <CircleCheckBig className="w-4 h-16 text-customGreen" />
+                ) : (
+                  <Upload className="w-4 h-16" />
+                )}
+                {resourceVideos.length > 0 || resourcePdfs.length > 0 ? (
+                  <span className="text-customGreen">Files Uploaded</span>
+                ) : (
+                  <span>Upload Files</span>
+                )}
               </button>
             </div>
           </div>
@@ -784,7 +828,9 @@ const AddCourse = () => {
                 <p className="text-customGreen cursor-pointer text-sm">
                   Click to upload
                 </p>
-                <p className="text-gray-400 text-xs">or drag & drop the files</p>
+                <p className="text-gray-400 text-xs">
+                  or drag & drop the files
+                </p>
                 <input
                   type="file"
                   multiple
@@ -820,7 +866,9 @@ const AddCourse = () => {
                 <p className="text-customGreen cursor-pointer text-sm">
                   Click to upload
                 </p>
-                <p className="text-gray-400 text-xs">or drag & drop the files</p>
+                <p className="text-gray-400 text-xs">
+                  or drag & drop the files
+                </p>
                 <input
                   type="file"
                   multiple

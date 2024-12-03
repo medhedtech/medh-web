@@ -100,7 +100,7 @@ const StudentEnrolledCourses = () => {
           <div key={idx} className={idx === currentTab ? "block" : "hidden"}>
             {tab.content.length > 0 ? (
               <div className="space-y-4">
-                {tab.content.map((course, index) => (
+                {/* {tab.content.map((course, index) => (
                   <div
                     key={index}
                     className="p-5 bg-white dark:bg-inherit dark:border shadow rounded-lg flex gap-4 items-start font-Open"
@@ -122,6 +122,50 @@ const StudentEnrolledCourses = () => {
                       </p>
                       <a
                         href={course.brochures?.[0] || PDFImage}
+                        className="text-[#7ECA9D] font-medium flex items-center mt-2 hover:underline font-Open"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Image
+                          src={img3}
+                          width={20}
+                          height={20}
+                          alt="Download"
+                          className="rounded-md object-cover mr-2"
+                        />
+                        Download Course Materials
+                      </a>
+                    </div>
+                  </div>
+                ))} */}
+                {tab.content.map((course, index) => (
+                  <div
+                    key={index}
+                    className="p-5 bg-white dark:bg-inherit dark:border shadow rounded-lg flex gap-4 items-start font-Open"
+                  >
+                    <Image
+                      src={course?.course_image || img5} // Fallback to img5 if course_image is undefined
+                      alt={course?.course_title || "Course Image"} // Fallback for alt text
+                      width={100}
+                      height={100}
+                      className="rounded-md object-cover"
+                    />
+                    <div>
+                      <h3 className="text-xl text-[#171A1F] font-normal font-Open dark:text-white">
+                        {course?.course_title || "No Title Available"}
+                      </h3>
+                      <p className="text-[#9095A0]">
+                        Instructor:{" "}
+                        {course?.assigned_instructor?.full_name || "N/A"}
+                      </p>
+                      <p className="text-[#9095A0]">
+                        Categories:{" "}
+                        {course?.category_ids
+                          ?.map((category) => category.category_name)
+                          .join(", ") || "N/A"}
+                      </p>
+                      <a
+                        href={course?.brochures?.[0] || PDFImage}
                         className="text-[#7ECA9D] font-medium flex items-center mt-2 hover:underline font-Open"
                         target="_blank"
                         rel="noopener noreferrer"
