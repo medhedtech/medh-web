@@ -25,6 +25,7 @@ export default function CoursePreview() {
         course_videos: courseData?.course_videos || [],
         brochures: courseData?.brochures || [],
         course_image: courseData?.course_image,
+        curriculum: courseData?.curriculum,
       };
       await postQuery({
         url: apiUrls?.courses?.createCourse,
@@ -176,7 +177,7 @@ export default function CoursePreview() {
               <label className="block text-gray-600 mb-2">Course Fee</label>
               <input
                 type="text"
-                value={courseData.course_fee || ""}
+                value={courseData.course_fee || "0"}
                 readOnly
                 className="w-full p-3 border rounded-lg bg-gray-50 border-gray-300"
               />
