@@ -193,8 +193,10 @@ const StudentEnrolledCourses = () => {
 
         // Filter live courses based on category
         const liveCoursesFiltered = allCourses.filter(
-          (course) => course.course_category === "Live Courses"
+          (course) => course.course_tag === "Live"
         );
+
+        console.log("Live courses only:", liveCoursesFiltered);
         setLiveCourses(liveCoursesFiltered);
       },
       onFail: (error) => {
@@ -203,14 +205,56 @@ const StudentEnrolledCourses = () => {
     });
   };
 
+  // const fetchSelfPacedCourses = (studentId) => {
+  //   getQuery({
+  //     url: `${apiUrls?.Membership?.getMembershipBbyStudentId}/${studentId}`,
+  //     onSuccess: (response) => {
+  //       console.log("Self-paced courses response:", response);
+  //       const courses = response?.data;
+  //       console.log("Flattened courses:", courses);
+  //       setSelfPacedCourses(courses || []);
+  //     },
+  //     onFail: (error) => {
+  //       console.error("Failed to fetch self-paced courses:", error);
+  //     },
+  //   });
+  // };
+
   const fetchSelfPacedCourses = (studentId) => {
     getQuery({
       url: `${apiUrls?.Membership?.getMembershipBbyStudentId}/${studentId}`,
       onSuccess: (response) => {
         console.log("Self-paced courses response:", response);
-        const courses = response?.data
-        console.log("Flattened courses:", courses);
-        setSelfPacedCourses(courses || []);
+
+        // Extract the enrolled courses
+        const enrolledCourses = response?.enrolled_courses || [];
+
+        // Filter courses where is_self_paced is true
+        const selfPacedCourses = enrolledCourses
+          .filter((course) => course.is_self_paced === true)
+          .map((course) => ({
+            course_title: course.course_id?.course_title || "N/A",
+            assigned_instructor:
+              course.course_id?.assigned_instructor?.full_name ||
+              "No instructor",
+            category:
+              response?.data
+                ?.find((membership) =>
+                  membership.category_ids.some(
+                    (category) =>
+                      category.category_name === course.course_id?.category
+                  )
+                )
+                ?.category_ids.map((cat) => cat.category_name)
+                .join(", ") || "N/A",
+            resource_pdfs: course.course_id?.resource_pdfs || [],
+            resource_videos: course.course_id?.resource_videos || [],
+          }));
+
+        console.log("Processed self-paced courses:", selfPacedCourses);
+
+        // Set the processed self-paced courses
+        setSelfPacedCourses(selfPacedCourses);
       },
       onFail: (error) => {
         console.error("Failed to fetch self-paced courses:", error);
@@ -266,9 +310,8 @@ const StudentEnrolledCourses = () => {
               />
               <span>Download Video {idx + 1}</span>
             </div>
-            {/* Add onClick handler to download directly */}
             <button
-              onClick={() => handleDownload(video, `video_${idx + 1}.mp4`)} // Trigger download on click
+              onClick={() => handleDownload(video, `video_${idx + 1}.mp4`)}
               className="text-[#7ECA9D] hover:underline"
             >
               <AiOutlineDownload size={20} className="text-[#7ECA9D]" />
@@ -292,9 +335,8 @@ const StudentEnrolledCourses = () => {
               />
               <span>Download PDF {idx + 1}</span>
             </div>
-            {/* Add onClick handler to download directly */}
             <button
-              onClick={() => handleDownload(pdf, `document_${idx + 1}.pdf`)} // Trigger download on click
+              onClick={() => handleDownload(pdf, `document_${idx + 1}.pdf`)}
               className="text-[#7ECA9D] hover:underline"
             >
               <AiOutlineDownload size={20} className="text-[#7ECA9D]" />
@@ -339,7 +381,7 @@ const StudentEnrolledCourses = () => {
             {tab.content.length > 0 ? (
               <div className="space-y-4">
                 {tab.content.map((course, index) => {
-                  console.log("course title data:", course)
+                  console.log("course title data:", course);
                   return (
                     <div
                       key={index}
@@ -361,10 +403,7 @@ const StudentEnrolledCourses = () => {
                           {course?.assigned_instructor?.full_name || "N/A"}
                         </p>
                         <p className="text-[#9095A0]">
-                          Categories:{" "}
-                          {course?.category_ids
-                            ?.map((category) => category.category_name)
-                            .join(", ") || "N/A"}
+                          Category: {course?.category || "N/A"}
                         </p>
                         <button
                           className="text-[#7ECA9D] font-medium mt-2"
