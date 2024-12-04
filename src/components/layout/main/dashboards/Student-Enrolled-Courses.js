@@ -65,7 +65,6 @@
 // };
 // export default StudentEnrollCourses;
 
-
 "use client";
 import React, { useEffect, useState } from "react";
 import EnrollCoursesCard from "./EnrollCoursesCard";
@@ -78,24 +77,26 @@ const StudentEnrollCourses = () => {
   const router = useRouter();
   const [enrollCourses, setEnrollCourses] = useState([]);
   const { getQuery } = useGetQuery();
-  const [studentId, setStudentId] = useState(null); // Store studentId in state
+  const [studentId, setStudentId] = useState(null);
 
   useEffect(() => {
-    // Check if we're on the client-side before accessing localStorage
     if (typeof window !== "undefined") {
-      const storedStudentId = localStorage.getItem("userId");
-      setStudentId(storedStudentId);
+      const storedUserId = localStorage.getItem("userId");
+      setStudentId(storedUserId);
     }
-  }, []); // Runs once when component mounts
+  }, []);
 
   useEffect(() => {
-    // Ensure studentId is available before making the API call
     if (studentId) {
       getQuery({
         url: `${apiUrls?.EnrollCourse?.getEnrolledCoursesByStudentId}/${studentId}`,
         onSuccess: (data) => {
-          const courses = data.map((enrollment) => enrollment.course_id);
+          const courses = data
+            .map((enrollment) => enrollment.course_id)
+            .filter((course) => course)
+            .slice(0, 80);
           setEnrollCourses(courses);
+          console.log(data, "real Course Data");
           console.log(courses, "Extracted Course Data");
         },
         onFail: (error) => {
@@ -103,7 +104,7 @@ const StudentEnrollCourses = () => {
         },
       });
     }
-  }, [studentId]); // Trigger this effect when studentId is updated
+  }, [studentId]);
 
   const handleCardClick = (id) => {
     router.push(`/dashboards/my-courses/${id}`);
@@ -128,16 +129,19 @@ const StudentEnrollCourses = () => {
         </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {enrollCourses.map((course) => (
-          <EnrollCoursesCard
-            key={course._id}
-            title={course.course_title}
-            image={course.course_image}
-            isLive={course.course_tag === "Live"}
-            progress={40}
-            onClick={() => handleCardClick(course._id)}
-          />
-        ))}
+        {enrollCourses.map((course, i) => {
+          console.log(course);
+          return (
+            <EnrollCoursesCard
+              key={course._id}
+              title={course.course_title}
+              image={course.course_image}
+              isLive={course.course_tag === "Live"}
+              progress={40}
+              onClick={() => handleCardClick(course._id)}
+            />
+          );
+        })}
       </div>
     </div>
   );
