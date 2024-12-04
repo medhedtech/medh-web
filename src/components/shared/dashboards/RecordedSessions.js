@@ -22,7 +22,7 @@ const RecordedSessions = () => {
           "",
           "",
           "",
-          "Upcoming",
+          "Published",
           "",
           "",
           "",
