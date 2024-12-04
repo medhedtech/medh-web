@@ -252,6 +252,7 @@ export default function SelectCourseModal({
                     course_id: id,
                     membership_id: membershipId,
                     expiry_date: expiryDate,
+                    is_self_paced: true,
                   },
                   onSuccess: () => {
                     console.log(`Successfully enrolled in course: ${id}`);
