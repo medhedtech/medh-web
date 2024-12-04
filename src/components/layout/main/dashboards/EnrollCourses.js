@@ -99,8 +99,10 @@ const EnrollCourses = () => {
         onSuccess: (data) => {
           const courses = data
             .map((enrollment) => enrollment.course_id)
+            .filter((course) => course)
             .slice(0, 4);
           setEnrollCourses(courses);
+          console.log(data, "real Course Data");
           console.log(courses, "Extracted Course Data");
         },
         onFail: (error) => {
@@ -124,16 +126,19 @@ const EnrollCourses = () => {
         </a>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {enrollCourses.map((course) => (
-          <EnrollCoursesCard
-            key={course._id}
-            title={course.course_title}
-            image={course.course_image}
-            isLive={course.course_tag === "Live"}
-            progress={40}
-            onClick={() => handleCardClick(course._id)}
-          />
-        ))}
+        {enrollCourses.map((course, i) => {
+          console.log(course);
+          return (
+            <EnrollCoursesCard
+              key={course._id}
+              title={course.course_title}
+              image={course.course_image}
+              isLive={course.course_tag === "Live"}
+              progress={40}
+              onClick={() => handleCardClick(course._id)}
+            />
+          );
+        })}
       </div>
     </div>
   );
