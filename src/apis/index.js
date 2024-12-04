@@ -132,6 +132,7 @@ export const apiUrls = {
     getEnrolledCoursesByStudentId: "/enroll/student",
     getUpcomingCoursesByStudentId: "/enroll/get-upcoming-meetings",
     getEnrolledStudentsByCourseId: "/enroll/course",
+    watchModule: "/enroll/watch",
   },
   Subscription: {
     AddSubscription: "/subscription/create",
@@ -165,5 +166,10 @@ export const apiUrls = {
   brouchers: {
     getAllBrouchers: "/broucher/get",
     addBroucher: "/broucher/create",
+  },
+  certificate: {
+    getAllCertificate: "/certificates/get",
+    addCertificate: "/certificates/create",
+    getCertificatesByStudentId: "/certificates/get"
   },
 };
