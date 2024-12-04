@@ -12,43 +12,13 @@ import { apiUrls } from "@/apis";
 const FreeCourses = () => {
   const router = useRouter();
 
-  const courses = [
-    {
-      id: 1,
-      title: "AI & ML Masterclasses",
-      instructor: "Sayef Mamud, PixelCo",
-      rating: 4.0,
-      reviews: 4051,
-      image: AiMl,
-    },
-    {
-      id: 2,
-      title: "React Masterclasses",
-      instructor: "Sayef Mamud, PixelCo",
-      rating: 4.0,
-      reviews: 4051,
-      image: reactImg,
-    },
-    {
-      id: 3,
-      title: "OS Masterclasses",
-      instructor: "Sayef Mamud, PixelCo",
-      rating: 4.0,
-      reviews: 4051,
-      image: os,
-    },
-    {
-      id: 4,
-      title: "JavaScript Masterclasses",
-      instructor: "Sayef Mamud, PixelCo",
-      rating: 4.0,
-      reviews: 4051,
-      image: javascript,
-    },
-  ];
+  // const handleCardClick = (id) => {
+  //   router.push(`/dashboards/my-courses/${id}`);
+  // };
 
-  const handleCardClick = (id) => {
-    router.push(`/dashboards/my-courses/${id}`);
+  const handleCardClick = (id, isFreeCourse) => {
+    const queryString = isFreeCourse ? "?isFreeCourse=true" : "";
+    router.push(`/dashboards/my-courses/${id}${queryString}`);
   };
 
   const [freeCourses, setFreeCourses] = useState([]);
@@ -111,7 +81,8 @@ const FreeCourses = () => {
             // title={}
             key={course?._id}
             {...course}
-            onClick={() => handleCardClick(course?._id)}
+            // onClick={() => handleCardClick(course?._id)}
+            onClick={() => handleCardClick(course?._id, true)} 
           />
         ))}
       </div>
