@@ -188,6 +188,13 @@ export default function SelectCourseModal({
   //   }
   // };
 
+  const removeFirstChr = (str = "") => {
+    if (!str.length) {
+      return 0;
+    }
+    return Number(str.substring(1));
+  };
+
   const handleSubscribe = async () => {
     try {
       await postQuery({
@@ -211,11 +218,13 @@ export default function SelectCourseModal({
             ) || [];
           console.log("All Categories: ", categoryNames);
 
-          const groupedCourses = categoryNames.map((category) => courses.filter((course) => course.category === category));
+          const groupedCourses = categoryNames.map((category) =>
+            courses.filter((course) => course.category === category)
+          );
           console.log("Enrolled Courses: ", groupedCourses);
 
           const enrolledCourses = groupedCourses.flatMap((group) =>
-            group.map((course) => course._id) 
+            group.map((course) => course._id)
           );
           console.log("Enrolled Course IDs: ", enrolledCourses);
 
@@ -225,34 +234,44 @@ export default function SelectCourseModal({
           }
 
           // Enroll courses with the same expiry date
-          const enrollmentPromises = enrolledCourses.map((id) =>
-            postQuery({
-              url: apiUrls?.EnrollCourse?.enrollCourse,
+          const enrollmentPromises = enrolledCourses.map((id) => {
+            return postQuery({
+              url: apiUrls?.Subscription?.AddSubscription,
               postData: {
                 student_id: studentId,
                 course_id: id,
-                membership_id: membershipId,
-                expiry_date: expiryDate,
+                amount: removeFirstChr(amount) * 84.71,
+                status: "success",
               },
               onSuccess: () => {
                 console.log(`Successfully enrolled in course: ${id}`);
+                postQuery({
+                  url: apiUrls?.EnrollCourse?.enrollCourse,
+                  postData: {
+                    student_id: studentId,
+                    course_id: id,
+                    membership_id: membershipId,
+                    expiry_date: expiryDate,
+                  },
+                  onSuccess: () => {
+                    console.log(`Successfully enrolled in course: ${id}`);
+                  },
+                  onFail: (err) => {
+                    console.error(`Failed to enroll in course: ${id}`, err);
+                  },
+                });
               },
               onFail: (err) => {
                 console.error(`Failed to enroll in course: ${id}`, err);
-                // toast.error(
-                //   `Failed to enroll in course: ${course.course_title}`
-                // );
               },
-            })
-          );
+            });
+          });
 
           // Wait for all enrollments to complete
           await Promise.all(enrollmentPromises);
-          // toast.success("Courses enrolled successfully!");
         },
         onFail: (err) => {
           console.error("Error while creating subscription", err);
-          // toast.error("Failed to create membership. Please try again.");
         },
       });
     } catch (err) {
@@ -271,7 +290,6 @@ export default function SelectCourseModal({
     handleSubscribe();
     onClose();
     closeParent();
-
   };
 
   if (!isOpen) return null;
