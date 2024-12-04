@@ -1,6 +1,6 @@
 // export const apiBaseUrl = "https://medh-backend.vercel.app/api/v1";  //vercel URL
-export const apiBaseUrl = "https://3.111.36.160.nip.io/api/v1"; //live instance URL
-// export const apiBaseUrl = "http://localhost:8080/api/v1"; // local URL
+// export const apiBaseUrl = "https://3.111.36.160.nip.io/api/v1"; //live instance URL
+export const apiBaseUrl = "http://localhost:8080/api/v1"; // local URL
 
 export const apiUrls = {
   user: {
@@ -132,6 +132,7 @@ export const apiUrls = {
     getEnrolledCoursesByStudentId: "/enroll/student",
     getUpcomingCoursesByStudentId: "/enroll/get-upcoming-meetings",
     getEnrolledStudentsByCourseId: "/enroll/course",
+    watchModule: "/enroll/watch",
   },
   Subscription: {
     AddSubscription: "/subscription/create",
