@@ -21,7 +21,7 @@ const schema = yup.object({
     .oneOf(["Live Courses", "Blended Courses", "Corporate Training Courses"])
     .required("Course category is required"),
   course_title: yup.string().trim().required("Course title is required"),
-  category: yup.string(),
+  category: yup.string().required("This field is required"),
   course_tag: yup
     .string()
     .oneOf(["Live", "Hybrid", "Pre-Recorded", "Free"])
@@ -122,14 +122,14 @@ const AddCourse = () => {
   }, []);
 
   useEffect(() => {
-    if(courseTag === 'Free'){
-      setCourseIsFree(true)
-      setValue('course_fee', 0);
-    }else{
-      setCourseIsFree(false)
-      reset({ course_fee: '' });
+    if (courseTag === "Free") {
+      setCourseIsFree(true);
+      setValue("course_fee", 0);
+    } else {
+      setCourseIsFree(false);
+      reset({ course_fee: "" });
     }
-  }, [courseTag])
+  }, [courseTag]);
 
   const fetchAllCategories = () => {
     try {
@@ -537,6 +537,11 @@ const AddCourse = () => {
                   </div>
                 )}
               </div>
+              {errors.category && (
+                <p className="text-red-500 text-xs">
+                  {errors.category.message}
+                </p>
+              )}
             </div>
 
             <div>
@@ -849,7 +854,6 @@ const AddCourse = () => {
                 ) : (
                   <span>Add Curriculum</span>
                 )}
-=
               </button>
             </div>
           </div>
@@ -860,6 +864,7 @@ const AddCourse = () => {
             <div>
               <p className="font-semibold mb-2 text-center text-2xl">
                 Add Course Videos
+                <span className="text-red-500 ml-1">*</span>
               </p>
               <div className="border-dashed border-2 dark:bg-inherit bg-purple border-gray-300 rounded-lg p-3 w-[210px] h-[140px] text-center relative">
                 <svg
@@ -898,6 +903,7 @@ const AddCourse = () => {
             <div>
               <p className="font-semibold mb-2 text-center text-2xl">
                 Add PDF Brochure
+                <span className="text-red-500 ml-1">*</span>
               </p>
               <div className="border-dashed border-2 dark:bg-inherit bg-purple border-gray-300 rounded-lg p-3 w-[210px] h-[140px] text-center relative">
                 <svg
@@ -934,7 +940,10 @@ const AddCourse = () => {
 
             {/* Thumbnail Image Upload */}
             <div>
-              <p className="font-semibold mb-2 text-left text-2xl">Add Image</p>
+              <p className="font-semibold mb-2 text-left text-2xl">
+                Add Image
+                <span className="text-red-500 ml-1">*</span>
+              </p>
               <div className="border-dashed border-2 dark:bg-inherit bg-purple border-gray-300 rounded-lg p-3 w-[210px] h-[140px] text-center relative">
                 <svg
                   width="36"
