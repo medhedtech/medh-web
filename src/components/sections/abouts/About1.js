@@ -22,7 +22,7 @@ const About1 = () => {
           "",
           "",
           "Live Courses",
-          "",
+          "Published",
           "",
           "",
           "",
