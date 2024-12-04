@@ -12,23 +12,30 @@ import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
 import ReactPlayer from "react-player";
 import { toast } from "react-toastify";
+import usePostQuery from "@/hooks/postQuery.hook";
 
 const CourseDetails = () => {
   const courseId = useParams().id;
   const studentId = localStorage.getItem("userId");
   const [courseDetails, setCourseDetails] = useState(null);
   const { getQuery } = useGetQuery();
+  const { postQuery } = usePostQuery();
   const router = useRouter();
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [courseIsFreeOrPr, setCourseIsFreeOrPr] = useState(false);
 
-  const handlePlayVideo = (videoUrl) => {
+  const handlePlayVideo = (videoUrl, id) => {
     if (isEnrolled || courseIsFreeOrPr) {
-      setSelectedVideo(videoUrl);
-      setIsPlaying(true);
-      console.log("Playing video:", videoUrl);
+      getQuery({
+        url: `${apiUrls.EnrollCourse.watchModule}?id=${id}`,
+        onSuccess: () => {
+          setSelectedVideo(videoUrl);
+          setIsPlaying(true);
+          console.log("Playing video:", videoUrl);
+        },
+      });
     } else {
       toast.error("Enroll to access course curriculum.");
     }
@@ -120,10 +127,12 @@ const CourseDetails = () => {
   useEffect(() => {
     const fetchCourseDetailsById = () => {
       getQuery({
-        url: `${apiUrls?.courses?.getCourseById}/${courseId}`,
+        url: `${apiUrls?.courses?.getCourseById}/${courseId}?studentId=${studentId}`,
         onSuccess: (res) => {
           setCourseDetails(res);
-          const status = (res?.course_tag?.toLowerCase() === 'pre-recorded') || (res?.course_fee === 0 && res?.isFree === true)
+          const status =
+            res?.course_tag?.toLowerCase() === "pre-recorded" ||
+            (res?.course_fee === 0 && res?.isFree === true);
           setCourseIsFreeOrPr(status);
           console.log(res);
         },
@@ -213,7 +222,7 @@ const CourseDetails = () => {
             />
           ))} */}
           <ul>
-            {courseDetails?.course_videos.map((video, index) => (
+            {courseDetails?.enrolled_module.map((video, index) => (
               <li
                 key={index}
                 className="flex justify-between items-center w-1/2 border-b border-gray-200 py-3 text-[#202244] "
@@ -228,7 +237,7 @@ const CourseDetails = () => {
                 </div>
                 <div
                   className="cursor-pointer"
-                  onClick={() => handlePlayVideo(video)}
+                  onClick={() => handlePlayVideo(video.video_url, video._id)}
                 >
                   <svg
                     width="18"
