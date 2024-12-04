@@ -1,3 +1,170 @@
+// "use client";
+// import React, { useEffect, useState } from "react";
+// import CourseHeader from "./CourseHeader";
+// import WhatYouGet from "./WhatYouGet";
+// import CurriculumSection from "./Curriculum";
+// import Review from "./Reviews";
+// import reviewimg from "@/assets/images/dashbord/review.png";
+// import Image from "next/image";
+// import MLBanner from "@/assets/images/dashbord/MLBanner.png";
+// import { useParams, useRouter, useSearchParams } from "next/navigation";
+// import useGetQuery from "@/hooks/getQuery.hook";
+// import { apiUrls } from "@/apis";
+// import ReactPlayer from "react-player";
+// import { toast } from "react-toastify";
+// import usePostQuery from "@/hooks/postQuery.hook";
+
+// const CourseDetails = () => {
+//   const courseId = useParams().id;
+//   const studentId = localStorage.getItem("userId");
+//   const [courseDetails, setCourseDetails] = useState(null);
+//   const { getQuery } = useGetQuery();
+//   const { postQuery } = usePostQuery();
+//   const router = useRouter();
+//   const [selectedVideo, setSelectedVideo] = useState(null);
+//   const [isPlaying, setIsPlaying] = useState(false);
+//   const [isEnrolled, setIsEnrolled] = useState(false);
+//   const [courseIsFreeOrPr, setCourseIsFreeOrPr] = useState(false);
+//   const { query } = router;
+//   const searchParams = useSearchParams();
+//   const isFreeCourse = query.isFreeCourse === "true";
+
+//   const handlePlayVideo = (videoUrl, id) => {
+//     if (isEnrolled || courseIsFreeOrPr) {
+//       getQuery({
+//         url: `${apiUrls.EnrollCourse.watchModule}?id=${id}`,
+//         onSuccess: () => {
+//           setSelectedVideo(videoUrl);
+//           setIsPlaying(true);
+//           console.log("Playing video:", videoUrl);
+//         },
+//       });
+//     } else {
+//       toast.error("Enroll to access course curriculum.");
+//     }
+//   };
+
+//   const handleCloseVideo = () => {
+//     setSelectedVideo(null);
+//     setIsPlaying(false);
+//   };
+
+//   const course = {
+//     title: "Advance Machine Learning for Beginners",
+//     classes: 21,
+//     rating: 4.8,
+//     hour: "42",
+//     price: "29,000",
+//     curriculum: [
+//       {
+//         title: "Introduction",
+//         duration: "60 mins",
+//         lessons: [
+//           { title: "Why Machine Learning", duration: "15 mins" },
+//           { title: "Setup Your IDE", duration: "20 mins" },
+//           { title: "Fundamentals", duration: "15 mins" },
+//           { title: "Daily Task With ML", duration: "10 mins" },
+//         ],
+//       },
+//       {
+//         title: "Application",
+//         duration: "30 mins",
+//         lessons: [
+//           { title: "In House", duration: "10 mins" },
+//           { title: "Corporate", duration: "10 mins" },
+//           { title: "Hotels", duration: "5 mins" },
+//           { title: "Research and Labs", duration: "5 mins" },
+//         ],
+//       },
+//     ],
+//     reviews: [
+//       {
+//         reviewer: "Joy",
+//         rating: 4.5,
+//         comment:
+//           "This course has been very useful. Mentor was well spoken totally loved it.",
+//         likes: 579,
+//         date: "2 weeks ago",
+//         avtar: reviewimg,
+//       },
+//       {
+//         reviewer: "Manik",
+//         rating: 4.5,
+//         comment:
+//           "This course has been very useful. Mentor was well spoken totally loved it.",
+//         likes: 370,
+//         date: "2 weeks ago",
+//         avtar: reviewimg,
+//       },
+//       {
+//         reviewer: "Manik",
+//         rating: 4.5,
+//         comment:
+//           "This course has been very useful. Mentor was well spoken totally loved it.",
+//         likes: 370,
+//         date: "2 weeks ago",
+//         avtar: reviewimg,
+//       },
+//       {
+//         reviewer: "Manik",
+//         rating: 4.5,
+//         comment:
+//           "This course has been very useful. Mentor was well spoken totally loved it.",
+//         likes: 370,
+//         date: "2 weeks ago",
+//         avtar: reviewimg,
+//       },
+//       {
+//         reviewer: "Manik",
+//         rating: 4.5,
+//         comment:
+//           "This course has been very useful. Mentor was well spoken totally loved it.",
+//         likes: 370,
+//         date: "2 weeks ago",
+//         avtar: reviewimg,
+//       },
+//     ],
+//   };
+
+//   // MAKE API CALL TO GET THE COURSE DETAILS BY ID
+//   useEffect(() => {
+//     const fetchCourseDetailsById = () => {
+//       getQuery({
+//         url: `${apiUrls?.courses?.getCourseById}/${courseId}?studentId=${studentId}`,
+//         onSuccess: (res) => {
+//           setCourseDetails(res);
+//           const status =
+//             res?.course_tag?.toLowerCase() === "pre-recorded" ||
+//             (res?.course_fee === 0 && res?.isFree === true);
+//           setCourseIsFreeOrPr(status);
+//           console.log(res);
+//         },
+//         onFail: (err) => {
+//           console.error("Error fetching course details:", err);
+//         },
+//       });
+//     };
+//     fetchCourseDetailsById();
+
+//     const getEnrollmentStatus = () => {
+//       getQuery({
+//         url: `${apiUrls?.Subscription?.getEnrollmentStatus}?studentId=${studentId}&courseId=${courseId}`,
+//         onSuccess: (res) => {
+//           setIsEnrolled(res.enrolled);
+//           console.log(res);
+//         },
+//         onFail: (err) => {
+//           console.error("Error fetching enrollment status:", err);
+//         },
+//       });
+//     };
+//     getEnrollmentStatus();
+//   }, [courseId]);
+
+//   const handleGoBack = () => {
+//     router.back();
+//   };
+
 "use client";
 import React, { useEffect, useState } from "react";
 import CourseHeader from "./CourseHeader";
@@ -7,7 +174,7 @@ import Review from "./Reviews";
 import reviewimg from "@/assets/images/dashbord/review.png";
 import Image from "next/image";
 import MLBanner from "@/assets/images/dashbord/MLBanner.png";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
 import ReactPlayer from "react-player";
@@ -21,21 +188,31 @@ const CourseDetails = () => {
   const { getQuery } = useGetQuery();
   const { postQuery } = usePostQuery();
   const router = useRouter();
+  const searchParams = useSearchParams(); // New hook for query parameters
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [courseIsFreeOrPr, setCourseIsFreeOrPr] = useState(false);
 
+  // Extract 'isFreeCourse' from URL search parameters
+  const isFreeCourse = searchParams.get("isFreeCourse") === "true";
+
   const handlePlayVideo = (videoUrl, id) => {
     if (isEnrolled || courseIsFreeOrPr) {
-      getQuery({
-        url: `${apiUrls.EnrollCourse.watchModule}?id=${id}`,
-        onSuccess: () => {
-          setSelectedVideo(videoUrl);
-          setIsPlaying(true);
-          console.log("Playing video:", videoUrl);
-        },
-      });
+      if (id) {
+        getQuery({
+          url: `${apiUrls.EnrollCourse.watchModule}?id=${id}`,
+          onSuccess: () => {
+            setSelectedVideo(videoUrl);
+            setIsPlaying(true);
+            console.log("Playing video:", videoUrl);
+          },
+        });
+      } else {
+        setSelectedVideo(videoUrl);
+        setIsPlaying(true);
+        console.log("Playing video:", videoUrl);
+      }
     } else {
       toast.error("Enroll to access course curriculum.");
     }
@@ -44,6 +221,44 @@ const CourseDetails = () => {
   const handleCloseVideo = () => {
     setSelectedVideo(null);
     setIsPlaying(false);
+  };
+
+  useEffect(() => {
+    const fetchCourseDetailsById = () => {
+      getQuery({
+        url: `${apiUrls?.courses?.getCourseById}/${courseId}?studentId=${studentId}`,
+        onSuccess: (res) => {
+          setCourseDetails(res);
+          const status =
+            res?.course_tag?.toLowerCase() === "pre-recorded" ||
+            (res?.course_fee === 0 && res?.isFree === true);
+          setCourseIsFreeOrPr(status);
+          console.log(res);
+        },
+        onFail: (err) => {
+          console.error("Error fetching course details:", err);
+        },
+      });
+    };
+    fetchCourseDetailsById();
+
+    const getEnrollmentStatus = () => {
+      getQuery({
+        url: `${apiUrls?.Subscription?.getEnrollmentStatus}?studentId=${studentId}&courseId=${courseId}`,
+        onSuccess: (res) => {
+          setIsEnrolled(res.enrolled);
+          console.log(res);
+        },
+        onFail: (err) => {
+          console.error("Error fetching enrollment status:", err);
+        },
+      });
+    };
+    getEnrollmentStatus();
+  }, [courseId]);
+
+  const handleGoBack = () => {
+    router.back();
   };
 
   const course = {
@@ -123,44 +338,7 @@ const CourseDetails = () => {
     ],
   };
 
-  // MAKE API CALL TO GET THE COURSE DETAILS BY ID
-  useEffect(() => {
-    const fetchCourseDetailsById = () => {
-      getQuery({
-        url: `${apiUrls?.courses?.getCourseById}/${courseId}?studentId=${studentId}`,
-        onSuccess: (res) => {
-          setCourseDetails(res);
-          const status =
-            res?.course_tag?.toLowerCase() === "pre-recorded" ||
-            (res?.course_fee === 0 && res?.isFree === true);
-          setCourseIsFreeOrPr(status);
-          console.log(res);
-        },
-        onFail: (err) => {
-          console.error("Error fetching course details:", err);
-        },
-      });
-    };
-    fetchCourseDetailsById();
-
-    const getEnrollmentStatus = () => {
-      getQuery({
-        url: `${apiUrls?.Subscription?.getEnrollmentStatus}?studentId=${studentId}&courseId=${courseId}`,
-        onSuccess: (res) => {
-          setIsEnrolled(res.enrolled);
-          console.log(res);
-        },
-        onFail: (err) => {
-          console.error("Error fetching enrollment status:", err);
-        },
-      });
-    };
-    getEnrollmentStatus();
-  }, [courseId]);
-
-  const handleGoBack = () => {
-    router.back();
-  };
+  console.log("kjasdhgvda", isFreeCourse);
 
   return (
     <div className="container mx-auto p-8">
@@ -221,7 +399,7 @@ const CourseDetails = () => {
               lessons={section.lessons || []}
             />
           ))} */}
-          <ul>
+          {/* <ul>
             {courseDetails?.enrolled_module.map((video, index) => (
               <li
                 key={index}
@@ -256,6 +434,89 @@ const CourseDetails = () => {
                 </div>
               </li>
             ))}
+            {courseDetails?.course_videos.length === 0 && (
+              <p className="text-[#202244] pt-1">No Videos available</p>
+            )}
+          </ul> */}
+
+          <ul>
+            {isFreeCourse
+              ? courseDetails?.course_videos.map((video, index) => (
+                  <li
+                    key={index}
+                    className="flex justify-between items-center w-1/2 border-b border-gray-200 py-3 text-[#202244] "
+                  >
+                    <div className="flex items-center space-x-3 ">
+                      <span className="w-8 h-8 flex bg-slate-200 items-center justify-center bg-blue-100 text-blue-600 rounded-full text-sm font-semibold">
+                        {index + 1}
+                      </span>
+                      <div>
+                        <p className="text-base font-medium">
+                          Video {index + 1}
+                        </p>
+                      </div>
+                    </div>
+                    <div
+                      className="cursor-pointer"
+                      onClick={() =>
+                        handlePlayVideo(video)
+                      }
+                    >
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 18 18"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          clipRule="evenodd"
+                          d="M7.2 13.05V4.95L12.6 9L7.2 13.05ZM9 0C4.02705 0 0 4.02705 0 9C0 13.9729 4.02705 18 9 18C13.9729 18 18 13.9729 18 9C18 4.02705 13.9729 0 9 0Z"
+                          fill="#7ECA9D"
+                        />
+                      </svg>
+                    </div>
+                  </li>
+                ))
+              : courseDetails?.enrolled_module.map((video, index) => (
+                  <li
+                    key={index}
+                    className="flex justify-between items-center w-1/2 border-b border-gray-200 py-3 text-[#202244] "
+                  >
+                    <div className="flex items-center space-x-3 ">
+                      <span className="w-8 h-8 flex bg-slate-200 items-center justify-center bg-blue-100 text-blue-600 rounded-full text-sm font-semibold">
+                        {index + 1}
+                      </span>
+                      <div>
+                        <p className="text-base font-medium">
+                          Video {index + 1}
+                        </p>
+                      </div>
+                    </div>
+                    <div
+                      className="cursor-pointer"
+                      onClick={() =>
+                        handlePlayVideo(video.video_url, video._id)
+                      }
+                    >
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 18 18"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          clipRule="evenodd"
+                          d="M7.2 13.05V4.95L12.6 9L7.2 13.05ZM9 0C4.02705 0 0 4.02705 0 9C0 13.9729 4.02705 18 9 18C13.9729 18 18 13.9729 18 9C18 4.02705 13.9729 0 9 0Z"
+                          fill="#7ECA9D"
+                        />
+                      </svg>
+                    </div>
+                  </li>
+                ))}
             {courseDetails?.course_videos.length === 0 && (
               <p className="text-[#202244] pt-1">No Videos available</p>
             )}
