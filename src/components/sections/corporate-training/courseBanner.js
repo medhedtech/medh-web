@@ -13,7 +13,7 @@ function CourceBanner() {
         "Embark on a transformative journey towards success and unparalleled growth.",
       buttonText: "Let’s Connect",
       imageUrl: CourseBannerImg,
-      buttonBgColor: "#F6B335", // Dynamic background color
+      buttonBgColor: "#7ECA9D", // Dynamic background color
       icon: DotIcon, // Icon to display in the button
     },
   ];
@@ -37,14 +37,14 @@ function CourceBanner() {
           icon={course.icon} // Pass icon for button
         />
       ))}
-      <div className="lg:w-[80%] w-[95%] text-center font-Poppins dark:text-white text-[#727695] text-[15px] font-semibold leading-[27px]">
-        <p>
+      <div className="w-[95%] lg:w-full text-center font-Poppins dark:text-white text-[#727695] font-thin leading-[27px] mx-auto">
+        <p className="text-[1rem] font-normal sm:text-lg md:text-xl w-[80%] sm:w-[50%] mx-auto">
           Upon enrolling in our Corporate Training Courses, you can be confident
-          in making a strategic investment in your organization’s future.
+          in making a strategic investment in your organization&#39;s future.
         </p>
-        <p className="mt-6">
+        <p className="mt-6 text-sm sm:text-base font-normal md:text-lg w-[90%] sm:w-[75%] mx-auto">
           Our dedication to providing top-tier, customized training ensures that
-          your team will acquire the skills needed to excel in today’s
+          your team will acquire the skills needed to excel in today&#39;s
           ever-evolving business environment. We are committed to your success
           and eager to embark on this transformative journey with you.
         </p>

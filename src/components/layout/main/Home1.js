@@ -18,7 +18,7 @@ const Home1 = () => {
   const CustomButton = (
     <button
       onClick={() => {
-        router.push("/view-all-courses");
+        router.push("/skill-development-courses");
       }}
       className="cursor-pointer bg-[#7ECA9D] text-white px-4 py-2 mt-2 md:mt-0 flex gap-2"
     >
