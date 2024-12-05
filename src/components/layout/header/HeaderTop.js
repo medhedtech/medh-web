@@ -32,36 +32,51 @@ const HeaderTop = () => {
               <span className="pl-6">Follow us:</span>
               <ul className="flex gap-2.5 pl-2">
                 <li>
-                  <a href="https://www.facebook.com">
+                  <a
+                    href="https://www.facebook.com/medhupskill/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <i className="icofont-facebook"></i>
                   </a>
                 </li>
                 <li>
-                  <a href="https://www.instagram.com">
+                  <a
+                    href="https://www.linkedin.com/uas/login?session_redirect=https%3A%2F%2Fwww.linkedin.com%2Fcompany%2F101210304%2Fadmin%2Ffeed%2Fposts%2F"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <i className="icofont-instagram"></i>
                   </a>
                 </li>
                 <li>
-                  <a href="https://www.youtube.com">
+                  <a
+                    href="https://www.instagram.com/medhupskill/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <i className="icofont-linkedin"></i>
                   </a>
                 </li>
                 <li>
-                  <a href="https://www.youtube.com">
+                  <a
+                    href="https://www.youtube.com/channel/UC4EMmw69w-877_fxJExZWyw"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <i className="icofont-youtube-play"></i>
                   </a>
                 </li>
               </ul>
             </div>
           </div>
-          <Link href={'/login'}>
-          <div className="flex gap-2 pr-10 items-center">
-            
-            <div>
+          <Link href={"/login"}>
+            <div className="flex gap-2 pr-10 items-center">
+              <div>
                 <i className="icofont-login"></i>
+              </div>
+              LOGIN
             </div>
-            LOGIN
-          </div>
           </Link>
         </div>
       </div>
