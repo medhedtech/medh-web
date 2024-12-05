@@ -1,6 +1,6 @@
 import Image from "next/image";
 import React, { useState } from "react";
-import logo1 from "@/assets/images/logo/medh_logo.png";
+import logo1 from "@/assets/images/logo/medh_logo-1.png";
 import Link from "next/link";
 import NavbarMenu from "./NavbarMenu";
 

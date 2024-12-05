@@ -63,7 +63,7 @@ const HeroSection = ({
                 </div>
               </div>
             </div>
-            <span className="text-[#FD474F] text-2xl sm:text-3xl font-medium">
+            <span className="text-[#7ECA9D] text-2xl sm:text-3xl font-medium">
               {leftContent.motto}
             </span>
           </div>

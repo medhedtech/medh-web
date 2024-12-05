@@ -86,14 +86,16 @@ h6 {
 }
 
 @font-face {
-  font-family: "Bugatti";
-  src: url("/fonts/Bulgatti.woff") format("woff");
+  font-family: "Bulgathi";
+  src: url("/fonts/Bulgathi.ttf") format("truetype");
   font-weight: normal;
   font-style: normal;
 }
 
 .mumkinMedh {
-  font-family: "Bugatti", sans-serif;
+  font-family: "Bulgathi", sans-serif;
+  font-size: 50px !important;
+  line-height: 1.8rem !important;
 }
 
 /* sticky header */
