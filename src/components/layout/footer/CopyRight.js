@@ -17,7 +17,9 @@ const CopyRight = () => {
         <ul className="flex gap-3 lg:gap-2 2xl:gap-3 lg:justify-end">
           <li>
             <a
-              href="https://www.facebook.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              href="https://www.facebook.com/medhupskill/"
               className="w-40.19px lg:w-35px 2xl:w-40.19px h-37px rounded-full lg:h-35px 2xl:h-37px leading-37px lg:leading-35px 2xl:leading-37px text-white bg-white bg-opacity-10 text-center"
             >
               <i className="icofont-facebook"></i>
@@ -26,7 +28,9 @@ const CopyRight = () => {
 
           <li>
             <a
-              href="https://www.linkedin.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              href="https://www.linkedin.com/company/101210304/admin/feed/posts/"
               className="w-40.19px lg:w-35px 2xl:w-40.19px h-37px rounded-full lg:h-35px 2xl:h-37px leading-37px lg:leading-35px 2xl:leading-37px text-white bg-white bg-opacity-10 text-center"
             >
               <i className="icofont-linkedin"></i>
@@ -34,7 +38,9 @@ const CopyRight = () => {
           </li>
           <li>
             <a
-              href=""
+              target="_blank"
+              rel="noopener noreferrer"
+              href="https://www.instagram.com/medhupskill/"
               className="w-40.19px lg:w-35px 2xl:w-40.19px h-37px rounded-full lg:h-35px 2xl:h-37px leading-37px lg:leading-35px 2xl:leading-37px text-white bg-white bg-opacity-10 text-center"
             >
               <i className="icofont-instagram"></i>
@@ -42,7 +48,9 @@ const CopyRight = () => {
           </li>
           <li>
             <a
-              href=""
+              target="_blank"
+              rel="noopener noreferrer"
+              href="https://www.youtube.com/channel/UC4EMmw69w-877_fxJExZWyw"
               className="w-40.19px lg:w-35px 2xl:w-40.19px h-37px rounded-full lg:h-35px 2xl:h-37px leading-37px lg:leading-35px 2xl:leading-37px text-white bg-white bg-opacity-10 text-center"
             >
               <i className="icofont-youtube-play"></i>

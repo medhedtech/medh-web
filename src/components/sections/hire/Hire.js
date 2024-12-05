@@ -106,7 +106,7 @@ const Hire = ({
               color: trainingButtonTextColor,
             }}
             onClick={()=>{
-              router.push("/corporate-training")
+              router.push("/corporate-training-courses")
             }}
           >
             <AddIcon

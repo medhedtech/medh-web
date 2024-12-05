@@ -59,7 +59,7 @@ const ContactBanner = () => {
                 </div>
               </div>
             </div>
-            <span className="text-[#FD474F] mumkinMedh text-2xl sm:text-3xl font-medium">
+            <span className="text-[#7ECA9D] mumkinMedh text-2xl sm:text-3xl font-medium">
               Medh Hain Toh Mumkin Hain!
             </span>
           </div>

@@ -14,7 +14,7 @@ const FeaturedSlider = () => {
   const isHome9Dark = useIsTrue("/home-9-dark");
   const isHome10 = useIsTrue("/home-10");
   const isHome10Dark = useIsTrue("/home-10-dark");
-  const isAbout = useIsTrue("/about");
+  const isAbout = useIsTrue("/about-us");
   const isAboutDark = useIsTrue("/about-dark");
   let isCourseDetails = useIsTrue(`/courses/${id}`);
   let isCourseDetailsDark = useIsTrue(`/courses-dark/${id}`);
