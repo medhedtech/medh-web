@@ -8,7 +8,7 @@ const AccordionPages = () => {
     {
       name: "About",
 
-      path: "/about",
+      path: "/about-us",
     },
     {
       name: "About (Dark)",

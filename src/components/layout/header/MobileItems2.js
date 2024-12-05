@@ -17,7 +17,7 @@ const MobileItems2 = () => {
     {
       id: 2,
       name: "About",
-      path: "/about",
+      path: "/about-us",
       accordion: false,
       children: null,
     },
@@ -46,7 +46,7 @@ const MobileItems2 = () => {
     {
       id: 6,
       name: "Contact",
-      path: "/contact",
+      path: "/contact-us",
       accordion: false,
       children: null,
     },

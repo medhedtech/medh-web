@@ -203,10 +203,11 @@ const CorporateOverview = () => {
     <div className="bg-white dark:bg-screen-dark h-auto py-10  w-full flex justify-center items-center">
       <div className="w-full md:w-[80%]">
         <div className="flex items-center flex-col w-80% md:mb-20 mb-10 px-4">
-          <h1 className="text-[24px] leading-7 md:text-4xl font-bold md:mb-3 mb-2 text-[#41454F] dark:text-gray-50">
-            Gain a competitive edge with Medh&#39;s Corporate Training Courses
+          <h1 className="text-[24px] w-[70%] text-center leading-7 md:text-4xl font-bold md:mb-3 mb-2 text-[#7ECA9D] dark:text-gray-50">
+            Gain a competitive edge with Medh&#39;s <br /> Corporate Training
+            Courses
           </h1>
-          <p className="text-center md:text-[15px] text-[14px] leading-6 md:leading-7 md:w-[70%] text-[#727695] dark:text-gray-300">
+          <p className="text-center md:text-[1.2rem] text-gray-600 text-[14px] leading-6 md:leading-7 md:w-[70%] text-[#727695] dark:text-gray-300">
             meticulously designed to align with your company&#39;s vision and
             mission. Our SMART (Specific, Measurable, Achievable, Relevant, and
             Time-bound), approach ensures that the training is catering to your
