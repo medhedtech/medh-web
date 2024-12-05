@@ -8,35 +8,35 @@ const DropdownMore = () => {
       items: [
         {
           name: "About Us",
-          path: "/about",
+          path: "/about-us",
         },
         {
           name: "News and Media",
-          path: "/news-media",
+          path: "/news-and-media",
         },
         {
           name: "Membership",
-          path: "/membership",
+          path: "/medh-membership",
         },
         {
           name: "Team",
-          path: "/team",
+          path: "/medh-team",
         },
         {
           name: "Join Us as an Educator",
-          path: "/join-as-educator",
+          path: "/join-us-as-educator",
         },
         {
           name: "Join Us as a School / Institute",
-          path: "/join-as-school",
+          path: "/join-us-as-school-institute",
         },
         {
           name: "Careers @medh",
-          path: "/careers",
+          path: "/careers-at-medh",
         },
         {
           name: "Contact Us",
-          path: "/contact",
+          path: "/contact-us",
         },
       ],
     },

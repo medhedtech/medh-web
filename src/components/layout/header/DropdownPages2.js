@@ -6,7 +6,7 @@ const DropdownPages2 = () => {
     {
       name: "About",
       status: null,
-      path: "/about",
+      path: "/about-us",
       type: "secondary",
     },
     {
@@ -18,7 +18,7 @@ const DropdownPages2 = () => {
     {
       name: "Contact",
       status: null,
-      path: "/contact",
+      path: "/contact-us",
       type: "secondary",
     },
     {
