@@ -114,23 +114,23 @@ const DropdownCourses = () => {
       items: [
         {
           name: "AI and Data science",
-          path: "/ai-data-science",
+          path: "/ai-and-data-science-course",
         },
         {
           name: "Personality development",
-          path: "/personality-development",
+          path: "/personality-development-course",
         },
         {
           name: "Vedic Mathematics",
-          path: "/vedic-mathematics",
+          path: "/vedic-mathematics-course",
         },
         {
           name: "Digital Marketing with Data Analytics",
-          path: "/digital-marketing-with-data-analyst",
+          path: "/digital-marketing-with-data-analytics-course",
         },
         {
-          name: "~View Other courser1~",
-          path: "/view-all-courses",
+          name: "~View Other Courses~",
+          path: "/skill-development-courses",
         },
       ],
     },

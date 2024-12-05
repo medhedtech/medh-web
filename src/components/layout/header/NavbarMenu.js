@@ -29,14 +29,20 @@ const NavbarMenu = ({ menuOpen, toggleMenu }) => {
               />
             </Link>
 
-            <Link href="/login" className="flex gap-1 items-center justify-end ps-4 font-semibold text-green-500">
+            <Link
+              href="/login"
+              className="flex gap-1 items-center justify-end ps-4 font-semibold text-green-500"
+            >
               <LogIn />
               LOGIN
             </Link>
           </div>
           <div className="flex flex-col items-start justify-center space-y-4 px-4 font-semibold text-lg">
             {/* Menu Links */}
-            <Link href="/corporate-training" className="focus:text-green-400">
+            <Link
+              href="/corporate-training-courses"
+              className="focus:text-green-400"
+            >
               Corporate Training
             </Link>
             <Link href="/hire-from-medh" className="focus:text-green-400">
@@ -45,28 +51,31 @@ const NavbarMenu = ({ menuOpen, toggleMenu }) => {
             <Link href="/courses" className="focus:text-green-400">
               Courses
             </Link>
-            <Link href="/about" className="focus:text-green-400">
+            <Link href="/about-us" className="focus:text-green-400">
               About Us
             </Link>
-            <Link href="/news-media" className="focus:text-green-400">
+            <Link href="/news-and-media" className="focus:text-green-400">
               News & Media
             </Link>
-            <Link href="/membership" className="focus:text-green-400">
+            <Link href="/medh-membership" className="focus:text-green-400">
               Medh Membership
             </Link>
-            <Link href="/team" className="focus:text-green-400">
+            <Link href="/medh-team" className="focus:text-green-400">
               Medh Team
             </Link>
-            <Link href="/join-as-educator" className="focus:text-green-400">
+            <Link href="/join-us-as-educator" className="focus:text-green-400">
               Join Us as an Educator
             </Link>
-            <Link href="/join-as-school" className="focus:text-green-400">
+            <Link
+              href="/join-us-as-school-institute"
+              className="focus:text-green-400"
+            >
               Join Us as a School / Institute
             </Link>
-            <Link href="/careers" className="focus:text-green-400">
+            <Link href="/careers-at-medh" className="focus:text-green-400">
               Careers @medh
             </Link>
-            <Link href="/contact" className="focus:text-green-400">
+            <Link href="/contact-us" className="focus:text-green-400">
               Contact Us
             </Link>
             <Link href="/blogs" className="focus:text-green-400">
