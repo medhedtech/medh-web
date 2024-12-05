@@ -193,7 +193,7 @@ const StudentEnrolledCourses = () => {
 
         // Filter live courses based on category
         const liveCoursesFiltered = allCourses.filter(
-          (course) => course.course_tag === "Live"
+          (course) => course.course_category === "Live Courses"
         );
 
         console.log("Live courses only:", liveCoursesFiltered);
@@ -249,6 +249,7 @@ const StudentEnrolledCourses = () => {
                 .join(", ") || "N/A",
             resource_pdfs: course.course_id?.resource_pdfs || [],
             resource_videos: course.course_id?.resource_videos || [],
+            course_image: course.course_id?.course_image || img5,
           }));
 
         console.log("Processed self-paced courses:", selfPacedCourses);

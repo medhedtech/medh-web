@@ -125,7 +125,7 @@ const Registration = ({ showUploadField = false }) => {
       >
         {/* background: #7ECA9DEE; */}
 
-        <div className="overlay bg-[#7ECA9DEE] bg-opacity-90 py-4 lg:pb-0 relative z-0">
+        <div className="overlay bg-gray-600 bg-opacity-90 py-4 lg:pb-0 relative z-0">
           <div>
             <Image
               className="absolute top-40 left-0 lg:left-[8%] 2xl:top-20 animate-move-hor block z--1"
@@ -166,21 +166,22 @@ const Registration = ({ showUploadField = false }) => {
                 </div>
               </div>
               {/* Form Section */}
-              <div className="overflow-visible lg:col-start-8 lg:col-span-5 relative z-1 mb-4">
-                <form
-                  onSubmit={handleSubmit(onSubmit)}
-                  className="p-35px bg-lightGrey10 dark:bg-lightGrey10-dark shadow-experience"
-                  data-aos="fade-up"
-                >
-                  <h3 className="text-2xl text-[#F6B335] dark:text-blackColor-dark text-center font-semibold mb-5 font-inter">
+              <div className="overflow-visible lg:col-start-8 lg:col-span-11 relative z-1 mb-4">
+                <div className="bg-[#7ECA9D] p-2 w-full">
+                  <h3 className="text-2xl mt-4 text-white dark:text-white-dark text-center font-semibold mb-5 font-inter">
                     Get In Touch
                   </h3>
-
+                </div>
+                <form
+                  onSubmit={handleSubmit(onSubmit)}
+                  className="py-[35px] px-4 bg-white dark:bg-white-dark shadow-experience"
+                  data-aos="fade-up"
+                >
                   <input
                     {...register("full_name")}
                     type="text"
                     placeholder="Your Name*"
-                    className="w-full px-14px py-2 dark:bg-inherit bg-lightGrey8 text-base border mb-1.5 border-gray-300"
+                    className="w-full px-14px py-2 dark:bg-inherit bg-white text-base border mb-1.5 border-gray-300"
                   />
                   {errors.full_name && (
                     <span className="text-red-500">
@@ -192,7 +193,7 @@ const Registration = ({ showUploadField = false }) => {
                     {...register("email")}
                     type="email"
                     placeholder="Your Email*"
-                    className="w-full px-14px py-2 dark:bg-inherit bg-lightGrey8 text-base mb-1.5 border border-gray-300"
+                    className="w-full px-14px py-2 dark:bg-inherit bg-white text-base mb-1.5 border border-gray-300"
                   />
                   {errors.email && (
                     <span className="text-red-500">{errors.email.message}</span>
@@ -203,7 +204,7 @@ const Registration = ({ showUploadField = false }) => {
                     <div className="w-full lg:w-2/6">
                       <select
                         {...register("country")}
-                        className="w-full px-2 py-2 dark:bg-inherit bg-lightGrey8 border border-gray-300 text-[#5C6574]"
+                        className="w-full px-2 py-2 dark:bg-inherit bg-white border border-gray-300 text-[#5C6574]"
                       >
                         <option value="IN">IN (+91)</option>
                         <option value="AUS">AUS (+61)</option>
@@ -219,7 +220,7 @@ const Registration = ({ showUploadField = false }) => {
                         {...register("phone_number")}
                         type="tel"
                         placeholder="Your Phone Number*"
-                        className="w-full px-14px py-3 dark:bg-inherit bg-lightGrey8 text-base border border-gray-300"
+                        className="w-full px-14px py-3 dark:bg-inherit bg-white text-base border border-gray-300"
                       />
                     </div>
                   </div>
@@ -232,7 +233,7 @@ const Registration = ({ showUploadField = false }) => {
                   <textarea
                     {...register("message")}
                     placeholder="Message"
-                    className="w-full px-15px pb-3 pt-3 dark:bg-inherit bg-lightGrey8 text-base mb-4 h-[155px] border border-gray-300"
+                    className="w-full px-15px pb-3 pt-3 dark:bg-inherit bg-white text-base mb-4 h-[155px] border border-gray-300"
                     cols="30"
                     rows="10"
                   />
@@ -284,7 +285,7 @@ const Registration = ({ showUploadField = false }) => {
                           Terms of Service
                         </span>
                       </Link>{" "}
-                      & <br />
+                      &{" "}
                       <Link href="/privacy-policy">
                         <span className="text-[#7ECA9D]">Privacy Policy.</span>
                       </Link>
@@ -299,7 +300,7 @@ const Registration = ({ showUploadField = false }) => {
                   <div className="-mb-6">
                     <button
                       type="submit"
-                      className="bg-[#F6B335] text-white px-6 py-2"
+                      className="bg-[#7ECA9D] rounded-[2px] text-white px-6 py-2"
                     >
                       {loading ? "Loading..." : "Submit"}
                     </button>
