@@ -41,7 +41,7 @@ const CounterStudent = () => {
           });
 
           const liveCourses = enrollResponse?.liveCoursesCount || 0;
-          const selfPacedCourses = membershipResponse?.totalMemberships || 0;
+          const selfPacedCourses = membershipResponse?.totalSelfPacedMemberships || 0;
 
           setCounts({
             enrolledCourses: liveCourses + selfPacedCourses,

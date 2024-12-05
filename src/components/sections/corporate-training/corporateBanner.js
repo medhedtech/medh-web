@@ -23,6 +23,7 @@ export default function CorporateBanner () {
         isoText="ISO CERTIFIED"
         slogan="Medh Hain Toh Mumkin Hain!"
         buttonImage={LetsConnect}
+        headingColor={"#7ECA9D"}
       />
     </div>
   );

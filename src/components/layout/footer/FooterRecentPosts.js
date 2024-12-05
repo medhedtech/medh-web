@@ -44,7 +44,9 @@ const FooterRecentPosts = () => {
           Subscribe to Our
           <br /> Newsletter!
         </FooterHeading>
-        <div className="text-white">We don&#39;t send spam so don&#39;t worry.</div>
+        <div className="text-white">
+          We don&#39;t send spam so don&#39;t worry.
+        </div>
 
         <input
           type="text"
