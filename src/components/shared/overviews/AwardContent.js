@@ -8,7 +8,7 @@ import AwardSingle from "./AwardSingle";
 import useIsTrue from "@/hooks/useIsTrue";
 
 const AwardContent = () => {
-  const isAbout = useIsTrue("/about");
+  const isAbout = useIsTrue("/about-us");
   const isAboutDark = useIsTrue("/about-dark");
   const allAwards = [
     {

@@ -13,15 +13,18 @@ const BrandHero = () => {
       <div data-aos="fade-up " className="dark:bg-screen-dark">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 pt-10 gap-2 lg:gap-0">
           {/* Left Section */}
-          <div className="bg-[#F6B335] text-white flex flex-col p-6 lg:p-10">
-            <h1 className="font-bold text-xl lg:text-2xl pt-2">
+          <div className="bg-[#7ECA9D] text-white flex flex-col p-6 lg:p-10">
+            <h1 className="font-semibold font-Poppins text-xl lg:text-2xl pt-2">
               50+ Medh Upskill Courses
             </h1>
-            <span className="mt-4">
+            <span className="mt-4 text-sm sm:text-base lg:text-lg font-light font-Open leading-relaxed">
               In high-demand domains like AI, Cybersecurity Career Development,
               Data Analytics, etc.
             </span>
-            <a href="/view-all-courses" className="underline mt-4">
+            <a
+              href="/skill-development-courses"
+              className="mt-4 text-sm sm:text-base lg:text-lg underline underline-offset-4 text-blue-600 hover:text-blue-800 transition-all"
+            >
               View Courses +
             </a>
           </div>
@@ -36,14 +39,17 @@ const BrandHero = () => {
               className="absolute inset-0 z-0"
             />
             <div className="relative z-10 flex flex-col gap-4 lg:gap-6 bg-opacity-70">
-              <h1 className="font-bold text-xl lg:text-2xl pt-2">
+              <h1 className="font-semibold font-Poppins text-xl lg:text-2xl pt-2">
                 Explore Medh Membership
               </h1>
-              <span>
+              <span className="text-sm sm:text-base lg:text-lg font-light font-Open leading-relaxed">
                 Achieve mastery in your chosen domain by gaining comprehensive
                 expertise.
               </span>
-              <a href="/membership" className="underline">
+              <a
+                href="/medh-membership"
+                className="text-sm sm:text-base lg:text-lg underline underline-offset-4 text-blue-600 hover:text-blue-800 transition-all"
+              >
                 View Memberships +
               </a>
             </div>
@@ -51,14 +57,17 @@ const BrandHero = () => {
 
           {/* Right Section */}
           <div className="bg-[#7ECA9D] text-white flex flex-col p-6 lg:p-10">
-            <h1 className="font-bold text-xl lg:text-2xl pt-2">
+            <h1 className="font-semibold font-Poppins text-xl lg:text-2xl pt-2">
               Earn a Course Certificate
             </h1>
-            <span className="mt-4">
+            <span className="mt-4 text-sm sm:text-base lg:text-lg font-light font-Open leading-relaxed">
               Nurture skills and elevate your career with industry-recognized
               certifications upon completion.
             </span>
-            <a href="/about" className="underline mt-4">
+            <a
+              href="/about-us"
+              className="mt-4 text-sm sm:text-base lg:text-lg underline underline-offset-4 text-blue-600 hover:text-blue-800 transition-all"
+            >
               View More +
             </a>
           </div>
@@ -73,14 +82,17 @@ const BrandHero = () => {
               className="absolute inset-0 z-0"
             />
             <div className="relative z-10 flex flex-col gap-4 lg:gap-6 bg-opacity-70">
-              <h1 className="font-bold text-xl lg:text-2xl pt-2">
+              <h1 className="font-semibold font-Poppins text-xl lg:text-2xl pt-2">
                 100% Placement Guranteed
               </h1>
-              <span>
+              <span className="text-sm sm:text-base lg:text-lg font-light font-Open leading-relaxed">
                 Secure your future with assured placement in our selected job-
                 guaranteed Courses.
               </span>
-              <a href="/view-all-courses" className="underline">
+              <a
+                href="/skill-development-courses"
+                className="text-sm sm:text-base lg:text-lg underline underline-offset-4 text-blue-600 hover:text-blue-800 transition-all"
+              >
                 View Courses +
               </a>
             </div>

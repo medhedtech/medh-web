@@ -10,15 +10,15 @@ const FooterNavList = () => {
       items: [
         {
           name: "As an Educator",
-          path: "/join-as-educator",
+          path: "/join-us-as-educator",
         },
         {
           name: "As a School or Institute",
-          path: "/join-as-school",
+          path: "/join-us-as-school-institute",
         },
         {
           name: "Medh Membership",
-          path: "/membership",
+          path: "/medh-membership",
         },
         {
           name: "Hire from Medh (Recruit@Medh)",
@@ -26,7 +26,7 @@ const FooterNavList = () => {
         },
         {
           name: "Careers at medh",
-          path: "/careers",
+          path: "/careers-at-medh",
         },
       ],
     },
@@ -35,11 +35,11 @@ const FooterNavList = () => {
       items: [
         {
           name: "Corporate Traning",
-          path: "/corporate-training",
+          path: "/corporate-training-courses",
         },
         {
           name: "About Us",
-          path: "/about",
+          path: "/about-us",
         },
         {
           name: "Blog",
@@ -47,7 +47,7 @@ const FooterNavList = () => {
         },
         {
           name: "Contact Us",
-          path: "/contact",
+          path: "/contact-us",
         },
         {
           name: "Home",
@@ -60,23 +60,23 @@ const FooterNavList = () => {
       items: [
         {
           name: "AI and Data Science",
-          path: "/ai-data-science",
+          path: "/ai-and-data-science-course",
         },
         {
           name: "Degital Marketing with Data Analytics",
-          path: "/digital-marketing-with-data-analyst",
+          path: "/digital-marketing-with-data-analytics-course",
         },
         {
           name: "Personality Development",
-          path: "/personality-development",
+          path: "/personality-development-course",
         },
         {
           name: "Vedic Mathematics",
-          path: "/vedic-mathematics",
+          path: "/vedic-mathematics-course",
         },
         {
           name: "View Other Courses",
-          path: "/view-all-courses",
+          path: "/skill-development-courses",
         },
       ],
     },

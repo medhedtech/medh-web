@@ -305,7 +305,7 @@ export default function SelectCourseModal({
         {/* Header */}
         <div className="p-4 border-b border-gray-200 flex justify-between items-center">
           <h2 className="text-xl font-semibold">
-            Select {planType === "silver" ? "a Course" : "up to 3 Courses"}
+            Select {planType === "silver" ? "a Category" : "up to 3 Categories"}
           </h2>
           <button
             onClick={onClose}
