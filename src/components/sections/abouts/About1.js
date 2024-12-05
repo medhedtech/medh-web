@@ -43,7 +43,7 @@ const About1 = () => {
   return (
     <section className="dark:bg-screen-dark">
       <div className="container mx-auto px-4 py-10 text-center">
-        <h2 className="text-2xl sm:text-3xl font-bold mb-4 dark:text-white">
+        <h2 className="text-2xl sm:text-3xl text-[#7ECA9D] font-bold mb-4 dark:text-white">
           Featured LIVE Courses
         </h2>
         <p className="text-gray-600 mb-8 max-w-full sm:max-w-md lg:max-w-2xl text-center mx-auto px-4 dark:text-gray-300">
@@ -71,9 +71,9 @@ const About1 = () => {
                   <h3 className="text-lg font-bold text-[#5C6574] dark:text-whitegrey3">
                     {course?.course_title}
                   </h3>
-                  <p className="text-sm text-gray-500">
+                  {/* <p className="text-sm text-gray-500">
                     {course?.course_category}
-                  </p>
+                  </p> */}
                 </div>
               </div>
             </Link>
@@ -109,12 +109,12 @@ export default About1;
 //     {
 //       title: "Digital Marketing with Data Analytics",
 //       imageSrc: digital,
-//       path: "/digital-marketing-with-data-analyst",
+//       path: "/digital-marketing-with-data-analytics-course",
 //     },
 //     {
 //       title: "Personality Development",
 //       imageSrc: personality,
-//       path: "/personality-development",
+//       path: "/personality-development-course",
 //     },
 //     {
 //       title: "Vedic Mathematics",

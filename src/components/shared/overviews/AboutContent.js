@@ -6,7 +6,7 @@ import useIsTrue from "@/hooks/useIsTrue";
 const AboutContent = () => {
   const isHome9 = useIsTrue("/home-9");
   const isHome9Dark = useIsTrue("/home-9-dark");
-  const isAbout = useIsTrue("/about");
+  const isAbout = useIsTrue("/about-us");
   const isAboutDark = useIsTrue("/about-dark");
   return (
     <div>

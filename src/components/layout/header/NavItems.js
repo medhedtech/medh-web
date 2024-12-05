@@ -20,7 +20,7 @@ const NavItems = () => {
     {
       id: 2,
       name: "Corporate Training",
-      path: "/corporate-training",
+      path: "/corporate-training-courses",
       // dropdown: <DropdownCourses />,
       isRelative: false,
     },

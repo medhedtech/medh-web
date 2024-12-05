@@ -24,7 +24,7 @@ const schema = yup.object({
   category: yup.string().required("This field is required"),
   course_tag: yup
     .string()
-    .oneOf(["Live", "Hybrid", "Pre-Recorded", "Free"])
+    // .oneOf(["Live", "Hybrid", "Pre-Recorded", "Free"])
     .required("Course tag is required"),
   no_of_Sessions: yup
     .number()
@@ -45,7 +45,7 @@ const schema = yup.object({
     .string()
     .test(
       "valid-session-duration",
-      "Session duration must be a positive number or a valid time format (e.g., 5 Minutes or 2 Hours)",
+      "Session duration must be a positive number or a valid time format (e.g., 30 Minutes or 2 Hours)",
       (value) => {
         // Check if it's a positive number
         const isValidNumber = value && !isNaN(value) && Number(value) > 0;
@@ -471,6 +471,11 @@ const AddCourse = () => {
               </span>
             </label>
           </div>
+          {errors.course_category && (
+            <p className="text-red-500 text-xs">
+              {errors.course_category.message}
+            </p>
+          )}
         </div>
 
         {/* Form Fields */}

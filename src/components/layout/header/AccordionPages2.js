@@ -5,7 +5,7 @@ const AccordionPages2 = () => {
   const items = [
     {
       name: "About",
-      path: "/about",
+      path: "/about-us",
     },
     {
       name: "About (Dark)",
@@ -13,7 +13,7 @@ const AccordionPages2 = () => {
     },
     {
       name: "Contact",
-      path: "/contact",
+      path: "/contact-us",
     },
     {
       name: "Contact (Dark)",
