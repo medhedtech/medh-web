@@ -19,7 +19,7 @@ const Home5 = () => {
       <About3 />
       <PopularSubjects2 />
       <CoursesFilter />
-      <Registration />
+      <Registration pageTitle="home_page_5"/>
       <Instructors2 />
       <Testimonials2 />
       <Blogs2 />

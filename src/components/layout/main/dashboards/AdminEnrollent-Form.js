@@ -17,6 +17,8 @@ const formatDate = (date) => {
 
 export default function EnrollmentFormsAdmin() {
   const [enrollments, setEnrollments] = useState([]);
+  const [filteredEnrollments, setFilteredEnrollments] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("");
   const { getQuery, loading } = useGetQuery();
   const { deleteQuery } = useDeleteQuery();
 
@@ -27,16 +29,19 @@ export default function EnrollmentFormsAdmin() {
       onSuccess: (response) => {
         if (response?.success && Array.isArray(response.data)) {
           setEnrollments(response.data);
+          setFilteredEnrollments(response.data);
         } else {
           console.log(
             "Fetched data is not valid. Setting enrollments to empty array."
           );
           setEnrollments([]);
+          setFilteredEnrollments([]);
         }
       },
       onFail: () => {
-        console.log("Failed to fetch contacts:");
+        console.log("Failed to fetch enrollments:");
         setEnrollments([]);
+        setFilteredEnrollments([]);
       },
     });
   };
@@ -45,6 +50,7 @@ export default function EnrollmentFormsAdmin() {
     fetchEnrollments();
   }, []);
 
+  // Delete the enrollment form
   const deleteGetInTouch = (id) => {
     deleteQuery({
       url: `${apiUrls?.enrollWebsiteform?.deleteEnrollWebsiteForm}/${id}`,
@@ -58,13 +64,28 @@ export default function EnrollmentFormsAdmin() {
     });
   };
 
+  // Handle filter change
+  const handleCategoryChange = (e) => {
+    const category = e.target.value;
+    setSelectedCategory(category);
+
+    // Filter enrollments based on selected category
+    if (category) {
+      const filtered = enrollments.filter(
+        (item) => item.course_category === category
+      );
+      setFilteredEnrollments(filtered);
+    } else {
+      setFilteredEnrollments(enrollments);
+    }
+  };
+
   const columns = [
     { Header: "Name", accessor: "full_name" },
     { Header: "Email", accessor: "email" },
     { Header: "Country", accessor: "country" },
     { Header: "Phone", accessor: "phone_number" },
     { Header: "Course Name", accessor: "course_category" },
-    // { Header: "Course Type", accessor: "course_type" },
     { Header: "Message", accessor: "message" },
     {
       Header: "Date",
@@ -90,19 +111,44 @@ export default function EnrollmentFormsAdmin() {
     },
   ];
 
+  const categories = [
+    "AI & Data Science",
+    "Personality Development",
+    "Vedic Mathematics",
+    "Digital Marketing & Data Analytics",
+  ];
+
   if (loading) {
     return <Preloader />;
   }
 
   return (
     <div className="bg-gray-100 dark:bg-inherit dark:text-white font-Poppins min-h-screen">
-      <div className="max-w-6xl dark:bg-inherit dark:text-white  mx-auto bg-white rounded-lg shadow-lg">
+      <div className="max-w-6xl dark:bg-inherit dark:text-white mx-auto bg-white rounded-lg shadow-lg">
         <header className="flex pt-4 px-6 items-center justify-between mb-4">
-          <h1 className="text-xl font-semibold">Enrollments</h1>
+          <h1 className="text-xl font-semibold">Enquiry List</h1>
+
+          {/* Filter Dropdown */}
+          <div className="flex items-center">
+            <label className="mr-2">Filter by Course:</label>
+            <select
+              value={selectedCategory}
+              onChange={handleCategoryChange}
+              className="border border-gray-300 rounded-md px-3 py-1"
+            >
+              <option value="">All</option>
+              {categories.map((category, index) => (
+                <option key={index} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+          </div>
         </header>
+
         <MyTable
           columns={columns}
-          data={enrollments}
+          data={filteredEnrollments}
           entryText="Total no. of enrollments: "
         />
       </div>
