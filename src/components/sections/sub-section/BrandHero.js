@@ -11,7 +11,7 @@ const BrandHero = () => {
   return (
     <div>
       <div data-aos="fade-up " className="dark:bg-screen-dark">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 pt-10 gap-2 lg:gap-0">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 pt-0 gap-2 lg:gap-0">
           {/* Left Section */}
           <div className="bg-[#7ECA9D] text-white flex flex-col p-6 lg:p-10">
             <h1 className="font-semibold font-Poppins text-xl lg:text-2xl pt-2">
