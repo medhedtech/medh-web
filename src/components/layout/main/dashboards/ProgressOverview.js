@@ -23,11 +23,10 @@ const ProgressOverview = () => {
 
   return (
     <div className="w-full py-6 px-10">
-      <div className="flex justify-between items-center mb-4">
+      {/* <div className="flex justify-between items-center mb-4">
         <h2 className="text-size-32 font-Open dark:text-white">
           Progress Overview
         </h2>
-        {/* <h2 className="text-size-32 font-Open ">Progress Overview</h2> */}
         <a
           href="/dashboards/student-progress-overview"
           className="text-green-500 hover:underline"
@@ -36,12 +35,11 @@ const ProgressOverview = () => {
         </a>
       </div>
 
-      {/* Display the courses */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {courses.map((course) => (
           <CourseCard key={course.id} {...course} />
         ))}
-      </div>
+      </div> */}
     </div>
   );
 };
