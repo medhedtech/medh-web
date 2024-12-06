@@ -5,10 +5,18 @@ const CategoryFilter = ({
   heading,
 }) => {
   const handleCategoryChange = (category) => {
-    if (selectedCategory.includes(category)) {
-      setSelectedCategory(selectedCategory.filter((c) => c !== category));
+    if (Array.isArray(selectedCategory)) {
+      if (selectedCategory.includes(category)) {
+        setSelectedCategory(selectedCategory.filter((c) => c !== category));
+      } else {
+        setSelectedCategory([...selectedCategory, category]);
+      }
     } else {
-      setSelectedCategory([...selectedCategory, category]);
+      if (selectedCategory === category) {
+        setSelectedCategory(null);
+      } else {
+        setSelectedCategory(category);
+      }
     }
   };
 
@@ -23,7 +31,11 @@ const CategoryFilter = ({
             <input
               type="checkbox"
               className="form-checkbox h-4 w-4"
-              checked={selectedCategory.includes(category)}
+              checked={
+                Array.isArray(selectedCategory)
+                  ? selectedCategory.includes(category)
+                  : selectedCategory === category
+              }
               onChange={() => handleCategoryChange(category)}
             />
             <span className="ml-2">{category}</span>
