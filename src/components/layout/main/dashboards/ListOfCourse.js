@@ -14,7 +14,7 @@ import { MdEdit } from "react-icons/md";
 export default function Home() {
   const router = useRouter();
   const { deleteQuery } = useDeleteQuery();
-  const { postQuery } = usePostQuery();
+  const { postQuery, loading:PostLoading } = usePostQuery();
   const [courses, setCourses] = useState([]);
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
@@ -29,23 +29,9 @@ export default function Home() {
   const [instructorNames, setInstructorNames] = useState({});
   const [updateStatus, setUpdateStatus] = useState(null);
 
-  // Fetch courses from API
-  // useEffect(() => {
-  //   const fetchCourses = async () => {
-  //     await getQuery({
-  //       url: apiUrls?.courses?.getAllCourses,
-  //       onSuccess: (data) => {
-  //         console.log("Courses fetched successfully:", data);
-  //         setCourses(data || []);
-  //       },
-  //       onFail: (err) => {
-  //         console.error("Failed to fetch courses:", err);
-  //       },
-  //     });
-  //   };
-
-  //   fetchCourses();
-  // }, [deletedCourse]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [courseVideos, setCourseVideos] = useState([]);
 
   // Fetch courses and instructor details
   useEffect(() => {
@@ -139,23 +125,6 @@ export default function Home() {
     },
     { Header: "Sessions", accessor: "no_of_Sessions" },
     { Header: "Time", accessor: "session_duration" },
-    // {
-    //   Header: "Status",
-    //   accessor: "status",
-    //   render: (row) => (
-    //     <div className="flex gap-2 items-center">
-    //       <div
-    //         className={`rounded-md font-normal px-[10px] py-1 ${
-    //           row.status === "Published"
-    //             ? "bg-[#D9F2D9] text-[#3AA438]"
-    //             : "bg-[#FFF0D9] text-[#FFA927]"
-    //         }`}
-    //       >
-    //         {row.status}
-    //       </div>
-    //     </div>
-    //   ),
-    // },
     {
       Header: "Status",
       accessor: "status",
@@ -199,14 +168,12 @@ export default function Home() {
           >
             <MdEdit size={24} />
           </button>
-          {/* <button
-            onClick={() => {
-              editCourse(row?._id);
-            }}
-            className="text-white bg-green-600 border border-green-600 rounded-md px-[10px] py-1"
+          <button
+            onClick={() => handleOpenModal(row)}
+            className="text-orange bg-orange-600 border border-red-600 rounded-md px-[10px] py-1"
           >
-            Edit
-          </button> */}
+           Add Recorded Videos
+          </button>
           <button
             onClick={() => {
               deleteCourse(row?._id);
@@ -283,13 +250,157 @@ export default function Home() {
     });
   };
 
-  if (loading) {
+  if (loading || PostLoading) {
     return <Preloader />;
   }
 
   const editCourse = (id) => {
     console.log("Edit course: ", id);
     router.push(`admin-updateCourse/${id}`);
+  };
+
+  // Open Modal
+  const handleOpenModal = (course) => {
+    setSelectedCourse(course);
+    setIsModalOpen(true);
+    setCourseVideos([]); // Reset videos when opening modal
+  };
+
+  // Close Modal
+  const handleCloseModal = () => {
+    setSelectedCourse(null);
+    setIsModalOpen(false);
+    setCourseVideos([]); // Reset uploaded videos
+  };
+
+  // Handle Video Upload
+  const handleVideoUpload = async (e) => {
+    const files = e.target.files;
+    if (files.length > 0) {
+      const updatedVideos = [...courseVideos];
+      try {
+        for (const file of files) {
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onload = async () => {
+            const base64 = reader.result.split(",")[1];
+
+            console.log("sbjhsdd", base64);
+            const postData = { base64String: base64, fileType: "video" };
+
+            await postQuery({
+              url: apiUrls?.upload?.uploadMedia,
+              postData,
+              onSuccess: (data) => {
+                console.log("Video uploaded:", data?.data);
+                updatedVideos.push(data?.data);
+                setCourseVideos([...updatedVideos]);
+              },
+              onError: () => {
+                toast.error("Failed to upload video.");
+              },
+            });
+          };
+        }
+      } catch (error) {
+        console.error("Error during video upload:", error);
+        toast.error("Error occurred while uploading videos.");
+      }
+    }
+  };
+
+  console.log("cdksjhbfasd:", courseVideos);
+
+  const addRecordedVideos = () => {
+    const { _id: courseId } = selectedCourse;
+    const recordedVideos = courseVideos
+    postQuery({
+      url: `${apiUrls?.courses?.addRecordedVideos}/${courseId}`,
+      postData: { recorded_videos: recordedVideos },
+      onSuccess: () => {
+        toast.success("Videos added successfully!");
+        handleCloseModal();
+      },
+      onFail: (error) => {
+        console.error("Failed to add videos:", error);
+        toast.error("Failed to add videos. Please try again.");
+      },
+    });
+  };
+
+  const renderModal = () => {
+    if (!selectedCourse) return null;
+
+    const { course_title } = selectedCourse;
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-11/12 max-w-lg">
+          <h2 className="text-lg font-bold mb-4">
+            Add Recorded Videos for: {course_title}
+          </h2>
+          <div className="flex flex-col gap-6">
+            {/* Video Upload Section */}
+            <div>
+              <p className="font-semibold mb-2">Upload Recorded Videos:</p>
+              <div className="border-dashed border-2 border-gray-300 rounded-lg p-4 text-center">
+                <input
+                  type="file"
+                  multiple
+                  accept="video/*"
+                  className="hidden"
+                  id="videoUpload"
+                  onChange={handleVideoUpload}
+                />
+                <label
+                  htmlFor="videoUpload"
+                  className="cursor-pointer text-blue-500"
+                >
+                  Click to upload or drag & drop videos
+                </label>
+              </div>
+            </div>
+
+            {/* Display Uploaded Videos */}
+            {courseVideos.length > 0 && (
+              <div>
+                <h3 className="font-semibold mb-2">Uploaded Videos:</h3>
+                <ul className="list-disc pl-6">
+                  {courseVideos.map((video, index) => (
+                    <li key={index}>
+                      <a
+                        href={video}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 hover:underline"
+                      >
+                        {video.name}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+
+          {/* Submit Button to Add Videos */}
+          <div className="flex gap-4 mt-6">
+            <button
+              onClick={addRecordedVideos}
+              className="bg-blue-500 text-black px-4 py-2 rounded-md"
+            >
+              Submit
+            </button>
+            <button
+              onClick={handleCloseModal}
+              className="bg-gray-500 text-white px-4 py-2 rounded-md"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -391,6 +502,8 @@ export default function Home() {
           data={formattedData}
           entryText="Total no. of courses: "
         />
+
+        {isModalOpen && renderModal()}
       </div>
     </div>
   );
