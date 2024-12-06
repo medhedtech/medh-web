@@ -121,20 +121,20 @@ const InstructorTable = () => {
         );
       },
     },
-    {
-      Header: "Action",
-      accessor: "actions",
-      render: (row) => (
-        <div className="flex gap-2 items-center">
-          <button
-            onClick={() => deleteStudent(row?._id)}
-            className="text-white bg-red-600 border border-red-600 rounded-md px-[10px] py-1"
-          >
-            Delete
-          </button>
-        </div>
-      ),
-    },
+    // {
+    //   Header: "Action",
+    //   accessor: "actions",
+    //   render: (row) => (
+    //     <div className="flex gap-2 items-center">
+    //       <button
+    //         onClick={() => deleteStudent(row?._id)}
+    //         className="text-white bg-red-600 border border-red-600 rounded-md px-[10px] py-1"
+    //       >
+    //         Delete
+    //       </button>
+    //     </div>
+    //   ),
+    // },
   ];
 
   const handleSortChange = (order) => {

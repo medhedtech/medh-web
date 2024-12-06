@@ -117,6 +117,7 @@ const StudentMembershipCard = () => {
                 key={
                   course.course_id || `${membership._id}-${course.course_title}`
                 }
+                courseCategory={course.category}
                 courseImage={course.course_image}
                 title={course.course_title}
                 typeLabel={
