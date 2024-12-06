@@ -39,7 +39,7 @@ const Home1 = () => {
         CustomText="Skill Development Courses"
       />
       <WhyMedh />
-      <Registration />
+      <Registration pageTitle="home_page" />
       <BrowseCategories />
       {/* <PricingPlans /> */}
       {/* <Instructors /> */}

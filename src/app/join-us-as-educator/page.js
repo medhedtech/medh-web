@@ -22,7 +22,7 @@ function JoinEducator() {
         <MedhOffering />
         <Benefits />
         <HiringProcess />
-        <Registration showUploadField={true} />
+        <Registration showUploadField={true}  pageTitle="join_as_educator" />
         <Certified />
         <EducatorFaq />
         <div className="pb-16">
