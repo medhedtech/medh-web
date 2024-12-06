@@ -234,7 +234,11 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
                 setSelectedCategory={setSelectedCategory}
               />
               <div className="w-full mt-12 mb-8 px-4 text-[#5C6574]">
-                {(selectedCategory || searchTerm || sortOrder !== "A-Z") && (
+                {/* {(selectedCategory || searchTerm || sortOrder !== "A-Z") && ( */}
+                {(selectedCategory.length > 0 ||
+                  searchTerm ||
+                  sortOrder !== "A-Z" ||
+                  selectedGrade) && (
                   <div className="flex justify-between items-center">
                     <button
                       onClick={handleClearFilters}
