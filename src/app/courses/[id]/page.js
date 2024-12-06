@@ -11,7 +11,6 @@ export const metadata = {
 const Course_Details = async ({ params }) => {
   const { id } = params;
   const isExistCourse = courses?.find(({ id: id1 }) => id1 === parseInt(id));
-  console.log("ID coing from the featured page:", isExistCourse);
   if (!isExistCourse) {
     notFound();
   }
