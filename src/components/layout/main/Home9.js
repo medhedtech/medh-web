@@ -20,7 +20,7 @@ const Home9 = () => {
       <PopularSubjects />
       <Overview />
       <FeatureCourses title="Our online courses" course="2" />
-      <Registration />
+      <Registration pageTitle="home_page_9" />
       <PricingPlans />
       <Instructors2 />
       <Instructors />
