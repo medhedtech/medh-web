@@ -14,6 +14,7 @@ import { FaCamera } from "react-icons/fa";
 import Link from "next/link";
 import { toast } from "react-toastify";
 import { FaTimes } from "react-icons/fa";
+import ReCAPTCHA from "react-google-recaptcha";
 
 // Validation schema using yup
 const schema = yup.object({
@@ -37,6 +38,8 @@ const Registration = ({ showUploadField = false }) => {
   const [fileName, setFileName] = useState("No file chosen");
   const [pdfBrochure, setPdfBrochure] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [recaptchaValue, setRecaptchaValue] = useState(null);
+
   const {
     register,
     handleSubmit,
@@ -48,6 +51,10 @@ const Registration = ({ showUploadField = false }) => {
       showUploadField,
     },
   });
+
+  const handleRecaptchaChange = (value) => {
+    setRecaptchaValue(value);
+  };
 
   const handlePdfUpload = async (e) => {
     const file = e.target.files[0];
@@ -267,6 +274,11 @@ const Registration = ({ showUploadField = false }) => {
                       </div>
                     </>
                   )}
+
+                  <ReCAPTCHA
+                    sitekey="6LeNH5QqAAAAAO98HJ00v5yuCkLgHYCSvUEpGhLb"
+                    onChange={handleRecaptchaChange}
+                  />
 
                   <div className="flex items-start space-x-2 mt-4 mb-12">
                     <input
