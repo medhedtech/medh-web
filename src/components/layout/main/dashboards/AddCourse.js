@@ -56,8 +56,8 @@ const schema = yup.object({
 
         return isValidNumber || validTimeFormat.test(value);
       }
-    )
-    .required("Session duration is required"),
+    ),
+    // .required("Session duration is required"),
   course_description: yup.string().required("Course description is required"),
   course_fee: yup
     .number()
