@@ -692,11 +692,11 @@ const AddCourse = () => {
                 </div>
               </div>
               {/* Error messages */}
-              {errors.session_duration && (
+              {/* {errors.session_duration && (
                 <p className="text-red-500 text-xs mt-1">
                   {errors.session_duration.message}
                 </p>
-              )}
+              )} */}
             </div>
 
             <div>
