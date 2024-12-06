@@ -14,7 +14,7 @@ import { MdEdit } from "react-icons/md";
 export default function Home() {
   const router = useRouter();
   const { deleteQuery } = useDeleteQuery();
-  const { postQuery, loading:PostLoading } = usePostQuery();
+  const { postQuery, loading: PostLoading } = usePostQuery();
   const [courses, setCourses] = useState([]);
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
@@ -172,7 +172,7 @@ export default function Home() {
             onClick={() => handleOpenModal(row)}
             className="text-orange bg-orange-600 border border-red-600 rounded-md px-[10px] py-1"
           >
-           Add Recorded Videos
+            Add Recorded Videos
           </button>
           <button
             onClick={() => {
@@ -313,7 +313,7 @@ export default function Home() {
 
   const addRecordedVideos = () => {
     const { _id: courseId } = selectedCourse;
-    const recordedVideos = courseVideos
+    const recordedVideos = courseVideos;
     postQuery({
       url: `${apiUrls?.courses?.addRecordedVideos}/${courseId}`,
       postData: { recorded_videos: recordedVideos },
@@ -335,8 +335,17 @@ export default function Home() {
 
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-11/12 max-w-lg">
-          <h2 className="text-lg font-bold mb-4">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-11/12 max-w-lg relative">
+          {/* Close Button */}
+          <button
+            onClick={handleCloseModal}
+            className="absolute top-3 right-3 text-gray-500 hover:text-black dark:hover:text-white text-lg font-bold"
+          >
+            ✕
+          </button>
+
+          {/* Modal Content */}
+          <h2 className="text-lg text-gray-600 font-semibold mb-4">
             Add Recorded Videos for: {course_title}
           </h2>
           <div className="flex flex-col gap-6">
@@ -374,7 +383,7 @@ export default function Home() {
                         rel="noopener noreferrer"
                         className="text-blue-500 hover:underline"
                       >
-                        {video.name}
+                        {`Video-${index + 1}`}
                       </a>
                     </li>
                   ))}
@@ -383,19 +392,13 @@ export default function Home() {
             )}
           </div>
 
-          {/* Submit Button to Add Videos */}
+          {/* Submit Button */}
           <div className="flex gap-4 mt-6">
             <button
               onClick={addRecordedVideos}
-              className="bg-blue-500 text-black px-4 py-2 rounded-md"
+              className="bg-customGreen text-white px-4 py-2 rounded-lg flex items-center"
             >
               Submit
-            </button>
-            <button
-              onClick={handleCloseModal}
-              className="bg-gray-500 text-white px-4 py-2 rounded-md"
-            >
-              Close
             </button>
           </div>
         </div>
