@@ -12,6 +12,7 @@ import * as yup from "yup";
 import { toast } from "react-toastify";
 import Preloader from "@/components/shared/others/Preloader";
 import { FaTimes } from "react-icons/fa";
+import ReCAPTCHA from "react-google-recaptcha";
 
 // Validation schema using yup
 const schema = yup.object({
@@ -34,6 +35,7 @@ const schema = yup.object({
 const ExploreJourney = ({ mainText, subText }) => {
   const { postQuery, loading } = usePostQuery();
   const [showModal, setShowModal] = useState(false);
+  const [recaptchaValue, setRecaptchaValue] = useState(null);
   const {
     register,
     handleSubmit,
@@ -42,6 +44,10 @@ const ExploreJourney = ({ mainText, subText }) => {
   } = useForm({
     resolver: yupResolver(schema),
   });
+
+  const handleRecaptchaChange = (value) => {
+    setRecaptchaValue(value);
+  };
 
   // Handle form submission
   const onSubmit = async (data) => {
@@ -249,6 +255,11 @@ const ExploreJourney = ({ mainText, subText }) => {
                       {errors.message.message}
                     </span>
                   )}
+
+                  <ReCAPTCHA
+                    sitekey="6LeNH5QqAAAAAO98HJ00v5yuCkLgHYCSvUEpGhLb"
+                    onChange={handleRecaptchaChange}
+                  />
 
                   <div className="flex items-start space-x-2 mb-12">
                     <input

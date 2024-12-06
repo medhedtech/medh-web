@@ -1,19 +1,8 @@
-import Image from "next/image";
 import React from "react";
 import { useRouter } from "next/navigation";
-import Certificate from "@/assets/images/dashbord/certificate.png";
 
-const ViewCertificate = () => {
+const ViewCertificate = ({ certificateUrl }) => {
   const router = useRouter();
-
-  const handleDownload = () => {
-    const link = document.createElement("a");
-    link.href = "/images/certificate.png";
-    link.download = "Certificate.png";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
 
   return (
     <div className="p-6 bg-white dark:bg-darkblack rounded-lg shadow-md w-full font-Open mx-auto">
@@ -30,14 +19,19 @@ const ViewCertificate = () => {
         increase your chances of getting noticed.
       </p>
       <div className="mt-6">
-        <Image src={Certificate} alt="certificate" width={600} height={400} />
+        <iframe
+          src={certificateUrl}
+          width="100%"
+          height="600px"
+          title="Certificate"
+        />
       </div>
-      <button
+      {/* <button
         onClick={handleDownload}
         className="bg-primaryColor text-white py-3 px-4.5 rounded-full text-center w-1/3 mt-14 ml-5"
       >
         Download Certificate
-      </button>
+      </button> */}
     </div>
   );
 };
