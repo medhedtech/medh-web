@@ -69,6 +69,18 @@ export default function CoursePreview() {
     localStorage.setItem("courseData", JSON.stringify(updatedCourseData));
   };
 
+  const handleRemoveImage = (index) => {
+    const updatedCourseVideos = courseData.course_image.filter(
+      (_, idx) => idx !== index
+    );
+    const updatedCourseData = {
+      ...courseData,
+      course_image: updatedCourseVideos,
+    };
+    setCourseData(updatedCourseData);
+    localStorage.setItem("courseData", JSON.stringify(updatedCourseData));
+  };
+
   console.log("Course Data", courseData);
   console.log("Course Video", courseData?.course_videos);
   console.log("Course Image:", courseData?.course_image);
@@ -82,26 +94,26 @@ export default function CoursePreview() {
 
         {courseData ? (
           <form className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              <div>
-                <label className="block text-gray-600 mb-2">Category</label>
-                <input
-                  type="text"
-                  value={courseData.course_category || ""}
-                  readOnly
-                  className="w-full p-3 border rounded-lg bg-gray-50 border-gray-300"
-                />
-              </div>
-              <div>
-                <label className="block text-gray-600 mb-2">
-                  Course Category
-                </label>
-                <input
-                  type="text"
-                  value={courseData.category || ""}
-                  readOnly
-                  className="w-full p-3 border rounded-lg bg-gray-50 border-gray-300"
-                />
-              </div>
+            <div>
+              <label className="block text-gray-600 mb-2">Category</label>
+              <input
+                type="text"
+                value={courseData.course_category || ""}
+                readOnly
+                className="w-full p-3 border rounded-lg bg-gray-50 border-gray-300"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-600 mb-2">
+                Course Category
+              </label>
+              <input
+                type="text"
+                value={courseData.category || ""}
+                readOnly
+                className="w-full p-3 border rounded-lg bg-gray-50 border-gray-300"
+              />
+            </div>
 
             <div>
               <label className="block text-gray-600 mb-2">Course Title</label>
@@ -203,6 +215,15 @@ export default function CoursePreview() {
         {courseData?.course_image ||
         (courseData?.course_videos && courseData.course_videos.length > 0) ? (
           <div className="grid grid-cols-6 gap-4 mb-4">
+            {/* {courseData?.course_image && (
+              <div className="relative">
+                <img
+                  src={courseData.course_image}
+                  alt="Course Thumbnail"
+                  className="w-[150px] h-[150px] object-cover rounded-lg"
+                />
+              </div>
+            )} */}
             {courseData?.course_image && (
               <div className="relative">
                 <img
@@ -210,6 +231,12 @@ export default function CoursePreview() {
                   alt="Course Thumbnail"
                   className="w-[150px] h-[150px] object-cover rounded-lg"
                 />
+                <button
+                  onClick={handleRemoveImage} 
+                  className="absolute -top-1 -right-2 text-white bg-red-600 rounded-full w-8 h-8"
+                >
+                  X
+                </button>
               </div>
             )}
             {courseData?.course_videos &&
