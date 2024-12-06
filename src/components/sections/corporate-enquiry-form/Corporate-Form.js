@@ -22,17 +22,22 @@ const schema = yup.object({
     .email("Please enter a valid email")
     .required("Email is required."),
   country: yup.string().nullable(),
-  phone_number: yup.string().required("Please enter mobile number"),
+  phone_number: yup
+    .string()
+    .required("Please enter mobile number")
+    .matches(/^[0-9]{10}$/, "Phone number must be 10 digits"),
   designation: yup.string().required("Designation is required"),
-  company_name: yup.string().required("Company name required"),
-  company_website: yup.string().required("Please enter website link"),
+  company_name: yup.string().required("Company name is required"),
+  company_website: yup
+    .string()
+    .url("Invalid website URL")
+    .required("Website is required"),
   message: yup.string().required("Please enter the message"),
   accept: yup
     .boolean()
     .oneOf([true], "You must accept the terms and privacy policy")
     .required(),
 });
-
 const CorporateJourneyForm = ({ mainText, subText }) => {
   const { postQuery, loading } = usePostQuery();
   const [showModal, setShowModal] = useState(false);
@@ -54,7 +59,7 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
   const onSubmit = async (data) => {
     try {
       await postQuery({
-        url: apiUrls?.enrollWebsiteform?.createEnrollWebsiteForm,
+        url: apiUrls?.Corporate?.addCorporate,
         postData: {
           full_name: data?.full_name,
           country: data?.country,
@@ -118,8 +123,6 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
               >
                 <div className="relative lg:my-48">
                   <h3 className="text-4xl md:text-[35px] 2xl:text-size-42 leading-[45px] 2xl:leading-2xl font-bold text-whiteColor pb-25px font-Poppins">
-                    {/* Transform Your Career. Explore Your Journey in AI and Data
-                  Science. */}
                     {mainText}
                   </h3>
                 </div>
@@ -127,7 +130,6 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
               {/* Form Section */}
               <div className="overflow-visible w-[90vw] sm:w-[600px]  lg:col-start-8 lg:col-span-5 relative z-1 mb-4">
                 <h3 className="text-3xl bg-[#7ECA9D] text-[#FFFFFF] dark:text-blackColor-dark py-6 text-center font-semibold font-inter">
-                  {/* Enroll Now ! */}
                   {subText}
                 </h3>
                 <form
@@ -176,7 +178,7 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
                         <option value="CA">CA (+1)</option>
                         <option value="SGP">SGP (+65) </option>
                         <option value="UAE">UAE (+971)</option>
-                        <option value="UK">Uk (+44) </option>
+                        <option value="UK">UK (+44) </option>
                       </select>
                     </div>
 
@@ -187,13 +189,13 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
                         placeholder="Your Phone Number*"
                         className="w-full px-14px py-3 dark:bg-inherit bg-lightGrey8 text-base border border-gray-300"
                       />
+                      {errors.phone_number && (
+                        <span className="text-red-500">
+                          {errors.phone_number.message}
+                        </span>
+                      )}
                     </div>
                   </div>
-                  {(errors.country || errors.phone_number) && (
-                    <div className="text-red-500">
-                      {errors.country?.message || errors.phone_number?.message}
-                    </div>
-                  )}
 
                   <div className="flex gap-4 flex-col md:flex-row mb-2.5">
                     <div className="flex-col w-full">
@@ -229,7 +231,7 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
                       {...register("company_website")}
                       type="text"
                       placeholder="Website*"
-                      className="w-full px-14px py-2 dark:bg-inherit bg-lightGrey8 text-base sm:mb-1.5 mb-0 border border-gray-300"
+                      className="w-full px-14px py-2 dark:bg-inherit bg-lightGrey8 text-base mb-0 border border-gray-300"
                     />
                     {errors.company_website && (
                       <span className="text-red-500">
@@ -238,19 +240,18 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
                     )}
                   </div>
 
-                  <textarea
-                    {...register("message")}
-                    placeholder="Message"
-                    type="text"
-                    className="w-full px-15px pb-3 pt-3 dark:bg-inherit bg-lightGrey8 text-base mb-4 h-[125px] border border-gray-300"
-                    cols="30"
-                    rows="16"
-                  />
-                  {errors.message && (
-                    <span className="text-red-500">
-                      {errors.message.message}
-                    </span>
-                  )}
+                  <div className="mt-5">
+                    <textarea
+                      {...register("message")}
+                      placeholder="Message*"
+                      className="w-full h-[100px] dark:bg-inherit bg-lightGrey8 text-base px-14px py-2 mb-4 border border-gray-300"
+                    ></textarea>
+                    {errors.message && (
+                      <span className="text-red-500">
+                        {errors.message.message}
+                      </span>
+                    )}
+                  </div>
 
                   <ReCAPTCHA
                     sitekey="6LeNH5QqAAAAAO98HJ00v5yuCkLgHYCSvUEpGhLb"
