@@ -5,7 +5,7 @@ import Image from "next/image";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 
-const CertificateCoursesEnroll = ({ onViewCertificate }) => {
+const CertificateCoursesEnroll = ({ onViewCertificate, setCertificateUrl }) => {
   const [certificateCourses, setCertificateCourses] = useState([]);
   const { getQuery, loading } = useGetQuery();
 
@@ -26,6 +26,7 @@ const CertificateCoursesEnroll = ({ onViewCertificate }) => {
           courseTitle: item.course_id?.course_title || "No Title Available",
           instructor: item.course_id?.assigned_instructor?.full_name || "N/A",
           completionDate: new Date(item.completion_date).toLocaleDateString(),
+          certificateUrl: item.certificateUrl, // Add certificateUrl to data
         }));
         setCertificateCourses(formattedData);
       },
@@ -35,9 +36,10 @@ const CertificateCoursesEnroll = ({ onViewCertificate }) => {
     });
   };
 
-  const handleViewCertificate = (certificate) => {
-    if (certificate) {
-      onViewCertificate(certificate);
+  const handleViewCertificate = (certificateUrl) => {
+    if (certificateUrl) {
+      setCertificateUrl(certificateUrl);
+      onViewCertificate();
     } else {
       console.warn("No certificate available for this course.");
     }
@@ -81,7 +83,7 @@ const CertificateCoursesEnroll = ({ onViewCertificate }) => {
                     </p>
                   </div>
                   <div
-                    onClick={() => handleViewCertificate(course)}
+                    onClick={() => handleViewCertificate(course.certificateUrl)}
                     className="flex mt-20 gap-2 cursor-pointer text-primaryColor"
                   >
                     <span>
