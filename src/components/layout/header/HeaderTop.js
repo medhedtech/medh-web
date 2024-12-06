@@ -28,7 +28,10 @@ const HeaderTop = () => {
         <div className="flex justify-between items-center">
           <div>
             <div className="flex pl-16">
-              <span className="pr-6">Call: +91 77108 40696</span> |{" "}
+              {/* <span className="pr-6">Call: +91 77108 40696</span> |{" "} */}
+              <span className="pr-6">
+                Call: <a href="tel:+917710840696">+91 7710840696</a>
+              </span>{" "}
               <span className="pl-6">Follow us:</span>
               <ul className="flex gap-2.5 pl-2">
                 <li>
