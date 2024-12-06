@@ -16,7 +16,7 @@ const Home2 = () => {
       <About2 />
       <PopularSubjects2 />
       <CoursesFilter2 />
-      <Registration />
+      <Registration  pageTitle="home_page_2" />
       <EventsTab />
       <Testimonials />
       <Brands />

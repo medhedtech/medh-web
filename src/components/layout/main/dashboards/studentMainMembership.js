@@ -74,6 +74,7 @@ import { CalendarClock } from "lucide-react";
 const StudentMainMembership = ({
   courseImage,
   title,
+  courseCategory,
   typeLabel,
   sessions,
   duration,
@@ -93,15 +94,15 @@ const StudentMainMembership = ({
   };
 
   const hasExpired = (expiryDate) => {
-    const today = new Date(); 
-    const expiry = new Date(expiryDate); 
-  
+    const today = new Date();
+    const expiry = new Date(expiryDate);
+
     return expiry < today; // Returns true if expiry date is in the past
   };
 
   const handleRenewMembership = () => {
-    console.log('Membership Renewed');
-  }
+    console.log("Membership Renewed");
+  };
 
   return (
     <div className="flex items-center dark:border shadow-student-dashboard p-5 rounded-lg overflow-hidden hover:scale-105 transform transition-transform duration-300">
@@ -117,8 +118,11 @@ const StudentMainMembership = ({
 
       {/* Course Info Section */}
       <div className="px-4 w-[60%] font-Open">
-        <span className="text-orange-500 text-xs font-bold text-[#FFA927]">
+        <span className="text-orange-500 flex text-xs font-bold text-[#FFA927]">
           {typeLabel}
+          <p className="ml-4 text-xs font-semibold dark:text-white text-[#202244] mt-0">
+            {courseCategory}
+          </p>
         </span>
         <h3 className="text-xl font-semibold dark:text-white text-[#202244] mt-2">
           {title}
@@ -171,6 +175,7 @@ const StudentMainMembership = ({
 // Define prop types
 StudentMainMembership.propTypes = {
   courseImage: PropTypes.string,
+  courseCategory: PropTypes.string,
   title: PropTypes.string.isRequired,
   typeLabel: PropTypes.string.isRequired,
   sessions: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
