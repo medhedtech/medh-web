@@ -22,7 +22,7 @@ const Home7 = () => {
       <PopularSubjects3 subject="lg" />
       <Overview />
       <FeatureCourses title="Our online courses" course="2" />
-      <Registration />
+      <Registration pageTitle="home_page_7" />
       <Fees />
       <EventsTab />
       <Testimonials />
