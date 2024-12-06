@@ -14,11 +14,6 @@ import { useRouter } from "next/navigation";
 const schema = yup
   .object({
     full_name: yup.string().required("Name is required"),
-    age: yup
-      .number()
-      .typeError("Age must be a number")
-      .required("Age is required")
-      .min(13, "Age must be above 13 years"),
     email: yup.string().email().required("Email is required"),
     phone_number: yup
       .string()
@@ -26,7 +21,6 @@ const schema = yup
       .max(10, "Must be exactly 10 digits")
       .required("Phone number is required"),
     role: yup.string().required("Role is required"),
-    assign_department: yup.string().required("Assign department is required"),
   })
   .required();
 
@@ -51,10 +45,8 @@ const Gamma = () => {
         url: apiUrls?.user?.register,
         postData: {
           full_name: data?.full_name,
-          age: data?.age,
           email: data?.email,
           role: data?.role,
-          assign_department: [data?.assign_department],
           phone_number: data?.phone_number,
         },
         onSuccess: () => {
@@ -108,25 +100,6 @@ const Gamma = () => {
             {errors.full_name && (
               <p className="text-xs text-red-500 font-normal  ml-2">
                 {errors.full_name?.message}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-600 dark:text-whitegrey3">
-              Age
-              <span className="text-red-500 ml-1">*</span>
-            </label>
-            <input
-              {...register("age")}
-              type="text"
-              name="age"
-              placeholder="27 years"
-              className="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 dark:bg-inherit focus:ring-indigo-500"
-            />
-            {errors.age && (
-              <p className="text-xs text-red-500 font-normal  ml-2">
-                {errors.age?.message}
               </p>
             )}
           </div>
@@ -186,7 +159,7 @@ const Gamma = () => {
             )}
           </div>
 
-          <div className="md:col-span-2">
+          <div className="relative">
             <label className="block text-sm font-medium text-gray-600 dark:text-whitegrey3">
               Select Role
               <span className="text-red-500 ml-1">*</span>
@@ -207,32 +180,6 @@ const Gamma = () => {
             {errors.role && (
               <p className="text-xs text-red-500 font-normal mt-[2px] ml-2">
                 {errors.role?.message}
-              </p>
-            )}
-          </div>
-
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-600 dark:text-whitegrey3">
-              Assign department
-              <span className="text-red-500 ml-1">*</span>
-            </label>
-            <select
-              {...register("assign_department")}
-              type="string"
-              name="assign_department"
-              // value={formData.assign_department}
-              // onChange={handleInputChange}
-              className="mt-1 block w-full border dark:text-whitegrey border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 dark:bg-inherit focus:ring-indigo-500"
-            >
-              <option value="">Select</option>
-              <option value="Engineering">Engineering</option>
-              <option value="Marketing">Marketing</option>
-              <option value="ml">ML</option>
-              <option value="automation">Automation</option>
-            </select>
-            {errors.assign_department && (
-              <p className="text-xs text-red-500 font-normal mt-[2px] ml-2">
-                {errors.assign_department?.message}
               </p>
             )}
           </div>

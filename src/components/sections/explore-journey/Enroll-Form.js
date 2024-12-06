@@ -16,20 +16,32 @@ import ReCAPTCHA from "react-google-recaptcha";
 
 // Validation schema using yup
 const schema = yup.object({
-  full_name: yup.string().required("Name is required."),
+  full_name: yup
+    .string()
+    .required("Name is required.")
+    .min(3, "Name must be at least 3 characters long."),
   email: yup
     .string()
-    .email("Please enter a valid email")
+    .email("Please enter a valid email.")
     .required("Email is required."),
-  country: yup.string().nullable(),
-  phone_number: yup.string().required("Please enter mobile number"),
-  course_category: yup.string().required("Please select category"),
-  course_type: yup.string().required("Please select course type"),
-  message: yup.string().required("Please enter the message"),
+  country: yup.string().nullable().required("Please select a country."),
+  phone_number: yup
+    .string()
+    .required("Please enter mobile number")
+    .matches(/^\d{10}$/, "Phone number must be exactly 10 digits.")
+    .test("only-digits", "Phone number must contain only digits", (value) => {
+      return /^[0-9]+$/.test(value);
+    }),
+  course_category: yup.string().required("Please select category."),
+  course_type: yup.string().required("Please select course type."),
+  message: yup
+    .string()
+    .required("Please enter the message.")
+    .min(10, "Message must be at least 10 characters long."),
   accept: yup
     .boolean()
-    .oneOf([true], "You must accept the terms and privacy policy")
-    .required(),
+    .oneOf([true], "You must accept the terms and privacy policy.")
+    .required("You must accept the terms and privacy policy."),
 });
 
 const ExploreJourney = ({ mainText, subText }) => {
@@ -116,8 +128,6 @@ const ExploreJourney = ({ mainText, subText }) => {
               >
                 <div className="relative lg:my-36">
                   <h3 className="text-4xl md:text-[35px] 2xl:text-size-42 leading-[45px] 2xl:leading-2xl font-bold text-whiteColor pb-25px font-Poppins">
-                    {/* Transform Your Career. Explore Your Journey in AI and Data
-                  Science. */}
                     {mainText}
                   </h3>
                 </div>
@@ -125,7 +135,6 @@ const ExploreJourney = ({ mainText, subText }) => {
               {/* Form Section */}
               <div className="overflow-visible w-[90vw] sm:w-[600px]  lg:col-start-8 lg:col-span-5 relative z-1 mb-4">
                 <h3 className="text-3xl bg-[#7ECA9D] text-[#FFFFFF] dark:text-blackColor-dark py-6 text-center font-semibold font-inter">
-                  {/* Enroll Now ! */}
                   {subText}
                 </h3>
                 <form
@@ -142,7 +151,7 @@ const ExploreJourney = ({ mainText, subText }) => {
                         className="w-full px-14px py-2 dark:bg-inherit bg-lightGrey8 text-base mb-0 sm:mb-1.5 border border-gray-300"
                       />
                       {errors.full_name && (
-                        <span className="text-red-500">
+                        <span className="text-red-500 text-sm mt-1 block">
                           {errors.full_name.message}
                         </span>
                       )}
@@ -155,7 +164,7 @@ const ExploreJourney = ({ mainText, subText }) => {
                         className="w-full px-14px py-2 dark:bg-inherit bg-lightGrey8 text-base sm:mb-1.5 mb-0 border border-gray-300"
                       />
                       {errors.email && (
-                        <span className="text-red-500">
+                        <span className="text-red-500 text-sm mt-1 block">
                           {errors.email.message}
                         </span>
                       )}
@@ -164,104 +173,127 @@ const ExploreJourney = ({ mainText, subText }) => {
 
                   {/* Phone Number Input with Country Dropdown */}
                   <div className="flex flex-col lg:flex-row mb-4 gap-4">
+                    {/* Country Dropdown */}
                     <div className="w-full lg:w-1/3">
                       <select
                         {...register("country")}
-                        className="w-full px-2 py-2 dark:bg-inherit bg-lightGrey8 border border-gray-300 text-[#5C6574]"
+                        className="w-full px-2 py-2 dark:bg-inherit bg-lightGrey8 border border-gray-300 text-[#5C6574] placeholder-gray-500"
                       >
-                        <option value="IN">IN (+91)</option>
-                        <option value="AUS">AUS (+61)</option>
-                        <option value="CA">CA (+1)</option>
-                        <option value="SGP">SGP (+65) </option>
-                        <option value="UAE">UAE (+971)</option>
-                        <option value="UK">Uk (+44) </option>
+                        <option value="IN" className="text-gray-500">
+                          IN (+91)
+                        </option>
+                        <option value="AUS" className="text-gray-500">
+                          AUS (+61)
+                        </option>
+                        <option value="CA" className="text-gray-500">
+                          CA (+1)
+                        </option>
+                        <option value="SGP" className="text-gray-500">
+                          SGP (+65)
+                        </option>
+                        <option value="UAE" className="text-gray-500">
+                          UAE (+971)
+                        </option>
+                        <option value="UK" className="text-gray-500">
+                          UK (+44)
+                        </option>
                       </select>
                     </div>
 
+                    {/* Phone Number Input */}
                     <div className="w-full lg:w-3/4">
                       <input
                         {...register("phone_number")}
                         type="tel"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        maxLength="10"
                         placeholder="Your Phone Number*"
-                        className="w-full px-14px py-3 dark:bg-inherit bg-lightGrey8 text-base border border-gray-300"
+                        className="w-full px-[14px] py-3 dark:bg-inherit bg-lightGrey8 text-base border border-gray-300 placeholder-gray-500"
                       />
+                      {/* Error Message for Phone Number */}
+                      {errors.phone_number && (
+                        <span className="text-red-500 text-sm mt-1 block">
+                          {errors.phone_number.message}
+                        </span>
+                      )}
                     </div>
                   </div>
-                  {(errors.country || errors.phone_number) && (
-                    <div className="text-red-500">
-                      {errors.country?.message || errors.phone_number?.message}
-                    </div>
-                  )}
 
                   <div className="flex gap-4 mb-2.5 flex-col lg:flex-row">
-                    <select
-                      {...register("course_category")}
-                      type="text"
-                      className="w-full px-14px py-2 dark:bg-inherit bg-lightGrey8 text-base border mb-0 sm:mb-1.5 border-gray-300"
-                    >
-                      <option value="" disabled>
-                        Select Category
-                      </option>
-                      <option value="AI & Data Science">
-                        AI & Data Science
-                      </option>
-                      <option value="Personality Development">
-                        Personality Development
-                      </option>
-                      <option value="Vedic Mathematics">
-                        Vedic Mathematics
-                      </option>
-                      <option value="Digital Marketing & Data Analytics">
-                        Digital Marketing & Data Analytics
-                      </option>
-                    </select>
-                    {errors.course_category && (
-                      <span className="text-red-500">
-                        {errors.course_category.message}
-                      </span>
-                    )}
+                    {/* First Select */}
+                    <div className="w-full">
+                      <select
+                        {...register("course_category")}
+                        className="w-full px-[14px] py-2 dark:bg-inherit bg-lightGrey8 text-base border mb-0 sm:mb-1.5 border-gray-300 placeholder-gray-100"
+                      >
+                        <option value="" className="text-gray-100">
+                          Select Category
+                        </option>
+                        <option value="AI & Data Science">
+                          AI & Data Science
+                        </option>
+                        <option value="Personality Development">
+                          Personality Development
+                        </option>
+                        <option value="Vedic Mathematics">
+                          Vedic Mathematics
+                        </option>
+                        <option value="Digital Marketing & Data Analytics">
+                          Digital Marketing & Data Analytics
+                        </option>
+                      </select>
+                      {errors.course_category && (
+                        <span className="text-red-500 text-sm mt-1">
+                          {errors.course_category.message}
+                        </span>
+                      )}
+                    </div>
 
-                    {/* Second Select: Three options */}
-                    <select
-                      {...register("course_type")}
+                    {/* Second Select */}
+                    <div className="w-full">
+                      <select
+                        {...register("course_type")}
+                        className="w-full px-[14px] py-2 dark:bg-inherit bg-lightGrey8 text-base mb-1.5 border border-gray-300 placeholder-gray-500"
+                      >
+                        <option value="" className="text-gray-500">
+                          Select Type
+                        </option>
+                        <option value="option1">Foundation Certificate</option>
+                        <option value="option2">Advanced Certificate</option>
+                        <option value="option3">Executive Certificate</option>
+                      </select>
+                      {errors.course_type && (
+                        <span className="text-red-500 text-sm mt-1">
+                          {errors.course_type.message}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="w-full">
+                    <textarea
+                      {...register("message")}
+                      placeholder="Message"
                       type="text"
-                      placeholder="Select Course Type"
-                      className="w-full px-14px py-2 dark:bg-inherit bg-lightGrey8 text-base mb-1.5 border border-gray-300"
-                    >
-                      <option disabled value="">
-                        Select Course Type
-                      </option>
-                      <option value="option1">Foundation Certificate</option>
-                      <option value="option2">Advanced Certificate</option>
-                      <option value="option3">Executive Certificate</option>
-                    </select>
-                    {errors.course_type && (
-                      <span className="text-red-500">
-                        {errors.course_type.message}
+                      className="w-full px-[15px] pt-3 dark:bg-inherit bg-lightGrey8 text-base mb-2 h-[125px] border border-gray-300"
+                      cols="30"
+                      rows="16"
+                    />
+
+                    {/* Error Message for Message */}
+                    {errors.message && (
+                      <span className="text-red-500 text-sm pb-2 mt-1 block">
+                        {errors.message.message}
                       </span>
                     )}
                   </div>
-
-                  <textarea
-                    {...register("message")}
-                    placeholder="Message"
-                    type="text"
-                    className="w-full px-15px pb-3 pt-3 dark:bg-inherit bg-lightGrey8 text-base mb-4 h-[125px] border border-gray-300"
-                    cols="30"
-                    rows="16"
-                  />
-                  {errors.message && (
-                    <span className="text-red-500">
-                      {errors.message.message}
-                    </span>
-                  )}
 
                   <ReCAPTCHA
                     sitekey="6LeNH5QqAAAAAO98HJ00v5yuCkLgHYCSvUEpGhLb"
                     onChange={handleRecaptchaChange}
                   />
 
-                  <div className="flex items-start space-x-2 mb-12">
+                  <div className="flex items-start mt-2 space-x-2 mb-0">
                     <input
                       {...register("accept")}
                       type="checkbox"
@@ -285,12 +317,12 @@ const ExploreJourney = ({ mainText, subText }) => {
                     </label>
                   </div>
                   {errors.accept && (
-                    <span className="text-red-500 mt-[-20px]">
+                    <span className="text-red-500 text-sm mt-1 block">
                       {errors.accept.message}
                     </span>
                   )}
 
-                  <div className="-mb-4">
+                  <div className="py-4">
                     <button
                       type="submit"
                       className="bg-[#7ECA9D] rounded-[4px] text-white px-6 py-2 transition-all duration-300 ease-in-out hover:bg-[#5fb786] hover:shadow-lg"

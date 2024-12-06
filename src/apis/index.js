@@ -37,7 +37,7 @@ export const apiUrls = {
     getCourseNames: "/courses/course-names",
     getEnrolledCoursesByStudentId: "/enroll/student",
     toggleCourseStatus: "/courses/toggle-status",
-    addRecordedVideos: "/courses/recorded-videos"
+    addRecordedVideos: "/courses/recorded-videos",
   },
   upload: {
     uploadImage: "/upload/uploadImage",
@@ -100,7 +100,8 @@ export const apiUrls = {
     deleteAssignedInstructor: "/assigned-instrutors/delete",
   },
   placements: {
-    addPlacements: "/placements/",
+    addPlacements: "/placements/create",
+    getPlacements: "/placements/getAll",
   },
   quzies: {
     getQuizes: "/quizes",
@@ -177,4 +178,10 @@ export const apiUrls = {
     getAllNewsletter: "/newsletter/getAll",
     addNewsletter: "/newsletter/add",
   },
+  Corporate:{
+    getAllCorporate: "/corporate/getAll",
+    addCorporate: "/corporate/create",
+    updateCorporate: "/corporate/update/:id",
+    deleteCorporate: "/corporate/delete",
+  }
 };

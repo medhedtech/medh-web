@@ -6,11 +6,12 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { toast } from "react-toastify";
 import usePostQuery from "@/hooks/postQuery.hook";
 import { apiUrls } from "@/apis";
+import useGetQuery from "@/hooks/getQuery.hook";
 
 const schema = yup.object({
-  name: yup.string().required("Name is required"),
+  full_name: yup.string().required("Name is required"),
   email: yup.string().email("Invalid email").required("Email is required"),
-  mobile: yup
+  phone_number: yup
     .string()
     .matches(/^\d{10}$/, "Mobile number must be 10 digits")
     .required("Mobile number is required"),
@@ -23,7 +24,6 @@ const schema = yup.object({
     .max(new Date().getFullYear(), "Year cannot be in the future")
     .required("Course completed year is required"),
   area_of_interest: yup.string().required("Area of interest is required"),
-  apply_for_role: yup.string().required("Role to apply for is required"),
   message: yup.string().required("Message is required"),
 });
 
@@ -39,6 +39,7 @@ const PlacementForm = () => {
 
   const [loading, setLoading] = useState(false);
   const { postQuery } = usePostQuery();
+  const { getQuery } = useGetQuery();
   const [studentId, setStudentId] = useState(null);
 
   useEffect(() => {
@@ -47,6 +48,37 @@ const PlacementForm = () => {
       setStudentId(storedUserId);
     }
   }, []);
+
+  // Fetch user details by ID and prefill form fields
+  const fetchUserDetailsById = async () => {
+    if (!studentId) return;
+    await getQuery({
+      url: `${apiUrls?.user?.getDetailsbyId}/${studentId}`,
+      onSuccess: (res) => {
+        if (res?.data) {
+          // Use the reset function to prefill form fields
+          reset({
+            full_name: res.data.full_name || "",
+            email: res.data.email || "",
+            phone_number: res.data.phone_number || "",
+            city: res.data.city || "",
+            completed_course: res.data.completed_course || "",
+            course_completed_year: res.data.course_completed_year || "",
+            area_of_interest: res.data.area_of_interest || "",
+            message: res.data.message || "",
+          });
+        }
+      },
+      onFail: (err) => {
+        console.error("Error fetching user details:", err);
+        toast.error("Failed to fetch user details.");
+      },
+    });
+  };
+
+  useEffect(() => {
+    fetchUserDetailsById();
+  }, [studentId]);
 
   const onSubmit = async (data) => {
     if (!studentId) {
@@ -60,15 +92,14 @@ const PlacementForm = () => {
       url: apiUrls?.placements?.addPlacements,
       postData: {
         studentId,
-        name: data?.name,
+        full_name: data?.full_name,
         area_of_interest: data?.area_of_interest,
-        apply_for_role: data?.apply_for_role,
         message: data?.message,
         course_completed_year: data?.course_completed_year,
         completed_course: data?.completed_course,
-        email_id: data?.email,
+        email: data?.email,
         city: data?.city,
-        mobile_number: data?.mobile,
+        phone_number: data?.phone_number,
       },
       onSuccess: () => {
         toast.success("Placement details submitted successfully!");
@@ -93,17 +124,17 @@ const PlacementForm = () => {
         >
           {/* Name */}
           <div>
-            <label htmlFor="name" className="text-sm font-medium">
+            <label htmlFor="full_name" className="text-sm font-medium">
               Name
             </label>
             <input
               type="text"
-              id="name"
+              id="full_name"
               className="w-full border border-gray-300 rounded-md py-2 px-3"
-              {...register("name")}
+              {...register("full_name")}
             />
             {errors.name && (
-              <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>
+              <p className="text-red-500 text-xs mt-1">{errors.full_name.message}</p>
             )}
           </div>
 
@@ -127,18 +158,18 @@ const PlacementForm = () => {
 
           {/* Mobile */}
           <div>
-            <label htmlFor="mobile" className="text-sm font-medium">
+            <label htmlFor="phone_number" className="text-sm font-medium">
               Mobile Number
             </label>
             <input
               type="text"
-              id="mobile"
+              id="phone_number"
               className="w-full border border-gray-300 rounded-md py-2 px-3"
-              {...register("mobile")}
+              {...register("phone_number")}
             />
-            {errors.mobile && (
+            {errors.phone_number && (
               <p className="text-red-500 text-xs mt-1">
-                {errors.mobile.message}
+                {errors.phone_number.message}
               </p>
             )}
           </div>
@@ -177,26 +208,6 @@ const PlacementForm = () => {
             )}
           </div>
 
-          {/* Course Completed Year */}
-          {/* <div>
-            <label
-              htmlFor="course_completed_year"
-              className="text-sm font-medium"
-            >
-              Course Completed Year
-            </label>
-            <input
-              type="number"
-              id="course_completed_year"
-              className="w-full border border-gray-300 rounded-md py-2 px-3"
-              {...register("course_completed_year")}
-            />
-            {errors.course_completed_year && (
-              <p className="text-red-500 text-xs mt-1">
-                {errors.course_completed_year.message}
-              </p>
-            )}
-          </div> */}
           <div>
             <label
               htmlFor="course_completed_year"
@@ -240,24 +251,6 @@ const PlacementForm = () => {
             {errors.area_of_interest && (
               <p className="text-red-500 text-xs mt-1">
                 {errors.area_of_interest.message}
-              </p>
-            )}
-          </div>
-
-          {/* Apply for Role */}
-          <div>
-            <label htmlFor="apply_for_role" className="text-sm font-medium">
-              Apply for Role
-            </label>
-            <input
-              type="text"
-              id="apply_for_role"
-              className="w-full border border-gray-300 rounded-md py-2 px-3"
-              {...register("apply_for_role")}
-            />
-            {errors.apply_for_role && (
-              <p className="text-red-500 text-xs mt-1">
-                {errors.apply_for_role.message}
               </p>
             )}
           </div>
