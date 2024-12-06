@@ -45,7 +45,7 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
   const router = useRouter();
   const [allCourses, setAllCourses] = useState([]);
   const [filteredCourses, setFilteredCourses] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
@@ -55,7 +55,7 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
 
   // Fetch courses from API
   const fetchCourses = () => {
-    const categoryQuery = selectedCategory ? selectedCategory : "";
+    const categoryQuery = selectedCategory ? selectedCategory : [];
     const gradeQuery = selectedGrade || "";
 
     getQuery({
@@ -104,16 +104,25 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
       );
     }
 
-    if (selectedCategory && selectedCategory !== "") {
+    if (selectedCategory && selectedCategory.length) {
       filtered = filtered.filter(
-        (course) =>
-          course.category &&
-          course.category.toLowerCase() === selectedCategory.toLowerCase()
+        (course) => {
+          const lowercase = selectedCategory.map((c) => c.toLowerCase());
+
+          if (course.category) {
+            return lowercase.includes(course.category.toLowerCase());
+          } else {
+            return false;
+          }
+        }
+        // course.category &&
+        // course.category.toLowerCase() === selectedCategory.toLowerCase()
       );
 
       console.log("Selected Category: ", selectedCategory);
       console.log("filtered: ", filtered);
     }
+
     // Sorting the filtered courses based on the selected sort order
     if (sortOrder === "A-Z") {
       filtered = filtered.sort((a, b) => {
@@ -156,7 +165,7 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
   };
 
   const handleClearFilters = () => {
-    setSelectedCategory(null);
+    setSelectedCategory([]);
     setSearchTerm("");
     setSortOrder("A-Z");
     setCurrentPage(1);
