@@ -37,6 +37,7 @@ export const apiUrls = {
     getCourseNames: "/courses/course-names",
     getEnrolledCoursesByStudentId: "/enroll/student",
     toggleCourseStatus: "/courses/toggle-status",
+    addRecordedVideos: "/courses/recorded-videos"
   },
   upload: {
     uploadImage: "/upload/uploadImage",
