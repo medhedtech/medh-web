@@ -10,7 +10,7 @@ import {
   MdFeedback,
   MdCategory,
 } from "react-icons/md";
-import { FaUsers, FaBlog, FaUserGraduate } from "react-icons/fa";
+import { FaUsers, FaBlog, FaUserGraduate, FaBriefcase } from "react-icons/fa";
 
 const SidebarDashboard = () => {
   const pathname = usePathname();
@@ -318,7 +318,7 @@ const SidebarDashboard = () => {
           icon: <MdContactPhone size={18} color="#808080" />,
         },
         {
-          name: "Enrollments",
+          name: "Enquiry Form",
           path: "/dashboards/admin-enrollments",
           icon: <FaUsers size={18} color="#808080" />,
         },
@@ -331,6 +331,11 @@ const SidebarDashboard = () => {
           name: "Feedback & Complaints",
           path: "/dashboards/admin-feedback-and-complaints",
           icon: <MdFeedback size={18} color="#808080" />,
+        },
+        {
+          name: "Placement Requests",
+          path: "/dashboards/admin-placements",
+          icon: <FaBriefcase size={18} color="#808080" />,
         },
         {
           name: "Blogs",

@@ -33,7 +33,7 @@ const schema = yup.object({
   resume_image: yup.string(),
 });
 
-const Registration = ({ showUploadField = false }) => {
+const Registration = ({ showUploadField = false, pageTitle }) => {
   const { postQuery, loading } = usePostQuery();
   const [fileName, setFileName] = useState("No file chosen");
   const [pdfBrochure, setPdfBrochure] = useState(null);
@@ -98,6 +98,7 @@ const Registration = ({ showUploadField = false }) => {
         phone_number: data.phone_number,
         message: data.message,
         accept: data.accept,
+        page_title: pageTitle, 
       };
 
       // Add resume_image if pdfBrochure is available
@@ -253,7 +254,7 @@ const Registration = ({ showUploadField = false }) => {
                   {showUploadField && (
                     <>
                       <h2 className="text-[1rem] font-bold font-Poppins text-[#000000D9] dark:text-white">
-                        Upload Your Resume*
+                        Upload Job Description*
                       </h2>
                       <div className="w-full">
                         <label
