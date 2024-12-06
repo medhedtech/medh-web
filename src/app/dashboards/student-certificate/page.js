@@ -8,6 +8,7 @@ import ThemeController from "@/components/shared/others/ThemeController";
 
 const StudentCertificate = () => {
   const [showCertificate, setShowCertificate] = useState(false);
+  const [certificateurl, setCertificateUrl] = useState("");
 
   const handleViewCertificate = () => {
     setShowCertificate(true);
@@ -22,11 +23,12 @@ const StudentCertificate = () => {
           </div>
           {showCertificate ? (
             <div className="px-6 pb-4">
-              <ViewCertificate />
+              <ViewCertificate certificateUrl={certificateurl} />
             </div>
           ) : (
             <CertificateCoursesEnroll
               onViewCertificate={handleViewCertificate}
+              setCertificateUrl={setCertificateUrl}
             />
           )}
           <ThemeController />
