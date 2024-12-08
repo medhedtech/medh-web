@@ -73,7 +73,7 @@ const WhyMedh = () => {
           </p>
 
           <button
-            onClick={() => router.push("/skill-development-courses")}
+            onClick={() => router.push("/placement-guaranteed-courses")}
             className="cursor-pointer bg-[#7ECA9D] rounded-[2px] px-4 py-3 w-fit mx-auto font-semibold text-white flex gap-4"
           >
             <span>
