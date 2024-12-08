@@ -6,16 +6,16 @@ const coursesData = [
   {
     _id: "1",
     course_image: PlacementImage1,
-    course_title: "Web Development Bootcamp",
-    course_category: "Development",
+    course_title: "Digital Marketing with Data Analytics",
+    course_category: "Professional Edge Diploma In",
     course_duration: "6 months",
   },
   {
     _id: "2",
     course_image: PlacementImage2,
-    course_title: "Data Science Mastery",
-    course_category: "Data Science",
-    course_duration: "8 months",
+    course_title: "AI & Data Science",
+    course_category: "Professional Edge Diploma In",
+    course_duration: "18 Months Course",
   },
 ];
 
@@ -53,7 +53,7 @@ const HireSectionPlacement = () => {
         </div>
 
         {/* Section for displaying Course Cards */}
-        <section className="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-12 px-4 pt-8 md:px-16 md:pt-16 bg-white dark:bg-screen-dark">
+        <section className="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-20 px-4 pt-8 md:px-16 md:pt-16 bg-white dark:bg-screen-dark">
           {/* Render only the first two courses */}
           {coursesData.slice(0, 2).map((course) => (
             <CourseCard key={course._id} course={course} />
