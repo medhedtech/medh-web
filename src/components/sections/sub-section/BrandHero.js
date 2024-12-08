@@ -1,10 +1,5 @@
 import Image from "next/image";
 import React from "react";
-import brand1 from "@/assets/images/brand/brand_1.png";
-import brand2 from "@/assets/images/brand/brand_2.png";
-import brand3 from "@/assets/images/brand/brand_3.png";
-import brand4 from "@/assets/images/brand/brand_4.png";
-import brand5 from "@/assets/images/brand/brand_5.png";
 import bgImg from "@/assets/images/herobanner/bg-img.jpeg";
 import bgImg1 from "@/assets/images/herobanner/bg1-img.jpeg";
 const BrandHero = () => {
@@ -90,7 +85,7 @@ const BrandHero = () => {
                 guaranteed Courses.
               </span>
               <a
-                href="/skill-development-courses"
+                href="/placement-guaranteed-courses"
                 className="text-sm sm:text-base lg:text-lg underline underline-offset-4 text-blue-600 hover:text-blue-800 transition-all"
               >
                 View Courses +
