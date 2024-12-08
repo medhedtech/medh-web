@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import SelectCourseModal from "@/components/layout/main/dashboards/SelectCourseModal";
+import SignInModal from "@/components/shared/signin-modal";
 
 const membershipData = [
   {
@@ -30,7 +31,8 @@ const PrimeMembership = () => {
   const [selectedPlan, setSelectedPlan] = useState("Monthly");
   const [isSelectCourseModalOpen, setSelectCourseModalOpen] = useState(false);
   const [planType, setPlanType] = useState("");
-  const [selectedMembership, setSelectedMembership] = useState(""); // State for dropdown value
+  const [selectedMembership, setSelectedMembership] = useState("");
+  const [isLoginModalOpen, setLoginModalOpen] = useState(false);
 
   const plans = {
     Monthly: { silver: "$49", gold: "$59", period: "per month" },
@@ -39,8 +41,17 @@ const PrimeMembership = () => {
     Yearly: { silver: "$499", gold: "$599", period: "per year" },
   };
 
+  const checkUserLogin = () => {
+    const userId = localStorage.getItem("userId");
+    return userId !== null;
+  };
+
   const handleSelectCourseModal = (membershipType) => {
-    if (!membershipType) return; // Ensure a valid membership type is passed
+    if (!checkUserLogin()) {
+      setLoginModalOpen(true);
+      return;
+    }
+    if (!membershipType) return;
     setPlanType(membershipType.toLowerCase());
     setSelectCourseModalOpen(true);
   };
@@ -107,7 +118,7 @@ const PrimeMembership = () => {
           <select
             className="border-2 rounded px-10 py-2 w-full dark:bg-screen-dark text-[#727695]"
             value={selectedMembership}
-            onChange={handleMembershipChange} // Call function on change
+            onChange={handleMembershipChange}
           >
             <option value="">Select One</option>
             <option value="Silver">Silver Membership</option>
@@ -124,6 +135,12 @@ const PrimeMembership = () => {
           amount={plans[selectedPlan][planType]}
           selectedPlan={selectedPlan}
           closeParent={() => setSelectCourseModalOpen(false)}
+        />
+      )}
+      {isLoginModalOpen && (
+        <SignInModal
+          isOpen={isLoginModalOpen}
+          onClose={() => setLoginModalOpen(false)}
         />
       )}
     </div>
