@@ -497,3 +497,21 @@ option {
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@keyframes floating {
+  0% {
+    transform: translate(0, 0); /* Start at the original position */
+  }
+  25% {
+    transform: translate(-5px, -5px); /* Move slightly up-left */
+  }
+  50% {
+    transform: translate(5px, 5px); /* Move slightly down-right */
+  }
+  75% {
+    transform: translate(-5px, 5px); /* Move slightly down-left */
+  }
+  100% {
+    transform: translate(0, 0); /* Return to the original position */
+  }
+}
