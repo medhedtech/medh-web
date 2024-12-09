@@ -18,34 +18,76 @@ const formatDate = (date) => {
 
 export default function GetInTouch() {
   const [courses, setCourses] = useState([]);
+  const [corporates, setCorporates] = useState([]);
+  const [filteredCourses, setFilteredCourses] = useState([]);
+  const [selectedFilter, setSelectedFilter] = useState("");
   const { getQuery, loading } = useGetQuery();
   const { deleteQuery } = useDeleteQuery();
+
+  const pageTitleOptions = [
+    { value: "", label: "All Pages" },
+    { value: "home_page", label: "Home Page" },
+    { value: "join_as_school", label: "Join as School" },
+    { value: "hire_from_medh", label: "Hire From Medh" },
+    { value: "join_as_educator", label: "Educator" },
+    { value: "join_as_school", label: "School" },
+    { value: "contact_us", label: "Contact" },
+  ];
 
   // Fetch courses from API
   const fetchContacts = async () => {
     await getQuery({
       url: apiUrls?.Contacts?.getAllContacts,
       onSuccess: (response) => {
-        console.log("Contacts fetched successfully:", response);
         if (response?.success && Array.isArray(response.data)) {
           setCourses(response.data);
+          setFilteredCourses(response.data); // Initially show all courses
         } else {
-          console.error(
-            "Fetched data is not valid. Setting courses to empty array."
-          );
           setCourses([]);
+          setFilteredCourses([]);
         }
       },
-      onFail: (err) => {
-        console.error("Failed to fetch contacts:", err);
+      onFail: () => {
         setCourses([]);
+        setFilteredCourses([]);
+      },
+    });
+  };
+
+  // Fetch corporates from API
+  const fetchCorporatesData = async () => {
+    await getQuery({
+      url: apiUrls?.Corporate?.getAllCorporate,
+      onSuccess: (response) => {
+        if (response?.success && Array.isArray(response.data)) {
+          setCorporates(response.data);
+        } else {
+          setCorporates([]);
+        }
+      },
+      onFail: () => {
+        setCorporates([]);
       },
     });
   };
 
   useEffect(() => {
     fetchContacts();
+    fetchCorporatesData();
   }, []);
+
+  // Handle filter change
+  const handleFilterChange = (value) => {
+    setSelectedFilter(value);
+    if (value === "") {
+      setFilteredCourses(courses); // Show all courses
+    } else {
+      const filteredData = courses.filter(
+        (course) => course.page_title === value
+      );
+      setFilteredCourses(filteredData);
+    }
+  };
 
   const deleteGetInTouch = (id) => {
     deleteQuery({
@@ -53,6 +95,19 @@ export default function GetInTouch() {
       onSuccess: (res) => {
         toast.success(res?.message);
         fetchContacts();
+      },
+      onFail: (res) => {
+        console.log(res, "FAILED");
+      },
+    });
+  };
+
+  const deleteCorporate = (id) => {
+    deleteQuery({
+      url: `${apiUrls?.Corporate?.deleteCorporate}/${id}`,
+      onSuccess: (res) => {
+        toast.success(res?.message);
+        fetchCorporatesData();
       },
       onFail: (res) => {
         console.log(res, "FAILED");
@@ -101,20 +156,73 @@ export default function GetInTouch() {
     },
   ];
 
+  const columns2 = [
+    { Header: "Name", accessor: "full_name" },
+    { Header: "Email", accessor: "email" },
+    { Header: "Country", accessor: "country" },
+    { Header: "Phone", accessor: "phone_number" },
+    { Header: "Message", accessor: "message" },
+    {
+      Header: "Date",
+      accessor: "createdAt",
+      width: 150,
+      render: (row) => formatDate(row?.createdAt),
+    },
+    {
+      Header: "Action",
+      accessor: "actions",
+      render: (row) => (
+        <div className="flex gap-2 items-center">
+          <button
+            onClick={() => {
+              deleteCorporate(row?._id);
+            }}
+            className="text-[#7ECA9D] border border-[#7ECA9D] rounded-md px-[10px] py-1"
+          >
+            Delete
+          </button>
+        </div>
+      ),
+    },
+  ];
+
   if (loading) {
     return <Preloader />;
   }
 
   return (
-    <div className="bg-gray-100 dark:bg-inherit dark:text-white font-Poppins min-h-screen pt-8 p-6">
-      <div className="max-w-6xl dark:bg-inherit dark:text-white  mx-auto bg-white rounded-lg shadow-lg p-6">
-        <header className="flex items-center justify-between mb-4">
+    <div className=" dark:bg-inherit dark:text-white font-Poppins min-h-screen pt-8">
+      <div className="max-w-6xl dark:bg-inherit dark:text-white mx-auto bg-white">
+        {/* Table 1 with filter */}
+        <header className="flex items-center pt-4 px-8 justify-between mb-4">
           <h1 className="text-xl font-semibold">Get In Touch</h1>
+          {/* Dropdown Filter */}
+          <select
+            value={selectedFilter}
+            onChange={(e) => handleFilterChange(e.target.value)}
+            className="border border-gray-300 bg-white text-gray-700 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+          >
+            {pageTitleOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
         </header>
         <MyTable
           columns={columns}
-          data={courses}
-          entryText="Total no. of courses: "
+          data={filteredCourses}
+          entryText="Total no. of contacts: "
+        />
+
+        {/* Table 2 without filter */}
+        <header className="flex items-center pt-4 px-8 justify-between mb-4">
+          <h1 className="text-xl font-semibold">Corporates List</h1>
+        </header>
+        <MyTable
+          columns={columns2}
+          data={corporates}
+          entryText="Total no. of corporates: "
         />
       </div>
     </div>

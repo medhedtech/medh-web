@@ -4,14 +4,13 @@ import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import courses from "@/../public/fakedata/courses.json";
 import { notFound } from "next/navigation";
 export const metadata = {
-  title: "Course Details | Edurock - Education LMS Template",
-  description: "Course Details | Edurock - Education LMS Template",
+  title: "Course Details | Medh - Education LMS Template",
+  description: "Course Details | Medh - Education LMS Template",
 };
 
 const Course_Details = async ({ params }) => {
   const { id } = params;
   const isExistCourse = courses?.find(({ id: id1 }) => id1 === parseInt(id));
-  console.log("ID coing from the featured page:", isExistCourse);
   if (!isExistCourse) {
     notFound();
   }

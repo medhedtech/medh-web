@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FaArrowLeft } from "react-icons/fa";
@@ -15,7 +15,7 @@ const StudentNewCourses = () => {
   const [priceFilter, setPriceFilter] = useState("");
   const [minFee, setMinFee] = useState("");
   const [maxFee, setMaxFee] = useState("");
-  const [searchTitle, setSearchTitle] = useState(""); 
+  const [searchTitle, setSearchTitle] = useState("");
 
   const [limit] = useState(20);
   const [page] = useState(1);
@@ -28,9 +28,9 @@ const StudentNewCourses = () => {
           page,
           limit,
           "",
+          "Live",
           "",
-          "",
-          "Upcoming",
+          "Published",
           "",
           "",
           "",
@@ -58,7 +58,13 @@ const StudentNewCourses = () => {
         const matchesTitle = course?.course_title
           ?.toLowerCase()
           ?.includes(searchTitle.toLowerCase());
-        return isAboveMin && isBelowMax && matchesTitle;
+
+        // Filter out courses with tag "Pre-Recorded" or "Free"
+        const isValidCourseTag =
+          course?.course_tag !== "Pre-Recorded" &&
+          course?.course_tag !== "Free";
+
+        return isAboveMin && isBelowMax && matchesTitle && isValidCourseTag;
       });
       setFilteredCourses(filtered);
     };
@@ -137,16 +143,16 @@ const StudentNewCourses = () => {
           </div>
         </div>
       </div>
-
-      {/* Display Filtered Courses */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {filteredCourses.map((course) => (
-          <CourseCard
-            key={course._id}
-            {...course}
-            onClick={() => handleCardClick(course._id)}
-          />
-        ))}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {(filteredCourses.length > 0 ? filteredCourses : courses)
+          .filter((course) => course.course_fee !== 0) // Exclude courses with fee 0
+          .map((course) => (
+            <CourseCard
+              key={course._id || course.id}
+              {...course}
+              onClick={() => handleCardClick(course._id || course.id)}
+            />
+          ))}
       </div>
     </div>
   );

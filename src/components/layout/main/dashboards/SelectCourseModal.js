@@ -8,6 +8,7 @@ import usePostQuery from "@/hooks/postQuery.hook";
 import Education from "@/assets/images/course-detailed/education.svg";
 import { toast } from "react-toastify";
 import Preloader from "@/components/shared/others/Preloader";
+import { useRouter } from "next/navigation";
 
 export default function SelectCourseModal({
   isOpen,
@@ -32,6 +33,7 @@ export default function SelectCourseModal({
   );
   const [enrolledCategories, setEnrolledCategories] = useState([]);
   const [enrolledCourses, setEnrolledCourses] = useState([]);
+  const router = useRouter();
 
   const maxSelections = planType === "silver" ? 1 : 3;
   const [limit] = useState(40);
@@ -164,20 +166,89 @@ export default function SelectCourseModal({
     }
   };
 
+  // const removeFirstChr = (str = "") => {
+  //   if (!str.length) {
+  //     return 0;
+  //   }
+  //   return Number(str.substring(1));
+  // };
+
   // const handleSubscribe = async () => {
   //   try {
   //     await postQuery({
   //       url: apiUrls?.Membership?.addMembership,
   //       postData: {
   //         student_id: studentId,
-  //         course_ids: selectedCourses.map((course) => course._id),
+  //         category_ids: selectedCategories.map((category) => category._id),
   //         amount: planAmount,
   //         plan_type: planType,
   //         duration: selectedPlan.toLowerCase(),
   //       },
-  //       onSuccess: (res) => {
+  //       onSuccess: async (res) => {
   //         toast.success("Membership successfully taken!");
-  //         console.log("Membership Created", res);
+
+  //         // Extract expiry_date from the membership response
+  //         const membershipId = res?.data?._id;
+  //         const expiryDate = res?.data?.expiry_date;
+  //         const categoryNames =
+  //           res?.data?.category_ids?.map(
+  //             (category) => category.category_name
+  //           ) || [];
+  //         console.log("All Categories: ", categoryNames);
+
+  //         const groupedCourses = categoryNames.map((category) =>
+  //           courses.filter((course) => course.category === category)
+  //         );
+  //         console.log("Enrolled Courses: ", groupedCourses);
+
+  //         const enrolledCourses = groupedCourses.flatMap((group) =>
+  //           group.map((course) => course._id)
+  //         );
+  //         console.log("Enrolled Course IDs: ", enrolledCourses);
+
+  //         if (!membershipId || !expiryDate) {
+  //           toast.error("Membership response is missing required data.");
+  //           return;
+  //         }
+
+  //         // Enroll courses with the same expiry date
+  //         const enrollmentPromises = enrolledCourses.map((id) => {
+  //           return postQuery({
+  //             url: apiUrls?.Subscription?.AddSubscription,
+  //             postData: {
+  //               student_id: studentId,
+  //               course_id: id,
+  //               amount: removeFirstChr(amount) * 84.71,
+  //               status: "success",
+  //             },
+  //             onSuccess: () => {
+  //               console.log(`Successfully enrolled in course: ${id}`);
+  //               postQuery({
+  //                 url: apiUrls?.EnrollCourse?.enrollCourse,
+  //                 postData: {
+  //                   student_id: studentId,
+  //                   course_id: id,
+  //                   membership_id: membershipId,
+  //                   expiry_date: expiryDate,
+  //                   is_self_paced: true,
+  //                 },
+  //                 onSuccess: () => {
+  //                   router.push("/dashboards/student-membership");
+  //                   console.log(`Successfully enrolled in course: ${id}`);
+  //                 },
+  //                 onFail: (err) => {
+  //                   console.error(`Failed to enroll in course: ${id}`, err);
+  //                 },
+  //               });
+  //             },
+  //             onFail: (err) => {
+  //               console.error(`Failed to enroll in course: ${id}`, err);
+  //             },
+  //           });
+  //         });
+
+  //         // Wait for all enrollments to complete
+  //         await Promise.all(enrollmentPromises);
   //       },
   //       onFail: (err) => {
   //         console.error("Error while creating subscription", err);
@@ -185,12 +256,33 @@ export default function SelectCourseModal({
   //     });
   //   } catch (err) {
   //     console.error(err);
+  //     toast.error("An unexpected error occurred. Please try again.");
   //   }
   // };
 
+  // function capitalize(str) {
+  //   if (!str) return ""; // Handle empty or null strings
+  //   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  // }
+
+  // const handleSubmit = () => {
+  //   console.log("in sub");
+  //   handleSubscribe();
+  //   onClose();
+  //   closeParent();
+  // };
+
+  const removeFirstChr = (str = "") => {
+    if (!str.length) {
+      return 0;
+    }
+    return Number(str.substring(1));
+  };
+
   const handleSubscribe = async () => {
     try {
-      await postQuery({
+      // 1st API call - Add Membership
+      const membershipResponse = await postQuery({
         url: apiUrls?.Membership?.addMembership,
         postData: {
           student_id: studentId,
@@ -199,70 +291,91 @@ export default function SelectCourseModal({
           plan_type: planType,
           duration: selectedPlan.toLowerCase(),
         },
-        onSuccess: async (res) => {
-          toast.success("Membership successfully taken!");
+      });
 
-          // Extract expiry_date from the membership response
-          const membershipId = res?.data?._id;
-          const expiryDate = res?.data?.expiry_date;
-          const categoryNames =
-            res?.data?.category_ids?.map(
-              (category) => category.category_name
-            ) || [];
-          console.log("All Categories: ", categoryNames);
+      if (membershipResponse.success) {
+        toast.success("Membership successfully taken!");
 
-          const groupedCourses = categoryNames.map((category) => courses.filter((course) => course.category === category));
-          console.log("Enrolled Courses: ", groupedCourses);
+        // Extract necessary data from membership response
+        const membershipId = membershipResponse?.data?._id;
+        const expiryDate = membershipResponse?.data?.expiry_date;
+        const categoryNames =
+          membershipResponse?.data?.category_ids?.map(
+            (category) => category.category_name
+          ) || [];
+        console.log("All Categories: ", categoryNames);
 
-          const enrolledCourses = groupedCourses.flatMap((group) =>
-            group.map((course) => course._id) 
-          );
-          console.log("Enrolled Course IDs: ", enrolledCourses);
+        // Group courses by category
+        const groupedCourses = categoryNames.map((category) =>
+          courses.filter((course) => course.category === category)
+        );
+        console.log("Enrolled Courses: ", groupedCourses);
 
-          if (!membershipId || !expiryDate) {
-            toast.error("Membership response is missing required data.");
-            return;
-          }
+        const enrolledCourses = groupedCourses.flatMap((group) =>
+          group.map((course) => course._id)
+        );
+        console.log("Enrolled Course IDs: ", enrolledCourses);
 
-          // Enroll courses with the same expiry date
-          const enrollmentPromises = enrolledCourses.map((id) =>
-            postQuery({
+        if (!membershipId || !expiryDate) {
+          toast.error("Membership response is missing required data.");
+          return;
+        }
+
+        // 2nd API call - Add Subscription for each course
+        for (const courseId of enrolledCourses) {
+          const subscriptionResponse = await postQuery({
+            url: apiUrls?.Subscription?.AddSubscription,
+            postData: {
+              student_id: studentId,
+              course_id: courseId,
+              amount: removeFirstChr(amount) * 84.71,
+              status: "success",
+            },
+          });
+
+          if (subscriptionResponse.success) {
+            console.log(`Successfully subscribed to course: ${courseId}`);
+
+            // 3rd API call - Enroll Course
+            const enrollResponse = await postQuery({
               url: apiUrls?.EnrollCourse?.enrollCourse,
               postData: {
                 student_id: studentId,
-                course_id: id,
+                course_id: courseId,
                 membership_id: membershipId,
                 expiry_date: expiryDate,
+                is_self_paced: true,
               },
-              onSuccess: () => {
-                console.log(`Successfully enrolled in course: ${id}`);
-              },
-              onFail: (err) => {
-                console.error(`Failed to enroll in course: ${id}`, err);
-                // toast.error(
-                //   `Failed to enroll in course: ${course.course_title}`
-                // );
-              },
-            })
-          );
+            });
 
-          // Wait for all enrollments to complete
-          await Promise.all(enrollmentPromises);
-          toast.success("Courses enrolled successfully!");
-        },
-        onFail: (err) => {
-          console.error("Error while creating subscription", err);
-          // toast.error("Failed to create membership. Please try again.");
-        },
-      });
+            if (enrollResponse.success) {
+              console.log(`Successfully enrolled in course: ${courseId}`);
+            } else {
+              console.error(
+                `Failed to enroll in course: ${courseId}`,
+                enrollResponse
+              );
+            }
+          } else {
+            console.error(
+              `Failed to subscribe to course: ${courseId}`,
+              subscriptionResponse
+            );
+          }
+        }
+
+        router.push("/dashboards/student-membership");
+      } else {
+        toast.error("Failed to take membership. Please try again.");
+      }
     } catch (err) {
-      console.error(err);
+      console.error("Error during subscription or course enrollment", err);
       toast.error("An unexpected error occurred. Please try again.");
     }
   };
 
   function capitalize(str) {
-    if (!str) return ""; // Handle empty or null strings
+    if (!str) return "";
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
   }
 
@@ -271,7 +384,6 @@ export default function SelectCourseModal({
     handleSubscribe();
     onClose();
     closeParent();
-
   };
 
   if (!isOpen) return null;
@@ -286,7 +398,7 @@ export default function SelectCourseModal({
         {/* Header */}
         <div className="p-4 border-b border-gray-200 flex justify-between items-center">
           <h2 className="text-xl font-semibold">
-            Select {planType === "silver" ? "a Course" : "up to 3 Courses"}
+            Select {planType === "silver" ? "a Category" : "up to 3 Categories"}
           </h2>
           <button
             onClick={onClose}

@@ -8,6 +8,11 @@ import Certified2 from "../../../assets/images/hireformmedh/certified2.png";
 import Certified3 from "../../../assets/images/hireformmedh/certified3.png";
 import Certified4 from "../../../assets/images/hireformmedh/certified4.png";
 import Certified5 from "../../../assets/images/hireformmedh/certified5.png";
+import Certified6 from "../../../assets/images/hireformmedh/certified5.png";
+import Certified7 from "../../../assets/images/hireformmedh/certified5.png";
+import Certified8 from "../../../assets/images/hireformmedh/certified5.png";
+import Certified9 from "../../../assets/images/hireformmedh/certified5.png";
+import Certified10 from "../../../assets/images/hireformmedh/certified4.png";
 
 const CertificationsCarousel = () => {
   const certifications = [
@@ -16,11 +21,11 @@ const CertificationsCarousel = () => {
     { src: Certified3 },
     { src: Certified4 },
     { src: Certified5 },
-    { src: Certified5 },
-    { src: Certified5 },
-    { src: Certified5 },
-    { src: Certified5 },
-    { src: Certified5 },
+    { src: Certified6 },
+    { src: Certified7 },
+    { src: Certified8 },
+    { src: Certified9 },
+    { src: Certified10 },
     { src: Certified5 },
     { src: Certified5 },
   ];

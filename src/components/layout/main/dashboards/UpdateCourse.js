@@ -42,20 +42,6 @@ const schema = yup.object({
   // session_duration_unit: yup.string().required("Session duration unit is required"),
   session_duration: yup
     .string()
-    .test(
-      "valid-session-duration",
-      "Session duration must be a positive number or a valid time format (e.g., 5 Months or 2 Hours)",
-      (value) => {
-        // Check if it's a positive number
-        const isValidNumber = value && !isNaN(value) && Number(value) > 0;
-
-        // Regex to match "X Hours", "X Months", or "X Hours/Month"
-        const validTimeFormat =
-          /^(\d+(\.\d+)?\s*(Hours?|Months?)|(\d+(\.\d+)?\s*Hours?\/Months?))$/i;
-
-        return isValidNumber || validTimeFormat.test(value);
-      }
-    )
     .required("Session duration is required"),
   course_description: yup.string().required("Course description is required"),
   course_fee: yup
@@ -63,7 +49,7 @@ const schema = yup.object({
     .typeError("Course fee must be a number")
     .positive("Course fee must be a positive number")
     .required("Course fee is required"),
-  course_grade: yup.string().required("Grade is required"), 
+  course_grade: yup.string().required("Grade is required"),
 });
 
 const UpdateCourse = () => {
@@ -89,7 +75,7 @@ const UpdateCourse = () => {
   const [resourceVideos, setResourceVideos] = useState([]);
   const [resourcePdfs, setResourcePdfs] = useState([]);
 
-  const [fetchedCourseDetails , setFetchedCourseDetails] = useState(null);
+  const [fetchedCourseDetails, setFetchedCourseDetails] = useState(null);
 
   const {
     register,
@@ -118,49 +104,100 @@ const UpdateCourse = () => {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
+  }, []);
 
-}, []);
-
-useEffect(()=>{
+  useEffect(() => {
     const fetchCourseDetails = async () => {
-        try{
-            await getQuery({
-                url: `${apiUrls?.courses?.getCourseById}/${courseId}`,
-                onSuccess: (res) => {
-                    console.log("Fetched: ", res)
-                    setFetchedCourseDetails(res);
-                },
-                onFail: (err) => {
-                    console.error('Error Fetching Course details: ', err);
-                }
-            })
-        } catch(err){
-            console.log('Error Fetching course details: ', err);
-        }
-    }
+      try {
+        await getQuery({
+          url: `${apiUrls?.courses?.getCourseById}/${courseId}`,
+          onSuccess: (res) => {
+            console.log("Fetched: ", res);
+            setFetchedCourseDetails(res);
+          },
+          onFail: (err) => {
+            console.error("Error Fetching Course details: ", err);
+          },
+        });
+      } catch (err) {
+        console.log("Error Fetching course details: ", err);
+      }
+    };
 
     fetchCourseDetails();
-}, [courseId])
+  }, [courseId]);
 
-useEffect(()=>{
+  useEffect(() => {
     if (!fetchedCourseDetails) return;
-    const {course_category, course_title, category, course_tag, no_of_Sessions, session_duration, course_duration, course_fee, course_grade, course_description, course_videos, course_image, brochures, resource_pdfs, resource_videos} = fetchedCourseDetails;
-    if(course_category){setSelectedCategory(course_category); setValue("course_category", course_category)}
-    if(course_title){setValue("course_title", course_title);}
-    if(category){setSelected(category); setValue('category', category);}
-    if(course_tag){setValue('course_tag', course_tag)}
-    if(no_of_Sessions){setValue('no_of_Sessions', no_of_Sessions)}
-    if(session_duration){setValue('session_duration', session_duration); setSessionDurationValue(session_duration.split(" ")[0]); setSessionDurationUnit(session_duration.split(" ")[1])}
-    if(course_duration){setValue('course_duration', course_duration), setCourseDurationValue(course_duration.split(" ")[0]); setCourseDurationUnit(course_duration.split(" ")[1])}
-    if(course_fee){setValue("course_fee", course_fee);}
-    if(course_grade){setValue("course_grade", course_grade);}
-    if(course_description){setValue("course_description", course_description);}
-    if(course_videos){setCourseVideos(course_videos)}
-    if(brochures){setPdfBrochures(brochures)}
-    if(course_image){setThumbnailImage(course_image)}
-    if(resource_videos){setResourceVideos(resource_videos)}
-    if(resource_pdfs){setResourcePdfs(resource_pdfs)}
-}, [fetchedCourseDetails])
+    const {
+      course_category,
+      course_title,
+      category,
+      course_tag,
+      no_of_Sessions,
+      session_duration,
+      course_duration,
+      course_fee,
+      course_grade,
+      course_description,
+      course_videos,
+      course_image,
+      brochures,
+      resource_pdfs,
+      resource_videos,
+    } = fetchedCourseDetails;
+    if (course_category) {
+      setSelectedCategory(course_category);
+      setValue("course_category", course_category);
+    }
+    if (course_title) {
+      setValue("course_title", course_title);
+    }
+    if (category) {
+      setSelected(category);
+      setValue("category", category);
+    }
+    if (course_tag) {
+      setValue("course_tag", course_tag);
+    }
+    if (no_of_Sessions) {
+      setValue("no_of_Sessions", no_of_Sessions);
+    }
+    if (session_duration) {
+      setValue("session_duration", session_duration);
+      setSessionDurationValue(session_duration.split(" ")[0]);
+      setSessionDurationUnit(session_duration.split(" ")[1]);
+    }
+    if (course_duration) {
+      setValue("course_duration", course_duration),
+        setCourseDurationValue(course_duration.split(" ")[0]);
+      setCourseDurationUnit(course_duration.split(" ")[1]);
+    }
+    if (course_fee) {
+      setValue("course_fee", course_fee);
+    }
+    if (course_grade) {
+      setValue("course_grade", course_grade);
+    }
+    if (course_description) {
+      setValue("course_description", course_description);
+    }
+    if (course_videos) {
+      setCourseVideos(course_videos);
+    }
+    if (brochures) {
+      setPdfBrochures(brochures);
+    }
+    if (course_image) {
+      setThumbnailImage(course_image);
+    }
+    if (resource_videos) {
+      setResourceVideos(resource_videos);
+    }
+    if (resource_pdfs) {
+      setResourcePdfs(resource_pdfs);
+    }
+  }, [fetchedCourseDetails]);
 
   const fetchAllCategories = () => {
     try {
@@ -309,7 +346,7 @@ useEffect(()=>{
 
       // Navigate to the preview page
       router.push(`/dashboards/admin-update-data/${courseId}`);
-    toast.success("Course details saved locally!");
+      toast.success("Course details saved locally!");
     } catch (error) {
       console.error("An error occurred:", error);
       toast.error("An unexpected error occurred. Please try again.");
@@ -404,7 +441,9 @@ useEffect(()=>{
                 onChange={() => handleChange("Corporate Training Courses")}
                 {...register("course_category")}
               />
-              <span className="block text-sm font-normal">Corporate Training Courses</span>
+              <span className="block text-sm font-normal">
+                Corporate Training Courses
+              </span>
             </label>
           </div>
         </div>
@@ -742,7 +781,9 @@ useEffect(()=>{
                 <p className="text-customGreen cursor-pointer text-sm">
                   Click to upload
                 </p>
-                <p className="text-gray-400 text-xs">or drag & drop the files</p>
+                <p className="text-gray-400 text-xs">
+                  or drag & drop the files
+                </p>
                 <input
                   type="file"
                   multiple
@@ -778,7 +819,9 @@ useEffect(()=>{
                 <p className="text-customGreen cursor-pointer text-sm">
                   Click to upload
                 </p>
-                <p className="text-gray-400 text-xs">or drag & drop the files</p>
+                <p className="text-gray-400 text-xs">
+                  or drag & drop the files
+                </p>
                 <input
                   type="file"
                   multiple
