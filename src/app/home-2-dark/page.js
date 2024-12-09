@@ -3,8 +3,8 @@ import ThemeController from "@/components/shared/others/ThemeController";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import React from "react";
 export const metadata = {
-  title: "Home 2 Dark | Edurock - Education LMS Template",
-  description: "Home 2 Dark | Edurock - Education LMS Template",
+  title: "Home 2 Dark | Medh - Education LMS Template",
+  description: "Home 2 Dark | Medh - Education LMS Template",
 };
 const Home_2_Dark = () => {
   return (

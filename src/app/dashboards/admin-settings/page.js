@@ -3,8 +3,8 @@ import DashboardContainer from "@/components/shared/containers/DashboardContaine
 
 import ThemeController from "@/components/shared/others/ThemeController";
 export const metadata = {
-  title: "Admin Settings | Edurock - Education LMS Template",
-  description: "Admin Settings | Edurock - Education LMS Template",
+  title: "Admin Settings | Medh - Education LMS Template",
+  description: "Admin Settings | Medh - Education LMS Template",
 };
 const Admin_Settings = () => {
   return (
