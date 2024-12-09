@@ -113,12 +113,12 @@ export default function MainBanner({
         </div>
 
         {/* Right side image (hidden on small screens) */}
-        <div className="hidden lg:block md:w-[45%]">
+        <div className="hidden lg:block md:w-[45%] rounded-[50%]">
           <Image
             src={logoImage} // Dynamic right-side image
             alt="Logo Image"
             objectFit="cover"
-            className="w-full"
+            className="w-full rounded-[50%]"
           />
         </div>
       </div>
