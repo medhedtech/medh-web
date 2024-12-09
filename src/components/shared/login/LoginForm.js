@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import LogIn from "@/assets/images/log-sign/logIn.png";
-import logo1 from "@/assets/images/logo/medh_logo.png";
+import logo1 from "@/assets/images/logo/medh_logo-1.png";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
@@ -83,7 +83,9 @@ const LoginForm = () => {
         <div className="md:m-6 rounded-[10px] p-5">
           {/* heading */}
           <div className="w-[179px] mx-auto">
-            <Image priority="false" src={logo1} alt="logo" className="py-2" />
+            <a href="/">
+              <Image priority="false" src={logo1} alt="logo" className="py-2" />
+            </a>
           </div>
           <div className="pt-11">
             <h1 className="font-Open font-semibold text-3xl">Welcome Back!</h1>

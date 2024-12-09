@@ -7,8 +7,8 @@ import "swiper/css/pagination";
 import { Navigation, Autoplay } from "swiper/modules";
 import ArrowIcon from "@/assets/images/icon/ArrowIcon";
 import InfoIcon from "@/assets/images/icon/InfoIcon";
-import placement from "@/assets/images/iso/Placement.png";
-import hire from "@/assets/images/hire/Hire.png";
+import placement from "@/assets/images/iso/pllacement-logo.png";
+import hire from "@/assets/images/hire/placement.png";
 import bgImg from "@/assets/images/herobanner/bg-img.jpeg";
 import Certified from "./Certified";
 import { useRouter } from "next/navigation";
@@ -60,7 +60,7 @@ const WhyMedh = () => {
     <div>
       {/* Job Guarantee Section */}
       <div className="flex flex-col md:flex-row items-center px-4 md:px-8 lg:px-20 py-7 gap-6">
-        <div className="text-center md:w-1/2 px-4 md:px-6 flex flex-col gap-3">
+        <div className="text-center align-center md:w-1/2 px-4 md:px-6 flex flex-col gap-3">
           <Image
             src={placement}
             width={300}
@@ -68,12 +68,13 @@ const WhyMedh = () => {
             className="mx-auto"
             alt="100% Job-guaranteed"
           />
-          <p className="font-bold text-2xl md:text-3xl leading-8 text-[#5C6574] dark:text-white">
+          <p className="font-bold text-2xl md:text-3xl w-full px-2 sm:px-8 text-center leading-8 text-[#5C6574] dark:text-white">
             100% Job-guaranteed Courses from Medh.
           </p>
+
           <button
-            onClick={() => router.push("/view-all-courses")}
-            className="cursor-pointer bg-[#F6B335] px-4 py-3 w-fit mx-auto text-white flex gap-4"
+            onClick={() => router.push("/placement-guaranteed-courses")}
+            className="cursor-pointer bg-[#7ECA9D] rounded-[2px] px-4 py-3 w-fit mx-auto font-semibold text-white flex gap-4"
           >
             <span>
               <ArrowIcon />
@@ -112,8 +113,8 @@ const WhyMedh = () => {
             modules={[Navigation, Autoplay]}
             loop={true}
             autoplay={{
-              delay: 3000, 
-              disableOnInteraction: false, 
+              delay: 3000,
+              disableOnInteraction: false,
             }}
             onBeforeInit={(swiper) => {
               swiperRef.current = swiper; // Assign swiper instance to the ref
@@ -136,7 +137,7 @@ const WhyMedh = () => {
                     {item.desc}
                   </p>
                   <button
-                    onClick={() => router.push("/about")}
+                    onClick={() => router.push("/about-us")}
                     className="bg-[#7ECA9D] text-white mt-6 px-4.5 py-2 flex items-center justify-center gap-6"
                   >
                     <span>
@@ -158,7 +159,7 @@ const WhyMedh = () => {
               className="bg-white font-bold shadow-lg focus:bg-green-500 focus:text-white dark:bg-black dark:text-white text-black rounded-full w-10 h-10 flex items-center justify-center"
               aria-label="Previous Slide"
             >
-              <ArrowLeft/>
+              <ArrowLeft />
             </button>
           </div>
           <div
@@ -169,7 +170,7 @@ const WhyMedh = () => {
               className="bg-white font-bold shadow-lg focus:bg-green-500 focus:text-white dark:bg-black dark:text-white text-black rounded-full w-10 h-10 flex items-center justify-center"
               aria-label="Next Slide"
             >
-              <ArrowRight/>
+              <ArrowRight />
             </button>
           </div>
         </div>

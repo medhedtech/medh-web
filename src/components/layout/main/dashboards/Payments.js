@@ -116,10 +116,16 @@ const PaymentTable = () => {
   };
 
   const columns = [
-    { Header: "Order ID", accessor: "orderId", width: 100 },
+    { Header: "Payment ID", accessor: "orderId", width: 100 },
     { Header: "Course Name", accessor: "course", width: 150 },
     { Header: "Date", accessor: "joinDate", width: 120 },
-    { Header: "Price", accessor: "price", width: 200 },
+    {
+      Header: "Price",
+      accessor: "price",
+      width: 200,
+      render: (row) =>
+        row?.price ? `$${parseFloat(row.price).toFixed(2)}` : "$0.00",
+    },
     {
       Header: "Status",
       accessor: "status",
@@ -140,24 +146,6 @@ const PaymentTable = () => {
       ),
       width: 100,
     },
-    // {
-    //   Header: "Action",
-    //   accessor: "actions",
-    //   render: (row) => (
-    //     <div className="flex gap-2 items-center">
-    //       <button className="text-primary px-[15px] py-1 flex justify-center items-center">
-    //         <Image
-    //           src={RecieptImage}
-    //           width={25}
-    //           height={20}
-    //           alt="Edit Icon"
-    //           className="pr-1 text-primary"
-    //         />
-    //         <p className="text-[14px]">Download Reciept</p>
-    //       </button>
-    //     </div>
-    //   ),
-    // },
 
     {
       Header: "Action",

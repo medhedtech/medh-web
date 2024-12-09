@@ -57,7 +57,7 @@ const InstructorDashboard = () => {
       {stats.map((stat, index) => (
         <div
           key={index}
-          className="bg-white dark:bg-inherit dark:text-white dark:border shadow-md rounded-lg p-6 m-10 text-center"
+          className="bg-white dark:bg-inherit dark:text-white border-2 dark:border rounded-lg p-6 m-10 text-center"
         >
           <p className="text-2xl font-bold text-gray-800 dark:text-whitegrey1">
             {stat.value}
@@ -66,7 +66,7 @@ const InstructorDashboard = () => {
             <span>
               <Image src={stat.icon} alt="icon" className="" />
             </span>
-            <p className="text-xs my-auto">{stat.title}</p>
+            <p className="text-xs pl-2 my-auto">{stat.title}</p>
           </div>
         </div>
       ))}
@@ -136,17 +136,17 @@ const InstructorDashboard = () => {
         </p>
         <QuickStats stats={data.quickStats} />
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
-        <div className="col-span-12 md:col-span-3 bg-white shadow rounded-lg p-3">
+      <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-4 mt-6">
+        <div className="col-span-12 lg:col-span-5 bg-white shadow rounded-lg p-6">
           <p className="text-2xl font-semibold text-gray-800 mb-4">Calendar</p>
           <Calendar
             onChange={setSelectedDate}
             value={selectedDate}
-            className="react-calendar p-1 "
+            className="react-calendar p-3"
           />
         </div>
 
-        <div className="col-span-12 md:col-span-9">
+        <div className="col-span-12 lg:col-span-7">
           <UpcomingClasses classes={data.upcomingClasses} />
         </div>
       </div>

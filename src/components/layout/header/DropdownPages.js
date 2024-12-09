@@ -11,7 +11,7 @@ const DropdownPages = () => {
         {
           name: "About",
           status: null,
-          path: "/about",
+          path: "/about-us",
         },
         {
           name: "About (Dark)",
