@@ -1,8 +1,8 @@
 import React from "react";
 import Image from "next/image";
-import MainBanner from "@/components/course-banner/mainBanner"; // Import your MainBanner component
+import MainBanner from "@/components/course-banner/mainBanner";
 import Iso from "@/assets/images/courseai/iso.png";
-import heroBg from "@/assets/images/about/heroBg.png";
+import heroBg from "@/assets/Header-Images/About/About.png";
 import AboutUs from "@/assets/images/about/about-us.png";
 import LetsConnect from "@/assets/images/news-media/btn-vertical.svg";
 

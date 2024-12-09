@@ -4,8 +4,8 @@ import HreoName from "@/components/shared/section-names/HreoName";
 import Image from "next/image";
 import React from "react";
 import stemImg from "@/assets/images/herobanner/Background.png";
-import Group from "@/assets/images/herobanner/medh-home-banner.jpg";
-import bgImage from "@/assets/images/herobanner/medh-hero-banner.png";
+import Group from "@/assets/Header-Images/Home/cheerful-arab.jpg";
+import bgImage from "@/assets/Header-Images/Home/Home_Banner_2_e7389bb905.jpg";
 
 const Hero1 = () => {
   return (
@@ -94,13 +94,13 @@ const Hero1 = () => {
           </div>
 
           {/* Banner Right */}
-          <div className="lg:flex hidden justify-end">
+          <div className="lg:flex hidden md-w:[45%] rounded-[50%] justify-end">
             <Image
               src={Group}
               width={453}
               height={457}
               alt="Group Image"
-              className="max-w-full h-auto lg:rounded-[10%] contain"
+              className="max-w-full h-auto lg:rounded-[50%] contain"
             />
           </div>
         </div>
