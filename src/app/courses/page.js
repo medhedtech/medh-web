@@ -4,8 +4,8 @@ import ThemeController from "@/components/shared/others/ThemeController";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 
 export const metadata = {
-  title: "Courses | Edurock - Education LMS Template",
-  description: "Courses | Edurock - Education LMS Template",
+  title: "Courses | Medh - Education LMS Template",
+  description: "Courses | Medh - Education LMS Template",
 };
 
 const Courses = async () => {

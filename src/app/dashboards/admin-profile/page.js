@@ -5,8 +5,8 @@ import ThemeController from "@/components/shared/others/ThemeController";
 import DsahboardWrapper from "@/components/shared/wrappers/DsahboardWrapper";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 export const metadata = {
-  title: "Admin Profile | Edurock - Education LMS Template",
-  description: "Admin Profile | Edurock - Education LMS Template",
+  title: "Admin Profile | Medh - Education LMS Template",
+  description: "Admin Profile | Medh - Education LMS Template",
 };
 const Admin_Profile = () => {
   return (

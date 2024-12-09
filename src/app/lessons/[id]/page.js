@@ -8,10 +8,10 @@ export async function generateMetadata({ params }) {
   return {
     title: `Lesson ${
       id == 1 ? "" : id < 10 ? "0" + id : id
-    } | Edurock - Education LMS Template`,
+    } | Medh - Education LMS Template`,
     description: `Lesson ${
       id == 1 ? "" : "0" + id
-    } | Edurock - Education LMS Template`,
+    } | Medh - Education LMS Template`,
   };
 }
 const Lesson = ({ params }) => {

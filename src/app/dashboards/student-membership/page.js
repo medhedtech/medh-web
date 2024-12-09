@@ -5,8 +5,8 @@ import DsahboardWrapper from "@/components/shared/wrappers/DsahboardWrapper";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import StudentMembership from "@/components/layout/main/dashboards/studentMembership";
 export const metadata = {
-  title: "Student Message | Edurock - Education LMS Template",
-  description: "Student Message | Edurock - Education LMS Template",
+  title: "Student Message | Medh - Education LMS Template",
+  description: "Student Message | Medh - Education LMS Template",
 };
 const Student_Membership = () => {
   return (

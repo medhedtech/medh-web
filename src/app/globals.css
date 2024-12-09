@@ -1,9 +1,9 @@
 /*********************************************************************************
 
-	  Template Name: Edurock - Education LMS Template
+	  Template Name: Medh - Education LMS Template
     Author: Kamrul Hasan
     Support: kamrulishasan34@gmail.com
-    Description: Edurock -  Education, online course, tailwind v3.0 and Next.js v14,.
+    Description: Medh -  Education, online course, tailwind v3.0 and Next.js v14,.
     Version: 1.0.0
     
 ****************
