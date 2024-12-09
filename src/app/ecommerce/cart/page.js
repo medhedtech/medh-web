@@ -3,8 +3,8 @@ import ThemeController from "@/components/shared/others/ThemeController";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 
 export const metadata = {
-  title: "Cart | Edurock - Education LMS Template",
-  description: "Cart | Edurock - Education LMS Template",
+  title: "Cart | Medh - Education LMS Template",
+  description: "Cart | Medh - Education LMS Template",
 };
 
 const Cart = async () => {

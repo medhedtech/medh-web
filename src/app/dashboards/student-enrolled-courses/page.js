@@ -6,8 +6,8 @@ import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 
 export const metadata = {
-  title: "Student Enrolled Courses | Edurock - Education LMS Template",
-  description: "Student Enrolled Courses | Edurock - Education LMS Template",
+  title: "Student Enrolled Courses | Medh - Education LMS Template",
+  description: "Student Enrolled Courses | Medh - Education LMS Template",
 };
 
 const Student_Enrolled_Courses = () => {

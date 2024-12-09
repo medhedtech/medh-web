@@ -3,8 +3,8 @@ import ThemeController from "@/components/shared/others/ThemeController";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import products from "@/../public/fakedata/products.json";
 export const metadata = {
-  title: "Product Details | Edurock - Education LMS Template",
-  description: "Product Details | Edurock - Education LMS Template",
+  title: "Product Details | Medh - Education LMS Template",
+  description: "Product Details | Medh - Education LMS Template",
 };
 const Product_Details = async ({ params }) => {
   const { id } = params;

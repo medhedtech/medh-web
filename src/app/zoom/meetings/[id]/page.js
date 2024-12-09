@@ -5,8 +5,8 @@ import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import meetings from "@/../public/fakedata/meetings.json";
 import { notFound } from "next/navigation";
 export const metadata = {
-  title: "Zoom Meetings Details | Edurock - Education LMS Template",
-  description: "Zoom Meetings Details | Edurock - Education LMS Template",
+  title: "Zoom Meetings Details | Medh - Education LMS Template",
+  description: "Zoom Meetings Details | Medh - Education LMS Template",
 };
 const Zoom_Meetings_Details = ({ params }) => {
   const { id } = params;
