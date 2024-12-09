@@ -35,6 +35,7 @@
 // };
 
 // export default ItemDashboard;
+
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -42,12 +43,20 @@ import { useState } from "react";
 
 const ItemDashboard = ({ item }) => {
   const currentPath = usePathname();
-  const { name, path, icon, tag, subItems } = item;
+  const { name, path, icon, tag, subItems, onClick } = item;
   const isActive = currentPath === path;
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
+  };
+
+  const handleItemClick = () => {
+    if (onClick) {
+      onClick();
+    } else if (path) {
+      router.push(path);
+    }
   };
 
   return (
@@ -72,7 +81,8 @@ const ItemDashboard = ({ item }) => {
             </Link>
           ) : (
             <div
-              onClick={toggleDropdown} // Clicking on the heading will toggle the dropdown
+              onClick={handleItemClick}
+              // onClick={toggleDropdown} // Clicking on the heading will toggle the dropdown
               className="leading-1.8 flex gap-3 text-contentColor pl-10 cursor-pointer"
             >
               {icon} {name} {/* Render as heading if no path */}
@@ -129,8 +139,8 @@ const ItemDashboard = ({ item }) => {
               >
                 {/* Render sub-item icons and text with a little offset */}
                 <div className="flex">
-                <span className="mr-2 mt-1">{subItem.icon}</span>
-                <span className="whitespace-nowrap">{subItem.name}</span>{" "}
+                  <span className="mr-2 mt-1">{subItem.icon}</span>
+                  <span className="whitespace-nowrap">{subItem.name}</span>{" "}
                 </div>
                 {/* Prevent wrapping */}
               </Link>
