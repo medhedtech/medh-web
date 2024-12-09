@@ -5,9 +5,9 @@ import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 
 export const metadata = {
   title:
-    "Home-10 AI Machine Learning - Dark | Edurock - Education LMS Template",
+    "Home-10 AI Machine Learning - Dark | Medh - Education LMS Template",
   description:
-    "Home-10 AI Machine Learning - Dark | Edurock - Education LMS Template",
+    "Home-10 AI Machine Learning - Dark | Medh - Education LMS Template",
 };
 const Home_10_Dark = () => {
   return (
