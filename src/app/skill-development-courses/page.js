@@ -9,8 +9,8 @@ import JoinMedh from "@/components/sections/hire/JoinMedh";
 import ThemeController from "@/components/shared/others/ThemeController";
 
 export const metadata = {
-  title: "Courses | Edurock - Education LMS Template",
-  description: "Courses | Edurock - Education LMS Template",
+  title: "Courses | Medh - Education LMS Template",
+  description: "Courses | Medh - Education LMS Template",
 };
 
 const Courses = async () => {

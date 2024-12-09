@@ -13,7 +13,10 @@ import AdminBlogs from "./AdminBlogs";
 // Validation Schema
 const schema = yup.object({
   title: yup.string().required("Blog title is required"),
-  description: yup.string().required("Description is required"),
+  blog_link: yup
+    .string()
+    .url("Please enter a valid URL")
+    .required("Link is required"),
   upload_image: yup.string().required("Please upload image"),
 });
 
@@ -56,36 +59,6 @@ const AddBlog = () => {
     fetchCourseNames();
   }, []);
 
-  // const handleImageUpload = async (e) => {
-  //   const file = e.target.files[0];
-  //   if (file) {
-  //     try {
-  //       const reader = new FileReader();
-  //       reader.readAsDataURL(file);
-  //       reader.onload = async () => {
-  //         const base64 = reader.result.split(",")[1];
-  //         const postData = { base64String: base64, fileType: "image" };
-
-  //         await postQuery({
-  //           url: apiUrls?.upload?.uploadImage,
-  //           postData,
-  //           onSuccess: (data) => {
-  //             setBlogImage(data?.data);
-  //             setValue("upload_image", data?.data);
-  //             console.log("Image uploaded successfully:", data?.data);
-  //           },
-  //           onError: (error) => {
-  //             toast.error("Image upload failed. Please try again.");
-  //             console.error("Upload error:", error);
-  //           },
-  //         });
-  //       };
-  //     } catch (error) {
-  //       console.error("Error uploading Image:", error);
-  //     }
-  //   }
-  // };
-
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     const requiredWidth = 500;
@@ -99,7 +72,6 @@ const AddBlog = () => {
           const image = new Image();
           image.src = reader.result;
           image.onload = async () => {
-            // Check image dimensions
             if (
               image.width === requiredWidth &&
               image.height === requiredHeight
@@ -136,12 +108,14 @@ const AddBlog = () => {
 
   const onSubmit = async (data) => {
     console.log("Data before submitting:", data);
+    console.log("Blog Link:", data.blog_link); 
+
     try {
       await postQuery({
         url: apiUrls?.Blogs?.createBlog,
         postData: {
           title: data.title,
-          description: data.description,
+          blog_link: data.blog_link,
           upload_image: blogImage || data.upload_image,
         },
         onSuccess: () => {
@@ -187,7 +161,7 @@ const AddBlog = () => {
               type="text"
               id="title"
               placeholder="Enter Title"
-              className="w-full border border-gray-300 rounded-md py-2 pl-10 pr-3 focus:outline-none focus:ring-2 focus:ring-green-400"
+              className="w-full border border-gray-300 rounded-md py-2 pl-3 pr-3 focus:outline-none focus:ring-2 focus:ring-green-400"
               {...register("title")}
             />
             {errors.title && (
@@ -197,24 +171,24 @@ const AddBlog = () => {
             )}
           </div>
 
-          {/* Description Field */}
+          {/* Link Field */}
           <div className="flex flex-col">
             <label
-              htmlFor="description"
+              // htmlFor="blog_link"
               className="text-xs px-2 text-[#808080] font-medium mb-1"
             >
-              Description
+              Blog Link
               <span className="text-red-500 ml-1">*</span>
             </label>
-            <textarea
-              id="description"
-              placeholder="Enter Description"
+            <input
+              id="blog_link"
+              placeholder="Enter blog link (e.g., https://example.com)"
               className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-green-400"
-              {...register("description")}
+              {...register("blog_link")}
             />
-            {errors.description && (
+            {errors.blog_link && (
               <span className="text-red-500 text-xs">
-                {errors.description.message}
+                {errors.blog_link.message}
               </span>
             )}
           </div>
