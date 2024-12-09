@@ -1,8 +1,8 @@
 import React from "react";
 import Image from "next/image";
 import MainBanner from "@/components/course-banner/mainBanner"; 
-import Banner from "@/assets/images/digital-marketing/banner.png";
-import Cource from "@/assets/images/digital-marketing/digi-logo.svg";
+import Banner from "@/assets/Header-Images/digital-marketing/digital-marketing-with-data-analytics-certificate-course.png";
+import Cource from "@/assets/Header-Images/digital-marketing/freelancer-woman-comparing-graphics-from-clipboard-with-grafics-from-computer-business-office.jpg";
 import Iso from "@/assets/images/vedic-mathematics/vedic-logo.svg";
 import Enroll from "@/assets/images/personality/enroll-icon.svg";
 
