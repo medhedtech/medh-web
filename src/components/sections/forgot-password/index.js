@@ -11,7 +11,7 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import Preloader from "@/components/shared/others/Preloader";
 import Image from "next/image";
 import LogIn from "@/assets/images/log-sign/logIn.png";
-import logo1 from "@/assets/images/logo/medh_logo.png";
+import logo1 from "@/assets/images/logo/medh_logo-1.png";
 import Email from "@/assets/images/log-sign/Email.svg";
 import lock from "@/assets/images/log-sign/lock.svg";
 
@@ -130,12 +130,12 @@ const ForgotPassword = () => {
         <div className="md:m-6 rounded-[10px] p-5">
           {/* heading */}
           <div className="w-[179px] mx-auto">
-            <Image priority="false" src={logo1} alt="logo" className="py-2" />
+            <a href="/">
+              <Image priority="false" src={logo1} alt="logo" className="py-2" />
+            </a>
           </div>
           <div className="pt-11">
-            <h1 className="font-Open font-semibold text-3xl">
-              Reset Password
-            </h1>
+            <h1 className="font-Open font-semibold text-3xl">Reset Password</h1>
             <p className="text-[#545454] text-size-17">
               Enter your email address to receive a password reset link.
             </p>

@@ -19,7 +19,7 @@ const MobileMenuItems = () => {
     {
       id: 2,
       name: "Pages",
-      path: "/about",
+      path: "/about-us",
       accordion: "accordion",
       children: <AccordionPages />,
     },

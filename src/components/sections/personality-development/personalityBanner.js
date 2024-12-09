@@ -1,7 +1,7 @@
 import React from "react";
-import MainBanner from "@/components/course-banner/mainBanner"; // Import your MainBanner component
-import Banner from "@/assets/images/personality/banner.png";
-import DevelopmentImg from "@/assets/images/personality/development-cource.svg";
+import MainBanner from "@/components/course-banner/mainBanner";
+import Banner from "@/assets/Header-Images/Personality-Development/personality-development-course-age-18-plus-years.png";
+import DevelopmentImg from "@/assets/Header-Images/Personality-Development/multiracial-teenage-high-school-students-looking-a-2023-11-27-05-15-38-utc.jpg";
 import Iso from "@/assets/images/personality/iso-icon.svg";
 import Enroll from "@/assets/images/personality/enroll-icon.svg";
 

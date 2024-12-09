@@ -3,8 +3,8 @@ import ThemeController from "@/components/shared/others/ThemeController";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 
 export const metadata = {
-  title: "Login/Register - Dark | Edurock - Education LMS Template",
-  description: "Login/Register - Dark | Edurock - Education LMS Template",
+  title: "Login/Register - Dark | Medh - Education LMS Template",
+  description: "Login/Register - Dark | Medh - Education LMS Template",
 };
 const Login_Dark = () => {
   return (

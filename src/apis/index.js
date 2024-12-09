@@ -1,6 +1,6 @@
 // export const apiBaseUrl = "https://medh-backend.vercel.app/api/v1";  //vercel URL
-// export const apiBaseUrl = "https://3.111.36.160.nip.io/api/v1"; //live instance URL
-export const apiBaseUrl = "http://localhost:8080/api/v1"; // local URL
+export const apiBaseUrl = "https://13.202.119.19.nip.io/api/v1"; //live instance URL
+// export const apiBaseUrl = "http://localhost:8080/api/v1"; // local URL
 
 export const apiUrls = {
   user: {
@@ -37,6 +37,7 @@ export const apiUrls = {
     getCourseNames: "/courses/course-names",
     getEnrolledCoursesByStudentId: "/enroll/student",
     toggleCourseStatus: "/courses/toggle-status",
+    addRecordedVideos: "/courses/recorded-videos",
   },
   upload: {
     uploadImage: "/upload/uploadImage",
@@ -49,7 +50,7 @@ export const apiUrls = {
     getMeetingDetails: "/online-meeting/get/:id",
     updateMeeting: "/online-meeting/update/:id",
     deleteMeeting: "/online-meeting/delete/:id",
-    getMeetingByStudentId: '/online-meeting/student'
+    getMeetingByStudentId: "/online-meeting/student",
   },
   Instructor: {
     getAllInstructors: "/instructors/get",
@@ -99,7 +100,8 @@ export const apiUrls = {
     deleteAssignedInstructor: "/assigned-instrutors/delete",
   },
   placements: {
-    addPlacements: "/placements/",
+    addPlacements: "/placements/create",
+    getPlacements: "/placements/getAll",
   },
   quzies: {
     getQuizes: "/quizes",
@@ -132,6 +134,7 @@ export const apiUrls = {
     getEnrolledCoursesByStudentId: "/enroll/student",
     getUpcomingCoursesByStudentId: "/enroll/get-upcoming-meetings",
     getEnrolledStudentsByCourseId: "/enroll/course",
+    watchModule: "/enroll/watch",
   },
   Subscription: {
     AddSubscription: "/subscription/create",
@@ -166,4 +169,19 @@ export const apiUrls = {
     getAllBrouchers: "/broucher/get",
     addBroucher: "/broucher/create",
   },
+  certificate: {
+    getAllCertificate: "/certificates/get",
+    addCertificate: "/certificates/create",
+    getCertificatesByStudentId: "/certificates/get",
+  },
+  Newsletter: {
+    getAllNewsletter: "/newsletter/getAll",
+    addNewsletter: "/newsletter/add",
+  },
+  Corporate:{
+    getAllCorporate: "/corporate/getAll",
+    addCorporate: "/corporate/create",
+    updateCorporate: "/corporate/update/:id",
+    deleteCorporate: "/corporate/delete",
+  }
 };

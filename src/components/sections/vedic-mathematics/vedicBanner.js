@@ -1,7 +1,7 @@
 import React from 'react';
 import MainBanner from '@/components/course-banner/mainBanner'; // Import the reusable MainBanner component
-import Banner from '@/assets/images/vedic-mathematics/vedic-banner.png';
-import Cource from '@/assets/images/vedic-mathematics/vedic-cource.svg';
+import Banner from '@/assets/Header-Images/Vedic-Maths/vedic-maths.png';
+import Cource from '@/assets/Header-Images/Vedic-Maths/vedic-banner.jpeg';
 import Iso from '@/assets/images/vedic-mathematics/vedic-logo.svg';
 import Enroll from '@/assets/images/personality/enroll-icon.svg';
 

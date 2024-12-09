@@ -4,8 +4,8 @@ import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 import StudentRecordedSessions from "@/components/layout/main/dashboards/Access-Recorded-Sessions";
 
 export const metadata = {
-  title: "Student Enrolled Courses | Edurock - Education LMS Template",
-  description: "Student Enrolled Courses | Edurock - Education LMS Template",
+  title: "Student Enrolled Courses | Medh - Education LMS Template",
+  description: "Student Enrolled Courses | Medh - Education LMS Template",
 };
 
 const Access_Recorded_Sessions = () => {
