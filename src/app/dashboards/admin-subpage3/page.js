@@ -5,8 +5,8 @@ import DsahboardWrapper from "@/components/shared/wrappers/DsahboardWrapper";
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 export const metadata = {
-  title: "Admin Reviews | Edurock - Education LMS Template",
-  description: "Admin Reviews | Edurock - Education LMS Template",
+  title: "Admin Reviews | Medh - Education LMS Template",
+  description: "Admin Reviews | Medh - Education LMS Template",
 };
 const Admin_Reviews = () => {
   return (

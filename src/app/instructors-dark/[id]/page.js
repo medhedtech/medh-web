@@ -5,8 +5,8 @@ import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import instructors from "@/../public/fakedata/instructors.json";
 import { notFound } from "next/navigation";
 export const metadata = {
-  title: "Instructor Details - Dark | Edurock - Education LMS Template",
-  description: "Instructor Details - Dark | Edurock - Education LMS Template",
+  title: "Instructor Details - Dark | Medh - Education LMS Template",
+  description: "Instructor Details - Dark | Medh - Education LMS Template",
 };
 const Instructor_Details_Dark = ({ params }) => {
   const { id } = params;

@@ -4,8 +4,8 @@ import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import blogs from "@/../public/fakedata/blogs.json";
 import { notFound } from "next/navigation";
 export const metadata = {
-  title: "Blog Details - Dark | Edurock - Education LMS Template",
-  description: "Blog Details - Dark | Edurock - Education LMS Template",
+  title: "Blog Details - Dark | Medh - Education LMS Template",
+  description: "Blog Details - Dark | Medh - Education LMS Template",
 };
 const Blog_Details_Dark = ({ params }) => {
   const { id } = params;
