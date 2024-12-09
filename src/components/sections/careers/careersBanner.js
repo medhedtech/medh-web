@@ -1,8 +1,8 @@
 import React from "react";
 import Image from "next/image";
 import MainBanner from "@/components/course-banner/mainBanner";
-import Banner from "@/assets/images/career/banner.png";
-import Cource from "@/assets/images/career/carreer-logo.svg";
+import Banner from "@/assets/Header-Images/Career/career-at-medh.png";
+import Cource from "@/assets/Header-Images/Career/banner-img5.png";
 import Iso from "@/assets/images/vedic-mathematics/vedic-logo.svg";
 import LetsConnect from "@/assets/images/career/dot-icon.svg";
 

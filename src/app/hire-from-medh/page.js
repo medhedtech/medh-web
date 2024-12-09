@@ -1,7 +1,5 @@
 "use client";
 
-import ExploreJourney from "@/components/sections/explore-journey/Enroll-Form";
-import CertificationsCarousel from "@/components/sections/hire-from-medh/CertificationsCarousel";
 import HireFromMedhBanner from "@/components/sections/hire-from-medh/hireFromMedhBanner";
 import HireFromMedhCourseBanner from "@/components/sections/hire-from-medh/HireFromMedhCourseBanner";
 import HireFromMedhFaq from "@/components/sections/hire-from-medh/HireFromMedhFaq";
@@ -21,11 +19,7 @@ function HireFromMedh() {
       <HireSection />
       <SkillsSection />
       <HiringProcess />
-      <Registration showUploadField={true} />
-      {/* <ExploreJourney
-        mainText="Start Hiring Skilled Professionals Now! Discover your next IT talent here…"
-        subText="Let's Connect"
-      /> */}
+      <Registration showUploadField={true} pageTitle="hire_from_medh" />
       <div className="bg-white py-6">
         <Certified />
       </div>

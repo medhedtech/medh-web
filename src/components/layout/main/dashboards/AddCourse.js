@@ -10,8 +10,9 @@ import { toast } from "react-toastify";
 import Preloader from "@/components/shared/others/Preloader";
 import useGetQuery from "@/hooks/getQuery.hook";
 import Image from "next/image";
-import { CircleCheckBig, Upload } from "lucide-react";
+import { BookOpen, CircleCheckBig, Upload } from "lucide-react";
 import ResourceUploadModal from "./ResourceUploadModal";
+import CurriculumModal from "./CurriculumModal";
 
 // Validation Schema
 const schema = yup.object({
@@ -20,10 +21,10 @@ const schema = yup.object({
     .oneOf(["Live Courses", "Blended Courses", "Corporate Training Courses"])
     .required("Course category is required"),
   course_title: yup.string().trim().required("Course title is required"),
-  category: yup.string(),
+  category: yup.string().required("This field is required"),
   course_tag: yup
     .string()
-    .oneOf(["Live", "Hybrid", "Pre-Recorded"])
+    // .oneOf(["Live", "Hybrid", "Pre-Recorded", "Free"])
     .required("Course tag is required"),
   no_of_Sessions: yup
     .number()
@@ -44,26 +45,25 @@ const schema = yup.object({
     .string()
     .test(
       "valid-session-duration",
-      "Session duration must be a positive number or a valid time format (e.g., 5 Months or 2 Hours)",
+      "Session duration must be a positive number or a valid time format (e.g., 30 Minutes or 2 Hours)",
       (value) => {
         // Check if it's a positive number
         const isValidNumber = value && !isNaN(value) && Number(value) > 0;
 
-        // Regex to match "X Hours", "X Months", or "X Hours/Month"
+        // Regex to match "X Hours", "X Minutes", or "X Hours/Month"
         const validTimeFormat =
-          /^(\d+(\.\d+)?\s*(Hours?|Months?)|(\d+(\.\d+)?\s*Hours?\/Months?))$/i;
+          /^(\d+(\.\d+)?\s*(Hours?|Minutes?)|(\d+(\.\d+)?\s*Hours?\/Minutes?))$/i;
 
         return isValidNumber || validTimeFormat.test(value);
       }
-    )
-    .required("Session duration is required"),
+    ),
+    // .required("Session duration is required"),
   course_description: yup.string().required("Course description is required"),
   course_fee: yup
     .number()
     .typeError("Course fee must be a number")
-    .positive("Course fee must be a positive number")
     .required("Course fee is required"),
-  course_grade: yup.string().required("Grade is required"), 
+  course_grade: yup.string().required("Grade is required"),
 });
 
 const AddCourse = () => {
@@ -87,6 +87,10 @@ const AddCourse = () => {
   const [isResourceModatOpen, setResourceModalOpen] = useState(false);
   const [resourceVideos, setResourceVideos] = useState([]);
   const [resourcePdfs, setResourcePdfs] = useState([]);
+  const [isCurriculumModalOpen, setCurriculumModalOpen] = useState(false);
+  const [curriculum, setCurriculum] = useState([]);
+  const [courseTag, setCourseTag] = useState();
+  const [courseIsFree, setCourseIsFree] = useState(false);
 
   const {
     register,
@@ -116,6 +120,16 @@ const AddCourse = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  useEffect(() => {
+    if (courseTag === "Free") {
+      setCourseIsFree(true);
+      setValue("course_fee", 0);
+    } else {
+      setCourseIsFree(false);
+      reset({ course_fee: "" });
+    }
+  }, [courseTag]);
 
   const fetchAllCategories = () => {
     try {
@@ -342,6 +356,7 @@ const AddCourse = () => {
         course_image: thumbnailImage,
         resource_videos: resourceVideos.length > 0 ? resourceVideos : [],
         resource_pdfs: resourcePdfs.length > 0 ? resourcePdfs : [],
+        curriculum: curriculum.length > 0 ? curriculum : [],
       };
 
       // Save data to localStorage
@@ -350,7 +365,7 @@ const AddCourse = () => {
 
       // Navigate to the preview page
       router.push("/dashboards/admin-add-data");
-    toast.success("Course details saved locally!");
+      // toast.success("Course details saved locally!");
     } catch (error) {
       console.error("An error occurred:", error);
       toast.error("An unexpected error occurred. Please try again.");
@@ -371,6 +386,12 @@ const AddCourse = () => {
     e.preventDefault();
     setResourceModalOpen(true);
     console.log("opened");
+  };
+
+  const handleCurriculumModal = (e) => {
+    e.preventDefault();
+    setCurriculumModalOpen(true);
+    setValue("curriculum", curriculum);
   };
 
   useEffect(() => {
@@ -445,9 +466,16 @@ const AddCourse = () => {
                 onChange={() => handleChange("Corporate Training Courses")}
                 {...register("course_category")}
               />
-              <span className="block text-sm font-normal">Corporate Training Courses</span>
+              <span className="block text-sm font-normal">
+                Corporate Training Courses
+              </span>
             </label>
           </div>
+          {errors.course_category && (
+            <p className="text-red-500 text-xs">
+              {errors.course_category.message}
+            </p>
+          )}
         </div>
 
         {/* Form Fields */}
@@ -476,7 +504,7 @@ const AddCourse = () => {
               </label>
               <div className="p-3 border rounded-lg w-full dark:bg-inherit text-gray-600">
                 <button className="w-full text-left" onClick={toggleDropdown}>
-                  {selected || "Select type"}
+                  {selected || "Select Category"}
                 </button>
                 {dropdownOpen && (
                   <div className="absolute z-10 left-0 top-20 bg-white border border-gray-600 rounded-lg w-full shadow-xl">
@@ -514,21 +542,28 @@ const AddCourse = () => {
                   </div>
                 )}
               </div>
+              {errors.category && (
+                <p className="text-red-500 text-xs">
+                  {errors.category.message}
+                </p>
+              )}
             </div>
 
             <div>
               <label className="block text-sm font-normal mb-1">
                 Category Type<span className="text-red-500 ml-1">*</span> (Live/
-                Hybrid/ Pre-Recorded)
+                Hybrid/ Pre-Recorded/ Free)
               </label>
               <select
                 className="p-3 border rounded-lg w-full dark:bg-inherit text-gray-600"
                 {...register("course_tag")}
+                onChange={(e) => setCourseTag(e.target.value)}
               >
                 <option value="">Select type</option>
                 <option value="Live">Live</option>
                 <option value="Hybrid">Hybrid</option>
                 <option value="Pre-Recorded">Pre-Recorded</option>
+                <option value="Free">Free</option>
               </select>
               {errors.course_tag && (
                 <p className="text-red-500 text-xs">
@@ -657,11 +692,11 @@ const AddCourse = () => {
                 </div>
               </div>
               {/* Error messages */}
-              {errors.session_duration && (
+              {/* {errors.session_duration && (
                 <p className="text-red-500 text-xs mt-1">
                   {errors.session_duration.message}
                 </p>
-              )}
+              )} */}
             </div>
 
             <div>
@@ -672,7 +707,13 @@ const AddCourse = () => {
               <input
                 type="text"
                 placeholder="Enter amount in USD"
-                className="p-3 border rounded-lg w-full text-gray-600 dark:bg-inherit placeholder-gray-400"
+                disabled={courseIsFree}
+                // className="p-3 border rounded-lg w-full text-gray-600 dark:bg-inherit placeholder-gray-400"
+                className={`p-3 border rounded-lg w-full ${
+                  courseIsFree
+                    ? "bg-gray-200 cursor-not-allowed"
+                    : "text-gray-600 dark:bg-inherit"
+                } placeholder-gray-400`}
                 {...register("course_fee")}
               />
               {errors.course_fee && (
@@ -681,6 +722,41 @@ const AddCourse = () => {
                 </p>
               )}
             </div>
+
+            {/* <div>
+              <label className="block text-sm font-normal mb-1">
+                Course Fee
+                <span className="text-red-500 ml-1">*</span>
+              </label>
+              <div className="flex gap-2">
+                <select
+                  className="p-3 border rounded-lg text-gray-600 dark:bg-inherit"
+                  {...register("currency", { required: true })}
+                >
+                  <option value="USD">USD</option>
+                  <option value="INR">INR</option>
+                </select>
+
+                <input
+                  type="text"
+                  placeholder="Enter amount"
+                  className="p-3 border rounded-lg w-full text-gray-600 dark:bg-inherit placeholder-gray-400"
+                  {...register("course_fee", {
+                    required: "Course fee is required",
+                  })}
+                />
+              </div> */}
+
+            {/* Error messages */}
+            {/* {errors.currency && (
+                <p className="text-red-500 text-xs">Currency is required.</p>
+              )}
+              {errors.course_fee && (
+                <p className="text-red-500 text-xs">
+                  {errors.course_fee.message}
+                </p>
+              )}
+            </div> */}
 
             <div>
               <label className="block text-sm font-normal mb-1">
@@ -753,9 +829,36 @@ const AddCourse = () => {
                 onClick={handleResourceModal}
                 className="flex items-center w-full justify-center gap-2 px-4 py-2.5 border border-gray-200 rounded-md hover:bg-gray-100 transition-colors"
               >
-                {(resourceVideos.length > 0 || resourcePdfs.length > 0) ? <CircleCheckBig className="w-4 h-16 text-customGreen" /> : <Upload className="w-4 h-16" /> }
-                {(resourceVideos.length > 0 || resourcePdfs.length > 0) ? <span className="text-customGreen">Files Uploaded</span> : <span>Upload Files</span> }
-                
+                {resourceVideos.length > 0 || resourcePdfs.length > 0 ? (
+                  <CircleCheckBig className="w-4 h-16 text-customGreen" />
+                ) : (
+                  <Upload className="w-4 h-16" />
+                )}
+                {resourceVideos.length > 0 || resourcePdfs.length > 0 ? (
+                  <span className="text-customGreen">Files Uploaded</span>
+                ) : (
+                  <span>Upload Files</span>
+                )}
+              </button>
+            </div>
+            <div>
+              <label className="block text-sm font-normal mb-1">
+                Add Course Curriculum
+              </label>
+              <button
+                onClick={handleCurriculumModal}
+                className="flex items-center w-full justify-center gap-2 px-4 py-2.5 border border-gray-200 rounded-md hover:bg-gray-100 transition-colors"
+              >
+                {curriculum.length > 0 ? (
+                  <CircleCheckBig className="w-4 h-16 text-customGreen" />
+                ) : (
+                  <BookOpen className="w-4 h-16" />
+                )}
+                {curriculum.length > 0 ? (
+                  <span className="text-customGreen">Curriculum Added</span>
+                ) : (
+                  <span>Add Curriculum</span>
+                )}
               </button>
             </div>
           </div>
@@ -766,6 +869,7 @@ const AddCourse = () => {
             <div>
               <p className="font-semibold mb-2 text-center text-2xl">
                 Add Course Videos
+                <span className="text-red-500 ml-1">*</span>
               </p>
               <div className="border-dashed border-2 dark:bg-inherit bg-purple border-gray-300 rounded-lg p-3 w-[210px] h-[140px] text-center relative">
                 <svg
@@ -784,7 +888,9 @@ const AddCourse = () => {
                 <p className="text-customGreen cursor-pointer text-sm">
                   Click to upload
                 </p>
-                <p className="text-gray-400 text-xs">or drag & drop the files</p>
+                <p className="text-gray-400 text-xs">
+                  or drag & drop the files
+                </p>
                 <input
                   type="file"
                   multiple
@@ -802,6 +908,7 @@ const AddCourse = () => {
             <div>
               <p className="font-semibold mb-2 text-center text-2xl">
                 Add PDF Brochure
+                <span className="text-red-500 ml-1">*</span>
               </p>
               <div className="border-dashed border-2 dark:bg-inherit bg-purple border-gray-300 rounded-lg p-3 w-[210px] h-[140px] text-center relative">
                 <svg
@@ -820,7 +927,9 @@ const AddCourse = () => {
                 <p className="text-customGreen cursor-pointer text-sm">
                   Click to upload
                 </p>
-                <p className="text-gray-400 text-xs">or drag & drop the files</p>
+                <p className="text-gray-400 text-xs">
+                  or drag & drop the files
+                </p>
                 <input
                   type="file"
                   multiple
@@ -836,7 +945,10 @@ const AddCourse = () => {
 
             {/* Thumbnail Image Upload */}
             <div>
-              <p className="font-semibold mb-2 text-left text-2xl">Add Image</p>
+              <p className="font-semibold mb-2 text-left text-2xl">
+                Add Image
+                <span className="text-red-500 ml-1">*</span>
+              </p>
               <div className="border-dashed border-2 dark:bg-inherit bg-purple border-gray-300 rounded-lg p-3 w-[210px] h-[140px] text-center relative">
                 <svg
                   width="36"
@@ -890,6 +1002,13 @@ const AddCourse = () => {
           setResourceVideos={setResourceVideos}
           resourcePdfs={resourcePdfs}
           setResourcePdfs={setResourcePdfs}
+        />
+      )}
+      {isCurriculumModalOpen && (
+        <CurriculumModal
+          onClose={() => setCurriculumModalOpen(false)}
+          curriculum={curriculum}
+          setCurriculum={setCurriculum}
         />
       )}
     </div>
