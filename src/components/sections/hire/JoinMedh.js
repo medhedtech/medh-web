@@ -64,9 +64,9 @@ const JoinMedh = ({
           </p>
           <div
             onClick={() => {
-              router.push("/join-as-educator");
+              router.push("/join-us-as-educator");
             }}
-            className="cursor-pointer text-white px-3.5 py-1 rounded-3xl  flex w-fit items-center gap-2.5 mt-4"
+            className="cursor-pointer text-white px-4 py-[.5rem] rounded-3xl  flex w-fit items-center gap-2.5 mt-4"
             style={{ backgroundColor: educatorButtonColor }}
           >
             <AddIcon />
@@ -98,9 +98,9 @@ const JoinMedh = ({
           </p>
           <div
             onClick={() => {
-              router.push("/join-as-school");
+              router.push("/join-us-as-school-institute");
             }}
-            className="cursor-pointer px-2.5 py-1 rounded-3xl flex items-center gap-2.5 mt-4 w-fit"
+            className="cursor-pointer px-4 py-[.5rem] rounded-3xl flex items-center gap-2.5 mt-4 w-fit"
             style={{
               backgroundColor: partnerButtonColor,
               color: partnerBtnColor,

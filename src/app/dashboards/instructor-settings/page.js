@@ -4,8 +4,8 @@ import ThemeController from "@/components/shared/others/ThemeController";
 import DsahboardWrapper from "@/components/shared/wrappers/DsahboardWrapper";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 export const metadata = {
-  title: "Instructor Setting | Edurock - Education LMS Template",
-  description: "Instructor Setting | Edurock - Education LMS Template",
+  title: "Instructor Setting | Medh - Education LMS Template",
+  description: "Instructor Setting | Medh - Education LMS Template",
 };
 const Instructor_Setting = () => {
   return (

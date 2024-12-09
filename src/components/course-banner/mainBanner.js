@@ -53,13 +53,13 @@ export default function MainBanner({
             {subheading} {/* Dynamic subheading */}
           </p>
           <h1
-            className="text-2xl md:text-4xl font-bold font-Poppins  mb-6"
+            className="text-2xl md:text-4xl font-bold font-Poppins mb-6 tracking-wide"
             style={{ color: headingColor }}
           >
             {heading}
           </h1>
 
-          <div className="flex justify-between w-full">
+          <div className="flex justify-between w-full mb-4 sm:mb-12">
             <div className="flex-shrink-0 bg-gray-300">
               {/* ISO or Certification Badge */}
               <Image
@@ -72,7 +72,7 @@ export default function MainBanner({
             </div>
             <div className="md:ml-10 ml-5">
               <p
-                className="md:text-[1.2rem] sm:text-[1.3rem] text-[0.9rem] lg:text-[1.1rem] tracking-wider"
+                className="md:text-[1.2rem] w-full sm:w-[90%] sm:text-[1.3rem] text-[0.9rem] lg:text-[1.1rem] tracking-wider"
                 style={{ color: descriptionColor }}
               >
                 {description} {/* Dynamic description */}
@@ -107,18 +107,18 @@ export default function MainBanner({
               </div>
             </div>
           </div>
-          <p className="mt-6 text-[20px] mumkinMedh font-Bugatti lg:text-[29px] font-semibold text-[#F6B335]">
+          <p className="mt-6 text-[24px] mumkinMedh font-Bulgathi lg:text-[35px] text-[#7ECA9D]">
             {slogan}
           </p>
         </div>
 
         {/* Right side image (hidden on small screens) */}
-        <div className="hidden lg:block md:w-[45%]">
+        <div className="hidden lg:block md:w-[45%] rounded-[50%]">
           <Image
             src={logoImage} // Dynamic right-side image
             alt="Logo Image"
             objectFit="cover"
-            className="w-full"
+            className="w-full rounded-[50%]"
           />
         </div>
       </div>

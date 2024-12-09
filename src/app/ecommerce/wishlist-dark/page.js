@@ -3,8 +3,8 @@ import ThemeController from "@/components/shared/others/ThemeController";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 
 export const metadata = {
-  title: "Wishlist Dark | Edurock - Education LMS Template",
-  description: "Wishlist Dark | Edurock - Education LMS Template",
+  title: "Wishlist Dark | Medh - Education LMS Template",
+  description: "Wishlist Dark | Medh - Education LMS Template",
 };
 
 const Wishlist_Dark = async () => {

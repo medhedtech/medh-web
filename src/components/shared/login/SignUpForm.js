@@ -8,7 +8,7 @@ import * as yup from "yup";
 import usePostQuery from "@/hooks/postQuery.hook";
 import { apiUrls } from "@/apis";
 import Preloader from "../others/Preloader";
-import logo1 from "@/assets/images/logo/medh_logo.png";
+import logo1 from "@/assets/images/logo/medh_logo-1.png";
 import Name from "@/assets/images/log-sign/Name.svg";
 import lock from "@/assets/images/log-sign/lock.svg";
 import Email from "@/assets/images/log-sign/Email.svg";
@@ -128,7 +128,9 @@ const SignUpForm = () => {
         <div className="md:m-6 rounded-[10px] p-5">
           {/* heading */}
           <div className="w-[179px] mx-auto">
-            <Image priority="false" src={logo1} alt="logo" className="py-2" />
+            <a href="/">
+              <Image priority="false" src={logo1} alt="logo" className="py-2" />
+            </a>
           </div>
           <div className="pt-11">
             <h1 className="font-Open font-semibold text-3xl">

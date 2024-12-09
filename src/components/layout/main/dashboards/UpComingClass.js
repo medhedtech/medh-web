@@ -22,7 +22,7 @@ const upcomingClasses = [
 
 const UpComingClass = () => {
   return (
-    <div className=" dark:bg-inherit   p-6">
+    <div className=" dark:bg-inherit px-10">
       <div className="flex justify-between items-center mb-4 dark:text-white">
         <p className="text-2xl font-Open font-semibold dark:text-white text-gray-800">
           Upcoming Classes
