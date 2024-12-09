@@ -4,9 +4,9 @@ import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import meetings from "@/../public/fakedata/meetings.json";
 import { notFound } from "next/navigation";
 export const metadata = {
-  title: "Zoom Meetings Details - Dark | Edurock - Education LMS Template",
+  title: "Zoom Meetings Details - Dark | Medh - Education LMS Template",
   description:
-    "Zoom Meetings Details - Dark | Edurock - Education LMS Template",
+    "Zoom Meetings Details - Dark | Medh - Education LMS Template",
 };
 const Zoom_Meetings_Details_Dark = ({ params }) => {
   const { id } = params;
