@@ -4,8 +4,8 @@ import ThemeController from "@/components/shared/others/ThemeController";
 import DsahboardWrapper from "@/components/shared/wrappers/DsahboardWrapper";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 export const metadata = {
-  title: "Student Dashboard | Edurock - Education LMS Template",
-  description: "Student Dashboard | Edurock - Education LMS Template",
+  title: "Student Dashboard | Medh - Education LMS Template",
+  description: "Student Dashboard | Medh - Education LMS Template",
 };
 const Student_Dashboard = () => {
   return (
