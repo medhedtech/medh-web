@@ -40,15 +40,14 @@ const CounterStudent = () => {
             url: `${apiUrls?.Membership?.getSelfPackedCount}/${studentId}`,
           });
 
-          if (enrollResponse && membershipResponse) {
-            setCounts({
-              enrolledCourses: enrollResponse?.totalEnrollments || 0,
-              liveCourses: enrollResponse?.liveCoursesCount || 0,
-              selfPacedCourses: membershipResponse?.totalMemberships || 0,
-            });
-          } else {
-            console.log("No response from API");
-          }
+          const liveCourses = enrollResponse?.liveCoursesCount || 0;
+          const selfPacedCourses = membershipResponse?.totalSelfPacedMemberships || 0;
+
+          setCounts({
+            enrolledCourses: liveCourses + selfPacedCourses,
+            liveCourses,
+            selfPacedCourses,
+          });
         } catch (error) {
           console.error("Failed to fetch counts:", error);
         }

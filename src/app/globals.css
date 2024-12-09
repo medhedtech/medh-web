@@ -1,9 +1,9 @@
 /*********************************************************************************
 
-	  Template Name: Edurock - Education LMS Template
+	  Template Name: Medh - Education LMS Template
     Author: Kamrul Hasan
     Support: kamrulishasan34@gmail.com
-    Description: Edurock -  Education, online course, tailwind v3.0 and Next.js v14,.
+    Description: Medh -  Education, online course, tailwind v3.0 and Next.js v14,.
     Version: 1.0.0
     
 ****************
@@ -86,14 +86,16 @@ h6 {
 }
 
 @font-face {
-  font-family: "Bugatti";
-  src: url("/fonts/Bulgatti.woff") format("woff");
+  font-family: "Bulgathi";
+  src: url("/fonts/Bulgathi.ttf") format("truetype");
   font-weight: normal;
   font-style: normal;
 }
 
 .mumkinMedh {
-  font-family: "Bugatti", sans-serif;
+  font-family: "Bulgathi", sans-serif;
+  font-size: 50px !important;
+  line-height: 1.8rem !important;
 }
 
 /* sticky header */
@@ -495,3 +497,21 @@ option {
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@keyframes floating {
+  0% {
+    transform: translate(0, 0); /* Start at the original position */
+  }
+  25% {
+    transform: translate(-5px, -5px); /* Move slightly up-left */
+  }
+  50% {
+    transform: translate(5px, 5px); /* Move slightly down-right */
+  }
+  75% {
+    transform: translate(-5px, 5px); /* Move slightly down-left */
+  }
+  100% {
+    transform: translate(0, 0); /* Return to the original position */
+  }
+}
