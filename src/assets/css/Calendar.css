@@ -1,0 +1,16 @@
+/* Custom CSS for react-calendar */
+.react-calendar {
+  border: none;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.react-calendar__tile--active {
+  background: #7eca9d;
+  color: white;
+  border-radius: 8px;
+}
+.react-calendar__navigation {
+  display: flex;
+}
