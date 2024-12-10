@@ -51,6 +51,7 @@ export const apiUrls = {
     updateMeeting: "/online-meeting/update/:id",
     deleteMeeting: "/online-meeting/delete/:id",
     getMeetingByStudentId: "/online-meeting/student",
+    getMeetingsByInstructorId: "/online-meeting/upcoming-classes",
   },
   Instructor: {
     getAllInstructors: "/instructors/get",
