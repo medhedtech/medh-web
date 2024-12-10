@@ -9,16 +9,13 @@ export const metadata = {
 };
 const Instructor_My_Quiz_Attempts = () => {
   return (
-    <PageWrapper>
-      <main>
-        <DsahboardWrapper>
-          <DashboardContainer>
-            <InstructorMyQuizAttemptsMain />
-          </DashboardContainer>
-        </DsahboardWrapper>
-        <ThemeController />
-      </main>
-    </PageWrapper>
+    <main>
+      <DashboardContainer>
+        <InstructorMyQuizAttemptsMain />
+      </DashboardContainer>
+
+      <ThemeController />
+    </main>
   );
 };
 
