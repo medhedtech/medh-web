@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import class1 from "@/assets/images/dashbord/class1.png";
 import class2 from "@/assets/images/dashbord/class2.png";
 import Image from "next/image";
 import { apiUrls } from "@/apis";
@@ -40,15 +41,15 @@ const UpComingClass = () => {
     const fetchUpcomingClasses = async () => {
       setLoading(true);
       setError(null);
-  
+
       try {
         const res = await getQuery({
           url: `${apiUrls?.onlineMeeting?.getMeetingsByInstructorId}/${instructorId}`,
         });
-        
+
         // Limit the result to only 2 classes
-        const firstTwoClasses = res?.meetings?.slice(0, 2) || [];
-        
+        const firstTwoClasses = res?.meetings || [];
+
         setUpcomingClasses(firstTwoClasses);
       } catch (err) {
         console.error("Error fetching upcoming classes:", err);
@@ -57,7 +58,7 @@ const UpComingClass = () => {
         setLoading(false);
       }
     };
-  
+
     fetchUpcomingClasses();
   }, []);
 
@@ -83,14 +84,11 @@ const UpComingClass = () => {
   };
 
   return (
-    <div className="dark:bg-inherit px-10 pb-6">
+    <div className="dark:bg-inherit px-10 py-10">
       <div className="flex justify-between items-center mb-4 dark:text-white">
         <p className="text-2xl font-Open font-semibold dark:text-white text-gray-800">
           Upcoming Classes
         </p>
-        <a href="/dashboards/instructor-mainclass/all-classess" className="text-green-500 hover:underline">
-          View All
-        </a>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6 w-[100%]">
@@ -100,7 +98,10 @@ const UpComingClass = () => {
           <p className="text-red-500">{error}</p>
         ) : (
           upcomingClasses.map((classItem, index) => (
-            <div key={index} className="flex bg-white shadow-lg rounded-lg overflow-hidden transition-transform transform hover:scale-105">
+            <div
+              key={index}
+              className="flex bg-white shadow-lg rounded-lg overflow-hidden transition-transform transform hover:scale-105"
+            >
               {/* Image Section */}
               <div className="relative w-1/3 h-full">
                 <Image
@@ -126,7 +127,7 @@ const UpComingClass = () => {
 
                 {/* Date and Time */}
                 <p className="text-sm text-[#7ECA9D] mt-4">
-                  {formatDate(classItem?.date)|| "Date: N/A"}
+                  {formatDate(classItem?.date) || "Date: N/A"}
                 </p>
                 <p className="text-sm text-[#FFA927] mt-2 flex items-center">
                   <svg
