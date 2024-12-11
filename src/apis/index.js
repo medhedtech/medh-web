@@ -1,6 +1,6 @@
 // export const apiBaseUrl = "https://medh-backend.vercel.app/api/v1";  //vercel URL
-// export const apiBaseUrl = "https://13.202.119.19.nip.io/api/v1"; //live instance URL
-export const apiBaseUrl = "http://localhost:8080/api/v1"; // local URL
+export const apiBaseUrl = "https://13.202.119.19.nip.io/api/v1"; //live instance URL
+// export const apiBaseUrl = "http://localhost:8080/api/v1"; // local URL
 
 export const apiUrls = {
   user: {
@@ -116,11 +116,14 @@ export const apiUrls = {
   feedbacks: {
     createFeedback: "/feedback/",
     getAllFeedbacks: "/feedback/getAll",
-    deleteFeedback: "/feedback/delete",
+    deleteFeedback: "/feedback/delete-feedback",
     createComplaint: "/complaint/",
     getAllComplaints: "/complaint",
     deleteComplaint: "/complaint/delete",
     updateComplaintStatus: "/complaint/change-status",
+    instructorFeedback:"/feedback/instructor/add",
+    getAllInstructorFeedbacks: "/feedback/getAll/instructors-feedbacks",
+    deleteInstructorFeedback: "/feedback/instructor"
   },
   resources: {},
   categories: {

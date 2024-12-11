@@ -19,9 +19,10 @@ const formatDate = (date) => {
 
 export default function AdminFeedbackComplaints() {
   const [feedbacks, setFeedbacks] = useState([]);
+  const [instructorFeedbacks, setInstructorFeedbacks] = useState([]);
   const [complaints, setComplaints] = useState([]);
-  const [editComplaint, setEditComplaint] = useState(null); // For edit modal
-  const [newStatus, setNewStatus] = useState(""); // Track new status
+  const [editComplaint, setEditComplaint] = useState(null);
+  const [newStatus, setNewStatus] = useState(""); 
   const { getQuery, loading } = useGetQuery();
   const { deleteQuery } = useDeleteQuery();
   const { postQuery } = usePostQuery();
@@ -44,6 +45,7 @@ export default function AdminFeedbackComplaints() {
   useEffect(() => {
     fetchData(apiUrls.feedbacks.getAllFeedbacks, setFeedbacks);
     fetchData(apiUrls.feedbacks.getAllComplaints, setComplaints);
+    fetchData(apiUrls.feedbacks.getAllInstructorFeedbacks, setInstructorFeedbacks);
   }, []);
 
   // Handle delete action
@@ -114,6 +116,37 @@ export default function AdminFeedbackComplaints() {
               row._id,
               apiUrls.feedbacks.getAllFeedbacks,
               setFeedbacks
+            )
+          }
+          className="text-[#7ECA9D] border border-[#7ECA9D] rounded-md px-[10px] py-1"
+        >
+          Delete
+        </button>
+      ),
+    },
+  ];
+
+   // Columns configuration for feedbacks
+   const instructorFeedbackColumns = [
+    { Header: "Title", accessor: "feedback_title" },
+    { Header: "Feedback", accessor: "feedback_text" },
+    { Header: "Type", accessor: "feedback_for" },
+    {
+      Header: "Date",
+      accessor: "createdAt",
+      render: (row) => formatDate(row?.createdAt),
+    },
+    {
+      Header: "Action",
+      accessor: "actions",
+      render: (row) => (
+        <button
+          onClick={() =>
+            handleDelete(
+              `${apiUrls.feedbacks.deleteInstructorFeedback}`,
+              row._id,
+              apiUrls.feedbacks.getAllInstructorFeedbacks,
+              setInstructorFeedbacks
             )
           }
           className="text-[#7ECA9D] border border-[#7ECA9D] rounded-md px-[10px] py-1"
@@ -244,16 +277,26 @@ export default function AdminFeedbackComplaints() {
     <div className="min-h-screen bg-gray-100 p-6">
       {/* Feedback Section */}
       <div className="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-lg">
-        <h1 className="text-2xl font-bold mb-4">Feedbacks</h1>
+        <h1 className="text-2xl font-bold mb-4">Student Feedbacks</h1>
         <MyTable
           columns={feedbackColumns}
           data={feedbacks}
           entryText="Feedbacks"
         />
       </div>
+
+
+      <div className="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-lg mt-10">
+        <h1 className="text-2xl font-bold mb-4">Instructor Feedbacks</h1>
+        <MyTable
+          columns={instructorFeedbackColumns}
+          data={instructorFeedbacks}
+          entryText="Instructor Feedbacks"
+        />
+      </div>
       {/* Complaints Section */}
       <div className="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-lg mt-10">
-        <h1 className="text-2xl font-bold mb-4">Complaints</h1>
+        <h1 className="text-2xl font-bold mb-4">Student Complaints</h1>
         <MyTable
           columns={complaintColumns}
           data={complaints}
