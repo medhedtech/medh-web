@@ -1,6 +1,6 @@
 // export const apiBaseUrl = "https://medh-backend.vercel.app/api/v1";  //vercel URL
-export const apiBaseUrl = "https://13.202.119.19.nip.io/api/v1"; //live instance URL
-// export const apiBaseUrl = "http://localhost:8080/api/v1"; // local URL
+// export const apiBaseUrl = "https://13.202.119.19.nip.io/api/v1"; //live instance URL
+export const apiBaseUrl = "http://localhost:8080/api/v1"; // local URL
 
 export const apiUrls = {
   user: {
@@ -108,7 +108,10 @@ export const apiUrls = {
     getQuizes: "/quizes",
   },
   assignments: {
+    addAssignments: "/assignments/create",
     getAssignments: "/assignments",
+    submitAssignments: "/assignments/submit",
+    submittedAssignments: "/assignments/submitted/get"
   },
   feedbacks: {
     createFeedback: "/feedback/",
@@ -179,10 +182,10 @@ export const apiUrls = {
     getAllNewsletter: "/newsletter/getAll",
     addNewsletter: "/newsletter/add",
   },
-  Corporate:{
+  Corporate: {
     getAllCorporate: "/corporate/getAll",
     addCorporate: "/corporate/create",
     updateCorporate: "/corporate/update/:id",
     deleteCorporate: "/corporate/delete",
-  }
+  },
 };

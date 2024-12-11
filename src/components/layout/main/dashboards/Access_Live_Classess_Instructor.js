@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { apiUrls } from "@/apis";
 import moment from "moment";
 
-const LiveDemoClass = () => {
+const Live_Demo_Classess_instructor = () => {
   const router = useRouter();
   const [classes, setClasses] = useState([]);
   const [instructorId, setInstructorId] = useState("673c756ca9054a9bbf673e0e");
@@ -51,17 +51,11 @@ const LiveDemoClass = () => {
   );
 
   return (
-    <div className="px-10 pb-12">
+    <div className="px-10 py-10">
       <div className="flex justify-between items-center pt-4 mb-4">
         <h2 className="text-2xl font-Open font-semibold dark:text-white text-gray-900">
           Start/Join the Live Demo Class
         </h2>
-        <a
-          href="/dashboards/instructor-class/join-live-classes"
-          className="text-green-500 hover:underline"
-        >
-          View All
-        </a>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {liveClasses.map((classItem) => (
@@ -109,4 +103,4 @@ const LiveDemoClass = () => {
   );
 };
 
-export default LiveDemoClass;
+export default Live_Demo_Classess_instructor;
