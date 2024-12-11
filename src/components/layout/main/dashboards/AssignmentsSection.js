@@ -1,49 +1,32 @@
-import React,{useEffect,useState} from "react";
+import React, { useEffect, useState } from "react";
 import AssignmentCard from "./AssignmentCard";
 import Qize from "@/assets/images/dashbord/quize.png";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
 import Preloader from "@/components/shared/others/Preloader";
 
-// const assignments = [
-//   {
-//     title: "Web Development",
-//     instructor: "John Doe",
-//     daysLeft: 3,
-//     image: Qize,
-//   },
-//   {
-//     title: "Web Development",
-//     instructor: "John Doe",
-//     daysLeft: 1,
-//     image: Qize,
-//   },
-//   {
-//     title: "Web Development",
-//     instructor: "John Doe",
-//     daysLeft: 0,
-//     image: Qize,
-//   },
-// ];
-
-
 const AssignmentsSection = ({ onQuizClick }) => {
-  const {getQuery,loading} = useGetQuery();
-  const [assignments,setAssignments] = useState()
+  const { getQuery, loading } = useGetQuery();
+  const [assignments, setAssignments] = useState();
 
   useEffect(() => {
     getQuery({
-      url:apiUrls?.assignments?.getAssignments,
-      onSuccess:(data) => {
+      url: apiUrls?.assignments?.getAssignments,
+      onSuccess: (data) => {
         setAssignments(data);
-        console.log(data,"Svhfdh")
-      }
-    })
-  },[])
-  
-  if (loading) return <Preloader/>;
+        console.log(data, "Svhfdh");
+      },
+    });
+  }, []);
 
+  if (loading) return <Preloader />;
 
+  const calculateDaysLeft = (deadline) => {
+    const deadlineDate = new Date(deadline); // Convert to Date object
+    const currentDate = new Date(); // Get the current date
+    const timeDifference = deadlineDate - currentDate;
+    return Math.floor(timeDifference / (1000 * 60 * 60 * 24)); // Convert ms to days
+  };
 
   return (
     <div className="p-8 font-Open">
@@ -128,15 +111,20 @@ const AssignmentsSection = ({ onQuizClick }) => {
         </div>
       </div>
       <div className="space-y-4">
-        {assignments?.map((assignment, index) => (
-          <AssignmentCard
-            key={index}
-            title={assignment?.title}
-            instructor={assignment?.instructor}
-            daysLeft={assignment?.deadline}
-            image={Qize}
-          />
-        ))}
+        {assignments?.map((assignment, index) => {
+          const daysLeft = calculateDaysLeft(assignment.deadline);
+          return (
+            <AssignmentCard
+              key={index}
+              title={assignment?.title}
+              instructor={assignment?.instructor}
+              deadline={assignment?.deadline}
+              daysLeft={daysLeft}
+              image={Qize}
+              assignment={assignment}
+            />
+          );
+        })}
       </div>
     </div>
   );
