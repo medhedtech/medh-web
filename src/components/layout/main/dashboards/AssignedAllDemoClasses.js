@@ -41,7 +41,7 @@ const formatTimeWithAmPm = (timeString) => {
   });
 };
 
-const AssignedDemoClass = () => {
+const AssignedAllDemoClasses = () => {
   const [classes, setClasses] = useState([]);
   const [instructorId, setInstructorId] = useState("6757cb3c8071784d1d67c28f");
   const { getQuery, loading } = useGetQuery();
@@ -88,9 +88,6 @@ const AssignedDemoClass = () => {
         <h2 className="text-2xl font-Open font-semibold dark:text-white text-gray-900">
           View Assigned Demo Classes
         </h2>
-        <a href="/dashboards/instructor-class/assigned-demo-classes" className="text-green-500 hover:underline">
-          View All
-        </a>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {demoClasses.map((classItem) => (
@@ -138,4 +135,4 @@ const AssignedDemoClass = () => {
   );
 };
 
-export default AssignedDemoClass;
+export default AssignedAllDemoClasses;
