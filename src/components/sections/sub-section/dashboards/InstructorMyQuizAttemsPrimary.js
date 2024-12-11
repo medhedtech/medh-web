@@ -1,12 +1,14 @@
 "use client";
-import React from "react";
+
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import AssignmentModal from "@/components/shared/assignmenet-modal";
 
 const activities = [
   {
     id: 1,
     title: "Create Quiz",
-    link: "/dashboards/instructor-my-quiz-attempts/create-quiz", // Add a link property for redirection
+    link: "/dashboards/instructor-my-quiz-attempts/create-quiz",
     icon: (
       <svg
         width="17"
@@ -27,7 +29,7 @@ const activities = [
   {
     id: 2,
     title: "Create Assignment",
-    link: "",
+    link: "", // Keep link empty to open the modal
     icon: (
       <svg
         width="25"
@@ -46,7 +48,7 @@ const activities = [
   {
     id: 3,
     title: "View Submitted Assignment",
-    link: "",
+    link: "/dashboards/instructor-view-assignments",
     icon: (
       <svg
         width="25"
@@ -77,11 +79,14 @@ const ActivityCard = ({ activity, onClick }) => (
 );
 
 const InstructorMyQuizAttemsPrimary = () => {
-  const router = useRouter(); // Access Next.js router
+  const router = useRouter();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleClick = (link) => {
-    if (link) {
-      router.push(link); // Navigate to the specified link
+  const handleClick = (link, id) => {
+    if (id === 2) {
+      setIsModalOpen(true); // Open modal for Create Assignment
+    } else if (link) {
+      router.push(link);
     }
   };
 
@@ -95,10 +100,14 @@ const InstructorMyQuizAttemsPrimary = () => {
           <ActivityCard
             key={activity.id}
             activity={activity}
-            onClick={() => handleClick(activity.link)}
+            onClick={() => handleClick(activity.link, activity.id)}
           />
         ))}
       </div>
+      <AssignmentModal
+        open={isModalOpen}
+        handleClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 };

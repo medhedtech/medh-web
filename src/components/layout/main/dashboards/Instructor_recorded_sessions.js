@@ -35,16 +35,13 @@ const classes = [
     instructor: "Sayef Mamud, PixelCo",
   },
 ];
-const RecordedClass = () => {
+const Instructor_Recorded_Sessions = () => {
   return (
     <div className="px-10 pb-12">
       <div className="flex justify-between items-center  pt-4 mb-4">
         <h2 className="text-2xl font-Open font-semibold dark:text-white text-gray-900">
           Recorded Sessions
         </h2>
-        <a href="/dashboards/instructor-mainclass/all-recorded-sessions" className="text-green-500 hover:underline">
-          View All
-        </a>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {classes.map((classItem) => (
@@ -75,4 +72,4 @@ const RecordedClass = () => {
   );
 };
 
-export default RecordedClass;
+export default Instructor_Recorded_Sessions;
