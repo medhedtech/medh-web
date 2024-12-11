@@ -39,7 +39,10 @@ const MyMainClass = () => {
         <h2 className="text-2xl font-Open font-semibold dark:text-white text-gray-900">
           My Main Classes
         </h2>
-        <a href="#" className="text-green-500 hover:underline">
+        <a
+          href="/dashboards/instructor-mainclass/all-main-classes"
+          className="text-green-500 hover:underline"
+        >
           View All
         </a>
       </div>
