@@ -172,7 +172,7 @@ const RecordedSession = () => {
         <h2 className="text-2xl font-Open font-semibold dark:text-white text-gray-900">
           Access Recorded Sessions Instructor
         </h2>
-        <a href="#" className="text-green-500 hover:underline">
+        <a href="/dashboards/instructor-class/access-recorded-sessions" className="text-green-500 hover:underline">
           View All
         </a>
       </div>
