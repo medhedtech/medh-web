@@ -4,16 +4,18 @@ import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 import ThemeController from "@/components/shared/others/ThemeController";
 import React from "react";
 
-const InstructorFeedback = () => {
-  <main>
-    <DashboardContainer>
-      <div className="px-6">
-        <HeadingDashboard />
-      </div>
-      <InstructorFeedbackComponents />
-    </DashboardContainer>
-    <ThemeController />
-  </main>
+const Instructor_Feedbacks = () => {
+  return (
+    <main>
+      <DashboardContainer>
+        <div className="px-8">
+          <HeadingDashboard />
+        </div>
+        <InstructorFeedbackComponents />
+      </DashboardContainer>
+      <ThemeController />
+    </main>
+  );
 };
 
-export default InstructorFeedback;
+export default Instructor_Feedbacks;
