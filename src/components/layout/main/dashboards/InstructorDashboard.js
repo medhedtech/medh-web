@@ -37,8 +37,9 @@ const InstructorDashboard = () => {
   const [upcomingClasses, setUpcomingClasses] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [instructorId, setInstructorId] = useState("6757cb3c8071784d1d67c28f");
+  const [instructorId, setInstructorId] = useState("673c756ca9054a9bbf673e0e");
   const [totalCourses, setTotalCourses] = useState(0);
+  const [totalAssignments, setTotalAssignments] = useState(0);
 
   // Get query hook
   const { getQuery } = useGetQuery();
@@ -54,6 +55,23 @@ const InstructorDashboard = () => {
       }
     }
   }, []);
+
+  const fetchSubmittedAssignments= async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await getQuery({
+        url: `${apiUrls?.assignments?.assignmentsCountByInstructorId}/${instructorId}`,
+      });
+      setTotalAssignments(res?.submittedAssignmentsCount || 0);
+    } catch (err) {
+      console.error("Error fetching upcoming classes:", err);
+      setError("Failed to load upcoming classes.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (instructorId) {
@@ -76,6 +94,7 @@ const InstructorDashboard = () => {
       };
 
       fetchUpcomingClasses();
+      fetchSubmittedAssignments()
     }
   }, [instructorId]);
 
@@ -93,7 +112,7 @@ const InstructorDashboard = () => {
     },
     {
       title: "View Received Assignments",
-      value: 5,
+      value: totalAssignments,
       icon: Icon2,
     },
   ];

@@ -22,7 +22,7 @@ const UpComingClass = () => {
   const [upcomingClasses, setUpcomingClasses] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [instructorId, setInstructorId] = useState("6757cb3c8071784d1d67c28f");
+  const [instructorId, setInstructorId] = useState("673c756ca9054a9bbf673e0e");
   const { getQuery } = useGetQuery();
 
   // Fetch instructor ID from localStorage
@@ -84,23 +84,23 @@ const UpComingClass = () => {
   };
 
   return (
-    <div className="dark:bg-inherit px-10 py-10">
-      <div className="flex justify-between items-center mb-4 dark:text-white">
-        <p className="text-2xl font-Open font-semibold dark:text-white text-gray-800">
+    <div className="dark:bg-inherit px-10 pb-12 py-10">
+      <div className="flex justify-between items-center mb-6">
+        <p className="text-3xl font-Open font-semibold text-gray-800 dark:text-white">
           Upcoming Classes
         </p>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6 w-[100%]">
+      <div className="grid md:grid-cols-2 gap-6">
         {loading ? (
-          <p>Loading...</p>
+          <p className="text-xl">Loading...</p>
         ) : error ? (
           <p className="text-red-500">{error}</p>
         ) : (
           upcomingClasses.map((classItem, index) => (
             <div
               key={index}
-              className="flex bg-white shadow-lg rounded-lg overflow-hidden transition-transform transform hover:scale-105"
+              className="relative flex bg-gradient-to-r from-blue-400 to-blue-500 hover:from-blue-600 hover:to-blue-700 text-white shadow-xl rounded-xl overflow-hidden transition-transform transform hover:scale-105 cursor-pointer"
             >
               {/* Image Section */}
               <div className="relative w-1/3 h-full">
@@ -109,34 +109,34 @@ const UpComingClass = () => {
                   alt={classItem?.title || "Class"}
                   layout="fill"
                   objectFit="cover"
-                  className="rounded-l-lg"
+                  className="rounded-l-xl transition-transform transform hover:scale-110"
                 />
               </div>
 
               {/* Course Information Section */}
-              <div className="p-4 flex flex-col flex-1">
+              <div className="p-6 flex flex-col w-2/3">
                 {/* Course Title */}
-                <p className="font-semibold text-lg text-gray-800 dark:text-white">
+                <p className="font-semibold text-black text-xl mb-2">
                   {classItem?.courseDetails?.course_title || "Class Title"}
                 </p>
 
                 {/* Course Description */}
-                <p className="font-light text-sm text-gray-600 dark:text-gray-300 mt-2">
+                <p className="font-light text-gray-600 text-sm mb-4">
                   {classItem?.description || "Class Description"}
                 </p>
 
                 {/* Date and Time */}
-                <p className="text-sm text-[#7ECA9D] mt-4">
+                <p className="text-lg text-[#7ECA9D]">
                   {formatDate(classItem?.date) || "Date: N/A"}
                 </p>
-                <p className="text-sm text-[#FFA927] mt-2 flex items-center">
+                <p className="text-lg text-[#FFA927] mt-2 flex items-center">
                   <svg
                     width="15"
                     height="15"
                     viewBox="0 0 15 15"
-                    className="mr-2"
                     fill="#FFA927"
                     xmlns="http://www.w3.org/2000/svg"
+                    className="mr-2"
                   >
                     <path
                       d="M7.43857 1.52441C10.7524 1.52441 13.4386 4.21061 13.4386 7.52441C13.4386 10.8382 10.7524 13.5244 7.43857 13.5244C4.12477 13.5244 1.43857 10.8382 1.43857 7.52441C1.43857 4.21061 4.12477 1.52441 7.43857 1.52441ZM7.43857 3.92441C7.27944 3.92441 7.12683 3.98763 7.0143 4.10015C6.90178 4.21267 6.83857 4.36528 6.83857 4.52441L6.83857 7.52441C6.8386 7.68353 6.90184 7.83612 7.01437 7.94861L8.81437 9.74861C8.92753 9.85791 9.07909 9.91839 9.23641 9.91702C9.39373 9.91565 9.54421 9.85255 9.65546 9.74131C9.7667 9.63006 9.82981 9.47957 9.83117 9.32225C9.83254 9.16494 9.77206 9.01338 9.66277 8.90021L8.03857 7.27601L8.03857 4.52441C8.03857 4.36528 7.97535 4.21267 7.86283 4.10015C7.75031 3.98763 7.5977 3.92441 7.43857 3.92441Z"
@@ -147,9 +147,12 @@ const UpComingClass = () => {
                 </p>
 
                 {/* Time Remaining */}
-                <p className="text-sm text-[#7ECA9D] text-right mt-2 flex-1">
+                <p className="text-sm text-[#7ECA9D] mt-auto text-right flex-1">
                   {getTimeDifference(classItem?.date, classItem?.time)}
                 </p>
+
+                {/* Hover Effect - Elevated Class Info */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black opacity-30 hover:opacity-60 transition-all duration-300"></div>
               </div>
             </div>
           ))

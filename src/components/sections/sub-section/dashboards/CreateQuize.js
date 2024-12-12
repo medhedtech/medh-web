@@ -1,7 +1,8 @@
 "use client";
+import React, { useState } from "react";
+import CreateQuizModal from "@/components/shared/quiz-modal";
 import DateIcon from "@/assets/images/icon/Date";
 import TimeIcon from "@/assets/images/icon/TimeIcon";
-import React, { useState } from "react";
 
 const quizzes = [
   {
@@ -64,67 +65,11 @@ const QuizCard = ({ quiz }) => (
   </div>
 );
 
-const CreateQuizPopup = ({ onClose }) => (
-  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-    <div className="bg-white  rounded-lg shadow-lg p-6 w-full max-w-lg">
-      <div className="flex justify-between mb-4">
-        <h2 className="text-xl font-semibold font-Open  text-[#434343]">
-          Quiz Specifications
-        </h2>
-        <button type="button" onClick={onClose}>
-          x
-        </button>
-      </div>
-      <form className="">
-        <div>
-          <p>Time</p>
-          <div className="flex gap-4 text-[#3C3C3C]">
-            <div className="flex gap-2">
-              <DateIcon /> 3-01-2023
-            </div>
-            <div className="flex gap-2 my-auto">
-              <TimeIcon /> 12:30 AM - 01:40 PM
-            </div>
-          </div>
-          <select className="mt-8 block w-full border rounded-md h-fit p-2.5 border-black shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm">
-            <option>Select Course</option>
-            <option>B.Tech Specialization in Health Informatics</option>
-            <option>B.Tech in Computer Science</option>
-          </select>
-        </div>
-        <div>
-          <select className="mt-4 block w-full h-fit p-2.5 border-black border rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm">
-            <option>Select Subject</option>
-            <option>Network Engineering</option>
-            <option>Data Structures</option>
-          </select>
-        </div>
-        <div className="">
-          <select className="mt-4 block w-full h-fit p-2.5 border-black border rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm">
-            <option>Total Questions</option>
-            <option>10</option>
-            <option>20</option>
-          </select>
-        </div>
-
-        <div className="flex justify-end space-x-2 ">
-          <button
-            type="submit"
-            className="px-4 mt-6 py-2 bg-[#7ECA9D] text-white w-full rounded-full text-sm font-medium"
-          >
-            Create Quiz
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-);
-
 const CreateQuize = () => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
 
   return (
-    <div className="px-6 pb-12 m-4 dark:bg-inherit  bg-white rounded-lg">
+    <div className="px-6 pb-12 m-4 dark:bg-inherit bg-white rounded-lg">
       <div className="flex justify-between items-center pt-4 mb-6">
         <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
           Create Quiz
@@ -155,7 +100,12 @@ const CreateQuize = () => {
           <p className="mt-2 font-semibold">Create New Quiz</p>
         </div>
       </div>
-      {isPopupOpen && <CreateQuizPopup onClose={() => setIsPopupOpen(false)} />}
+      {isPopupOpen && (
+        <CreateQuizModal
+          open={isPopupOpen}
+          onClose={() => setIsPopupOpen(false)}
+        />
+      )}
     </div>
   );
 };
