@@ -9,13 +9,13 @@ import moment from "moment";
 const Live_Demo_Classess_instructor = () => {
   const router = useRouter();
   const [classes, setClasses] = useState([]);
-  const [instructorId, setInstructorId] = useState("673c756ca9054a9bbf673e0e");
+  const [instructorId, setInstructorId] = useState("6757cb3c8071784d1d67c28f");
   const { getQuery } = useGetQuery();
 
   // Fetch instructor ID from localStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const storedUserId = localStorage.getItem("userId");
+      const storedUserId = localStorage.getItem("6757cb3c8071784d1d67c28f");
       if (storedUserId) {
         setInstructorId(storedUserId);
       } else {
@@ -43,28 +43,26 @@ const Live_Demo_Classess_instructor = () => {
     }
   }, [instructorId]);
 
-  // Filter classes with course_tag = "Live" or "Demo"
-  const liveClasses = classes.filter(
-    (classItem) =>
-      classItem.courseDetails?.course_tag === "Live" ||
-      classItem.courseDetails?.course_tag === "Demo"
+  // Filter classes with meeting_tag = "live" or "demo"
+  const liveAndDemoClasses = classes.filter(
+    (classItem) => classItem?.meeting_tag === "live"
   );
 
   return (
     <div className="px-10 py-10">
       <div className="flex justify-between items-center pt-4 mb-4">
         <h2 className="text-2xl font-Open font-semibold dark:text-white text-gray-900">
-          Start/Join the Live Demo Class
+          Start/Join the Live Class
         </h2>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {liveClasses.map((classItem) => (
+        {liveAndDemoClasses.map((classItem) => (
           <div
             key={classItem._id}
             className="bg-white dark:bg-inherit shadow rounded-lg border p-4 relative"
           >
-            {/* Display "Live" Badge */}
-            {classItem.courseDetails?.course_tag === "Live" && (
+            {/* Display "Live" or "Demo" Badge */}
+            {classItem.meeting_tag === "live" && (
               <div className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded">
                 Live
               </div>
@@ -83,7 +81,7 @@ const Live_Demo_Classess_instructor = () => {
               />
             </div>
             {/* Class Information */}
-            <h3 className="mt-3 font-semibold text-gray-800  dark:text-white text-lg">
+            <h3 className="mt-3 font-semibold text-gray-800 dark:text-white text-lg">
               {classItem.meet_title || "Untitled Class"}
             </h3>
             <p className="text-gray-500 text-sm">

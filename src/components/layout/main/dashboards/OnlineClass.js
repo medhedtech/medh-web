@@ -594,6 +594,38 @@ const OnlineMeeting = () => {
                   )}
                 </div>
 
+                {/* Meeting Tag */}
+                <div className="mb-4">
+                  <label
+                    htmlFor="meeting_tag"
+                    className="block text-sm font-medium text-gray-600 mb-2"
+                  >
+                    Meeting Tag
+                    <span className="text-red-500 ml-1">*</span>
+                  </label>
+                  <select
+                    {...register("meeting_tag", {
+                      required: "Meeting tag is required",
+                    })}
+                    id="meeting_tag"
+                    className="w-full p-2 border rounded-lg text-gray-600"
+                    defaultValue=""
+                  >
+                    <option value="" disabled>
+                      Select meeting tag
+                    </option>
+                    <option value="live">Live</option>
+                    <option value="demo">Demo</option>
+                    <option value="recorded">Recorded</option>
+                    <option value="main">Main</option>
+                  </select>
+                  {errors.meeting_tag && (
+                    <p className="text-red-500 text-xs">
+                      {errors.meeting_tag.message}
+                    </p>
+                  )}
+                </div>
+
                 {/* Meet Link */}
                 <div className="mb-4">
                   <label
