@@ -21,7 +21,7 @@ const UpComingClass = () => {
   const [upcomingClasses, setUpcomingClasses] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [instructorId, setInstructorId] = useState("6757cb3c8071784d1d67c28f");
+  const [instructorId, setInstructorId] = useState("673c756ca9054a9bbf673e0e");
   const { getQuery } = useGetQuery();
 
   // Fetch instructor ID from localStorage
