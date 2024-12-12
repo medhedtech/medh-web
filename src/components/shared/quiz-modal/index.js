@@ -24,12 +24,14 @@ const CreateQuizModal = ({ open, onClose }) => {
   const [pdfBrochures, setPdfBrochures] = useState([]);
   const { postQuery, loading } = usePostQuery();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selected, setSelected] = useState("");
   const [categories, setCategories] = useState([]);
   const dropdownRef = useRef(null);
   const { getQuery, loading: getLoading } = useGetQuery();
   const [selectedMeetingId, setSelectedMeetingId] = useState("");
+  const [selectedMeetingName, setSelectedMeetingName] = useState("");
   const [instructorId, setInstructorId] = useState("");
   const {
     register,
@@ -42,7 +44,6 @@ const CreateQuizModal = ({ open, onClose }) => {
   });
 
   useEffect(() => {
-    // Retrieve instructor ID from localStorage
     if (typeof window !== "undefined") {
       const storedUserId = localStorage.getItem("userId");
       if (storedUserId) {
@@ -52,7 +53,6 @@ const CreateQuizModal = ({ open, onClose }) => {
   }, []);
 
   useEffect(() => {
-    // Fetch meeting categories
     const fetchAllCategories = () => {
       getQuery({
         url: `${apiUrls?.onlineMeeting?.getMeetingsByInstructorId}/${instructorId}`,
@@ -68,62 +68,40 @@ const CreateQuizModal = ({ open, onClose }) => {
     if (instructorId) fetchAllCategories();
   }, [instructorId]);
 
-  const handlePdfUpload = async (e) => {
-    const files = e.target.files;
-    if (files.length > 0) {
-      try {
-        const uploadedPdfs = [...pdfBrochures];
-        for (const file of files) {
-          const reader = new FileReader();
-          reader.readAsDataURL(file);
-          reader.onload = async () => {
-            const base64 = reader.result;
-            const postData = { base64String: base64 };
-
-            await postQuery({
-              url: apiUrls?.upload?.uploadDocument,
-              postData,
-              onSuccess: (data) => {
-                uploadedPdfs.push(data?.data);
-                setPdfBrochures(uploadedPdfs);
-              },
-              onError: () => {
-                toast.error("PDF upload failed. Please try again.");
-              },
-            });
-          };
-        }
-      } catch (error) {
-        console.error("Error uploading PDF:", error);
-      }
-    }
-  };
-
   const onSubmit = async (data) => {
     if (!selectedMeetingId) {
-      // toast.error("Please select a category (course).");
       return;
     }
-    try {
-      const postData = {
-        quiz_title: data.quiz_title,
-        quiz_resources: pdfBrochures,
-        meetingId: selectedMeetingId,
-        instructor_id: instructorId,
-      };
 
+    if (!selectedFile) {
+      toast.error("Please upload a file.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("sheet", selectedFile);
+    formData.append("quiz_title", data.quiz_title);
+    formData.append("created_by", instructorId);
+    formData.append("class_id", selectedMeetingId);
+    formData.append("class_name", selectedMeetingName);
+
+    try {
       await postQuery({
-        url: apiUrls?.Quiz?.createQuiz,
-        postData,
+        url: apiUrls?.quzies?.uploadQuizes,
+        postData: formData,
         onSuccess: () => {
           reset();
           setPdfBrochures([]);
           setSelectedMeetingId("");
           onClose();
+          toast.success("Data uploaded successfully");
         },
-        onError: (error) => {
+        onFail: (error) => {
           toast.error("Error creating assignment.");
           console.error(error);
+        },
+        headers: {
+          "Content-Type": "multipart/form-data",
         },
       });
     } catch (error) {
@@ -137,6 +115,7 @@ const CreateQuizModal = ({ open, onClose }) => {
     setSelected(category.meet_title || "");
     setSelectedMeetingId(category._id);
     setValue("category", category.meet_title);
+    setSelectedMeetingName(category?.meet_title);
     setDropdownOpen(false);
     setSearchTerm("");
   };
@@ -151,7 +130,7 @@ const CreateQuizModal = ({ open, onClose }) => {
     setPdfBrochures((prevFiles) => prevFiles.filter((_, i) => i !== index));
   };
 
-  if (getLoading) {
+  if (getLoading || loading) {
     return <Preloader />;
   }
 
@@ -246,17 +225,28 @@ const CreateQuizModal = ({ open, onClose }) => {
                 />
               </svg>
               {/* Upload Text */}
-              <p className="text-customGreen cursor-pointer text-sm mt-2">
-                Click to upload
-              </p>
-              <p className="text-gray-400 text-xs">or drag & drop the files</p>
+
+              {!selectedFile ? (
+                <div>
+                  <p className="text-customGreen cursor-pointer text-sm mt-2">
+                    Click to upload
+                  </p>
+                  <p className="text-gray-400 text-xs">
+                    or drag & drop the files
+                  </p>
+                </div>
+              ) : (
+                <p className="text-[#000]">{selectedFile?.name}</p>
+              )}
               {/* Hidden Input Field */}
               <input
                 type="file"
-                multiple
-                accept=".pdf"
+                accept=".xlsx"
                 className="absolute inset-0 opacity-0 cursor-pointer"
-                onChange={handlePdfUpload}
+                onChange={(e) => {
+                  setSelectedFile(e.target.files[0]);
+                  console.log("Selected File:", e.target.files[0]);
+                }}
               />
             </div>
 
