@@ -89,12 +89,13 @@
 
 "use client";
 import { apiUrls } from "@/apis";
+import Preloader from "@/components/shared/others/Preloader";
 import useGetQuery from "@/hooks/getQuery.hook";
 import Image from "next/image";
 import React, { useState, useEffect } from "react";
 
 const RecordedSession = () => {
-  const [instructorId, setInstructorId] = useState("673c756ca9054a9bbf673e0e");
+  const [instructorId, setInstructorId] = useState("");
   const [preRecordedClasses, setPreRecordedClasses] = useState([]);
 
   const { getQuery, loading } = useGetQuery();
@@ -170,6 +171,10 @@ const RecordedSession = () => {
   const recordedClasses = preRecordedClasses.filter(
     (classItem) => classItem.meeting_tag === "recorded"
   );
+
+  if (loading) {
+    return <Preloader />;
+  }
 
   return (
     <div className="px-10 pb-12">
