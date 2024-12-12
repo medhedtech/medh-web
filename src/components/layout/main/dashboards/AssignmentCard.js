@@ -41,20 +41,6 @@ const AssignmentCard = ({ title, deadline, daysLeft, image, assignment }) => {
     pending: "text-[#FFA927]",
   };
 
-  // let statusText;
-  // let statusColor;
-
-  // if (daysLeft <= 1) {
-  //   statusText = `Assignment Due to ${daysLeft} Day`;
-  //   statusColor = statusStyles.dueTomorrow;
-  // } else if (daysLeft <= 3) {
-  //   statusText = `Assignment Due to ${daysLeft} Days`;
-  //   statusColor = statusStyles.dueSoon;
-  // } else {
-  //   statusText = "Assignment Pending";
-  //   statusColor = statusStyles.pending;
-  // }
-
   let statusText;
   let statusColor;
 
@@ -72,7 +58,7 @@ const AssignmentCard = ({ title, deadline, daysLeft, image, assignment }) => {
     statusColor = statusStyles.pending;
   }
 
-  const openModal = (courseId, assignmentId) => {
+  const openModal = (assignmentId) => {
     setIsModalOpen(true);
     setAssignmentId(assignmentId);
     setCourseName(assignment.courseId.course_title);
@@ -83,9 +69,12 @@ const AssignmentCard = ({ title, deadline, daysLeft, image, assignment }) => {
   };
 
   useEffect(() => {
+    // Retrieve instructor ID from localStorage
     if (typeof window !== "undefined") {
-      const storedUserId = "673c756ca9054a9bbf673e0e";
-      setInstructorId(storedUserId);
+      const storedUserId = localStorage.getItem("userId");
+      if (storedUserId) {
+        setInstructorId(storedUserId);
+      }
     }
   }, []);
 
@@ -105,6 +94,7 @@ const AssignmentCard = ({ title, deadline, daysLeft, image, assignment }) => {
       fetchInstructorNames();
     }
   }, [instructorId]);
+
   const handlePdfUpload = async (e) => {
     const files = e.target.files;
     if (files.length > 0) {
@@ -226,7 +216,8 @@ const AssignmentCard = ({ title, deadline, daysLeft, image, assignment }) => {
                   : "bg-[#7ECA9D] text-white"
               }`}
               onClick={() =>
-                !hasSubmitted && openModal(assignment.courseId._id)
+                !hasSubmitted &&
+                openModal(assignment.courseId._id, assignment.courseId)
               }
               disabled={hasSubmitted}
             >

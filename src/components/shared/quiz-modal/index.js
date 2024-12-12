@@ -12,6 +12,7 @@ import Image from "next/image";
 import useGetQuery from "@/hooks/getQuery.hook";
 import Icon2 from "@/assets/images/dashbord/icon2.svg";
 import { toast } from "react-toastify";
+import Preloader from "../others/Preloader";
 
 // Validation schema using yup
 const schema = yup.object({
@@ -27,9 +28,9 @@ const CreateQuizModal = ({ open, onClose }) => {
   const [selected, setSelected] = useState("");
   const [categories, setCategories] = useState([]);
   const dropdownRef = useRef(null);
-  const { getQuery } = useGetQuery();
+  const { getQuery, loading: getLoading } = useGetQuery();
   const [selectedMeetingId, setSelectedMeetingId] = useState("");
-  const [instructorId, setInstructorId] = useState("673c756ca9054a9bbf673e0e");
+  const [instructorId, setInstructorId] = useState("");
   const {
     register,
     handleSubmit,
@@ -43,7 +44,7 @@ const CreateQuizModal = ({ open, onClose }) => {
   useEffect(() => {
     // Retrieve instructor ID from localStorage
     if (typeof window !== "undefined") {
-      const storedUserId = localStorage.getItem("673c756ca9054a9bbf673e0e");
+      const storedUserId = localStorage.getItem("userId");
       if (storedUserId) {
         setInstructorId(storedUserId);
       }
@@ -150,6 +151,10 @@ const CreateQuizModal = ({ open, onClose }) => {
     setPdfBrochures((prevFiles) => prevFiles.filter((_, i) => i !== index));
   };
 
+  if (getLoading) {
+    return <Preloader />;
+  }
+
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200">
@@ -163,8 +168,8 @@ const CreateQuizModal = ({ open, onClose }) => {
       <DialogContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div>
-          <label className="block text-sm mb-1">
-          Quiz Title <span className="text-red-500">*</span>
+            <label className="block text-sm mb-1">
+              Quiz Title <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
