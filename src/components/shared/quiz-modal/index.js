@@ -12,8 +12,6 @@ import Image from "next/image";
 import useGetQuery from "@/hooks/getQuery.hook";
 import Icon2 from "@/assets/images/dashbord/icon2.svg";
 import { toast } from "react-toastify";
-
-// Validation schema using yup
 const schema = yup.object({
   quiz_title: yup.string().required("Quiz title is required."),
   quiz_resources: yup.array().of(yup.string()),
@@ -23,12 +21,14 @@ const CreateQuizModal = ({ open, onClose }) => {
   const [pdfBrochures, setPdfBrochures] = useState([]);
   const { postQuery, loading } = usePostQuery();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selected, setSelected] = useState("");
   const [categories, setCategories] = useState([]);
   const dropdownRef = useRef(null);
   const { getQuery } = useGetQuery();
   const [selectedMeetingId, setSelectedMeetingId] = useState("");
+  const [selectedMeetingName, setSelectedMeetingName] = useState("");
   const [instructorId, setInstructorId] = useState("673c756ca9054a9bbf673e0e");
   const {
     register,
@@ -41,7 +41,6 @@ const CreateQuizModal = ({ open, onClose }) => {
   });
 
   useEffect(() => {
-    // Retrieve instructor ID from localStorage
     if (typeof window !== "undefined") {
       const storedUserId = localStorage.getItem("673c756ca9054a9bbf673e0e");
       if (storedUserId) {
@@ -51,7 +50,6 @@ const CreateQuizModal = ({ open, onClose }) => {
   }, []);
 
   useEffect(() => {
-    // Fetch meeting categories
     const fetchAllCategories = () => {
       getQuery({
         url: `${apiUrls?.onlineMeeting?.getMeetingsByInstructorId}/${instructorId}`,
@@ -67,53 +65,62 @@ const CreateQuizModal = ({ open, onClose }) => {
     if (instructorId) fetchAllCategories();
   }, [instructorId]);
 
-  const handlePdfUpload = async (e) => {
-    const files = e.target.files;
-    if (files.length > 0) {
-      try {
-        const uploadedPdfs = [...pdfBrochures];
-        for (const file of files) {
-          const reader = new FileReader();
-          reader.readAsDataURL(file);
-          reader.onload = async () => {
-            const base64 = reader.result;
-            const postData = { base64String: base64 };
+  // const handlePdfUpload = async (e) => {
+  //   const files = e.target.files;
+  //   if (files.length > 0) {
+  //     try {
+  //       const uploadedPdfs = [...pdfBrochures];
+  //       for (const file of files) {
+  //         const reader = new FileReader();
+  //         reader.readAsDataURL(file);
+  //         reader.onload = async () => {
+  //           const base64 = reader.result;
+  //           const postData = { base64String: base64 };
 
-            await postQuery({
-              url: apiUrls?.upload?.uploadDocument,
-              postData,
-              onSuccess: (data) => {
-                uploadedPdfs.push(data?.data);
-                setPdfBrochures(uploadedPdfs);
-              },
-              onError: () => {
-                toast.error("PDF upload failed. Please try again.");
-              },
-            });
-          };
-        }
-      } catch (error) {
-        console.error("Error uploading PDF:", error);
-      }
-    }
-  };
+  //           await postQuery({
+  //             url: apiUrls?.upload?.uploadDocument,
+  //             postData,
+  //             onSuccess: (data) => {
+  //               uploadedPdfs.push(data?.data);
+  //               setPdfBrochures(uploadedPdfs);
+  //             },
+  //             onError: () => {
+  //               toast.error("PDF upload failed. Please try again.");
+  //             },
+  //           });
+  //         };
+  //       }
+  //     } catch (error) {
+  //       console.error("Error uploading PDF:", error);
+  //     }
+  //   }
+  // };
 
   const onSubmit = async (data) => {
     if (!selectedMeetingId) {
-      // toast.error("Please select a category (course).");
       return;
     }
-    try {
-      const postData = {
-        quiz_title: data.quiz_title,
-        quiz_resources: pdfBrochures,
-        meetingId: selectedMeetingId,
-        instructor_id: instructorId,
-      };
 
-      await postQuery({
-        url: apiUrls?.Quiz?.createQuiz,
-        postData,
+    if (!selectedFile) {
+      toast.error("Please upload a file.");
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      formData.append("quiz_title", data.quiz_title);
+      formData.append("created_by", instructorId);
+      formData.append("class_id", selectedMeetingId);
+      formData.append("class_name", data.quiz_title);
+
+      console.log(formData,"HJOIOOOOO")
+
+      return
+
+       const response = await postQuery({
+        url: apiUrls?.quzies?.uploadQuizes,
+        postData: formData,
         onSuccess: () => {
           reset();
           setPdfBrochures([]);
@@ -136,6 +143,7 @@ const CreateQuizModal = ({ open, onClose }) => {
     setSelected(category.meet_title || "");
     setSelectedMeetingId(category._id);
     setValue("category", category.meet_title);
+    setSelectedMeetingName(category?.meet_title);
     setDropdownOpen(false);
     setSearchTerm("");
   };
@@ -163,8 +171,8 @@ const CreateQuizModal = ({ open, onClose }) => {
       <DialogContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div>
-          <label className="block text-sm mb-1">
-          Quiz Title <span className="text-red-500">*</span>
+            <label className="block text-sm mb-1">
+              Quiz Title <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -241,17 +249,28 @@ const CreateQuizModal = ({ open, onClose }) => {
                 />
               </svg>
               {/* Upload Text */}
-              <p className="text-customGreen cursor-pointer text-sm mt-2">
-                Click to upload
-              </p>
-              <p className="text-gray-400 text-xs">or drag & drop the files</p>
+
+              {!selectedFile ? (
+                <div>
+                  <p className="text-customGreen cursor-pointer text-sm mt-2">
+                    Click to upload
+                  </p>
+                  <p className="text-gray-400 text-xs">
+                    or drag & drop the files
+                  </p>
+                </div>
+              ) : (
+                <p className="text-[#000]">{selectedFile?.name}</p>
+              )}
               {/* Hidden Input Field */}
               <input
                 type="file"
-                multiple
-                accept=".pdf"
+                accept=".xlsx"
                 className="absolute inset-0 opacity-0 cursor-pointer"
-                onChange={handlePdfUpload}
+                onChange={(e) => {
+                  setSelectedFile(e.target.files[0]);
+                  console.log("Selected File:", e.target.files[0]);
+                }}
               />
             </div>
 
