@@ -10,6 +10,7 @@ import {
   FaUserCircle,
 } from "react-icons/fa";
 import { Modal, Button } from "@mui/material";
+import Preloader from "@/components/shared/others/Preloader";
 
 // Function to format date as DD-MM-YYYY HH:MM
 const formatDate = (dateString) => {
@@ -23,7 +24,7 @@ const formatDate = (dateString) => {
 };
 
 const SubmittedAssignments = () => {
-  const { getQuery } = useGetQuery();
+  const { getQuery, loading } = useGetQuery();
   const [data, setData] = useState([]);
   const [selectedSubmission, setSelectedSubmission] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -47,13 +48,17 @@ const SubmittedAssignments = () => {
 
   const handleViewDetails = (submission) => {
     setSelectedSubmission(submission);
-    setIsModalOpen(true); // Open the modal
+    setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setSelectedSubmission(null);
-    setIsModalOpen(false); // Close the modal
+    setIsModalOpen(false);
   };
+
+  if (loading) {
+    return <Preloader />;
+  }
 
   return (
     <div className="px-6 pb-12">

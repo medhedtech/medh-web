@@ -43,7 +43,7 @@ const formatTimeWithAmPm = (timeString) => {
 
 const AssignedDemoClass = () => {
   const [classes, setClasses] = useState([]);
-  const [instructorId, setInstructorId] = useState("6757cb3c8071784d1d67c28f");
+  const [instructorId, setInstructorId] = useState("673c756ca9054a9bbf673e0e");
   const { getQuery, loading } = useGetQuery();
 
   // Fetch instructor ID from localStorage
