@@ -44,7 +44,7 @@ const UsersTable = () => {
   const columns = [
     { Header: "No.", accessor: "no" },
     { Header: "Name", accessor: "full_name" },
-    { Header: "Age", accessor: "age" },
+    // { Header: "Age", accessor: "age" },
     { Header: "Email", accessor: "email" },
     // { Header: "Phone Number", accessor: "phone_number" },
     { Header: "Join Date", accessor: "createdAt" },
@@ -71,22 +71,6 @@ const UsersTable = () => {
         </div>
       ),
     },
-    // {
-    //   Header: "Action",
-    //   accessor: "actions",
-    //   render: (row) => (
-    //     <div className="flex gap-2 items-center">
-    //       <button
-    //         onClick={() => {
-    //           deleteUser(row?._id);
-    //         }}
-    //         className="text-white bg-red-600 border border-red-600 rounded-md px-[10px] py-1"
-    //       >
-    //         Delete
-    //       </button>
-    //     </div>
-    //   ),
-    // },
   ];
 
   const handleSortChange = (order) => {
@@ -107,31 +91,6 @@ const UsersTable = () => {
     setIsFilterDropdownOpen(false);
   };
 
-  // Filtering the data based on user inputs
-  // const filteredData =
-  //   data?.data?.filter((user) => {
-  //     const matchesName = filterOptions.full_name
-  //       ? (user?.full_name || "")
-  //           .toLowerCase()
-  //           .includes(filterOptions.full_name.toLowerCase())
-  //       : true;
-
-  //     const matchesStatus = filterOptions.status
-  //       ? (user?.status || "")
-  //           .toLowerCase()
-  //           .includes(filterOptions.status.toLowerCase())
-  //       : true;
-
-  //     const matchesSearchQuery =
-  //       (user?.full_name || "")
-  //         .toLowerCase()
-  //         .includes(searchQuery.toLowerCase()) ||
-  //       (user?.email || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-  //       (user?.role || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-  //       (user?.phone_number || "").includes(searchQuery);
-
-  //     return matchesSearchQuery && matchesName && matchesStatus;
-  //   }) || [];
   const filteredData =
     data?.data?.filter((user) => {
       const matchesName = filterOptions.full_name
