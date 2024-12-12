@@ -12,6 +12,9 @@ import Image from "next/image";
 import useGetQuery from "@/hooks/getQuery.hook";
 import Icon2 from "@/assets/images/dashbord/icon2.svg";
 import { toast } from "react-toastify";
+import Preloader from "../others/Preloader";
+
+// Validation schema using yup
 const schema = yup.object({
   quiz_title: yup.string().required("Quiz title is required."),
   quiz_resources: yup.array().of(yup.string()),
@@ -26,10 +29,10 @@ const CreateQuizModal = ({ open, onClose }) => {
   const [selected, setSelected] = useState("");
   const [categories, setCategories] = useState([]);
   const dropdownRef = useRef(null);
-  const { getQuery } = useGetQuery();
+  const { getQuery, loading: getLoading } = useGetQuery();
   const [selectedMeetingId, setSelectedMeetingId] = useState("");
   const [selectedMeetingName, setSelectedMeetingName] = useState("");
-  const [instructorId, setInstructorId] = useState("673c756ca9054a9bbf673e0e");
+  const [instructorId, setInstructorId] = useState("");
   const {
     register,
     handleSubmit,
@@ -42,7 +45,7 @@ const CreateQuizModal = ({ open, onClose }) => {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const storedUserId = localStorage.getItem("673c756ca9054a9bbf673e0e");
+      const storedUserId = localStorage.getItem("userId");
       if (storedUserId) {
         setInstructorId(storedUserId);
       }
@@ -65,36 +68,6 @@ const CreateQuizModal = ({ open, onClose }) => {
     if (instructorId) fetchAllCategories();
   }, [instructorId]);
 
-  // const handlePdfUpload = async (e) => {
-  //   const files = e.target.files;
-  //   if (files.length > 0) {
-  //     try {
-  //       const uploadedPdfs = [...pdfBrochures];
-  //       for (const file of files) {
-  //         const reader = new FileReader();
-  //         reader.readAsDataURL(file);
-  //         reader.onload = async () => {
-  //           const base64 = reader.result;
-  //           const postData = { base64String: base64 };
-
-  //           await postQuery({
-  //             url: apiUrls?.upload?.uploadDocument,
-  //             postData,
-  //             onSuccess: (data) => {
-  //               uploadedPdfs.push(data?.data);
-  //               setPdfBrochures(uploadedPdfs);
-  //             },
-  //             onError: () => {
-  //               toast.error("PDF upload failed. Please try again.");
-  //             },
-  //           });
-  //         };
-  //       }
-  //     } catch (error) {
-  //       console.error("Error uploading PDF:", error);
-  //     }
-  //   }
-  // };
 
   const onSubmit = async (data) => {
     if (!selectedMeetingId) {
@@ -106,19 +79,15 @@ const CreateQuizModal = ({ open, onClose }) => {
       return;
     }
 
+    const formData = new FormData();
+    formData.append("sheet", selectedFile);
+    formData.append("quiz_title", data.quiz_title);
+    formData.append("created_by", instructorId);
+    formData.append("class_id", selectedMeetingId);
+    formData.append("class_name", selectedMeetingName);
+
     try {
-      const formData = new FormData();
-      formData.append("file", selectedFile);
-      formData.append("quiz_title", data.quiz_title);
-      formData.append("created_by", instructorId);
-      formData.append("class_id", selectedMeetingId);
-      formData.append("class_name", data.quiz_title);
-
-      console.log(formData,"HJOIOOOOO")
-
-      return
-
-       const response = await postQuery({
+      await postQuery({
         url: apiUrls?.quzies?.uploadQuizes,
         postData: formData,
         onSuccess: () => {
@@ -126,10 +95,14 @@ const CreateQuizModal = ({ open, onClose }) => {
           setPdfBrochures([]);
           setSelectedMeetingId("");
           onClose();
+          toast.success("Data uploaded successfully")
         },
-        onError: (error) => {
+        onFail: (error) => {
           toast.error("Error creating assignment.");
           console.error(error);
+        },
+        headers: {
+          "Content-Type": "multipart/form-data",
         },
       });
     } catch (error) {
@@ -157,6 +130,10 @@ const CreateQuizModal = ({ open, onClose }) => {
   const removePdf = (index) => {
     setPdfBrochures((prevFiles) => prevFiles.filter((_, i) => i !== index));
   };
+
+  if (getLoading || loading) {
+    return <Preloader />;
+  }
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">

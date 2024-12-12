@@ -1,10 +1,13 @@
 "use client";
+import { apiUrls } from "@/apis";
+import useGetQuery from "@/hooks/getQuery.hook";
+import moment from "moment";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 const QuizQuestion = ({
   question,
-  options,
+  options = [], // Default to an empty array if undefined
   questionNumber,
   totalQuestions,
   time,
@@ -24,6 +27,8 @@ const QuizQuestion = ({
     closeQuiz();
   };
 
+  console.log
+
   return (
     <div className="p-6 bg-white dark:bg-inherit rounded-lg shadow-md w-full mx-auto">
       {/* Header */}
@@ -35,41 +40,47 @@ const QuizQuestion = ({
           &larr; Quizzes
         </button>
         <div className="md:flex-none md:w-1/2 flex justify-between w-full items-center">
-        <div className="text-gray-800 text-lg font-semibold dark:text-white">
-          {questionNumber}/{totalQuestions}
-        </div>
-        <div className="font-semibold dark:text-white">
-          Time: &nbsp;
-          <span>{time}</span>
-        </div>
+          <div className="text-gray-800 text-lg font-semibold dark:text-white">
+            {questionNumber}/{totalQuestions}
+          </div>
+          <div className="font-semibold dark:text-white">
+            Time: &nbsp;
+            <span>{time}</span>
+          </div>
         </div>
       </div>
 
       {/* Question */}
-      <h2 className="text-lg font-medium mb-4 dark:text-white">{question}</h2>
+      <h2 className="text-lg font-medium mb-4 dark:text-white">
+        {question || "No question available"}
+      </h2>
 
       {/* Options */}
       <div className="space-y-2 text-[#615F5F] dark:text-white">
-        {options.map((option, index) => (
-          <label
-            key={index}
-            className={`block p-3 border rounded-lg cursor-pointer dark:bg-inherit dark:text-white ${
-              selectedOption === index
-                ? "bg-[#F6F7F9] border-green-500"
-                : "bg-gray-100 border-gray-200"
-            }`}
-          >
-            <input
-              type="radio"
-              name="quiz-option"
-              value={option}
-              checked={selectedOption === index}
-              onChange={() => handleOptionSelect(index)}
-              className="hidden"
-            />
-            <span className="text-gray-700">{option}</span>
-          </label>
-        ))}
+        {options?.length > 0 ? (
+          options?.map((option, index) => (
+            <label
+              key={index}
+              className={`block p-3 border rounded-lg cursor-pointer dark:bg-inherit dark:text-white ${
+                selectedOption === index
+                  ? "bg-[#F6F7F9] border-green-500"
+                  : "bg-gray-100 border-gray-200"
+              }`}
+            >
+              <input
+                type="radio"
+                name="quiz-option"
+                value={option}
+                checked={selectedOption === index}
+                onChange={() => handleOptionSelect(index)}
+                className="hidden"
+              />
+              <span className="text-gray-700">{option}</span>
+            </label>
+          ))
+        ) : (
+          <p>No options available</p>
+        )}
       </div>
 
       {/* Navigation Buttons */}
@@ -77,8 +88,10 @@ const QuizQuestion = ({
         <button
           onClick={onBack}
           disabled={questionNumber == 1}
-          className={`px-8 py-3.5 border rounded-full text-primaryColor border-primaryColor text-size-15   ${
-            questionNumber == 1 ? "cursor-not-allowed" : "hover:bg-primaryColor hover:text-white"
+          className={`px-8 py-3.5 border rounded-full text-primaryColor border-primaryColor text-size-15 ${
+            questionNumber == 1
+              ? "cursor-not-allowed"
+              : "hover:bg-primaryColor hover:text-white"
           }`}
         >
           Go Back

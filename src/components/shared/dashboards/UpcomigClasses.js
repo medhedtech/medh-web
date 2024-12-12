@@ -110,7 +110,7 @@ const UpcomigClasses = () => {
     <div className="px-10 pb-12">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-size-32 font-Open dark:text-white">
-          Upcoming Classes
+           Upcoming Classes
         </h2>
         <a
           href="/dashboards/student-upcoming-classes"
