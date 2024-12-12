@@ -12,6 +12,7 @@ import Image from "next/image";
 import useGetQuery from "@/hooks/getQuery.hook";
 import Icon2 from "@/assets/images/dashbord/icon2.svg";
 import { toast } from "react-toastify";
+import Preloader from "../others/Preloader";
 
 // Validation schema using yup
 const schema = yup.object({
@@ -31,9 +32,9 @@ const AssignmentModal = ({ open, handleClose }) => {
   const [selected, setSelected] = useState("");
   const [categories, setCategories] = useState([]);
   const dropdownRef = useRef(null);
-  const { getQuery } = useGetQuery();
+  const { getQuery, loading: getLoading } = useGetQuery();
   const [selectedCourseId, setSelectedCourseId] = useState("");
-  const [instructorId, setInstructorId] = useState("673c756ca9054a9bbf673e0e");
+  const [instructorId, setInstructorId] = useState("");
   const {
     register,
     handleSubmit,
@@ -46,7 +47,7 @@ const AssignmentModal = ({ open, handleClose }) => {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const storedUserId = localStorage.getItem("673c756ca9054a9bbf673e0e");
+      const storedUserId = localStorage.getItem("userId");
       if (storedUserId) {
         setInstructorId(storedUserId);
       } else {
@@ -161,6 +162,10 @@ const AssignmentModal = ({ open, handleClose }) => {
       ? category?.course_title?.toLowerCase().includes(searchTerm.toLowerCase())
       : true
   );
+
+  if (getLoading) {
+    return <Preloader />;
+  }
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
