@@ -1,170 +1,3 @@
-// "use client";
-// import { apiUrls } from "@/apis";
-// import useGetQuery from "@/hooks/getQuery.hook";
-// import Image from "next/image";
-// import React, { useEffect, useState } from "react";
-
-// const AssignmentCard = ({
-//   title,
-//   instructor,
-//   deadline,
-//   status,
-//   daysLeft,
-//   image,
-// }) => {
-//   const [isModalOpen, setIsModalOpen] = useState(false);
-//   const [instructorName, setInstructorName] = useState(""); // Store instructor name
-//   const [instructorId, setInstructorId] = useState(""); // Store instructor ID
-//   const { getQuery } = useGetQuery();
-
-//   const statusStyles = {
-//     dueSoon: "text-[#F50909]",
-//     dueTomorrow: "text-[#2E9800]",
-//     pending: "text-[#FFA927]",
-//   };
-
-//   let statusText;
-//   let statusColor;
-
-//   if (daysLeft <= 1) {
-//     statusText = `Assignment Due to ${daysLeft} Day`;
-//     statusColor = statusStyles.dueTomorrow;
-//   } else if (daysLeft <= 3) {
-//     statusText = `Assignment Due to ${daysLeft} Days`;
-//     statusColor = statusStyles.dueSoon;
-//   } else {
-//     statusText = "Assignment Pending";
-//     statusColor = statusStyles.pending;
-//   }
-
-//   const openModal = () => {
-//     setIsModalOpen(true);
-//   };
-
-//   const closeModal = () => {
-//     setIsModalOpen(false);
-//   };
-
-//   useEffect(() => {
-//     if (typeof window !== "undefined") {
-//       const storedUserId = "673c756ca9054a9bbf673e0e"; // Just hardcoding for now; replace with localStorage if needed
-//       setInstructorId(storedUserId);
-//     }
-//   }, []);
-
-//   useEffect(() => {
-//     if (instructorId) {
-//       const fetchInstructorNames = () => {
-//         getQuery({
-//           url: `${apiUrls?.Instructor?.getInstructorById}/${instructorId}`,
-//           onSuccess: (res) => {
-//             setInstructorName(res?.full_name || "Instructor Not Found");
-//           },
-//           onFail: (err) => {
-//             setInstructorName("Instructor Not Found");
-//           },
-//         });
-//       };
-//       fetchInstructorNames();
-//     }
-//   }, [instructorId]);
-
-//   const formattedDeadline = new Date(deadline).toLocaleDateString();
-
-//   return (
-//     <div className="p-5 font-Open border rounded-lg shadow-sm">
-//       <div className="flex items-center">
-//         <Image
-//           src={image}
-//           alt="assignment thumbnail"
-//           className="w-27 h-27 rounded-md mr-4"
-//         />
-//         <div className="w-full">
-//           <h3 className="text-sm text-[#171A1F] font-Open dark:text-white">
-//             {title}
-//           </h3>
-//           <p className="text-size-11 text-[#9095A0]">
-//             Instructor: {instructorName}
-//           </p>
-//           <p className="text-size-11 text-[#9095A0]">
-//             Deadline: {formattedDeadline}
-//           </p>
-
-//           <div className="flex items-start flex-col md:flex-row md:justify-between">
-//             <p className={`text-sm font-medium mt-5 ${statusColor}`}>
-//               {statusText}
-//             </p>
-//             <button
-//               className="text-primaryColor mt-5 text-sm font-medium"
-//               onClick={openModal}
-//             >
-//               Submit Now
-//             </button>
-//           </div>
-//         </div>
-//       </div>
-
-//       {/* Popup Modal */}
-//       {isModalOpen && (
-//         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-//           <div className="bg-white rounded-lg px-10 py-5 w-[705px] dark:bg-black shadow-lg relative">
-//             <button
-//               className="absolute top-5 right-4 font-bold hover:text-gray-700 dark:text-white"
-//               onClick={closeModal}
-//             >
-//               ✕
-//             </button>
-//             <h2 className="text-xl text-center font-semibold mb-4 dark:text-white">
-//               Submit Assignment  01
-//             </h2>
-//             <form>
-//               <div className="mb-4">
-//                 <label
-//                   htmlFor="name"
-//                   className="block text-xl font-semibold text-[#434343] dark:text-whitegrey1"
-//                 >
-//                   Course Name
-//                 </label>
-//                 <input
-//                   type="text"
-//                   id="name"
-//                   name="name"
-//                   className="mt-6 block w-full p-2 border dark:bg-inherit border-gray-300 rounded-md"
-//                   placeholder="Enter your name"
-//                   required
-//                 />
-//               </div>
-//               <div className="mb-7">
-//                 <label
-//                   htmlFor="file"
-//                   className="block text-xl font-semibold text-[#434343] dark:text-whitegrey1"
-//                 >
-//                   Upload File
-//                 </label>
-//                 <input
-//                   type="file"
-//                   id="file"
-//                   name="file"
-//                   className="mt-6 block w-full p-2 border border-gray-300 rounded-md"
-//                   required
-//                 />
-//               </div>
-//               <button
-//                 type="submit"
-//                 className="w-full bg-blue-600 text-white bg-primaryColor py-2 rounded-full hover:bg-blue-700"
-//               >
-//                 Submit
-//               </button>
-//             </form>
-//           </div>
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default AssignmentCard;
-
 "use client";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
@@ -181,6 +14,26 @@ const AssignmentCard = ({ title, deadline, daysLeft, image, assignment }) => {
   const [assignmentId, setAssignmentId] = useState("");
   const { getQuery } = useGetQuery();
   const { postQuery } = usePostQuery();
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+
+  useEffect(() => {
+    const checkSubmissionStatus = async () => {
+      try {
+        const response = await getQuery({
+          url: `${apiUrls?.assignments?.assignmentsStatus}/${assignment._id}`,
+        });
+        if (response?.submissions?.length > 0) {
+          setHasSubmitted(true);
+        } else {
+          setHasSubmitted(false);
+        }
+      } catch (error) {
+        console.error("Error fetching submission status:", error);
+      }
+    };
+
+    checkSubmissionStatus();
+  }, [assignment._id]);
 
   const statusStyles = {
     dueSoon: "text-[#F50909]",
@@ -188,14 +41,31 @@ const AssignmentCard = ({ title, deadline, daysLeft, image, assignment }) => {
     pending: "text-[#FFA927]",
   };
 
+  // let statusText;
+  // let statusColor;
+
+  // if (daysLeft <= 1) {
+  //   statusText = `Assignment Due to ${daysLeft} Day`;
+  //   statusColor = statusStyles.dueTomorrow;
+  // } else if (daysLeft <= 3) {
+  //   statusText = `Assignment Due to ${daysLeft} Days`;
+  //   statusColor = statusStyles.dueSoon;
+  // } else {
+  //   statusText = "Assignment Pending";
+  //   statusColor = statusStyles.pending;
+  // }
+
   let statusText;
   let statusColor;
 
-  if (daysLeft <= 1) {
-    statusText = `Assignment Due to ${daysLeft} Day`;
+  if (hasSubmitted) {
+    statusText = "Assignment Submitted";
+    statusColor = "text-[#2E9800]";
+  } else if (daysLeft <= 1) {
+    statusText = `Assignment Due in ${daysLeft} Day`;
     statusColor = statusStyles.dueTomorrow;
   } else if (daysLeft <= 3) {
-    statusText = `Assignment Due to ${daysLeft} Days`;
+    statusText = `Assignment Due in ${daysLeft} Days`;
     statusColor = statusStyles.dueSoon;
   } else {
     statusText = "Assignment Pending";
@@ -214,7 +84,7 @@ const AssignmentCard = ({ title, deadline, daysLeft, image, assignment }) => {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const storedUserId = "673c756ca9054a9bbf673e0e"; // Just hardcoding for now; replace with localStorage if needed
+      const storedUserId = "673c756ca9054a9bbf673e0e";
       setInstructorId(storedUserId);
     }
   }, []);
@@ -252,7 +122,7 @@ const AssignmentCard = ({ title, deadline, daysLeft, image, assignment }) => {
               postData,
               onSuccess: (data) => {
                 uploadedPdfs.push(data?.data);
-                setPdfBrochures(uploadedPdfs); // Update state with the new PDF
+                setPdfBrochures(uploadedPdfs);
               },
               onError: (error) => {
                 toast.error("PDF upload failed. Please try again.");
@@ -321,16 +191,46 @@ const AssignmentCard = ({ title, deadline, daysLeft, image, assignment }) => {
           <p className="text-size-11 text-[#9095A0]">
             Deadline: {formattedDeadline}
           </p>
-
-          <div className="flex items-start flex-col md:flex-row md:justify-between">
-            <p className={`text-sm font-medium mt-5 ${statusColor}`}>
+          {assignment.assignment_resources?.map((resource, index) => (
+            <div key={index} className="text-size-11 text-blue">
+              <a
+                href={resource}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:underline"
+              >
+                Download Assignments
+              </a>
+            </div>
+          ))}
+          <div className="flex flex-col md:flex-row md:justify-between items-center mt-5">
+            <p
+              className={`text-sm font-medium rounded-full px-4 py-1 ${
+                hasSubmitted
+                  ? "bg-green-100 text-green-600"
+                  : daysLeft <= 1
+                  ? "bg-yellow-100 text-yellow-600"
+                  : daysLeft <= 3
+                  ? "bg-red-100 text-red-600"
+                  : "bg-gray-100 text-gray-600"
+              }`}
+            >
               {statusText}
             </p>
+
+            {/* Submit Button */}
             <button
-              className="text-primaryColor mt-5 text-sm font-medium"
-              onClick={() => openModal(assignment.courseId._id)}
+              className={`mt-3 md:mt-0 px-6 py-2 text-sm font-medium rounded-full transition-all duration-300 ${
+                hasSubmitted
+                  ? "bg-gray-400 text-white cursor-not-allowed"
+                  : "bg-[#7ECA9D] text-white"
+              }`}
+              onClick={() =>
+                !hasSubmitted && openModal(assignment.courseId._id)
+              }
+              disabled={hasSubmitted}
             >
-              Submit Now
+              {hasSubmitted ? "✔️ Submitted" : "Submit Now"}
             </button>
           </div>
         </div>
@@ -346,7 +246,7 @@ const AssignmentCard = ({ title, deadline, daysLeft, image, assignment }) => {
               ✕
             </button>
             <h2 className="text-xl text-center font-semibold mb-4 dark:text-white">
-              Submit Assignment 01
+              Submit Assignment
             </h2>
             <form onSubmit={handleSubmitAssignment}>
               <div className="mb-4">
