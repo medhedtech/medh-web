@@ -79,7 +79,7 @@ const AssignedDemoClass = () => {
 
   // Filter only Demo classes
   const demoClasses = classes.filter(
-    (classItem) => classItem.courseDetails?.course_tag === "Demo"
+    (classItem) => classItem.meeting_tag === "demo"
   );
 
   return (

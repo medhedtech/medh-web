@@ -87,7 +87,7 @@
 // };
 // export default RecordedSession;
 
-"use client"
+"use client";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import Image from "next/image";
@@ -119,7 +119,8 @@ const RecordedSession = () => {
           url: `${apiUrls?.onlineMeeting?.getMeetingsByInstructorId}/${instructorId}`,
           onSuccess: (res) => {
             const preRecorded = res.meetings?.filter(
-              (classItem) => classItem.courseDetails?.course_tag === "Pre-Recorded"
+              (classItem) =>
+                classItem.courseDetails?.course_tag === "Pre-Recorded"
             );
             setPreRecordedClasses(preRecorded || []);
           },
@@ -166,18 +167,25 @@ const RecordedSession = () => {
     });
   };
 
+  const recordedClasses = preRecordedClasses.filter(
+    (classItem) => classItem.meeting_tag === "recorded"
+  );
+
   return (
     <div className="px-10 pb-12">
       <div className="flex justify-between items-center pt-4 mb-4">
         <h2 className="text-2xl font-Open font-semibold dark:text-white text-gray-900">
           Access Recorded Sessions Instructor
         </h2>
-        <a href="/dashboards/instructor-class/access-recorded-sessions" className="text-green-500 hover:underline">
+        <a
+          href="/dashboards/instructor-class/access-recorded-sessions"
+          className="text-green-500 hover:underline"
+        >
           View All
         </a>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {preRecordedClasses.map((classItem) => (
+        {recordedClasses.map((classItem) => (
           <div
             key={classItem._id}
             className="bg-white dark:border dark:text-white dark:bg-inherit shadow rounded-lg p-4"
@@ -185,7 +193,9 @@ const RecordedSession = () => {
             {/* Class Image */}
             <div className="rounded overflow-hidden">
               <Image
-                src={classItem.courseDetails?.course_image || "/default-image.jpg"}
+                src={
+                  classItem.courseDetails?.course_image || "/default-image.jpg"
+                }
                 alt={classItem.meet_title || "Pre-Recorded Class"}
                 className="w-full h-40 object-cover"
                 width={300}
