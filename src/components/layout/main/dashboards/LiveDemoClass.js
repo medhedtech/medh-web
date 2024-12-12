@@ -5,16 +5,17 @@ import useGetQuery from "@/hooks/getQuery.hook";
 import { useRouter } from "next/navigation";
 import { apiUrls } from "@/apis";
 import moment from "moment";
+import Preloader from "@/components/shared/others/Preloader";
 
 const LiveDemoClass = () => {
   const router = useRouter();
   const [classes, setClasses] = useState([]);
-  const [instructorId, setInstructorId] = useState("673c756ca9054a9bbf673e0e");
-  const { getQuery } = useGetQuery();
+  const [instructorId, setInstructorId] = useState("");
+  const { getQuery, loading } = useGetQuery();
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const storedUserId = localStorage.getItem("673c756ca9054a9bbf673e0e");
+      const storedUserId = localStorage.getItem("userId");
       if (storedUserId) {
         setInstructorId(storedUserId);
       } else {
@@ -44,6 +45,10 @@ const LiveDemoClass = () => {
   const liveAndDemoClasses = classes.filter(
     (classItem) => classItem?.meeting_tag === "live"
   );
+
+  if(loading){
+    return <Preloader/>
+  }
 
   return (
     <div className="px-10 pb-12">

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import moment from "moment";
+import Preloader from "@/components/shared/others/Preloader";
 
 // Function to format date as DD-MM-YYYY HH:MM
 const formatDate = (dateString) => {
@@ -21,22 +22,23 @@ const UpComingClass = () => {
   const [upcomingClasses, setUpcomingClasses] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [instructorId, setInstructorId] = useState("673c756ca9054a9bbf673e0e");
+  const [instructorId, setInstructorId] = useState("");
   const { getQuery } = useGetQuery();
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const storedUserId = localStorage.getItem("instructorId");
+      const storedUserId = localStorage.getItem("userId");
       if (storedUserId) {
         setInstructorId(storedUserId);
       } else {
         console.error("No instructor ID found in localStorage");
       }
     }
-  }, []);
+  }, []); 
 
   useEffect(() => {
     const fetchUpcomingClasses = async () => {
+      if (!instructorId) return;
       setLoading(true);
       setError(null);
 
@@ -56,7 +58,7 @@ const UpComingClass = () => {
     };
 
     fetchUpcomingClasses();
-  }, []);
+  }, [instructorId]);
 
   const getTimeDifference = (classDate, classTime) => {
     const now = moment();
@@ -77,6 +79,10 @@ const UpComingClass = () => {
       return "Meeting has already started.";
     }
   };
+
+  if (loading) {
+    return <Preloader />;
+  }
 
   return (
     <div className="dark:bg-inherit px-10 pb-12">
