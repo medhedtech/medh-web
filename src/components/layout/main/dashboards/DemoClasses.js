@@ -11,7 +11,7 @@ const DemoClasses = () => {
       <div className="bg-white rounded-lg dark:bg-inherit dark:border shadow-md">
         <AssignedDemoClass />
         <LiveDemoClass />
-        <RecordedSession />
+        {/* <RecordedSession /> */}
       </div>
     </div>
   );
