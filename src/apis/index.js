@@ -111,7 +111,9 @@ export const apiUrls = {
     addAssignments: "/assignments/create",
     getAssignments: "/assignments",
     submitAssignments: "/assignments/submit",
-    submittedAssignments: "/assignments/submitted/get"
+    submittedAssignments: "/assignments/submitted/get",
+    assignmentsStatus: "/assignments/submition/status",
+    assignmentsCountByInstructorId: "/assignments/submitted-assignments-count"
   },
   feedbacks: {
     createFeedback: "/feedback/",
@@ -121,9 +123,9 @@ export const apiUrls = {
     getAllComplaints: "/complaint",
     deleteComplaint: "/complaint/delete",
     updateComplaintStatus: "/complaint/change-status",
-    instructorFeedback:"/feedback/instructor/add",
+    instructorFeedback: "/feedback/instructor/add",
     getAllInstructorFeedbacks: "/feedback/getAll/instructors-feedbacks",
-    deleteInstructorFeedback: "/feedback/instructor"
+    deleteInstructorFeedback: "/feedback/instructor",
   },
   resources: {},
   categories: {
