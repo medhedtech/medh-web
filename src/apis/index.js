@@ -106,6 +106,7 @@ export const apiUrls = {
   },
   quzies: {
     getQuizes: "/quizes",
+    uploadQuizes:"/quizes/upload"
   },
   assignments: {
     addAssignments: "/assignments/create",
