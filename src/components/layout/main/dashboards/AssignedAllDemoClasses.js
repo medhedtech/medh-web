@@ -1,5 +1,4 @@
 "use client";
-
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import useGetQuery from "@/hooks/getQuery.hook";
@@ -11,7 +10,6 @@ function formatDateWithOrdinal(dateString) {
   const month = date.toLocaleString("en-US", { month: "long" });
   const year = date.getFullYear();
 
-  // Add ordinal suffix to the day
   const ordinalSuffix = (day) => {
     if (day > 3 && day < 21) return "th";
     switch (day % 10) {
@@ -43,10 +41,9 @@ const formatTimeWithAmPm = (timeString) => {
 
 const AssignedAllDemoClasses = () => {
   const [classes, setClasses] = useState([]);
-  const [instructorId, setInstructorId] = useState("6757cb3c8071784d1d67c28f");
+  const [instructorId, setInstructorId] = useState("673c756ca9054a9bbf673e0e");
   const { getQuery, loading } = useGetQuery();
 
-  // Fetch instructor ID from localStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedUserId = localStorage.getItem("userId");
@@ -58,7 +55,6 @@ const AssignedAllDemoClasses = () => {
     }
   }, []);
 
-  // Fetch classes from API
   useEffect(() => {
     if (instructorId) {
       const fetchDemoClasses = () => {
@@ -77,9 +73,8 @@ const AssignedAllDemoClasses = () => {
     }
   }, [instructorId]);
 
-  // Filter only Demo classes
   const demoClasses = classes.filter(
-    (classItem) => classItem.courseDetails?.course_tag === "Demo"
+    (classItem) => classItem.meeting_tag === "demo"
   );
 
   return (
@@ -89,32 +84,35 @@ const AssignedAllDemoClasses = () => {
           View Assigned Demo Classes
         </h2>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {demoClasses.map((classItem) => (
           <div
             key={classItem._id}
-            className="bg-white dark:border dark:text-white dark:bg-inherit shadow rounded-lg p-4"
+            className="bg-white dark:bg-gray-800 shadow-lg rounded-xl border p-6 relative flex flex-col justify-between h-full"
           >
             {/* Class Image */}
-            <div className="rounded overflow-hidden">
+            <div className="rounded-xl overflow-hidden mb-4">
               <Image
                 src={
                   classItem.courseDetails?.course_image || "/default-image.jpg"
                 }
                 alt={classItem.meet_title || "Demo Class"}
-                className="w-full h-40 object-cover"
+                className="w-full h-48 object-cover rounded-xl transform hover:scale-110 transition-all duration-300"
                 width={300}
                 height={150}
               />
             </div>
+
             {/* Class Details */}
-            <h3 className="mt-2 font-semibold dark:text-white text-gray-800">
+            <h3 className="mt-2 font-semibold text-lg text-gray-800 dark:text-white">
               {classItem.meet_title || "Untitled Class"}
             </h3>
-            <p className="text-gray-600 text-sm">
+            <p className="text-gray-600 dark:text-gray-300 text-sm">
               Date: {formatDateWithOrdinal(classItem.date) || "Not specified"}
             </p>
-            <div className="flex items-center text-sm text-orange-500 mt-1">
+
+            {/* Time with Icon */}
+            <div className="flex items-center text-sm text-orange-500 mt-2">
               <svg
                 width="15"
                 height="15"
@@ -127,6 +125,16 @@ const AssignedAllDemoClasses = () => {
                 <path d="M7.5 3v5h3" stroke="orange" />
               </svg>
               {formatTimeWithAmPm(classItem.time) || "Not specified"}
+            </div>
+
+            {/* Join Button */}
+            <div className="mt-4">
+              <button
+                className="w-full px-4 py-2 bg-[#7ECA9D] text-white font-semibold rounded-full transition-transform transform hover:scale-105 hover:bg-green-600 duration-300"
+                onClick={() => {}}
+              >
+                Join Class
+              </button>
             </div>
           </div>
         ))}

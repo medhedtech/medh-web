@@ -15,15 +15,11 @@ import { toast } from "react-toastify";
 
 // Validation schema using yup
 const schema = yup.object({
-  title: yup.string().required("Assignment title is required."),
-  deadline: yup
-    .date()
-    .required("Deadline is required.")
-    .typeError("Invalid type"),
-  assignment_resources: yup.array().of(yup.string()),
+  quiz_title: yup.string().required("Quiz title is required."),
+  quiz_resources: yup.array().of(yup.string()),
 });
 
-const AssignmentModal = ({ open, handleClose }) => {
+const CreateQuizModal = ({ open, onClose }) => {
   const [pdfBrochures, setPdfBrochures] = useState([]);
   const { postQuery, loading } = usePostQuery();
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -32,7 +28,7 @@ const AssignmentModal = ({ open, handleClose }) => {
   const [categories, setCategories] = useState([]);
   const dropdownRef = useRef(null);
   const { getQuery } = useGetQuery();
-  const [selectedCourseId, setSelectedCourseId] = useState("");
+  const [selectedMeetingId, setSelectedMeetingId] = useState("");
   const [instructorId, setInstructorId] = useState("673c756ca9054a9bbf673e0e");
   const {
     register,
@@ -45,30 +41,31 @@ const AssignmentModal = ({ open, handleClose }) => {
   });
 
   useEffect(() => {
+    // Retrieve instructor ID from localStorage
     if (typeof window !== "undefined") {
       const storedUserId = localStorage.getItem("673c756ca9054a9bbf673e0e");
       if (storedUserId) {
         setInstructorId(storedUserId);
-      } else {
-        console.error("No instructor ID found in localStorage");
       }
     }
   }, []);
 
   useEffect(() => {
+    // Fetch meeting categories
     const fetchAllCategories = () => {
       getQuery({
-        url: apiUrls?.courses?.getAllCourses,
+        url: `${apiUrls?.onlineMeeting?.getMeetingsByInstructorId}/${instructorId}`,
         onSuccess: (res) => {
-          setCategories(res || []);
+          setCategories(res?.meetings || []);
         },
-        onFail: (err) => {
+        onFail: () => {
+          toast.error("Failed to fetch categories.");
           setCategories([]);
         },
       });
     };
-    fetchAllCategories();
-  }, []);
+    if (instructorId) fetchAllCategories();
+  }, [instructorId]);
 
   const handlePdfUpload = async (e) => {
     const files = e.target.files;
@@ -89,9 +86,8 @@ const AssignmentModal = ({ open, handleClose }) => {
                 uploadedPdfs.push(data?.data);
                 setPdfBrochures(uploadedPdfs);
               },
-              onError: (error) => {
+              onError: () => {
                 toast.error("PDF upload failed. Please try again.");
-                console.error("Upload error:", error);
               },
             });
           };
@@ -103,31 +99,30 @@ const AssignmentModal = ({ open, handleClose }) => {
   };
 
   const onSubmit = async (data) => {
-    console.log("data before submission", data);
-    if (!selectedCourseId) {
+    if (!selectedMeetingId) {
       // toast.error("Please select a category (course).");
       return;
     }
     try {
       const postData = {
-        title: data.title,
-        deadline: data.deadline,
-        assignment_resources: pdfBrochures,
-        courseId: selectedCourseId,
+        quiz_title: data.quiz_title,
+        quiz_resources: pdfBrochures,
+        meetingId: selectedMeetingId,
         instructor_id: instructorId,
       };
 
       await postQuery({
-        url: apiUrls?.assignments?.addAssignments,
+        url: apiUrls?.Quiz?.createQuiz,
         postData,
         onSuccess: () => {
           reset();
           setPdfBrochures([]);
-          setSelectedCourseId(null);
-          handleClose();
+          setSelectedMeetingId("");
+          onClose();
         },
         onError: (error) => {
-          console.error("Error submitting assignment:", error);
+          toast.error("Error creating assignment.");
+          console.error(error);
         },
       });
     } catch (error) {
@@ -135,67 +130,62 @@ const AssignmentModal = ({ open, handleClose }) => {
     }
   };
 
-  const removePdf = (index) => {
-    setPdfBrochures((prevFiles) => prevFiles.filter((_, i) => i !== index));
-  };
-
-  const toggleDropdown = (e) => {
-    e.preventDefault();
-    setDropdownOpen((prev) => !prev);
-  };
+  const toggleDropdown = () => setDropdownOpen((prev) => !prev);
 
   const selectCategory = (category) => {
-    if (!category) {
-      console.error("Selected category is undefined or null.");
-      return;
-    }
-    setSelected(category.course_title || "");
-    setSelectedCourseId(category._id);
-    setValue("category", category.course_title);
+    setSelected(category.meet_title || "");
+    setSelectedMeetingId(category._id);
+    setValue("category", category.meet_title);
     setDropdownOpen(false);
     setSearchTerm("");
   };
 
   const filteredCategories = categories?.filter((category) =>
     searchTerm
-      ? category?.course_title?.toLowerCase().includes(searchTerm.toLowerCase())
+      ? category?.meet_title?.toLowerCase().includes(searchTerm.toLowerCase())
       : true
   );
 
+  const removePdf = (index) => {
+    setPdfBrochures((prevFiles) => prevFiles.filter((_, i) => i !== index));
+  };
+
   return (
-    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200">
         <DialogTitle className="text-lg font-semibold m-0">
-          Create Assignment
+          Quiz Specifications
         </DialogTitle>
-        <IconButton onClick={handleClose}>
+        <IconButton onClick={onClose}>
           <AiOutlineClose size={20} />
         </IconButton>
       </div>
       <DialogContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {/* Assignment Title */}
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Assignment Title
+          <label className="block text-sm mb-1">
+          Quiz Title <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
-              {...register("title")}
+              {...register("quiz_title")}
               className="w-full border rounded px-3 py-2"
             />
-            {errors.title && (
-              <p className="text-red-500 text-sm">{errors.title.message}</p>
+            {errors.quiz_title && (
+              <p className="text-red-500 text-sm">
+                {errors.quiz_title.message}
+              </p>
             )}
           </div>
 
+          {/* Dropdown */}
           <div className="relative" ref={dropdownRef}>
-            <label className="block text-sm font-normal mb-1">
-              Course <span className="text-red-500">*</span>
+            <label className="block text-sm mb-1">
+              Select Class <span className="text-red-500">*</span>
             </label>
-            <div className="p-3 border rounded-lg w-full dark:bg-inherit text-gray-600">
+            <div className="p-3 border rounded-lg">
               <button className="w-full text-left" onClick={toggleDropdown}>
-                {selected || "Select Category"}
+                {selected || "Select Class"}
               </button>
               {dropdownOpen && (
                 <div className="absolute z-10 left-0 top-20 bg-white border border-gray-600 rounded-lg w-full shadow-xl">
@@ -207,67 +197,33 @@ const AssignmentModal = ({ open, handleClose }) => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                   <ul className="max-h-56 overflow-auto">
-                    {filteredCategories.length > 0 ? (
-                      filteredCategories.map((category) => (
-                        <li
-                          key={category._id}
-                          className="hover:bg-gray-100 rounded-lg cursor-pointer flex gap-3 px-3 py-3"
-                          onClick={() => selectCategory(category)}
-                        >
-                          <Image
-                            src={category.course_image || Icon2}
-                            alt={category.course_title}
-                            width={32}
-                            height={32}
-                            className="rounded-full"
-                          />
-                          {category.course_title}
-                        </li>
-                      ))
-                    ) : (
-                      <li className="p-2 text-gray-500">No results found</li>
-                    )}
+                    {filteredCategories.map((category) => (
+                      <li
+                        key={category._id}
+                        className="hover:bg-gray-100 rounded-lg cursor-pointer flex gap-3 px-3 py-3"
+                        onClick={() => selectCategory(category)}
+                      >
+                        <Image
+                          src={category?.courseDetails?.course_image || Icon2}
+                          alt={category.meet_title}
+                          width={32}
+                          height={32}
+                          className="rounded-full"
+                        />
+                        {category.meet_title}
+                      </li>
+                    ))}
                   </ul>
                 </div>
               )}
             </div>
-            {errors.category && (
-              <p className="text-red-500 text-xs">{errors.category.message}</p>
-            )}
-          </div>
-
-          {/* Today's Date */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Today&#39;s Date
-            </label>
-            <div className="relative">
-              <input
-                type="date"
-                className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-[#7ECA9D] focus:border-[#7ECA9D]"
-                defaultValue={new Date().toISOString().split("T")[0]}
-              />
-              <span className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-                📅
-              </span>
-            </div>
-          </div>
-
-          {/* Due Date */}
-          <div>
-            <label>Due Date</label>
-            <input
-              type="date"
-              {...register("deadline")}
-              className="w-full border rounded px-3 py-2"
-            />
-            {errors.deadline && (
-              <p className="text-red-500 text-sm">{errors.deadline.message}</p>
-            )}
           </div>
 
           {/* PDF Brochure Upload */}
           <div className="w-full">
+            <label className="block text-sm mb-1">
+              Upload Quiz Questions <span className="text-red-500">*</span>
+            </label>
             {/* Upload Box */}
             <div className="border-dashed border-2 bg-purple border-gray-300 rounded-lg p-3 w-full h-[140px] text-center relative mx-auto">
               {/* Upload Icon */}
@@ -328,7 +284,7 @@ const AssignmentModal = ({ open, handleClose }) => {
             className="w-full py-2 px-4 bg-[#7ECA9D] text-white font-semibold rounded-lg shadow-md hover:bg-[#68B58B] focus:outline-none"
             disabled={loading}
           >
-            {loading ? "Submitting..." : "Create Assignment"}
+            {loading ? "Submitting Image..." : "Create Quiz"}
           </button>
         </form>
       </DialogContent>
@@ -336,4 +292,4 @@ const AssignmentModal = ({ open, handleClose }) => {
   );
 };
 
-export default AssignmentModal;
+export default CreateQuizModal;
