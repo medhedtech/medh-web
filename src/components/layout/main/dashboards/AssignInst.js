@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import MyTable from "@/components/shared/common-table/page";
 import { apiUrls } from "@/apis";
 import usePostQuery from "@/hooks/postQuery.hook";
@@ -10,6 +10,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import Preloader from "@/components/shared/others/Preloader";
+import Image from "next/image";
 
 const formatDateTime = (dateTime) => {
   const dateObj = new Date(dateTime);
@@ -40,10 +41,23 @@ const AssignInstructor = () => {
   const [assignedInstructors, setAssignedInstructors] = useState([]);
   const [selectedInstructor, setSelectedInstructor] = useState(null);
   const [instructorDetails, setInstructorDetails] = useState(null);
+  const courseDropdownRef = useRef(null);
+  const [courseDropdownOpen, setCourseDropdownOpen] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const fullNameDropdownRef = useRef(null);
+  const [fullNameDropdownOpen, setFullNameDropdownOpen] = useState(false);
+  const [selectedFullName, setSelectedFullName] = useState("");
+  const [searchTermFullName, setSearchTermFullName] = useState("");
+  const emailDropdownRef = useRef(null);
+  const [emailDropdownOpen, setEmailDropdownOpen] = useState(false);
+  const [selectedEmail, setSelectedEmail] = useState("");
+  const [searchTermEmail, setSearchTermEmail] = useState("");
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(schema),
@@ -120,6 +134,86 @@ const AssignInstructor = () => {
     fetchAssignedInstructors();
   }, []);
 
+  useEffect(() => {
+
+    const handleClickOutside = (event) => {
+      if (
+        courseDropdownRef.current &&
+        !courseDropdownRef.current.contains(event.target)
+      ) {
+        setCourseDropdownOpen(false);
+      }
+      if (
+        fullNameDropdownRef.current &&
+        !fullNameDropdownRef.current.contains(event.target)
+      ) {
+        setFullNameDropdownOpen(false);
+      }
+      if (
+        emailDropdownRef.current &&
+        !emailDropdownRef.current.contains(event.target)
+      ) {
+        setEmailDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  
+
+  
+  const toggleCourseDropdown = (e) => {
+    e.preventDefault();
+    setCourseDropdownOpen((prev) => !prev);
+  };
+
+  const selectCourse = (courseName) => {
+    setSelectedCourse(courseName);
+    setValue("course_title", courseName);
+    setCourseDropdownOpen(false);
+    setSearchTerm("");
+  };
+
+  const filteredCourses = courses?.filter((course) =>
+    course.course_title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const toggleFullNameDropdown = (e) => {
+    e.preventDefault();
+    setFullNameDropdownOpen((prev) => !prev);
+  };
+
+  const selectInstructor = (fullName) => {
+    setSelectedFullName(fullName);
+    setValue("full_name", fullName);
+    setFullNameDropdownOpen(false);
+    setSearchTermFullName("");
+  };
+
+  const filteredInstructors = instructors?.filter((ins) =>
+    ins.full_name.toLowerCase().includes(searchTermFullName.toLowerCase())
+  );
+
+  const toggleEmailDropdown = (e) => {
+    e.preventDefault();
+    setEmailDropdownOpen((prev) => !prev);
+  };
+
+  const selectInstructorEmail = (email) => {
+    setSelectedEmail(email);
+    setValue("email", email);
+    setEmailDropdownOpen(false);
+    setSearchTermEmail("");
+  };
+
+  const filteredInstructorsEmail = instructors?.filter((ins) =>
+    ins.email.toLowerCase().includes(searchTermEmail.toLowerCase())
+  );
+
   const onSubmit = async (data) => {
     try {
       await postQuery({
@@ -133,6 +227,7 @@ const AssignInstructor = () => {
         onSuccess: () => {
           toast.success("Instructor assigned successfully!");
           reset();
+          resetStates();
           fetchAssignedInstructors();
         },
         onFail: () => {
@@ -144,6 +239,21 @@ const AssignInstructor = () => {
       toast.error("An unexpected error occurred. Please try again.");
     }
   };
+
+  const resetStates = () => {
+    setIsModalOpen(false);
+    setInstructorDetails(null);
+    setSelectedInstructor(null);
+    setCourseDropdownOpen(false);
+    setSelectedCourse("");
+    setSearchTerm("");
+    setFullNameDropdownOpen(false);
+    setSelectedFullName("");
+    setSearchTermFullName("");
+    setEmailDropdownOpen(false);
+    setSelectedEmail("");
+    setSearchTermEmail("");
+  }
 
   const openModal = (row) => {
     setSelectedInstructor(row._id);
@@ -254,7 +364,7 @@ const AssignInstructor = () => {
             <h2 className="text-2xl font-semibold mb-4">Assign Instructor</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Instructor Full Name */}
-              <div>
+              {/* <div>
                 <label className="block text-[#808080] text-xs px-2 font-medium mb-1">
                   Full Name
                   <span className="text-red-500 ml-1">*</span>
@@ -275,10 +385,75 @@ const AssignInstructor = () => {
                     {errors.full_name.message}
                   </p>
                 )}
+              </div> */}
+              <div className="relative -mt-2" ref={fullNameDropdownRef}>
+                <label
+                  htmlFor="full_name"
+                  className="text-xs px-2 text-[#808080] font-medium mb-1"
+                >
+                  Full Name <span className="text-red-500">*</span>
+                </label>
+                <div className="w-full border border-gray-300 dark:bg-inherit rounded-md py-2 px-3 pr-3 focus:outline-none focus:ring-2 focus:ring-green-400">
+                  <button
+                    className="w-full text-left"
+                    onClick={toggleFullNameDropdown}
+                  >
+                    {selectedFullName || "Select Instructor"}
+                  </button>
+                  {fullNameDropdownOpen && (
+                    <div className="absolute z-10 left-0 top-20 bg-white border border-gray-400 rounded-lg w-full shadow-xl">
+                      <input
+                        type="text"
+                        className="w-full p-2 border-b focus:outline-none rounded-lg"
+                        placeholder="Search..."
+                        value={searchTermFullName}
+                        onChange={(e) => setSearchTermFullName(e.target.value)}
+                      />
+                      <ul className="max-h-56 overflow-auto">
+                        {filteredInstructors.length > 0 ? (
+                          filteredInstructors.map((ins) => (
+                            <li
+                              key={ins._id}
+                              className="hover:bg-gray-100 rounded-lg cursor-pointer flex items-center gap-3 px-3 py-3"
+                              onClick={() => {
+                                selectInstructor(ins.full_name);
+                              }}
+                            >
+                              {ins.instructor_image ? (
+                                <Image
+                                  src={ins.instructor_image}
+                                  alt={ins.full_name || "Instructor Full Name"}
+                                  width={32}
+                                  height={32}
+                                  className="rounded-full min-h-8 max-h-8 min-w-8 max-w-8"
+                                />
+                              ) : (
+                                <div className="rounded-full w-8 h-8 bg-customGreen flex items-center justify-center font-bold">{ins.full_name?.substring(0, 1).toUpperCase()}</div>
+                              )}
+                              <span>
+                                {ins.full_name || "No name available"}
+                              </span>
+                            </li>
+                          ))
+                        ) : (
+                          <li className="p-2 text-gray-500">
+                            No instructors found
+                          </li>
+                        )}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+                {errors.full_name && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.full_name.message}
+                  </p>
+                )}
               </div>
 
+
               {/* Instructor Email */}
-              <div>
+              {/* <div>
                 <label className="block text-[#808080] text-xs px-2 font-medium mb-1">
                   Email
                   <span className="text-red-500 ml-1">*</span>
@@ -299,10 +474,74 @@ const AssignInstructor = () => {
                     {errors.email.message}
                   </p>
                 )}
+              </div> */}
+              <div className="relative -mt-2" ref={emailDropdownRef}>
+                <label
+                  htmlFor="email"
+                  className="text-xs px-2 text-[#808080] font-medium mb-1"
+                >
+                  Email <span className="text-red-500">*</span>
+                </label>
+                <div className="w-full border border-gray-300 dark:bg-inherit rounded-md py-2 px-3 pr-3 focus:outline-none focus:ring-2 focus:ring-green-400">
+                  <button
+                    className="w-full text-left"
+                    onClick={toggleEmailDropdown}
+                  >
+                    {selectedEmail || "Select Email"}
+                  </button>
+                  {emailDropdownOpen && (
+                    <div className="absolute z-10 left-0 top-20 bg-white border border-gray-400 rounded-lg w-full shadow-xl">
+                      <input
+                        type="text"
+                        className="w-full p-2 border-b focus:outline-none rounded-lg"
+                        placeholder="Search..."
+                        value={searchTermEmail}
+                        onChange={(e) => setSearchTermEmail(e.target.value)}
+                      />
+                      <ul className="max-h-56 overflow-auto">
+                        {filteredInstructorsEmail.length > 0 ? (
+                          filteredInstructorsEmail.map((ins) => (
+                            <li
+                              key={ins._id}
+                              className="hover:bg-gray-100 rounded-lg cursor-pointer flex items-center gap-3 px-3 py-3"
+                              onClick={() => {
+                                selectInstructorEmail(ins.email);
+                              }}
+                            >
+                              {ins.instructor_image ? (
+                                <Image
+                                  src={ins.instructor_image}
+                                  alt={ins.email || "Instructor Email"}
+                                  width={32}
+                                  height={32}
+                                  className="rounded-full min-h-8 max-h-8 min-w-8 max-w-8"
+                                />
+                              ) : (
+                                <div className="rounded-full w-8 h-8 bg-customGreen flex items-center justify-center font-bold">{ins.email?.substring(0, 1).toUpperCase()}</div>
+                              )}
+                              <span>
+                                {ins.email|| "No email available"}
+                              </span>
+                            </li>
+                          ))
+                        ) : (
+                          <li className="p-2 text-gray-500">
+                            No email found
+                          </li>
+                        )}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+                {errors.email && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.email.message}
+                  </p>
+                )}
               </div>
 
               {/* Course Title */}
-              <div>
+              {/* <div>
                 <label className="block text-[#808080] text-xs px-2 font-medium mb-1">
                   Course Title
                   <span className="text-red-500 ml-1">*</span>
@@ -318,6 +557,70 @@ const AssignInstructor = () => {
                     </option>
                   ))}
                 </select>
+                {errors.course_title && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.course_title.message}
+                  </p>
+                )}
+              </div> */}
+              <div className="relative -mt-2" ref={courseDropdownRef}>
+                <label
+                  htmlFor="course_name"
+                  className="text-xs px-2 text-[#808080] font-medium mb-1"
+                >
+                  Course Name <span className="text-red-500">*</span>
+                </label>
+                <div className="w-full border border-gray-300 dark:bg-inherit rounded-md py-2 px-3 pr-3 focus:outline-none focus:ring-2 focus:ring-green-400">
+                  <button
+                    className="w-full text-left"
+                    onClick={toggleCourseDropdown}
+                  >
+                    {selectedCourse || "Select Course"}
+                  </button>
+                  {courseDropdownOpen && (
+                    <div className="absolute z-10 left-0 top-20 bg-white border border-gray-400 rounded-lg w-full shadow-xl">
+                      <input
+                        type="text"
+                        className="w-full p-2 border-b focus:outline-none rounded-lg"
+                        placeholder="Search..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                      <ul className="max-h-56 overflow-auto">
+                        {filteredCourses.length > 0 ? (
+                          filteredCourses.map((course) => (
+                            <li
+                              key={course._id}
+                              className="hover:bg-gray-100 rounded-lg cursor-pointer flex items-center gap-3 px-3 py-3"
+                              onClick={() => {
+                                selectCourse(course.course_title);
+                              }}
+                            >
+                              {course.course_image ? (
+                                <Image
+                                  src={course.course_image}
+                                  alt={course.course_title || "Course Image"}
+                                  width={32}
+                                  height={32}
+                                  className="rounded-full min-h-8 max-h-8 min-w-8 max-w-8"
+                                />
+                              ) : (
+                                <div className="rounded-full w-8 h-8 bg-customGreen"></div>
+                              )}
+                              <span>
+                                {course.course_title || "No title available"}
+                              </span>
+                            </li>
+                          ))
+                        ) : (
+                          <li className="p-2 text-gray-500">
+                            No courses found
+                          </li>
+                        )}
+                      </ul>
+                    </div>
+                  )}
+                </div>
                 {errors.course_title && (
                   <p className="text-red-500 text-xs mt-1">
                     {errors.course_title.message}
@@ -352,7 +655,7 @@ const AssignInstructor = () => {
               <button
                 type="button"
                 className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg mr-2 hover:bg-gray-300"
-                onClick={() => reset()}
+                onClick={() => {reset(); resetStates();}}
               >
                 Cancel
               </button>
