@@ -8,24 +8,38 @@ import Preloader from "@/components/shared/others/Preloader";
 const AssignmentsSection = ({ onQuizClick }) => {
   const { getQuery, loading } = useGetQuery();
   const [assignments, setAssignments] = useState();
+  const [studentId, setStudentId] = useState("");
 
   useEffect(() => {
-    getQuery({
-      url: apiUrls?.assignments?.getAssignments,
-      onSuccess: (data) => {
-        setAssignments(data);
-        console.log(data, "Svhfdh");
-      },
-    });
+    // Retrieve instructor ID from localStorage
+    if (typeof window !== "undefined") {
+      const storedUserId = localStorage.getItem("userId");
+      if (storedUserId) {
+        setStudentId(storedUserId);
+      }
+    }
   }, []);
+
+  useEffect(() => {
+    if (studentId) {
+      getQuery({
+        // url: apiUrls?.assignments?.getAssignments,
+        url: `${apiUrls?.assignments?.getAssignmentsByEnrolledCourses}/${studentId}`,
+        onSuccess: (data) => {
+          setAssignments(data);
+          console.log(data, "Svhfdh");
+        },
+      });
+    }
+  }, [studentId]);
 
   if (loading) return <Preloader />;
 
   const calculateDaysLeft = (deadline) => {
-    const deadlineDate = new Date(deadline); // Convert to Date object
-    const currentDate = new Date(); // Get the current date
+    const deadlineDate = new Date(deadline);
+    const currentDate = new Date();
     const timeDifference = deadlineDate - currentDate;
-    return Math.floor(timeDifference / (1000 * 60 * 60 * 24)); // Convert ms to days
+    return Math.floor(timeDifference / (1000 * 60 * 60 * 24));
   };
 
   return (

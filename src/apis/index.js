@@ -106,6 +106,7 @@ export const apiUrls = {
   },
   quzies: {
     getQuizes: "/quizes",
+    uploadQuizes:"/quizes/upload"
   },
   assignments: {
     addAssignments: "/assignments/create",
@@ -113,7 +114,8 @@ export const apiUrls = {
     submitAssignments: "/assignments/submit",
     submittedAssignments: "/assignments/submitted/get",
     assignmentsStatus: "/assignments/submition/status",
-    assignmentsCountByInstructorId: "/assignments/submitted-assignments-count"
+    assignmentsCountByInstructorId: "/assignments/submitted-assignments-count",
+    getAssignmentsByEnrolledCourses: "/assignments/enrolled-assignments"
   },
   feedbacks: {
     createFeedback: "/feedback/",

@@ -8,6 +8,7 @@ import Image from "next/image";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import moment from "moment";
+import Preloader from "@/components/shared/others/Preloader";
 
 const getTimeDifference = (meetingDate, meetingTime) => {
   const now = moment();
@@ -37,7 +38,7 @@ const InstructorDashboard = () => {
   const [upcomingClasses, setUpcomingClasses] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [instructorId, setInstructorId] = useState("673c756ca9054a9bbf673e0e");
+  const [instructorId, setInstructorId] = useState("");
   const [totalCourses, setTotalCourses] = useState(0);
   const [totalAssignments, setTotalAssignments] = useState(0);
 
@@ -47,7 +48,7 @@ const InstructorDashboard = () => {
   // Fetch instructor ID from localStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const storedUserId = localStorage.getItem("instructorId");
+      const storedUserId = localStorage.getItem("userId");
       if (storedUserId) {
         setInstructorId(storedUserId);
       } else {
@@ -97,6 +98,10 @@ const InstructorDashboard = () => {
       fetchSubmittedAssignments()
     }
   }, [instructorId]);
+
+  if(loading){
+    return <Preloader/>
+  }
 
   const filteredClasses = upcomingClasses.filter((classItem) => {
     const classDate = moment(classItem.date);
