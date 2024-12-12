@@ -94,7 +94,7 @@ import Image from "next/image";
 import React, { useState, useEffect } from "react";
 
 const RecordedSession = () => {
-  const [instructorId, setInstructorId] = useState("6757cb3c8071784d1d67c28f");
+  const [instructorId, setInstructorId] = useState("673c756ca9054a9bbf673e0e");
   const [preRecordedClasses, setPreRecordedClasses] = useState([]);
 
   const { getQuery, loading } = useGetQuery();
