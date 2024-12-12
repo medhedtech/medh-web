@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { FaCalendarAlt, FaClock } from "react-icons/fa";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -16,6 +16,7 @@ import Preloader from "@/components/shared/others/Preloader";
 import { apiUrls } from "@/apis";
 import moment from "moment";
 import { FaShare } from "react-icons/fa";
+import Image from "next/image";
 
 // Validation Schema
 const schema = yup.object({
@@ -68,6 +69,13 @@ const OnlineMeeting = () => {
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [fetchAgain, setFetchAgain] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const dropdownRef = useRef(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [selected, setSelected] = useState("");
+  const courseDropdownRef = useRef(null);
+  const [courseDropdownOpen, setCourseDropdownOpen] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState("");
 
   const {
     register,
@@ -84,6 +92,74 @@ const OnlineMeeting = () => {
     const options = { day: "2-digit", month: "2-digit", year: "numeric" };
     return new Date(date).toLocaleDateString("en-GB", options);
   };
+
+  useEffect(() => {
+    const storedData = localStorage.getItem("courseData");
+    if (storedData) {
+      setCourseData(JSON.parse(storedData));
+    }
+
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+      if (
+        courseDropdownRef.current &&
+        !courseDropdownRef.current.contains(event.target)
+      ) {
+        setCourseDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    fetchAllCategories();
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const fetchAllCategories = () => {
+    try {
+      getQuery({
+        url: apiUrls?.categories?.getAllCategories,
+        onSuccess: (res) => {
+          setCategories(res.data);
+          console.log("All categories", res);
+        },
+        onFail: (err) => {
+          console.error("Failed to fetch categories: ", err);
+        },
+      });
+    } catch (err) {
+      console.error("Error fetching categories: ", err);
+    }
+  };
+
+  const toggleDropdown = (e) => {
+    e.preventDefault();
+    setDropdownOpen((prev) => !prev);
+  };
+
+  const selectCategory = (categoryName) => {
+    setSelected(categoryName);
+    setValue("category", categoryName);
+    setDropdownOpen(false);
+    setSearchTerm("");
+  };
+  const toggleCourseDropdown = (e) => {
+    e.preventDefault();
+    setCourseDropdownOpen((prev) => !prev);
+  };
+
+  const selectCourse = (courseName) => {
+    setSelectedCourse(courseName);
+    setValue("course_name", courseName);
+    setCourseDropdownOpen(false);
+    // setSearchTerm("");
+  };
+
+  const filteredCategories = categories?.filter((category) =>
+    category.category_name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   useEffect(() => {
     // Fetch course categories and course names when the component mounts
@@ -244,11 +320,14 @@ const OnlineMeeting = () => {
     setSelectedCourseId();
     setEnrolledStudents([]);
     setSelectedStudents([]);
+    setSelected("");
+    setSelectedCourse("");
   };
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => {
     setIsModalOpen(false);
+    resetStates();
   };
 
   const handleDateChange = (date) => {
@@ -472,7 +551,7 @@ const OnlineMeeting = () => {
               </p>
               <form onSubmit={handleSubmit(onSubmit)}>
                 {/* Course Name Dropdown */}
-                <div className="mb-4">
+                {/* <div className="mb-4">
                   <label
                     htmlFor="category"
                     className="block text-sm font-medium  text-gray-600 mb-2"
@@ -499,9 +578,128 @@ const OnlineMeeting = () => {
                       {errors.category.message}
                     </p>
                   )}
+                </div> */}
+
+                <div className="relative" ref={dropdownRef}>
+                  <label
+                    htmlFor="category"
+                    className="block text-sm font-normal mb-2 text-gray-600"
+                  >
+                    Course Category <span className="text-red-500">*</span>
+                  </label>
+                  <div className="p-3 border rounded-lg w-full dark:bg-inherit text-gray-600 mb-2">
+                    <button
+                      className="w-full text-left"
+                      onClick={toggleDropdown}
+                    >
+                      {selected || "Select Category"}
+                    </button>
+                    {dropdownOpen && (
+                      <div className="absolute z-10 left-0 top-20 bg-white border border-gray-600 rounded-lg w-full shadow-xl">
+                        <input
+                          type="text"
+                          className="w-full p-2 border-b focus:outline-none rounded-lg"
+                          placeholder="Search..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                        <ul className="max-h-56 overflow-auto">
+                          {filteredCategories.length > 0 ? (
+                            filteredCategories.map((category) => (
+                              <li
+                                key={category._id}
+                                className=" hover:bg-gray-100 rounded-lg cursor-pointer flex gap-3 px-3 py-3"
+                                onClick={() => {
+                                  selectCategory(category.category_name);
+                                  setSelectedCategory(category.category_name);
+                                }}
+                              >
+                                <Image
+                                  src={category.category_image}
+                                  alt={category.category_title}
+                                  width={32}
+                                  height={32}
+                                  className="rounded-full"
+                                />
+                                {category.category_name}
+                              </li>
+                            ))
+                          ) : (
+                            <li className="p-2 text-gray-500">
+                              No results found
+                            </li>
+                          )}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                  {errors.category && (
+                    <p className="text-red-500 text-xs">
+                      {errors.category.message}
+                    </p>
+                  )}
                 </div>
 
-                <div className="mb-4">
+                <div className="relative" ref={courseDropdownRef}>
+                  <label
+                    htmlFor="course_name"
+                    className="block text-sm font-normal mb-2 text-gray-600"
+                  >
+                    Course Name <span className="text-red-500">*</span>
+                  </label>
+                  <div className="p-3 border rounded-lg w-full dark:bg-inherit text-gray-600 mb-2">
+                    <button
+                      className="w-full text-left"
+                      onClick={toggleCourseDropdown}
+                    >
+                      {selectedCourse || "Select Course"}
+                    </button>
+                    {courseDropdownOpen && (
+                      <div className="absolute z-10 left-0 top-20 bg-white border border-gray-600 rounded-lg w-full shadow-xl">
+                        <ul className="max-h-56 overflow-auto">
+                          {filteredCourses.length > 0 ? (
+                            filteredCourses.map((course) => (
+                              <li
+                                key={course._id}
+                                className="hover:bg-gray-100 rounded-lg cursor-pointer flex items-center gap-3 px-3 py-3"
+                                onClick={() => {
+                                  selectCourse(course.course_title);
+                                  setSelectedCourseId(course._id);
+                                }}
+                              >
+                                {course.course_image ? (
+                                  <Image
+                                    src={course.course_image}
+                                    alt={course.course_title || "Course Image"}
+                                    width={32}
+                                    height={32}
+                                    className="rounded-full min-h-8 max-h-8 min-w-8 max-w-8"
+                                  />
+                                ) : (
+                                  <div className="rounded-full w-8 h-8 bg-customGreen"></div>
+                                )}
+                                <span>
+                                  {course.course_title || "No title available"}
+                                </span>
+                              </li>
+                            ))
+                          ) : (
+                            <li className="p-2 text-gray-500">
+                              No courses found
+                            </li>
+                          )}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                  {errors.course_name && (
+                    <p className="text-red-500 text-xs">
+                      {errors.course_name.message}
+                    </p>
+                  )}
+                </div>
+
+                {/* <div className="mb-4">
                   <label
                     htmlFor="course_name"
                     className="block text-sm font-medium  text-gray-600 mb-2"
@@ -529,7 +727,7 @@ const OnlineMeeting = () => {
                       {errors.course_name.message}
                     </p>
                   )}
-                </div>
+                </div> */}
 
                 <div className="mb-4">
                   <label
@@ -618,7 +816,7 @@ const OnlineMeeting = () => {
                     </>
                   ) : (
                     // Show this message if no students are enrolled
-                    <p className="text-gray-500 text-sm">
+                    <p className="text-gray-500 text-sm ps-2">
                       No students available.
                     </p>
                   )}
