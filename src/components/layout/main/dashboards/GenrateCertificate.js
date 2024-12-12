@@ -164,7 +164,7 @@ const CertificatePage = () => {
               </p>
               <p className="text-sm text-gray-500 pb-4 dark:text-gray-400 mt-2 text-center">
                 It looks like there are no users to display right now. Once
-                users complete a course, they'll show up here.
+                users complete a course, they&#39;ll show up here.
               </p>
             </div>
           )}
