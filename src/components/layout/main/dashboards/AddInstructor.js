@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import usePostQuery from "@/hooks/postQuery.hook";
 import { useForm } from "react-hook-form";
@@ -10,6 +10,7 @@ import toast from "react-toastify";
 import useGetQuery from "@/hooks/getQuery.hook";
 import Preloader from "@/components/shared/others/Preloader";
 import InstructorTable from "./InstructoreManage";
+import Image from "next/image";
 
 // Validation Schema
 const schema = yup.object({
@@ -32,20 +33,62 @@ const AddInstructor = () => {
   const { getQuery } = useGetQuery();
   const [courses, setCourses] = useState([]);
   const [showInstructorListing, setShowInstructorListing] = useState(false);
+  const courseDropdownRef = useRef(null);
+  const [courseDropdownOpen, setCourseDropdownOpen] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
+    setValue
   } = useForm({
     resolver: yupResolver(schema),
   });
 
   useEffect(() => {
+
+    const handleClickOutside = (event) => {
+      if (
+        courseDropdownRef.current &&
+        !courseDropdownRef.current.contains(event.target)
+      ) {
+        setCourseDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  
+
+  
+  const toggleCourseDropdown = (e) => {
+    e.preventDefault();
+    setCourseDropdownOpen((prev) => !prev);
+  };
+
+  const selectCourse = (courseName) => {
+    setSelectedCourse(courseName);
+    setValue("course_name", courseName);
+    setCourseDropdownOpen(false);
+    setSearchTerm("");
+  };
+
+  const filteredCourses = courses?.filter((course) =>
+    course.course_title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  useEffect(() => {
     const fetchCourseNames = async () => {
       try {
         await getQuery({
-          url: apiUrls?.courses?.getCourseNames,
+          url: apiUrls?.courses?.getAllCourses,
           onSuccess: (data) => {
             setCourses(data);
           },
@@ -249,7 +292,7 @@ const AddInstructor = () => {
           </div>
 
           {/* Course Name Field */}
-          <div className="flex flex-col">
+          {/* <div className="flex flex-col">
             <label
               htmlFor="course_name"
               className="block text-sm font-medium text-gray-600 mb-2"
@@ -267,6 +310,66 @@ const AddInstructor = () => {
                 </option>
               ))}
             </select>
+          </div> */}
+
+          <div className="relative -mt-2" ref={courseDropdownRef} >
+            <label
+              htmlFor="course_name"
+              className="text-xs px-2 text-[#808080] font-medium mb-1"
+            >
+              Course Name <span className="text-red-500">*</span>
+            </label>
+            <div className="w-full border border-gray-300 dark:bg-inherit rounded-md py-2 px-3 pr-3 focus:outline-none focus:ring-2 focus:ring-green-400">
+              <button
+                className="w-full text-left"
+                onClick={toggleCourseDropdown}
+              >
+                {selectedCourse || "Select Course"}
+              </button>
+              {courseDropdownOpen && (
+                <div className="absolute z-10 left-0 top-20 bg-white border border-gray-400 rounded-lg w-full shadow-xl">
+                  <input
+                    type="text"
+                    className="w-full p-2 border-b focus:outline-none rounded-lg"
+                    placeholder="Search..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                  <ul className="max-h-56 overflow-auto">
+                    {filteredCourses.length > 0 ? (
+                      filteredCourses.map((course) => (
+                        <li
+                          key={course._id}
+                          className="hover:bg-gray-100 rounded-lg cursor-pointer flex items-center gap-3 px-3 py-3"
+                          onClick={() => {
+                            selectCourse(course.course_title);
+                            
+                          }}
+                        >
+                          {course.course_image ? (
+                            <Image
+                              src={course.course_image}
+                              alt={course.course_title || "Course Image"}
+                              width={32}
+                              height={32}
+                              className="rounded-full min-h-8 max-h-8 min-w-8 max-w-8"
+                            />
+                          ) : (
+                            <div className="rounded-full w-8 h-8 bg-customGreen"></div>
+                          )}
+                          <span>
+                            {course.course_title || "No title available"}
+                          </span>
+                        </li>
+                      ))
+                    ) : (
+                      <li className="p-2 text-gray-500">No courses found</li>
+                    )}
+                  </ul>
+                </div>
+              )}
+            </div>
+            
           </div>
 
           {/* Age Field */}
