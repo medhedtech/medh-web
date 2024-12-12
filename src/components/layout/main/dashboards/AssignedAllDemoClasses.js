@@ -3,6 +3,7 @@ import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
+import Preloader from "@/components/shared/others/Preloader";
 
 function formatDateWithOrdinal(dateString) {
   const date = new Date(dateString);
@@ -41,7 +42,7 @@ const formatTimeWithAmPm = (timeString) => {
 
 const AssignedAllDemoClasses = () => {
   const [classes, setClasses] = useState([]);
-  const [instructorId, setInstructorId] = useState("673c756ca9054a9bbf673e0e");
+  const [instructorId, setInstructorId] = useState("");
   const { getQuery, loading } = useGetQuery();
 
   useEffect(() => {
@@ -76,6 +77,10 @@ const AssignedAllDemoClasses = () => {
   const demoClasses = classes.filter(
     (classItem) => classItem.meeting_tag === "demo"
   );
+
+  if(loading){
+    return <Preloader/>
+  }
 
   return (
     <div className="px-10 pb-12">
