@@ -5,7 +5,7 @@ import Image from "next/image";
 import React, { useState, useEffect } from "react";
 
 const Access_Recorded_Sessions_Instructor = () => {
-  const [instructorId, setInstructorId] = useState("6757cb3c8071784d1d67c28f");
+  const [instructorId, setInstructorId] = useState("673c756ca9054a9bbf673e0e");
   const [preRecordedClasses, setPreRecordedClasses] = useState([]);
 
   const { getQuery, loading } = useGetQuery();
@@ -77,6 +77,10 @@ const Access_Recorded_Sessions_Instructor = () => {
     });
   };
 
+  const recordedClasses = preRecordedClasses.filter(
+    (classItem) => classItem.meeting_tag === "recorded"
+  );
+
   return (
     <div className="px-10 py-10">
       <div className="flex justify-between items-center pt-4 mb-4">
@@ -85,7 +89,7 @@ const Access_Recorded_Sessions_Instructor = () => {
         </h2>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {preRecordedClasses.map((classItem) => (
+        {recordedClasses.map((classItem) => (
           <div
             key={classItem._id}
             className="bg-white dark:border dark:text-white dark:bg-inherit shadow rounded-lg p-4"
