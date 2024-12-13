@@ -10,6 +10,8 @@ import iso20000 from "@/assets/images/iso/iso20000.png";
 import iso22301 from "@/assets/images/iso/iso22301.png";
 import iso9001 from "@/assets/images/iso/iso9001.png";
 import iso270001 from "@/assets/images/iso/iso27001.png";
+import isoSTEM from "@/assets/images/iso/iso-STEM.jpg";
+import isoUAEA from "@/assets/images/iso/iso-UAEA.jpg";
 
 const Certified = () => {
   var settings = {
@@ -108,6 +110,24 @@ const Certified = () => {
           <div className="text-center">
             <Image
               src={iso270001}
+              width={100}
+              height={162}
+              alt="ISO 9001 Certification"
+              className="mx-auto"
+            />
+          </div>
+          <div className="text-center">
+            <Image
+              src={isoSTEM}
+              width={100}
+              height={162}
+              alt="ISO 9001 Certification"
+              className="mx-auto"
+            />
+          </div>
+          <div className="text-center">
+            <Image
+              src={isoUAEA}
               width={100}
               height={162}
               alt="ISO 9001 Certification"
