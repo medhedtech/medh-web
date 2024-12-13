@@ -63,7 +63,7 @@ const Hero1 = () => {
 
               {/* Content */}
               <div className="flex flex-col justify-center sm:pl-4">
-                <p className="text-base sm:text-lg text-white dark:text-gray-200 leading-relaxed">
+                <p className="text-lg font-Poppins font-light sm:text-xl text-white dark:text-gray-200 leading-relaxed">
                   Empowering people across all life stages: <br />
                   from childhood and teens to <br />
                   professionals and homemakers.
@@ -79,7 +79,7 @@ const Hero1 = () => {
                   </a>
                   <a
                     href="#certified-section"
-                    className="mt-4 text-white text-sm sm:text-base font-normal underline underline-offset-4 transition duration-300"
+                    className="mt-4 text-white text-sm sm:text-base font-light underline underline-offset-4 transition duration-300"
                   >
                     ISO CERTIFIED
                   </a>

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { Search, X } from "lucide-react";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
-import SelectCourseCard from "./SelectCourseCard";
 import SelectCategoryCard from "./SelectCategoryCard";
 import usePostQuery from "@/hooks/postQuery.hook";
 import Education from "@/assets/images/course-detailed/education.svg";
@@ -31,13 +30,9 @@ export default function SelectCourseModal({
   const [planAmount, setPlanAmount] = useState(
     Number(amount.replace("$", "")) || 0
   );
-  const [enrolledCategories, setEnrolledCategories] = useState([]);
-  const [enrolledCourses, setEnrolledCourses] = useState([]);
   const router = useRouter();
 
   const maxSelections = planType === "silver" ? 1 : 3;
-  const [limit] = useState(40);
-  const [page] = useState(1);
 
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
@@ -74,7 +69,7 @@ export default function SelectCourseModal({
           console.log("Payment Successful!");
 
           // Call subscription API after successful payment
-          await handleSubmit();
+          handleSubmit();
         },
         prefill: {
           name: "Medh Membership Plan",
@@ -156,121 +151,35 @@ export default function SelectCourseModal({
     }
   };
 
+  // const toggleCategorySelection = (category) => {
+  //   if (selectedCategories.find((c) => c._id === category._id)) {
+  //     setSelectedCategories(
+  //       selectedCategories.filter((c) => c._id !== category._id)
+  //     );
+  //   } else if (selectedCategories.length < maxSelections) {
+  //     setSelectedCategories([...selectedCategories, category]);
+  //   }
+  // };
+
   const toggleCategorySelection = (category) => {
-    if (selectedCategories.find((c) => c._id === category._id)) {
-      setSelectedCategories(
-        selectedCategories.filter((c) => c._id !== category._id)
-      );
-    } else if (selectedCategories.length < maxSelections) {
-      setSelectedCategories([...selectedCategories, category]);
+    if (planType === "silver") {
+      // For "silver" plan, only allow one selection
+      if (selectedCategories.some((c) => c._id === category._id)) {
+        setSelectedCategories([]);
+      } else {
+        setSelectedCategories([category]);
+      }
+    } else {
+      // For other plans, allow up to `maxSelections` categories
+      if (selectedCategories.some((c) => c._id === category._id)) {
+        setSelectedCategories(
+          selectedCategories.filter((c) => c._id !== category._id)
+        );
+      } else if (selectedCategories.length < maxSelections) {
+        setSelectedCategories([...selectedCategories, category]);
+      }
     }
   };
-
-  // const removeFirstChr = (str = "") => {
-  //   if (!str.length) {
-  //     return 0;
-  //   }
-  //   return Number(str.substring(1));
-  // };
-
-  // const handleSubscribe = async () => {
-  //   try {
-  //     await postQuery({
-  //       url: apiUrls?.Membership?.addMembership,
-  //       postData: {
-  //         student_id: studentId,
-  //         category_ids: selectedCategories.map((category) => category._id),
-  //         amount: planAmount,
-  //         plan_type: planType,
-  //         duration: selectedPlan.toLowerCase(),
-  //       },
-  //       onSuccess: async (res) => {
-  //         toast.success("Membership successfully taken!");
-
-  //         // Extract expiry_date from the membership response
-  //         const membershipId = res?.data?._id;
-  //         const expiryDate = res?.data?.expiry_date;
-  //         const categoryNames =
-  //           res?.data?.category_ids?.map(
-  //             (category) => category.category_name
-  //           ) || [];
-  //         console.log("All Categories: ", categoryNames);
-
-  //         const groupedCourses = categoryNames.map((category) =>
-  //           courses.filter((course) => course.category === category)
-  //         );
-  //         console.log("Enrolled Courses: ", groupedCourses);
-
-  //         const enrolledCourses = groupedCourses.flatMap((group) =>
-  //           group.map((course) => course._id)
-  //         );
-  //         console.log("Enrolled Course IDs: ", enrolledCourses);
-
-  //         if (!membershipId || !expiryDate) {
-  //           toast.error("Membership response is missing required data.");
-  //           return;
-  //         }
-
-  //         // Enroll courses with the same expiry date
-  //         const enrollmentPromises = enrolledCourses.map((id) => {
-  //           return postQuery({
-  //             url: apiUrls?.Subscription?.AddSubscription,
-  //             postData: {
-  //               student_id: studentId,
-  //               course_id: id,
-  //               amount: removeFirstChr(amount) * 84.71,
-  //               status: "success",
-  //             },
-  //             onSuccess: () => {
-  //               console.log(`Successfully enrolled in course: ${id}`);
-  //               postQuery({
-  //                 url: apiUrls?.EnrollCourse?.enrollCourse,
-  //                 postData: {
-  //                   student_id: studentId,
-  //                   course_id: id,
-  //                   membership_id: membershipId,
-  //                   expiry_date: expiryDate,
-  //                   is_self_paced: true,
-  //                 },
-  //                 onSuccess: () => {
-  //                   router.push("/dashboards/student-membership");
-  //                   console.log(`Successfully enrolled in course: ${id}`);
-  //                 },
-  //                 onFail: (err) => {
-  //                   console.error(`Failed to enroll in course: ${id}`, err);
-  //                 },
-  //               });
-  //             },
-  //             onFail: (err) => {
-  //               console.error(`Failed to enroll in course: ${id}`, err);
-  //             },
-  //           });
-  //         });
-
-  //         // Wait for all enrollments to complete
-  //         await Promise.all(enrollmentPromises);
-  //       },
-  //       onFail: (err) => {
-  //         console.error("Error while creating subscription", err);
-  //       },
-  //     });
-  //   } catch (err) {
-  //     console.error(err);
-  //     toast.error("An unexpected error occurred. Please try again.");
-  //   }
-  // };
-
-  // function capitalize(str) {
-  //   if (!str) return ""; // Handle empty or null strings
-  //   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-  // }
-
-  // const handleSubmit = () => {
-  //   console.log("in sub");
-  //   handleSubscribe();
-  //   onClose();
-  //   closeParent();
-  // };
 
   const removeFirstChr = (str = "") => {
     if (!str.length) {
@@ -422,30 +331,6 @@ export default function SelectCourseModal({
           </div>
         </div>
 
-        {/* Course List */}
-        {/* <div
-          className="overflow-y-auto p-4"
-          style={{ maxHeight: "calc(90vh - 200px)" }}
-        >
-          {loading ? (
-            <div className="flex justify-center items-center h-40">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3B82F6]"></div>
-            </div>
-          ) : error ? (
-            <div className="text-red-500 text-center p-4">{error}</div>
-          ) : (
-            <div className="grid grid-cols-1 gap-4">
-              {filteredCourses.map((course) => (
-                <SelectCourseCard
-                  key={course._id}
-                  course={course}
-                  isSelected={selectedCourses.some((c) => c._id === course._id)}
-                  onClick={() => toggleCourseSelection(course)}
-                />
-              ))}
-            </div>
-          )}
-        </div> */}
         <div
           className="overflow-y-auto p-4"
           style={{
