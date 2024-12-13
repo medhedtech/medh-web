@@ -49,7 +49,7 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortOrder, setSortOrder] = useState("A-Z");
+  const [sortOrder, setSortOrder] = useState("newest-first");
   const { getQuery, loading } = useGetQuery();
   const [selectedGrade, setSelectedGrade] = useState(null);
 
@@ -140,6 +140,14 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
           return -1;
         return 0;
       });
+    } else if (sortOrder === "newest-first") {
+      filtered = filtered.sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      );
+    } else if (sortOrder === "oldest-first") {
+      filtered = filtered.sort(
+        (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+      );
     }
     setFilteredCourses(filtered);
   };
@@ -218,6 +226,12 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
               >
                 <option value="A-Z">Program Title (A-Z)</option>
                 <option value="Z-A">Program Title (Z-A)</option>
+                <option value="newest-first">
+                  Release Date (Newest First)
+                </option>
+                <option value="oldest-first">
+                  Release Date (Oldest First)
+                </option>
               </select>
             </div>
           </div>
