@@ -38,11 +38,11 @@ function CourceBanner() {
         />
       ))}
       <div className="w-[95%] lg:w-full text-center font-Poppins dark:text-white text-[#727695] font-thin leading-[27px] mx-auto">
-        <p className="text-[1rem] font-normal sm:text-lg md:text-xl w-[80%] sm:w-[50%] mx-auto">
+        <p className="text-[1rem] font-normal sm:text-lg md:text-xl w-[80%] sm:w-[55%] mx-auto">
           Upon enrolling in our Corporate Training Courses, you can be confident
           in making a strategic investment in your organization&#39;s future.
         </p>
-        <p className="mt-6 text-sm sm:text-base font-normal md:text-lg w-[90%] sm:w-[75%] mx-auto">
+        <p className="mt-6 text-sm sm:text-base font-normal md:text-lg w-[90%] sm:w-[80%] mx-auto">
           Our dedication to providing top-tier, customized training ensures that
           your team will acquire the skills needed to excel in today&#39;s
           ever-evolving business environment. We are committed to your success
