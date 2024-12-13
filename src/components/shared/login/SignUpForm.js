@@ -311,7 +311,7 @@ const SignUpForm = () => {
             </div>
 
             <div className="flex justify-center mt-5 text-[#545454] gap-4 font-Open text-sm">
-              <p>Don&#39;t have an Account? </p>
+              <p>Already have an account? </p>
               <a href="/login" className="text-primaryColor font-semibold">
                 Sign In
               </a>

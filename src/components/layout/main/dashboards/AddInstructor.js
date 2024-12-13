@@ -21,7 +21,13 @@ const schema = yup.object({
     .typeError("Age must be a number")
     .required("Age is required")
     .min(18, "Age must be above 18 years"),
-  phone_number: yup.string().required("Mobile number is required"),
+  phone_number: yup
+    .string()
+    .required("Mobile number is required")
+    .matches(
+      /^[6-9]\d{9}$/,
+      "Mobile number must be a valid 10-digit number"
+    ),
   email: yup.string().email().required("Email is required"),
   course_name: yup.string(),
   domain: yup.string().required("Domain is required"),
@@ -43,13 +49,12 @@ const AddInstructor = () => {
     handleSubmit,
     formState: { errors },
     reset,
-    setValue
+    setValue,
   } = useForm({
     resolver: yupResolver(schema),
   });
 
   useEffect(() => {
-
     const handleClickOutside = (event) => {
       if (
         courseDropdownRef.current &&
@@ -59,15 +64,12 @@ const AddInstructor = () => {
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    
+
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
-  
-
-  
   const toggleCourseDropdown = (e) => {
     e.preventDefault();
     setCourseDropdownOpen((prev) => !prev);
@@ -312,7 +314,7 @@ const AddInstructor = () => {
             </select>
           </div> */}
 
-          <div className="relative -mt-2" ref={courseDropdownRef} >
+          <div className="relative -mt-2" ref={courseDropdownRef}>
             <label
               htmlFor="course_name"
               className="text-xs px-2 text-[#808080] font-medium mb-1"
@@ -343,7 +345,6 @@ const AddInstructor = () => {
                           className="hover:bg-gray-100 rounded-lg cursor-pointer flex items-center gap-3 px-3 py-3"
                           onClick={() => {
                             selectCourse(course.course_title);
-                            
                           }}
                         >
                           {course.course_image ? (
@@ -369,7 +370,6 @@ const AddInstructor = () => {
                 </div>
               )}
             </div>
-            
           </div>
 
           {/* Age Field */}
