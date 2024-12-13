@@ -159,7 +159,7 @@ const LoginForm = () => {
                 type="submit"
                 className="text-size-15 rounded-[150px] text-whiteColor bg-primaryColor px-25px py-10px w-full border border-primaryColor hover:text-primaryColor hover:bg-whiteColor inline-block group dark:hover:text-whiteColor dark:hover:bg-whiteColor-dark"
               >
-                SIGN In
+                SIGN IN
               </button>
             </div>
 

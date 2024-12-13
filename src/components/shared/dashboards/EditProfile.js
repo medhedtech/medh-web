@@ -11,17 +11,23 @@ import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { toast } from "react-toastify";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import moment from "moment";
 
 const schema = yup.object({
   full_name: yup.string().required("Full name is required"),
   email: yup.string().email("Invalid email"),
   phone_number: yup
     .string()
-    .matches(/^\d{10}$/, "Mobile number must be 10 digits"),
+    .required("Mobile number is required")
+    .matches(/^[6-9]\d{9}$/, "Mobile number must be a valid 10-digit number"),
   age: yup
-    .number()
-    .typeError("Age must be a number")
-    .min(13, "Age must be above 13 years"),
+    .date()
+    .nullable()
+    .typeError("Invalid date")
+    .max(new Date(), "Date of Birth cannot be in the future")
+    .required("Date of Birth is required"),
   facebook_link: yup.string().url("Invalid URL"),
   linkedin_link: yup.string().url("Invalid URL"),
   twitter_link: yup.string().url("Invalid URL"),
@@ -32,6 +38,7 @@ const EditProfile = ({ onBackClick }) => {
   const [profileData, setProfileData] = useState(null);
   const [profileImage, setProfileImage] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [selectedDate, setSelectedDate] = useState();
 
   const { getQuery } = useGetQuery();
   const { postQuery } = usePostQuery();
@@ -109,10 +116,12 @@ const EditProfile = ({ onBackClick }) => {
       url: `${apiUrls?.user?.update}/${studentId}`,
       postData: {
         ...data,
+        age: selectedDate ? moment(selectedDate).format("YYYY-MM-DD") : null,
         user_image: profileImage || data.user_image,
       },
       onSuccess: () => {
         toast.success("Profile updated successfully!");
+        setSelectedDate(null);
         reset();
       },
       onFail: (error) => {
@@ -122,6 +131,11 @@ const EditProfile = ({ onBackClick }) => {
     }).finally(() => {
       setLoading(false);
     });
+  };
+
+  const handleDateChange = (date) => {
+    setSelectedDate(date);
+    setValue("date", date);
   };
 
   if (loading || !profileData) {
@@ -246,7 +260,7 @@ const EditProfile = ({ onBackClick }) => {
           </div>
 
           {/* Age Field */}
-          <div>
+          {/* <div>
             <label className="block text-base font-bold mb-2">Age</label>
             <input
               {...register("age")}
@@ -257,7 +271,7 @@ const EditProfile = ({ onBackClick }) => {
             {errors.age && (
               <p className="text-red-500 text-sm mt-1">{errors.age.message}</p>
             )}
-          </div>
+          </div> */}
 
           {/* Facebook Link Field */}
           <div>
@@ -323,6 +337,20 @@ const EditProfile = ({ onBackClick }) => {
             />
           </div>
 
+          <div>
+            <label className="block text-base font-bold mb-2">D.O.B.</label>
+            <DatePicker
+              name="age"
+              selected={selectedDate}
+              onChange={handleDateChange}
+              placeholder="Select Date"
+              dateFormat="dd/MM/yyyy"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
+            {errors.age && (
+              <p className="text-red-500 text-xs">{errors.age.message}</p>
+            )}
+          </div>
           {/* Submit Button */}
           <div className="md:col-span-2">
             <button
