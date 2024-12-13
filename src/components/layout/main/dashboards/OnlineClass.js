@@ -17,6 +17,9 @@ import { apiUrls } from "@/apis";
 import moment from "moment";
 import { FaShare } from "react-icons/fa";
 import Image from "next/image";
+import Pagination from "@/components/shared/pagination/Pagination";
+import PaginationComponent from "@/components/shared/pagination-latest";
+// import Pagination from "@/components/shared/others/Pagination";
 
 // Validation Schema
 const schema = yup.object({
@@ -76,6 +79,9 @@ const OnlineMeeting = () => {
   const courseDropdownRef = useRef(null);
   const [courseDropdownOpen, setCourseDropdownOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [limit] = useState(5);
 
   const {
     register,
@@ -93,29 +99,29 @@ const OnlineMeeting = () => {
     return new Date(date).toLocaleDateString("en-GB", options);
   };
 
-  useEffect(() => {
-    const storedData = localStorage.getItem("courseData");
-    if (storedData) {
-      setCourseData(JSON.parse(storedData));
-    }
+  // useEffect(() => {
+  //   const storedData = localStorage.getItem("courseData");
+  //   if (storedData) {
+  //     setCourseData(JSON.parse(storedData));
+  //   }
 
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setDropdownOpen(false);
-      }
-      if (
-        courseDropdownRef.current &&
-        !courseDropdownRef.current.contains(event.target)
-      ) {
-        setCourseDropdownOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    fetchAllCategories();
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+  //   const handleClickOutside = (event) => {
+  //     if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+  //       setDropdownOpen(false);
+  //     }
+  //     if (
+  //       courseDropdownRef.current &&
+  //       !courseDropdownRef.current.contains(event.target)
+  //     ) {
+  //       setCourseDropdownOpen(false);
+  //     }
+  //   };
+  //   document.addEventListener("mousedown", handleClickOutside);
+  //   fetchAllCategories();
+  //   return () => {
+  //     document.removeEventListener("mousedown", handleClickOutside);
+  //   };
+  // }, []);
 
   const fetchAllCategories = () => {
     try {
@@ -259,9 +265,10 @@ const OnlineMeeting = () => {
     const fetchMeetings = async () => {
       try {
         await getQuery({
-          url: apiUrls?.onlineMeeting?.getAllMeetings,
+          url: `${apiUrls?.onlineMeeting?.getAllMeetings}?page=${currentPage}&limit=${limit}`,
           onSuccess: (data) => {
-            setMeeting(data);
+            setMeeting(data.meetings);
+            setTotalPages(Math.ceil(data?.totalMeetings / limit));
           },
           onFail: (err) => {
             console.error(
@@ -276,7 +283,7 @@ const OnlineMeeting = () => {
     };
 
     fetchMeetings();
-  }, [updateStatus]);
+  }, [updateStatus, limit, currentPage]);
 
   const onSubmit = async (data) => {
     try {
@@ -401,7 +408,7 @@ const OnlineMeeting = () => {
           <div className="flex justify-end space-x-4">
             <input
               type="text"
-              placeholder="Search meetings..."
+              placeholder="Search..."
               value={searchQuery}
               onChange={handleSearchChange}
               className="border border-gray-300 dark:bg-inherit dark:text-white rounded-lg px-4 py-2 text-sm focus:outline-none"
@@ -517,8 +524,13 @@ const OnlineMeeting = () => {
             <p className="text-gray-600 text-center w-full">
               No meetings found
             </p>
-          )}{" "}
+          )}
         </div>
+        <PaginationComponent
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
 
         {/* Modal */}
         {isModalOpen && (
