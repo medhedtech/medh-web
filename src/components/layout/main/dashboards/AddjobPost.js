@@ -1,11 +1,11 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import usePostQuery from "@/hooks/postQuery.hook";
 import { useForm } from "react-hook-form";
 import { apiUrls } from "@/apis";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import toast from "react-toastify";
+import { toast } from "react-toastify";
 import Preloader from "@/components/shared/others/Preloader";
 import AdminJobAplicants from "./AdminJobApplicants";
 
@@ -37,8 +37,8 @@ const AddJobPost = () => {
         },
         onSuccess: () => {
           toast.success("Post added successfully!");
-          setShowAddPostListing(true);
-          reset();
+          reset(); // Reset the form
+          setShowAddPostListing(true); // Update state to navigate to listing page
         },
         onFail: () => {
           toast.error("Error adding post.");
@@ -48,6 +48,13 @@ const AddJobPost = () => {
       console.log("An unexpected error occurred. Please try again.");
     }
   };
+
+  useEffect(() => {
+    // Automatically navigate to the listing page when the state changes
+    if (showAddPostListing) {
+      // Add any logic if needed before navigation
+    }
+  }, [showAddPostListing]);
 
   if (showAddPostListing) {
     return <AdminJobAplicants onCancel={() => setShowAddPostListing(false)} />;

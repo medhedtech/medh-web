@@ -7,6 +7,7 @@ import * as yup from "yup";
 import { toast } from "react-toastify";
 import { FaCamera } from "react-icons/fa";
 import { FaTimes } from "react-icons/fa";
+import ReCAPTCHA from "react-google-recaptcha";
 
 // Validation schema using yup
 const schema = yup.object({
@@ -28,6 +29,7 @@ function JobApply() {
   const { postQuery, loading } = usePostQuery();
   const [fileName, setFileName] = useState("No file chosen");
   const [showModal, setShowModal] = useState(false);
+  const [recaptchaValue, setRecaptchaValue] = useState(null);
   const {
     register,
     handleSubmit,
@@ -38,6 +40,10 @@ function JobApply() {
   });
 
   const [pdfBrochure, setPdfBrochure] = useState(null);
+
+  const handleRecaptchaChange = (value) => {
+    setRecaptchaValue(value);
+  };
 
   const handlePdfUpload = async (e) => {
     const file = e.target.files[0];
@@ -223,6 +229,11 @@ function JobApply() {
               {errors.accept.message}
             </span>
           )}
+
+          <ReCAPTCHA
+            sitekey="6LeNH5QqAAAAAO98HJ00v5yuCkLgHYCSvUEpGhLb"
+            onChange={handleRecaptchaChange}
+          />
 
           {/* Submit Button */}
           <button
