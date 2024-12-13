@@ -10,6 +10,7 @@ import CounterDashboard from "@/components/shared/dashboards/CounterDashboard";
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
+import HeadingDashboardOnly from "@/components/shared/headings/HeadingDashbordsOnly";
 
 const CounterAdmin = () => {
   const { getQuery } = useGetQuery();
@@ -84,7 +85,7 @@ const CounterAdmin = () => {
 
   return (
     <CounterDashboard counts={dashboardCounts}>
-      <HeadingDashboard>Dashboard</HeadingDashboard>
+      <HeadingDashboardOnly>Dashboard</HeadingDashboardOnly>
     </CounterDashboard>
   );
 };
