@@ -53,13 +53,21 @@ export const apiUrls = {
     getMeetingByStudentId: "/online-meeting/student",
     getMeetingsByInstructorId: "/online-meeting/upcoming-classes",
   },
+  // Instructor: {
+  //   getAllInstructors: "/instructors/get",
+  //   getInstructorById: "/instructors/get",
+  //   createInstructor: "/instructors/create",
+  //   updateInstructor: "/instructors/update/:id",
+  //   deleteInstructor: "/instructors/delete",
+  //   toggleInstructorsStatus: "/instructors/toggle-status",
+  // },
   Instructor: {
-    getAllInstructors: "/instructors/get",
-    getInstructorById: "/instructors/get",
-    createInstructor: "/instructors/create",
-    updateInstructor: "/instructors/update/:id",
-    deleteInstructor: "/instructors/delete",
-    toggleInstructorsStatus: "/instructors/toggle-status",
+    getAllInstructors: "/auth/get-all-instrucors",
+    getInstructorById: "/auth/get-instructor",
+    createInstructor: "/auth/create",
+    updateInstructor: "/auth/updateInstrucor/:id",
+    deleteInstructor: "/auth/delete-instrucor",
+    toggleInstructorsStatus: "/auth/toggle-status-instrucor",
   },
   Students: {
     getAllStudents: "/students/get",
@@ -106,7 +114,7 @@ export const apiUrls = {
   },
   quzies: {
     getQuizes: "/quizes",
-    uploadQuizes:"/quizes/upload"
+    uploadQuizes: "/quizes/upload",
   },
   assignments: {
     addAssignments: "/assignments/create",
@@ -115,7 +123,7 @@ export const apiUrls = {
     submittedAssignments: "/assignments/submitted/get",
     assignmentsStatus: "/assignments/submition/status",
     assignmentsCountByInstructorId: "/assignments/submitted-assignments-count",
-    getAssignmentsByEnrolledCourses: "/assignments/enrolled-assignments"
+    getAssignmentsByEnrolledCourses: "/assignments/enrolled-assignments",
   },
   feedbacks: {
     createFeedback: "/feedback/",
