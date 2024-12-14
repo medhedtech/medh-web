@@ -13,6 +13,7 @@ import { toast } from "react-toastify";
 import Preloader from "@/components/shared/others/Preloader";
 import { FaTimes } from "react-icons/fa";
 import ReCAPTCHA from "react-google-recaptcha";
+import countriesData from "@/utils/countrycode.json";
 
 // Validation schema using yup
 const schema = yup.object({
@@ -25,12 +26,34 @@ const schema = yup.object({
   phone_number: yup
     .string()
     .required("Please enter mobile number")
-    .matches(/^[0-9]{10}$/, "Phone number must be 10 digits"),
+    .matches(/^[0-9]{10}$/, "Phone number must be 10 digits")
+    .test(
+      "is-valid-phone",
+      "Invalid phone number. Please include the country code.",
+      function (value) {
+        const { country } = this.parent; // Access the country value from the parent object
+
+        if (!value || !country) return false;
+
+        // Assuming `countriesData` is available in the scope where the schema is defined
+        const selectedCountry = countriesData.find((c) => c.name === country);
+
+        if (!selectedCountry) return false;
+
+        const phoneWithCountryCode = selectedCountry.dial_code + value;
+        const phoneRegex = /^[0-9]{10,15}$/; // Adjust the regex as needed
+
+        return phoneRegex.test(phoneWithCountryCode);
+      }
+    ),
   designation: yup.string().required("Designation is required"),
   company_name: yup.string().required("Company name is required"),
   company_website: yup
     .string()
-    .url("Invalid website URL")
+    .matches(
+      /^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,6}(\/[a-zA-Z0-9-]*)*$/,
+      "Invalid website URL"
+    )
     .required("Website is required"),
   message: yup.string().required("Please enter the message"),
   accept: yup
@@ -58,13 +81,16 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
   // Handle form submission
   const onSubmit = async (data) => {
     try {
+      const selectedCountry = countriesData.find(
+        (country) => country.name === data.country
+      );
       await postQuery({
         url: apiUrls?.Corporate?.addCorporate,
         postData: {
           full_name: data?.full_name,
           country: data?.country,
           email: data?.email,
-          phone_number: data?.phone_number,
+          phone_number: selectedCountry.dial_code + data?.phone_number,
           company_name: data?.company_name,
           designation: data?.designation,
           company_website: data?.company_website,
@@ -171,14 +197,19 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
                     <div className="w-full lg:w-1/3">
                       <select
                         {...register("country")}
-                        className="w-full px-2 py-2 dark:bg-inherit bg-lightGrey8 border border-gray-300 text-[#5C6574]"
+                        className="w-full text-sm px-2 py-2 dark:bg-inherit bg-lightGrey8 border border-gray-300 text-[#5C6574] max-h-48 overflow-y-auto  "
                       >
-                        <option value="IN">IN (+91)</option>
-                        <option value="AUS">AUS (+61)</option>
-                        <option value="CA">CA (+1)</option>
-                        <option value="SGP">SGP (+65) </option>
-                        <option value="UAE">UAE (+971)</option>
-                        <option value="UK">UK (+44) </option>
+                        {countriesData.map((country) => {
+                          const countryName =
+                            country.name.length > 10
+                              ? country.name.slice(0, 10) + "..."
+                              : country.name;
+                          return (
+                            <option key={country.code} value={country.name}>
+                              {countryName} ({country.dial_code})
+                            </option>
+                          );
+                        })}
                       </select>
                     </div>
 
