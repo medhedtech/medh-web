@@ -58,30 +58,34 @@ const AssignInstructor = () => {
     handleSubmit,
     reset,
     setValue,
+    getValues,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(schema),
   });
 
   useEffect(() => {
-    // Fetch instructor data
     const fetchInstructors = async () => {
       try {
         await getQuery({
-          url: apiUrls?.Instructor?.getAllInstructors,
-          onSuccess: (data) => {
-            setInstructors(data);
+          url: apiUrls.Instructor.getAllInstructors,
+          onSuccess: (response) => {
+            if (Array.isArray(response)) {
+              setInstructors(response);
+            } else if (response?.data && Array.isArray(response.data)) {
+              setInstructors(response.data);
+            } else {
+              setInstructors([]);
+              console.error("Invalid API response:", response);
+            }
           },
-          onFail: (err) => {
-            toast.error(
-              `Failed to fetch instructors: ${
-                err instanceof Error ? err.message : err
-              }`
-            );
+          onFail: () => {
+            setInstructors([]);
           },
         });
       } catch (error) {
-        console.error("Error fetching instructors:", error);
+        console.error("Failed to fetch instructors:", error);
+        setInstructors([]);
       }
     };
 
@@ -135,7 +139,6 @@ const AssignInstructor = () => {
   }, []);
 
   useEffect(() => {
-
     const handleClickOutside = (event) => {
       if (
         courseDropdownRef.current &&
@@ -157,15 +160,12 @@ const AssignInstructor = () => {
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    
+
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
-  
-
-  
   const toggleCourseDropdown = (e) => {
     e.preventDefault();
     setCourseDropdownOpen((prev) => !prev);
@@ -206,9 +206,32 @@ const AssignInstructor = () => {
   const selectInstructorEmail = (email) => {
     setSelectedEmail(email);
     setValue("email", email);
+    const selectedInstructor = instructors.find((ins) => ins.email === email);
+    if (selectedInstructor) {
+      setValue("user_id", selectedInstructor._id);
+    }
+
     setEmailDropdownOpen(false);
     setSearchTermEmail("");
   };
+
+  // const selectInstructorEmail = (email) => {
+  //   setSelectedEmail(email);
+  //   setValue("email", email);
+
+  //   const selectedInstructor = instructors.find((ins) => ins.email === email);
+
+  //   if (selectedInstructor) {
+  //     console.log("Selected Instructor:", selectedInstructor);
+  //     // Set the instructor's unique ID (the one used for API call)
+  //     setValue("user_id", selectedInstructor._id);
+  //     // Set the user ID (nested inside user_id)
+  //     setValue("instructor_id", selectedInstructor.user_id._id);
+  //   }
+
+  //   setEmailDropdownOpen(false);
+  //   setSearchTermEmail("");
+  // };
 
   const filteredInstructorsEmail = instructors?.filter((ins) =>
     ins.email.toLowerCase().includes(searchTermEmail.toLowerCase())
@@ -223,6 +246,7 @@ const AssignInstructor = () => {
           email: data.email,
           course_title: data.course_title,
           course_type: data.course_type,
+          user_id: data.user_id,
         },
         onSuccess: () => {
           toast.success("Instructor assigned successfully!");
@@ -253,7 +277,7 @@ const AssignInstructor = () => {
     setEmailDropdownOpen(false);
     setSelectedEmail("");
     setSearchTermEmail("");
-  }
+  };
 
   const openModal = (row) => {
     setSelectedInstructor(row._id);
@@ -272,7 +296,8 @@ const AssignInstructor = () => {
       await getQuery({
         url: `${apiUrls?.assignedInstructors?.getAssignedInstructorById}/${instructorId}`,
         onSuccess: (data) => {
-          setInstructorDetails(data);
+          // setInstructorDetails(data);
+          setInstructorDetails(data.assignment);
         },
         onFail: (err) => {
           toast.error(
@@ -287,9 +312,10 @@ const AssignInstructor = () => {
     }
   };
 
-  const handleUpdateAssignedInstructor = async () => {
-    if (!instructorDetails) return;
+  console.log("instructorDetails:", instructorDetails);
+  console.log("selectedInstructor:", selectedInstructor);
 
+  const handleUpdateAssignedInstructor = async () => {
     try {
       await postQuery({
         url: `${apiUrls?.assignedInstructors?.updateAssignedInstructor}/${selectedInstructor}`,
@@ -343,14 +369,6 @@ const AssignInstructor = () => {
     },
   ];
 
-  const courseTypeOptions = [
-    { value: "", label: "Select Type" },
-    { value: "Live", label: "Live" },
-    { value: "Demo", label: "Demo" },
-    { value: "Corporate", label: "Corporate" },
-    { value: "Institute", label: "Institute" },
-  ];
-
   if (loading) {
     return <Preloader />;
   }
@@ -364,28 +382,6 @@ const AssignInstructor = () => {
             <h2 className="text-2xl font-semibold mb-4">Assign Instructor</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Instructor Full Name */}
-              {/* <div>
-                <label className="block text-[#808080] text-xs px-2 font-medium mb-1">
-                  Full Name
-                  <span className="text-red-500 ml-1">*</span>
-                </label>
-                <select
-                  className="w-full px-4 py-2 border rounded-lg dark:bg-inherit dark:text-white text-gray-700 focus:outline-none"
-                  {...register("full_name")}
-                >
-                  <option value="">Select Instructor</option>
-                  {instructors.map((instructor) => (
-                    <option key={instructor.id} value={instructor.full_name}>
-                      {instructor.full_name}
-                    </option>
-                  ))}
-                </select>
-                {errors.full_name && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {errors.full_name.message}
-                  </p>
-                )}
-              </div> */}
               <div className="relative -mt-2" ref={fullNameDropdownRef}>
                 <label
                   htmlFor="full_name"
@@ -428,7 +424,9 @@ const AssignInstructor = () => {
                                   className="rounded-full min-h-8 max-h-8 min-w-8 max-w-8"
                                 />
                               ) : (
-                                <div className="rounded-full w-8 h-8 bg-customGreen flex items-center justify-center font-bold">{ins.full_name?.substring(0, 1).toUpperCase()}</div>
+                                <div className="rounded-full w-8 h-8 bg-customGreen flex items-center justify-center font-bold">
+                                  {ins.full_name?.substring(0, 1).toUpperCase()}
+                                </div>
                               )}
                               <span>
                                 {ins.full_name || "No name available"}
@@ -451,30 +449,6 @@ const AssignInstructor = () => {
                 )}
               </div>
 
-
-              {/* Instructor Email */}
-              {/* <div>
-                <label className="block text-[#808080] text-xs px-2 font-medium mb-1">
-                  Email
-                  <span className="text-red-500 ml-1">*</span>
-                </label>
-                <select
-                  className="w-full px-4 py-2 border rounded-lg dark:bg-inherit dark:text-white text-gray-700 focus:outline-none"
-                  {...register("email")}
-                >
-                  <option value="">Select Email</option>
-                  {instructors.map((instructor) => (
-                    <option key={instructor.id} value={instructor.email}>
-                      {instructor.email}
-                    </option>
-                  ))}
-                </select>
-                {errors.email && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {errors.email.message}
-                  </p>
-                )}
-              </div> */}
               <div className="relative -mt-2" ref={emailDropdownRef}>
                 <label
                   htmlFor="email"
@@ -517,17 +491,15 @@ const AssignInstructor = () => {
                                   className="rounded-full min-h-8 max-h-8 min-w-8 max-w-8"
                                 />
                               ) : (
-                                <div className="rounded-full w-8 h-8 bg-customGreen flex items-center justify-center font-bold">{ins.email?.substring(0, 1).toUpperCase()}</div>
+                                <div className="rounded-full w-8 h-8 bg-customGreen flex items-center justify-center font-bold">
+                                  {ins.email?.substring(0, 1).toUpperCase()}
+                                </div>
                               )}
-                              <span>
-                                {ins.email|| "No email available"}
-                              </span>
+                              <span>{ins.email || "No email available"}</span>
                             </li>
                           ))
                         ) : (
-                          <li className="p-2 text-gray-500">
-                            No email found
-                          </li>
+                          <li className="p-2 text-gray-500">No email found</li>
                         )}
                       </ul>
                     </div>
@@ -540,29 +512,6 @@ const AssignInstructor = () => {
                 )}
               </div>
 
-              {/* Course Title */}
-              {/* <div>
-                <label className="block text-[#808080] text-xs px-2 font-medium mb-1">
-                  Course Title
-                  <span className="text-red-500 ml-1">*</span>
-                </label>
-                <select
-                  className="w-full px-4 py-2 border rounded-lg dark:bg-inherit dark:text-white text-gray-700 focus:outline-none"
-                  {...register("course_title")}
-                >
-                  <option value="">Select Course</option>
-                  {courses.map((course) => (
-                    <option key={course.id} value={course.course_title}>
-                      {course.course_title}
-                    </option>
-                  ))}
-                </select>
-                {errors.course_title && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {errors.course_title.message}
-                  </p>
-                )}
-              </div> */}
               <div className="relative -mt-2" ref={courseDropdownRef}>
                 <label
                   htmlFor="course_name"
@@ -655,7 +604,10 @@ const AssignInstructor = () => {
               <button
                 type="button"
                 className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg mr-2 hover:bg-gray-300"
-                onClick={() => {reset(); resetStates();}}
+                onClick={() => {
+                  reset();
+                  resetStates();
+                }}
               >
                 Cancel
               </button>
@@ -690,6 +642,7 @@ const AssignInstructor = () => {
                 </label>
                 <select
                   value={instructorDetails.full_name || ""}
+                  disabled 
                   onChange={(e) =>
                     setInstructorDetails({
                       ...instructorDetails,
@@ -736,6 +689,7 @@ const AssignInstructor = () => {
                 <input
                   type="email"
                   value={instructorDetails.email || ""}
+                  disabled
                   onChange={(e) =>
                     setInstructorDetails({
                       ...instructorDetails,
