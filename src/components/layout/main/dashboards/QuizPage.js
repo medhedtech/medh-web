@@ -111,7 +111,7 @@ export default function QuizPage({ closeQuiz }) {
           setQuizData(data);
   
           // Access the questions array from the first object in the data array
-          const questionsArray = data?.[0]?.questions;
+          const questionsArray = data?.[1]?.questions;
   
           if (questionsArray) {
             const flattenedQuestions = questionsArray.map((item) => ({
