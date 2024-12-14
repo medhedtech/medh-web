@@ -15,7 +15,7 @@ import Link from "next/link";
 import { toast } from "react-toastify";
 import { FaTimes } from "react-icons/fa";
 import ReCAPTCHA from "react-google-recaptcha";
-
+import countriesData from "@/utils/countrycode.json";
 // Validation schema using yup
 const schema = yup.object({
   full_name: yup.string().required("Name is required."),
@@ -24,7 +24,27 @@ const schema = yup.object({
     .email("Please enter a valid email")
     .required("Email is required."),
   country: yup.string().nullable(),
-  phone_number: yup.string().required("Please enter mobile number"),
+  phone_number: yup
+    .string()
+    .required("Please enter your mobile number")
+    .test("is-valid-phone", "Invalid phone number.", function (value) {
+      const { country } = this.parent;
+
+      if (!value || !country) return false;
+
+      // Ensure the phone number has exactly 10 digits
+      const isValidLength = /^\d{10}$/.test(value);
+      if (!isValidLength) return false;
+
+      // Validate full phone number with country code
+      const selectedCountry = countriesData.find((c) => c.name === country);
+      if (!selectedCountry) return false;
+
+      const phoneWithCountryCode = selectedCountry.dial_code + value;
+      const phoneRegex = /^\+[1-9]\d{1,14}$/;
+
+      return phoneRegex.test(phoneWithCountryCode);
+    }),
   message: yup.string().required("Please enter the message"),
   accept: yup
     .boolean()
@@ -90,15 +110,18 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
   // Handle form submission
   const onSubmit = async (data) => {
     try {
+      const selectedCountry = countriesData.find(
+        (country) => country.name === data.country
+      );
       // Prepare the postData to send
       const postData = {
         full_name: data.full_name,
         country: data.country,
         email: data.email,
-        phone_number: data.phone_number,
+        phone_number: selectedCountry.dial_code + data.phone_number,
         message: data.message,
         accept: data.accept,
-        page_title: pageTitle, 
+        page_title: pageTitle,
       };
 
       // Add resume_image if pdfBrochure is available
@@ -212,14 +235,19 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
                     <div className="w-full lg:w-2/6">
                       <select
                         {...register("country")}
-                        className="w-full px-2 py-2 dark:bg-inherit bg-white border border-gray-300 text-[#5C6574]"
+                        className="w-full text-sm px-2 py-2 dark:bg-inherit bg-white border border-gray-300 text-[#5C6574] max-h-48 overflow-y-auto"
                       >
-                        <option value="IN">IN (+91)</option>
-                        <option value="AUS">AUS (+61)</option>
-                        <option value="CA">CA (+1)</option>
-                        <option value="SGP">SGP (+65) </option>
-                        <option value="UAE">UAE (+971)</option>
-                        <option value="UK">Uk (+44) </option>
+                        {countriesData.map((country) => {
+                          const countryName =
+                            country.name.length > 10
+                              ? country.name.slice(0, 10) + "..."
+                              : country.name;
+                          return (
+                            <option key={country.code} value={country.name}>
+                              {countryName} ({country.dial_code})
+                            </option>
+                          );
+                        })}
                       </select>
                     </div>
 
@@ -232,6 +260,8 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
                       />
                     </div>
                   </div>
+
+                  {/* Error Message */}
                   {(errors.country || errors.phone_number) && (
                     <div className="text-red-500">
                       {errors.country?.message || errors.phone_number?.message}
@@ -252,8 +282,8 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
                   )}
 
                   {showUploadField && (
-                    <>
-                      <h2 className="text-[1rem] font-bold font-Poppins text-[#000000D9] dark:text-white">
+                    <div className="mb-4">
+                      <h2 className="text-[1rem]  font-bold font-Poppins text-[#000000D9] dark:text-white">
                         Upload Job Description*
                       </h2>
                       <div className="w-full">
@@ -273,7 +303,7 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
                           onChange={handlePdfUpload}
                         />
                       </div>
-                    </>
+                    </div>
                   )}
 
                   <ReCAPTCHA
