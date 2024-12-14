@@ -8,6 +8,7 @@ import { toast } from "react-toastify";
 import { FaCamera } from "react-icons/fa";
 import { FaTimes } from "react-icons/fa";
 import ReCAPTCHA from "react-google-recaptcha";
+import countriesData from "@/utils/countrycode.json";
 
 // Validation schema using yup
 const schema = yup.object({
@@ -17,7 +18,27 @@ const schema = yup.object({
     .email("Please enter a valid email")
     .required("Email is required."),
   country: yup.string().nullable(),
-  phone_number: yup.string().required("Please enter mobile number"),
+  phone_number: yup
+    .string()
+    .required("Please enter mobile number")
+    .test(
+      "is-valid-phone",
+      "Invalid phone number. Please include the country code.",
+      function (value) {
+        const { country } = this.parent;
+
+        if (!value || !country) return false;
+
+        const selectedCountry = countriesData.find((c) => c.name === country);
+
+        if (!selectedCountry) return false;
+
+        const phoneWithCountryCode = selectedCountry.dial_code + value;
+        const phoneRegex = /^\+[1-9]\d{1,14}$/;
+
+        return phoneRegex.test(phoneWithCountryCode);
+      }
+    ),
   message: yup.string(),
   accept: yup
     .boolean()
@@ -79,13 +100,16 @@ function JobApply() {
   // Handle form submission
   const onSubmit = async (data) => {
     try {
+      const selectedCountry = countriesData.find(
+        (country) => country.name === data.country
+      );
       await postQuery({
         url: apiUrls?.jobForm?.addJobPost,
         postData: {
           full_name: data?.full_name,
           country: data?.country,
           email: data?.email,
-          phone_number: data?.phone_number,
+          phone_number: selectedCountry.dial_code + data?.phone_number,
           message: data?.message,
           resume_image: pdfBrochure,
           accept: data?.accept,
@@ -142,15 +166,19 @@ function JobApply() {
             <div className="w-[35%]">
               <select
                 {...register("country")}
-                className="w-full border py-3 dark:bg-inherit border-gray-300 p-2 rounded-md focus:outline-none"
-                required
+                className="w-full text-sm px-2 py-2 dark:bg-inherit bg-white border border-gray-300 text-[#5C6574] max-h-48 overflow-y-auto  "
               >
-                <option value="IN">IN (+91)</option>
-                <option value="AUS">AUS (+61)</option>
-                <option value="CA">CA (+1)</option>
-                <option value="SGP">SGP (+65) </option>
-                <option value="UAE">UAE (+971)</option>
-                <option value="UK">Uk (+44) </option>
+                {countriesData.map((country) => {
+                  const countryName =
+                    country.name.length > 10
+                      ? country.name.slice(0, 7) + "..."
+                      : country.name;
+                  return (
+                    <option key={country.code} value={country.name}>
+                      {countryName} ({country.dial_code})
+                    </option>
+                  );
+                })}
               </select>
               {errors.country && (
                 <div className="text-red-500">{errors.country.message}</div>
