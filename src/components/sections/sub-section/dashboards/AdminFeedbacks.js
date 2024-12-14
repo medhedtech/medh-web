@@ -23,7 +23,17 @@ const AdminFeedbacks = () => {
       try {
         await getQuery({
           url: apiUrls?.Instructor?.getAllInstructors,
-          onSuccess: (data) => setInstructors(data),
+          // onSuccess: (data) => setInstructors(data),
+          onSuccess: (response) => {
+            if (Array.isArray(response)) {
+              setInstructors(response);
+            } else if (response?.data && Array.isArray(response.data)) {
+              setInstructors(response.data);
+            } else {
+              setInstructors([]);
+              console.error("Invalid API response:", response);
+            }
+          },
           onFail: () => setInstructors([]),
         });
       } catch (error) {
