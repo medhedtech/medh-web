@@ -26,25 +26,25 @@ const schema = yup.object({
   country: yup.string().nullable(),
   phone_number: yup
     .string()
-    .required("Please enter mobile number")
-    .test(
-      "is-valid-phone",
-      "Invalid phone number. Please include the country code.",
-      function (value) {
-        const { country } = this.parent;
+    .required("Please enter your mobile number")
+    .test("is-valid-phone", "Invalid phone number.", function (value) {
+      const { country } = this.parent;
 
-        if (!value || !country) return false;
+      if (!value || !country) return false;
 
-        const selectedCountry = countriesData.find((c) => c.name === country);
+      // Ensure the phone number has exactly 10 digits
+      const isValidLength = /^\d{10}$/.test(value);
+      if (!isValidLength) return false;
 
-        if (!selectedCountry) return false;
+      // Validate full phone number with country code
+      const selectedCountry = countriesData.find((c) => c.name === country);
+      if (!selectedCountry) return false;
 
-        const phoneWithCountryCode = selectedCountry.dial_code + value;
-        const phoneRegex = /^\+[1-9]\d{1,14}$/;
+      const phoneWithCountryCode = selectedCountry.dial_code + value;
+      const phoneRegex = /^\+[1-9]\d{1,14}$/;
 
-        return phoneRegex.test(phoneWithCountryCode);
-      }
-    ),
+      return phoneRegex.test(phoneWithCountryCode);
+    }),
   message: yup.string().required("Please enter the message"),
   accept: yup
     .boolean()
@@ -235,7 +235,7 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
                     <div className="w-full lg:w-2/6">
                       <select
                         {...register("country")}
-                        className="w-full text-sm px-2 py-2 dark:bg-inherit bg-white border border-gray-300 text-[#5C6574] max-h-48 overflow-y-auto  "
+                        className="w-full text-sm px-2 py-2 dark:bg-inherit bg-white border border-gray-300 text-[#5C6574] max-h-48 overflow-y-auto"
                       >
                         {countriesData.map((country) => {
                           const countryName =
@@ -260,6 +260,8 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
                       />
                     </div>
                   </div>
+
+                  {/* Error Message */}
                   {(errors.country || errors.phone_number) && (
                     <div className="text-red-500">
                       {errors.country?.message || errors.phone_number?.message}
