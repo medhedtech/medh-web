@@ -56,9 +56,17 @@ export default function Home() {
           if (course.assigned_instructor) {
             await getQuery({
               url: `${apiUrls?.assignedInstructors?.getAssignedInstructorById}/${course.assigned_instructor}`,
+              // onSuccess: (instructorData) => {
+              //   instructorsMap[course.assigned_instructor] =
+              //     instructorData?.full_name || "-";
+              // }, 
               onSuccess: (instructorData) => {
-                instructorsMap[course.assigned_instructor] =
-                  instructorData?.full_name || "-";
+                // Check if instructorData exists and map to instructorNames
+                if (instructorData?.assignment?.full_name) {
+                  instructorsMap[course.assigned_instructor] = instructorData.assignment.full_name;
+                } else {
+                  instructorsMap[course.assigned_instructor] = "Instructor not available";
+                }
               },
               onFail: () => {
                 instructorsMap[course.assigned_instructor] = "-";
