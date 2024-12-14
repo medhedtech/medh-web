@@ -11,6 +11,7 @@ import {
 } from "react-icons/fa";
 import { Modal, Button } from "@mui/material";
 import Preloader from "@/components/shared/others/Preloader";
+import PaginationComponent from "@/components/shared/pagination-latest";
 
 // Function to format date as DD-MM-YYYY HH:MM
 const formatDate = (dateString) => {
@@ -28,17 +29,21 @@ const SubmittedAssignments = () => {
   const [data, setData] = useState([]);
   const [selectedSubmission, setSelectedSubmission] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [limit] = useState(5);
 
   // Fetch submitted assignments
   useEffect(() => {
     fetchSubmittedAssignments();
-  }, []);
+  }, [limit, currentPage]);
 
   const fetchSubmittedAssignments = () => {
     getQuery({
-      url: apiUrls?.assignments?.submittedAssignments,
+      url: `${apiUrls?.assignments?.submittedAssignments}?page=${currentPage}&limit=${limit}`,
       onSuccess: (res) => {
-        setData(res || []);
+        setData(res?.submittedAssignments || []);
+        setTotalPages(Math.ceil(res?.totalAssignments / limit));
       },
       onFail: (err) => {
         console.error("Error fetching submitted assignments:", err);
@@ -154,6 +159,11 @@ const SubmittedAssignments = () => {
           </p>
         )}
       </div>
+      <PaginationComponent
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
 
       {/* Modal for assignment details */}
       <Modal
