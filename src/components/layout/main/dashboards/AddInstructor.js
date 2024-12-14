@@ -11,6 +11,8 @@ import useGetQuery from "@/hooks/getQuery.hook";
 import Preloader from "@/components/shared/others/Preloader";
 import InstructorTable from "./InstructoreManage";
 import Image from "next/image";
+import lock from "@/assets/images/log-sign/lock.svg";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 // Validation Schema
 const schema = yup.object({
@@ -24,13 +26,14 @@ const schema = yup.object({
   phone_number: yup
     .string()
     .required("Mobile number is required")
-    .matches(
-      /^[6-9]\d{9}$/,
-      "Mobile number must be a valid 10-digit number"
-    ),
+    .matches(/^[6-9]\d{9}$/, "Mobile number must be a valid 10-digit number"),
   email: yup.string().email().required("Email is required"),
   course_name: yup.string(),
   domain: yup.string().required("Domain is required"),
+  password: yup
+    .string()
+    .min(8, "At least 8 characters required")
+    .required("Password is required"),
 });
 
 const AddInstructor = () => {
@@ -43,6 +46,8 @@ const AddInstructor = () => {
   const [courseDropdownOpen, setCourseDropdownOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
 
   const {
     register,
@@ -118,6 +123,7 @@ const AddInstructor = () => {
           full_name: data.full_name,
           email: data.email,
           phone_number: data.phone_number,
+          password: data?.password,
           domain: data.domain,
           meta: {
             course_name: data.course_name,
@@ -293,27 +299,6 @@ const AddInstructor = () => {
             )}
           </div>
 
-          {/* Course Name Field */}
-          {/* <div className="flex flex-col">
-            <label
-              htmlFor="course_name"
-              className="block text-sm font-medium text-gray-600 mb-2"
-            >
-              Course Name
-            </label>
-            <select
-              {...register("course_name")}
-              className="w-full p-2 border rounded-lg dark:bg-inherit text-gray-600"
-            >
-              <option value="">Select Course</option>
-              {courses.map((course, index) => (
-                <option key={index} value={course.course_title}>
-                  {course.course_title}
-                </option>
-              ))}
-            </select>
-          </div> */}
-
           <div className="relative -mt-2" ref={courseDropdownRef}>
             <label
               htmlFor="course_name"
@@ -390,6 +375,42 @@ const AddInstructor = () => {
             />
             {errors.age && (
               <span className="text-red-500 text-xs">{errors.age.message}</span>
+            )}
+          </div>
+
+          <div className="gap-4 mb-4">
+            <label
+              htmlFor="password"
+              className="text-xs px-2 text-[#808080] font-medium mb-1"
+            >
+              Password
+              <span className="text-red-500 ml-1">*</span>
+            </label>
+            <div className="relative">
+              {/* <Image
+                src={lock}
+                className="absolute left-4 top-1/2 transform -translate-y-1/2"
+                alt="lock-icon"
+              /> */}
+              <input
+                {...register("password")}
+                type={showPassword ? "text" : "password"}
+                placeholder="Password"
+                className="w-full border border-gray-300 dark:bg-inherit rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-green-400"
+                // className="w-full h-12 pl-10 pr-10 text-sm focus:outline-none text-black bg-[#F7F7F7] dark:text-contentColor-dark border-2 border-borderColor dark:border-borderColor-dark placeholder:text-black placeholder:opacity-80 font-medium  rounded-[12px]"
+              />
+              <button
+                type="button"
+                onClick={togglePasswordVisibility}
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+              >
+                {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
+              </button>
+            </div>
+            {errors.password && (
+              <p className="text-xs text-red-500 font-normal mt-[2px] ml-2">
+                {errors.password?.message}
+              </p>
             )}
           </div>
           {/* Submit and Cancel Buttons */}
