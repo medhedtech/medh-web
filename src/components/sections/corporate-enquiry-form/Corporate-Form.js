@@ -25,27 +25,25 @@ const schema = yup.object({
   country: yup.string().nullable(),
   phone_number: yup
     .string()
-    .required("Please enter mobile number")
-    .matches(/^[0-9]{10}$/, "Phone number must be 10 digits")
-    .test(
-      "is-valid-phone",
-      "Invalid phone number. Please include the country code.",
-      function (value) {
-        const { country } = this.parent; // Access the country value from the parent object
+    .required("Please enter your mobile number")
+    .test("is-valid-phone", "Invalid phone number.", function (value) {
+      const { country } = this.parent;
 
-        if (!value || !country) return false;
+      if (!value || !country) return false;
 
-        // Assuming `countriesData` is available in the scope where the schema is defined
-        const selectedCountry = countriesData.find((c) => c.name === country);
+      // Ensure the phone number has exactly 10 digits
+      const isValidLength = /^\d{10}$/.test(value);
+      if (!isValidLength) return false;
 
-        if (!selectedCountry) return false;
+      // Validate full phone number with country code
+      const selectedCountry = countriesData.find((c) => c.name === country);
+      if (!selectedCountry) return false;
 
-        const phoneWithCountryCode = selectedCountry.dial_code + value;
-        const phoneRegex = /^[0-9]{10,15}$/; // Adjust the regex as needed
+      const phoneWithCountryCode = selectedCountry.dial_code + value;
+      const phoneRegex = /^\+[1-9]\d{1,14}$/;
 
-        return phoneRegex.test(phoneWithCountryCode);
-      }
-    ),
+      return phoneRegex.test(phoneWithCountryCode);
+    }),
   designation: yup.string().required("Designation is required"),
   company_name: yup.string().required("Company name is required"),
   company_website: yup
@@ -193,11 +191,11 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
                   </div>
 
                   {/* Phone Number Input with Country Dropdown */}
-                  <div className="flex flex-col lg:flex-row mb-4 gap-4">
-                    <div className="w-full lg:w-1/3">
+                  <div className="flex flex-col lg:flex-row mb-2 gap-4">
+                    <div className="w-full lg:w-2/6">
                       <select
                         {...register("country")}
-                        className="w-full text-sm px-2 py-2 dark:bg-inherit bg-lightGrey8 border border-gray-300 text-[#5C6574] max-h-48 overflow-y-auto  "
+                        className="w-full text-sm px-2 py-2 dark:bg-inherit bg-lightGrey8 border border-gray-300 text-[#5C6574] max-h-48 overflow-y-auto"
                       >
                         {countriesData.map((country) => {
                           const countryName =
@@ -218,15 +216,16 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
                         {...register("phone_number")}
                         type="tel"
                         placeholder="Your Phone Number*"
-                        className="w-full px-14px py-3 dark:bg-inherit bg-lightGrey8 text-base border border-gray-300"
+                        className="w-full px-14px py-3  dark:bg-inherit bg-lightGrey8 text-base border border-gray-300"
                       />
-                      {errors.phone_number && (
-                        <span className="text-red-500">
-                          {errors.phone_number.message}
-                        </span>
-                      )}
                     </div>
                   </div>
+                  {/* Error Message */}
+                  {(errors.country || errors.phone_number) && (
+                    <div className="text-red-500">
+                      {errors.country?.message || errors.phone_number?.message}
+                    </div>
+                  )}
 
                   <div className="flex gap-4 flex-col md:flex-row mb-2.5">
                     <div className="flex-col w-full">
