@@ -13,6 +13,7 @@ import { toast } from "react-toastify";
 import Preloader from "@/components/shared/others/Preloader";
 import { FaTimes } from "react-icons/fa";
 import ReCAPTCHA from "react-google-recaptcha";
+import countriesData from "@/utils/countrycode.json";
 
 // Validation schema using yup
 const schema = yup.object({
@@ -27,10 +28,24 @@ const schema = yup.object({
   country: yup.string().nullable().required("Please select a country."),
   phone_number: yup
     .string()
-    .required("Please enter mobile number")
-    .matches(/^\d{10}$/, "Phone number must be exactly 10 digits.")
-    .test("only-digits", "Phone number must contain only digits", (value) => {
-      return /^[0-9]+$/.test(value);
+    .required("Please enter your mobile number")
+    .test("is-valid-phone", "Invalid phone number.", function (value) {
+      const { country } = this.parent;
+
+      if (!value || !country) return false;
+
+      // Ensure the phone number has exactly 10 digits
+      const isValidLength = /^\d{10}$/.test(value);
+      if (!isValidLength) return false;
+
+      // Validate full phone number with country code
+      const selectedCountry = countriesData.find((c) => c.name === country);
+      if (!selectedCountry) return false;
+
+      const phoneWithCountryCode = selectedCountry.dial_code + value;
+      const phoneRegex = /^\+[1-9]\d{1,14}$/;
+
+      return phoneRegex.test(phoneWithCountryCode);
     }),
   course_category: yup.string().required("Please select category."),
   course_type: yup.string().required("Please select course type."),
@@ -64,13 +79,16 @@ const ExploreJourney = ({ mainText, subText }) => {
   // Handle form submission
   const onSubmit = async (data) => {
     try {
+      const selectedCountry = countriesData.find(
+        (country) => country.name === data.country
+      );
       await postQuery({
         url: apiUrls?.enrollWebsiteform?.createEnrollWebsiteForm,
         postData: {
           full_name: data?.full_name,
           country: data?.country,
           email: data?.email,
-          phone_number: data?.phone_number,
+          phone_number: selectedCountry.dial_code + data?.phone_number,
           course_category: data?.course_category,
           course_type: data?.course_type,
           message: data?.message,
@@ -172,53 +190,41 @@ const ExploreJourney = ({ mainText, subText }) => {
                   </div>
 
                   {/* Phone Number Input with Country Dropdown */}
-                  <div className="flex flex-col lg:flex-row mb-4 gap-4">
-                    {/* Country Dropdown */}
-                    <div className="w-full lg:w-1/3">
+                  <div className="flex flex-col lg:flex-row mb-2 gap-4">
+                    <div className="w-full lg:w-2/6">
                       <select
                         {...register("country")}
-                        className="w-full px-2 py-2 dark:bg-inherit bg-lightGrey8 border border-gray-300 text-[#5C6574] placeholder-gray-500"
+                        className="w-full text-sm px-2 py-2 dark:bg-inherit bg-lightGrey8 border border-gray-300 text-[#5C6574] max-h-48 overflow-y-auto"
                       >
-                        <option value="IN" className="text-gray-500">
-                          IN (+91)
-                        </option>
-                        <option value="AUS" className="text-gray-500">
-                          AUS (+61)
-                        </option>
-                        <option value="CA" className="text-gray-500">
-                          CA (+1)
-                        </option>
-                        <option value="SGP" className="text-gray-500">
-                          SGP (+65)
-                        </option>
-                        <option value="UAE" className="text-gray-500">
-                          UAE (+971)
-                        </option>
-                        <option value="UK" className="text-gray-500">
-                          UK (+44)
-                        </option>
+                        {countriesData.map((country) => {
+                          const countryName =
+                            country.name.length > 10
+                              ? country.name.slice(0, 10) + "..."
+                              : country.name;
+                          return (
+                            <option key={country.code} value={country.name}>
+                              {countryName} ({country.dial_code})
+                            </option>
+                          );
+                        })}
                       </select>
                     </div>
 
-                    {/* Phone Number Input */}
                     <div className="w-full lg:w-3/4">
                       <input
                         {...register("phone_number")}
                         type="tel"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        maxLength="10"
                         placeholder="Your Phone Number*"
-                        className="w-full px-[14px] py-3 dark:bg-inherit bg-lightGrey8 text-base border border-gray-300 placeholder-gray-500"
+                        className="w-full px-14px py-3  dark:bg-inherit bg-lightGrey8 text-base border border-gray-300"
                       />
-                      {/* Error Message for Phone Number */}
-                      {errors.phone_number && (
-                        <span className="text-red-500 text-sm mt-1 block">
-                          {errors.phone_number.message}
-                        </span>
-                      )}
                     </div>
                   </div>
+                  {/* Error Message */}
+                  {(errors.country || errors.phone_number) && (
+                    <div className="text-red-500">
+                      {errors.country?.message || errors.phone_number?.message}
+                    </div>
+                  )}
 
                   <div className="flex gap-4 mb-2.5 flex-col lg:flex-row">
                     {/* First Select */}
