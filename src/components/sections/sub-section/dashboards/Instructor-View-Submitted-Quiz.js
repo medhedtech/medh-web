@@ -117,7 +117,7 @@ const SubmittedQuiz = () => {
                         onClick={() => handleViewDetails(submission)}
                         className="bg-[#7ECA9D] text-white hover:bg-[#7ECA9D] active:bg-[#5a9a72] transition duration-300 ease-in-out px-6 py-2 rounded-md shadow-md"
                       >
-                        View Assignments
+                        View Quizes
                       </Button>
                     </div>
                   ))}
@@ -125,11 +125,11 @@ const SubmittedQuiz = () => {
               ) : (
                 <p className="py-6 px-8 text-center text-gray-600 bg-gray-100 rounded-lg shadow-md">
                   <span className="text-2xl font-semibold text-gray-800">
-                    No Submitted Assignments
+                    No Submitted Quizes
                   </span>
                   <br />
                   <span className="text-sm text-gray-500">
-                    We couldn&#39;t find any submitted assignments yet.
+                    We couldn&#39;t find any submitted quizes yet.
                   </span>
                   <div className="mt-4">
                     <FaRegSadCry
@@ -144,11 +144,11 @@ const SubmittedQuiz = () => {
         ) : (
           <p className="py-6 px-8 text-center text-gray-600 bg-gray-100 rounded-lg shadow-md">
             <span className="text-2xl font-semibold text-gray-800">
-              No Submitted Assignments
+              No Submitted Quizes
             </span>
             <br />
             <span className="text-sm text-gray-500">
-              We couldn&#39;t find any submitted assignments yet.
+              We couldn&#39;t find any submitted quizes yet.
             </span>
             <div className="mt-4">
               <FaRegSadCry
