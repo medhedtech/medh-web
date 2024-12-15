@@ -6,6 +6,9 @@ import Image from "next/image";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import moment from "moment";
+import usePostQuery from "@/hooks/postQuery.hook";
+import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
 export default function QuizPage({ closeQuiz }) {
   const [selectedFilter, setSelectedFilter] = useState("");
@@ -13,27 +16,11 @@ export default function QuizPage({ closeQuiz }) {
   const [showPopup, setShowPopup] = useState(false);
   const [quizData, setQuizData] = useState([]);
   const [processedQuestions, setProcessedQuestions] = useState([]);
+  const [selectedAnswers, setSelectedAnswers] = useState({});
   const totalQuestions = processedQuestions?.length;
   const time = "3:23";
-
-  const handleNext = () => {
-    if (currentQuestion < totalQuestions - 1) {
-      setCurrentQuestion(currentQuestion + 1);
-    } else {
-      setShowPopup(true);
-    }
-  };
-
-  const handleBack = () => {
-    if (currentQuestion > 0) {
-      setCurrentQuestion(currentQuestion - 1);
-    }
-  };
-
-  const closePopup = () => {
-    setShowPopup(false);
-    setCurrentQuestion(0);
-  };
+  const { postQuery, loading } = usePostQuery();
+  const router = useRouter()
 
   const [classes, setClasses] = useState([]);
   const [studentId, setStudentId] = useState(null);
@@ -109,17 +96,16 @@ export default function QuizPage({ closeQuiz }) {
         url: `${apiUrls?.quzies?.getQuizes}?meet_link=${selectedFilter}`,
         onSuccess: (data) => {
           setQuizData(data);
-  
-          // Access the questions array from the first object in the data array
-          const questionsArray = data?.[1]?.questions;
-  
+
+          const questionsArray = data?.[0]?.questions;
+
           if (questionsArray) {
             const flattenedQuestions = questionsArray.map((item) => ({
               question: item?.question,
               options: item?.options,
+              questionId: item?._id, // Store the actual questionId here
             }));
-  
-            console.log(flattenedQuestions, "Flattened Questions");
+
             setProcessedQuestions(flattenedQuestions);
           } else {
             console.error("Questions array is not found in the received data.");
@@ -132,10 +118,68 @@ export default function QuizPage({ closeQuiz }) {
     }
   }, [selectedFilter]);
 
-  
   const handleFilterChange = (value) => {
     setSelectedFilter(value);
   };
+
+  const handleAnswerSelect = (questionId, selectedAnswer) => {
+    setSelectedAnswers((prev) => ({
+      ...prev,
+      [questionId]: selectedAnswer,
+    }));
+  };
+
+  const handleNext = () => {
+    if (currentQuestion < totalQuestions - 1) {
+      setCurrentQuestion(currentQuestion + 1);
+    } else {
+      setShowPopup(true);
+    }
+  };
+
+  const handleBack = () => {
+    if (currentQuestion > 0) {
+      setCurrentQuestion(currentQuestion - 1);
+    }
+  };
+
+  const closePopup = () => {
+    setShowPopup(false);
+    setCurrentQuestion(0);
+  };
+
+  const submitResponse = () => {
+    if (!studentId || !quizData[0]?._id) {
+      console.error("Student ID or Quiz ID is missing.");
+      return;
+    }
+
+    const responses = Object.entries(selectedAnswers).map(
+      ([questionId, selectedAnswer]) => ({
+        questionId,
+        selectedAnswer,
+      })
+    );
+
+    postQuery({
+      url: apiUrls?.quzies?.quizResponses,
+      postData: {
+        quizId: quizData[0]?._id,
+        studentId,
+        responses,
+      },
+      onSuccess: () => {
+        toast.success("Response submitted successfully")
+        console.log("Quiz response submitted successfully.");
+        closePopup();
+        router.push("/dashboards/student-dashboard")
+      },
+      onFail: (error) => {
+        console.error("Error submitting quiz response:", error);
+      },
+    });
+  };
+
 
   return (
     <div className="w-full bg-gray-100 dark:bg-inherit dark:border rounded-5px flex items-center justify-center">
@@ -143,7 +187,7 @@ export default function QuizPage({ closeQuiz }) {
         <select
           value={selectedFilter}
           onChange={(e) => handleFilterChange(e.target.value)}
-          className="border mb-2 border-gray-300 bg-white text-gray-700 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+          className="min-w-[440px] border mb-2 border-gray-300 bg-white text-gray-700 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
         >
           {classes?.map((option) => (
             <option key={option?.meet_title} value={option?.meet_title}>
@@ -151,12 +195,11 @@ export default function QuizPage({ closeQuiz }) {
             </option>
           ))}
         </select>
-
-        {/* Pass processedQuestions to QuizQuestion */}
         {processedQuestions?.length > 0 && (
           <QuizQuestion
             question={processedQuestions[currentQuestion]?.question}
             options={processedQuestions[currentQuestion]?.options}
+            questionId={processedQuestions[currentQuestion]?.questionId}
             questionNumber={currentQuestion + 1}
             totalQuestions={totalQuestions}
             time={time}
@@ -164,6 +207,10 @@ export default function QuizPage({ closeQuiz }) {
             onBack={handleBack}
             closeQuiz={closeQuiz}
             isLastQuestion={currentQuestion === totalQuestions - 1}
+            selectedAnswer={
+              selectedAnswers[processedQuestions[currentQuestion]?.questionId]
+            }
+            onAnswerSelect={handleAnswerSelect}
           />
         )}
       </div>
@@ -175,13 +222,13 @@ export default function QuizPage({ closeQuiz }) {
             </div>
 
             <p className="dark:text-white">
-              Congratulations! You are successfully completed the quiz{" "}
+              Congratulations! You have successfully completed the quiz.
             </p>
             <button
-              onClick={closePopup}
+              onClick={submitResponse}
               className="mt-4 px-6 py-2 bg-primaryColor text-white rounded-full hover:bg-green-600 w-80"
             >
-              Go Back
+              Submit Quiz
             </button>
           </div>
         </div>
