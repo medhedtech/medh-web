@@ -20,7 +20,7 @@ export default function QuizPage({ closeQuiz }) {
   const totalQuestions = processedQuestions?.length;
   const time = "3:23";
   const { postQuery, loading } = usePostQuery();
-  const router = useRouter()
+  const router = useRouter();
 
   const [classes, setClasses] = useState([]);
   const [studentId, setStudentId] = useState(null);
@@ -92,27 +92,34 @@ export default function QuizPage({ closeQuiz }) {
 
   useEffect(() => {
     if (selectedFilter) {
+      console.log("Fetching quiz for:", selectedFilter);
       getQuery({
         url: `${apiUrls?.quzies?.getQuizes}?meet_link=${selectedFilter}`,
         onSuccess: (data) => {
+          console.log("Fetched Quiz Data:", data);
           setQuizData(data);
 
-          const questionsArray = data?.[0]?.questions;
+          // Filter quizzes by class name or meet_link
+          const selectedQuiz = data.find(
+            (quiz) => quiz.class_name === selectedFilter
+          );
 
-          if (questionsArray) {
-            const flattenedQuestions = questionsArray.map((item) => ({
+          if (selectedQuiz?.questions) {
+            const flattenedQuestions = selectedQuiz.questions.map((item) => ({
               question: item?.question,
               options: item?.options,
-              questionId: item?._id, // Store the actual questionId here
+              questionId: item?._id,
             }));
 
             setProcessedQuestions(flattenedQuestions);
           } else {
-            console.error("Questions array is not found in the received data.");
+            console.warn("No quiz found for the selected filter.");
+            setProcessedQuestions([]);
           }
         },
         onFail: (error) => {
           console.error("Error fetching quizzes:", error);
+          setProcessedQuestions([]);
         },
       });
     }
@@ -169,17 +176,16 @@ export default function QuizPage({ closeQuiz }) {
         responses,
       },
       onSuccess: () => {
-        toast.success("Response submitted successfully")
+        toast.success("Response submitted successfully");
         console.log("Quiz response submitted successfully.");
         closePopup();
-        router.push("/dashboards/student-dashboard")
+        router.push("/dashboards/student-dashboard");
       },
       onFail: (error) => {
         console.error("Error submitting quiz response:", error);
       },
     });
   };
-
 
   return (
     <div className="w-full bg-gray-100 dark:bg-inherit dark:border rounded-5px flex items-center justify-center">
