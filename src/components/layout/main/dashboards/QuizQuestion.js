@@ -1,13 +1,10 @@
 "use client";
-import { apiUrls } from "@/apis";
-import useGetQuery from "@/hooks/getQuery.hook";
-import moment from "moment";
-import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 const QuizQuestion = ({
   question,
-  options = [], // Default to an empty array if undefined
+  options = [],
+  questionId,  // Receive the questionId
   questionNumber,
   totalQuestions,
   time,
@@ -15,19 +12,17 @@ const QuizQuestion = ({
   onBack,
   closeQuiz,
   isLastQuestion,
+  selectedAnswer, 
+  onAnswerSelect,
 }) => {
-  const [selectedOption, setSelectedOption] = useState(null);
-  const router = useRouter();
 
   const handleOptionSelect = (index) => {
-    setSelectedOption(index);
+    onAnswerSelect(questionId, index);  // Pass questionId instead of questionNumber
   };
 
   const handleGoBack = () => {
     closeQuiz();
   };
-
-  console.log
 
   return (
     <div className="p-6 bg-white dark:bg-inherit rounded-lg shadow-md w-full mx-auto">
@@ -62,16 +57,16 @@ const QuizQuestion = ({
             <label
               key={index}
               className={`block p-3 border rounded-lg cursor-pointer dark:bg-inherit dark:text-white ${
-                selectedOption === index
+                selectedAnswer === index
                   ? "bg-[#F6F7F9] border-green-500"
                   : "bg-gray-100 border-gray-200"
               }`}
             >
               <input
                 type="radio"
-                name="quiz-option"
+                name={`quiz-option-${questionId}`}  // Ensure unique name per questionId
                 value={option}
-                checked={selectedOption === index}
+                checked={selectedAnswer === index}
                 onChange={() => handleOptionSelect(index)}
                 className="hidden"
               />
@@ -87,9 +82,9 @@ const QuizQuestion = ({
       <div className="flex justify-end gap-4 mt-6">
         <button
           onClick={onBack}
-          disabled={questionNumber == 1}
+          disabled={questionNumber === 1}
           className={`px-8 py-3.5 border rounded-full text-primaryColor border-primaryColor text-size-15 ${
-            questionNumber == 1
+            questionNumber === 1
               ? "cursor-not-allowed"
               : "hover:bg-primaryColor hover:text-white"
           }`}
