@@ -43,7 +43,7 @@ const SubmittedQuiz = () => {
       onSuccess: (res) => {
         setData(res?.responses || []);
         setCurrentPage(Number(res?.currentPage) || 1);
-        setTotalPages(Math.ceil((res?.total || 0) / limit));
+        setTotalPages(Math.ceil(res?.totalResponses / limit));
       },
       onFail: (err) => {
         console.error("Error fetching submitted quizzes:", err);
@@ -125,11 +125,11 @@ const SubmittedQuiz = () => {
           </p>
         )}
       </div>
-      <PaginationComponent
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
-      />
+        <PaginationComponent
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       {/* Modal */}
       <Modal
         open={isModalOpen}
