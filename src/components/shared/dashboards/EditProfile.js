@@ -135,7 +135,7 @@ const EditProfile = ({ onBackClick }) => {
 
   const handleDateChange = (date) => {
     setSelectedDate(date);
-    setValue("date", date);
+    // setValue("date", date);
   };
 
   if (loading || !profileData) {
@@ -171,36 +171,6 @@ const EditProfile = ({ onBackClick }) => {
               height={150}
               className="rounded-full h-[150px] border-4 border-white object-cover"
             />
-            <label className="absolute bg-white bottom-1 right-2 w-8 h-8 border shadow-2xl rounded-full flex items-center justify-center text-white cursor-pointer">
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => setProfileImage(e.target.files[0])}
-              />
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M12 20H21"
-                  stroke="#7ECA9D"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M16.5 3.50023C16.8978 3.1024 17.4374 2.87891 18 2.87891C18.2786 2.87891 18.5544 2.93378 18.8118 3.04038C19.0692 3.14699 19.303 3.30324 19.5 3.50023C19.697 3.69721 19.8532 3.93106 19.9598 4.18843C20.0665 4.4458 20.1213 4.72165 20.1213 5.00023C20.1213 5.2788 20.0665 5.55465 19.9598 5.81202C19.8532 6.06939 19.697 6.30324 19.5 6.50023L7 19.0002L3 20.0002L4 16.0002L16.5 3.50023Z"
-                  stroke="#7ECA9D"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </label>
           </div>
         </div>
 
@@ -214,8 +184,9 @@ const EditProfile = ({ onBackClick }) => {
             <input
               {...register("full_name")}
               type="text"
+              disabled
               placeholder="Enter your full name"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="mt-1 block w-full px-3 py-2 text-gray-400 border border-gray-300 rounded-md focus:outline-none focus:ring-2 cursor-not-allowed focus:ring-green-500"
             />
             {errors.full_name && (
               <p className="text-red-500 text-sm mt-1">
@@ -232,7 +203,7 @@ const EditProfile = ({ onBackClick }) => {
               type="email"
               placeholder="Enter your email"
               disabled
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="mt-1 block w-full px-3 py-2 cursor-not-allowed text-gray-400 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
             />
             {errors.email && (
               <p className="text-red-500 text-sm mt-1">
@@ -250,7 +221,8 @@ const EditProfile = ({ onBackClick }) => {
               {...register("phone_number")}
               type="text"
               placeholder="Enter your phone number"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              disabled
+              className="mt-1 block w-full px-3 py-2 cursor-not-allowed text-gray-400 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
             />
             {errors.phone_number && (
               <p className="text-red-500 text-sm mt-1">
@@ -340,17 +312,20 @@ const EditProfile = ({ onBackClick }) => {
           <div>
             <label className="block text-base font-bold mb-2">D.O.B.</label>
             <DatePicker
-              name="age"
               selected={selectedDate}
-              onChange={handleDateChange}
-              placeholder="Select Date"
+              onChange={(date) => {
+                handleDateChange(date);
+                setValue("age", date, { shouldValidate: true });
+              }}
+              placeholderText="Select Date"
               dateFormat="dd/MM/yyyy"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
             />
             {errors.age && (
-              <p className="text-red-500 text-xs">{errors.age.message}</p>
+              <p className="text-red-500 text-xs mt-1">{errors.age.message}</p>
             )}
           </div>
+
           {/* Submit Button */}
           <div className="md:col-span-2">
             <button

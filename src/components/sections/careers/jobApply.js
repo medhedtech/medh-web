@@ -261,6 +261,7 @@ function JobApply() {
           <ReCAPTCHA
             sitekey="6LeNH5QqAAAAAO98HJ00v5yuCkLgHYCSvUEpGhLb"
             onChange={handleRecaptchaChange}
+            required
           />
 
           {/* Submit Button */}

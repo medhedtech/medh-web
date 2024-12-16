@@ -10,7 +10,7 @@ const DemoClasses = () => {
       <HeadingDashboard />
       <div className="bg-white rounded-lg dark:bg-inherit dark:border shadow-md">
         <AssignedDemoClass />
-        <LiveDemoClass />
+        {/* <LiveDemoClass /> */}
         {/* <RecordedSession /> */}
       </div>
     </div>
