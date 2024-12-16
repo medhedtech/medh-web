@@ -38,6 +38,7 @@ export const apiUrls = {
     getEnrolledCoursesByStudentId: "/enroll/student",
     toggleCourseStatus: "/courses/toggle-status",
     addRecordedVideos: "/courses/recorded-videos",
+    getRecorderVideosForUser:"/courses/recorded-videos"
   },
   upload: {
     uploadImage: "/upload/uploadImage",
@@ -116,7 +117,8 @@ export const apiUrls = {
     getQuizes: "/quizes",
     uploadQuizes: "/quizes/upload",
     quizResponses:"/quizResponses",
-    getQuizResponses:"/quizResponses/responses"
+    getQuizResponses:"/quizResponses/responses",
+    getQuizesById: "/quizes/get",
   },
   assignments: {
     addAssignments: "/assignments/create",
