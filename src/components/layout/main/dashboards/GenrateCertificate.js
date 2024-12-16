@@ -55,7 +55,7 @@ const CertificatePage = () => {
       // Ensure the parsed date is valid
       setCompletionDate(isNaN(parsedDate.getTime()) ? null : parsedDate);
     } else {
-      setCompletionDate(null); // Reset to null if no valid date is present
+      setCompletionDate(null);
     }
   }, [selectedCertificate]);
 
