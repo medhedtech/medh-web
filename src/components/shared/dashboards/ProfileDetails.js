@@ -24,6 +24,7 @@ const ProfileDetails = ({ onEditClick }) => {
         url: `${apiUrls?.user?.getDetailsbyId}/${studentId}`,
         onSuccess: (data) => {
           setProfileData(data?.data);
+          console.log('profile data', data?.data)
         },
         onFail: (error) => {
           console.error("Failed to fetch user details:", error);
