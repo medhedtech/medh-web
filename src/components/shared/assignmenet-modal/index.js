@@ -299,7 +299,7 @@ const AssignmentModal = ({ open, handleClose }) => {
               <input
                 type="file"
                 multiple
-                accept=".pdf"
+                accept=".pdf, .doc, .docx"
                 className="absolute inset-0 opacity-0 cursor-pointer"
                 onChange={handlePdfUpload}
               />
