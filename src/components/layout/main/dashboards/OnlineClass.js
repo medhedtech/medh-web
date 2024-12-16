@@ -297,6 +297,7 @@ const OnlineMeeting = () => {
           students: selectedStudents || [],
           meet_link: data.meet_link,
           meet_title: data.meet_title,
+          meeting_tag: data.meeting_tag,
           time: selectedTime ? selectedTime.format("HH:mm") : null,
           date: selectedDate ? moment(selectedDate).format("YYYY-MM-DD") : null,
         },
@@ -852,12 +853,12 @@ const OnlineMeeting = () => {
                     defaultValue=""
                   >
                     <option value="" disabled>
-                      Select meeting tag
+                      Select Tag
                     </option>
                     <option value="live">Live</option>
                     <option value="demo">Demo</option>
-                    <option value="recorded">Recorded</option>
-                    <option value="main">Main</option>
+                    {/* <option value="recorded">Recorded</option>
+                    <option value="main">Main</option> */}
                   </select>
                   {errors.meeting_tag && (
                     <p className="text-red-500 text-xs">
