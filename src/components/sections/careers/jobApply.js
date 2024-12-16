@@ -163,14 +163,14 @@ function JobApply() {
 
           {/* Phone Number Input with Country Dropdown */}
           <div className="flex flex-row mb-2 gap-4">
-            <div className="w-[35%]">
+            <div className="w-[45%]">
               <select
                 {...register("country")}
                 className="w-full text-sm px-2 py-2 dark:bg-inherit bg-white border border-gray-300 text-[#5C6574] max-h-48 overflow-y-auto  "
               >
                 {countriesData.map((country) => {
                   const countryName =
-                    country.name.length > 10
+                    country.name.length > 20
                       ? country.name.slice(0, 7) + "..."
                       : country.name;
                   return (
@@ -184,7 +184,7 @@ function JobApply() {
                 <div className="text-red-500">{errors.country.message}</div>
               )}
             </div>
-            <div className="w-[65%]">
+            <div className="w-[55%]">
               <input
                 {...register("phone_number")}
                 type="tel"
@@ -220,8 +220,8 @@ function JobApply() {
               {fileName}
             </label>
             <input
-              {...register("resume_image")} // Added name attribute using react-hook-form
-              id="fileInput" // Correct id for file input
+              {...register("resume_image")}
+              id="fileInput"
               type="file"
               accept=".pdf"
               className="hidden"
