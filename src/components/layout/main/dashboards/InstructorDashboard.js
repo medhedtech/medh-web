@@ -57,7 +57,7 @@ const InstructorDashboard = () => {
     }
   }, []);
 
-  const fetchSubmittedAssignments= async () => {
+  const fetchSubmittedAssignments = async () => {
     setLoading(true);
     setError(null);
 
@@ -95,12 +95,12 @@ const InstructorDashboard = () => {
       };
 
       fetchUpcomingClasses();
-      fetchSubmittedAssignments()
+      fetchSubmittedAssignments();
     }
   }, [instructorId]);
 
-  if(loading){
-    return <Preloader/>
+  if (loading) {
+    return <Preloader />;
   }
 
   const filteredClasses = upcomingClasses.filter((classItem) => {
@@ -149,7 +149,10 @@ const InstructorDashboard = () => {
         <p className="text-2xl font-Open font-semibold dark:text-white text-gray-800">
           Upcoming Classes
         </p>
-        <a href="/dashboards/instructor-mainclass/all-classess" className="text-sm text-blue-500 hover:underline">
+        <a
+          href="/dashboards/instructor-mainclass/all-classess"
+          className="text-sm text-blue-500 hover:underline"
+        >
           View all
         </a>
       </div>
@@ -163,10 +166,7 @@ const InstructorDashboard = () => {
               >
                 <div className="h-24 w-24 rounded-md bg-gray-200 flex-shrink-0">
                   <Image
-                    src={
-                      classItem.courseDetails?.course_image ||
-                      "/default-image.jpg"
-                    }
+                    src={classItem.courseDetails?.course_image || Icon1}
                     width={300}
                     height={150}
                     alt={classItem.meet_title}

@@ -31,7 +31,7 @@ const SubmittedQuiz = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const [limit] = useState(5);
+  const [limit] = useState(6);
 
   useEffect(() => {
     fetchSubmittedQuizzes();
@@ -66,7 +66,7 @@ const SubmittedQuiz = () => {
   }
 
   return (
-    <div className="p-6 bg-gray-100 dark:bg-gray-900 min-h-screen">
+    <div className="p-6 dark:bg-gray-900 min-h-screen">
       <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">
         Submitted Quizzes
       </h2>
