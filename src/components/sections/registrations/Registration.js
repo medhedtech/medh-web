@@ -309,6 +309,7 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
                   <ReCAPTCHA
                     sitekey="6LeNH5QqAAAAAO98HJ00v5yuCkLgHYCSvUEpGhLb"
                     onChange={handleRecaptchaChange}
+                    required
                   />
 
                   <div className="flex items-start space-x-2 mt-4 mb-12">
