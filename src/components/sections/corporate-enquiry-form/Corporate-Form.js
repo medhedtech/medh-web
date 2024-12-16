@@ -199,7 +199,7 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
                       >
                         {countriesData.map((country) => {
                           const countryName =
-                            country.name.length > 10
+                            country.name.length > 20
                               ? country.name.slice(0, 10) + "..."
                               : country.name;
                           return (
