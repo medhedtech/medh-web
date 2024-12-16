@@ -1500,7 +1500,8 @@ eastasianwidth@^0.2.0:
     axios-retry "^4.5.0"
     chart.js "^4.4.2"
     dompurify "^3.2.1"
-    edurock "file:../../../Library/Caches/Yarn/v6/npm-edurock-0.1.0-6c1de798-2673-4a1d-b7c5-a6291db3e5e9-1734379944852/node_modules/edurock"
+    edurock "file:../../../Library/Caches/Yarn/v6/npm-edurock-0.1.0-dd7bb1e0-e6f7-401e-8eac-c289b0c56b87-1734381184660/node_modules/edurock"
+    indexof "^0.0.1"
     isotope-layout "^3.0.6"
     jwt-decode "^4.0.0"
     lucide-react "^0.460.0"
@@ -2355,6 +2356,11 @@ imurmurhash@^0.1.4:
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/imurmurhash/-/imurmurhash-0.1.4.tgz#9218b9b2b928a238b13dc4fb6b6d576f231453ea"
   integrity sha512-JmXMZ6wuvDmLiHEml9ykzqO6lwFbof0GG4IkcGaENdCRDDmMVnny7s5HsIgHCbaq0w2MyPhDqkhTUgS2LU2PHA==
+
+indexof@^0.0.1:
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/indexof/-/indexof-0.0.1.tgz#82dc336d232b9062179d05ab3293a66059fd435d"
+  integrity sha512-i0G7hLJ1z0DE8dsqJa2rycj9dBmNKgXBvotXtZYXakU9oivfB9Uj2ZBC27qqef2U58/ZLwalxa1X/RDCdkHtVg==
 
 inflight@^1.0.4:
   version "1.0.6"
