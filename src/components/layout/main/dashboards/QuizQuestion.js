@@ -1,10 +1,10 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 
 const QuizQuestion = ({
   question,
   options = [],
-  questionId,  // Receive the questionId
+  questionId, // Receive the questionId
   questionNumber,
   totalQuestions,
   time,
@@ -12,14 +12,15 @@ const QuizQuestion = ({
   onBack,
   closeQuiz,
   isLastQuestion,
-  selectedAnswer, 
-  onAnswerSelect,
+  selectedAnswer, // Receive the actual selected answer
+  onAnswerSelect, // Callback to handle answer selection
 }) => {
-
-  const handleOptionSelect = (index) => {
-    onAnswerSelect(questionId, index);  // Pass questionId instead of questionNumber
+  // Function to handle answer selection
+  const handleOptionSelect = (optionValue) => {
+    onAnswerSelect(questionId, optionValue); // Pass questionId and the actual value
   };
 
+  // Function to navigate back to quizzes
   const handleGoBack = () => {
     closeQuiz();
   };
@@ -53,21 +54,21 @@ const QuizQuestion = ({
       {/* Options */}
       <div className="space-y-2 text-[#615F5F] dark:text-white">
         {options?.length > 0 ? (
-          options?.map((option, index) => (
+          options.map((option, index) => (
             <label
               key={index}
               className={`block p-3 border rounded-lg cursor-pointer dark:bg-inherit dark:text-white ${
-                selectedAnswer === index
+                selectedAnswer === option
                   ? "bg-[#F6F7F9] border-green-500"
                   : "bg-gray-100 border-gray-200"
               }`}
             >
               <input
                 type="radio"
-                name={`quiz-option-${questionId}`}  // Ensure unique name per questionId
-                value={option}
-                checked={selectedAnswer === index}
-                onChange={() => handleOptionSelect(index)}
+                name={`quiz-option-${questionId}`} // Ensure unique name per questionId
+                value={option} // Use option value
+                checked={selectedAnswer === option} // Compare actual value
+                onChange={() => handleOptionSelect(option)} // Pass the actual value
                 className="hidden"
               />
               <span className="text-gray-700">{option}</span>
