@@ -297,6 +297,7 @@ const ExploreJourney = ({ mainText, subText }) => {
                   <ReCAPTCHA
                     sitekey="6LeNH5QqAAAAAO98HJ00v5yuCkLgHYCSvUEpGhLb"
                     onChange={handleRecaptchaChange}
+                    required
                   />
 
                   <div className="flex items-start mt-2 space-x-2 mb-0">

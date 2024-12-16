@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
 import Preloader from "@/components/shared/others/Preloader";
+import Pana from "@/assets/images/dashbord/pana.svg";
 
 function formatDateWithOrdinal(dateString) {
   const date = new Date(dateString);
@@ -78,8 +79,8 @@ const AssignedDemoClass = () => {
     (classItem) => classItem.meeting_tag === "demo"
   );
 
-  if(loading){
-    return <Preloader/>
+  if (loading) {
+    return <Preloader />;
   }
 
   return (
@@ -88,12 +89,12 @@ const AssignedDemoClass = () => {
         <h2 className="text-2xl font-Open font-semibold dark:text-white text-gray-900">
           View Assigned Demo Classes
         </h2>
-        <a
+        {/* <a
           href="/dashboards/instructor-class/assigned-demo-classes"
           className="text-green-500 hover:underline"
         >
           View All
-        </a>
+        </a> */}
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {demoClasses.map((classItem) => (
@@ -104,9 +105,7 @@ const AssignedDemoClass = () => {
             {/* Class Image */}
             <div className="rounded-xl overflow-hidden mb-4">
               <Image
-                src={
-                  classItem.courseDetails?.course_image || "/default-image.jpg"
-                }
+                src={classItem.courseDetails?.course_image || Pana}
                 alt={classItem.meet_title || "Demo Class"}
                 className="w-full h-48 object-cover rounded-xl transform hover:scale-110 transition-all duration-300"
                 width={300}

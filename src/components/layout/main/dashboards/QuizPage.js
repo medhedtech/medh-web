@@ -9,6 +9,8 @@ import moment from "moment";
 import usePostQuery from "@/hooks/postQuery.hook";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
+import { FiFileText, FiUsers } from "react-icons/fi";
+import Preloader from "@/components/shared/others/Preloader";
 
 export default function QuizPage({ closeQuiz }) {
   const [selectedFilter, setSelectedFilter] = useState("");
@@ -160,9 +162,9 @@ export default function QuizPage({ closeQuiz }) {
       console.error("Student ID or Quiz ID is missing.");
       return;
     }
-  
+
     const responses = processedQuestions.map((question) => ({
-      question: question.question, 
+      question: question.question,
       selectedAnswer: selectedAnswers[question.questionId] || null,
     }));
 
@@ -185,11 +187,75 @@ export default function QuizPage({ closeQuiz }) {
     });
   };
 
+  //   return (
+  //     <div className="w-full bg-gray-100 dark:bg-inherit dark:border rounded-5px flex items-center justify-center">
+  //       <div className="w-full">
+  //         <select
+  //           value={selectedFilter}
+  //           onChange={(e) => handleFilterChange(e.target.value)}
+  //           className="min-w-[440px] border mb-2 border-gray-300 bg-white text-gray-700 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+  //         >
+  //           {classes?.map((option) => (
+  //             <option key={option?.meet_title} value={option?.meet_title}>
+  //               {option?.meet_title}
+  //             </option>
+  //           ))}
+  //         </select>
+  //         {processedQuestions?.length > 0 && (
+  //           <QuizQuestion
+  //             question={processedQuestions[currentQuestion]?.question}
+  //             options={processedQuestions[currentQuestion]?.options}
+  //             questionId={processedQuestions[currentQuestion]?.questionId}
+  //             questionNumber={currentQuestion + 1}
+  //             totalQuestions={totalQuestions}
+  //             time={time}
+  //             onNext={handleNext}
+  //             onBack={handleBack}
+  //             closeQuiz={closeQuiz}
+  //             isLastQuestion={currentQuestion === totalQuestions - 1}
+  //             selectedAnswer={
+  //               selectedAnswers[processedQuestions[currentQuestion]?.questionId]
+  //             }
+  //             onAnswerSelect={handleAnswerSelect}
+  //           />
+  //         )}
+  //       </div>
+  //       {showPopup && (
+  //         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+  //           <div className="bg-white dark:bg-black px-6 pb-4 rounded-lg shadow-lg text-center w-[765px]">
+  //             <div className="mx-auto">
+  //               <Image src={Pana} alt="pana" className="mx-auto" />
+  //             </div>
 
+  //             <p className="dark:text-white">
+  //               Congratulations! You have successfully completed the quiz.
+  //             </p>
+  //             <button
+  //               onClick={submitResponse}
+  //               className="mt-4 px-6 py-2 bg-primaryColor text-white rounded-full hover:bg-green-600 w-80"
+  //             >
+  //               Submit Quiz
+  //             </button>
+  //           </div>
+  //         </div>
+  //       )}
+  //     </div>
+  //   );
+  // }
+
+  if(loading){
+    return <Preloader/>
+  }
 
   return (
     <div className="w-full bg-gray-100 dark:bg-inherit dark:border rounded-5px flex items-center justify-center">
-      <div className="w-full">
+      <div className="w-full p-4">
+        <label
+          htmlFor="class-select"
+          className="block text-[16px] font-semibold text-gray-700 dark:text-gray-200"
+        >
+          Please select class to start the quiz
+        </label>
         <select
           value={selectedFilter}
           onChange={(e) => handleFilterChange(e.target.value)}
@@ -201,7 +267,7 @@ export default function QuizPage({ closeQuiz }) {
             </option>
           ))}
         </select>
-        {processedQuestions?.length > 0 && (
+        {processedQuestions?.length > 0 ? (
           <QuizQuestion
             question={processedQuestions[currentQuestion]?.question}
             options={processedQuestions[currentQuestion]?.options}
@@ -218,6 +284,20 @@ export default function QuizPage({ closeQuiz }) {
             }
             onAnswerSelect={handleAnswerSelect}
           />
+        ) : (
+          <div className="flex flex-col h-[50vh] items-center justify-center p-6 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-lg">
+            <FiFileText
+              className="text-gray-400 dark:text-gray-500 mb-4"
+              size={80}
+            />
+            <p className="text-lg font-semibold text-gray-700 dark:text-gray-200">
+              No Quizzes Available for {selectedFilter} class
+            </p>
+            <p className="text-sm text-gray-500 pb-4 dark:text-gray-400 mt-2 text-center">
+              It looks like there are no quizzes available for the selected
+              class at the moment. Please check back later.
+            </p>
+          </div>
         )}
       </div>
       {showPopup && (

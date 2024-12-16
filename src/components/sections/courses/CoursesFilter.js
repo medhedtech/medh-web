@@ -41,6 +41,18 @@ const grades = [
   "UG - Graduate - Professionals",
 ];
 
+const extractWeeks = (duration) => {
+  if (!duration) return 0;
+  const matches = duration.match(/\d+/);
+  if (!matches) return 0;
+
+  const value = parseInt(matches[0], 10);
+  if (duration.toLowerCase().includes("month")) {
+    return value * 4;
+  }
+  return value;
+};
+
 const CoursesFilter = ({ CustomButton, CustomText }) => {
   const router = useRouter();
   const [allCourses, setAllCourses] = useState([]);
@@ -148,6 +160,18 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
       filtered = filtered.sort(
         (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
       );
+    } else if (sortOrder === "duration-asc") {
+      filtered = filtered.sort((a, b) => {
+        const durationA = extractWeeks(a.course_duration);
+        const durationB = extractWeeks(b.course_duration);
+        return durationA - durationB;
+      });
+    } else if (sortOrder === "duration-desc") {
+      filtered = filtered.sort((a, b) => {
+        const durationA = extractWeeks(a.course_duration);
+        const durationB = extractWeeks(b.course_duration);
+        return durationB - durationA;
+      });
     }
     setFilteredCourses(filtered);
   };
@@ -231,6 +255,12 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
                 </option>
                 <option value="oldest-first">
                   Release Date (Oldest First)
+                </option>
+                <option value="duration-asc">
+                  Course Duration (Ascending)
+                </option>
+                <option value="duration-desc">
+                  Course Duration (Descending)
                 </option>
               </select>
             </div>

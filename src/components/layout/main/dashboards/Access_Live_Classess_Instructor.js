@@ -5,6 +5,7 @@ import useGetQuery from "@/hooks/getQuery.hook";
 import { useRouter } from "next/navigation";
 import { apiUrls } from "@/apis";
 import moment from "moment";
+import DefaultImage from "@/assets/images/courses/image3.png";
 
 const Live_Demo_Classess_instructor = () => {
   const router = useRouter();
@@ -69,10 +70,7 @@ const Live_Demo_Classess_instructor = () => {
             {/* Course Image */}
             <div className="rounded-lg overflow-hidden mb-4">
               <Image
-                src={
-                  classItem.courseDetails?.course_image ||
-                  "/default-image-path.jpeg"
-                }
+                src={classItem.courseDetails?.course_image || DefaultImage}
                 alt={classItem.meet_title || "Class Image"}
                 className="w-full h-48 object-cover rounded-lg transform hover:scale-105 transition-all duration-300"
                 width={300}
