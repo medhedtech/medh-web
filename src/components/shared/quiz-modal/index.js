@@ -14,7 +14,6 @@ import Icon2 from "@/assets/images/dashbord/icon2.svg";
 import { toast } from "react-toastify";
 import Preloader from "../others/Preloader";
 
-// Validation schema using yup
 const schema = yup.object({
   quiz_title: yup.string().required("Quiz title is required."),
   quiz_resources: yup.array().of(yup.string()),
