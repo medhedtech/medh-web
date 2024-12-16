@@ -103,6 +103,13 @@ const Hero1 = () => {
               className="max-w-full h-auto lg:rounded-[50%] contain"
             />
           </div>
+          {/* <div className="lg:flex hidden md-w:[45%] rounded-[50%] justify-end">
+            <img
+              src="/gif/Home.gif"
+              alt="Group GIF"
+              className="max-w-full h-auto lg:rounded-[50%]"
+            />
+          </div> */}
         </div>
       </div>
     </section>
