@@ -135,7 +135,7 @@ const EditProfile = ({ onBackClick }) => {
 
   const handleDateChange = (date) => {
     setSelectedDate(date);
-    setValue("date", date);
+    // setValue("date", date);
   };
 
   if (loading || !profileData) {
@@ -214,8 +214,9 @@ const EditProfile = ({ onBackClick }) => {
             <input
               {...register("full_name")}
               type="text"
+              disabled
               placeholder="Enter your full name"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="mt-1 block w-full px-3 py-2 text-gray-400 border border-gray-300 rounded-md focus:outline-none focus:ring-2 cursor-not-allowed focus:ring-green-500"
             />
             {errors.full_name && (
               <p className="text-red-500 text-sm mt-1">
@@ -232,7 +233,7 @@ const EditProfile = ({ onBackClick }) => {
               type="email"
               placeholder="Enter your email"
               disabled
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="mt-1 block w-full px-3 py-2 cursor-not-allowed text-gray-400 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
             />
             {errors.email && (
               <p className="text-red-500 text-sm mt-1">
@@ -250,7 +251,7 @@ const EditProfile = ({ onBackClick }) => {
               {...register("phone_number")}
               type="text"
               placeholder="Enter your phone number"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="mt-1 block w-full px-3 py-2 cursor-not-allowed text-gray-400 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
             />
             {errors.phone_number && (
               <p className="text-red-500 text-sm mt-1">
@@ -340,17 +341,20 @@ const EditProfile = ({ onBackClick }) => {
           <div>
             <label className="block text-base font-bold mb-2">D.O.B.</label>
             <DatePicker
-              name="age"
               selected={selectedDate}
-              onChange={handleDateChange}
-              placeholder="Select Date"
+              onChange={(date) => {
+                handleDateChange(date);
+                setValue("age", date, { shouldValidate: true });
+              }}
+              placeholderText="Select Date"
               dateFormat="dd/MM/yyyy"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
             />
             {errors.age && (
-              <p className="text-red-500 text-xs">{errors.age.message}</p>
+              <p className="text-red-500 text-xs mt-1">{errors.age.message}</p>
             )}
           </div>
+
           {/* Submit Button */}
           <div className="md:col-span-2">
             <button
