@@ -37,14 +37,25 @@ const CertificatePage = () => {
         setUsers(formattedData);
       },
       onFail: (error) => {
+        setUsers([]);
         console.error("Failed to fetch enrolled courses:", error);
       },
     });
   }, []);
 
+  // useEffect(() => {
+  //   if (selectedCertificate && selectedCertificate.date) {
+  //     setCompletionDate(new Date(selectedCertificate.date));
+  //   }
+  // }, [selectedCertificate]);
+
   useEffect(() => {
-    if (selectedCertificate && selectedCertificate.date) {
-      setCompletionDate(new Date(selectedCertificate.date));
+    if (selectedCertificate?.date) {
+      const parsedDate = new Date(selectedCertificate.date);
+      // Ensure the parsed date is valid
+      setCompletionDate(isNaN(parsedDate.getTime()) ? null : parsedDate);
+    } else {
+      setCompletionDate(null);
     }
   }, [selectedCertificate]);
 

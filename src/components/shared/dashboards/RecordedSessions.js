@@ -9,9 +9,33 @@ import RecordedCard from "./RecordedCourses";
 const RecordedSessions = () => {
   const router = useRouter();
   const [freeCourses, setFreeCourses] = useState([]);
+  const [recordedSession,setRecordedSession]= useState([]);
+  const [studentId, setStudentId] = useState(null);
   const { getQuery, loading } = useGetQuery();
   const [limit] = useState(90);
   const [page] = useState(1);
+
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedUserId = localStorage.getItem("userId");
+      if (storedUserId) {
+        getQuery({
+          url:`${apiUrls?.courses?.getRecorderVideosForUser}/${"674d7160c96e51af10f85426"}`,
+          onSuccess:(res) => {
+             setRecordedSession(res?.courses);
+          },
+         onFail:(res)=> {
+          console.log(res, "Error")
+         }
+        })
+      
+      } else {
+        console.error("No student ID found in localStorage");
+      }
+    }
+  }, []);
+
 
   useEffect(() => {
     const fetchCourses = () => {
@@ -46,6 +70,8 @@ const RecordedSessions = () => {
     fetchCourses();
   }, [page, limit]);
 
+
+
   const handleCardClick = (id) => {
     router.push(`/dashboards/my-courses/${id}`);
   };
@@ -68,12 +94,12 @@ const RecordedSessions = () => {
         </a>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {freeCourses?.map((course) => (
+        {recordedSession?.map((course) => (
           <RecordedCard
             key={course?._id}
             course_title={course?.course_title}
             course_tag={course?.course_tag}
-            rating={course?.rating}
+            // rating={course?.rating}
             course_image={course?.course_image}
             onClick={() => handleCardClick(course?._id)}
           />
