@@ -160,13 +160,11 @@ export default function QuizPage({ closeQuiz }) {
       console.error("Student ID or Quiz ID is missing.");
       return;
     }
-
-    const responses = Object.entries(selectedAnswers).map(
-      ([questionId, selectedAnswer]) => ({
-        questionId,
-        selectedAnswer,
-      })
-    );
+  
+    const responses = processedQuestions.map((question) => ({
+      question: question.question, 
+      selectedAnswer: selectedAnswers[question.questionId] || null,
+    }));
 
     postQuery({
       url: apiUrls?.quzies?.quizResponses,
@@ -186,6 +184,8 @@ export default function QuizPage({ closeQuiz }) {
       },
     });
   };
+
+
 
   return (
     <div className="w-full bg-gray-100 dark:bg-inherit dark:border rounded-5px flex items-center justify-center">
