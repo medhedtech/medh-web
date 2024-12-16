@@ -1,12 +1,39 @@
 "use client";
 import { BellIcon, SearchIcon } from "@/assets/images/icon/SearchIcon";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import teacherImage1 from "@/assets/images/teacher/teacher__1.png";
 import Link from "next/link";
+import { apiUrls } from "@/apis";
+import useGetQuery from "@/hooks/getQuery.hook";
 
 const HeadingDashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [userId, setUserId] = useState(null);
+  const { getQuery, loading } = useGetQuery();
+  const [userData, setUserData] = useState(null);
+
+  useEffect(()=>{
+    if(typeof window !== "undefined"){
+      const storedUserId = localStorage.getItem("userId");
+      setUserId(storedUserId)
+    }
+  }, []);
+
+  useEffect(() => {
+      if (userId) {
+        getQuery({
+          url: `${apiUrls?.user?.getDetailsbyId}/${userId}`,
+          onSuccess: (data) => {
+            setUserData(data?.data);
+            console.log("User data in header: ", data?.data)
+          },
+          onFail: (error) => {
+            console.error("Failed to fetch user details:", error);
+          },
+        });
+      }
+    }, [userId]);
 
   return (
     <div
@@ -36,19 +63,22 @@ const HeadingDashboard = () => {
 
         {/* User Avatar & Dropdown */}
         <div className="flex items-center gap-3">
-          <Link href="/dashboards/student-profile">
+          <Link href={`/dashboards/${userData?.role[0]}-profile`}>
             <Image
-              src={teacherImage1}
+              src={userData?.user_image || teacherImage1}
               alt="User Avatar"
+              width={40}
+              height={40}
               className="w-10 h-10 rounded-full object-cover ring-2 ring-primaryColor transition-all duration-300 hover:ring-4"
             />
           </Link>
 
-          <select className="bg-transparent text-gray-700 font-medium dark:text-white border-none cursor-pointer focus:outline-none dark:bg-gray-800 dark:focus:ring-primaryColor focus:ring-2 focus:ring-primaryColor transition duration-300">
+          {/* <select className="bg-transparent text-gray-700 font-medium dark:text-white border-none cursor-pointer focus:outline-none dark:bg-gray-800 dark:focus:ring-primaryColor focus:ring-2 focus:ring-primaryColor transition duration-300">
             <option value="ram">Ram</option>
             <option value="john">John</option>
             <option value="doe">Doe</option>
-          </select>
+          </select> */}
+          <p>{userData?.full_name}</p>
         </div>
       </div>
     </div>
