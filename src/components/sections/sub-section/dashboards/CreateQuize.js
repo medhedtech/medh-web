@@ -1,40 +1,43 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import CreateQuizModal from "@/components/shared/quiz-modal";
-import DateIcon from "@/assets/images/icon/Date";
-import TimeIcon from "@/assets/images/icon/TimeIcon";
+// import DateIcon from "@/assets/images/icon/Date";
+// import TimeIcon from "@/assets/images/icon/TimeIcon";
+import useGetQuery from "@/hooks/getQuery.hook";
+import { apiUrls } from "@/apis";
+import { toast } from "react-toastify";
 
-const quizzes = [
-  {
-    id: 1,
-    title: "Articulate structure of C++ and Java in Semester 1",
-    course: "B.Tech Specialization in Health Informatics",
-    subject: "Network Engineering",
-    date: "3-01-2023",
-    time: "12:30 AM - 01:40 PM",
-    questions: 50,
-    passingPercentage: 70,
-  },
-  {
-    id: 2,
-    title: "Articulate structure of C++ and Java in Semester 1",
-    course: "B.Tech Specialization in Health Informatics",
-    subject: "Network Engineering",
-    date: "3-01-2023",
-    time: "12:30 AM - 01:40 PM",
-    questions: 50,
-    passingPercentage: 70,
-  },
-];
+// const quizzes = [
+//   {
+//     id: 1,
+//     title: "Articulate structure of C++ and Java in Semester 1",
+//     course: "B.Tech Specialization in Health Informatics",
+//     subject: "Network Engineering",
+//     date: "3-01-2023",
+//     time: "12:30 AM - 01:40 PM",
+//     questions: 50,
+//     passingPercentage: 70,
+//   },
+//   {
+//     id: 2,
+//     title: "Articulate structure of C++ and Java in Semester 1",
+//     course: "B.Tech Specialization in Health Informatics",
+//     subject: "Network Engineering",
+//     date: "3-01-2023",
+//     time: "12:30 AM - 01:40 PM",
+//     questions: 50,
+//     passingPercentage: 70,
+//   },
+// ];
 
 const QuizCard = ({ quiz }) => (
   <div className="bg-white dark:bg-inherit shadow-md rounded-lg p-4 border border-gray-200">
     <h3 className="text-lg font-semibold text-[#3C3C3C] dark:text-white">
-      {quiz.title}
+     Class: {quiz?.class_name}
     </h3>
-    <p className="text-sm text-[#9A9A9A] w-4/5">Course: {quiz.course}</p>
-    <p className="text-sm text-[#9A9A9A]">Subject: {quiz.subject}</p>
-    <div className="flex items-center text-sm text-gray-600 mt-2">
+    <p className="text-sm text-[#9A9A9A] w-4/5">Quiz Name: {quiz?.quiz_title}</p>
+    {/* <p className="text-sm text-[#9A9A9A]">Subject: {quiz.subject}</p> */}
+    {/* <div className="flex items-center text-sm text-gray-600 mt-2">
       <div className="flex items-center mr-4 gap-2">
         <DateIcon />
         {quiz.date}
@@ -43,19 +46,19 @@ const QuizCard = ({ quiz }) => (
         <TimeIcon />
         {quiz.time}
       </div>
-    </div>
-    <p className="text-sm text-[#9A9A9A] mt-2">Questions: {quiz.questions}</p>
+    </div> */}
+    <p className="text-sm text-[#9A9A9A] mt-2">Questions: {quiz.questions?.length}</p>
     <div className="mt-4">
       <p className="text-sm flex justify-between mx-2 text-gray-600">
         Passing Percentage:
         <span className="font-semibold text-[#7ECA9D] ml-1">
-          {quiz.passingPercentage}%
+          {Number(quiz?.passing_percentage)}%
         </span>
       </p>
       <div className="relative mt-1 w-full bg-gray-200 rounded-full h-2">
         <div
           className="bg-[#7ECA9D] h-1.5 rounded-full"
-          style={{ width: `${quiz.passingPercentage}%` }}
+          style={{ width: `${Number(quiz?.passing_percentage)}%` }}
         ></div>
       </div>
     </div>
@@ -68,6 +71,28 @@ const QuizCard = ({ quiz }) => (
 const CreateQuize = () => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
 
+  const { getQuery, loading } = useGetQuery();
+  const [data, setData] = useState();
+
+
+
+  const fetchData = () => {
+    getQuery({
+      url: apiUrls?.quzies?.getQuizes,
+      onSuccess: (res) => setData(res),
+      onFail:(err) => {
+       toast.error("Something went wrong")
+      }
+    });
+
+  }
+
+  useEffect(() => {
+    fetchData()
+  }, []);
+
+  console.log(data, "NEWBALL DATA");
+
   return (
     <div className="px-6 pb-12 m-4 dark:bg-inherit bg-white rounded-lg">
       <div className="flex justify-between items-center pt-4 mb-6">
@@ -76,7 +101,7 @@ const CreateQuize = () => {
         </h2>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {quizzes.map((quiz) => (
+        {data?.map((quiz) => (
           <QuizCard key={quiz.id} quiz={quiz} />
         ))}
         <div
@@ -104,6 +129,7 @@ const CreateQuize = () => {
         <CreateQuizModal
           open={isPopupOpen}
           onClose={() => setIsPopupOpen(false)}
+          onUpload={fetchData}
         />
       )}
     </div>
