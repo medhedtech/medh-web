@@ -215,24 +215,6 @@ const AssignInstructor = () => {
     setSearchTermEmail("");
   };
 
-  // const selectInstructorEmail = (email) => {
-  //   setSelectedEmail(email);
-  //   setValue("email", email);
-
-  //   const selectedInstructor = instructors.find((ins) => ins.email === email);
-
-  //   if (selectedInstructor) {
-  //     console.log("Selected Instructor:", selectedInstructor);
-  //     // Set the instructor's unique ID (the one used for API call)
-  //     setValue("user_id", selectedInstructor._id);
-  //     // Set the user ID (nested inside user_id)
-  //     setValue("instructor_id", selectedInstructor.user_id._id);
-  //   }
-
-  //   setEmailDropdownOpen(false);
-  //   setSearchTermEmail("");
-  // };
-
   const filteredInstructorsEmail = instructors?.filter((ins) =>
     ins.email.toLowerCase().includes(searchTermEmail.toLowerCase())
   );
