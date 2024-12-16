@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { apiUrls } from "@/apis";
 import moment from "moment";
 import Preloader from "@/components/shared/others/Preloader";
+import DefaultImage from "@/assets/images/courses/image3.png";
 
 const LiveDemoClass = () => {
   const router = useRouter();
@@ -30,7 +31,12 @@ const LiveDemoClass = () => {
         getQuery({
           url: `${apiUrls?.onlineMeeting?.getMeetingsByInstructorId}/${instructorId}`,
           onSuccess: (res) => {
-            setClasses(res.meetings || []);
+            // setClasses(res.meetings || []);
+            const sortedClasses = (res?.meetings || [])
+              .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
+              .slice(0, 4);
+
+            setClasses(sortedClasses);
           },
           onFail: (err) => {
             console.error("Error fetching upcoming classes:", err);
@@ -46,8 +52,8 @@ const LiveDemoClass = () => {
     (classItem) => classItem?.meeting_tag === "live"
   );
 
-  if(loading){
-    return <Preloader/>
+  if (loading) {
+    return <Preloader />;
   }
 
   return (
@@ -79,10 +85,7 @@ const LiveDemoClass = () => {
             {/* Course Image */}
             <div className="rounded-lg overflow-hidden mb-4">
               <Image
-                src={
-                  classItem.courseDetails?.course_image ||
-                  "/default-image-path.jpeg"
-                }
+                src={classItem.courseDetails?.course_image || DefaultImage}
                 alt={classItem.meet_title || "Class Image"}
                 className="w-full h-48 object-cover rounded-lg transform hover:scale-105 transition-all duration-300"
                 width={300}
