@@ -116,7 +116,8 @@ export const apiUrls = {
     getQuizes: "/quizes",
     uploadQuizes: "/quizes/upload",
     quizResponses:"/quizResponses",
-    getQuizResponses:"/quizResponses/responses"
+    getQuizResponses:"/quizResponses/responses",
+    getQuizesById: "/quizes/get",
   },
   assignments: {
     addAssignments: "/assignments/create",
