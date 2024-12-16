@@ -4,6 +4,8 @@ import Qize from "@/assets/images/dashbord/quize.png";
 import Image from "next/image";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
+import { FiFileText } from "react-icons/fi";
+import { FaCertificate } from "react-icons/fa";
 
 const CertificateCoursesEnroll = ({ onViewCertificate, setCertificateUrl }) => {
   const [certificateCourses, setCertificateCourses] = useState([]);
@@ -107,7 +109,19 @@ const CertificateCoursesEnroll = ({ onViewCertificate, setCertificateUrl }) => {
             ))}
           </div>
         ) : (
-          <p className="text-gray-500">No certificate courses available.</p>
+          <div className="flex flex-col h-[50vh] items-center justify-center p-6 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-lg">
+            <FaCertificate
+              className="text-gray-400 dark:text-gray-500 mb-4"
+              size={80}
+            />
+            <p className="text-lg font-semibold text-gray-700 dark:text-gray-200">
+              No certificate available.
+            </p>
+            <p className="text-sm text-gray-500 pb-4 dark:text-gray-400 mt-2 text-center">
+              It looks like there are no certificate available at the moment.
+              Please check back later.
+            </p>
+          </div>
         )}
       </div>
     </div>
