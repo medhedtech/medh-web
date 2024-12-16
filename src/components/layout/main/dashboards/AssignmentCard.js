@@ -15,6 +15,14 @@ const AssignmentCard = ({ title, deadline, daysLeft, image, assignment }) => {
   const { getQuery } = useGetQuery();
   const { postQuery } = usePostQuery();
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [studentId, setStudentId] = useState(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedUserId = localStorage.getItem("userId");
+      setStudentId(storedUserId);
+    }
+  }, []);
 
   useEffect(() => {
     const checkSubmissionStatus = async () => {
@@ -138,7 +146,7 @@ const AssignmentCard = ({ title, deadline, daysLeft, image, assignment }) => {
 
     const submissionData = {
       assignmentId: assignment._id,
-      studentId: "6739f5c9461632809f6bb9d5",
+      studentId: studentId,
       submissionFile: pdfBrochures,
     };
 
