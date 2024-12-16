@@ -4,6 +4,7 @@ import useGetQuery from "@/hooks/getQuery.hook";
 import usePostQuery from "@/hooks/postQuery.hook";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
 const AssignmentCard = ({ title, deadline, daysLeft, image, assignment }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -155,12 +156,12 @@ const AssignmentCard = ({ title, deadline, daysLeft, image, assignment }) => {
         url: apiUrls?.assignments?.submitAssignments,
         postData: submissionData,
         onSuccess: () => {
-          alert("Assignment Submitted Successfully!");
           closeModal();
+          toast.success("Assignment Submitted Successfully!");
         },
         onError: (error) => {
           console.error("Error submitting assignment:", error);
-          alert("Error submitting assignment.");
+          toast.error("Error submitting assignment.");
         },
       });
     } catch (error) {

@@ -22,20 +22,20 @@ const Instructor_Tracking_component = () => {
       value: 12,
       icon: Icon2,
     },
-    {
-      title: "Course 1",
-      value: 5,
-      icon: Icon1,
-    },
-    {
-      title: "Course 2",
-      value: 5,
-      icon: Icon2,
-    },
+    // {
+    //   title: "Course 1",
+    //   value: 5,
+    //   icon: Icon1,
+    // },
+    // {
+    //   title: "Course 2",
+    //   value: 5,
+    //   icon: Icon2,
+    // },
   ];
 
   const QuickStats = ({ stats }) => (
-    <div className="grid grid-cols-4 gap-6 py-4">
+    <div className="grid grid-cols-2 gap-6 py-4">
       {stats.map((stat, index) => (
         <div
           key={index}
