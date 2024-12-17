@@ -22,14 +22,44 @@ export default function EnrollmentFormsAdmin() {
   const { getQuery, loading } = useGetQuery();
   const { deleteQuery } = useDeleteQuery();
 
+  // // Fetch enrollments from API
+  // const fetchEnrollments = async () => {
+  //   await getQuery({
+  //     url: apiUrls?.enrollWebsiteform?.getAllEnrollWebsiteForms,
+  //     onSuccess: (response) => {
+  //       if (response?.success && Array.isArray(response.data)) {
+  //         setEnrollments(response.data);
+  //         setFilteredEnrollments(response.data);
+  //       } else {
+  //         console.log(
+  //           "Fetched data is not valid. Setting enrollments to empty array."
+  //         );
+  //         setEnrollments([]);
+  //         setFilteredEnrollments([]);
+  //       }
+  //     },
+  //     onFail: () => {
+  //       console.log("Failed to fetch enrollments:");
+  //       setEnrollments([]);
+  //       setFilteredEnrollments([]);
+  //     },
+  //   });
+  // };
+
   // Fetch enrollments from API
   const fetchEnrollments = async () => {
     await getQuery({
       url: apiUrls?.enrollWebsiteform?.getAllEnrollWebsiteForms,
       onSuccess: (response) => {
         if (response?.success && Array.isArray(response.data)) {
-          setEnrollments(response.data);
-          setFilteredEnrollments(response.data);
+          // Sort the data by date (assuming 'createdAt' is a timestamp property)
+          const sortedData = response.data.sort(
+            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+          );
+
+          // Update state with sorted data
+          setEnrollments(sortedData);
+          setFilteredEnrollments(sortedData);
         } else {
           console.log(
             "Fetched data is not valid. Setting enrollments to empty array."
@@ -39,7 +69,7 @@ export default function EnrollmentFormsAdmin() {
         }
       },
       onFail: () => {
-        console.log("Failed to fetch enrollments:");
+        console.log("Failed to fetch enrollments.");
         setEnrollments([]);
         setFilteredEnrollments([]);
       },

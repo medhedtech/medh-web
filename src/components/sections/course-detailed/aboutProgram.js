@@ -360,7 +360,7 @@ export default function CombinedProgram({ courseId }) {
                   <u>
                     ({courseDetails1?.course_duration},{" "}
                     {courseDetails1?.no_of_Sessions} sessions of{" "}
-                    {courseDetails1?.session_duration} minutes each)
+                    {courseDetails1?.session_duration} each)
                   </u>
                 </p>
                 <strong>Chapters & Topics</strong>
