@@ -40,11 +40,12 @@ const getTimeDifference = (meetingDate, meetingTime) => {
   const diffMinutes = meetingMoment.diff(now, "minutes");
 
   if (diffMinutes > 1440) {
-    // More than 24 hours, calculate in days
     const diffDays = Math.ceil(diffMinutes / 1440);
     return `Starts in ${diffDays} day${diffDays > 1 ? "s" : ""}`;
+  } else if (diffMinutes > 60) {
+    const diffHours = Math.floor(diffMinutes / 60);
+    return `Starts in ${diffHours} hour${diffHours > 1 ? "s" : ""}`;
   } else if (diffMinutes > 0) {
-    // Less than 24 hours, calculate in minutes
     return `Starts in ${diffMinutes} minutes`;
   } else if (diffMinutes === 0) {
     return "Meeting is starting now!";
