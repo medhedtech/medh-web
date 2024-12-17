@@ -20,7 +20,7 @@ const schema = yup.object({
   passing_percentage: yup.string().required("Quiz title is required."),
 });
 
-const CreateQuizModal = ({ open, onClose,onUpload }) => {
+const CreateQuizModal = ({ open, onClose, onUpload }) => {
   const [pdfBrochures, setPdfBrochures] = useState([]);
   const { postQuery, loading } = usePostQuery();
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -96,7 +96,7 @@ const CreateQuizModal = ({ open, onClose,onUpload }) => {
           setSelectedMeetingId("");
           onClose();
           toast.success("Data uploaded successfully");
-          onUpload()
+          onUpload();
         },
         onFail: (error) => {
           toast.error("Error creating assignment.");
@@ -146,6 +146,29 @@ const CreateQuizModal = ({ open, onClose,onUpload }) => {
           <AiOutlineClose size={20} />
         </IconButton>
       </div>
+      {/* Excel File Section */}
+      {/* <div className="flex flex-col items-center mt-4">
+        <div className="mb-2">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="40"
+            height="40"
+            fill="currentColor"
+            className="bi bi-file-earmark-spreadsheet"
+            viewBox="0 0 16 16"
+          >
+            <path d="M5 0a1 1 0 0 1 1 1v1h6V1a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1V9H6v6a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V1a1 1 0 0 1 1-1h3z" />
+          </svg>
+        </div>
+
+        <a
+          href="/excel/questions-quiz.xlsx"
+          download="quiz-specifications.xlsx"
+          className="bg-green-500 text-white px-2 py-0 rounded-md shadow hover:bg-green-600 transition duration-300"
+        >
+          Download
+        </a>
+      </div> */}
       <DialogContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div>

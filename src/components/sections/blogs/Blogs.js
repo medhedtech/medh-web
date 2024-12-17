@@ -107,7 +107,8 @@ const Blogs = () => {
           </div>
           <div
             className="flex items-center gap-3 bg-[#7ECA9D] text-white px-3.5 py-2 rounded-md cursor-pointer"
-            onClick={() => router.push("/blogs")}
+            // onClick={() => router.push("/blogs")}
+            onClick={() => window.open("/blogs", "_blank")}
           >
             <div>
               <EyeIcon />
