@@ -6,6 +6,15 @@ import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
 import Preloader from "../others/Preloader";
 
+const formatDate = (dateString) => {
+  if (!dateString) return "N/A";
+  const date = new Date(dateString);
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${day}-${month}-${year}`;
+};
+
 const ProfileDetails = ({ onEditClick }) => {
   const [studentId, setStudentId] = useState(null);
   const [profileData, setProfileData] = useState(null);
@@ -24,7 +33,7 @@ const ProfileDetails = ({ onEditClick }) => {
         url: `${apiUrls?.user?.getDetailsbyId}/${studentId}`,
         onSuccess: (data) => {
           setProfileData(data?.data);
-          console.log('profile data', data?.data)
+          console.log("profile data", data?.data);
         },
         onFail: (error) => {
           console.error("Failed to fetch user details:", error);
@@ -118,11 +127,11 @@ const ProfileDetails = ({ onEditClick }) => {
 
           <li className=" grid grid-cols-1 md:grid-cols-12 mb-3">
             <div className="md:col-start-1 md:col-span-4">
-              <span className="inline-block text-[20px]">Age</span>
+              <span className="inline-block text-[20px]">D.O.B</span>
             </div>
             <div className="md:col-start-5 md:col-span-8">
               <span className="inline-block text-[20px] text-[#544C4C]">
-                {profileData?.age || "N/A"}
+                {profileData?.age ? formatDate(profileData.age) : "N/A"}
               </span>
             </div>
           </li>
@@ -132,7 +141,9 @@ const ProfileDetails = ({ onEditClick }) => {
             </div>
             <div className="md:col-start-5 md:col-span-8">
               <span className="inline-block text-[20px] text-[#544C4C]">
-                {profileData?.createdAt?.split("T")[0] || "N/A"}
+                {profileData?.createdAt
+                  ? formatDate(profileData.createdAt)
+                  : "N/A"}
               </span>
             </div>
           </li>
