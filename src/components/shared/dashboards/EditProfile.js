@@ -14,6 +14,7 @@ import { toast } from "react-toastify";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import moment from "moment";
+import ProfileDetails from "./ProfileDetails";
 
 const schema = yup.object({
   full_name: yup.string().required("Full name is required"),
