@@ -6,7 +6,14 @@ import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
-const AssignmentCard = ({ title, deadline, daysLeft, image, assignment }) => {
+const AssignmentCard = ({
+  title,
+  courseTitle,
+  deadline,
+  daysLeft,
+  image,
+  assignment,
+}) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [instructorName, setInstructorName] = useState("");
   const [instructorId, setInstructorId] = useState("");
@@ -184,6 +191,9 @@ const AssignmentCard = ({ title, deadline, daysLeft, image, assignment }) => {
           <h3 className="text-sm text-[#171A1F] font-Open dark:text-white">
             {title}
           </h3>
+          <p className="text-size-11 text-[#9095A0]">
+            Coure Name: {courseTitle}
+          </p>
           <p className="text-size-11 text-[#9095A0]">
             Instructor: {instructorName}
           </p>

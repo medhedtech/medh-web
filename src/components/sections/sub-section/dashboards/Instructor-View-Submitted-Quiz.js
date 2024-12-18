@@ -3,12 +3,7 @@
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import React, { useEffect, useState } from "react";
-import {
-  FaFileDownload,
-  FaRegSadCry,
-  FaTimes,
-  FaUserCircle,
-} from "react-icons/fa";
+import { FaRegSadCry, FaTimes, FaUserCircle } from "react-icons/fa";
 import { Modal } from "@mui/material";
 import Preloader from "@/components/shared/others/Preloader";
 import PaginationComponent from "@/components/shared/pagination-latest";
@@ -31,16 +26,22 @@ const SubmittedQuiz = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
+  const [filterOption, setFilterOption] = useState("Today");
   const [limit] = useState(6);
 
   useEffect(() => {
     fetchSubmittedQuizzes();
-  }, [limit, currentPage]);
+  }, [limit, currentPage, filterOption]);
 
   const fetchSubmittedQuizzes = () => {
+    const filterQuery =
+      filterOption === "History" ? `filter=History` : `filter=Today`;
+
+    // Make the API call with the appropriate filter query
     getQuery({
-      url: `${apiUrls?.quzies?.getQuizResponses}?page=${currentPage}&limit=${limit}`,
+      url: `${apiUrls?.quzies?.getQuizResponses}?page=${currentPage}&limit=${limit}&${filterQuery}`,
       onSuccess: (res) => {
+        // Handle successful response
         setData(res?.responses || []);
         setCurrentPage(Number(res?.currentPage) || 1);
         setTotalPages(Math.ceil(res?.totalResponses / limit));
@@ -61,15 +62,40 @@ const SubmittedQuiz = () => {
     setIsModalOpen(false);
   };
 
+  const handleFilterChange = (e) => {
+    setFilterOption(e.target.value);
+    setCurrentPage(1);
+  };
+
   if (loading) {
     return <Preloader />;
   }
 
   return (
     <div className="p-6 dark:bg-gray-900 min-h-screen">
-      <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">
+      <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-8">
         Submitted Quizzes
       </h2>
+
+      <div className="flex justify-between items-center mb-6 space-x-4">
+        <div className="flex-grow">
+          <p className="text-lg font-medium text-gray-700 dark:text-gray-300">
+            Filter quiz submissions based on Previous/Today
+          </p>
+        </div>
+
+        <div className="flex justify-end">
+          <select
+            value={filterOption}
+            onChange={handleFilterChange}
+            className="border-2 border-gray-300 dark:bg-gray-800 dark:border-gray-600 dark:text-white rounded-lg px-5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-300 ease-in-out shadow-lg transform hover:scale-105"
+          >
+            <option value="Live">Live</option>
+            <option value="History">History</option>
+          </select>
+        </div>
+      </div>
+
       <div>
         {data.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -125,11 +151,11 @@ const SubmittedQuiz = () => {
           </p>
         )}
       </div>
-        <PaginationComponent
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-        />
+      <PaginationComponent
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
       {/* Modal */}
       <Modal
         open={isModalOpen}
