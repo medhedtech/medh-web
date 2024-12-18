@@ -207,9 +207,12 @@ const CorporateOverview = () => {
             Gain a competitive edge with Medh&#39;s <br /> Corporate Training
             Courses
           </h1>
-          <p className="text-center md:text-[1.2rem] text-gray-600 text-[14px] leading-6 md:leading-7 md:w-[70%] text-[#727695] dark:text-gray-300">
+          <p className="text-center md:text-[1.1rem] text-[#727695] font-bold text-[14px] leading-6 md:leading-7 md:w-[70%] text-[#727695] dark:text-gray-300">
             meticulously designed to align with your company&#39;s vision and
-            mission. Our SMART (Specific, Measurable, Achievable, Relevant, and
+            mission.
+          </p>
+          <p className="text-center md:text-[1rem] mt-2 text-[#727695] font-semibold text-[14px] leading-6 md:leading-7 md:w-[70%] text-[#727695] dark:text-gray-300">
+            Our SMART (Specific, Measurable, Achievable, Relevant, and
             Time-bound), approach ensures that the training is catering to your
             unique organizational goals.
           </p>
