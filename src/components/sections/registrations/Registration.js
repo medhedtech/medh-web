@@ -109,6 +109,10 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
 
   // Handle form submission
   const onSubmit = async (data) => {
+    if (!recaptchaValue) {
+      toast.error("Please complete the ReCAPTCHA verification.");
+      return;
+    }
     try {
       const selectedCountry = countriesData.find(
         (country) => country.name === data.country
@@ -135,6 +139,7 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
         onSuccess: () => {
           // toast.success("Form submitted successfully!");
           setShowModal(true);
+          setRecaptchaValue(null);
 
           // Reset the form fields after a successful submission
           reset();
@@ -215,7 +220,7 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
                     className="w-full px-14px py-2 dark:bg-inherit bg-white text-base border mb-1.5 border-gray-300"
                   />
                   {errors.full_name && (
-                    <span className="text-red-500">
+                    <span className="text-red-500 text-[12px]">
                       {errors.full_name.message}
                     </span>
                   )}
@@ -227,7 +232,7 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
                     className="w-full px-14px py-2 dark:bg-inherit bg-white text-base mb-1.5 border border-gray-300"
                   />
                   {errors.email && (
-                    <span className="text-red-500">{errors.email.message}</span>
+                    <span className="text-red-500 text-[12px]">{errors.email.message}</span>
                   )}
 
                   {/* Phone Number Input with Country Dropdown */}
@@ -263,7 +268,7 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
 
                   {/* Error Message */}
                   {(errors.country || errors.phone_number) && (
-                    <div className="text-red-500">
+                    <div className="text-red-500 text-[12px]">
                       {errors.country?.message || errors.phone_number?.message}
                     </div>
                   )}
@@ -276,7 +281,7 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
                     rows="10"
                   />
                   {errors.message && (
-                    <span className="text-red-500">
+                    <span className="text-red-500 text-[12px]">
                       {errors.message.message}
                     </span>
                   )}
@@ -306,11 +311,21 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
                     </div>
                   )}
 
-                  <ReCAPTCHA
+                  {/* <ReCAPTCHA
                     sitekey="6LeNH5QqAAAAAO98HJ00v5yuCkLgHYCSvUEpGhLb"
                     onChange={handleRecaptchaChange}
                     required
+                  /> */}
+
+                  <ReCAPTCHA
+                    sitekey="6LeNH5QqAAAAAO98HJ00v5yuCkLgHYCSvUEpGhLb"
+                    onChange={handleRecaptchaChange}
                   />
+                  {!recaptchaValue && (
+                    <span className="text-red-500 text-[12px]">
+                      Please complete the ReCAPTCHA verification.
+                    </span>
+                  )}
 
                   <div className="flex items-start space-x-2 mt-4 mb-12">
                     <input
@@ -336,7 +351,7 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
                     </label>
                   </div>
                   {errors.accept && (
-                    <span className="text-red-500 mt-[-20px]">
+                    <span className="text-red-500 text-[12px] mt-[-20px]">
                       {errors.accept.message}
                     </span>
                   )}
