@@ -99,6 +99,10 @@ function JobApply() {
 
   // Handle form submission
   const onSubmit = async (data) => {
+    if (!recaptchaValue) {
+      toast.error("Please complete the ReCAPTCHA verification.");
+      return;
+    }
     try {
       const selectedCountry = countriesData.find(
         (country) => country.name === data.country
@@ -119,6 +123,7 @@ function JobApply() {
           // toast.success("Form submitted successfully!");
           setPdfBrochure(null);
           setFileName("No file chosen");
+          setRecaptchaValue(null);
 
           // Reset the form fields after a successful submission
           reset();
@@ -147,7 +152,9 @@ function JobApply() {
             required
           />
           {errors.full_name && (
-            <div className="text-red-500">{errors.full_name.message}</div>
+            <div className="text-red-500 text-[12px]">
+              {errors.full_name.message}
+            </div>
           )}
 
           <input
@@ -158,7 +165,9 @@ function JobApply() {
             required
           />
           {errors.email && (
-            <div className="text-red-500">{errors.email.message}</div>
+            <div className="text-red-500 text-[12px]">
+              {errors.email.message}
+            </div>
           )}
 
           {/* Phone Number Input with Country Dropdown */}
@@ -181,7 +190,9 @@ function JobApply() {
                 })}
               </select>
               {errors.country && (
-                <div className="text-red-500">{errors.country.message}</div>
+                <div className="text-red-500 text-[12px]">
+                  {errors.country.message}
+                </div>
               )}
             </div>
             <div className="w-[55%]">
@@ -193,7 +204,7 @@ function JobApply() {
                 required
               />
               {errors.phone_number && (
-                <div className="text-red-500">
+                <div className="text-red-500 text-[12px]">
                   {errors.phone_number.message}
                 </div>
               )}
@@ -253,16 +264,26 @@ function JobApply() {
             </label>
           </div>
           {errors.accept && (
-            <span className="text-red-500 mt-[-20px]">
+            <span className="text-red-500 text-[12px] mt-[-20px]">
               {errors.accept.message}
             </span>
           )}
 
-          <ReCAPTCHA
+          {/* <ReCAPTCHA
             sitekey="6LeNH5QqAAAAAO98HJ00v5yuCkLgHYCSvUEpGhLb"
             onChange={handleRecaptchaChange}
             required
+          /> */}
+
+          <ReCAPTCHA
+            sitekey="6LeNH5QqAAAAAO98HJ00v5yuCkLgHYCSvUEpGhLb"
+            onChange={handleRecaptchaChange}
           />
+          {!recaptchaValue && (
+            <span className="text-red-500 text-[12px]">
+              Please complete the ReCAPTCHA verification.
+            </span>
+          )}
 
           {/* Submit Button */}
           <button
