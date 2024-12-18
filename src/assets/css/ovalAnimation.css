@@ -14,7 +14,7 @@
   position: absolute;
   width: 100%;
   height: 100%;
-  background-color: #fde047;
-  animation: wavyBorder 8s ease-in-out infinite;
-  transition: all 0.5s ease;
+  background-color: transparent;
+  animation: wavyBorder 4s ease-in-out infinite;
+  transition: all 0.98s ease;
 }
