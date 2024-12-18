@@ -24,6 +24,15 @@ const formatDate = (dateString) => {
   return `${day}-${month}-${year} ${hours}:${minutes}`;
 };
 
+const formatDateNew = (dateString) => {
+  if (!dateString) return "N/A";
+  const date = new Date(dateString);
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${day}-${month}-${year}`;
+};
+
 const SubmittedAssignments = () => {
   const { getQuery, loading } = useGetQuery();
   const [data, setData] = useState([]);
@@ -31,16 +40,20 @@ const SubmittedAssignments = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
+  const [filterOption, setFilterOption] = useState("Today");
   const [limit] = useState(5);
 
   // Fetch submitted assignments
   useEffect(() => {
     fetchSubmittedAssignments();
-  }, [limit, currentPage]);
+  }, [limit, currentPage, filterOption]);
 
   const fetchSubmittedAssignments = () => {
+    const filterQuery =
+      filterOption === "History" ? `filter=History` : `filter=Today`;
+
     getQuery({
-      url: `${apiUrls?.assignments?.submittedAssignments}?page=${currentPage}&limit=${limit}`,
+      url: `${apiUrls.assignments.submittedAssignments}?page=${currentPage}&limit=${limit}&${filterQuery}`,
       onSuccess: (res) => {
         setData(res?.submittedAssignments || []);
         setTotalPages(Math.ceil(res?.totalAssignments / limit));
@@ -61,6 +74,11 @@ const SubmittedAssignments = () => {
     setIsModalOpen(false);
   };
 
+  const handleFilterChange = (e) => {
+    setFilterOption(e.target.value);
+    setCurrentPage(1);
+  };
+
   if (loading) {
     return <Preloader />;
   }
@@ -70,6 +88,25 @@ const SubmittedAssignments = () => {
       <h2 className="text-2xl font-semibold text-gray-900 mb-6">
         Submitted Assignments
       </h2>
+
+      <div className="flex justify-between items-center mb-6 space-x-4">
+        <div className="flex-grow">
+          <p className="text-lg font-medium text-gray-700 dark:text-gray-300">
+            Filter assignments based on Previous/Today
+          </p>
+        </div>
+
+        <div className="flex justify-end">
+          <select
+            value={filterOption}
+            onChange={handleFilterChange}
+            className="border-2 border-gray-300 dark:bg-gray-800 dark:border-gray-600 dark:text-white rounded-lg px-5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-300 ease-in-out shadow-lg transform hover:scale-105"
+          >
+            <option value="Live">Today</option>
+            <option value="History">History</option>
+          </select>
+        </div>
+      </div>
       <div className="bg-white rounded-lg shadow-lg">
         {data.length > 0 ? (
           data.map((assignment) => (
@@ -77,11 +114,14 @@ const SubmittedAssignments = () => {
               key={assignment._id}
               className="border-b last:border-b-0 py-4 px-6"
             >
-              <h3 className="text-lg font-bold text-gray-800 mb-2">
-                {assignment.title}
+              <h3 className="text-lg font-bold text-gray-800">
+                Assignment Name: {assignment.title}
               </h3>
+              <p className="text-sm text-gray-600 mb-2">
+                Course Name: {assignment?.courseId?.course_title}
+              </p>
               <p className="text-sm text-gray-600">
-                Deadline: {new Date(assignment.deadline).toLocaleString()}
+                Deadline: {formatDateNew(assignment.deadline)}
               </p>
 
               {assignment.submissions.length > 0 ? (

@@ -31,7 +31,7 @@ const UpcomigClasses = () => {
           url: `${apiUrls?.onlineMeeting?.getMeetingByStudentId}/${studentId}`,
           onSuccess: (res) => {
             // Assuming response contains an array of classes
-            console.log('upcoming', res)
+            console.log("upcoming", res);
             const sortedClasses = res || [];
 
             // Separate ongoing classes
@@ -110,7 +110,7 @@ const UpcomigClasses = () => {
     <div className="px-10 pb-12">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-size-32 font-Open dark:text-white">
-           Upcoming Classes
+          Upcoming Classes
         </h2>
         <a
           href="/dashboards/student-upcoming-classes"
@@ -122,18 +122,26 @@ const UpcomigClasses = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {classes.length > 0 ? (
           classes.map((classItem, index) => (
-            <div key={index} className="bg-white shadow p-4 rounded-lg">
-              <Image
-                src={classItem.course_image || AiMl}
-                alt={classItem.meet_title}
-                className="w-full h-40 object-cover rounded"
-              />
-              <h3 className="mt-2 font-bold text-lg">
-                {classItem.meet_title || "Untitled Class"}
-              </h3>
-              <p className="text-gray-500">
-                {moment(classItem.date).format("DD/MM/YYYY")} {classItem.time}
-              </p>
+            <div
+              key={index}
+              className="flex flex-col justify-between bg-white shadow p-4 rounded-lg h-full"
+            >
+              <div>
+                <Image
+                  src={classItem.course_image || AiMl}
+                  alt={classItem.meet_title}
+                  className="w-full h-40 object-cover rounded"
+                />
+                <h3 className="mt-2 font-bold text-lg truncate min-h-[40px]">
+                  {classItem.meet_title || "Untitled Class"}
+                </h3>
+                <p className="mt-2 font-normal text-sm truncate text-gray-600 min-h-[20px]">
+                  {classItem.course_name || "Untitled Course"}
+                </p>
+                <p className="text-gray-500 mt-2">
+                  {moment(classItem.date).format("DD/MM/YYYY")} {classItem.time}
+                </p>
+              </div>
               <button
                 className="mt-4 px-4 py-2 bg-primaryColor text-white font-semibold rounded-xl hover:bg-green-600 transition"
                 onClick={() => handleJoinClick(classItem)}
