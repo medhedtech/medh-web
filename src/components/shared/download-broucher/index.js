@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { FaPaperPlane } from "react-icons/fa";
-import { toast } from "react-toastify";
 import { apiUrls } from "@/apis";
 import usePostQuery from "@/hooks/postQuery.hook";
 import { FaTimes } from "react-icons/fa";
@@ -12,7 +11,23 @@ const DownloadBrochureModal = ({ isOpen, onClose, courseTitle }) => {
     full_name: "",
     email: "",
     phone_number: "",
+    country_code: "IN", // Default country code
+    accepted: false,
   });
+
+  const [errors, setErrors] = useState({}); // State to store error messages
+
+  // Regular expressions for validation
+  const nameRegex = /^[a-zA-Z\s]+$/; // Only letters and spaces for name
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/; // Email validation
+  const phoneRegex = {
+    IN: /^[1-9][0-9]{9}$/, // Indian phone number validation
+    AUS: /^[0-9]{9}$/, // Australian phone number validation
+    CA: /^[0-9]{10}$/, // Canadian phone number validation
+    SGP: /^[0-9]{8}$/, // Singapore phone number validation
+    UAE: /^[0-9]{9}$/, // UAE phone number validation
+    UK: /^[0-9]{10}$/, // UK phone number validation
+  };
 
   // Handle input changes
   const handleChange = (e) => {
@@ -21,15 +36,64 @@ const DownloadBrochureModal = ({ isOpen, onClose, courseTitle }) => {
       ...prevState,
       [name]: value,
     }));
+
+    // Clear the error for the current field
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: "",
+    }));
   };
+
+  // Handle checkbox for terms and conditions
+  const handleCheckboxChange = (e) => {
+    setFormData((prevState) => ({
+      ...prevState,
+      accepted: e.target.checked,
+    }));
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      accepted: "",
+    }));
+  };
+
+  // Validate the form fields
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.full_name || !nameRegex.test(formData.full_name)) {
+      newErrors.full_name =
+        "Please enter a valid name (letters and spaces only).";
+    }
+
+    if (!formData.email || !emailRegex.test(formData.email)) {
+      newErrors.email = "Please enter a valid email address.";
+    }
+
+    if (
+      !formData.phone_number ||
+      !phoneRegex[formData.country_code].test(formData.phone_number)
+    ) {
+      newErrors.phone_number =
+        "Please enter a valid phone number for the selected country.";
+    }
+
+    if (!formData.accepted) {
+      newErrors.accepted =
+        "You must accept the Terms of Service and Privacy Policy.";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0; // Return true if no errors
+  };
+
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Validate the form data
-    if (!formData.full_name || !formData.email || !formData.phone_number) {
-      toast.error("Please fill out all fields.");
-      return;
+
+    if (!validateForm()) {
+      return; // Stop submission if there are validation errors
     }
+
     try {
       await postQuery({
         url: apiUrls?.brouchers?.addBroucher,
@@ -37,21 +101,27 @@ const DownloadBrochureModal = ({ isOpen, onClose, courseTitle }) => {
           full_name: formData.full_name,
           email: formData.email,
           phone_number: formData.phone_number,
+          country_code: formData.country_code,
           course_title: courseTitle || "Default Course Title",
         },
         onSuccess: () => {
           console.log("API Success triggered");
           setShowModal(true);
-          toast.success("Brochure request submitted successfully!");
           onClose();
         },
         onFail: () => {
-          toast.error("An error occurred while sending the brochure.");
+          setErrors((prevErrors) => ({
+            ...prevErrors,
+            general: "An error occurred while sending the brochure.",
+          }));
         },
       });
     } catch (error) {
       console.error("An error occurred:", error);
-      toast.error("An unexpected error occurred. Please try again.");
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        general: "An unexpected error occurred. Please try again.",
+      }));
     }
   };
 
@@ -81,35 +151,47 @@ const DownloadBrochureModal = ({ isOpen, onClose, courseTitle }) => {
           </h3>
 
           <form className="space-y-4" onSubmit={handleSubmit}>
-            <input
-              type="text"
-              name="full_name"
-              placeholder="Your Name*"
-              className="w-full px-4 py-2 border rounded focus:outline-none focus:border-[#FFA63E]"
-              value={formData.full_name}
-              onChange={handleChange}
-              required
-            />
-            <input
-              type="email"
-              name="email"
-              placeholder="Your Email*"
-              className="w-full px-4 py-2 border rounded focus:outline-none focus:border-[#FFA63E]"
-              value={formData.email}
-              onChange={handleChange}
-              required
-            />
+            <div>
+              <input
+                type="text"
+                name="full_name"
+                placeholder="Your Name*"
+                className="w-full px-4 py-2 border rounded focus:outline-none focus:border-[#FFA63E]"
+                value={formData.full_name}
+                onChange={handleChange}
+              />
+              {errors.full_name && (
+                <p className="text-red-500 text-[10px]">{errors.full_name}</p>
+              )}
+            </div>
+
+            <div>
+              <input
+                type="email"
+                name="email"
+                placeholder="Your Email*"
+                className="w-full px-4 py-2 border rounded focus:outline-none focus:border-[#FFA63E]"
+                value={formData.email}
+                onChange={handleChange}
+              />
+              {errors.email && (
+                <p className="text-red-500 text-[10px]">{errors.email}</p>
+              )}
+            </div>
+
             <div className="flex space-x-2">
               <select
+                name="country_code"
                 className="px-4 text-black py-2 border rounded w-1/3 focus:outline-none focus:border-[#FFA63E]"
-                required
+                value={formData.country_code}
+                onChange={handleChange}
               >
                 <option value="IN">IN (+91)</option>
                 <option value="AUS">AUS (+61)</option>
                 <option value="CA">CA (+1)</option>
-                <option value="SGP">SGP (+65) </option>
+                <option value="SGP">SGP (+65)</option>
                 <option value="UAE">UAE (+971)</option>
-                <option value="UK">UK (+44) </option>
+                <option value="UK">UK (+44)</option>
               </select>
               <input
                 type="tel"
@@ -118,14 +200,18 @@ const DownloadBrochureModal = ({ isOpen, onClose, courseTitle }) => {
                 className="w-full px-4 py-2 border rounded focus:outline-none focus:border-[#FFA63E]"
                 value={formData.phone_number}
                 onChange={handleChange}
-                required
               />
             </div>
+            {errors.phone_number && (
+              <p className="text-red-500 text-[10px]">{errors.phone_number}</p>
+            )}
 
             <div className="flex items-start space-x-2 mb-12">
               <input
                 type="checkbox"
                 id="accept"
+                checked={formData.accepted}
+                onChange={handleCheckboxChange}
                 className="w-4 h-4 text-[#7ECA9D] border-gray-300 rounded mt-1 focus:ring-[#7ECA9D]"
               />
               <label
@@ -142,6 +228,9 @@ const DownloadBrochureModal = ({ isOpen, onClose, courseTitle }) => {
                 </a>
               </label>
             </div>
+            {errors.accepted && (
+              <p className="text-red-500 text-[10px]">{errors.accepted}</p>
+            )}
 
             <div className="-mb-6">
               <button
@@ -155,41 +244,15 @@ const DownloadBrochureModal = ({ isOpen, onClose, courseTitle }) => {
                     <FaPaperPlane className="mr-2" />
                     Submit
                   </>
-                )}{" "}
+                )}
               </button>
             </div>
+            {errors.general && (
+              <p className="text-red-500 text-sm mt-4">{errors.general}</p>
+            )}
           </form>
         </div>
       </div>
-      {/* Success Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg w-96 p-6 relative">
-            <button
-              onClick={() => setShowModal(false)}
-              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 focus:outline-none"
-            >
-              <FaTimes size={20} />
-            </button>
-
-            <div className="text-center">
-              <h2 className="text-lg md:text-[28px] font-semibold text-green-500">
-                🎉 Success!
-              </h2>
-              <p className="text-gray-700 mt-2">
-                Your brochure has been sent successfully to your email! Please
-                check your inbox and download the brochure from there.
-              </p>
-              <button
-                onClick={() => setShowModal(false)}
-                className="mt-4 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
-              >
-                OK
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 };

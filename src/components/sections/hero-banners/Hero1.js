@@ -5,9 +5,8 @@ import Image from "next/image";
 import React from "react";
 import stemImg from "@/assets/images/herobanner/Background.png";
 import Group from "@/assets/Header-Images/Home/cheerful-arab.jpg";
-import family from "@/assets/Header-Images/Home/cheerful-arab-removebg-preview.png";
+import family from "@/assets/Header-Images/Home/cheerful-arab.jpg";
 import bgImage from "@/assets/Header-Images/Home/Home_Banner_2_e7389bb905.jpg";
-import AnimatedBackground from "@/components/layout/header/AnimatedBackground";
 import "@/assets/css/ovalAnimation.css";
 
 const Hero1 = () => {
@@ -97,22 +96,6 @@ const Hero1 = () => {
           </div>
 
           {/* Banner Right */}
-          {/* <div className="lg:flex hidden md-w:[45%] rounded-[50%] justify-end">
-            <Image
-              src={Group}
-              width={453}
-              height={457}
-              alt="Group Image"
-              className="max-w-full h-auto lg:rounded-[50%] contain"
-            />
-          </div> */}
-          {/* <div className="lg:flex hidden md-w:[45%] rounded-[50%] justify-end">
-            <img
-              src="/gif/Home.gif"
-              alt="Group GIF"
-              className="max-w-full h-auto lg:rounded-[50%]"
-            />
-          </div> */}
           <div className="lg:flex hidden relative w-full h-full">
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="relative w-[500px] h-[300px]">
