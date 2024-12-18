@@ -78,6 +78,10 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
 
   // Handle form submission
   const onSubmit = async (data) => {
+    if (!recaptchaValue) {
+      toast.error("Please complete the ReCAPTCHA verification.");
+      return;
+    }
     try {
       const selectedCountry = countriesData.find(
         (country) => country.name === data.country
@@ -98,6 +102,7 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
         onSuccess: () => {
           // toast.success("Form submitted successfully!");
           setShowModal(true);
+          setRecaptchaValue(null);
 
           // Reset the form fields after a successful submission
           reset();
@@ -170,7 +175,7 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
                         className="w-full px-14px py-2 dark:bg-inherit bg-lightGrey8 text-base mb-0 sm:mb-1.5 border border-gray-300"
                       />
                       {errors.full_name && (
-                        <span className="text-red-500">
+                        <span className="text-red-500 text-[12px]">
                           {errors.full_name.message}
                         </span>
                       )}
@@ -183,7 +188,7 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
                         className="w-full px-14px py-2 dark:bg-inherit bg-lightGrey8 text-base sm:mb-1.5 mb-0 border border-gray-300"
                       />
                       {errors.email && (
-                        <span className="text-red-500">
+                        <span className="text-red-500 text-[12px]">
                           {errors.email.message}
                         </span>
                       )}
@@ -222,7 +227,7 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
                   </div>
                   {/* Error Message */}
                   {(errors.country || errors.phone_number) && (
-                    <div className="text-red-500">
+                    <div className="text-red-500 text-[12px]">
                       {errors.country?.message || errors.phone_number?.message}
                     </div>
                   )}
@@ -236,7 +241,7 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
                         className="w-full px-14px py-2 dark:bg-inherit bg-lightGrey8 text-base mb-0 sm:mb-1.5 border border-gray-300"
                       />
                       {errors.designation && (
-                        <span className="text-red-500">
+                        <span className="text-red-500 text-[12px]">
                           {errors.designation.message}
                         </span>
                       )}
@@ -249,7 +254,7 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
                         className="w-full px-14px py-2 dark:bg-inherit bg-lightGrey8 text-base sm:mb-1.5 mb-0 border border-gray-300"
                       />
                       {errors.company_name && (
-                        <span className="text-red-500">
+                        <span className="text-red-500 text-[12px]">
                           {errors.company_name.message}
                         </span>
                       )}
@@ -264,7 +269,7 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
                       className="w-full px-14px py-2 dark:bg-inherit bg-lightGrey8 text-base mb-0 border border-gray-300"
                     />
                     {errors.company_website && (
-                      <span className="text-red-500">
+                      <span className="text-red-500 text-[12px]">
                         {errors.company_website.message}
                       </span>
                     )}
@@ -277,17 +282,27 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
                       className="w-full h-[100px] dark:bg-inherit bg-lightGrey8 text-base px-14px py-2 mb-4 border border-gray-300"
                     ></textarea>
                     {errors.message && (
-                      <span className="text-red-500">
+                      <span className="text-red-500 text-[12px]">
                         {errors.message.message}
                       </span>
                     )}
                   </div>
 
-                  <ReCAPTCHA
+                  {/* <ReCAPTCHA
                     sitekey="6LeNH5QqAAAAAO98HJ00v5yuCkLgHYCSvUEpGhLb"
                     onChange={handleRecaptchaChange}
                     required
+                  /> */}
+
+                  <ReCAPTCHA
+                    sitekey="6LeNH5QqAAAAAO98HJ00v5yuCkLgHYCSvUEpGhLb"
+                    onChange={handleRecaptchaChange}
                   />
+                  {!recaptchaValue && (
+                    <span className="text-red-500 text-[12px]">
+                      Please complete the ReCAPTCHA verification.
+                    </span>
+                  )}
 
                   <div className="flex items-start space-x-2 mb-12">
                     <input
@@ -313,7 +328,7 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
                     </label>
                   </div>
                   {errors.accept && (
-                    <span className="text-red-500 mt-[-20px]">
+                    <span className="text-red-500 text-[12px] mt-[-20px]">
                       {errors.accept.message}
                     </span>
                   )}

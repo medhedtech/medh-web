@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import "@/assets/css/ovalAnimation.css";
 
-export default function MainBanner({
+export default function AboutBanner({
   bannerImage,
   logoImage,
   isoImage,
@@ -112,30 +112,22 @@ export default function MainBanner({
             {slogan}
           </p>
         </div>
-
-        {/* Right side image (hidden on small screens) */}
-        {/* <div className="hidden lg:block md:w-[45%] rounded-[50%]">
-          <Image
-            src={logoImage}
-            alt="Logo Image"
-            objectFit="cover"
-            className="w-full rounded-[50%]"
-          />
-        </div> */}
         {/* Banner Right */}
-          <div className="inset-0 flex items-center justify-center">
-            <div className="relative w-[500px] h-[300px]">
-              <div className="wavy-oval overflow-hidden">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Image
-                    src={logoImage}
-                    alt="Family Image"
-                    className="w-[540px] h-[400px] object-contain object-center relative z-10"
-                  />
-                </div>
+        <div className="inset-0 flex items-center justify-center">
+          <div className="relative w-[500px] h-[300px]">
+            <div className="wavy-oval overflow-hidden">
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Image
+                  src={logoImage}
+                  alt="Family Image"
+                  layout="fill"
+                  objectFit="cover"
+                  className="w-[540px] h-[400px] object-contain object-center relative z-10"
+                />
               </div>
             </div>
           </div>
+        </div>
       </div>
     </div>
   );
