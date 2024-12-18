@@ -34,7 +34,7 @@ const FooterNavList = () => {
       heading: "Menu",
       items: [
         {
-          name: "Corporate Traning",
+          name: "Corporate Training",
           path: "/corporate-training-courses",
         },
         {
@@ -63,7 +63,7 @@ const FooterNavList = () => {
           path: "/ai-and-data-science-course",
         },
         {
-          name: "Degital Marketing with Data Analytics",
+          name: "Digital Marketing with Data Analytics",
           path: "/digital-marketing-with-data-analytics-course",
         },
         {
