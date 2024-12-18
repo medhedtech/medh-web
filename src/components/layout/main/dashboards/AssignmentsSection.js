@@ -131,6 +131,7 @@ const AssignmentsSection = ({ onQuizClick }) => {
             <AssignmentCard
               key={index}
               title={assignment?.title}
+              courseTitle={assignment?.courseId?.course_title}
               instructor={assignment?.instructor}
               deadline={assignment?.deadline}
               daysLeft={daysLeft}

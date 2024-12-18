@@ -237,7 +237,7 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
 
                   {/* Phone Number Input with Country Dropdown */}
                   <div className="flex flex-col lg:flex-row mb-2 gap-4">
-                    <div className="w-full lg:w-2/6">
+                    <div className="w-full lg:w-2/4">
                       <select
                         {...register("country")}
                         className="w-full text-sm px-2 py-2 dark:bg-inherit bg-white border border-gray-300 text-[#5C6574] max-h-48 overflow-y-auto"
@@ -256,7 +256,7 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
                       </select>
                     </div>
 
-                    <div className="w-full lg:w-3/4">
+                    <div className="w-full lg:w-2/4">
                       <input
                         {...register("phone_number")}
                         type="tel"
