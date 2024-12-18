@@ -1,0 +1,20 @@
+@keyframes wavyBorder {
+  0% {
+    border-radius: 60% 40% 40% 60% / 55% 45% 55% 45%;
+  }
+  50% {
+    border-radius: 50% 50% 60% 40% / 50% 60% 40% 50%;
+  }
+  100% {
+    border-radius: 60% 40% 40% 60% / 55% 45% 55% 45%;
+  }
+}
+
+.wavy-oval {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: transparent;
+  animation: wavyBorder 4s ease-in-out infinite;
+  transition: all 0.98s ease;
+}
