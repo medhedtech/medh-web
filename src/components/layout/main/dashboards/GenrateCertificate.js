@@ -9,6 +9,7 @@ import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import usePostQuery from "@/hooks/postQuery.hook";
 import { FiUsers } from "react-icons/fi";
+import { toast } from "react-toastify";
 
 const CertificatePage = () => {
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
@@ -80,6 +81,7 @@ const CertificatePage = () => {
           postData: payload,
           onSuccess: (data) => {
             console.log("Certificate created successfully:", data);
+            toast.success("Certificate created successfully:");
             closeModal();
           },
           onFail: (error) => {

@@ -38,7 +38,7 @@ export const apiUrls = {
     getEnrolledCoursesByStudentId: "/enroll/student",
     toggleCourseStatus: "/courses/toggle-status",
     addRecordedVideos: "/courses/recorded-videos",
-    getRecorderVideosForUser:"/courses/recorded-videos"
+    getRecorderVideosForUser: "/courses/recorded-videos",
   },
   upload: {
     uploadImage: "/upload/uploadImage",
@@ -53,6 +53,7 @@ export const apiUrls = {
     deleteMeeting: "/online-meeting/delete/:id",
     getMeetingByStudentId: "/online-meeting/student",
     getMeetingsByInstructorId: "/online-meeting/upcoming-classes",
+    getOngoingMeetingsByinstrcutorId: "/online-meeting/ongoing-classes",
   },
   // Instructor: {
   //   getAllInstructors: "/instructors/get",
@@ -116,8 +117,8 @@ export const apiUrls = {
   quzies: {
     getQuizes: "/quizes",
     uploadQuizes: "/quizes/upload",
-    quizResponses:"/quizResponses",
-    getQuizResponses:"/quizResponses/responses",
+    quizResponses: "/quizResponses",
+    getQuizResponses: "/quizResponses/responses",
     getQuizesById: "/quizes/get",
   },
   assignments: {
