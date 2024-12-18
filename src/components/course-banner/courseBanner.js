@@ -28,10 +28,10 @@ const CourseBanner = ({
           />
         </div>
         <div className="w-full lg:w-[60%] space-y-2 ">
-          <h2 className="text-3xl leading-7 font-semibold text-[#5C6574]">
+          <h2 className="text-2xl font-Poppins leading-7 font-semibold text-[#5C6574] w-[80%]">
             {heading}
           </h2>
-          <h2 className="text-3xl font-semibold text-[#5C6574]">{headings}</h2>
+          <h2 className="text-2xl font-Poppins font-semibold text-[#5C6574]">{headings}</h2>
           <p className="text-[#585454] text-[0.9rem] font-light md:text-base sm:text-sm">
             {description}
           </p>
@@ -41,11 +41,10 @@ const CourseBanner = ({
           <Link href="#enroll-section">
             <button
               // onClick={onButtonClick}
-              style={{ backgroundColor: buttonBgColor }} // Set dynamic background color
+              style={{ backgroundColor: buttonBgColor }}
               className="hover:bg-[#3f2885] text-white px-6 py-3 shadow-lg font-semibold mt-4 lg:mt-0 flex items-center justify-center gap-2"
             >
               {icon && <Image src={icon} alt="button-icon" className="mr-2" />}{" "}
-              {/* Display icon if passed */}
               {buttonText}
             </button>
           </Link>
