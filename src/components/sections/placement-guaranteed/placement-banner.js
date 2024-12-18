@@ -6,6 +6,7 @@ import React from "react";
 import stemImg from "@/assets/images/herobanner/Background.png";
 import Group from "@/assets/images/placement/medh-placement-courses.jpg";
 import bgImage from "@/assets/images/herobanner/medh-hero-banner.png";
+import "@/assets/css/ovalAnimation.css";
 
 const PlacementGauranteedBanner = () => {
   return (
@@ -93,8 +94,7 @@ const PlacementGauranteedBanner = () => {
             </span>
           </div>
 
-          <div className="relative w-full h-full rounded-[50%] flex items-center justify-center overflow-hidden">
-            {/* Moving Image */}
+          {/* <div className="relative w-full h-full rounded-[50%] flex items-center justify-center overflow-hidden">
             <Image
               src={Group}
               width={200}
@@ -105,6 +105,24 @@ const PlacementGauranteedBanner = () => {
                 animation: "floating 7s ease-in-out infinite",
               }}
             />
+          </div> */}
+          {/* Banner Right */}
+          <div className="lg:flex hidden relative w-full h-full">
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="relative w-[500px] h-[300px]">
+                <div className="wavy-oval overflow-hidden">
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Image
+                      src={Group}
+                      alt="Family Image"
+                      layout="fill"
+                      objectFit="cover"
+                      className="w-[540px] h-[400px] object-contain object-center relative z-10"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
