@@ -18,7 +18,7 @@ const BrandHero = () => {
             </span>
             <a
               href="/skill-development-courses"
-              className="mt-4 text-sm sm:text-base lg:text-lg underline underline-offset-4 text-blue-600 hover:text-blue-800 transition-all"
+              className="mt-6 text-sm sm:text-base lg:text-lg underline underline-offset-4 text-blue-600 hover:text-blue-800 transition-all"
             >
               View Courses +
             </a>
@@ -61,7 +61,7 @@ const BrandHero = () => {
             </span>
             <a
               href="/about-us"
-              className="mt-4 text-sm sm:text-base lg:text-lg underline underline-offset-4 text-blue-600 hover:text-blue-800 transition-all"
+              className="mt-8 text-sm sm:text-base lg:text-lg underline underline-offset-4 text-blue-600 hover:text-blue-800 transition-all"
             >
               View More +
             </a>
