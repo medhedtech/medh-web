@@ -240,6 +240,19 @@ function JobApply() {
             />
           </div>
 
+
+
+          <ReCAPTCHA
+            sitekey="6LeNH5QqAAAAAO98HJ00v5yuCkLgHYCSvUEpGhLb"
+            onChange={handleRecaptchaChange}
+          />
+          {!recaptchaValue && (
+            <span className="text-red-500 text-[12px]">
+              Please complete the ReCAPTCHA verification.
+            </span>
+          )}
+
+
           {/* Terms and Conditions */}
           <div className="flex items-start space-x-2 mb-12">
             <input
@@ -274,17 +287,6 @@ function JobApply() {
             onChange={handleRecaptchaChange}
             required
           /> */}
-
-          <ReCAPTCHA
-            sitekey="6LeNH5QqAAAAAO98HJ00v5yuCkLgHYCSvUEpGhLb"
-            onChange={handleRecaptchaChange}
-          />
-          {!recaptchaValue && (
-            <span className="text-red-500 text-[12px]">
-              Please complete the ReCAPTCHA verification.
-            </span>
-          )}
-
           {/* Submit Button */}
           <button
             type="submit"
