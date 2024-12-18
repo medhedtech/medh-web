@@ -5,6 +5,8 @@ import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
 import Preloader from "@/components/shared/others/Preloader";
 import Pana from "@/assets/images/dashbord/pana.svg";
+import { FaBookOpen } from "react-icons/fa";
+import { MdOutlineLibraryBooks } from "react-icons/md";
 
 function formatDateWithOrdinal(dateString) {
   const date = new Date(dateString);
@@ -75,6 +77,7 @@ const AssignedDemoClass = () => {
     }
   }, [instructorId]);
 
+  // Filter only demo classes
   const demoClasses = classes.filter(
     (classItem) => classItem.meeting_tag === "demo"
   );
@@ -97,57 +100,81 @@ const AssignedDemoClass = () => {
         </a> */}
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {demoClasses.map((classItem) => (
-          <div
-            key={classItem._id}
-            className="bg-white dark:bg-gray-800 shadow-lg rounded-xl border p-6 relative flex flex-col justify-between h-full"
-          >
-            {/* Class Image */}
-            <div className="rounded-xl overflow-hidden mb-4">
-              <Image
-                src={classItem.courseDetails?.course_image || Pana}
-                alt={classItem.meet_title || "Demo Class"}
-                className="w-full h-48 object-cover rounded-xl transform hover:scale-110 transition-all duration-300"
-                width={300}
-                height={150}
+        {/* {demoClasses.map((classItem) => ( */}
+        {demoClasses.length > 0 ? (
+          demoClasses.map((classItem) => (
+            <div
+              key={classItem._id}
+              className="bg-white dark:bg-gray-800 shadow-lg rounded-xl border p-6 relative flex flex-col justify-between h-full"
+            >
+              {/* Class Image */}
+              <div className="rounded-xl overflow-hidden mb-4">
+                <Image
+                  src={classItem.courseDetails?.course_image || Pana}
+                  alt={classItem.meet_title || "Demo Class"}
+                  className="w-full h-48 object-cover rounded-xl transform hover:scale-110 transition-all duration-300"
+                  width={300}
+                  height={150}
+                />
+              </div>
+
+              {/* Class Details */}
+              <h3 className="mt-2 font-semibold text-lg text-gray-800 dark:text-white">
+                {classItem.meet_title || "Untitled Class"}
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300 text-sm">
+                Date: {formatDateWithOrdinal(classItem.date) || "Not specified"}
+              </p>
+
+              {/* Time with Icon */}
+              <div className="flex items-center text-sm text-orange-500 mt-2">
+                <svg
+                  width="15"
+                  height="15"
+                  viewBox="0 0 15 15"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="mr-1"
+                >
+                  <circle cx="7.5" cy="7.5" r="7" stroke="orange" />
+                  <path d="M7.5 3v5h3" stroke="orange" />
+                </svg>
+                {formatTimeWithAmPm(classItem.time) || "Not specified"}
+              </div>
+
+              {/* Join Button */}
+              <div className="mt-4">
+                <button
+                  className="w-full px-4 py-2 bg-[#7ECA9D] text-white font-semibold rounded-full transition-transform transform hover:scale-105 hover:bg-green-600 duration-300"
+                  onClick={() => {}}
+                >
+                  Join Class
+                </button>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="py-10 px-8 bg-gradient-to-r from-gray-100 to-gray-200 rounded-lg shadow-lg w-full text-center flex flex-col items-center justify-center">
+            <div className="bg-white p-4 rounded-full shadow-md">
+              <FaBookOpen size={60} className="text-blue-500" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800 mt-6">
+              No Demo Classes Found
+            </h2>
+            <p className="text-lg text-gray-600 mt-2">
+              It seems we couldn't find any assigned demo classes for you.
+            </p>
+            <p className="text-sm text-gray-500 mt-1">
+              Check back later or contact your instructor for details.
+            </p>
+            <div className="mt-6 flex space-x-4">
+              <MdOutlineLibraryBooks
+                size={40}
+                className="text-gray-400 animate-bounce"
               />
             </div>
-
-            {/* Class Details */}
-            <h3 className="mt-2 font-semibold text-lg text-gray-800 dark:text-white">
-              {classItem.meet_title || "Untitled Class"}
-            </h3>
-            <p className="text-gray-600 dark:text-gray-300 text-sm">
-              Date: {formatDateWithOrdinal(classItem.date) || "Not specified"}
-            </p>
-
-            {/* Time with Icon */}
-            <div className="flex items-center text-sm text-orange-500 mt-2">
-              <svg
-                width="15"
-                height="15"
-                viewBox="0 0 15 15"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="mr-1"
-              >
-                <circle cx="7.5" cy="7.5" r="7" stroke="orange" />
-                <path d="M7.5 3v5h3" stroke="orange" />
-              </svg>
-              {formatTimeWithAmPm(classItem.time) || "Not specified"}
-            </div>
-
-            {/* Join Button */}
-            <div className="mt-4">
-              <button
-                className="w-full px-4 py-2 bg-[#7ECA9D] text-white font-semibold rounded-full transition-transform transform hover:scale-105 hover:bg-green-600 duration-300"
-                onClick={() => {}}
-              >
-                Join Class
-              </button>
-            </div>
           </div>
-        ))}
+        )}
       </div>
     </div>
   );
