@@ -172,7 +172,7 @@ function JobApply() {
 
           {/* Phone Number Input with Country Dropdown */}
           <div className="flex flex-row mb-2 gap-4">
-            <div className="w-[45%]">
+            <div className="w-[50%]">
               <select
                 {...register("country")}
                 className="w-full text-sm px-2 py-2 dark:bg-inherit bg-white border border-gray-300 text-[#5C6574] max-h-48 overflow-y-auto  "
@@ -195,7 +195,7 @@ function JobApply() {
                 </div>
               )}
             </div>
-            <div className="w-[55%]">
+            <div className="w-[50%]">
               <input
                 {...register("phone_number")}
                 type="tel"
