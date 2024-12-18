@@ -208,7 +208,7 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
       <div className="min-h-screen bg-white dark:bg-screen-dark dark:text-white p-4">
         <div className="container mx-auto">
           {/* Header */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
             <h1 className="text-3xl md:text-4xl font-bold text-[#7ECA9D] mb-4 md:mb-0">
               {/* Skill Development Courses */}
               {CustomText}
@@ -216,20 +216,20 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
             <div>{CustomButton}</div>
           </div>
           <div className="flex flex-col md:flex-row justify-between items-center mb-12 space-y-4 md:space-y-10">
-            <div className="flex items-center mt-8 border border-[#CDCFD5] px-3 py-2 rounded-md w-full md:w-[50%] lg:w-[25%]">
+            <div className="self-end border border-[#CDCFD5] px-2 py-1 rounded-md w-full md:w-1/4 ">
               <input
                 type="text"
                 placeholder="Search by category ......"
                 value={searchTerm}
                 onChange={handleSearch}
-                className="outline-none ml-2 w-full dark:bg-screen-dark dark:text-gray50"
+                className="outline-none px-2 py-2 w-full dark:bg-screen-dark dark:text-gray50"
               />
             </div>
             {/* Grade Filter as Dropdown */}
-            <div className="w-full md:w-1/4">
+            <div className="w-full md:w-1/4 rounded-md px-2 py-0 border border-[#CDCFD5]">
               <select
                 id="gradeFilter"
-                className="w-full border border-[#CDCFD5] px-2 py-2 rounded-md outline-none dark:bg-screen-dark dark:text-gray50"
+                className="w-full px-2 py-2 outline-none dark:bg-screen-dark dark:text-gray50"
                 value={selectedGrade || ""}
                 onChange={(e) => setSelectedGrade(e.target.value)}
               >
@@ -242,9 +242,9 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
               </select>
             </div>
             {/* Sidebar Filter */}
-            <div className="border border-[#CDCFD5] px-2 py-0 rounded-md w-full md:w-auto">
+            <div className="border border-[#CDCFD5] px-2 py-0 rounded-md  w-full md:w-1/4">
               <select
-                className="w-full outline-none dark:bg-screen-dark"
+                className="w-full outline-none px-2 py-2 dark:bg-screen-dark dark:text-gray50"
                 value={sortOrder}
                 onChange={handleSortChange}
               >
