@@ -78,6 +78,10 @@ const ExploreJourney = ({ mainText, subText }) => {
 
   // Handle form submission
   const onSubmit = async (data) => {
+    if (!recaptchaValue) {
+      toast.error("Please complete the ReCAPTCHA verification.");
+      return;
+    }
     try {
       const selectedCountry = countriesData.find(
         (country) => country.name === data.country
@@ -97,6 +101,7 @@ const ExploreJourney = ({ mainText, subText }) => {
         onSuccess: () => {
           // toast.success("Form submitted successfully!");
           setShowModal(true);
+          setRecaptchaValue(null);
 
           // Reset the form fields after a successful submission
           reset();
@@ -169,7 +174,7 @@ const ExploreJourney = ({ mainText, subText }) => {
                         className="w-full px-14px py-2 dark:bg-inherit bg-lightGrey8 text-base mb-0 sm:mb-1.5 border border-gray-300"
                       />
                       {errors.full_name && (
-                        <span className="text-red-500 text-sm mt-1 block">
+                        <span className="text-red-500 text-[12px] mt-1 block">
                           {errors.full_name.message}
                         </span>
                       )}
@@ -182,7 +187,7 @@ const ExploreJourney = ({ mainText, subText }) => {
                         className="w-full px-14px py-2 dark:bg-inherit bg-lightGrey8 text-base sm:mb-1.5 mb-0 border border-gray-300"
                       />
                       {errors.email && (
-                        <span className="text-red-500 text-sm mt-1 block">
+                        <span className="text-red-500 text-[12px] mt-1 block">
                           {errors.email.message}
                         </span>
                       )}
@@ -221,7 +226,7 @@ const ExploreJourney = ({ mainText, subText }) => {
                   </div>
                   {/* Error Message */}
                   {(errors.country || errors.phone_number) && (
-                    <div className="text-red-500">
+                    <div className="text-red-500 text-[12px]">
                       {errors.country?.message || errors.phone_number?.message}
                     </div>
                   )}
@@ -250,7 +255,7 @@ const ExploreJourney = ({ mainText, subText }) => {
                         </option>
                       </select>
                       {errors.course_category && (
-                        <span className="text-red-500 text-sm mt-1">
+                        <span className="text-red-500 text-[12px] mt-1">
                           {errors.course_category.message}
                         </span>
                       )}
@@ -270,7 +275,7 @@ const ExploreJourney = ({ mainText, subText }) => {
                         <option value="option3">Executive Certificate</option>
                       </select>
                       {errors.course_type && (
-                        <span className="text-red-500 text-sm mt-1">
+                        <span className="text-red-500 text-[12px] mt-1">
                           {errors.course_type.message}
                         </span>
                       )}
@@ -288,17 +293,27 @@ const ExploreJourney = ({ mainText, subText }) => {
 
                     {/* Error Message for Message */}
                     {errors.message && (
-                      <span className="text-red-500 text-sm pb-2 mt-1 block">
+                      <span className="text-red-500 text-[12px] pb-2 mt-1 block">
                         {errors.message.message}
                       </span>
                     )}
                   </div>
 
-                  <ReCAPTCHA
+                  {/* <ReCAPTCHA
                     sitekey="6LeNH5QqAAAAAO98HJ00v5yuCkLgHYCSvUEpGhLb"
                     onChange={handleRecaptchaChange}
                     required
+                  /> */}
+
+                  <ReCAPTCHA
+                    sitekey="6LeNH5QqAAAAAO98HJ00v5yuCkLgHYCSvUEpGhLb"
+                    onChange={handleRecaptchaChange}
                   />
+                  {!recaptchaValue && (
+                    <span className="text-red-500 text-[12px]">
+                      Please complete the ReCAPTCHA verification.
+                    </span>
+                  )}
 
                   <div className="flex items-start mt-2 space-x-2 mb-0">
                     <input
@@ -324,7 +339,7 @@ const ExploreJourney = ({ mainText, subText }) => {
                     </label>
                   </div>
                   {errors.accept && (
-                    <span className="text-red-500 text-sm mt-1 block">
+                    <span className="text-red-500 text-[12px] mt-1 block">
                       {errors.accept.message}
                     </span>
                   )}
