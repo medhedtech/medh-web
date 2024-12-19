@@ -66,6 +66,7 @@ const ExploreJourney = ({ mainText, subText }) => {
   const { postQuery, loading } = usePostQuery();
   const [showModal, setShowModal] = useState(false);
   const [recaptchaValue, setRecaptchaValue] = useState(null);
+  const [recaptchaTouched, setRecaptchaTouched] = useState(false);
   const {
     register,
     handleSubmit,
@@ -77,6 +78,7 @@ const ExploreJourney = ({ mainText, subText }) => {
 
   const handleRecaptchaChange = (value) => {
     setRecaptchaValue(value);
+    setRecaptchaTouched(true);
   };
 
   // Handle form submission
@@ -302,17 +304,11 @@ const ExploreJourney = ({ mainText, subText }) => {
                     )}
                   </div>
 
-                  {/* <ReCAPTCHA
-                    sitekey="6LeNH5QqAAAAAO98HJ00v5yuCkLgHYCSvUEpGhLb"
-                    onChange={handleRecaptchaChange}
-                    required
-                  /> */}
-
                   <ReCAPTCHA
                     sitekey="6LeNH5QqAAAAAO98HJ00v5yuCkLgHYCSvUEpGhLb"
                     onChange={handleRecaptchaChange}
                   />
-                  {!recaptchaValue && (
+                  {recaptchaTouched && recaptchaValue === null && (
                     <span className="text-red-500 text-[12px]">
                       Please complete the ReCAPTCHA verification.
                     </span>
