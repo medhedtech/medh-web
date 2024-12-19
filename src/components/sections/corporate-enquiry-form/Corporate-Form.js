@@ -66,7 +66,7 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
   const { postQuery, loading } = usePostQuery();
   const [showModal, setShowModal] = useState(false);
   const [recaptchaValue, setRecaptchaValue] = useState(null);
-  const [recaptchaTouched, setRecaptchaTouched] = useState(false);
+  const [recaptchaError, setRecaptchaError] = useState(false);
   const {
     register,
     handleSubmit,
@@ -78,13 +78,13 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
 
   const handleRecaptchaChange = (value) => {
     setRecaptchaValue(value);
-    setRecaptchaTouched(true);
+    setRecaptchaError(false);
   };
 
   // Handle form submission
   const onSubmit = async (data) => {
     if (!recaptchaValue) {
-      toast.error("Please complete the ReCAPTCHA verification.");
+      setRecaptchaError(true);
       return;
     }
     try {
@@ -105,8 +105,8 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
           accept: data?.accept,
         },
         onSuccess: () => {
-          // toast.success("Form submitted successfully!");
           setShowModal(true);
+          setRecaptchaError(false);
           setRecaptchaValue(null);
 
           // Reset the form fields after a successful submission
@@ -171,13 +171,13 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
                   className="p-[35px] bg-lightGrey10 dark:bg-lightGrey10-dark shadow-experience"
                   data-aos="fade-up"
                 >
-                  <div className="flex gap-4 flex-col md:flex-row mb-2.5">
+                  <div className="flex gap-4 flex-col md:flex-row">
                     <div className="flex-col w-full">
                       <input
                         {...register("full_name")}
                         type="text"
                         placeholder="Your Name*"
-                        className="w-full px-14px py-2 dark:bg-inherit bg-lightGrey8 text-base mb-0 sm:mb-1.5 border border-gray-300"
+                        className="w-full px-14px py-3 dark:bg-inherit bg-lightGrey8 text-base mb-0 sm:mb-1.5 border border-gray-300"
                       />
                       {errors.full_name && (
                         <span className="text-red-500 text-[12px]">
@@ -190,7 +190,7 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
                         {...register("email")}
                         type="email"
                         placeholder="Your Email*"
-                        className="w-full px-14px py-2 dark:bg-inherit bg-lightGrey8 text-base sm:mb-1.5 mb-0 border border-gray-300"
+                        className="w-full px-14px py-3 dark:bg-inherit bg-lightGrey8 text-base sm:mb-1.5 mb-0 border border-gray-300"
                       />
                       {errors.email && (
                         <span className="text-red-500 text-[12px]">
@@ -237,7 +237,7 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
                     </div>
                   )}
 
-                  <div className="flex gap-4 flex-col md:flex-row mb-2.5">
+                  <div className="flex gap-4 flex-col md:flex-row">
                     <div className="flex-col w-full">
                       <input
                         {...register("designation")}
@@ -280,7 +280,7 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
                     )}
                   </div>
 
-                  <div className="mt-5">
+                  <div className="mt-2">
                     <textarea
                       {...register("message")}
                       placeholder="Message*"
@@ -293,17 +293,12 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
                     )}
                   </div>
 
-                  {/* <ReCAPTCHA
-                    sitekey="6LeNH5QqAAAAAO98HJ00v5yuCkLgHYCSvUEpGhLb"
-                    onChange={handleRecaptchaChange}
-                    required
-                  /> */}
-
                   <ReCAPTCHA
                     sitekey="6LeNH5QqAAAAAO98HJ00v5yuCkLgHYCSvUEpGhLb"
                     onChange={handleRecaptchaChange}
                   />
-                  {recaptchaTouched && recaptchaValue === null && (
+                  {/* ReCAPTCHA Error Message */}
+                  {recaptchaError && (
                     <span className="text-red-500 text-[12px]">
                       Please complete the ReCAPTCHA verification.
                     </span>
