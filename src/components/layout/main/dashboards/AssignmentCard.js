@@ -12,10 +12,10 @@ const AssignmentCard = ({
   deadline,
   daysLeft,
   image,
+  instructor,
   assignment,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [instructorName, setInstructorName] = useState("");
   const [instructorId, setInstructorId] = useState("");
   const [courseName, setCourseName] = useState("");
   const [pdfBrochures, setPdfBrochures] = useState([]);
@@ -24,6 +24,7 @@ const AssignmentCard = ({
   const { postQuery } = usePostQuery();
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [studentId, setStudentId] = useState(null);
+  const [submissionDate, setSubmissionDate] = useState(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -40,6 +41,7 @@ const AssignmentCard = ({
         });
         if (response?.submissions?.length > 0) {
           setHasSubmitted(true);
+          setSubmissionDate(response.submissions[0]?.submittedAt);
         } else {
           setHasSubmitted(false);
         }
@@ -61,8 +63,11 @@ const AssignmentCard = ({
   let statusColor;
 
   if (hasSubmitted) {
-    statusText = "Assignment Submitted";
-    statusColor = "text-[#2E9800]";
+    const formattedSubmissionDate = new Date(
+      submissionDate
+    ).toLocaleDateString();
+    statusText = `Assignment Submitted on ${formattedSubmissionDate}`;
+    statusColor = "text-[#2E9800]"
   } else if (daysLeft <= 1) {
     statusText = `Assignment Due in ${daysLeft} Day`;
     statusColor = statusStyles.dueTomorrow;
@@ -85,7 +90,6 @@ const AssignmentCard = ({
   };
 
   useEffect(() => {
-    // Retrieve instructor ID from localStorage
     if (typeof window !== "undefined") {
       const storedUserId = localStorage.getItem("userId");
       if (storedUserId) {
@@ -93,23 +97,6 @@ const AssignmentCard = ({
       }
     }
   }, []);
-
-  useEffect(() => {
-    if (instructorId) {
-      const fetchInstructorNames = () => {
-        getQuery({
-          url: `${apiUrls?.Instructor?.getInstructorById}/${instructorId}`,
-          onSuccess: (res) => {
-            setInstructorName(res?.full_name || "Instructor Not Found");
-          },
-          onFail: (err) => {
-            setInstructorName("Instructor Not Found");
-          },
-        });
-      };
-      fetchInstructorNames();
-    }
-  }, [instructorId]);
 
   const handlePdfUpload = async (e) => {
     const files = e.target.files;
@@ -195,7 +182,7 @@ const AssignmentCard = ({
             Coure Name: {courseTitle}
           </p>
           <p className="text-size-11 text-[#9095A0]">
-            Instructor: {instructorName}
+            Instructor: {instructor}
           </p>
           <p className="text-size-11 text-[#9095A0]">
             Deadline: {formattedDeadline}
