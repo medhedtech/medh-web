@@ -23,7 +23,10 @@ const schema = yup.object({
     .min(3, "Name must be at least 3 characters long."),
   email: yup
     .string()
-    .email("Please enter a valid email.")
+    .matches(
+      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+      "Please enter a valid email address."
+    )
     .required("Email is required."),
   country: yup.string().nullable().required("Please select a country."),
   phone_number: yup
