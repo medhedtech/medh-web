@@ -51,6 +51,7 @@ function JobApply() {
   const [fileName, setFileName] = useState("No file chosen");
   const [showModal, setShowModal] = useState(false);
   const [recaptchaValue, setRecaptchaValue] = useState(null);
+  const [recaptchaError, setRecaptchaError] = useState(false);
   const {
     register,
     handleSubmit,
@@ -64,6 +65,7 @@ function JobApply() {
 
   const handleRecaptchaChange = (value) => {
     setRecaptchaValue(value);
+    setRecaptchaError(false);
   };
 
   const handlePdfUpload = async (e) => {
@@ -100,7 +102,7 @@ function JobApply() {
   // Handle form submission
   const onSubmit = async (data) => {
     if (!recaptchaValue) {
-      toast.error("Please complete the ReCAPTCHA verification.");
+      setRecaptchaError(true);
       return;
     }
     try {
@@ -123,6 +125,7 @@ function JobApply() {
           // toast.success("Form submitted successfully!");
           setPdfBrochure(null);
           setFileName("No file chosen");
+          setRecaptchaError(false);
           setRecaptchaValue(null);
 
           // Reset the form fields after a successful submission
@@ -175,7 +178,8 @@ function JobApply() {
             <div className="w-[50%]">
               <select
                 {...register("country")}
-                className="w-full text-sm px-2 py-2 dark:bg-inherit bg-white border border-gray-300 text-[#5C6574] max-h-48 overflow-y-auto  "
+                className="w-full text-sm px-2 py-2 dark:bg-inherit bg-white border border-gray-300 rounded-md text-[#5C6574] max-h-44 overflow-y-auto focus:outline-none"
+                style={{ height: "3rem" }}
               >
                 {countriesData.map((country) => {
                   const countryName =
@@ -240,18 +244,16 @@ function JobApply() {
             />
           </div>
 
-
-
           <ReCAPTCHA
             sitekey="6LeNH5QqAAAAAO98HJ00v5yuCkLgHYCSvUEpGhLb"
             onChange={handleRecaptchaChange}
           />
-          {!recaptchaValue && (
+          {/* ReCAPTCHA Error Message */}
+          {recaptchaError && (
             <span className="text-red-500 text-[12px]">
               Please complete the ReCAPTCHA verification.
             </span>
           )}
-
 
           {/* Terms and Conditions */}
           <div className="flex items-start space-x-2 mb-12">
@@ -282,11 +284,6 @@ function JobApply() {
             </span>
           )}
 
-          {/* <ReCAPTCHA
-            sitekey="6LeNH5QqAAAAAO98HJ00v5yuCkLgHYCSvUEpGhLb"
-            onChange={handleRecaptchaChange}
-            required
-          /> */}
           {/* Submit Button */}
           <button
             type="submit"
