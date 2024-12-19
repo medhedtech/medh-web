@@ -14,9 +14,7 @@ const formatDate = (dateString) => {
   const day = String(date.getDate()).padStart(2, "0");
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const year = date.getFullYear();
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-  return `${day}-${month}-${year} ${hours}:${minutes}`;
+  return `${day}-${month}-${year}`; // Only return date
 };
 
 const UpComingClass = () => {
@@ -104,11 +102,13 @@ const UpComingClass = () => {
           <p className="text-red-500">{error}</p>
         ) : (
           upcomingClasses.map((classItem, index) => (
-            <div
+            <a
               key={index}
+              href={classItem?.meet_link || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
               className="relative flex bg-gradient-to-r from-blue-400 to-blue-500 hover:from-blue-600 hover:to-blue-700 text-white shadow-xl rounded-xl overflow-hidden transition-transform transform hover:scale-105 cursor-pointer"
             >
-              {/* Image Section */}
               <div className="relative w-1/3 h-full">
                 <Image
                   src={classItem?.courseDetails?.course_image || class2}
@@ -127,8 +127,17 @@ const UpComingClass = () => {
                 </p>
 
                 {/* Course Description */}
-                <p className="font-light text-gray-600 text-sm mb-4">
-                  {classItem?.description || "Class Description"}
+                <p
+                  className="font-light text-gray-600 text-sm mb-4"
+                  style={{
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                  }}
+                >
+                  {classItem?.courseDetails?.course_description ||
+                    "Class Description"}
                 </p>
 
                 {/* Date and Time */}
@@ -160,7 +169,7 @@ const UpComingClass = () => {
                 {/* Hover Effect - Elevated Class Info */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black opacity-30 hover:opacity-60 transition-all duration-300"></div>
               </div>
-            </div>
+            </a>
           ))
         )}
       </div>
