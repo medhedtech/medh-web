@@ -67,7 +67,7 @@ const AssignmentCard = ({
       submissionDate
     ).toLocaleDateString();
     statusText = `Assignment Submitted on ${formattedSubmissionDate}`;
-    statusColor = "text-[#2E9800]"
+    statusColor = "text-[#2E9800]";
   } else if (daysLeft <= 1) {
     statusText = `Assignment Due in ${daysLeft} Day`;
     statusColor = statusStyles.dueTomorrow;
@@ -179,7 +179,7 @@ const AssignmentCard = ({
             {title}
           </h3>
           <p className="text-size-11 text-[#9095A0]">
-            Coure Name: {courseTitle}
+            Course Name: {courseTitle}
           </p>
           <p className="text-size-11 text-[#9095A0]">
             Instructor: {instructor}
