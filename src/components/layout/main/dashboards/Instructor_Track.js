@@ -1,37 +1,67 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "@/assets/css/Calendar.css";
 import Icon1 from "@/assets/images/dashbord/icon1.svg";
 import Icon2 from "@/assets/images/dashbord/icon2.svg";
 import Image from "next/image";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import useGetQuery from "@/hooks/getQuery.hook";
+import { apiUrls } from "@/apis";
 
 const Instructor_Tracking_component = () => {
+  const { getQuery } = useGetQuery();
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
+  const [instructorId, setInstructorId] = useState(null);
+  const [stats, setStats] = useState({
+    totalClasses: 0,
+    totalWorkingHours: 0,
+  });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const id = localStorage.getItem("userId");
+      if (id) {
+        setInstructorId(id);
+      } else {
+        console.error("Instructor ID not found in localStorage");
+      }
+    }
+  }, []);
+
+  // Fetch instructor statistics when `instructorId` is available
+  useEffect(() => {
+    if (instructorId) {
+      const fetchStats = async () => {
+        try {
+          const response = await getQuery({
+            url: `${apiUrls.Session_Count.getCountByInstructorId}/${instructorId}`,
+          });
+          const { data } = response || {};
+          setStats({
+            totalClasses: data?.totalInactiveClasses || 0,
+            totalWorkingHours: data?.totalWorkingHours || 0,
+          });
+        } catch (error) {
+          console.error("Error fetching instructor statistics:", error);
+        }
+      };
+      fetchStats();
+    }
+  }, [instructorId]);
 
   const quickStats = [
     {
       title: "Total Class Taken",
-      value: 2,
+      value: stats.totalClasses,
       icon: Icon1,
     },
     {
       title: "Total Working Hours",
-      value: 12,
+      value: stats.totalWorkingHours,
       icon: Icon2,
     },
-    // {
-    //   title: "Course 1",
-    //   value: 5,
-    //   icon: Icon1,
-    // },
-    // {
-    //   title: "Course 2",
-    //   value: 5,
-    //   icon: Icon2,
-    // },
   ];
 
   const QuickStats = ({ stats }) => (
