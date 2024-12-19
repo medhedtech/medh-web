@@ -21,7 +21,10 @@ const schema = yup.object({
   full_name: yup.string().required("Name is required."),
   email: yup
     .string()
-    .email("Please enter a valid email")
+    .matches(
+      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+      "Please enter a valid email address."
+    )
     .required("Email is required."),
   country: yup.string().nullable(),
   phone_number: yup
@@ -59,6 +62,7 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
   const [pdfBrochure, setPdfBrochure] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [recaptchaValue, setRecaptchaValue] = useState(null);
+  const [recaptchaTouched, setRecaptchaTouched] = useState(false);
 
   const {
     register,
@@ -74,6 +78,7 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
 
   const handleRecaptchaChange = (value) => {
     setRecaptchaValue(value);
+    setRecaptchaTouched(true);
   };
 
   const handlePdfUpload = async (e) => {
@@ -232,7 +237,9 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
                     className="w-full px-14px py-2 dark:bg-inherit bg-white text-base mb-1.5 border border-gray-300"
                   />
                   {errors.email && (
-                    <span className="text-red-500 text-[12px]">{errors.email.message}</span>
+                    <span className="text-red-500 text-[12px]">
+                      {errors.email.message}
+                    </span>
                   )}
 
                   {/* Phone Number Input with Country Dropdown */}
@@ -276,7 +283,7 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
                   <textarea
                     {...register("message")}
                     placeholder="Message"
-                    className="w-full px-15px pb-3 pt-3 dark:bg-inherit bg-white text-base mb-4 h-[155px] border border-gray-300"
+                    className="w-full px-15px pb-0 pt-3 dark:bg-inherit bg-white text-base h-[155px] border border-gray-300"
                     cols="30"
                     rows="10"
                   />
@@ -321,13 +328,13 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
                     sitekey="6LeNH5QqAAAAAO98HJ00v5yuCkLgHYCSvUEpGhLb"
                     onChange={handleRecaptchaChange}
                   />
-                  {!recaptchaValue && (
+                  {recaptchaTouched && recaptchaValue === null && (
                     <span className="text-red-500 text-[12px]">
                       Please complete the ReCAPTCHA verification.
                     </span>
                   )}
 
-                  <div className="flex items-start space-x-2 mt-4 mb-12">
+                  <div className="flex items-start space-x-2 mt-4 mb-2">
                     <input
                       {...register("accept")}
                       type="checkbox"
@@ -351,12 +358,12 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
                     </label>
                   </div>
                   {errors.accept && (
-                    <span className="text-red-500 text-[12px] mt-[-20px]">
+                    <span className="text-red-500 text-[12px]">
                       {errors.accept.message}
                     </span>
                   )}
 
-                  <div className="-mb-6">
+                  <div className="my-2">
                     <button
                       type="submit"
                       className="bg-[#7ECA9D] rounded-[2px] text-white px-6 py-2"

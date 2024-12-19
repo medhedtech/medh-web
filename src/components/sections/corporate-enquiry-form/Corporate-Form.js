@@ -20,7 +20,10 @@ const schema = yup.object({
   full_name: yup.string().required("Name is required."),
   email: yup
     .string()
-    .email("Please enter a valid email")
+    .matches(
+      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+      "Please enter a valid email address."
+    )
     .required("Email is required."),
   country: yup.string().nullable(),
   phone_number: yup
@@ -63,6 +66,7 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
   const { postQuery, loading } = usePostQuery();
   const [showModal, setShowModal] = useState(false);
   const [recaptchaValue, setRecaptchaValue] = useState(null);
+  const [recaptchaTouched, setRecaptchaTouched] = useState(false);
   const {
     register,
     handleSubmit,
@@ -74,6 +78,7 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
 
   const handleRecaptchaChange = (value) => {
     setRecaptchaValue(value);
+    setRecaptchaTouched(true);
   };
 
   // Handle form submission
@@ -279,7 +284,7 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
                     <textarea
                       {...register("message")}
                       placeholder="Message*"
-                      className="w-full h-[100px] dark:bg-inherit bg-lightGrey8 text-base px-14px py-2 mb-4 border border-gray-300"
+                      className="w-full h-[100px] dark:bg-inherit bg-lightGrey8 text-base px-14px py-2 mb-0 border border-gray-300"
                     ></textarea>
                     {errors.message && (
                       <span className="text-red-500 text-[12px]">
@@ -298,13 +303,13 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
                     sitekey="6LeNH5QqAAAAAO98HJ00v5yuCkLgHYCSvUEpGhLb"
                     onChange={handleRecaptchaChange}
                   />
-                  {!recaptchaValue && (
+                  {recaptchaTouched && recaptchaValue === null && (
                     <span className="text-red-500 text-[12px]">
                       Please complete the ReCAPTCHA verification.
                     </span>
                   )}
 
-                  <div className="flex items-start space-x-2 mb-12">
+                  <div className="flex items-start space-x-2 mb-0">
                     <input
                       {...register("accept")}
                       type="checkbox"
@@ -328,12 +333,12 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
                     </label>
                   </div>
                   {errors.accept && (
-                    <span className="text-red-500 text-[12px] mt-[-20px]">
+                    <span className="text-red-500 text-[12px] mt-2">
                       {errors.accept.message}
                     </span>
                   )}
 
-                  <div className="-mb-4">
+                  <div className="my-4">
                     <button
                       type="submit"
                       className="bg-[#7ECA9D] rounded-[4px] text-white px-6 py-2 transition-all duration-300 ease-in-out hover:bg-[#5fb786] hover:shadow-lg"
