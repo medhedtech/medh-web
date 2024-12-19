@@ -104,11 +104,15 @@ const LiveDemoClass = () => {
             </div>
 
             {/* Join Button */}
-            <button
-              className="mt-4 w-full px-4 py-2 bg-[#7ECA9D] text-white font-semibold rounded-full hover:bg-green-600 transition duration-300 transform hover:scale-105"
-              onClick={() => router.push(classItem.meet_link || "#")}
-            >
-              Join Class
+            <button className="mt-4 w-full px-4 py-2 bg-[#7ECA9D] text-white font-semibold rounded-full hover:bg-green-600 transition duration-300 transform hover:scale-105">
+              <a
+                href={classItem?.meet_link || "#"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full h-full block"
+              >
+                Join Class
+              </a>
             </button>
           </div>
         ))}
