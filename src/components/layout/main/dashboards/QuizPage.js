@@ -20,7 +20,7 @@ export default function QuizPage({ closeQuiz }) {
   const [processedQuestions, setProcessedQuestions] = useState([]);
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const totalQuestions = processedQuestions?.length;
-  const time = "3:23";
+  const [quizTime, setQuizTime] = useState();
   const { postQuery, loading } = usePostQuery();
   const router = useRouter();
 
@@ -105,6 +105,7 @@ export default function QuizPage({ closeQuiz }) {
           const selectedQuiz = data.find(
             (quiz) => quiz.class_name === selectedFilter
           );
+          if(selectedQuiz?.quiz_time){setQuizTime(selectedQuiz.quiz_time)};
 
           if (selectedQuiz?.questions) {
             const flattenedQuestions = selectedQuiz.questions.map((item) => ({
@@ -274,7 +275,7 @@ export default function QuizPage({ closeQuiz }) {
             questionId={processedQuestions[currentQuestion]?.questionId}
             questionNumber={currentQuestion + 1}
             totalQuestions={totalQuestions}
-            time={time}
+            time={quizTime || 500}
             onNext={handleNext}
             onBack={handleBack}
             closeQuiz={closeQuiz}
