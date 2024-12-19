@@ -11,7 +11,6 @@ const AssignmentsSection = ({ onQuizClick }) => {
   const [studentId, setStudentId] = useState("");
 
   useEffect(() => {
-    // Retrieve instructor ID from localStorage
     if (typeof window !== "undefined") {
       const storedUserId = localStorage.getItem("userId");
       if (storedUserId) {
@@ -23,11 +22,9 @@ const AssignmentsSection = ({ onQuizClick }) => {
   useEffect(() => {
     if (studentId) {
       getQuery({
-        // url: apiUrls?.assignments?.getAssignments,
         url: `${apiUrls?.assignments?.getAssignmentsByEnrolledCourses}/${studentId}`,
         onSuccess: (data) => {
           setAssignments(data);
-          console.log(data, "Svhfdh");
         },
       });
     }
@@ -132,7 +129,7 @@ const AssignmentsSection = ({ onQuizClick }) => {
               key={index}
               title={assignment?.title}
               courseTitle={assignment?.courseId?.course_title}
-              instructor={assignment?.instructor}
+              instructor={assignment?.instructor_id?.full_name}
               deadline={assignment?.deadline}
               daysLeft={daysLeft}
               image={Qize}
