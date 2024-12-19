@@ -62,7 +62,7 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
   const [pdfBrochure, setPdfBrochure] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [recaptchaValue, setRecaptchaValue] = useState(null);
-  const [recaptchaTouched, setRecaptchaTouched] = useState(false);
+  const [recaptchaError, setRecaptchaError] = useState(false);
 
   const {
     register,
@@ -78,7 +78,7 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
 
   const handleRecaptchaChange = (value) => {
     setRecaptchaValue(value);
-    setRecaptchaTouched(true);
+    setRecaptchaError(false);
   };
 
   const handlePdfUpload = async (e) => {
@@ -115,7 +115,7 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
   // Handle form submission
   const onSubmit = async (data) => {
     if (!recaptchaValue) {
-      toast.error("Please complete the ReCAPTCHA verification.");
+      setRecaptchaError(true);
       return;
     }
     try {
@@ -142,8 +142,8 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
         url: apiUrls?.Contacts?.createContact,
         postData,
         onSuccess: () => {
-          // toast.success("Form submitted successfully!");
           setShowModal(true);
+          setRecaptchaError(false);
           setRecaptchaValue(null);
 
           // Reset the form fields after a successful submission
@@ -222,7 +222,7 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
                     {...register("full_name")}
                     type="text"
                     placeholder="Your Name*"
-                    className="w-full px-14px py-2 dark:bg-inherit bg-white text-base border mb-1.5 border-gray-300"
+                    className="w-full px-14px py-3 dark:bg-inherit bg-white text-base border mb-1.5 border-gray-300"
                   />
                   {errors.full_name && (
                     <span className="text-red-500 text-[12px]">
@@ -234,7 +234,7 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
                     {...register("email")}
                     type="email"
                     placeholder="Your Email*"
-                    className="w-full px-14px py-2 dark:bg-inherit bg-white text-base mb-1.5 border border-gray-300"
+                    className="w-full px-14px py-3 dark:bg-inherit bg-white text-base mb-1.5 border border-gray-300"
                   />
                   {errors.email && (
                     <span className="text-red-500 text-[12px]">
@@ -318,17 +318,12 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
                     </div>
                   )}
 
-                  {/* <ReCAPTCHA
-                    sitekey="6LeNH5QqAAAAAO98HJ00v5yuCkLgHYCSvUEpGhLb"
-                    onChange={handleRecaptchaChange}
-                    required
-                  /> */}
-
                   <ReCAPTCHA
                     sitekey="6LeNH5QqAAAAAO98HJ00v5yuCkLgHYCSvUEpGhLb"
                     onChange={handleRecaptchaChange}
                   />
-                  {recaptchaTouched && recaptchaValue === null && (
+                  {/* ReCAPTCHA Error Message */}
+                  {recaptchaError && (
                     <span className="text-red-500 text-[12px]">
                       Please complete the ReCAPTCHA verification.
                     </span>

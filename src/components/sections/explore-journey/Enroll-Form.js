@@ -66,7 +66,7 @@ const ExploreJourney = ({ mainText, subText }) => {
   const { postQuery, loading } = usePostQuery();
   const [showModal, setShowModal] = useState(false);
   const [recaptchaValue, setRecaptchaValue] = useState(null);
-  const [recaptchaTouched, setRecaptchaTouched] = useState(false);
+  const [recaptchaError, setRecaptchaError] = useState(false);
   const {
     register,
     handleSubmit,
@@ -78,13 +78,13 @@ const ExploreJourney = ({ mainText, subText }) => {
 
   const handleRecaptchaChange = (value) => {
     setRecaptchaValue(value);
-    setRecaptchaTouched(true);
+    setRecaptchaError(false);
   };
 
   // Handle form submission
   const onSubmit = async (data) => {
     if (!recaptchaValue) {
-      toast.error("Please complete the ReCAPTCHA verification.");
+      setRecaptchaError(true);
       return;
     }
     try {
@@ -104,8 +104,8 @@ const ExploreJourney = ({ mainText, subText }) => {
           accept: data?.accept,
         },
         onSuccess: () => {
-          // toast.success("Form submitted successfully!");
           setShowModal(true);
+          setRecaptchaError(false);
           setRecaptchaValue(null);
 
           // Reset the form fields after a successful submission
@@ -170,13 +170,13 @@ const ExploreJourney = ({ mainText, subText }) => {
                   className="p-[35px] bg-lightGrey10 dark:bg-lightGrey10-dark shadow-experience"
                   data-aos="fade-up"
                 >
-                  <div className="flex gap-4 flex-col md:flex-row mb-2.5">
+                  <div className="flex gap-4 flex-col md:flex-row">
                     <div className="flex-col w-full">
                       <input
                         {...register("full_name")}
                         type="text"
                         placeholder="Your Name*"
-                        className="w-full px-14px py-2 dark:bg-inherit bg-lightGrey8 text-base mb-0 sm:mb-1.5 border border-gray-300"
+                        className="w-full px-14px py-3 dark:bg-inherit bg-lightGrey8 text-base mb-0 sm:mb-1.5 border border-gray-300"
                       />
                       {errors.full_name && (
                         <span className="text-red-500 text-[12px] mt-1 block">
@@ -189,7 +189,7 @@ const ExploreJourney = ({ mainText, subText }) => {
                         {...register("email")}
                         type="email"
                         placeholder="Your Email*"
-                        className="w-full px-14px py-2 dark:bg-inherit bg-lightGrey8 text-base sm:mb-1.5 mb-0 border border-gray-300"
+                        className="w-full px-14px py-3 dark:bg-inherit bg-lightGrey8 text-base sm:mb-1.5 mb-0 border border-gray-300"
                       />
                       {errors.email && (
                         <span className="text-red-500 text-[12px] mt-1 block">
@@ -236,7 +236,7 @@ const ExploreJourney = ({ mainText, subText }) => {
                     </div>
                   )}
 
-                  <div className="flex gap-4 mb-2.5 flex-col lg:flex-row">
+                  <div className="flex gap-4 flex-col lg:flex-row">
                     {/* First Select */}
                     <div className="w-full">
                       <select
@@ -308,7 +308,8 @@ const ExploreJourney = ({ mainText, subText }) => {
                     sitekey="6LeNH5QqAAAAAO98HJ00v5yuCkLgHYCSvUEpGhLb"
                     onChange={handleRecaptchaChange}
                   />
-                  {recaptchaTouched && recaptchaValue === null && (
+                  {/* ReCAPTCHA Error Message */}
+                  {recaptchaError && (
                     <span className="text-red-500 text-[12px]">
                       Please complete the ReCAPTCHA verification.
                     </span>

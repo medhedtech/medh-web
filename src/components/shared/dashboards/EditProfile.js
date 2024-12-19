@@ -106,12 +106,41 @@ const EditProfile = ({ onBackClick }) => {
     }
   };
 
+  // const onSubmit = async (data) => {
+  //   if (!studentId) {
+  //     toast.error("Please log in to continue.");
+  //     return;
+  //   }
+  //   setLoading(true);
+  //   // Step 2: Update the user details
+  //   postQuery({
+  //     url: `${apiUrls?.user?.update}/${studentId}`,
+  //     postData: {
+  //       ...data,
+  //       age: selectedDate ? moment(selectedDate).format("YYYY-MM-DD") : null,
+  //       user_image: profileImage || data.user_image,
+  //     },
+  //     onSuccess: () => {
+  //       toast.success("Profile updated successfully!");
+  //       setSelectedDate(null);
+  //       reset();
+  //     },
+  //     onFail: (error) => {
+  //       console.error("Error submitting form:", error);
+  //       toast.error("Failed to update profile. Please try again.");
+  //     },
+  //   }).finally(() => {
+  //     setLoading(false);
+  //   });
+  // };
+
   const onSubmit = async (data) => {
     if (!studentId) {
       toast.error("Please log in to continue.");
       return;
     }
     setLoading(true);
+
     // Step 2: Update the user details
     postQuery({
       url: `${apiUrls?.user?.update}/${studentId}`,
@@ -120,10 +149,29 @@ const EditProfile = ({ onBackClick }) => {
         age: selectedDate ? moment(selectedDate).format("YYYY-MM-DD") : null,
         user_image: profileImage || data.user_image,
       },
-      onSuccess: () => {
+      onSuccess: async () => {
         toast.success("Profile updated successfully!");
         setSelectedDate(null);
         reset();
+
+        // Fetch the latest profile data after successful update
+        try {
+          const response = await getQuery({
+            url: `${apiUrls?.user?.getDetailsbyId}/${studentId}`,
+          });
+
+          // Ensure the data is correctly returned and set
+          if (response?.data) {
+            setProfileData(response?.data);
+            reset(response?.data);
+            console.log("Profile data updated:", response?.data);
+          } else {
+            toast.error("Failed to fetch updated profile details.");
+          }
+        } catch (error) {
+          console.error("Error fetching updated user details:", error);
+          toast.error("Failed to fetch updated profile details.");
+        }
       },
       onFail: (error) => {
         console.error("Error submitting form:", error);
