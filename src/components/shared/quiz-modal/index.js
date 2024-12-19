@@ -18,6 +18,7 @@ const schema = yup.object({
   quiz_title: yup.string().required("Quiz title is required."),
   quiz_resources: yup.array().of(yup.string()),
   passing_percentage: yup.string().required("Quiz title is required."),
+  quiz_time: yup.string().required("Quiz time is required."),
 });
 
 const CreateQuizModal = ({ open, onClose, onUpload }) => {
@@ -81,6 +82,7 @@ const CreateQuizModal = ({ open, onClose, onUpload }) => {
     const formData = new FormData();
     formData.append("sheet", selectedFile);
     formData.append("quiz_title", data.quiz_title);
+    formData.append("quiz_time", data.quiz_time);
     formData.append("passing_percentage", data.passing_percentage);
     formData.append("created_by", instructorId);
     formData.append("class_id", selectedMeetingId);
@@ -177,6 +179,20 @@ const CreateQuizModal = ({ open, onClose, onUpload }) => {
               <p className="text-red-500 text-sm">
                 {errors.passing_percentage.message}
               </p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm mb-1">
+              Quiz Duration (in seconds)<span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              {...register("quiz_time")}
+              className="w-full border rounded px-3 py-2"
+            />
+            {errors.quiz_time && (
+              <p className="text-red-500 text-sm">{errors.quiz_time.message}</p>
             )}
           </div>
 

@@ -56,6 +56,7 @@ const SubmittedAssignments = () => {
       url: `${apiUrls.assignments.submittedAssignments}?page=${currentPage}&limit=${limit}&${filterQuery}`,
       onSuccess: (res) => {
         setData(res?.submittedAssignments || []);
+        console.log("Submitted Asgns: ", res?.submittedAssignments)
         setTotalPages(Math.ceil(res?.totalAssignments / limit));
       },
       onFail: (err) => {
