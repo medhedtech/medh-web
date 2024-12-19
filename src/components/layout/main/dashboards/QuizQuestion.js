@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 const QuizQuestion = ({
   question,
@@ -7,7 +7,7 @@ const QuizQuestion = ({
   questionId, // Receive the questionId
   questionNumber,
   totalQuestions,
-  time,
+  time, // time in seconds (e.g., 600)
   onNext,
   onBack,
   closeQuiz,
@@ -15,6 +15,9 @@ const QuizQuestion = ({
   selectedAnswer, // Receive the actual selected answer
   onAnswerSelect, // Callback to handle answer selection
 }) => {
+  const [timeRemaining, setTimeRemaining] = useState(time); // Set initial time as the received `time` value
+  const [timer, setTimer] = useState(null); // State to store the interval
+
   // Function to handle answer selection
   const handleOptionSelect = (optionValue) => {
     onAnswerSelect(questionId, optionValue); // Pass questionId and the actual value
@@ -24,6 +27,32 @@ const QuizQuestion = ({
   const handleGoBack = () => {
     closeQuiz();
   };
+
+  // Format time in MM:SS format
+  const formatTime = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
+  };
+
+  // Set up the timer on component mount
+  useEffect(() => {
+    if (timeRemaining <= 0) return; // Don't start the timer if time is already 0
+
+    const interval = setInterval(() => {
+      setTimeRemaining((prevTime) => {
+        if (prevTime <= 0) {
+          clearInterval(interval); // Stop the timer when time reaches 0
+          return 0;
+        }
+        return prevTime - 1; // Decrement the time by 1 second
+      });
+    }, 1000); // Update every second
+
+    setTimer(interval); // Store the interval to clear it later
+
+    return () => clearInterval(interval); // Cleanup the interval on component unmount
+  }, [timeRemaining]);
 
   return (
     <div className="p-6 bg-white dark:bg-inherit rounded-lg shadow-md w-full mx-auto">
@@ -41,7 +70,7 @@ const QuizQuestion = ({
           </div>
           <div className="font-semibold dark:text-white">
             Time: &nbsp;
-            <span>{time}</span>
+            <span>{formatTime(timeRemaining)}</span> {/* Display formatted time */}
           </div>
         </div>
       </div>
