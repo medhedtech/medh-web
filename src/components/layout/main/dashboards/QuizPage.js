@@ -105,7 +105,9 @@ export default function QuizPage({ closeQuiz }) {
           const selectedQuiz = data.find(
             (quiz) => quiz.class_name === selectedFilter
           );
-          if(selectedQuiz?.quiz_time){setQuizTime(selectedQuiz.quiz_time)};
+          if (selectedQuiz?.quiz_time) {
+            setQuizTime(selectedQuiz.quiz_time);
+          }
 
           if (selectedQuiz?.questions) {
             const flattenedQuestions = selectedQuiz.questions.map((item) => ({
@@ -188,13 +190,23 @@ export default function QuizPage({ closeQuiz }) {
     });
   };
 
-  if(loading){
-    return <Preloader/>
+  const handleGoBack = () => {
+    closeQuiz();
+  };
+
+  if (loading) {
+    return <Preloader />;
   }
 
   return (
     <div className="w-full bg-gray-100 dark:bg-inherit dark:border rounded-5px flex items-center justify-center">
       <div className="w-full p-4">
+        <button
+          onClick={handleGoBack}
+          className="text-size-26 text-gray-700 dark:text-white"
+        >
+          &larr; Back
+        </button>
         <label
           htmlFor="class-select"
           className="block text-[16px] font-semibold text-gray-700 dark:text-gray-200"
