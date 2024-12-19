@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 const QuizQuestion = ({
   question,
   options = [],
-  questionId, // Receive the questionId
+  questionId,
   questionNumber,
   totalQuestions,
   time, // time in seconds (e.g., 600)
@@ -70,7 +70,8 @@ const QuizQuestion = ({
           </div>
           <div className="font-semibold dark:text-white">
             Time: &nbsp;
-            <span>{formatTime(timeRemaining)}</span> {/* Display formatted time */}
+            <span>{formatTime(timeRemaining)}</span>{" "}
+            {/* Display formatted time */}
           </div>
         </div>
       </div>
