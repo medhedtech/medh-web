@@ -21,7 +21,10 @@ const schema = yup.object({
   full_name: yup.string().required("Name is required."),
   email: yup
     .string()
-    .email("Please enter a valid email")
+    .matches(
+      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+      "Please enter a valid email address."
+    )
     .required("Email is required."),
   country: yup.string().nullable(),
   phone_number: yup
@@ -59,6 +62,7 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
   const [pdfBrochure, setPdfBrochure] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [recaptchaValue, setRecaptchaValue] = useState(null);
+  const [recaptchaTouched, setRecaptchaTouched] = useState(false);
 
   const {
     register,
@@ -74,6 +78,7 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
 
   const handleRecaptchaChange = (value) => {
     setRecaptchaValue(value);
+    setRecaptchaTouched(true);
   };
 
   const handlePdfUpload = async (e) => {
@@ -321,7 +326,7 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
                     sitekey="6LeNH5QqAAAAAO98HJ00v5yuCkLgHYCSvUEpGhLb"
                     onChange={handleRecaptchaChange}
                   />
-                  {!recaptchaValue && (
+                  {recaptchaTouched && recaptchaValue === null && (
                     <span className="text-red-500 text-[12px]">
                       Please complete the ReCAPTCHA verification.
                     </span>
