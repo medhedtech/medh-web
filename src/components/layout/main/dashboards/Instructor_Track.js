@@ -51,7 +51,7 @@ const Instructor_Tracking_component = () => {
   //   }
   // }, [instructorId]);
   // Fetch instructor statistics when `instructorId` is available
-  
+
   useEffect(() => {
     if (instructorId) {
       const fetchStats = async () => {
@@ -136,12 +136,14 @@ const Instructor_Tracking_component = () => {
               selected={startDate}
               onChange={(date) => setStartDate(date)}
               placeholderText="From"
+              dateFormat="dd-MM-yyyy" 
               className="border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <DatePicker
               selected={endDate}
               onChange={(date) => setEndDate(date)}
               placeholderText="To"
+              dateFormat="dd-MM-yyyy" 
               className="border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
