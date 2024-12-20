@@ -112,7 +112,7 @@ const WhyChooseMEDH = () => {
       </div>
       <Certified />
 
-      <div className="bg-[#FFE5F0] flex flex-col md:flex-row justify-around rounded-3xl mt-16 p-4 lg:p-0">
+      <div className="bg-[#4EB67870] flex flex-col md:flex-row justify-around rounded-3xl mt-16 p-4 lg:p-0">
         <div className="flex justify-center ">
           <Image src={JoinUs} alt="Join us" width={160} height={180} />
         </div>
