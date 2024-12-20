@@ -86,7 +86,7 @@ const Instructor_Tracking_component = () => {
       <div className="bg-white shadow-lg rounded-lg p-6">
         <div className="flex justify-start items-center mb-6">
           <p className="text-xl font-semibold text-gray-800">Session Info</p>
-          <div className="flex space-x-4 pl-4">
+          {/* <div className="flex space-x-4 pl-4">
             <DatePicker
               selected={startDate}
               onChange={(date) => setStartDate(date)}
@@ -99,7 +99,7 @@ const Instructor_Tracking_component = () => {
               placeholderText="To"
               className="border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-          </div>
+          </div> */}
         </div>
         <QuickStats stats={quickStats} />
       </div>
