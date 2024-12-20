@@ -14,7 +14,7 @@ const categories = [
   "AI for Professionals",
   "Business And Management",
   "Career Development",
-  "Communication And Soft Skills",
+  "Communication & Soft Skills",
   "Data And Analytics",
   "Digital Marketing with Data Analytics",
   "Environmental and Sustainability Skills",
