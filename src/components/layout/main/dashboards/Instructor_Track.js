@@ -31,13 +31,58 @@ const Instructor_Tracking_component = () => {
   }, []);
 
   // Fetch instructor statistics when `instructorId` is available
+  // useEffect(() => {
+  //   if (instructorId) {
+  //     const fetchStats = async () => {
+  //       try {
+  //         const response = await getQuery({
+  //           url: `${apiUrls.Session_Count.getCountByInstructorId}/${instructorId}`,
+  //         });
+  //         const { data } = response || {};
+  //         setStats({
+  //           totalClasses: data?.totalInactiveClasses || 0,
+  //           totalWorkingHours: data?.totalWorkingHours || 0,
+  //         });
+  //       } catch (error) {
+  //         console.error("Error fetching instructor statistics:", error);
+  //       }
+  //     };
+  //     fetchStats();
+  //   }
+  // }, [instructorId]);
+  // Fetch instructor statistics when `instructorId` is available
+  
   useEffect(() => {
     if (instructorId) {
       const fetchStats = async () => {
         try {
+          let start = null;
+          let end = null;
+
+          // If startDate or endDate are set, adjust them to the start of the day for startDate and end of the day for endDate
+          if (startDate) {
+            start = new Date(startDate);
+            start.setHours(0, 0, 0, 0);
+          }
+
+          if (endDate) {
+            end = new Date(endDate);
+            end.setHours(23, 59, 59, 999);
+          }
+
+          // Convert dates to ISO strings
+          const startDateString = start ? start.toISOString() : null;
+          const endDateString = end ? end.toISOString() : null;
+
+          // If no dates are selected, we don't pass the dates in the request
           const response = await getQuery({
-            url: `${apiUrls.Session_Count.getCountByInstructorId}/${instructorId}`,
+            url: `${
+              apiUrls.Session_Count.getCountByInstructorId
+            }/${instructorId}?startDate=${startDateString || ""}&endDate=${
+              endDateString || ""
+            }`,
           });
+
           const { data } = response || {};
           setStats({
             totalClasses: data?.totalInactiveClasses || 0,
@@ -49,7 +94,7 @@ const Instructor_Tracking_component = () => {
       };
       fetchStats();
     }
-  }, [instructorId]);
+  }, [instructorId, startDate, endDate]);
 
   const quickStats = [
     {
@@ -86,7 +131,7 @@ const Instructor_Tracking_component = () => {
       <div className="bg-white shadow-lg rounded-lg p-6">
         <div className="flex justify-start items-center mb-6">
           <p className="text-xl font-semibold text-gray-800">Session Info</p>
-          {/* <div className="flex space-x-4 pl-4">
+          <div className="flex space-x-4 pl-4">
             <DatePicker
               selected={startDate}
               onChange={(date) => setStartDate(date)}
@@ -99,7 +144,7 @@ const Instructor_Tracking_component = () => {
               placeholderText="To"
               className="border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-          </div> */}
+          </div>
         </div>
         <QuickStats stats={quickStats} />
       </div>
