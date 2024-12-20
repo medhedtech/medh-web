@@ -54,7 +54,7 @@ export default function AboutBanner({
             {subheading} {/* Dynamic subheading */}
           </p>
           <h1
-            className="text-2xl md:text-4xl font-bold font-Poppins mb-6 tracking-wide"
+            className="text-2xl md:text-4xl text-[#7ECA9D] font-bold font-Poppins mb-6 tracking-wide"
             style={{ color: headingColor }}
           >
             {heading}
