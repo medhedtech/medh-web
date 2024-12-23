@@ -14,6 +14,7 @@ import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import ReCAPTCHA from "react-google-recaptcha";
 
 const schema = yup
   .object({
@@ -22,6 +23,9 @@ const schema = yup
       .string()
       .min(8, "At least 8 character required")
       .required("Password is required"),
+    agree_terms: yup
+      .boolean()
+      .oneOf([true], "You must accept the agree to proceed"),
   })
   .required();
 
@@ -29,6 +33,8 @@ const LoginForm = () => {
   const router = useRouter();
   const { postQuery, loading } = usePostQuery();
   const [showPassword, setShowPassword] = useState(false);
+  const [recaptchaValue, setRecaptchaValue] = useState(null);
+  const [recaptchaError, setRecaptchaError] = useState(false);
   const {
     register,
     handleSubmit,
@@ -37,12 +43,22 @@ const LoginForm = () => {
     resolver: yupResolver(schema),
   });
 
+  const handleRecaptchaChange = (value) => {
+    setRecaptchaValue(value);
+    setRecaptchaError(false);
+  };
+
   const onSubmit = async (data) => {
+    if (!recaptchaValue) {
+      setRecaptchaError(true);
+      return;
+    }
     await postQuery({
       url: apiUrls?.user?.login,
       postData: {
         email: data.email,
         password: data.password,
+        agree_terms: data?.agree_terms,
       },
       onSuccess: (res) => {
         const decoded = jwtDecode(res.token);
@@ -60,6 +76,8 @@ const LoginForm = () => {
           router.push("/");
         }
         toast.success("Login successful!");
+        setRecaptchaError(false);
+        setRecaptchaValue(null);
       },
       onFail: (error) => {
         toast.error("Invalid Credentials!");
@@ -147,7 +165,58 @@ const LoginForm = () => {
               )}
             </div>
 
-            <div className="flex justify-between items-center cursor-pointer mb-4">
+            <ReCAPTCHA
+              sitekey="6LeNH5QqAAAAAO98HJ00v5yuCkLgHYCSvUEpGhLb"
+              onChange={handleRecaptchaChange}
+            />
+            {/* ReCAPTCHA Error Message */}
+            {recaptchaError && (
+              <span className="text-red-500 text-[12px]">
+                Please complete the ReCAPTCHA verification.
+              </span>
+            )}
+
+            <div className="flex items-center cursor-pointer my-2">
+              <input
+                type="checkbox"
+                id="terms"
+                {...register("agree_terms")}
+                className="w-6 h-6 mr-2 appearance-none border-2 border-gray-400 rounded-full cursor-pointer checked:bg-[#7ECA9D] checked:border-[#7ECA9D] checked:before:content-['✔'] checked:before:text-white checked:before:text-[12px] checked:before:flex checked:before:justify-center checked:before:items-center"
+              />
+              {/* <label
+                htmlFor="terms"
+                className="text-xs text-[#545454] cursor-pointer"
+              >
+                I accept <a href="/terms-and-conditions">terms of use</a> and <a href="/privacy-policy">privacy policy</a>
+              </label> */}
+              <label
+                htmlFor="terms"
+                className="text-sm text-gray-700 cursor-pointer"
+              >
+                I accept the{" "}
+                <a
+                  href="/terms-and-conditions"
+                  className="text-primaryColor underline hover:no-underline"
+                >
+                  terms of use
+                </a>{" "}
+                and{" "}
+                <a
+                  href="/privacy-policy"
+                  className="text-primaryColor underline hover:no-underline"
+                >
+                  privacy policy
+                </a>
+                .
+              </label>
+            </div>
+            {errors.agree_terms && (
+              <p className="text-red-500 text-xs ml-2 mt-[-5px]">
+                {errors.agree_terms.message}
+              </p>
+            )}
+
+            <div className="flex justify-between items-center cursor-pointer mt-2 mb-4">
               <div></div>
               <div className="text-primaryColor font-semibold font-Open">
                 <a href="/forgot-password"> Forgot Password?</a>
