@@ -14,6 +14,7 @@ import LogIn from "@/assets/images/log-sign/logIn.png";
 import logo1 from "@/assets/images/logo/medh_logo-1.png";
 import Email from "@/assets/images/log-sign/Email.svg";
 import lock from "@/assets/images/log-sign/lock.svg";
+import ReCAPTCHA from "react-google-recaptcha";
 
 const schema = yup
   .object({
@@ -46,6 +47,8 @@ const ForgotPassword = () => {
   const { postQuery, loading } = usePostQuery();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [recaptchaValue, setRecaptchaValue] = useState(null);
+  const [recaptchaError, setRecaptchaError] = useState(false);
   const {
     register,
     handleSubmit,
@@ -54,7 +57,16 @@ const ForgotPassword = () => {
     resolver: yupResolver(schema),
   });
 
+  const handleRecaptchaChange = (value) => {
+    setRecaptchaValue(value);
+    setRecaptchaError(false);
+  };
+
   const onSubmit = async (data) => {
+    if (!recaptchaValue) {
+      setRecaptchaError(true);
+      return;
+    }
     if (!emailSent) {
       // Step 1: Send temporary password email
       try {
@@ -66,6 +78,8 @@ const ForgotPassword = () => {
           onSuccess: () => {
             toast.success("Temporary password sent to your email.");
             setEmailSent(true);
+            setRecaptchaError(false);
+            setRecaptchaValue(null);
           },
           onFail: () => toast.error("Failed to send temporary password."),
         });
@@ -143,7 +157,7 @@ const ForgotPassword = () => {
 
           <form onSubmit={handleSubmit(onSubmit)} className="pt-6">
             {/* Email Field */}
-            <div className="gap-4 mb-6">
+            <div className="gap-4 mb-2">
               <div className="relative">
                 <Image
                   src={Email}
@@ -164,6 +178,18 @@ const ForgotPassword = () => {
               )}
             </div>
 
+            <div className="my-4">
+              <ReCAPTCHA
+                sitekey="6LeNH5QqAAAAAO98HJ00v5yuCkLgHYCSvUEpGhLb"
+                onChange={handleRecaptchaChange}
+              />
+              {/* ReCAPTCHA Error Message */}
+              {recaptchaError && (
+                <span className="text-red-500 text-[12px]">
+                  Please complete the ReCAPTCHA verification.
+                </span>
+              )}
+            </div>
             {/* Temporary Password Field */}
             {emailSent && !tempPasswordVerified && (
               <div className="w-full mb-6">
