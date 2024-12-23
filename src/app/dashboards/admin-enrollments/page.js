@@ -1,3 +1,4 @@
+import ProtectedPage from "@/app/protectedRoutes";
 import EnrollmentFormsAdmin from "@/components/layout/main/dashboards/AdminEnrollent-Form";
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
@@ -8,15 +9,17 @@ export const metadata = {
 };
 const Admin_Form_Enrollments = () => {
   return (
-    <main>
-      <DashboardContainer>
-        <div className="px-6">
-          <HeadingDashboard />
-        </div>
-        <EnrollmentFormsAdmin />
-      </DashboardContainer>
-      <ThemeController />
-    </main>
+    <ProtectedPage>
+      <main>
+        <DashboardContainer>
+          <div className="px-6">
+            <HeadingDashboard />
+          </div>
+          <EnrollmentFormsAdmin />
+        </DashboardContainer>
+        <ThemeController />
+      </main>
+    </ProtectedPage>
   );
 };
 

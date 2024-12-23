@@ -1,3 +1,4 @@
+import ProtectedPage from "@/app/protectedRoutes";
 import AdminQuizAttemptsMain from "@/components/layout/main/dashboards/AdminQuizAttemptsMain";
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
 
@@ -10,16 +11,18 @@ export const metadata = {
 };
 const Admin_Quiz_Attempts = () => {
   return (
-    <PageWrapper>
-      <main>
-        <DsahboardWrapper>
-          <DashboardContainer>
-            <AdminQuizAttemptsMain />
-          </DashboardContainer>
-        </DsahboardWrapper>
-        <ThemeController />
-      </main>
-    </PageWrapper>
+    <ProtectedPage>
+      <PageWrapper>
+        <main>
+          <DsahboardWrapper>
+            <DashboardContainer>
+              <AdminQuizAttemptsMain />
+            </DashboardContainer>
+          </DsahboardWrapper>
+          <ThemeController />
+        </main>
+      </PageWrapper>
+    </ProtectedPage>
   );
 };
 
