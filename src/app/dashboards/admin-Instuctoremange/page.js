@@ -1,3 +1,4 @@
+import ProtectedPage from "@/app/protectedRoutes";
 import InstructoreManage from "@/components/layout/main/dashboards/InstructoreManage";
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
@@ -10,20 +11,19 @@ export const metadata = {
 };
 const Admin_Reviews = () => {
   return (
-    // <PageWrapper>
-    <main>
-      {/* <DsahboardWrapper> */}
-      <DashboardContainer>
-        <div className="px-6">
-          <HeadingDashboard />
-        </div>
-
-        <InstructoreManage />
-      </DashboardContainer>
-      {/* </DsahboardWrapper> */}
-      <ThemeController />
-    </main>
-    // </PageWrapper>
+    <ProtectedPage>
+      <main>
+        {/* <DsahboardWrapper> */}
+        <DashboardContainer>
+          <div className="px-6">
+            <HeadingDashboard />
+          </div>
+          <InstructoreManage />
+        </DashboardContainer>
+        {/* </DsahboardWrapper> */}
+        <ThemeController />
+      </main>
+    </ProtectedPage>
   );
 };
 
