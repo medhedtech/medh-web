@@ -69,6 +69,7 @@ export default function AdminJobApplicants() {
     { Header: "Email", accessor: "email" },
     { Header: "Country", accessor: "country" },
     { Header: "Phone", accessor: "phone_number" },
+    { Header: "Post Applied", accessor: "designation" },
     // { Header: "Message", accessor: "message" },
     {
       Header: "Message",
