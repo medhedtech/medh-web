@@ -373,7 +373,8 @@ const JobOpening = () => {
 
           {/* Right Section - Apply Form */}
           <div className="lg:w-[43%] w-full py-6 lg:pl-8 bg-white dark:bg-inherit">
-            <JobApply />
+            {/* <JobApply /> */}
+            <JobApply activeJob={activeJob} />
           </div>
         </div>
       </div>
