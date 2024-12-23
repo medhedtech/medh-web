@@ -1,3 +1,4 @@
+import ProtectedPage from "@/app/protectedRoutes";
 import GetInTouch from "@/components/layout/main/dashboards/AdminGetInTouch";
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
@@ -8,6 +9,7 @@ export const metadata = {
 };
 const Admin_Contacts = () => {
   return (
+    <ProtectedPage>
     <main>
       <DashboardContainer>
         <div className="px-6">
@@ -17,6 +19,7 @@ const Admin_Contacts = () => {
       </DashboardContainer>
       <ThemeController />
     </main>
+    </ProtectedPage>
   );
 };
 

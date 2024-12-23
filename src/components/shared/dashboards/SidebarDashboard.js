@@ -9,12 +9,8 @@ import {
   MdFeedback,
   MdCategory,
 } from "react-icons/md";
-import {
-  FaUsers,
-  FaBlog,
-  FaUserGraduate,
-  FaBriefcase,
-} from "react-icons/fa";
+import { FaUsers, FaBlog, FaUserGraduate, FaBriefcase } from "react-icons/fa";
+import { setCookie } from "nookies";
 
 const SidebarDashboard = () => {
   const pathname = usePathname();
@@ -26,6 +22,7 @@ const SidebarDashboard = () => {
   const handleLogout = () => {
     localStorage.removeItem("userId");
     localStorage.removeItem("token");
+    
     router.push("/login");
   };
 
@@ -391,7 +388,8 @@ const SidebarDashboard = () => {
       items: [
         {
           name: "Logout",
-          path: "/login",
+          onClick: handleLogout,
+          // path: "/login",
           icon: (
             <svg
               xmlns="http://www.w3.org/2000/svg"
