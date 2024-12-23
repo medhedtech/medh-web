@@ -2,6 +2,7 @@ import DashboardContainer from "@/components/shared/containers/DashboardContaine
 import ThemeController from "@/components/shared/others/ThemeController";
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 import StudentRecordedSessions from "@/components/layout/main/dashboards/Access-Recorded-Sessions";
+import ProtectedPage from "@/app/protectedRoutes";
 
 export const metadata = {
   title: "Student Enrolled Courses | Medh - Education LMS Template",
@@ -10,13 +11,15 @@ export const metadata = {
 
 const Access_Recorded_Sessions = () => {
   return (
-    <main>
-      <DashboardContainer>
-        <HeadingDashboard />
-        <StudentRecordedSessions />
-      </DashboardContainer>
-      <ThemeController />
-    </main>
+    <ProtectedPage>
+      <main>
+        <DashboardContainer>
+          <HeadingDashboard />
+          <StudentRecordedSessions />
+        </DashboardContainer>
+        <ThemeController />
+      </main>
+    </ProtectedPage>
   );
 };
 
