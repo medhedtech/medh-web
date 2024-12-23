@@ -10,6 +10,7 @@ import Preloader from "@/components/shared/others/Preloader";
 import { toast } from "react-toastify";
 import { apiUrls } from "@/apis";
 import { useRouter } from "next/navigation";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const schema = yup
   .object({
@@ -21,6 +22,17 @@ const schema = yup
       .max(10, "Must be exactly 10 digits")
       .required("Phone number is required"),
     role: yup.string().required("Role is required"),
+    confirm_password: yup
+      .string()
+      .oneOf(
+        [yup.ref("password"), null],
+        "Password and confirm password must match"
+      )
+      .required("Confirm password is required"),
+    password: yup
+      .string()
+      .min(8, "At least 8 characters required")
+      .required("Password is required"),
   })
   .required();
 
@@ -28,6 +40,9 @@ const Gamma = () => {
   const [apiError, setApiError] = useState(null);
   const { postQuery, loading } = usePostQuery();
   const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
   const {
     register,
     handleSubmit,
@@ -35,6 +50,9 @@ const Gamma = () => {
   } = useForm({
     resolver: yupResolver(schema),
   });
+
+  const toggleConfirmPasswordVisibility = () =>
+    setShowConfirmPassword((prev) => !prev);
 
   const onSubmit = async (data) => {
     setApiError(null);
@@ -48,6 +66,7 @@ const Gamma = () => {
           email: data?.email,
           role: data?.role,
           phone_number: data?.phone_number,
+          password: data?.password,
         },
         onSuccess: () => {
           router.push("/dashboards/admin-subpage3");
@@ -185,6 +204,71 @@ const Gamma = () => {
           </div>
         </div>
 
+<div className="flex justify-between">
+        <div className="gap-4 mb-4 w-[49%]">
+          <label
+            htmlFor="password"
+            className="text-xs px-2 text-[#808080] font-medium mb-1"
+          >
+            Password
+            <span className="text-red-500 ml-1">*</span>
+          </label>
+          <div className="relative">
+            <input
+              {...register("password")}
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              className="w-full border border-gray-300 dark:bg-inherit rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-green-400"
+            />
+            <button
+              type="button"
+              onClick={togglePasswordVisibility}
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+            >
+              {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
+            </button>
+          </div>
+          {errors.password && (
+            <p className="text-xs text-red-500 font-normal mt-[2px] ml-2">
+              {errors.password?.message}
+            </p>
+          )}
+        </div>
+
+        <div className="gap-4 mb-4 w-[49%]">
+          <label
+            htmlFor="confirm_password"
+            className="text-xs px-2 text-[#808080] font-medium mb-1"
+          >
+            Confirm Password
+            <span className="text-red-500 ml-1">*</span>
+          </label>
+          <div className="relative">
+            <input
+              {...register("confirm_password")}
+              type={showConfirmPassword ? "text" : "password"}
+              placeholder="Confirm Password"
+              className="w-full border border-gray-300 dark:bg-inherit rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-green-400"
+            />
+            <button
+              type="button"
+              onClick={toggleConfirmPasswordVisibility}
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+            >
+              {showConfirmPassword ? (
+                <FaEyeSlash size={20} />
+              ) : (
+                <FaEye size={20} />
+              )}
+            </button>
+          </div>
+          {errors.confirm_password && (
+            <p className="text-xs text-red-500 font-normal mt-[2px] ml-2">
+              {errors.confirm_password?.message}
+            </p>
+          )}
+        </div>
+        </div>
         <div className="flex justify-end mt-6 gap-4">
           <button
             type="button"
