@@ -29,11 +29,21 @@ const schema = yup.object({
     .matches(/^[6-9]\d{9}$/, "Mobile number must be a valid 10-digit number"),
   email: yup.string().email().required("Email is required"),
   course_name: yup.string(),
-  domain: yup.string().required("Domain is required"),
+  // domain: yup.string().required("Domain is required"),
+  amount_per_session: yup
+    .number()
+    .typeError("Amount per session must be a number")
+    .required("Amount per session is required"),
+  category: yup.string().required("This field is required"),
+  confirm_password: yup
+    .string()
+    .oneOf([yup.ref("password"), null], "Password and confirm password must match")
+    .required("Confirm password is required"),
   password: yup
     .string()
     .min(8, "At least 8 characters required")
     .required("Password is required"),
+  gender: yup.string().required("Gender is required"),
 });
 
 const AddInstructor = () => {
@@ -41,12 +51,19 @@ const AddInstructor = () => {
   const { postQuery, loading } = usePostQuery();
   const { getQuery } = useGetQuery();
   const [courses, setCourses] = useState([]);
+  const [pdfBrochures, setPdfBrochures] = useState([]);
   const [showInstructorListing, setShowInstructorListing] = useState(false);
   const courseDropdownRef = useRef(null);
   const [courseDropdownOpen, setCourseDropdownOpen] = useState(false);
+  const [categories, setCategories] = useState(null);
+  const [courseData, setCourseData] = useState(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState("");
+  const [selected, setSelected] = useState("");
+  const dropdownRef = useRef(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
 
   const {
@@ -55,6 +72,7 @@ const AddInstructor = () => {
     formState: { errors },
     reset,
     setValue,
+    trigger,
   } = useForm({
     resolver: yupResolver(schema),
   });
@@ -74,6 +92,67 @@ const AddInstructor = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  useEffect(() => {
+    const storedData = localStorage.getItem("courseData");
+    if (storedData) {
+      setCourseData(JSON.parse(storedData));
+    }
+
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    fetchAllCategories();
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const fetchAllCategories = () => {
+    try {
+      getQuery({
+        url: apiUrls?.categories?.getAllCategories,
+        onSuccess: (res) => {
+          setCategories(res.data);
+          console.log("All categories", res);
+        },
+        onFail: (err) => {
+          console.error("Failed to fetch categories: ", err);
+        },
+      });
+    } catch (err) {
+      console.error("Error fetching categories: ", err);
+    }
+  };
+
+  const removePdf = (index) => {
+    setPdfBrochures((prevFiles) => prevFiles.filter((_, i) => i !== index));
+  };
+
+  const toggleDropdown = (e) => {
+    e.preventDefault();
+    setDropdownOpen((prev) => !prev);
+  };
+
+  const selectCategory = (categoryName) => {
+    setSelected(categoryName);
+    setValue("category", categoryName);
+    setDropdownOpen(false);
+    setSearchTerm("");
+  };
+
+  useEffect(() => {
+    if (courseData) {
+      reset(courseData);
+    }
+  }, [courseData, reset]);
+
+  const filteredCategories = categories?.filter((category) =>
+    category.category_name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const toggleCourseDropdown = (e) => {
     e.preventDefault();
@@ -114,6 +193,47 @@ const AddInstructor = () => {
     fetchCourseNames();
   }, []);
 
+  const handlePdfUpload = async (e) => {
+    const file = e.target.files;
+    if (file) {
+      try {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+  
+        reader.onload = async () => {
+          const base64 = reader.result;
+          const postData = { base64String: base64 };
+  
+          await postQuery({
+            url: apiUrls?.upload?.uploadDocument,
+            postData,
+            onSuccess: (data) => {
+              console.log("PDF uploaded successfully:", data?.data);
+              setPdfBrochures(data?.data);
+              toast.success("PDF uploaded successfully.");
+            },
+            onError: (error) => {
+              toast.error("PDF upload failed. Please try again.");
+              console.error("Upload error:", error);
+            },
+          });
+        };
+  
+        reader.onerror = (error) => {
+          toast.error("Failed to read the file.");
+          console.error("File reading error:", error);
+        };
+      } catch (error) {
+        console.error("Error uploading PDF:", error);
+        toast.error("An error occurred while uploading the PDF.");
+      }
+    } else {
+      toast.error("No file selected. Please choose a PDF to upload.");
+    }
+  };
+
+  const toggleConfirmPasswordVisibility = () =>
+    setShowConfirmPassword((prev) => !prev);
   // Handle form submission
   const onSubmit = async (data) => {
     try {
@@ -124,10 +244,13 @@ const AddInstructor = () => {
           email: data.email,
           phone_number: data.phone_number,
           password: data?.password,
-          domain: data.domain,
+          // domain: data.domain,
           meta: {
             course_name: data.course_name,
             age: data.age,
+            category: data.category,
+            gender: data.gender,
+            upload_resume: pdfBrochures, 
           },
         },
         onSuccess: () => {
@@ -275,7 +398,28 @@ const AddInstructor = () => {
             )}
           </div>
 
+          {/* Age Field */}
           <div className="flex flex-col">
+            <label
+              htmlFor="age"
+              className="text-xs px-2 text-[#808080] font-medium mb-1"
+            >
+              Age
+              <span className="text-red-500 ml-1">*</span>
+            </label>
+            <input
+              type="number"
+              id="age"
+              placeholder="Age"
+              className="w-full border border-gray-300 dark:bg-inherit rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-green-400"
+              {...register("age")}
+            />
+            {errors.age && (
+              <span className="text-red-500 text-xs">{errors.age.message}</span>
+            )}
+          </div>
+
+          {/* <div className="flex flex-col">
             <label
               htmlFor="domain"
               className="text-xs px-2 text-[#808080] font-medium mb-1"
@@ -296,6 +440,61 @@ const AddInstructor = () => {
               <span className="text-red-500 text-xs">
                 {errors.domain.message}
               </span>
+            )}
+          </div> */}
+
+          <div className="relative" ref={dropdownRef}>
+            <label
+              htmlFor="category"
+              className="text-xs px-2 text-[#808080]  font-medium mb-1"
+            >
+              Course Category <span className="text-red-500">*</span>
+            </label>
+
+            {/* <div className="p-3 border rounded-lg w-full dark:bg-inherit text-gray-600"> */}
+            <div className="w-full border border-gray-300 dark:bg-inherit rounded-md py-2 px-3 pr-3 focus:outline-none focus:ring-2 focus:ring-green-400">
+              <button className="w-full text-left" onClick={toggleDropdown}>
+                {selected || "Select Category"}
+              </button>
+              {dropdownOpen && (
+                <div className="absolute z-10 left-0 top-20 bg-white border border-gray-400 rounded-lg w-full shadow-xl">
+                  <input
+                    type="text"
+                    className="w-full p-2 border-b focus:outline-none rounded-lg"
+                    placeholder="Search..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                  <ul className="max-h-56 overflow-auto">
+                    {filteredCategories.length > 0 ? (
+                      filteredCategories.map((category) => (
+                        <li
+                          key={category._id}
+                          className="hover:bg-gray-100 rounded-lg cursor-pointer flex gap-3 px-3 py-3"
+                          onClick={() => {
+                            selectCategory(category.category_name);
+                            trigger("category");
+                          }}
+                        >
+                          <Image
+                            src={category.category_image}
+                            alt={category.category_title}
+                            width={32}
+                            height={32}
+                            className="rounded-full"
+                          />
+                          {category.category_name}
+                        </li>
+                      ))
+                    ) : (
+                      <li className="p-2 text-gray-500">No results found</li>
+                    )}
+                  </ul>
+                </div>
+              )}
+            </div>
+            {errors.category && (
+              <p className="text-red-500 text-xs">{errors.category.message}</p>
             )}
           </div>
 
@@ -357,24 +556,21 @@ const AddInstructor = () => {
             </div>
           </div>
 
-          {/* Age Field */}
-          <div className="flex flex-col">
-            <label
-              htmlFor="age"
-              className="text-xs px-2 text-[#808080] font-medium mb-1"
-            >
-              Age
-              <span className="text-red-500 ml-1">*</span>
+          <div>
+            <label className="block text-sm font-normal mb-1">
+              Amount Per Session
+              <span className="text-red-500 ml-1">*</span> (USD)
             </label>
             <input
-              type="number"
-              id="age"
-              placeholder="Age"
+              type="text"
+              placeholder="Enter amount in USD"
               className="w-full border border-gray-300 dark:bg-inherit rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-green-400"
-              {...register("age")}
+              {...register("amount_per_session")}
             />
-            {errors.age && (
-              <span className="text-red-500 text-xs">{errors.age.message}</span>
+            {errors.amount_per_session && (
+              <p className="text-red-500 text-xs">
+                {errors.amount_per_session.message}
+              </p>
             )}
           </div>
 
@@ -387,17 +583,11 @@ const AddInstructor = () => {
               <span className="text-red-500 ml-1">*</span>
             </label>
             <div className="relative">
-              {/* <Image
-                src={lock}
-                className="absolute left-4 top-1/2 transform -translate-y-1/2"
-                alt="lock-icon"
-              /> */}
               <input
                 {...register("password")}
                 type={showPassword ? "text" : "password"}
                 placeholder="Password"
                 className="w-full border border-gray-300 dark:bg-inherit rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-green-400"
-                // className="w-full h-12 pl-10 pr-10 text-sm focus:outline-none text-black bg-[#F7F7F7] dark:text-contentColor-dark border-2 border-borderColor dark:border-borderColor-dark placeholder:text-black placeholder:opacity-80 font-medium  rounded-[12px]"
               />
               <button
                 type="button"
@@ -413,6 +603,123 @@ const AddInstructor = () => {
               </p>
             )}
           </div>
+
+          <div className="gap-4 mb-4">
+            <label
+              htmlFor="confirm_password"
+              className="text-xs px-2 text-[#808080] font-medium mb-1"
+            >
+              Confirm Password
+              <span className="text-red-500 ml-1">*</span>
+            </label>
+            <div className="relative">
+              <input
+                {...register("confirm_password")}
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder="Confirm Password"
+                className="w-full border border-gray-300 dark:bg-inherit rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-green-400"
+              />
+              <button
+                type="button"
+                onClick={toggleConfirmPasswordVisibility}
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+              >
+                {showConfirmPassword ? (
+                  <FaEyeSlash size={20} />
+                ) : (
+                  <FaEye size={20} />
+                )}
+              </button>
+            </div>
+            {errors.confirm_password && (
+              <p className="text-xs text-red-500 font-normal mt-[2px] ml-2">
+                {errors.confirm_password?.message}
+              </p>
+            )}
+          </div>
+
+          <div className="relative">
+            <label className="block text-sm font-medium text-gray-600 dark:text-whitegrey3">
+              Select Gender
+              <span className="text-red-500 ml-1">*</span>
+            </label>
+            <select
+              {...register("gender")}
+              name="gender"
+              className="mt-1 block w-full border dark:text-whitegrey1 border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 dark:bg-inherit focus:ring-indigo-500"
+            >
+              <option value="">Select</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Others">Others</option>
+            </select>
+            {errors.gender && (
+              <p className="text-xs text-red-500 font-normal mt-[2px] ml-2">
+                {errors.gender?.message}
+              </p>
+            )}
+          </div>
+
+          {/* PDF Brochure Upload */}
+          <div>
+            <p className="font-semibold mb-2 text-left text-2xl">
+              Upload Resume
+              <span className="text-red-500 ml-1">*</span>
+            </p>
+            <div className="border-dashed border-2 dark:bg-inherit bg-purple border-gray-300 rounded-lg p-3 w-[210px] h-[140px] text-center relative">
+              <svg
+                width="36"
+                height="36"
+                viewBox="0 0 48 48"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="mt-2 mx-auto"
+              >
+                <path
+                  d="M8 40C6.9 40 5.95867 39.6087 5.176 38.826C4.39333 38.0433 4.00133 37.1013 4 36V22C4.86667 22.6667 5.81667 23.1667 6.85 23.5C7.88333 23.8333 8.93333 24 10 24C12.7667 24 15.1253 23.0247 17.076 21.074C19.0267 19.1233 20.0013 16.7653 20 14C20 12.9333 19.8333 11.8833 19.5 10.85C19.1667 9.81667 18.6667 8.86667 18 8H32C33.1 8 34.042 8.392 34.826 9.176C35.61 9.96 36.0013 10.9013 36 12V21L44 13V35L36 27V36C36 37.1 35.6087 38.042 34.826 38.826C34.0433 39.61 33.1013 40.0013 32 40H8ZM8 20V16H4V12H8V8H12V12H16V16H12V20H8ZM10 32H30L23.25 23L18 30L14.75 25.65L10 32Z"
+                  fill="#808080"
+                />
+              </svg>
+              <p className="text-customGreen cursor-pointer text-sm">
+                Click to upload
+              </p>
+              <p className="text-gray-400 text-xs">or drag & drop the files</p>
+              <input
+                type="file"
+                multiple
+                accept=".pdf"
+                className="absolute inset-0 opacity-0 cursor-pointer"
+                onChange={handlePdfUpload}
+                {...register("upload_resume")}
+              />
+              {pdfBrochures && pdfBrochures.length > 0 && (
+                <p className="mt-1 text-xs text-gray-500">✔ Uploaded</p>
+              )}
+            </div>
+            <div className="w-[210px] text-center relative">
+              {pdfBrochures.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {pdfBrochures.map((fileUrl, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between bg-[#e9e9e9] p-2 rounded-md text-sm w-full md:w-auto"
+                    >
+                      <span className="truncate text-[#5C5C5C] max-w-[150px]">
+                        Resume {index + 1}
+                      </span>
+                      <button
+                        onClick={() => removePdf(index)}
+                        className="ml-2 text-[20px] text-[#5C5C5C] hover:text-red-700"
+                      >
+                        x
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Submit and Cancel Buttons */}
           <div className="flex justify-end items-center space-x-4 sm:col-span-2 mt-4">
             <button
