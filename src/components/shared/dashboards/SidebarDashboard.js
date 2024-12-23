@@ -2,7 +2,6 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import ItemsDashboard from "./ItemsDashboard";
-import Image from "next/image";
 import NavbarLogo from "@/components/layout/header/NavbarLogo";
 import {
   MdContactPhone,
@@ -15,7 +14,6 @@ import {
   FaBlog,
   FaUserGraduate,
   FaBriefcase,
-  FaLongArrowAltUp,
 } from "react-icons/fa";
 
 const SidebarDashboard = () => {
@@ -245,7 +243,7 @@ const SidebarDashboard = () => {
               ),
             },
             {
-              name: "Assign Insctructor",
+              name: "Assign Instructor",
               path: "/dashboards/admin-assigninstructor",
               icon: (
                 <svg
