@@ -11,7 +11,7 @@ const apiInstance = () => {
 
   api.interceptors.request.use(async (config) => {
     const accessToken = localStorage.getItem('token');
-    logger.log(accessToken, 'setToekn');
+    logger.log(accessToken, 'setToken');
     if (accessToken) {
       config.headers['x-access-token'] = accessToken;
     }

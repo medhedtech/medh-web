@@ -5,6 +5,7 @@ import ThemeController from "@/components/shared/others/ThemeController";
 import DsahboardWrapper from "@/components/shared/wrappers/DsahboardWrapper";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import Previewdetail from "@/components/layout/main/dashboards/Previewdetail";
+import ProtectedPage from "@/app/protectedRoutes";
 
 export const metadata = {
   title: "Admin Reviews | Medh - Education LMS Template",
@@ -13,18 +14,20 @@ export const metadata = {
 const Admin_Reviews = () => {
   return (
     // <PageWrapper>
+    <ProtectedPage>
       <main>
         {/* <DsahboardWrapper> */}
-          <DashboardContainer>
-        <div className="px-6">
-          <HeadingDashboard />
-        </div>
-           {/* <Previewdetail /> */}
-            <GenrateCertificate />
-          </DashboardContainer>
+        <DashboardContainer>
+          <div className="px-6">
+            <HeadingDashboard />
+          </div>
+          {/* <Previewdetail /> */}
+          <GenrateCertificate />
+        </DashboardContainer>
         {/* </DsahboardWrapper> */}
         <ThemeController />
       </main>
+    </ProtectedPage>
     // </PageWrapper>
   );
 };

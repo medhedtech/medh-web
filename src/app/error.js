@@ -2,7 +2,7 @@
 import ErrorMain from "@/components/layout/main/ErrorMain";
 import React from "react";
 
-const erroError = () => {
+const Error = () => {
   return (
     <main>
       <ErrorMain />
