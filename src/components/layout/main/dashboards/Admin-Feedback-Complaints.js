@@ -7,6 +7,7 @@ import Preloader from "@/components/shared/others/Preloader";
 import { toast } from "react-toastify";
 import useDeleteQuery from "@/hooks/deleteQuery.hook";
 import usePostQuery from "@/hooks/postQuery.hook";
+import { FaTimes } from "react-icons/fa";
 
 // Function to format the date
 const formatDate = (date) => {
@@ -22,10 +23,11 @@ export default function AdminFeedbackComplaints() {
   const [instructorFeedbacks, setInstructorFeedbacks] = useState([]);
   const [complaints, setComplaints] = useState([]);
   const [editComplaint, setEditComplaint] = useState(null);
-  const [newStatus, setNewStatus] = useState(""); 
+  const [newStatus, setNewStatus] = useState("");
   const { getQuery, loading } = useGetQuery();
   const { deleteQuery } = useDeleteQuery();
   const { postQuery } = usePostQuery();
+  const [selectedMessage, setSelectedMessage] = useState(null);
 
   // Fetch data from API
   const fetchData = async (url, setState) => {
@@ -45,7 +47,10 @@ export default function AdminFeedbackComplaints() {
   useEffect(() => {
     fetchData(apiUrls.feedbacks.getAllFeedbacks, setFeedbacks);
     fetchData(apiUrls.feedbacks.getAllComplaints, setComplaints);
-    fetchData(apiUrls.feedbacks.getAllInstructorFeedbacks, setInstructorFeedbacks);
+    fetchData(
+      apiUrls.feedbacks.getAllInstructorFeedbacks,
+      setInstructorFeedbacks
+    );
   }, []);
 
   // Handle delete action
@@ -98,7 +103,31 @@ export default function AdminFeedbackComplaints() {
   // Columns configuration for feedbacks
   const feedbackColumns = [
     { Header: "Title", accessor: "feedback_title" },
-    { Header: "Feedback", accessor: "feedback_text" },
+    // { Header: "Feedback", accessor: "feedback_text" },
+    {
+      Header: "Feedback",
+      accessor: "feedback_text",
+      render: (row) => {
+        const feedback_text = row?.feedback_text || "";
+        const messagePreview =
+          feedback_text.split(" ").slice(0, 6).join(" ") +
+          (feedback_text.split(" ").length > 6 ? "..." : "");
+
+        return (
+          <div className="flex items-center">
+            <span className="mr-2">{messagePreview}</span>
+            {feedback_text.split(" ").length > 6 && (
+              <button
+                onClick={() => setSelectedMessage(feedback_text)}
+                className="ml-2 text-green-500 rounded-md px-4 py-2 hover:text-green-700 transition-all duration-200 text-sm flex items-center space-x-0"
+              >
+                <span className="ml-[-1.5rem]">Read More...</span>
+              </button>
+            )}
+          </div>
+        );
+      },
+    },
     { Header: "Type", accessor: "feedback_for" },
     {
       Header: "Date",
@@ -126,10 +155,34 @@ export default function AdminFeedbackComplaints() {
     },
   ];
 
-   // Columns configuration for feedbacks
-   const instructorFeedbackColumns = [
+  // Columns configuration for feedbacks
+  const instructorFeedbackColumns = [
     { Header: "Title", accessor: "feedback_title" },
-    { Header: "Feedback", accessor: "feedback_text" },
+    // { Header: "Feedback", accessor: "feedback_text" },
+    {
+      Header: "Feedback",
+      accessor: "feedback_text",
+      render: (row) => {
+        const feedback_text = row?.feedback_text || "";
+        const messagePreview =
+          feedback_text.split(" ").slice(0, 6).join(" ") +
+          (feedback_text.split(" ").length > 6 ? "..." : "");
+
+        return (
+          <div className="flex items-center">
+            <span className="mr-2">{messagePreview}</span>
+            {feedback_text.split(" ").length > 6 && (
+              <button
+                onClick={() => setSelectedMessage(feedback_text)}
+                className="ml-2 text-green-500 rounded-md px-4 py-2 hover:text-green-700 transition-all duration-200 text-sm flex items-center space-x-0"
+              >
+                <span className="ml-[-1.5rem]">Read More...</span>
+              </button>
+            )}
+          </div>
+        );
+      },
+    },
     { Header: "Type", accessor: "feedback_for" },
     {
       Header: "Date",
@@ -160,7 +213,31 @@ export default function AdminFeedbackComplaints() {
   // Columns configuration for complaints
   const complaintColumns = [
     { Header: "Title", accessor: "name" },
-    { Header: "Description", accessor: "description" },
+    // { Header: "Description", accessor: "description" },
+    {
+      Header: "Description",
+      accessor: "description",
+      render: (row) => {
+        const description = row?.description || "";
+        const messagePreview =
+          description.split(" ").slice(0, 6).join(" ") +
+          (description.split(" ").length > 6 ? "..." : "");
+
+        return (
+          <div className="flex items-center">
+            <span className="mr-2">{messagePreview}</span>
+            {description.split(" ").length > 6 && (
+              <button
+                onClick={() => setSelectedMessage(description)}
+                className="ml-2 text-green-500 rounded-md px-4 py-2 hover:text-green-700 transition-all duration-200 text-sm flex items-center space-x-0"
+              >
+                <span className="ml-[-1.5rem]">Read More...</span>
+              </button>
+            )}
+          </div>
+        );
+      },
+    },
     {
       Header: "Date",
       accessor: "dateFiled",
@@ -285,7 +362,6 @@ export default function AdminFeedbackComplaints() {
         />
       </div>
 
-
       <div className="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-lg mt-10">
         <h1 className="text-2xl font-bold mb-4">Instructor Feedbacks</h1>
         <MyTable
@@ -305,6 +381,29 @@ export default function AdminFeedbackComplaints() {
       </div>
       {/* Edit Modal */}
       {renderEditModal()}
+      {/* Modal for full message */}
+      {selectedMessage && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white rounded-md p-6 max-w-[50%] w-full relative  max-h-[500px] overflow-y-auto">
+            {/* Close Button at top-right corner */}
+            <button
+              onClick={() => setSelectedMessage(null)}
+              className="absolute top-2 right-2 text-xl text-gray-500 hover:text-gray-700"
+            >
+              <FaTimes />
+            </button>
+
+            <h2 className="text-xl font-semibold mb-4">Full Message</h2>
+            <p className="mb-4">{selectedMessage}</p>
+            <button
+              onClick={() => setSelectedMessage(null)}
+              className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition-all duration-200"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
