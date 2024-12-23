@@ -1,3 +1,4 @@
+import ProtectedPage from "@/app/protectedRoutes";
 import AdminSettingsMain from "@/components/layout/main/dashboards/AdminSettingsMain";
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
 
@@ -8,12 +9,14 @@ export const metadata = {
 };
 const Admin_Settings = () => {
   return (
-    <main>
-      <DashboardContainer>
-        <AdminSettingsMain />
-      </DashboardContainer>
-      <ThemeController />
-    </main>
+    <ProtectedPage>
+      <main>
+        <DashboardContainer>
+          <AdminSettingsMain />
+        </DashboardContainer>
+        <ThemeController />
+      </main>
+    </ProtectedPage>
   );
 };
 
