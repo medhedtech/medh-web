@@ -46,7 +46,7 @@ const schema = yup.object({
     .required(),
 });
 
-function JobApply() {
+function JobApply({ activeJob }) {
   const { postQuery, loading } = usePostQuery();
   const [fileName, setFileName] = useState("No file chosen");
   const [showModal, setShowModal] = useState(false);
@@ -119,6 +119,7 @@ function JobApply() {
           message: data?.message,
           resume_image: pdfBrochure,
           accept: data?.accept,
+          designation: activeJob,
         },
         onSuccess: () => {
           setShowModal(true);
