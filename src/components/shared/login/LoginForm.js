@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import ReCAPTCHA from "react-google-recaptcha";
+import Cookies from "js-cookie";
 
 const schema = yup
   .object({
@@ -49,10 +50,10 @@ const LoginForm = () => {
   };
 
   const onSubmit = async (data) => {
-    if (!recaptchaValue) {
-      setRecaptchaError(true);
-      return;
-    }
+    // if (!recaptchaValue) {
+    //   setRecaptchaError(true);
+    //   return;
+    // }
     await postQuery({
       url: apiUrls?.user?.login,
       postData: {
@@ -94,7 +95,7 @@ const LoginForm = () => {
     <div className="mx-auto md:flex md:justify-between h-auto max-w-[1064px] shadow-2xl border-2 p-5">
       <div className="hidden md:flex mx-auto">
         <div className="w-[504px] h-[774px] my-auto flex justify-center">
-          <Image src={LogIn} className="w-full h-full object-contain" />
+          <Image src={LogIn} alt="login-icon" className="w-full h-full object-contain" />
         </div>
       </div>
       <div className="transition-opacity duration-150 ease-linear md:w-[50%] w-full md:px-3 pt-3">
@@ -117,6 +118,7 @@ const LoginForm = () => {
               <div className="relative">
                 <Image
                   src={Email}
+                  alt="email-icon"
                   className="absolute left-4 top-1/2 transform -translate-y-1/2"
                 />
                 <input
@@ -138,6 +140,7 @@ const LoginForm = () => {
               <div className="relative">
                 <Image
                   src={lock}
+                  alt="lock-icon"
                   className="absolute left-4 top-1/2 transform -translate-y-1/2"
                 />
                 <input

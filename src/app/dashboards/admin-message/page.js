@@ -1,3 +1,4 @@
+import ProtectedPage from "@/app/protectedRoutes";
 import AdminMessageMain from "@/components/layout/main/dashboards/AdminMessageMain";
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
 
@@ -10,16 +11,18 @@ export const metadata = {
 };
 const Admin_Message = () => {
   return (
-    <PageWrapper>
-      <main>
-        <DsahboardWrapper>
-          <DashboardContainer>
-            <AdminMessageMain />
-          </DashboardContainer>
-        </DsahboardWrapper>
-        <ThemeController />
-      </main>
-    </PageWrapper>
+    <ProtectedPage>
+      <PageWrapper>
+        <main>
+          <DsahboardWrapper>
+            <DashboardContainer>
+              <AdminMessageMain />
+            </DashboardContainer>
+          </DsahboardWrapper>
+          <ThemeController />
+        </main>
+      </PageWrapper>
+    </ProtectedPage>
   );
 };
 
