@@ -1,190 +1,6 @@
-// "use client";
-// import React, { useState, useEffect } from "react";
-// import { FaPlus, FaChevronDown } from "react-icons/fa";
-// import { apiUrls } from "@/apis";
-// import useGetQuery from "@/hooks/getQuery.hook";
-// import MyTable from "@/components/shared/common-table/page";
-// import useDeleteQuery from "@/hooks/deleteQuery.hook";
-// import { toast } from "react-toastify";
-// import usePostQuery from "@/hooks/postQuery.hook";
-// import AddInstructor from "./AddInstructor";
-
-// const InstructorTable = () => {
-//   const { deleteQuery } = useDeleteQuery();
-//   const [instructors, setInstructors] = useState([]);
-//   const [sortOrder, setSortOrder] = useState("newest");
-//   const [searchQuery, setSearchQuery] = useState("");
-//   const { postQuery } = usePostQuery();
-//   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
-//   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
-//   const [showInstructorForm, setShowInstructorForm] = useState(false);
-//   const [filterOptions, setFilterOptions] = useState({
-//     full_name: "",
-//     email: "",
-//     phone_number: "",
-//     course_name: "",
-//   });
-
-//   const { getQuery } = useGetQuery();
-//   const [deletedInsturctors, setDeletedInsturctors] = useState(null);
-//   const [updateStatus, setUpdateStatus] = useState(null);
-
-//   // Fetch instructors Data from API
-//   useEffect(() => {
-//     const fetchStudents = async () => {
-//       try {
-//         await getQuery({
-//           url: apiUrls?.Instructor?.getAllInstructors,
-//           onSuccess: (data) => setInstructors(data),
-//           onFail: () => setInstructors([]),
-//         });
-//       } catch (error) {
-//         console.error("Failed to fetch instructors:", error);
-//       }
-//     };
-//     fetchStudents();
-//   }, [deletedInsturctors, updateStatus]);
-
-//   // Delete User
-//   const deleteStudent = (id) => {
-//     deleteQuery({
-//       url: `${apiUrls?.Instructor?.deleteInstructor}/${id}`,
-//       onSuccess: (res) => {
-//         toast.success(res?.message);
-//         setDeletedInsturctors(id);
-//       },
-//       onFail: (res) => console.log(res, "FAILED"),
-//     });
-//   };
-
-//   const toggleStatus = async (id) => {
-//     try {
-//       await postQuery({
-//         url: `${apiUrls?.Instructor?.toggleInstructorsStatus}/${id}`,
-//         postData: {},
-//         onSuccess: (response) => {
-//           const updatedInstructor = response?.instructor;
-//           if (updatedInstructor) {
-//             toast.success(
-//               `${updatedInstructor.full_name}'s status changed to ${updatedInstructor.status}.`
-//             );
-//             // setUpdateStatus(id);
-//             setUpdateStatus((prev) => (prev === id ? `${id}-updated` : id));
-//           } else {
-//             toast.error("Instructor data not found in response!");
-//           }
-//         },
-//         onFail: () => {
-//           toast.error("Instructor status cannot be changed!");
-//         },
-//       });
-//     } catch (error) {
-//       toast.error("Something went wrong!");
-//     }
-//   };
-
-//   // Table Columns Configuration
-//   const columns = [
-//     { Header: "No.", accessor: "no" },
-//     { Header: "Name", accessor: "full_name" },
-//     { Header: "Phone Number", accessor: "phone_number" },
-//     { Header: "Email ID", accessor: "email" },
-//     { Header: "Join Date", accessor: "createdAt" },
-//     { Header: "Domain", accessor: "domain" },
-//     {
-//       Header: "Status",
-//       accessor: "status",
-//       render: (row) => {
-//         const isActive = row?.status === "Active";
-//         return (
-//           <div className="flex gap-2 items-center">
-//             <button
-//               onClick={() => toggleStatus(row?._id)}
-//               className={`w-10 h-5 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 ${
-//                 isActive ? "bg-green-500" : "bg-gray-400"
-//               }`}
-//             >
-//               <div
-//                 className={`w-4 h-4 bg-white rounded-full transform transition-transform duration-300 ${
-//                   isActive ? "translate-x-5" : "translate-x-0"
-//                 }`}
-//               ></div>
-//             </button>
-//             <span
-//               className={`ml-2 text-sm ${
-//                 isActive ? "text-green-700" : "text-red-700"
-//               }`}
-//             >
-//               {isActive ? "Active" : "Inactive"}
-//             </span>
-//           </div>
-//         );
-//       },
-//     },
-//   ];
-
-//   const handleSortChange = (order) => {
-//     setSortOrder(order);
-//     setIsSortDropdownOpen(false);
-//   };
-
-//   const handleFilterDropdownToggle = () => {
-//     setIsFilterDropdownOpen(!isFilterDropdownOpen);
-//   };
-
-//   const handleFilterSelect = (filterType, value) => {
-//     setFilterOptions((prev) => ({ ...prev, [filterType]: value }));
-//     setIsFilterDropdownOpen(false);
-//   };
-
-//   // Filtering the data based on user inputs
-//   const filteredData =
-//     instructors?.filter((instructors) => {
-//       const matchesName = filterOptions.full_name
-//         ? (instructors.full_name || "")
-//             .toLowerCase()
-//             .includes(filterOptions.full_name.toLowerCase())
-//         : true;
-
-//       const matchesStatus = filterOptions.status
-//         ? (instructors.status || "")
-//             .toLowerCase()
-//             .includes(filterOptions.status.toLowerCase())
-//         : true;
-
-//       const matchesSearchQuery =
-//         instructors.full_name
-//           .toLowerCase()
-//           .includes(searchQuery.toLowerCase()) ||
-//         instructors.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-//         instructors.phone_number.includes(searchQuery);
-
-//       return matchesSearchQuery && matchesName && matchesStatus;
-//     }) || [];
-
-//   const sortedData = [...filteredData].sort((a, b) => {
-//     if (sortOrder === "newest") {
-//       return new Date(b.createdAt) - new Date(a.createdAt);
-//     } else if (sortOrder === "oldest") {
-//       return new Date(a.createdAt) - new Date(b.createdAt);
-//     }
-//     return 0;
-//   });
-
-//   const formattedData =
-//     sortedData.map((user, index) => ({
-//       ...user,
-//       no: index + 1,
-//       createdAt: new Date(user.createdAt).toLocaleDateString("en-GB"),
-//     })) || [];
-
-//   // Add Student Form Toggle
-//   if (showInstructorForm)
-//     return <AddInstructor onCancel={() => setShowInstructorForm(false)} />;
-
 "use client";
 import React, { useState, useEffect } from "react";
-import { FaPlus, FaChevronDown } from "react-icons/fa";
+import { FaPlus, FaChevronDown, FaEye } from "react-icons/fa";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import MyTable from "@/components/shared/common-table/page";
@@ -241,7 +57,7 @@ const InstructorTable = () => {
 
   useEffect(() => {
     fetchInstructors();
-  }, [deletedInstructors]); // Refetch when an instructor is deleted
+  }, [deletedInstructors]);
 
   // Delete Instructor
   const deleteInstructor = (id) => {
@@ -249,7 +65,7 @@ const InstructorTable = () => {
       url: `${apiUrls.Instructor.deleteInstructor}/${id}`,
       onSuccess: (res) => {
         toast.success(res?.message);
-        setDeletedInstructors(id); // Trigger refetch
+        setDeletedInstructors(id);
       },
       onFail: (res) => {
         console.error("Failed to delete instructor:", res);
@@ -294,7 +110,53 @@ const InstructorTable = () => {
     { Header: "Phone Number", accessor: "phone_number" },
     { Header: "Email ID", accessor: "email" },
     { Header: "Join Date", accessor: "createdAt" },
-    { Header: "Domain", accessor: "domain" },
+    {
+      Header: "Course Category",
+      accessor: "meta.category",
+      render: (row) => <span>{row?.meta?.category || "--"}</span>,
+    },
+    {
+      Header: "Course",
+      accessor: "meta.course_name",
+      render: (row) => <span>{row?.meta?.course_name || "--"}</span>,
+    },
+    {
+      Header: "Gender",
+      accessor: "meta.gender",
+      render: (row) => <span>{row?.meta?.gender || "Not Specified"}</span>,
+    },
+    {
+      Header: "Resume",
+      accessor: "meta.upload_resume",
+      render: (row) => (
+        <div className="flex gap-2 items-center">
+          <button
+            onClick={() => window.open(row?.meta?.upload_resume, "_blank")}
+            className="text-[#7ECA9D] px-2 py-1 hover:bg-blue-500 rounded-md transition-all duration-200"
+          >
+            <FaEye className="h-4 w-4 text-inherit" />
+          </button>
+        </div>
+      ),
+    },
+    // {
+    //   Header: "Resume",
+    //   accessor: "meta.upload_resume",
+    //   render: (row) => (
+    //     <div className="flex gap-2 items-center">
+    //       {Array.isArray(row?.meta?.upload_resume) && row.meta.upload_resume.length > 0 ? (
+    //         <button
+    //           onClick={() => window.open(row.meta.upload_resume[0], "_blank")}
+    //           className="text-[#7ECA9D] px-2 py-1 hover:bg-blue-500 rounded-md transition-all duration-200"
+    //         >
+    //           <FaEye className="h-4 w-4 text-inherit" />
+    //         </button>
+    //       ) : (
+    //         <span>--</span>
+    //       )}
+    //     </div>
+    //   ),
+    // },
     {
       Header: "Status",
       accessor: "status",

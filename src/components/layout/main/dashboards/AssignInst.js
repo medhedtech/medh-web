@@ -28,7 +28,7 @@ const schema = yup.object({
   full_name: yup.string().required("Instructor name is required"),
   email: yup.string().email().required("Instructor Email is required"),
   course_title: yup.string().required("Course name is required"),
-  course_type: yup.string().required("Course type is required"),
+  // course_type: yup.string().required("Course type is required"),
 });
 
 const AssignInstructor = () => {
@@ -187,9 +187,23 @@ const AssignInstructor = () => {
     setFullNameDropdownOpen((prev) => !prev);
   };
 
+  // const selectInstructor = (fullName) => {
+  //   setSelectedFullName(fullName);
+  //   setValue("full_name", fullName);
+  //   setFullNameDropdownOpen(false);
+  //   setSearchTermFullName("");
+  // };
+
   const selectInstructor = (fullName) => {
     setSelectedFullName(fullName);
     setValue("full_name", fullName);
+    // Find the instructor by full name
+    const instructor = instructors.find((ins) => ins.full_name === fullName);
+    if (instructor) {
+      setValue("email", instructor.email);
+      setValue("user_id", instructor._id);
+      setSelectedEmail(instructor.email);
+    }
     setFullNameDropdownOpen(false);
     setSearchTermFullName("");
   };
@@ -227,7 +241,7 @@ const AssignInstructor = () => {
           full_name: data.full_name,
           email: data.email,
           course_title: data.course_title,
-          course_type: data.course_type,
+          // course_type: data.course_type,
           user_id: data.user_id,
         },
         onSuccess: () => {
@@ -305,7 +319,7 @@ const AssignInstructor = () => {
           full_name: instructorDetails.full_name,
           email: instructorDetails.email,
           course_title: instructorDetails.course_title,
-          course_type: instructorDetails.course_type,
+          // course_type: instructorDetails.course_type,
         },
         onSuccess: () => {
           toast.success("Instructor updated successfully!");
@@ -334,7 +348,7 @@ const AssignInstructor = () => {
       accessor: "createdAt",
       render: (row) => formatDateTime(row?.createdAt),
     },
-    { Header: "Type", accessor: "course_type" },
+    // { Header: "Type", accessor: "course_type" },
     {
       Header: "Action",
       accessor: "actions",
@@ -560,7 +574,7 @@ const AssignInstructor = () => {
               </div>
 
               {/* Course Type */}
-              <div>
+              {/* <div>
                 <label className="block text-[#808080] text-xs px-2 font-medium mb-1">
                   Course Type
                   <span className="text-red-500 ml-1">*</span>
@@ -580,7 +594,7 @@ const AssignInstructor = () => {
                     {errors.course_type.message}
                   </p>
                 )}
-              </div>
+              </div> */}
             </div>
             <div className="flex justify-end mt-4">
               <button
@@ -624,7 +638,7 @@ const AssignInstructor = () => {
                 </label>
                 <select
                   value={instructorDetails.full_name || ""}
-                  disabled 
+                  disabled
                   onChange={(e) =>
                     setInstructorDetails({
                       ...instructorDetails,
@@ -683,7 +697,7 @@ const AssignInstructor = () => {
                   className="w-full px-4 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring focus:border-blue-300"
                 />
               </div>
-              <div>
+              {/* <div>
                 <label className="block text-gray-700 font-medium mb-1">
                   Course Type
                 </label>
@@ -703,7 +717,7 @@ const AssignInstructor = () => {
                   <option value="Corporate">Corporate</option>
                   <option value="Institute">Institute</option>
                 </select>
-              </div>
+              </div> */}
             </div>
             <div className="flex justify-end gap-2 mt-4">
               <button

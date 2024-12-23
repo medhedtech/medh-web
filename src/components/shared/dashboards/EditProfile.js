@@ -14,7 +14,6 @@ import { toast } from "react-toastify";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import moment from "moment";
-import ProfileDetails from "./ProfileDetails";
 
 const schema = yup.object({
   full_name: yup.string().required("Full name is required"),
@@ -27,8 +26,7 @@ const schema = yup.object({
     .date()
     .nullable()
     .typeError("Invalid date")
-    .max(new Date(), "Date of Birth cannot be in the future")
-    .required("Date of Birth is required"),
+    .max(new Date(), "Date of Birth cannot be in the future"),
   facebook_link: yup.string().url("Invalid URL"),
   linkedin_link: yup.string().url("Invalid URL"),
   twitter_link: yup.string().url("Invalid URL"),
@@ -65,9 +63,23 @@ const EditProfile = ({ onBackClick }) => {
     if (studentId) {
       getQuery({
         url: `${apiUrls?.user?.getDetailsbyId}/${studentId}`,
+        // onSuccess: (data) => {
+        //   setProfileData(data?.data);
+        //    if (profile?.age) {
+        //   setSelectedDate(moment(profile.age, "YYYY-MM-DD").toDate());
+        // }
+        //   reset(data?.data);
+        // },
         onSuccess: (data) => {
-          setProfileData(data?.data);
-          reset(data?.data);
+          const profile = data?.data;
+          setProfileData(profile);
+
+          // Set the DOB if it exists in the profile
+          if (profile?.age) {
+            setSelectedDate(moment(profile.age, "YYYY-MM-DD").toDate());
+          }
+
+          reset(profile);
         },
         onFail: (error) => {
           console.error("Failed to fetch user details:", error);
