@@ -16,6 +16,7 @@ import phone from "@/assets/images/log-sign/phone.svg";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import ReCAPTCHA from "react-google-recaptcha";
 
 const schema = yup
   .object({
@@ -46,6 +47,8 @@ const SignUpForm = () => {
   const [apiError, setApiError] = useState(null);
   const { postQuery, loading } = usePostQuery();
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [recaptchaValue, setRecaptchaValue] = useState(null);
+  const [recaptchaError, setRecaptchaError] = useState(false);
   const {
     register,
     handleSubmit,
@@ -54,11 +57,20 @@ const SignUpForm = () => {
     resolver: yupResolver(schema),
   });
 
+  const handleRecaptchaChange = (value) => {
+    setRecaptchaValue(value);
+    setRecaptchaError(false);
+  };
+
   const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
   const toggleConfirmPasswordVisibility = () =>
     setShowConfirmPassword((prev) => !prev);
 
   const onSubmit = async (data) => {
+    if (!recaptchaValue) {
+      setRecaptchaError(true);
+      return;
+    }
     setApiError(null);
     try {
       await postQuery({
@@ -71,6 +83,8 @@ const SignUpForm = () => {
           agree_terms: data?.agree_terms,
         },
         onSuccess: () => {
+          setRecaptchaError(false);
+          setRecaptchaValue(null);
           router.push("/login");
           toast.success("Registration successful!");
         },
@@ -274,7 +288,18 @@ const SignUpForm = () => {
               )}
             </div>
 
-            <div className="flex items-center cursor-pointer mb-4">
+            <ReCAPTCHA
+              sitekey="6LeNH5QqAAAAAO98HJ00v5yuCkLgHYCSvUEpGhLb"
+              onChange={handleRecaptchaChange}
+            />
+            {/* ReCAPTCHA Error Message */}
+            {recaptchaError && (
+              <span className="text-red-500 text-[12px]">
+                Please complete the ReCAPTCHA verification.
+              </span>
+            )}
+
+            <div className="flex items-center cursor-pointer my-2">
               <input
                 type="checkbox"
                 id="terms"
@@ -301,7 +326,7 @@ const SignUpForm = () => {
               </p>
             )}
 
-            <div className="mt-12 text-center">
+            <div className="mt-6 text-center">
               <button
                 type="submit"
                 className="text-size-15 rounded-[150px] text-whiteColor bg-primaryColor px-25px py-10px w-full border-2 border-primaryColor hover:text-primaryColor hover:bg-whiteColor inline-block group dark:hover:text-whiteColor dark:hover:bg-whiteColor-dark"
