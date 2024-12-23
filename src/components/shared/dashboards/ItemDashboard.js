@@ -81,8 +81,8 @@ const ItemDashboard = ({ item }) => {
             </Link>
           ) : (
             <div
-              onClick={handleItemClick}
-              // onClick={toggleDropdown} // Clicking on the heading will toggle the dropdown
+              // onClick={handleItemClick}
+              onClick={toggleDropdown} // Clicking on the heading will toggle the dropdown
               className="leading-1.8 flex gap-3 text-contentColor pl-10 cursor-pointer"
             >
               {icon} {name} {/* Render as heading if no path */}

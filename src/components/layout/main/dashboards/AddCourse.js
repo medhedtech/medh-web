@@ -57,7 +57,7 @@ const schema = yup.object({
         return isValidNumber || validTimeFormat.test(value);
       }
     ),
-    // .required("Session duration is required"),
+  // .required("Session duration is required"),
   course_description: yup.string().required("Course description is required"),
   course_fee: yup
     .number()
@@ -99,6 +99,7 @@ const AddCourse = () => {
     setValue,
     reset,
     watch,
+    trigger,
   } = useForm({
     resolver: yupResolver(schema),
   });
@@ -130,6 +131,12 @@ const AddCourse = () => {
       reset({ course_fee: "" });
     }
   }, [courseTag]);
+
+  useEffect(() => {
+    if (selected) {
+      trigger("category");
+    }
+  }, [selected, trigger]);
 
   const fetchAllCategories = () => {
     try {
@@ -230,65 +237,6 @@ const AddCourse = () => {
     }
   };
 
-  // const handleVideoUpload = async (e) => {
-  //   const file = e.target.files[0];
-  //   if (file) {
-  //     try {
-  //       const reader = new FileReader();
-  //       reader.readAsDataURL(file);
-  //       reader.onload = async () => {
-  //         const base64 = reader.result.split(",")[1];
-  //         const postData = { base64String: base64, fileType: "video" };
-
-  //         await postQuery({
-  //           url: apiUrls?.upload?.uploadMedia,
-  //           postData,
-  //           onSuccess: (data) => {
-  //             setCourseVideo(data?.data);
-  //             setValue("video", data?.data);
-  //             console.log("Video uploaded successfully:", data?.data);
-  //           },
-  //           onError: (error) => {
-  //             toast.error("Video upload failed. Please try again.");
-  //             console.error("Upload error:", error);
-  //           },
-  //         });
-  //       };
-  //     } catch (error) {
-  //       console.error("Error uploading video:", error);
-  //     }
-  //   }
-  // };
-
-  // const handlePdfUpload = async (e) => {
-  //   const file = e.target.files[0];
-  //   if (file) {
-  //     try {
-  //       const reader = new FileReader();
-  //       reader.readAsDataURL(file);
-  //       reader.onload = async () => {
-  //         const base64 = reader.result;
-  //         const postData = { base64String: base64 };
-
-  //         await postQuery({
-  //           url: apiUrls?.upload?.uploadDocument,
-  //           postData,
-  //           onSuccess: (data) => {
-  //             console.log("PDF uploaded successfully:", data?.data);
-  //             setPdfBrochure(data?.data);
-  //           },
-  //           onError: (error) => {
-  //             toast.error("PDF upload failed. Please try again.");
-  //             console.error("Upload error:", error);
-  //           },
-  //         });
-  //       };
-  //     } catch (error) {
-  //       console.error("Error uploading PDF:", error);
-  //     }
-  //   }
-  // };
-
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -318,33 +266,6 @@ const AddCourse = () => {
       }
     }
   };
-
-  // // Handle form submission
-  // const onSubmit = async (data) => {
-  //   try {
-  //     const postData = {
-  //       ...data,
-  //       course_videos: courseVideo ? [courseVideo] : [],
-  //       brochures: pdfBrochure ? [pdfBrochure] : [],
-  //     };
-
-  //     await postQuery({
-  //       url: apiUrls?.courses?.createCourse,
-  //       postData,
-  //       onSuccess: () => {
-  //         router.push("/dashboards/admin-add-data");
-  //         toast.success("Course added successfully!");
-  //       },
-  //       onFail: (error) => {
-  //         toast.error("Adding course failed. Please try again.");
-  //         console.log("Adding course failed:", error);
-  //       },
-  //     });
-  //   } catch (error) {
-  //     console.error("An unexpected error occurred:", error);
-  //     toast.error("An unexpected error occurred. Please try again.");
-  //   }
-  // };
 
   const onSubmit = async (data) => {
     try {
@@ -392,6 +313,20 @@ const AddCourse = () => {
     e.preventDefault();
     setCurriculumModalOpen(true);
     setValue("curriculum", curriculum);
+  };
+
+  const removeVideo = (index) => {
+    const updatedVideos = [...courseVideos];
+    updatedVideos.splice(index, 1);
+    setCourseVideos(updatedVideos);
+  };
+
+  const removePdf = (index) => {
+    setPdfBrochures((prevFiles) => prevFiles.filter((_, i) => i !== index));
+  };
+
+  const removeImage = () => {
+    setThumbnailImage(null);
   };
 
   useEffect(() => {
@@ -520,6 +455,57 @@ const AddCourse = () => {
                         filteredCategories.map((category) => (
                           <li
                             key={category._id}
+                            className="hover:bg-gray-100 rounded-lg cursor-pointer flex gap-3 px-3 py-3"
+                            onClick={() => {
+                              selectCategory(category.category_name); // Update form value and trigger validation
+                              trigger("category"); // Trigger validation for the category field
+                            }}
+                          >
+                            <Image
+                              src={category.category_image}
+                              alt={category.category_title}
+                              width={32}
+                              height={32}
+                              className="rounded-full"
+                            />
+                            {category.category_name}
+                          </li>
+                        ))
+                      ) : (
+                        <li className="p-2 text-gray-500">No results found</li>
+                      )}
+                    </ul>
+                  </div>
+                )}
+              </div>
+              {errors.category && (
+                <p className="text-red-500 text-xs">
+                  {errors.category.message}
+                </p>
+              )}
+            </div>
+            {/* <div className="relative" ref={dropdownRef}>
+              <label className="block text-sm font-normal mb-1">
+                Course Category <span className="text-red-500">*</span>
+              </label>
+              <div className="p-3 border rounded-lg w-full dark:bg-inherit text-gray-600">
+                <button className="w-full text-left" onClick={toggleDropdown}>
+                  {selected || "Select Category"}
+                </button>
+                {dropdownOpen && (
+                  <div className="absolute z-10 left-0 top-20 bg-white border border-gray-600 rounded-lg w-full shadow-xl">
+                    <input
+                      type="text"
+                      className="w-full p-2 border-b focus:outline-none rounded-lg"
+                      placeholder="Search..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                    <ul className="max-h-56 overflow-auto">
+                      {filteredCategories.length > 0 ? (
+                        filteredCategories.map((category) => (
+                          <li
+                            key={category._id}
                             className=" hover:bg-gray-100 rounded-lg cursor-pointer flex gap-3 px-3 py-3"
                             onClick={() =>
                               selectCategory(category.category_name)
@@ -547,7 +533,7 @@ const AddCourse = () => {
                   {errors.category.message}
                 </p>
               )}
-            </div>
+            </div> */}
 
             <div>
               <label className="block text-sm font-normal mb-1">
@@ -723,41 +709,6 @@ const AddCourse = () => {
               )}
             </div>
 
-            {/* <div>
-              <label className="block text-sm font-normal mb-1">
-                Course Fee
-                <span className="text-red-500 ml-1">*</span>
-              </label>
-              <div className="flex gap-2">
-                <select
-                  className="p-3 border rounded-lg text-gray-600 dark:bg-inherit"
-                  {...register("currency", { required: true })}
-                >
-                  <option value="USD">USD</option>
-                  <option value="INR">INR</option>
-                </select>
-
-                <input
-                  type="text"
-                  placeholder="Enter amount"
-                  className="p-3 border rounded-lg w-full text-gray-600 dark:bg-inherit placeholder-gray-400"
-                  {...register("course_fee", {
-                    required: "Course fee is required",
-                  })}
-                />
-              </div> */}
-
-            {/* Error messages */}
-            {/* {errors.currency && (
-                <p className="text-red-500 text-xs">Currency is required.</p>
-              )}
-              {errors.course_fee && (
-                <p className="text-red-500 text-xs">
-                  {errors.course_fee.message}
-                </p>
-              )}
-            </div> */}
-
             <div>
               <label className="block text-sm font-normal mb-1">
                 Course Grade
@@ -787,23 +738,6 @@ const AddCourse = () => {
               )}
             </div>
 
-            {/* <div>
-              <label className="block text-sm font-normal mb-1">
-                Course Description
-                <span className="text-red-500 ml-1">*</span>
-              </label>
-              <input
-                type="textarea"
-                placeholder="Write description"
-                className="p-3 border rounded-lg w-full text-gray-600 dark:bg-inherit placeholder-gray-400"
-                {...register("course_description")}
-              />
-              {errors.course_description && (
-                <p className="text-red-500 text-xs">
-                  {errors.course_description.message}
-                </p>
-              )}
-            </div> */}
             <div>
               <label className="block text-sm font-normal mb-1">
                 Course Description
@@ -902,6 +836,29 @@ const AddCourse = () => {
                   <p className="mt-1 text-xs text-gray-500">✔ Uploaded</p>
                 )}
               </div>
+              {/* Uploaded Course Videos */}
+              <div className="w-[210px] text-center relative">
+                {courseVideos.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {courseVideos.map((fileUrl, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between bg-[#e9e9e9] p-2 rounded-md text-sm w-full md:w-auto"
+                      >
+                        <span className="truncate text-[#5C5C5C] max-w-[150px]">
+                          Video {index + 1}
+                        </span>
+                        <button
+                          onClick={() => removeVideo(index)}
+                          className="ml-2 text-[20px] text-[#5C5C5C] hover:text-red-700"
+                        >
+                          x
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* PDF Brochure Upload */}
@@ -941,6 +898,28 @@ const AddCourse = () => {
                   <p className="mt-1 text-xs text-gray-500">✔ Uploaded</p>
                 )}
               </div>
+              <div className="w-[210px] text-center relative">
+                {pdfBrochures.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {pdfBrochures.map((fileUrl, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between bg-[#e9e9e9] p-2 rounded-md text-sm w-full md:w-auto"
+                      >
+                        <span className="truncate text-[#5C5C5C] max-w-[150px]">
+                          Pdf {index + 1}
+                        </span>
+                        <button
+                          onClick={() => removePdf(index)}
+                          className="ml-2 text-[20px] text-[#5C5C5C] hover:text-red-700"
+                        >
+                          x
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Thumbnail Image Upload */}
@@ -975,6 +954,24 @@ const AddCourse = () => {
                 />
                 {thumbnailImage && (
                   <p className="mt-1 text-xs text-gray-500">✔ Uploaded</p>
+                )}
+              </div>
+
+              <div className="w-[210px] text-center relative">
+                {thumbnailImage && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <div className="flex items-center justify-between bg-[#e9e9e9] p-2 rounded-md text-sm w-full md:w-auto">
+                      <span className="truncate text-[#5C5C5C] max-w-[150px]">
+                        Image Uploaded
+                      </span>
+                      <button
+                        onClick={removeImage}
+                        className="ml-2 text-[20px] text-[#5C5C5C] hover:text-red-700"
+                      >
+                        x
+                      </button>
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
