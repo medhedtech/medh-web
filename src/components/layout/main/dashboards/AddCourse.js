@@ -64,6 +64,11 @@ const schema = yup.object({
     .typeError("Course fee must be a number")
     .required("Course fee is required"),
   course_grade: yup.string().required("Grade is required"),
+  is_Certification: yup.string().required("This field is required"),
+  is_Assignments: yup.string().required("This field is required"),
+  is_Projects: yup.string().required("This field is required"),
+  efforts_per_Week: yup.string().required("This field is required"),
+  is_Quizes: yup.string().required("This field is required"),
 });
 
 const AddCourse = () => {
@@ -484,56 +489,6 @@ const AddCourse = () => {
                 </p>
               )}
             </div>
-            {/* <div className="relative" ref={dropdownRef}>
-              <label className="block text-sm font-normal mb-1">
-                Course Category <span className="text-red-500">*</span>
-              </label>
-              <div className="p-3 border rounded-lg w-full dark:bg-inherit text-gray-600">
-                <button className="w-full text-left" onClick={toggleDropdown}>
-                  {selected || "Select Category"}
-                </button>
-                {dropdownOpen && (
-                  <div className="absolute z-10 left-0 top-20 bg-white border border-gray-600 rounded-lg w-full shadow-xl">
-                    <input
-                      type="text"
-                      className="w-full p-2 border-b focus:outline-none rounded-lg"
-                      placeholder="Search..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                    <ul className="max-h-56 overflow-auto">
-                      {filteredCategories.length > 0 ? (
-                        filteredCategories.map((category) => (
-                          <li
-                            key={category._id}
-                            className=" hover:bg-gray-100 rounded-lg cursor-pointer flex gap-3 px-3 py-3"
-                            onClick={() =>
-                              selectCategory(category.category_name)
-                            }
-                          >
-                            <Image
-                              src={category.category_image}
-                              alt={category.category_title}
-                              width={32}
-                              height={32}
-                              className="rounded-full"
-                            />
-                            {category.category_name}
-                          </li>
-                        ))
-                      ) : (
-                        <li className="p-2 text-gray-500">No results found</li>
-                      )}
-                    </ul>
-                  </div>
-                )}
-              </div>
-              {errors.category && (
-                <p className="text-red-500 text-xs">
-                  {errors.category.message}
-                </p>
-              )}
-            </div> */}
 
             <div>
               <label className="block text-sm font-normal mb-1">
@@ -738,6 +693,122 @@ const AddCourse = () => {
               )}
             </div>
 
+            <div>
+              <label className="block text-sm font-normal mb-1">
+                Certificate<span className="text-red-500 ml-1">*</span>
+              </label>
+              <select
+                className="p-3 border rounded-lg w-full dark:bg-inherit text-gray-600"
+                {...register("is_Certification")}
+              >
+                <option value="">Select...</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+              </select>
+              {errors.is_Certification && (
+                <p className="text-red-500 text-xs">
+                  {errors.is_Certification.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-normal mb-1">
+                Assignments<span className="text-red-500 ml-1">*</span>
+              </label>
+              <select
+                className="p-3 border rounded-lg w-full dark:bg-inherit text-gray-600"
+                {...register("is_Assignments")}
+              >
+                <option value="">Select...</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+              </select>
+              {errors.is_Assignments && (
+                <p className="text-red-500 text-xs">
+                  {errors.is_Assignments.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-normal mb-1">
+                Class Type
+                <span className="text-red-500 ml-1">*</span>
+              </label>
+              <select
+                className="p-3 border rounded-lg w-full dark:bg-inherit text-gray-600"
+                {...register("class_type")}
+              >
+                <option value="">Select...</option>
+                <option value="Self-Paced">Self-Paced</option>
+                <option value="Weekends / Weekdays">Weekends / Weekdays</option>
+              </select>
+              {errors.class_type && (
+                <p className="text-red-500 text-xs">
+                  {errors.class_type.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-normal mb-1">
+                Projects
+                <span className="text-red-500 ml-1">*</span>
+              </label>
+              <select
+                className="p-3 border rounded-lg w-full dark:bg-inherit text-gray-600"
+                {...register("is_Projects")}
+              >
+                <option value="">Select...</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+              </select>
+              {errors.is_Projects && (
+                <p className="text-red-500 text-xs">
+                  {errors.is_Projects.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-normal mb-1">
+                Quizes
+                <span className="text-red-500 ml-1">*</span>
+              </label>
+              <select
+                className="p-3 border rounded-lg w-full dark:bg-inherit text-gray-600"
+                {...register("is_Quizes")}
+              >
+                <option value="">Select...</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+              </select>
+              {errors.is_Quizes && (
+                <p className="text-red-500 text-xs">
+                  {errors.is_Quizes.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-normal mb-1">
+                Efforts (For Students) Per Week
+                <span className="text-red-500 ml-1">*</span> (3 - 4 hours /
+                week)
+              </label>
+              <input
+                type="text"
+                placeholder="e.g., 3 hours per week"
+                className="p-3 border rounded-lg w-full text-[#808080] dark:bg-inherit placeholder-gray-400"
+                {...register("efforts_per_Week")}
+              />
+              {errors.efforts_per_Week && (
+                <p className="text-red-500 text-xs">
+                  {errors.efforts_per_Week.message}
+                </p>
+              )}
+            </div>
             <div>
               <label className="block text-sm font-normal mb-1">
                 Course Description
