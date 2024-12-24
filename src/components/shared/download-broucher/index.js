@@ -130,7 +130,7 @@ const DownloadBrochureModal = ({ isOpen, onClose, courseTitle }) => {
   return (
     <>
       <div className="fixed z-50 inset-0 flex items-center justify-center bg-black bg-opacity-50">
-        <div className="bg-white rounded-lg w-100 py-6 px-4 relative">
+        <div className="bg-white rounded-lg w-[95%] sm:w-100 sm:py-6 py-4 px-4 relative">
           <div className="flex border-b-2">
             <button
               onClick={onClose}
@@ -138,25 +138,25 @@ const DownloadBrochureModal = ({ isOpen, onClose, courseTitle }) => {
             >
               &times;
             </button>
-            <h2 className="text-xl font-Poppins font-semibold mb-4">
+            <h2 className="sm:text-xl text-sm font-Poppins font-semibold mb-4">
               Download Brochure
             </h2>
           </div>
-          <h3 className="text-xl font-medium text-[#FFB547] my-4">
+          <h3 className="sm:text-xl text:sm font-medium text-[#FFB547] my-4">
             Certificate Course in
             <br />
-            <span className="font-bold text-2xl text-[#FFA63E]">
+            <span className="font-bold sm:text-2xl text:xl  text-[#FFA63E]">
               {courseTitle || "Course Title"}
             </span>
           </h3>
 
-          <form className="space-y-4" onSubmit={handleSubmit}>
+          <form className="space-y-2 sm:space-y-4" onSubmit={handleSubmit}>
             <div>
               <input
                 type="text"
                 name="full_name"
                 placeholder="Your Name*"
-                className="w-full px-4 py-2 border rounded focus:outline-none focus:border-[#FFA63E]"
+                className="w-full px-2 py-2 border rounded focus:outline-none focus:border-[#FFA63E]"
                 value={formData.full_name}
                 onChange={handleChange}
               />
@@ -170,7 +170,7 @@ const DownloadBrochureModal = ({ isOpen, onClose, courseTitle }) => {
                 type="email"
                 name="email"
                 placeholder="Your Email*"
-                className="w-full px-4 py-2 border rounded focus:outline-none focus:border-[#FFA63E]"
+                className="w-full px-2 py-2 border rounded focus:outline-none focus:border-[#FFA63E]"
                 value={formData.email}
                 onChange={handleChange}
               />
@@ -182,7 +182,7 @@ const DownloadBrochureModal = ({ isOpen, onClose, courseTitle }) => {
             <div className="flex space-x-2">
               <select
                 name="country_code"
-                className="px-4 text-black py-2 border rounded w-1/3 focus:outline-none focus:border-[#FFA63E]"
+                className="px-2 text-black py-2 border rounded w-1/2 focus:outline-none focus:border-[#FFA63E]"
                 value={formData.country_code}
                 onChange={handleChange}
               >
