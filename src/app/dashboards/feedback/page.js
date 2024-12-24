@@ -1,4 +1,4 @@
-import FeedbackandSupport from "@/components/layout/main/dashboards/FeedbackandSupport";
+import ProtectedPage from "@/app/protectedRoutes";
 import FeedbackPage from "@/components/layout/main/dashboards/FeedbackPage";
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
 
@@ -7,15 +7,14 @@ import React from "react";
 
 const Feedback = () => {
   return (
-    <div>
+    <ProtectedPage>
       <main>
         <DashboardContainer>
           <FeedbackPage />
-
           <ThemeController />
         </DashboardContainer>
       </main>
-    </div>
+    </ProtectedPage>
   );
 };
 
