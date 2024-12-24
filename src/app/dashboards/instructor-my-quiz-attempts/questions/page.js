@@ -1,3 +1,4 @@
+import ProtectedPage from "@/app/protectedRoutes";
 import QuizQuestionsDetails from "@/components/sections/sub-section/dashboards/View-Questions";
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
@@ -6,15 +7,15 @@ import React from "react";
 
 const page = () => {
   return (
-    <div>
+    <ProtectedPage>
       <DashboardContainer>
         <div className="px-8">
-        <HeadingDashboard />
+          <HeadingDashboard />
         </div>
         <QuizQuestionsDetails />
       </DashboardContainer>
       <ThemeController />
-    </div>
+    </ProtectedPage>
   );
 };
 

@@ -1,3 +1,4 @@
+import ProtectedPage from "@/app/protectedRoutes";
 import InstructorMessageMain from "@/components/layout/main/dashboards/InstructorMessageMain";
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
 import ThemeController from "@/components/shared/others/ThemeController";
@@ -9,13 +10,14 @@ export const metadata = {
 };
 const Instructor_Message = () => {
   return (
-    <main>
-      <DashboardContainer>
-        <InstructorMessageMain />
-      </DashboardContainer>
-
-      <ThemeController />
-    </main>
+    <ProtectedPage>
+      <main>
+        <DashboardContainer>
+          <InstructorMessageMain />
+        </DashboardContainer>
+        <ThemeController />
+      </main>
+    </ProtectedPage>
   );
 };
 
