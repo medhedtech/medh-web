@@ -1,5 +1,5 @@
-// ProtectedPage.js
 "use client";
+
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
@@ -8,7 +8,6 @@ const ProtectedPage = ({ children }) => {
   const router = useRouter();
 
   useEffect(() => {
-    // Check token in localStorage on page load
     const token = localStorage.getItem("token");
 
     if (!token) {
@@ -16,7 +15,6 @@ const ProtectedPage = ({ children }) => {
       router.push("/login");
     } else {
       try {
-        // Decode the token
         const decoded = jwtDecode(token);
         const currentTime = Math.floor(Date.now() / 1000);
         if (decoded.exp < currentTime) {

@@ -1,3 +1,4 @@
+import ProtectedPage from "@/app/protectedRoutes";
 import InstructorSettingsMain from "@/components/layout/main/dashboards/InstructorSettingsMain";
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
 import ThemeController from "@/components/shared/others/ThemeController";
@@ -9,16 +10,18 @@ export const metadata = {
 };
 const Instructor_Setting = () => {
   return (
-    <PageWrapper>
-      <main>
-        <DsahboardWrapper>
-          <DashboardContainer>
-            <InstructorSettingsMain />
-          </DashboardContainer>
-        </DsahboardWrapper>
-        <ThemeController />
-      </main>
-    </PageWrapper>
+    <ProtectedPage>
+      <PageWrapper>
+        <main>
+          <DsahboardWrapper>
+            <DashboardContainer>
+              <InstructorSettingsMain />
+            </DashboardContainer>
+          </DsahboardWrapper>
+          <ThemeController />
+        </main>
+      </PageWrapper>
+    </ProtectedPage>
   );
 };
 
