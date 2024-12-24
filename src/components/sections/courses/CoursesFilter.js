@@ -11,7 +11,7 @@ import Preloader2 from "@/components/shared/others/Preloader2";
 
 const categories = [
   "AI and Data Science",
-  "AI for Professionals",
+  "AI For Professionals",
   "Business And Management",
   "Career Development",
   "Communication & Soft Skills",
