@@ -159,6 +159,7 @@ export const apiUrls = {
     getUpcomingCoursesByStudentId: "/enroll/get-upcoming-meetings",
     getEnrolledStudentsByCourseId: "/enroll/course",
     watchModule: "/enroll/watch",
+    getEnrolledStudents: "/enroll/get-enrolled-students",
   },
   Subscription: {
     AddSubscription: "/subscription/create",

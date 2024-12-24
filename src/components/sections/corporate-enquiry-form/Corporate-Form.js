@@ -168,7 +168,7 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
                 </h3>
                 <form
                   onSubmit={handleSubmit(onSubmit)}
-                  className="p-[35px] bg-lightGrey10 dark:bg-lightGrey10-dark shadow-experience"
+                  className="sm:p-[35px] p-[12px] bg-lightGrey10 dark:bg-lightGrey10-dark shadow-experience"
                   data-aos="fade-up"
                 >
                   <div className="flex gap-4 flex-col md:flex-row">
