@@ -18,3 +18,14 @@
   animation: wavyBorder 4s ease-in-out infinite;
   transition: all 0.98s ease;
 }
+
+@media (max-width: 768px) {
+  .wavy-oval {
+    width: 300px;
+    height: 200px;
+  }
+
+  .main-banner p {
+    font-size: 0.9rem;
+  }
+}
