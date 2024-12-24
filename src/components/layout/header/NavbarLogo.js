@@ -3,9 +3,7 @@ import React, { useState } from "react";
 import logo1 from "@/assets/images/logo/medh_logo-1.png";
 import Link from "next/link";
 import NavbarMenu from "./NavbarMenu";
-import { Button } from "@mui/material";
 import ProgramsMenu from "./ProgramMenu";
-import { FaTimes } from "react-icons/fa";
 import { LogIn } from "lucide-react";
 
 const NavbarLogo = () => {
