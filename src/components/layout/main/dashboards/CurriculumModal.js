@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import Preloader from "@/components/shared/others/Preloader";
 
 const CurriculumModal = ({ onClose, curriculum, setCurriculum }) => {
-//   const [weeks, setWeeks] = useState([{ title: "", description: "" }]);
+  //   const [weeks, setWeeks] = useState([{ title: "", description: "" }]);
   const [loading, setLoading] = useState(false);
 
   const handleAddWeek = () => {
@@ -24,7 +24,7 @@ const CurriculumModal = ({ onClose, curriculum, setCurriculum }) => {
   const handleProceed = () => {
     console.log("Proceeding with curriculum:", curriculum);
     setLoading(true);
-    setCurriculum(curriculum)
+    setCurriculum(curriculum);
     // Handle submission logic here, e.g., API call
     setTimeout(() => {
       setLoading(false);
@@ -35,7 +35,8 @@ const CurriculumModal = ({ onClose, curriculum, setCurriculum }) => {
   const canProceed =
     curriculum.length > 0 &&
     curriculum.every(
-      (week) => week.weekTitle.trim() !== "" && week.weekDescription.trim() !== ""
+      (week) =>
+        week.weekTitle.trim() !== "" && week.weekDescription.trim() !== ""
     );
 
   return (
@@ -68,42 +69,45 @@ const CurriculumModal = ({ onClose, curriculum, setCurriculum }) => {
 
               {/* Content */}
               <div className="p-6 overflow-y-auto flex-1">
-                {curriculum && curriculum.map((week, index) => (
-                  <div key={index} className="mb-4 border-b pb-4">
-                    <div className="flex justify-between items-center mb-2">
-                      <h4 className="text-sm font-medium">Week {index + 1}</h4>
-                      <button
-                        onClick={() => handleDeleteWeek(index)}
-                        className="text-red-500 hover:text-red-600 text-sm"
-                      >
-                        <Trash2 className="w-5"/>
-                      </button>
+                {curriculum &&
+                  curriculum.map((week, index) => (
+                    <div key={index} className="mb-4 border-b pb-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <h4 className="text-sm font-medium">
+                          Field {index + 1}
+                        </h4>
+                        <button
+                          onClick={() => handleDeleteWeek(index)}
+                          className="text-red-500 hover:text-red-600 text-sm"
+                        >
+                          <Trash2 className="w-5" />
+                        </button>
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="Title"
+                        value={week.weekTitle}
+                        onChange={(e) =>
+                          handleChange(index, "weekTitle", e.target.value)
+                        }
+                        className="w-full p-2 mb-2 border border-gray-300 rounded-md"
+                      />
+                      <textarea
+                        placeholder="Description"
+                        value={week.weekDescription}
+                        onChange={(e) =>
+                          handleChange(index, "weekDescription", e.target.value)
+                        }
+                        className="w-full p-2 border border-gray-300 rounded-md"
+                      />
                     </div>
-                    <input
-                      type="text"
-                      placeholder="Week Title"
-                      value={week.weekTitle}
-                      onChange={(e) =>
-                        handleChange(index, "weekTitle", e.target.value)
-                      }
-                      className="w-full p-2 mb-2 border border-gray-300 rounded-md"
-                    />
-                    <textarea
-                      placeholder="Week Description"
-                      value={week.weekDescription}
-                      onChange={(e) =>
-                        handleChange(index, "weekDescription", e.target.value)
-                      }
-                      className="w-full p-2 border border-gray-300 rounded-md"
-                    />
-                  </div>
-                ))}
+                  ))}
                 <button
                   onClick={handleAddWeek}
                   className="flex gap-1 items-center justify-center px-3 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors text-xs"
                 >
-                  <Plus className="w-4"/>
-                  <span>Add Week</span>
+                  <Plus className="w-4" />
+                  <span>Add Field</span>
                 </button>
               </div>
 
