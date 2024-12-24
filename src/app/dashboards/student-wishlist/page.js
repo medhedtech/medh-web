@@ -1,3 +1,4 @@
+import ProtectedPage from "@/app/protectedRoutes";
 import StudentWishlistMain from "@/components/layout/main/dashboards/StudentWishlistMain";
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
 import ThemeController from "@/components/shared/others/ThemeController";
@@ -9,16 +10,18 @@ export const metadata = {
 };
 const Student_Wishlist = () => {
   return (
-    <PageWrapper>
-      <main>
-        <DsahboardWrapper>
-          <DashboardContainer>
-            <StudentWishlistMain />
-          </DashboardContainer>
-        </DsahboardWrapper>
-        <ThemeController />
-      </main>
-    </PageWrapper>
+    <ProtectedPage>
+      <PageWrapper>
+        <main>
+          <DsahboardWrapper>
+            <DashboardContainer>
+              <StudentWishlistMain />
+            </DashboardContainer>
+          </DsahboardWrapper>
+          <ThemeController />
+        </main>
+      </PageWrapper>
+    </ProtectedPage>
   );
 };
 
