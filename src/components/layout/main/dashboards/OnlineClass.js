@@ -1,6 +1,11 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
-import { FaCalendarAlt, FaClock } from "react-icons/fa";
+import {
+  FaCalendarAlt,
+  FaClock,
+  FaRegCalendarAlt,
+  FaRegSadCry,
+} from "react-icons/fa";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import TimePicker from "rc-time-picker";
@@ -523,8 +528,20 @@ const OnlineMeeting = () => {
               </div>
             ))
           ) : (
-            <p className="text-gray-600 text-center w-full">
-              No meetings found
+            <p className="w-full py-6 px-8 text-center text-gray-600 bg-gray-100 rounded-lg shadow-md">
+              <span className="text-2xl font-semibold text-gray-800">
+                No meetings available
+              </span>
+              <br />
+              <span className="text-sm text-gray-500">
+                We couldn&#39;t find any created meetings yet.
+              </span>
+              <div className="mt-4">
+                <FaRegCalendarAlt
+                  size={40}
+                  className="text-gray-400 animate-pulse mx-auto"
+                />
+              </div>
             </p>
           )}
         </div>
@@ -548,7 +565,7 @@ const OnlineMeeting = () => {
                   X
                 </button>
               </div>
-              <p className="text-sm mb-4">
+              {/* <p className="text-sm mb-4">
                 <strong>Create the Link</strong>
                 <br />
                 1. Go to{" "}
@@ -562,38 +579,25 @@ const OnlineMeeting = () => {
                 and generate a link.
                 <br />
                 2. Copy the Link and Paste below
+              </p> */}
+              <p className="text-sm mb-4">
+                <strong>Create the Link</strong>
+                <br />
+                1. Go to{" "}
+                <a
+                  href="https://zoom.us/meeting"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-green-500 hover:underline"
+                >
+                  Zoom Meetings
+                </a>{" "}
+                and generate a link.
+                <br />
+                2. Copy the Zoom Meeting Link and paste it below.
               </p>
               <form onSubmit={handleSubmit(onSubmit)}>
-                {/* Course Name Dropdown */}
-                {/* <div className="mb-4">
-                  <label
-                    htmlFor="category"
-                    className="block text-sm font-medium  text-gray-600 mb-2"
-                  >
-                    Course Category
-                    <span className="text-red-500 ml-1">*</span>
-                  </label>
-                  <select
-                    {...register("category")}
-                    className="w-full p-2 border rounded-lg text-gray-600"
-                    onChange={(e) => setSelectedCategory(e.target.value)}
-                  >
-                    <option value="">Select Category</option>
-                    {categories &&
-                      categories.map((category, index) => (
-                        <option key={index} value={category.category_name}>
-                          {category.category_name}
-                        </option>
-                      ))}
-                  </select>
-
-                  {errors.category && (
-                    <p className="text-red-500 text-xs">
-                      {errors.category.message}
-                    </p>
-                  )}
-                </div> */}
-
+                {/* Course Category Dropdown */}
                 <div className="relative" ref={dropdownRef}>
                   <label
                     htmlFor="category"
@@ -713,36 +717,6 @@ const OnlineMeeting = () => {
                   )}
                 </div>
 
-                {/* <div className="mb-4">
-                  <label
-                    htmlFor="course_name"
-                    className="block text-sm font-medium  text-gray-600 mb-2"
-                  >
-                    Course Name
-                    <span className="text-red-500 ml-1">*</span>
-                  </label>
-                  <select
-                    {...register("course_name")}
-                    className="w-full p-2 border rounded-lg text-gray-600"
-                    value={selectedCourseId || ""}
-                    onChange={(e) => setSelectedCourseId(e.target.value)}
-                  >
-                    <option value="">Select Course</option>
-                    {filteredCourses &&
-                      filteredCourses.map((course, index) => (
-                        <option key={index} value={course._id}>
-                          {course.course_title}
-                        </option>
-                      ))}
-                  </select>
-
-                  {errors.course_name && (
-                    <p className="text-red-500 text-xs">
-                      {errors.course_name.message}
-                    </p>
-                  )}
-                </div> */}
-
                 <div className="mb-4">
                   <label
                     htmlFor="students"
@@ -842,7 +816,7 @@ const OnlineMeeting = () => {
                     htmlFor="meeting_tag"
                     className="block text-sm font-medium text-gray-600 mb-2"
                   >
-                    Meeting Tag
+                    Session Tag
                     <span className="text-red-500 ml-1">*</span>
                   </label>
                   <select
@@ -854,7 +828,7 @@ const OnlineMeeting = () => {
                     defaultValue=""
                   >
                     <option value="" disabled>
-                      Select Tag
+                      Select session
                     </option>
                     <option value="live">Live</option>
                     <option value="demo">Demo</option>
@@ -874,7 +848,7 @@ const OnlineMeeting = () => {
                     htmlFor="meet_link"
                     className="block text-sm font-medium text-gray-600 mb-2"
                   >
-                    Meet Link
+                    Meeting Link
                     <span className="text-red-500 ml-1">*</span>
                   </label>
                   <input
@@ -896,7 +870,7 @@ const OnlineMeeting = () => {
                     htmlFor="meet_title"
                     className="block text-sm font-medium text-gray-600 mb-2"
                   >
-                    Meet Title
+                    Meeting Title
                     <span className="text-red-500 ml-1">*</span>
                   </label>
                   <input
