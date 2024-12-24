@@ -6,13 +6,13 @@ const BrandHero = () => {
   return (
     <div>
       <div data-aos="fade-up " className="dark:bg-screen-dark">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 pt-0 gap-2 lg:gap-0">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 pt-0 gap-0 lg:gap-0">
           {/* Left Section */}
           <div className="bg-[#7ECA9D] text-white flex flex-col p-6 lg:p-10">
             <h1 className="font-semibold font-Poppins text-xl lg:text-2xl pt-2">
               50+ Medh Upskill Courses
             </h1>
-            <span className="mt-4 text-sm sm:text-base lg:text-lg font-light font-Open leading-relaxed">
+            <span className="mt-4 text-sm w-[80%] sm:w-full sm:text-base lg:text-lg font-light font-Open leading-relaxed">
               In high-demand domains like AI, Cybersecurity Career Development,
               Data Analytics, etc.
             </span>
@@ -33,17 +33,17 @@ const BrandHero = () => {
               objectFit="cover"
               className="absolute inset-0 z-0"
             />
-            <div className="relative z-10 flex flex-col gap-4 lg:gap-6 bg-opacity-70">
+            <div className="relative z-10 flex flex-col gap-0 lg:gap-6 bg-opacity-70">
               <h1 className="font-semibold font-Poppins text-xl lg:text-2xl pt-2">
                 Explore Medh Membership
               </h1>
-              <span className="text-sm sm:text-base lg:text-lg font-light font-Open leading-relaxed">
+              <span className="text-sm sm:text-base w-[70%] sm:w-full mt-[1.2rem] sm:mt-0 lg:text-lg font-light font-Open leading-relaxed">
                 Achieve mastery in your chosen domain by gaining comprehensive
                 expertise.
               </span>
               <a
                 href="/medh-membership"
-                className="text-sm sm:text-base lg:text-lg underline underline-offset-4 text-blue-600 hover:text-blue-800 transition-all"
+                className="text-sm sm:text-base mt-[1.2rem] sm:mt-0 lg:text-lg underline underline-offset-4 text-blue-600 hover:text-blue-800 transition-all"
               >
                 View Memberships +
               </a>
@@ -55,7 +55,7 @@ const BrandHero = () => {
             <h1 className="font-semibold font-Poppins text-xl lg:text-2xl pt-2">
               Earn a Course Certificate
             </h1>
-            <span className="mt-4 text-sm sm:text-base lg:text-lg font-light font-Open leading-relaxed">
+            <span className=" text-sm sm:text-base w-[80%] sm:w-full mt-[1.2rem] sm:mt-4 lg:text-lg font-light font-Open leading-relaxed">
               Nurture skills and elevate your career with industry-recognized
               certifications upon completion.
             </span>
@@ -80,7 +80,7 @@ const BrandHero = () => {
               <h1 className="font-semibold font-Poppins text-xl lg:text-2xl pt-2">
                 100% Placement Guranteed
               </h1>
-              <span className="text-sm sm:text-base lg:text-lg font-light font-Open leading-relaxed">
+              <span className="text-sm sm:text-base w-[82%] sm:w-full mt-[.2rem] sm:mt-0 lg:text-lg font-light font-Open leading-relaxed">
                 Secure your future with assured placement in our selected job-
                 guaranteed Courses.
               </span>
@@ -97,7 +97,7 @@ const BrandHero = () => {
 
       {/* Section Below */}
       <section data-aos="fade-up">
-        <div className="flex flex-col items-center text-center font-Ubuntu bg-[#FFF0F7] dark:bg-[#09041d] py-8 px-4">
+        <div className="flex flex-col items-center text-center font-Ubuntu sm:bg-[#FFF0F7] bg-[#F3F6FB] dark:bg-[#09041d] py-8 px-4">
           <h1 className="font-Open font-bold text-[#5C6574] text-[20px] lg:text-[26px] leading-8 mt-8 lg:w-[674px] dark:text-white">
             Welcome to <span className="text-[#7ECA9D]">Medh</span> | Pioneering
             Skill Development for every stage of life.

@@ -11,7 +11,7 @@ const AboutContent = () => {
         <div className="font-bold text-3xl py-4 dark:text-white">
           Medh | Pioneering Skill Development for every stage of life.
         </div>
-        <p className="text-[#5C6574] text-size-17 dark:text-gray300  xl:w-[849px] px-2 mx-auto">
+        <p className="text-[#5C6574] text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl dark:text-gray-300 px-4 sm:px-6 md:px-8 mx-auto w-full max-w-4xl">
           MEDH, the leading global EdTech innovator, is dedicated to delivering
           skill development courses through cutting-edge technology and bespoke
           mentorship. To empower individuals at every stage of life, from early
@@ -36,8 +36,8 @@ const AboutContent = () => {
           <p className="text-[#727695] text-base text-left pt-4.5 pb-8">
             Our commitment to providing a seamless gamut of skill development
             courses, creating tailored learning pathways that accommodate every
-            phase of a child&#39;s developmental journey, from early childhood to
-            professional readiness. This holistic approach ensures that
+            phase of a child&#39;s developmental journey, from early childhood
+            to professional readiness. This holistic approach ensures that
             individuals are fully equipped for success at every stage of life.
           </p>
         </div>
