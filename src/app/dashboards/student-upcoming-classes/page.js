@@ -1,3 +1,4 @@
+import ProtectedPage from "@/app/protectedRoutes";
 import StudentUpcomigClasses from "@/components/layout/main/dashboards/Student-Upcoming-Classes";
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
@@ -6,7 +7,7 @@ import React from "react";
 
 const Student_Upcoming_Classes = () => {
   return (
-    <div>
+    <ProtectedPage>
       <DashboardContainer>
         <div className="px-12">
           <HeadingDashboard />
@@ -14,7 +15,7 @@ const Student_Upcoming_Classes = () => {
         <StudentUpcomigClasses />
         <ThemeController />
       </DashboardContainer>
-    </div>
+    </ProtectedPage>
   );
 };
 
