@@ -1,3 +1,4 @@
+import ProtectedPage from "@/app/protectedRoutes";
 import CreateCourseMain from "@/components/layout/main/CreateCourseMain";
 import ThemeController from "@/components/shared/others/ThemeController";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
@@ -7,12 +8,14 @@ export const metadata = {
 };
 const Create_Course = () => {
   return (
-    <PageWrapper>
-      <main>
-        <CreateCourseMain />
-        <ThemeController />
-      </main>
-    </PageWrapper>
+    <ProtectedPage>
+      <PageWrapper>
+        <main>
+          <CreateCourseMain />
+          <ThemeController />
+        </main>
+      </PageWrapper>
+    </ProtectedPage>
   );
 };
 
