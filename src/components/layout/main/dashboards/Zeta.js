@@ -48,8 +48,7 @@ const UsersTable = () => {
     { Header: "Join Date", accessor: "createdAt" },
     {
       Header: "Role",
-      accessor: "role",
-      Cell: ({ value }) => (Array.isArray(value) ? value.join(", ") : value),
+      accessor: "admin_role",
     },
     {
       Header: "Status",
@@ -109,8 +108,8 @@ const UsersTable = () => {
           user?.full_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
         (typeof user?.email === "string" &&
           user?.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (typeof user?.role === "string" &&
-          user?.role.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (typeof user?.admin_role === "string" &&
+          user?.admin_role.toLowerCase().includes(searchQuery.toLowerCase())) ||
         (typeof user?.phone_number === "string" &&
           user?.phone_number.toLowerCase().includes(searchQuery.toLowerCase()));
 
@@ -149,8 +148,8 @@ const UsersTable = () => {
 
   return (
     <div className="flex items-start font-Poppins justify-center min-h-screen dark:bg-inherit bg-gray-100 p-4 pt-9">
-      <div className="w-full max-w-6xl bg-white dark:bg-inherit dark:border p-8 md:p-10 rounded-lg shadow-md">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 space-y-4 md:space-y-0">
+      <div className="w-full max-w-6xl bg-white dark:bg-inherit dark:border md:p-10 rounded-lg shadow-md">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 space-y-4 md:space-y-0 px-6">
           <h2 className="text-xl font-semibold md:text-left dark:text-white">
             Users List
           </h2>
