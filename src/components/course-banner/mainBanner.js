@@ -197,7 +197,7 @@ export default function MainBanner({
             {subheading}
           </p>
           <h1
-            className="text-2xl md:text-4xl font-bold font-Poppins mb-6 tracking-wide"
+            className="text-2xl md:text-4xl text-[#7ECA9D] font-bold font-Poppins mb-6 tracking-wide"
             style={{ color: headingColor }}
           >
             {heading}
@@ -251,7 +251,7 @@ export default function MainBanner({
               </div>
             </div>
           </div>
-          <p className="mt-6 text-[24px] lg:text-[35px] font-Bulgathi text-[#7ECA9D]">
+          <p className="mt-6 text-[2.4rem] lg:text-[3rem] font-Bulgathi text-[#7ECA9D]">
             {slogan}
           </p>
         </div>
