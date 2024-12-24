@@ -18,7 +18,7 @@ const schema = yup
       .string()
       .email("Invalid email format")
       .required("Email is required"),
-    role: yup.string().required("Role is required"),
+    admin_role: yup.string().required("Role is required"),
     permissions: yup.string().required("permissions is required"),
   })
   .required();
@@ -69,7 +69,7 @@ const DefineRoleForm = ({ id }) => {
         postData: {
           email: data.email,
           permissions: [data.permissions],
-          role: data.role,
+          admin_role: data.admin_role,
           role_description: data.role_description,
         },
         onSuccess: () => {
@@ -130,27 +130,28 @@ const DefineRoleForm = ({ id }) => {
           {/* Role Selection */}
           <div>
             <label
-              htmlFor="role"
+              htmlFor="admin_role"
               className="block text-sm font-medium text-gray-700 dark:text-whitegrey1"
             >
               Select Role
               <span className="text-red-500 ml-1">*</span>
             </label>
             <select
-              id="role"
-              {...register("role")}
+              id="admin_role"
+              {...register("admin_role")}
               className={`w-full mt-1 px-3 py-2 border dark:bg-inherit dark:text-whitegrey3 border-gray-300 rounded-md bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                errors.role ? "border-red-500" : ""
+                errors.admin_role ? "border-red-500" : ""
               }`}
             >
               <option value="">Select</option>
               <option value="admin">Admin</option>
-              <option value="student">Student</option>
-              <option value="instructor">Instructor</option>
-              <option value="user">User</option>
+              <option value="super-admin">Super-Admin</option>
+              <option value="cooporate-admin">Cooporate-Admin</option>
             </select>
-            {errors.role && (
-              <p className="text-red-500 text-sm">{errors.role.message}</p>
+            {errors.admin_role && (
+              <p className="text-red-500 text-sm">
+                {errors.admin_role.message}
+              </p>
             )}
           </div>
 
