@@ -21,7 +21,7 @@ const schema = yup.object({
     .oneOf(["Live Courses", "Blended Courses", "Corporate Training Courses"])
     .required("Course category is required"),
   course_title: yup.string().trim().required("Course title is required"),
-  category: yup.string().required("This field is required"),
+  category: yup.string(),
   course_tag: yup
     .string()
     // .oneOf(["Live", "Hybrid", "Pre-Recorded", "Free"])
@@ -457,8 +457,8 @@ const AddCourse = () => {
                             key={category._id}
                             className="hover:bg-gray-100 rounded-lg cursor-pointer flex gap-3 px-3 py-3"
                             onClick={() => {
-                              selectCategory(category.category_name); // Update form value and trigger validation
-                              trigger("category"); // Trigger validation for the category field
+                              selectCategory(category.category_name);
+                              trigger("category");
                             }}
                           >
                             <Image
