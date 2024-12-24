@@ -20,7 +20,7 @@ const NavbarLogo = () => {
 
   return (
     <div className="lg:col-start-1 lg:col-span-2">
-      <div className="bg-[#7ECA9D] w-full absolute top-0 left-0 z-20">
+      <div className="bg-[#7ECA9D] cursor-pointer lg:hidden w-full absolute top-0 left-0 z-20">
         <Link
           href="/login"
           className="flex text-[12px] items-center justify-center w-full h-full font-normal text-[#FFFFFF] px-0 py-0"
@@ -46,7 +46,7 @@ const NavbarLogo = () => {
           {/* Programs Button */}
           <button
             onClick={toggleProgramMenu}
-            className="flex items-center bg-[#7ECA9D] border border-[#7ECA9D] text-[#FFFFFF] px-4 py-[4px] rounded-md transition duration-300"
+            className="flex items-center cursor-pointer lg:hidden bg-[#7ECA9D] border border-[#7ECA9D] text-[#FFFFFF] px-4 py-[4px] rounded-md transition duration-300"
           >
             Programs
           </button>
