@@ -1,21 +1,23 @@
+import ProtectedPage from "@/app/protectedRoutes";
 import InstructorAnnoucementsMain from "@/components/layout/main/dashboards/InstructorAnnoucementsMain";
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
 import ThemeController from "@/components/shared/others/ThemeController";
-import DsahboardWrapper from "@/components/shared/wrappers/DsahboardWrapper";
-import PageWrapper from "@/components/shared/wrappers/PageWrapper";
+
 export const metadata = {
   title: "Instructor Announcements | Medh - Education LMS Template",
   description: "Instructor Announcements | Medh - Education LMS Template",
 };
+
 const Instructor_Announcements = () => {
   return (
-    <main>
-      <DashboardContainer>
-        <InstructorAnnoucementsMain />
-      </DashboardContainer>
-
-      <ThemeController />
-    </main>
+    <ProtectedPage>
+      <main>
+        <DashboardContainer>
+          <InstructorAnnoucementsMain />
+        </DashboardContainer>
+        <ThemeController />
+      </main>
+    </ProtectedPage>
   );
 };
 
