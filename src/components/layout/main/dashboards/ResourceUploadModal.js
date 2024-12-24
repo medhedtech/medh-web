@@ -4,10 +4,16 @@ import usePostQuery from "@/hooks/postQuery.hook";
 import { X } from "lucide-react";
 import React, { useState } from "react";
 
-const ResourceUploadModal = ({ onClose, resourceVideos, setResourceVideos, resourcePdfs, setResourcePdfs }) => {
-    
-    const { postQuery, loading } = usePostQuery();
-    const canProceed = !loading && (resourceVideos.length > 0 || resourcePdfs.length > 0);
+const ResourceUploadModal = ({
+  onClose,
+  resourceVideos,
+  setResourceVideos,
+  resourcePdfs,
+  setResourcePdfs,
+}) => {
+  const { postQuery, loading } = usePostQuery();
+  const canProceed =
+    !loading && (resourceVideos.length > 0 || resourcePdfs.length > 0);
 
   const handleVideoUpload = async (e) => {
     const files = e.target.files;
@@ -84,6 +90,16 @@ const ResourceUploadModal = ({ onClose, resourceVideos, setResourceVideos, resou
     onClose();
   };
 
+  const removeVideo = (index) => {
+    const updatedVideos = [...resourceVideos];
+    updatedVideos.splice(index, 1);
+    setResourceVideos(updatedVideos);
+  };
+
+  const removePdf = (index) => {
+    setResourcePdfs((prevFiles) => prevFiles.filter((_, i) => i !== index));
+  };
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen px-4 py-6">
@@ -94,7 +110,9 @@ const ResourceUploadModal = ({ onClose, resourceVideos, setResourceVideos, resou
 
         <div className="relative bg-white rounded-lg shadow-xl w-full max-h-[600px] max-w-lg flex flex-col">
           {loading ? (
-            <div className="min-h-[300px] min-w-lg overflow-hidden"><Preloader/></div>
+            <div className="min-h-[300px] min-w-lg overflow-hidden">
+              <Preloader />
+            </div>
           ) : (
             <>
               {/* Header */}
@@ -148,6 +166,30 @@ const ResourceUploadModal = ({ onClose, resourceVideos, setResourceVideos, resou
                         <p className="mt-1 text-xs text-gray-500">✔ Uploaded</p>
                       )}
                     </div>
+
+                    {/* Uploaded Course Videos */}
+                    <div className="w-[210px] text-center relative">
+                      {resourceVideos.length > 0 && (
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {resourceVideos.map((fileUrl, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center justify-between bg-[#e9e9e9] p-2 rounded-md text-sm w-full md:w-auto"
+                            >
+                              <span className="truncate text-[#5C5C5C] max-w-[150px]">
+                                Resource Video {index + 1}
+                              </span>
+                              <button
+                                onClick={() => removeVideo(index)}
+                                className="ml-2 text-[20px] text-[#5C5C5C] hover:text-red-700"
+                              >
+                                x
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div>
@@ -183,6 +225,29 @@ const ResourceUploadModal = ({ onClose, resourceVideos, setResourceVideos, resou
                       />
                       {resourcePdfs && resourcePdfs.length > 0 && (
                         <p className="mt-1 text-xs text-gray-500">✔ Uploaded</p>
+                      )}
+                    </div>
+
+                    <div className="w-[210px] text-center relative">
+                      {resourcePdfs.length > 0 && (
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {resourcePdfs.map((fileUrl, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center justify-between bg-[#e9e9e9] p-2 rounded-md text-sm w-full md:w-auto"
+                            >
+                              <span className="truncate text-[#5C5C5C] max-w-[150px]">
+                                Resource Pdf {index + 1}
+                              </span>
+                              <button
+                                onClick={() => removePdf(index)}
+                                className="ml-2 text-[20px] text-[#5C5C5C] hover:text-red-700"
+                              >
+                                x
+                              </button>
+                            </div>
+                          ))}
+                        </div>
                       )}
                     </div>
                   </div>

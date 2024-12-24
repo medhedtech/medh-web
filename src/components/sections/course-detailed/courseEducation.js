@@ -56,8 +56,16 @@ function CourseEducation({ courseId }) {
   // JSON data for course details
   const courseDetails = [
     { label: "EMI Options", value: "Yes", icon: Emi },
-    { label: "Certification", value: "Yes", icon: Cer },
-    { label: "Mode", value: "Live Online", icon: Mode },
+    {
+      label: "Certification",
+      value: courseDetails1?.is_Certification || "N/A",
+      icon: Cer,
+    },
+    {
+      label: "Mode",
+      value: courseDetails1?.course_category || "Live Online",
+      icon: Mode,
+    },
     {
       label: "Duration",
       value: courseDetails1?.course_duration || "4 months / 16 weeks",
@@ -68,11 +76,33 @@ function CourseEducation({ courseId }) {
       value: courseDetails1?.no_of_Sessions || "10",
       icon: Session,
     },
-    { label: "Efforts", value: "4-6 hours per week", icon: Efforts },
-    { label: "Classes", value: "Weekends / Weekdays", icon: Classes },
-    { label: "Assignments", value: "Yes", icon: Assignments },
-    { label: "Quizzes", value: "Yes", icon: Quizzes },
-    { label: "Projects", value: "No", icon: Projects },
+    {
+      label: "Efforts",
+      value: courseDetails1?.efforts_per_Week
+        ? `${courseDetails1.efforts_per_Week} hours / week`
+        : "4-6 hours per week",
+      icon: Efforts,
+    },
+    {
+      label: "Classes",
+      value: courseDetails1?.class_type || "Weekends / Weekdays",
+      icon: Classes,
+    },
+    {
+      label: "Assignments",
+      value: courseDetails1?.is_Assignments || "N/A",
+      icon: Assignments,
+    },
+    {
+      label: "Quizzes",
+      value: courseDetails1?.is_Quizes || "N/A",
+      icon: Quizzes,
+    },
+    {
+      label: "Projects",
+      value: courseDetails1?.is_Projects || "N/A",
+      icon: Projects,
+    },
   ];
 
   // Simplified block details
