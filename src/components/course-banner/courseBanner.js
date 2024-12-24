@@ -31,7 +31,10 @@ const CourseBanner = ({
           <h2 className="text-2xl font-Poppins leading-7 font-semibold text-[#5C6574] w-[80%]">
             {heading}
           </h2>
-          <h2 className="text-2xl font-Poppins font-semibold text-[#5C6574]">{headings}</h2>
+          {/* <h2 className="text-2xl hidden lg:shown font-Poppins font-semibold text-[#5C6574]">{headings}</h2> */}
+          <h2 className="text-2xl hidden lg:block font-Poppins font-semibold text-[#5C6574]">
+            {headings}
+          </h2>
           <p className="text-[#585454] text-[0.9rem] font-light md:text-base sm:text-sm">
             {description}
           </p>
