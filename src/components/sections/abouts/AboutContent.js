@@ -24,7 +24,7 @@ const AboutContent = () => {
         We nurture growth, foster expertise, and ignite potential for learners
         of every background.
       </span>
-      <div className="bg-[#4EB67870] md:flex-row  flex flex-col xl:mx-40 rounded-3xl mt-16 sm:p-4">
+      <div className="bg-[#4EB67870] md:flex-row  flex flex-col xl:mx-40 rounded-3xl mt-16 p-4 mx-4">
         <div className="my-auto  w-full h-[70px] flex justify-center">
           <Image src={Bell} alt="bell icon" width={70} height={70} />
         </div>
