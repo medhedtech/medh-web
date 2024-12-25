@@ -23,14 +23,14 @@ const HireSectionPlacement = () => {
   return (
     <div className="bg-white dark:bg-screen-dark h-auto py-10 w-full flex justify-center items-center">
       <div className="w-full md:w-[100%]">
-        <div className="flex items-center flex-col w-80% md:mb-10 mb-5 px-4">
-          <h1 className="text-[#5C6574] font-Poppins font-bold text-size-32">
+        <div className="flex items-center flex-col w-[100%] sm:w-80% md:mb-10 mb-5 px-4">
+          <h1 className="text-[#5C6574] text-center leading-tight sm:mb-0 mb-4 md:leading-normal font-Poppins font-bold text-size-26 sm:text-size-32">
             Empower Your Career Ambitions with
           </h1>
-          <h1 className="text-[#7ECA9D] mt-[-12px] font-Poppins font-bold text-size-32">
+          <h1 className="text-[#7ECA9D] text-center leading-tight md:leading-9 font-Poppins font-bold text-size-26 sm:text-size-32">
             Medh Job Assurance Programs
           </h1>
-          <p className="mt-6 text-gray-700 text-sm sm:text-base text-center font-normal md:text-lg w-[90%] sm:w-[75%] mx-auto">
+          <p className="mt-6 text-gray-700 text-sm sm:text-base text-center font-normal md:text-lg w-[100%] sm:w-[75%] mx-auto">
             At Medh, we empower individuals through education, offering 100% Job
             Guaranteed Courses designed to provide in-demand skills for your
             dream job in your desired field.
@@ -38,11 +38,11 @@ const HireSectionPlacement = () => {
         </div>
 
         <div className="w-full bg-gray-100 py-4">
-          <div className="flex items-center flex-col w-80% md:mb-10 mb-5 px-4">
-            <h1 className="text-[#7ECA9D] font-Poppins font-bold text-size-32">
+          <div className="flex items-center flex-col w-[100%] sm:w-80% md:mb-10 mb-5 px-4">
+            <h1 className="text-[#7ECA9D] font-Poppins text-center leading-tight sm:mb-0 mb-4 md:leading-normal font-bold text-size-26 sm:text-size-32">
               Medh-Professional-Edge-Diploma-Courses
             </h1>
-            <p className="text-center md:text-[1rem] text-gray-600 text-[14px] leading-6 md:leading-7 md:w-[70%] text-[#727695] dark:text-gray-300">
+            <p className="text-center md:text-[1rem] text-gray-600 text-[14px] leading-normal md:leading-7 md:w-[70%] text-[#727695] dark:text-gray-300">
               These courses integrate theoretical knowledge with practical
               application through corporate internships, equipping learners with
               essential tools to excel. Designed by industry experts, the
@@ -62,11 +62,12 @@ const HireSectionPlacement = () => {
         <div className="flex items-center flex-col w-80% md:mb-10 mb-5 px-4">
           {/* Move the paragraph outside of the loop, so it appears below both cards */}
           <p className="mt-6 text-gray-700 text-sm sm:text-base text-center font-normal md:text-lg w-[90%] sm:w-[75%] mx-auto">
-            These courses integrate theoretical knowledge with practical
-            application through corporate internships, equipping learners with
-            essential tools to excel. Designed by industry experts, the
-            curriculum ensures a relevant, up-to-date learning experience that
-            leads to guaranteed corporate sector employment.
+            The curriculum for these courses is carefully crafted to cover
+            essential topics, tools, and techniques for each field. Learners
+            engage in hands-on projects, case studies, and simulations, gaining
+            practical experience. The program also includes internships,
+            industry certifications, and job readiness modules to enhance
+            marketability.
           </p>
         </div>
       </div>

@@ -385,21 +385,27 @@ const data = {
             for various mathematical operations. They provide a systematic and
             efficient way to perform calculations mentally.
           </p>
-
+          <div className="overflow-x-auto">
           <table className="table-auto border-collapse border border-gray-300 w-full text-center text-[#41454F] dark:text-gray50 my-6">
-            <thead>
+          {/* <table className="table-auto border-collapse border border-gray-300 w-full text-center text-[#41454F] dark:text-gray50 my-6"> */}
+            {/* <thead> */}
+            <thead className="bg-gray-100 dark:bg-gray-700">
               <tr>
-                <th className="border border-gray-300 px-4 py-2 font-bold">
+                {/* <th className="border border-gray-300 px-4 py-2 font-bold"> */}
+                <th className="border border-gray-300 px-4 py-2 font-bold text-sm md:text-base">
                   Main Sutras (aphorisms)
                 </th>
-                <th className="border border-gray-300 px-4 py-2 font-bold">
+                {/* <th className="border border-gray-300 px-4 py-2 font-bold"> */}
+                <th className="border border-gray-300 px-4 py-2 font-bold text-sm md:text-base">
                   Sub-Sutras (corollaries)
                 </th>
               </tr>
             </thead>
             <tbody>
-              <tr>
+              <tr className="hover:bg-gray-100 dark:hover:bg-gray-800">
                 <td className="border border-gray-300 px-4 py-2">
+                  {/* <tr>
+                <td className="border border-gray-300 px-4 py-2"> */}
                   <div className="font-bold">Ekādhikena Purvena</div>
                   <div className=" text-[#727695] dark:text-gray300">
                     By one more than the previous one.
@@ -622,6 +628,7 @@ const data = {
               </tr>
             </tbody>
           </table>
+          </div>
           <p className="text-lightGrey14 mb-6 md:text-[15px] text-[14px] dark:text-gray300 ">
             Vedic Mathematics core principles, represented by these sutras and
             sub-sutras, enable fast and efficient mental calculations for
