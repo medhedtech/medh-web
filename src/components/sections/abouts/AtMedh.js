@@ -50,19 +50,19 @@ const AtMedh = () => {
       {/* card */}
       <div className="flex flex-col lg:flex-row gap-8 w-full mt-36">
         <div
-          className="flex px-5 md:px-10 pt-6 md:pt-6 rounded-3xl w-full"
+          className="max-sm:flex-col max-sm:items-center flex px-5 md:px-10 pt-6 md:pt-6 rounded-3xl w-full"
           style={{
             boxShadow: "0px 4px 24px 0px #0000001A",
           }}
         >
-          <div>
+          <div className="max-sm:pb-4">
             <BulbIcon />
           </div>
-          <div className="pl-5 md:pl-10 pb-8">
-            <span className="font-bold text-xl md:text-3xl dark:text-white text-[#252525]">
+          <div className="sm:pl-5 md:pl-10 pb-8 max-sm:flex max-sm:flex-col max-sm:items-center">
+            <span className=" font-bold text-xl md:text-3xl dark:text-white text-[#252525]">
               MEDH – VISION
             </span>
-            <p className="text-sm dark:text-gray-300 pt-3 w-[90%]">
+            <p className="text-sm dark:text-gray-300 pt-3 sm:w-[90%] max-sm:text-center">
               Aspires to lead the EdTech industry by offering skill development
               solutions that empower individuals at every stage of life, from
               early childhood to career and homemaking readiness.
@@ -70,19 +70,19 @@ const AtMedh = () => {
           </div>
         </div>
         <div
-          className="flex px-5 md:px-10 pt-6 md:pt-6 rounded-3xl w-full"
+          className="max-sm:flex-col max-sm:items-center flex px-5 md:px-10 pt-6 md:pt-6 rounded-3xl w-full"
           style={{
             boxShadow: "0px 4px 24px 0px #0000001A",
           }}
         >
-          <div>
+          <div className="max-sm:pb-4">
             <Recycleicon />
           </div>
-          <div className="pl-5 md:pl-10">
+          <div className="sm:pl-5 md:pl-10 max-sm:flex max-sm:flex-col max-sm:items-center">
             <span className="font-bold text-xl md:text-3xl dark:text-white text-[#252525]">
               MEDH – MISSION
             </span>
-            <p className="text-sm pt-3 w-[98%] dark:text-[#252525] pb-12">
+            <p className="text-sm pt-3 w-[98%] dark:text-[#252525] pb-12 max-sm:text-center">
               Our mission is to empower individuals of all ages through
               innovative and personalized skill development courses, offering
               future-ready curriculum, interactive learning, AI-based
