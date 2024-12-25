@@ -95,10 +95,10 @@ const WhyMedh = () => {
 
       {/* Why Medh Section */}
       <div
-        className="bg-cover bg-center h-auto max-lg:py-10 max-sm:px-10 dark:bg-screen-dark md:h-[600px] flex items-center justify-start px-14"
+        className="bg-cover bg-center h-auto max-lg:py-10 max-sm:px-2 dark:bg-screen-dark md:h-[600px] flex items-center justify-start px-14"
         style={{ backgroundImage: `url(${bgImg.src})` }}
       >
-        <div className="bg-white h-auto md:h-auto py-6 px-6 md:px-10 lg:px-16 relative shadow-lg w-full max-w-[630px] dark:bg-screen-dark">
+        <div className="bg-white h-auto md:h-auto py-6 px-6 md:px-10 lg:px-16 relative shadow-lg w-full max-w-[630px] dark:bg-screen-dark rounded-lg">
           <h2 className="text-[#7ECA9D] font-bold text-3xl md:text-4xl">
             WHY MEDH?
           </h2>
@@ -153,7 +153,7 @@ const WhyMedh = () => {
           {/* Custom Navigation Buttons */}
           <div
             ref={prevRef}
-            className="absolute -left-6 top-[75%] transform -translate-y-1/2"
+            className="absolute max-sm:-left-2 -left-6 top-[75%] transform -translate-y-1/2"
           >
             <button
               className="bg-white font-bold shadow-lg focus:bg-green-500 focus:text-white dark:bg-black dark:text-white text-black rounded-full w-10 h-10 flex items-center justify-center"
@@ -164,7 +164,7 @@ const WhyMedh = () => {
           </div>
           <div
             ref={nextRef}
-            className="absolute -right-6 top-[75%] transform -translate-y-1/2"
+            className="absolute max-sm:-right-2 -right-6 top-[75%] transform -translate-y-1/2"
           >
             <button
               className="bg-white font-bold shadow-lg focus:bg-green-500 focus:text-white dark:bg-black dark:text-white text-black rounded-full w-10 h-10 flex items-center justify-center"
