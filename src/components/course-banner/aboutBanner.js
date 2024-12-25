@@ -34,7 +34,7 @@ export default function AboutBanner({
   return (
     <div>
       <div className="hidden lg:flex bg-black h-full text-white w-full relative flex-col lg:flex-row justify-center border-black py-10 md:py-0">
-      {/* Banner Image (hidden on small screens) */}
+        {/* Banner Image (hidden on small screens) */}
         <div className="relative w-full h-[350px] md:h-[500px]">
           <Image
             src={bannerImage}
@@ -188,21 +188,23 @@ export default function AboutBanner({
                 {description}
               </p>
               <div className="flex-col items-start justify-start mt-[5px]">
-                <p
+                <a href="#courses-section"
                   className="inline text-[0.9rem] text-left border-b-2 border-[#7eca9d]"
                   style={{ color: isoTextColor }}
                 >
                   {isoText}
-                </p>
+                </a>
 
                 {/* Button Section */}
                 <div className="flex justify-start mt-[5px]">
+                  <a href="#enroll-section">
                   <button
                     onClick={handleScrollToSection}
                     className="bg-[#7ECA9D] text-white font-bold text-sm sm:text-base px-4 py-2 hover:bg-[#66b588] transition duration-300"
                   >
                     {buttonText}
                   </button>
+                  </a>
                 </div>
               </div>
             </div>
