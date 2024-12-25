@@ -36,6 +36,7 @@ const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [recaptchaValue, setRecaptchaValue] = useState(null);
   const [recaptchaError, setRecaptchaError] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const {
     register,
     handleSubmit,
@@ -49,11 +50,16 @@ const LoginForm = () => {
     setRecaptchaError(false);
   };
 
+  // Update onChange handler
+  const handleRememberMeChange = (e) => {
+    setRememberMe(e.target.checked);
+  };
+
   const onSubmit = async (data) => {
-    // if (!recaptchaValue) {
-    //   setRecaptchaError(true);
-    //   return;
-    // }
+    if (!recaptchaValue) {
+      setRecaptchaError(true);
+      return;
+    }
     await postQuery({
       url: apiUrls?.user?.login,
       postData: {
@@ -64,8 +70,19 @@ const LoginForm = () => {
       onSuccess: (res) => {
         const decoded = jwtDecode(res.token);
         const userRole = decoded.user.role[0];
-        localStorage.setItem("token", res.token);
-        localStorage.setItem("userId", res.id);
+        // localStorage.setItem("token", res.token);
+        // localStorage.setItem("userId", res.id);
+        if (rememberMe) {
+          // Save token in Cookies for 30 days
+          localStorage.setItem("token", res.token);
+          localStorage.setItem("userId", res.id);
+          Cookies.set("token", res.token, { expires: 30 });
+          Cookies.set("userId", res.id, { expires: 30 });
+        } else {
+          // Save token in localStorage for session
+          localStorage.setItem("token", res.token);
+          localStorage.setItem("userId", res.id);
+        }
         if (
           userRole === "admin" ||
           userRole === "instructor" ||
@@ -95,7 +112,11 @@ const LoginForm = () => {
     <div className="mx-auto md:flex md:justify-between h-auto max-w-[1064px] shadow-2xl border-2 p-5">
       <div className="hidden md:flex mx-auto">
         <div className="w-[504px] h-[774px] my-auto flex justify-center">
-          <Image src={LogIn} alt="login-icon" className="w-full h-full object-contain" />
+          <Image
+            src={LogIn}
+            alt="login-icon"
+            className="w-full h-full object-contain"
+          />
         </div>
       </div>
       <div className="transition-opacity duration-150 ease-linear md:w-[50%] w-full md:px-3 pt-3">
@@ -179,6 +200,26 @@ const LoginForm = () => {
               </span>
             )}
 
+            <div className="flex justify-between items-center cursor-pointer mt-2 mb-4">
+              <div className="flex items-center cursor-pointer my-2">
+                <input
+                  type="checkbox"
+                  id="remember_me"
+                  onChange={handleRememberMeChange}
+                  className="w-6 h-6 mr-2 appearance-none border-2 border-gray-400 rounded-full cursor-pointer checked:bg-[#7ECA9D] checked:border-[#7ECA9D] checked:before:content-['✔'] checked:before:text-white checked:before:text-[12px] checked:before:flex checked:before:justify-center checked:before:items-center"
+                />
+                <label
+                  htmlFor="remember_me"
+                  className="text-sm text-gray-700 cursor-pointer"
+                >
+                  Remember Me
+                </label>
+              </div>
+              <div className="text-primaryColor font-semibold font-Open">
+                <a href="/forgot-password"> Forgot Password?</a>
+              </div>
+            </div>
+
             <div className="flex items-center cursor-pointer my-2">
               <input
                 type="checkbox"
@@ -186,12 +227,6 @@ const LoginForm = () => {
                 {...register("agree_terms")}
                 className="w-6 h-6 mr-2 appearance-none border-2 border-gray-400 rounded-full cursor-pointer checked:bg-[#7ECA9D] checked:border-[#7ECA9D] checked:before:content-['✔'] checked:before:text-white checked:before:text-[12px] checked:before:flex checked:before:justify-center checked:before:items-center"
               />
-              {/* <label
-                htmlFor="terms"
-                className="text-xs text-[#545454] cursor-pointer"
-              >
-                I accept <a href="/terms-and-conditions">terms of use</a> and <a href="/privacy-policy">privacy policy</a>
-              </label> */}
               <label
                 htmlFor="terms"
                 className="text-sm text-gray-700 cursor-pointer"
@@ -218,13 +253,6 @@ const LoginForm = () => {
                 {errors.agree_terms.message}
               </p>
             )}
-
-            <div className="flex justify-between items-center cursor-pointer mt-2 mb-4">
-              <div></div>
-              <div className="text-primaryColor font-semibold font-Open">
-                <a href="/forgot-password"> Forgot Password?</a>
-              </div>
-            </div>
 
             <div className="mt-12 text-center">
               <button
