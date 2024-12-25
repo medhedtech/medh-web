@@ -78,12 +78,12 @@ function PlacementFaq() {
     <div
       className="bg-white dark:bg-screen-dark text-lightGrey14 flex justify-center items-center flex-col py-4 pb-8"
     >
-      <div className="md:w-[80%] w-[90%]">
+      <div className="md:w-[80%] w-[94%]">
         <h2 className="md:text-3xl text-[22px] font-bold mb-4 text-center dark:text-white text-[#5C6574]">
           Frequently Asked Questions (FAQs)
         </h2>
         <div className="mt-[-1%]">
-          <p className="text-[#727695] text-center text-[14px] sm:text-[14.5px] md:text-[15px] lg:text-[15.5px] xl:text-[16px] dark:text-gray300 leading-5 sm:leading-6 md:leading-7 lg:leading-7 font-light pt-1 flex-grow">
+          <p className=" w-[96%]  sm:w-[100%] text-[#727695] text-center text-[14px] sm:text-[14.5px] md:text-[15px] lg:text-[15.5px] xl:text-[16px] dark:text-gray300 leading-5 sm:leading-6 md:leading-7 lg:leading-7 font-light pt-1 flex-grow">
             Discover answers to frequently asked questions about Medh&#39;s Job
             Guaranteed Courses.
           </p>
@@ -119,7 +119,7 @@ function PlacementFaq() {
             </div>
           ))}
           <div className="flex items-center justify-center mt-4 w-full">
-            <p className="w-[70%] mx-auto text-[#727695] text-center text-[14px] sm:text-[14.5px] md:text-[15px] lg:text-[15.5px] xl:text-[16px] dark:text-gray300 leading-5 sm:leading-6 md:leading-7 lg:leading-7 font-light pt-0 py-8">
+            <p className="sm:w-[70%] w-[96%] mx-auto text-[#727695] text-center text-[14px] sm:text-[14.5px] md:text-[15px] lg:text-[15.5px] xl:text-[16px] dark:text-gray300 leading-5 sm:leading-6 md:leading-7 lg:leading-7 font-light pt-0 py-8">
               Note: If you have any other questions or concerns not covered in
               the FAQs, please feel free to contact our support team at{" "}
               <a

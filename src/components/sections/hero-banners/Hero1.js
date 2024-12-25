@@ -179,12 +179,13 @@ const Hero1 = () => {
               </p>
 
               {/* ISO Text */}
-              <p
+              <a
+                href="#courses-section"
                 className="inline text-[0.9rem] text-left border-b-2 border-[#7eca9d] mt-4"
                 style={{ color: "#EAEAEA" }}
               >
                 ISO CERTIFIED
-              </p>
+              </a>
 
               {/* Button Section */}
               <div className="flex justify-start mt-2">
