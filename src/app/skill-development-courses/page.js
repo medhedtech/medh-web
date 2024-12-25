@@ -28,8 +28,8 @@ const Courses = async () => {
           />
 
           {/* Text Above Feature Cards */}
-          <div className="absolute top-[3%] md:top-[30%] w-full text-center  z-10 px-4">
-            <p className="text-white text-xl md:text-size-38 font-bold leading-45px bg-opacity-50 inline-block py-2 md:px-4 rounded-lg">
+          <div className="absolute top-[3%] md:top-[30%] w-full text-center z-10 px-4">
+            <p className="sm:text-white text-[#1f2937] text-xl md:text-size-38 font-bold leading-normal sm:leading-[45px] bg-opacity-50 inline-block py-2 md:px-4 rounded-lg">
               Accelerate Your Personal and Professional Growth with <br />{" "}
               <span className="text-[#F6B335]">
                 Medh&#39;s Skill Development Courses
@@ -38,7 +38,7 @@ const Courses = async () => {
           </div>
 
           {/* Features Grid */}
-          <div className="absolute top-[32%]  md:top-[60%] left-1/2 transform -translate-x-1/2 w-full flex items-center justify-center z-10">
+          <div className="absolute top-[20%]  md:top-[60%] left-1/2 transform -translate-x-1/2 w-full flex items-center justify-center z-10">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-7xl px-6 md:px-16">
               {/* Feature 1 */}
               <div className="bg-white dark:bg-screen-dark  p-6 shadow-lg text-center rounded-lg border-2 ">
@@ -89,7 +89,7 @@ const Courses = async () => {
         </div>
 
         {/* Footer Text */}
-        <div className="lg:mt-44 mt-[34rem] md:mt-64 px-4">
+        <div className="lg:mt-44 mt-[31rem] md:mt-64 px-4">
           <h1 className="text-2xl md:text-3xl dark:text-gray-50 leading-8 md:leading-10 text-center font-bold py-6">
             Experience the transformative impact of MEDH&#39;s skill development
             courses.

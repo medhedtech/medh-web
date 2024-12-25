@@ -603,21 +603,30 @@ export default function MainBanner({
                 {description}
               </p>
               <div className="flex-col items-start justify-start mt-[5px]">
-                <p
-                  className="inline text-[0.9rem] text-left border-b-2 border-[#7eca9d]"
-                  style={{ color: isoTextColor }}
+                <Link
+                  href={
+                    condition ? "#courses-section" : "/about#certified-section"
+                  }
+                  passHref
                 >
-                  {isoText}
-                </p>
+                  <p
+                    className="inline text-[0.9rem] text-left border-b-2 border-[#7eca9d]"
+                    style={{ color: isoTextColor }}
+                  >
+                    {isoText}
+                  </p>
+                </Link>
 
                 {/* Button Section */}
                 <div className="flex justify-start mt-[5px]">
-                  <button
-                    onClick={handleScrollToSection}
-                    className="bg-[#7ECA9D] text-white font-bold text-sm sm:text-base px-4 py-2 hover:bg-[#66b588] transition duration-300"
-                  >
-                    {buttonText}
-                  </button>
+                  <Link href="#enroll-section" passHref>
+                    <button
+                      onClick={handleScrollToSection}
+                      className="bg-[#7ECA9D] text-white font-bold text-sm sm:text-base px-4 py-2 hover:bg-[#66b588] transition duration-300"
+                    >
+                      {buttonText}
+                    </button>
+                  </Link>
                 </div>
               </div>
             </div>
