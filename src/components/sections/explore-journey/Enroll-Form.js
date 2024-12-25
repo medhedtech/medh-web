@@ -128,7 +128,7 @@ const ExploreJourney = ({ mainText, subText }) => {
     <>
       <section
         id="enroll-section"
-        className="bg-register bg-cover bg-center bg-no-repeat"
+        className="bg-register bg-cover bg-center bg-no-repeat mt-8 sm:mt-0"
       >
         <div className="bg-gray-600 overlay bg-opacity-90 py-4 lg:pb-0 relative z-0">
           <div>
@@ -161,13 +161,13 @@ const ExploreJourney = ({ mainText, subText }) => {
                 </div>
               </div>
               {/* Form Section */}
-              <div className="overflow-visible w-[90vw] sm:w-[600px]  lg:col-start-8 lg:col-span-5 relative z-1 mb-4">
+              <div className="overflow-hidden w-[100%] sm:w-[600px]  lg:col-start-8 lg:col-span-5 relative z-1 mb-4">
                 <h3 className="text-3xl bg-[#7ECA9D] text-[#FFFFFF] dark:text-blackColor-dark py-6 text-center font-semibold font-inter">
                   {subText}
                 </h3>
                 <form
                   onSubmit={handleSubmit(onSubmit)}
-                  className="p-[35px] bg-lightGrey10 dark:bg-lightGrey10-dark shadow-experience"
+                  className="sm:p-[35px] p-[16px] bg-lightGrey10 dark:bg-lightGrey10-dark shadow-experience"
                   data-aos="fade-up"
                 >
                   <div className="flex gap-4 flex-col md:flex-row">
