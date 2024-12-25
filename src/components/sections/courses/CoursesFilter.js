@@ -8,6 +8,8 @@ import { apiUrls } from "@/apis";
 import { useRouter } from "next/navigation";
 import { FaTimes } from "react-icons/fa";
 import Preloader2 from "@/components/shared/others/Preloader2";
+import { SlidersVertical } from "lucide-react";
+import CategoryToggle from "@/components/shared/courses/CategoryToggle";
 
 const categories = [
   "AI and Data Science",
@@ -64,6 +66,11 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
   const [sortOrder, setSortOrder] = useState("newest-first");
   const { getQuery, loading } = useGetQuery();
   const [selectedGrade, setSelectedGrade] = useState(null);
+  const [categorySliderOpen, setCategorySliderOpen] = useState(false);
+
+  const toggleCategorySlider = () => {
+    setCategorySliderOpen(!categorySliderOpen);
+  };
 
   // Fetch courses from API
   const fetchCourses = () => {
@@ -205,18 +212,18 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
 
   return (
     <section>
-      <div className="min-h-screen bg-white dark:bg-screen-dark dark:text-white p-4">
+      <div className="min-h-screen bg-white dark:bg-screen-dark dark:text-white p-0 sm:p-4">
         <div className="container mx-auto">
           {/* Header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-            <h1 className="text-3xl md:text-4xl font-bold text-[#7ECA9D] mb-4 md:mb-0">
+            <h1 className="text-3xl md:text-4xl font-bold text-[#7ECA9D] mb-4 md:mb-0 pt-2 sm:pt-0">
               {/* Skill Development Courses */}
               {CustomText}
             </h1>
             <div>{CustomButton}</div>
           </div>
           <div className="flex flex-col md:flex-row justify-between items-center mb-12 space-y-4 md:space-y-10">
-            <div className="self-end border border-[#CDCFD5] px-2 py-1 rounded-md w-full md:w-1/4 ">
+            <div className="self-end border border-[#CDCFD5] px-2 py-1 rounded-md w-full md:w-1/4 hidden md:block">
               <input
                 type="text"
                 placeholder="Search by category ......"
@@ -225,6 +232,7 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
                 className="outline-none px-2 py-2 w-full dark:bg-screen-dark dark:text-gray50"
               />
             </div>
+
             {/* Grade Filter as Dropdown */}
             <div className="w-full md:w-1/4 rounded-md px-2 py-0 border border-[#CDCFD5]">
               <select
@@ -266,9 +274,19 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
             </div>
           </div>
 
+          <CategoryToggle
+            categorySliderOpen={categorySliderOpen}
+            toggleCategorySlider={toggleCategorySlider}
+            categories={categories}
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
+            handleClearFilters={handleClearFilters}
+            searchTerm={searchTerm}
+            handleSearch={handleSearch}
+          />
           <div className="flex flex-col md:flex-row mt-6">
             {/* Categories Section */}
-            <div className="w-full md:w-[30%]">
+            <div className="hidden md:block w-full md:w-[30%]">
               <span className="text-[#5C6574] dark:text-white font-bold text-xl">
                 Category
               </span>
@@ -326,6 +344,14 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
           </div>
         </div>
       </div>
+      {categorySliderOpen && (
+        <div
+          className="md:hidden backdrop-blur-sm bg-black bg-opacity-50 fixed top-0 left-0 w-full h-[100vh] z-[1000001]"
+          onClick={() => {
+            setCategorySliderOpen(false);
+          }}
+        ></div>
+      )}
     </section>
   );
 };
