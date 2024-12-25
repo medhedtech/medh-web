@@ -35,7 +35,7 @@ export default function PlacementCourseBanner() {
       </div>
 
       <div className="w-full bg-white">
-        <p className="w-[50%] mx-auto bg-white text-center dark:bg-screen-dark dark:text-gray300 mt-[-20px] pb-8 px-3 text-[17px] text-[#727695]">
+        <p className="sm:w-[50%] leading-normal w-[95%] mx-auto bg-white text-center dark:bg-screen-dark dark:text-gray300 sm:mt-[-20px] mt-[-10px] pb-8 px-3 text-[17px] text-[#727695]">
           It&#39;s essential to highlight that &#39;Medh-Job-Assurance&#39; is
           grounded in a transparent and ethical framework, ensuring learners
           fully comprehend the program&#39;s commitments and expectations.
