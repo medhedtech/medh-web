@@ -20,7 +20,7 @@ const latestNewsData = {
 function LatestNews() {
   return (
     <section id="enroll-section" className="py-12 px-6 bg-white dark:bg-black">
-      <div className="mx-auto w-[80%]  flex flex-col ">
+      <div className="mx-auto w-[80%] max-sm:w-full  flex flex-col ">
         <div className="text-center lg:px-35 font-popins">
           <h1 className=" text-3xl font-bold text-[#252525] dark:text-white mb-2">
             Always making the right noise
@@ -32,9 +32,9 @@ function LatestNews() {
           </p>
         </div>
 
-        <div className=" flex flex-col lg:flex-row justify-between items-start">
+        <div className=" flex flex-col lg:flex-row justify-between items-start max-sm:gap-6 ">
           {/* Left side - News Details */}
-          <div className="lg:w-[50%] border p-3 rounded-md ">
+          <div className="lg:w-[50%] border p-3 rounded-md">
             <h2 className="text-2xl font-bold text-[#E01A00]">
               {latestNewsData.title}
             </h2>
