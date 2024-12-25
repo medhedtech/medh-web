@@ -118,15 +118,15 @@ const WhyChooseMEDH = () => {
         </div>
 
         <div className="max-w-[520px] mx-auto md:mx-0 md:w-1/2">
-          <h2 className="text-[#444a54] text-left font-bold text-2xl pt-6">
+          <h2 className="text-[#444a54] text-left font-bold text-2xl pt-6 max-sm:text-center">
             Join us at Medh to craft a brighter future.
           </h2>
-          <p className="text-[#323340]  text-base text-left pt-4">
+          <p className="text-[#323340]  text-base text-left pt-4 max-sm:text-center">
             Contact us to learn more or explore our platform to experience the
             power of transformative education firsthand.
           </p>
         </div>
-        <div className="my-auto mx-12 md:mx-0">
+        <div className="my-auto mx-12 md:mx-0 max-sm:mt-4 ">
           <div className="bg-[#F6B335] flex items-center px-4 py-3">
             <span className="mr-2">
               <DownArrowIcon />
