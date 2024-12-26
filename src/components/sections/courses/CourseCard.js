@@ -153,84 +153,92 @@ const CourseCard = ({ course }) => {
     },
   ];
 
+  useEffect(() => {
+    if (isModalOpen) {
+      setIsHovered(false);
+    }
+  }, [isModalOpen]);
+
   return (
-    <div
-      className={`relative bg-white dark:bg-screen-dark flex flex-col justify-between shadow-md dark:border-whitegrey border p-2 transition-transform duration-300 ease-in-out z-10 ${
-        isHovered ? "transform scale-105 z-50 shadow-xl" : ""
-      }`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <div className="relative w-full h-[200px] overflow-hidden">
-        <Image
-          src={course?.course_image || image6}
-          alt={course?.course_title}
-          layout="fill"
-          objectFit="cover"
-          className="rounded-md"
-        />
-      </div>
-      {/* Hover popup displayed to the right */}
+    <>
       <div
-        className={`absolute top-0 left-[20%] ml-4 bg-white shadow-lg border border-gray-300 px-4 py-2 w-[100%] max-w-[250px] z-50 ${
-          isHovered ? "" : "hidden"
+        className={`relative bg-white dark:bg-screen-dark flex flex-col justify-between shadow-md dark:border-whitegrey border p-2 transition-transform duration-300 ease-in-out z-10 min-h-[420px] ${
+          isHovered ? "transform scale-105 z-50 shadow-xl" : ""
         }`}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
       >
-        {courseDetails.map((detail, index) => (
-          <div
-            key={index}
-            className="flex justify-between items-center mb-1 pb-0 z-50"
+        <div className="relative w-full h-[200px] overflow-hidden">
+          <Image
+            src={course?.course_image || image6}
+            alt={course?.course_title}
+            layout="fill"
+            objectFit="cover"
+            className="rounded-md"
+          />
+        </div>
+        {/* Hover popup displayed to the right */}
+        <div
+          className={`absolute top-0 left-[20%] ml-4 bg-white shadow-lg border border-gray-300 px-4 py-2 w-[100%] max-w-[250px] z-50 ${
+            isHovered ? "" : "hidden"
+          }`}
+        >
+          {courseDetails.map((detail, index) => (
+            <div
+              key={index}
+              className="flex justify-between items-center mb-1 pb-0 z-50"
+            >
+              <div className="flex items-center">
+                {detail.icon && React.isValidElement(detail.icon) ? (
+                  <detail.icon size={24} className="text-primaryColor" />
+                ) : (
+                  <Image
+                    src={detail.icon}
+                    width={24}
+                    height={24}
+                    alt={detail.label}
+                  />
+                )}
+                <span className="ml-2 text-[10px]">{detail.label}:</span>
+              </div>
+              <div>
+                <span className=" text-[10px]">{detail.value}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="text-center py-3">
+          <h3 className="dark:text-gray300">{course?.course_category}</h3>
+          <h3 className="font-bold text-[#5C6574] dark:text-gray300 text-lg">
+            {course?.course_title}
+          </h3>
+          <p className="text-gray-500 dark:text-gray-300">
+            {course?.course_duration || course?.course_category} course
+          </p>
+        </div>
+
+        <div className="flex mt-2">
+          <button
+            onClick={openModal}
+            className="bg-[#7ECA9D] text-sm text-white px-4 w-1/2 leading-none py-3.5"
           >
-            <div className="flex items-center">
-              {detail.icon && React.isValidElement(detail.icon) ? (
-                <detail.icon size={24} className="text-primaryColor" />
-              ) : (
-                <Image
-                  src={detail.icon}
-                  width={24}
-                  height={24}
-                  alt={detail.label}
-                />
-              )}
-              <span className="ml-2 text-[10px]">{detail.label}:</span>
-            </div>
-            <div>
-              <span className=" text-[10px]">{detail.value}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="text-center py-3">
-        <h3 className="dark:text-gray300">{course?.course_category}</h3>
-        <h3 className="font-bold text-[#5C6574] dark:text-gray300 text-lg">
-          {course?.course_title}
-        </h3>
-        <p className="text-gray-500 dark:text-gray-300">
-          {course?.course_duration || course?.course_category} course
-        </p>
-      </div>
-
-      <div className="flex mt-2">
-        <button
-          onClick={openModal}
-          className="bg-[#7ECA9D] text-sm text-white px-4 w-1/2 leading-none py-3.5"
-        >
-          Download Brochure
-        </button>
-        <button
-          onClick={() => router.push(`/course-detailed/${course?._id}`)}
-          className="bg-[#F6B335] text-sm text-white px-4 w-1/2 leading-none py-3.5"
-        >
-          Program Details
-        </button>
+            Download Brochure
+          </button>
+          <button
+            onClick={() => router.push(`/course-detailed/${course?._id}`)}
+            className="bg-[#F6B335] text-sm text-white px-4 w-1/2 leading-none py-3.5"
+          >
+            Program Details
+          </button>
+        </div>
       </div>
       <DownloadBrochureModal
         isOpen={isModalOpen}
         onClose={closeModal}
         courseTitle={course?.course_title}
       />
-    </div>
+    </>
   );
 };
 
