@@ -5,6 +5,7 @@ import ProfileImg from "@/assets/images/dashbord/profileImg.png";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
 import Preloader from "../others/Preloader";
+import InstaIcon from "@/assets/images/instaa-icon.webp";
 
 const formatDate = (dateString) => {
   if (!dateString) return "N/A";
@@ -253,8 +254,8 @@ const ProfileDetails = ({ onEditClick }) => {
                     </svg>
                   </span>
                 </a>
-                <a
-                  href={profileData.twitter_link || ""}
+                {/* <a
+                  href={profileData.instagram_link || ""}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-primary px-[15px] py-1 flex justify-center items-center"
@@ -283,6 +284,22 @@ const ProfileDetails = ({ onEditClick }) => {
                         </clipPath>
                       </defs>
                     </svg>
+                  </span>
+                </a> */}
+                <a
+                  href={profileData.instagram_link || ""}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary px-[15px] py-1 flex justify-center items-center"
+                >
+                  <span>
+                    <Image
+                      src={InstaIcon}
+                      alt="Instagram"
+                      width="40"
+                      height="40"
+                      className="object-contain"
+                    />
                   </span>
                 </a>
               </div>
