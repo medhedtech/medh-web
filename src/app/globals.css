@@ -98,6 +98,16 @@ h6 {
   line-height: 1.8rem !important;
 }
 
+@media (max-width: 1024px) {
+  .hover-popup {
+    display: none;
+  }
+  .course-card:hover {
+    transform: scale(1.05);
+    z-index: 100;
+  }
+}
+
 /* sticky header */
 .sticky-header.active {
   background: var(--whiteColor);
