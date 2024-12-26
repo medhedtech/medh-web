@@ -22,15 +22,13 @@ import { apiUrls } from "@/apis";
 import moment from "moment";
 import { FaShare } from "react-icons/fa";
 import Image from "next/image";
-import Pagination from "@/components/shared/pagination/Pagination";
 import PaginationComponent from "@/components/shared/pagination-latest";
-// import Pagination from "@/components/shared/others/Pagination";
 
 // Validation Schema
 const schema = yup.object({
   category: yup.string().required("Course Category is required"),
   course_name: yup.string().required("Course name is required"),
-  meet_link: yup.string().required("Meet link is required"),
+  meet_link: yup.string().url("Invalid URL").required("Meet link is required"),
   meet_title: yup.string().required("Meet title is required"),
   time: yup.string().required("Please select the time."),
   date: yup.date().required("Date is required"),

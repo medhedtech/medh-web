@@ -21,43 +21,31 @@ const schema = yup.object({
     .oneOf(["Live Courses", "Blended Courses", "Corporate Training Courses"])
     .required("Course category is required"),
   course_title: yup.string().trim().required("Course title is required"),
-  category: yup.string(),
-  course_tag: yup
-    .string()
-    // .oneOf(["Live", "Hybrid", "Pre-Recorded", "Free"])
-    .required("Course tag is required"),
+  category: yup.string().required("Category is required"),
+  course_tag: yup.string().required("Course tag is required"),
   no_of_Sessions: yup
     .number()
     .typeError("Number of sessions must be a number")
     .positive("Number of sessions must be a positive number")
     .required("Number of sessions is required"),
   course_duration: yup.string().required("Course duration is required"),
-  // course_duration_value: yup
-  //   .number()
-  //   .required("Course duration value is required"),
-  // course_duration_unit: yup
+  // session_duration: yup
   //   .string()
-  //   .required("Course duration unit is required"),
-  // session_duration: yup.string().required("Session duration is required"),
-  // session_duration_value: yup.number().required("Session duration value is required"),
-  // session_duration_unit: yup.string().required("Session duration unit is required"),
-  session_duration: yup
-    .string()
-    .test(
-      "valid-session-duration",
-      "Session duration must be a positive number or a valid time format (e.g., 30 Minutes or 2 Hours)",
-      (value) => {
-        // Check if it's a positive number
-        const isValidNumber = value && !isNaN(value) && Number(value) > 0;
+  //   .test(
+  //     "valid-session-duration",
+  //     "Session duration must be a positive number or a valid time format (e.g., 30 Minutes or 2 Hours)",
+  //     (value) => {
+  //       // Check if it's a positive number
+  //       const isValidNumber = value && !isNaN(value) && Number(value) > 0;
 
-        // Regex to match "X Hours", "X Minutes", or "X Hours/Month"
-        const validTimeFormat =
-          /^(\d+(\.\d+)?\s*(Hours?|Minutes?)|(\d+(\.\d+)?\s*Hours?\/Minutes?))$/i;
+  //       // Regex to match "X Hours", "X Minutes", or "X Hours/Month"
+  //       const validTimeFormat =
+  //         /^(\d+(\.\d+)?\s*(Hours?|Minutes?)|(\d+(\.\d+)?\s*Hours?\/Minutes?))$/i;
 
-        return isValidNumber || validTimeFormat.test(value);
-      }
-    ),
-  // .required("Session duration is required"),
+  //       return isValidNumber || validTimeFormat.test(value);
+  //     }
+  //   ),
+  session_duration: yup.string().required("Session duration is required"),
   course_description: yup.string().required("Course description is required"),
   course_fee: yup
     .number()
@@ -106,7 +94,6 @@ const AddCourse = () => {
     formState: { errors },
     setValue,
     reset,
-    watch,
     trigger,
   } = useForm({
     resolver: yupResolver(schema),
@@ -464,7 +451,7 @@ const AddCourse = () => {
                       type="text"
                       className="w-full p-2 border-b focus:outline-none rounded-lg"
                       placeholder="Search..."
-                      value={searchTerm}
+                      value={searchTerm || selectedCategory || ""}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
                     <ul className="max-h-56 overflow-auto">
@@ -645,11 +632,11 @@ const AddCourse = () => {
                 </div>
               </div>
               {/* Error messages */}
-              {/* {errors.session_duration && (
+              {errors.session_duration && (
                 <p className="text-red-500 text-xs mt-1">
                   {errors.session_duration.message}
                 </p>
-              )} */}
+              )}
             </div>
 
             <div>
