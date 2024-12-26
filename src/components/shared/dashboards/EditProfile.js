@@ -29,7 +29,7 @@ const schema = yup.object({
     .max(new Date(), "Date of Birth cannot be in the future"),
   facebook_link: yup.string().url("Invalid URL"),
   linkedin_link: yup.string().url("Invalid URL"),
-  twitter_link: yup.string().url("Invalid URL"),
+  instagram_link: yup.string().url("Invalid URL"),
 });
 
 const EditProfile = ({ onBackClick }) => {
@@ -345,17 +345,17 @@ const EditProfile = ({ onBackClick }) => {
           {/* Twitter Link Field */}
           <div>
             <label className="block text-base font-bold mb-2">
-              Twitter Link
+              Instagram Link
             </label>
             <input
-              {...register("twitter_link")}
+              {...register("instagram_link")}
               type="url"
-              placeholder="Enter your Twitter profile URL"
+              placeholder="Enter your Instagram profile URL"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
             />
-            {errors.twitter_link && (
+            {errors.instagram_link && (
               <p className="text-red-500 text-sm mt-1">
-                {errors.twitter_link.message}
+                {errors.instagram_link.message}
               </p>
             )}
           </div>
