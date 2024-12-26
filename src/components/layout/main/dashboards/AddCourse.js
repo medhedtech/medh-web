@@ -67,6 +67,7 @@ const schema = yup.object({
   is_Certification: yup.string().required("This field is required"),
   is_Assignments: yup.string().required("This field is required"),
   is_Projects: yup.string().required("This field is required"),
+  class_type: yup.string().required("This field is required"),
   efforts_per_Week: yup.string().required("This field is required"),
   is_Quizes: yup.string().required("This field is required"),
 });
@@ -96,7 +97,9 @@ const AddCourse = () => {
   const [curriculum, setCurriculum] = useState([]);
   const [courseTag, setCourseTag] = useState();
   const [courseIsFree, setCourseIsFree] = useState(false);
-
+  const [error, setError] = useState(false);
+  const [errorPdf, setErrorPdf] = useState(false);
+  const [errorVideo, setErrorVideo] = useState(false);
   const {
     register,
     handleSubmit,
@@ -195,6 +198,7 @@ const AddCourse = () => {
                 console.log("Video uploaded successfully:", data?.data);
                 updatedVideos.push(data?.data); // Append to the array
                 setCourseVideos([...updatedVideos]); // Update the state
+                setErrorVideo(false);
               },
               onError: (error) => {
                 toast.error("Video upload failed. Please try again.");
@@ -228,6 +232,7 @@ const AddCourse = () => {
                 console.log("PDF uploaded successfully:", data?.data);
                 updatedPdfs.push(data?.data); // Append to the array
                 setPdfBrochures([...updatedPdfs]); // Update the state
+                setErrorPdf(false);
               },
               onError: (error) => {
                 toast.error("PDF upload failed. Please try again.");
@@ -258,6 +263,7 @@ const AddCourse = () => {
             onSuccess: (data) => {
               setThumbnailImage(data?.data);
               setValue("upload_image", data?.data);
+              setError(false);
               console.log("Image uploaded successfully:", data?.data);
             },
             onError: (error) => {
@@ -273,6 +279,12 @@ const AddCourse = () => {
   };
 
   const onSubmit = async (data) => {
+    if (!thumbnailImage || !pdfBrochures || !courseVideos) {
+      setError(true);
+      setErrorPdf(true);
+      setErrorVideo(true);
+      return;
+    } else setError(false), setErrorPdf(false), setErrorVideo(false);
     try {
       // Gather form data along with uploaded video and PDF brochure links
       const postData = {
@@ -773,7 +785,7 @@ const AddCourse = () => {
 
             <div>
               <label className="block text-sm font-normal mb-1">
-                Quizes
+                Quizzes
                 <span className="text-red-500 ml-1">*</span>
               </label>
               <select
@@ -907,6 +919,13 @@ const AddCourse = () => {
                   <p className="mt-1 text-xs text-gray-500">✔ Uploaded</p>
                 )}
               </div>
+              {/* Conditionally show the error message */}
+              {errorVideo && (
+                <p className="text-red-500 mt-2 text-xs">
+                  Please upload course videos
+                </p>
+              )}
+
               {/* Uploaded Course Videos */}
               <div className="w-[210px] text-center relative">
                 {courseVideos.length > 0 && (
@@ -969,6 +988,13 @@ const AddCourse = () => {
                   <p className="mt-1 text-xs text-gray-500">✔ Uploaded</p>
                 )}
               </div>
+              {/* Conditionally show the error message */}
+              {errorPdf && (
+                <p className="text-red-500 text-xs mt-2">
+                  Please upload pdf brochure
+                </p>
+              )}
+
               <div className="w-[210px] text-center relative">
                 {pdfBrochures.length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-2">
@@ -1027,6 +1053,13 @@ const AddCourse = () => {
                   <p className="mt-1 text-xs text-gray-500">✔ Uploaded</p>
                 )}
               </div>
+
+              {/* Conditionally show the error message */}
+              {error && (
+                <p className="text-red-500 text-xs mt-2">
+                  Please upload a thumbnail image
+                </p>
+              )}
 
               <div className="w-[210px] text-center relative">
                 {thumbnailImage && (
