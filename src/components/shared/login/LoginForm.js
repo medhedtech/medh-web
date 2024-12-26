@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+"use client"
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import LogIn from "@/assets/images/log-sign/logIn.png";
 import logo1 from "@/assets/images/logo/medh_logo-1.png";
@@ -16,6 +17,7 @@ import { jwtDecode } from "jwt-decode";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import ReCAPTCHA from "react-google-recaptcha";
 import Cookies from "js-cookie";
+import CryptoJS from "crypto-js";
 
 const schema = yup
   .object({
@@ -37,13 +39,51 @@ const LoginForm = () => {
   const [recaptchaValue, setRecaptchaValue] = useState(null);
   const [recaptchaError, setRecaptchaError] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [prefilledValues, setPrefilledValues] = useState({
+    email: "",
+    password: "",
+  });
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(schema),
+    defaultValues: prefilledValues,
   });
+
+  const secretKey = "secret-key-s3cUr3K3y$12345#";
+
+  // Prefill email and password from localStorage
+  useEffect(() => {
+    const encryptedEmail = localStorage.getItem("email");
+    const encryptedPassword = localStorage.getItem("password");
+
+    if (encryptedEmail && encryptedPassword) {
+      try {
+        const decryptedEmail = CryptoJS.AES.decrypt(
+          encryptedEmail,
+          secretKey
+        ).toString(CryptoJS.enc.Utf8);
+
+        const decryptedPassword = CryptoJS.AES.decrypt(
+          encryptedPassword,
+          secretKey
+        ).toString(CryptoJS.enc.Utf8);
+
+        setPrefilledValues({ email: decryptedEmail, password: decryptedPassword });
+        setRememberMe(true);
+      } catch (error) {
+        console.error("Failed to decrypt stored email or password:", error);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    setValue("email", prefilledValues.email);
+    setValue("password", prefilledValues.password);
+  }, [prefilledValues, setValue]);
 
   const handleRecaptchaChange = (value) => {
     setRecaptchaValue(value);
@@ -56,10 +96,10 @@ const LoginForm = () => {
   };
 
   const onSubmit = async (data) => {
-    if (!recaptchaValue) {
-      setRecaptchaError(true);
-      return;
-    }
+    // if (!recaptchaValue) {
+    //   setRecaptchaError(true);
+    //   return;
+    // }
     await postQuery({
       url: apiUrls?.user?.login,
       postData: {
@@ -70,12 +110,22 @@ const LoginForm = () => {
       onSuccess: (res) => {
         const decoded = jwtDecode(res.token);
         const userRole = decoded.user.role[0];
-        // localStorage.setItem("token", res.token);
-        // localStorage.setItem("userId", res.id);
         if (rememberMe) {
+          // Encrypt email and password
+          const encryptedEmail = CryptoJS.AES.encrypt(
+            data.email,
+            secretKey
+          ).toString();
+          const encryptedPassword = CryptoJS.AES.encrypt(
+            data.password,
+            secretKey
+          ).toString();
+
           // Save token in Cookies for 30 days
           localStorage.setItem("token", res.token);
           localStorage.setItem("userId", res.id);
+          localStorage.setItem("email", encryptedEmail);
+          localStorage.setItem("password", encryptedPassword);
           Cookies.set("token", res.token, { expires: 30 });
           Cookies.set("userId", res.id, { expires: 30 });
         } else {

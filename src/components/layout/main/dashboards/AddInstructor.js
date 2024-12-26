@@ -37,7 +37,10 @@ const schema = yup.object({
   category: yup.string().required("This field is required"),
   confirm_password: yup
     .string()
-    .oneOf([yup.ref("password"), null], "Password and confirm password must match")
+    .oneOf(
+      [yup.ref("password"), null],
+      "Password and confirm password must match"
+    )
     .required("Confirm password is required"),
   password: yup
     .string()
@@ -64,6 +67,7 @@ const AddInstructor = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [errorPdf, setErrorPdf] = useState(false);
   const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
 
   const {
@@ -194,48 +198,86 @@ const AddInstructor = () => {
   }, []);
 
   const handlePdfUpload = async (e) => {
-    const file = e.target.files;
-    if (file) {
+    const files = e.target.files;
+    if (files.length > 0) {
       try {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-  
-        reader.onload = async () => {
-          const base64 = reader.result;
-          const postData = { base64String: base64 };
-  
-          await postQuery({
-            url: apiUrls?.upload?.uploadDocument,
-            postData,
-            onSuccess: (data) => {
-              console.log("PDF uploaded successfully:", data?.data);
-              setPdfBrochures(data?.data);
-              toast.success("PDF uploaded successfully.");
-            },
-            onError: (error) => {
-              toast.error("PDF upload failed. Please try again.");
-              console.error("Upload error:", error);
-            },
-          });
-        };
-  
-        reader.onerror = (error) => {
-          toast.error("Failed to read the file.");
-          console.error("File reading error:", error);
-        };
+        const updatedPdfs = [...pdfBrochures];
+        for (const file of files) {
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onload = async () => {
+            const base64 = reader.result;
+            const postData = { base64String: base64 };
+
+            await postQuery({
+              url: apiUrls?.upload?.uploadDocument,
+              postData,
+              onSuccess: (data) => {
+                console.log("PDF uploaded successfully:", data?.data);
+                updatedPdfs.push(data?.data); // Append to the array
+                setPdfBrochures([...updatedPdfs]); // Update the state
+                setErrorPdf(false);
+              },
+              onError: (error) => {
+                toast.error("PDF upload failed. Please try again.");
+                console.error("Upload error:", error);
+              },
+            });
+          };
+        }
       } catch (error) {
         console.error("Error uploading PDF:", error);
-        toast.error("An error occurred while uploading the PDF.");
       }
-    } else {
-      toast.error("No file selected. Please choose a PDF to upload.");
     }
   };
+
+  // const handlePdfUpload = async (e) => {
+  //   const file = e.target.files;
+  //   if (file) {
+  //     try {
+  //       const reader = new FileReader();
+  //       reader.readAsDataURL(file);
+
+  //       reader.onload = async () => {
+  //         const base64 = reader.result;
+  //         const postData = { base64String: base64 };
+
+  //         await postQuery({
+  //           url: apiUrls?.upload?.uploadDocument,
+  //           postData,
+  //           onSuccess: (data) => {
+  //             console.log("PDF uploaded successfully:", data?.data);
+  //             setPdfBrochures(data?.data);
+  //             toast.success("PDF uploaded successfully.");
+  //           },
+  //           onError: (error) => {
+  //             toast.error("PDF upload failed. Please try again.");
+  //             console.error("Upload error:", error);
+  //           },
+  //         });
+  //       };
+
+  //       reader.onerror = (error) => {
+  //         toast.error("Failed to read the file.");
+  //         console.error("File reading error:", error);
+  //       };
+  //     } catch (error) {
+  //       console.error("Error uploading PDF:", error);
+  //       toast.error("An error occurred while uploading the PDF.");
+  //     }
+  //   } else {
+  //     toast.error("No file selected. Please choose a PDF to upload.");
+  //   }
+  // };
 
   const toggleConfirmPasswordVisibility = () =>
     setShowConfirmPassword((prev) => !prev);
   // Handle form submission
   const onSubmit = async (data) => {
+    if (!pdfBrochures) {
+      setErrorPdf(true);
+      return;
+    }
     try {
       await postQuery({
         url: apiUrls?.Instructor?.createInstructor,
@@ -250,7 +292,7 @@ const AddInstructor = () => {
             age: data.age,
             category: data.category,
             gender: data.gender,
-            upload_resume: pdfBrochures, 
+            upload_resume: pdfBrochures.length > 0 ? pdfBrochures : [],
           },
         },
         onSuccess: () => {
@@ -443,7 +485,7 @@ const AddInstructor = () => {
             )}
           </div> */}
 
-          <div className="relative" ref={dropdownRef}>
+          <div className="relative mt-[-8px]" ref={dropdownRef}>
             <label
               htmlFor="category"
               className="text-xs px-2 text-[#808080]  font-medium mb-1"
@@ -557,7 +599,7 @@ const AddInstructor = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-normal mb-1">
+            <label className="text-xs px-2 text-[#808080] font-medium mb-1">
               Amount Per Session
               <span className="text-red-500 ml-1">*</span> (USD)
             </label>
@@ -639,14 +681,14 @@ const AddInstructor = () => {
           </div>
 
           <div className="relative">
-            <label className="block text-sm font-medium text-gray-600 dark:text-whitegrey3">
+            <label className="text-xs px-2 text-[#808080]  font-medium mb-1">
               Select Gender
               <span className="text-red-500 ml-1">*</span>
             </label>
             <select
               {...register("gender")}
               name="gender"
-              className="mt-1 block w-full border dark:text-whitegrey1 border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 dark:bg-inherit focus:ring-indigo-500"
+              className="mt-1 block w-full mt-[-2px] border dark:text-whitegrey1 border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 dark:bg-inherit focus:ring-indigo-500"
             >
               <option value="">Select</option>
               <option value="Male">Male</option>
@@ -690,12 +732,15 @@ const AddInstructor = () => {
                 accept=".pdf"
                 className="absolute inset-0 opacity-0 cursor-pointer"
                 onChange={handlePdfUpload}
-                {...register("upload_resume")}
               />
               {pdfBrochures && pdfBrochures.length > 0 && (
                 <p className="mt-1 text-xs text-gray-500">✔ Uploaded</p>
               )}
             </div>
+            {/* Conditionally show the error message */}
+            {errorPdf && (
+              <p className="text-red-500 text-xs mt-2">Please upload resume</p>
+            )}
             <div className="w-[210px] text-center relative">
               {pdfBrochures.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-2">
