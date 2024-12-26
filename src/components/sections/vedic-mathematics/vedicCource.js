@@ -6,6 +6,7 @@ import CourseCard from "../courses/CourseCard";
 import Pagination from "@/components/shared/others/Pagination";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
+import GradeSliderVC from "./GradeSliderVC";
 
 function VedicCource() {
   const [selectedGrade, setSelectedGrade] = useState(null);
@@ -15,6 +16,12 @@ function VedicCource() {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("");
   const { getQuery } = useGetQuery();
+
+  const [gradeSliderOpen, setGradeSliderOpen] = useState(false);
+  
+    const toggleGradeSlider = () => {
+      setGradeSliderOpen(!gradeSliderOpen);
+    };
 
   const categories = [
     "Preschool",
@@ -85,16 +92,19 @@ function VedicCource() {
   };
 
   return (
-    <div id="courses-section" className="bg-white dark:bg-screen-dark text-lightGrey14 flex justify-center md:py-10 py-5">
+    <div
+      id="courses-section"
+      className="bg-white dark:bg-screen-dark text-lightGrey14 flex justify-center md:py-10 py-5"
+    >
       <div className="w-[96%] px-4 md:px-8 lg:px-10 md:w-[90%] max-w-[1200px]">
         <h2 className="text-[22px] md:text-3xl font-bold mb-4 text-center text-[#5C6574] dark:text-gray50 pb-10">
-        Course Options in Vedic Mathematics (Grade Wise)
+          Course Options in Vedic Mathematics (Grade Wise)
         </h2>
 
         {/* Search and Sort Options */}
         <div className="flex flex-col md:flex-row justify-between items-center mb-12 space-y-4 md:space-y-0">
           {/* Search Bar */}
-          <div className="flex items-center border border-[#CDCFD5] px-3 py-2 rounded-md w-full md:w-[50%] lg:w-[25%]">
+          <div className="max-md:hidden flex items-center border border-[#CDCFD5] px-3 py-2 rounded-md w-full md:w-[50%] lg:w-[25%]">
             <input
               type="text"
               placeholder="Search"
@@ -103,6 +113,16 @@ function VedicCource() {
               className="outline-none ml-2 w-full dark:bg-screen-dark dark:text-gray50"
             />
           </div>
+
+          <GradeSliderVC
+            toggleGradeSlider={toggleGradeSlider}
+            gradeSliderOpen={gradeSliderOpen}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            categories={categories}
+            selectedGrade={selectedGrade}
+            setSelectedGrade={setSelectedGrade}
+          />
 
           {/* Sorting Filter */}
           <div className="border border-[#CDCFD5] px-2 py-2 rounded-md w-full md:w-auto">
@@ -120,7 +140,7 @@ function VedicCource() {
         {/* Content Section */}
         <div className="flex flex-col md:flex-row gap-6">
           {/* Sidebar Filter */}
-          <div className="w-full md:w-1/4">
+          <div className="max-md:hidden w-full md:w-1/4">
             <CategoryFilter
               categories={categories}
               selectedCategory={selectedGrade}
@@ -163,6 +183,14 @@ function VedicCource() {
           </div>
         )}
       </div>
+      {gradeSliderOpen && (
+        <div
+          className="md:hidden backdrop-blur-sm bg-black bg-opacity-50 fixed top-0 left-0 w-full h-[100vh] z-[1000001]"
+          onClick={() => {
+            setGradeSliderOpen(false);
+          }}
+        ></div>
+      )}
     </div>
   );
 }
