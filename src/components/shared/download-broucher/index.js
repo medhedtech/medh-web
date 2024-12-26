@@ -129,7 +129,7 @@ const DownloadBrochureModal = ({ isOpen, onClose, courseTitle }) => {
 
   return (
     <>
-      <div className="fixed z-50 inset-0 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="fixed z-[500] inset-0 flex items-center justify-center bg-black bg-opacity-50">
         <div className="bg-white rounded-lg w-[95%] sm:w-[100%] sm:max-w-[400px] sm:py-6 py-4 px-4 relative">
           <div className="flex border-b-2">
             <button
