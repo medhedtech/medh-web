@@ -155,6 +155,7 @@ import CourseCard from "../courses/CourseCard";
 import Pagination from "@/components/shared/others/Pagination";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
+import GradeSlider from "./GradeSlider";
 
 function PersonalityCourse() {
   const [selectedGrade, setSelectedGrade] = useState(null);
@@ -164,6 +165,12 @@ function PersonalityCourse() {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("");
   const { getQuery } = useGetQuery();
+
+  const [gradeSliderOpen, setGradeSliderOpen] = useState(false);
+
+  const toggleGradeSlider = () => {
+    setGradeSliderOpen(!gradeSliderOpen);
+  };
 
   const categories = [
     "Preschool",
@@ -197,7 +204,7 @@ function PersonalityCourse() {
       ),
       onSuccess: (data) => {
         let courses = data?.courses || [];
-        console.log('per dev courses: ', courses)
+        console.log("per dev courses: ", courses);
         // Apply sorting
         if (sortOrder === "A-Z") {
           courses = courses.sort((a, b) =>
@@ -246,7 +253,7 @@ function PersonalityCourse() {
         {/* Search and Sort Options */}
         <div className="flex flex-col md:flex-row justify-between items-center mb-12 space-y-4 md:space-y-0">
           {/* Search Bar */}
-          <div className="flex items-center border border-[#CDCFD5] px-3 py-2 rounded-md w-full md:w-[50%] lg:w-[25%]">
+          <div className="max-md:hidden flex items-center border border-[#CDCFD5] px-3 py-2 rounded-md w-full md:w-[50%] lg:w-[25%]">
             <input
               type="text"
               placeholder="Search"
@@ -255,6 +262,16 @@ function PersonalityCourse() {
               className="outline-none ml-2 w-full dark:bg-screen-dark dark:text-gray50"
             />
           </div>
+
+          <GradeSlider
+            toggleGradeSlider={toggleGradeSlider}
+            gradeSliderOpen={gradeSliderOpen}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            categories={categories}
+            selectedGrade={selectedGrade}
+            setSelectedGrade={setSelectedGrade}
+          />
 
           {/* Sorting Filter */}
           <div className="border border-[#CDCFD5] px-2 py-0 rounded-md w-full md:w-auto">
@@ -272,7 +289,7 @@ function PersonalityCourse() {
         {/* Content Section */}
         <div className="flex flex-col md:flex-row gap-6">
           {/* Sidebar Filter */}
-          <div className="w-full md:w-1/4">
+          <div className="max-md:hidden w-full md:w-1/4">
             <CategoryFilter
               categories={categories}
               selectedCategory={selectedGrade}
@@ -315,6 +332,14 @@ function PersonalityCourse() {
           </div>
         )}
       </div>
+      {gradeSliderOpen && (
+        <div
+          className="md:hidden backdrop-blur-sm bg-black bg-opacity-50 fixed top-0 left-0 w-full h-[100vh] z-[1000001]"
+          onClick={() => {
+            setGradeSliderOpen(false);
+          }}
+        ></div>
+      )}
     </div>
   );
 }
