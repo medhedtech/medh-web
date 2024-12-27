@@ -138,6 +138,7 @@ const LoginForm = () => {
           userRole === "instructor" ||
           userRole === "student"
         ) {
+          console.log("userrole: ", userRole)
           router.push(`/dashboards/${userRole}-dashboard`);
         } else {
           // Default case if the role doesn't match any predefined roles
