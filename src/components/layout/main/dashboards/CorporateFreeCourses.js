@@ -40,7 +40,7 @@ const CorporateFreeCourses = () => {
   }, [page, limit]);
 
   const handleCardClick = (id) => {
-    router.push(`/dashboards/my-courses/${id}`);
+    router.push(`/dashboards/coorporate-my-courses/${id}`);
   };
 
   return (
@@ -50,7 +50,7 @@ const CorporateFreeCourses = () => {
           <div className="flex justify-between items-center mb-4">
           <div
           onClick={() => {
-            router.push("/dashboards/student-dashboard");
+            router.push("/dashboards/coorporate-dashboard");
           }}
           className="flex items-center gap-2"
         >

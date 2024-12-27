@@ -5,14 +5,14 @@ import { useRouter } from "next/navigation";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
 
-const EnrollCourses = () => {
+const CoorporateEnrollCourses = () => {
   const router = useRouter();
   const [enrollCourses, setEnrollCourses] = useState([]);
   const [studentId, setStudentId] = useState(null);
   const { getQuery, loading } = useGetQuery();
 
   const handleCardClick = (id) => {
-    router.push(`/dashboards/my-courses/${id}`);
+    router.push(`/dashboards/coorporate-my-courses/${id}`);
   };
 
   useEffect(() => {
@@ -49,7 +49,7 @@ const EnrollCourses = () => {
           Enrolled Courses
         </h2>
         <a
-          href="/dashboards/enrolled-courses"
+          href="/dashboards/coorporate-all-enrolled-courses"
           className="text-green-500 text-sm font-semibold hover:underline "
         >
           View All
@@ -74,4 +74,4 @@ const EnrollCourses = () => {
   );
 };
 
-export default EnrollCourses;
+export default CoorporateEnrollCourses;
