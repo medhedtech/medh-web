@@ -20,7 +20,7 @@ const CorporateDashboardMain = () => {
       ) : (
         <>
           <CounterStudent />
-          <ProgressOverview />
+          {/* <ProgressOverview /> */}
           <UpcomigClassesCorporate />
           <FreeClassesCorporate />
         </>
