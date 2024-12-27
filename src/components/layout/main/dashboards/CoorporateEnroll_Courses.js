@@ -2,18 +2,15 @@
 import React, { useEffect, useState } from "react";
 import EnrollCoursesCard from "./EnrollCoursesCard";
 import { useRouter } from "next/navigation";
-import useGetQuery from "@/hooks/getQuery.hook";
+import { FaArrowLeft } from "react-icons/fa";
 import { apiUrls } from "@/apis";
+import useGetQuery from "@/hooks/getQuery.hook";
 
-const EnrollCourses = () => {
+const CoorporateEnroll_Courses = () => {
   const router = useRouter();
   const [enrollCourses, setEnrollCourses] = useState([]);
+  const { getQuery } = useGetQuery();
   const [studentId, setStudentId] = useState(null);
-  const { getQuery, loading } = useGetQuery();
-
-  const handleCardClick = (id) => {
-    router.push(`/dashboards/my-courses/${id}`);
-  };
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -30,7 +27,7 @@ const EnrollCourses = () => {
           const courses = data
             .map((enrollment) => enrollment.course_id)
             .filter((course) => course)
-            .slice(0, 4);
+            .slice(0, 80);
           setEnrollCourses(courses);
           console.log(data, "real Course Data");
           console.log(courses, "Extracted Course Data");
@@ -42,18 +39,27 @@ const EnrollCourses = () => {
     }
   }, [studentId]);
 
+  const handleCardClick = (id) => {
+    router.push(`/dashboards/coorporate-my-courses/${id}`);
+  };
+
   return (
-    <div className="container mx-auto mt-[-40px] p-8">
-      <div className="flex items-center justify-between font-normal font-Open  pb-4 ">
-        <h2 className="text-size-32 font-Open dark:text-white">
-          Enrolled Courses
-        </h2>
-        <a
-          href="/dashboards/enrolled-courses"
-          className="text-green-500 text-sm font-semibold hover:underline "
+    <div className="container mx-auto p-8 mt-[-40px]">
+      <div className="flex justify-between items-center mb-4">
+        <div
+          onClick={() => {
+            router.push("/dashboards/coorporate-my-courses");
+          }}
+          className="flex items-center gap-2"
         >
-          View All
-        </a>
+          <FaArrowLeft
+            className="cursor-pointer text-gray-700 dark:text-white"
+            size={20}
+          />
+          <h2 className="text-size-32 font-Open dark:text-white">
+            Enrolled Courses
+          </h2>
+        </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {enrollCourses.map((course, i) => {
@@ -74,4 +80,4 @@ const EnrollCourses = () => {
   );
 };
 
-export default EnrollCourses;
+export default CoorporateEnroll_Courses;

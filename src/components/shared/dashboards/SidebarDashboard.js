@@ -29,7 +29,7 @@ const SidebarDashboard = () => {
 
   const adminItems = [
     {
-      // title: "MAIN",
+      title: "WELCOME, ADMIN",
       items: [
         {
           name: "Dashboard",
@@ -415,6 +415,7 @@ const SidebarDashboard = () => {
   ];
   const instructorItems = [
     {
+      title: "WELCOME, INSTRUCTOR",
       items: [
         {
           name: "Dashboard",
@@ -624,7 +625,7 @@ const SidebarDashboard = () => {
 
   const studentItems = [
     {
-      title: "WELCOME, DOND TOND",
+      title: "WELCOME, STUDENT",
       items: [
         {
           name: "Dashboard",
@@ -827,27 +828,6 @@ const SidebarDashboard = () => {
             </svg>
           ),
         },
-        // {
-        //   name: "Logout",
-        //   path: "#",
-        //   icon: (
-        //     <svg
-        //       xmlns="http://www.w3.org/2000/svg"
-        //       width="16"
-        //       height="24"
-        //       viewBox="0 0 24 24"
-        //       fill="none"
-        //       stroke="currentColor"
-        //       strokeWidth="2"
-        //       strokeLinecap="round"
-        //       strokeLinejoin="round"
-        //       className="feather feather-volume-1"
-        //     >
-        //       <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-        //       <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-        //     </svg>
-        //   ),
-        // },
         {
           name: "Payments",
           path: "/dashboards/student-payment",
@@ -931,7 +911,7 @@ const SidebarDashboard = () => {
   ];
   const corporateItems = [
     {
-      title: "WELCOME, DOND TOND",
+      title: "WELCOME, EMPLYOEE",
       items: [
         {
           name: "Dashboard",
@@ -956,7 +936,7 @@ const SidebarDashboard = () => {
         },
         {
           name: "My Courses",
-          path: "/dashboards/my-courses",
+          path: "/dashboards/coorporate-my-courses",
           icon: (
             <svg
               width="16"
@@ -975,35 +955,6 @@ const SidebarDashboard = () => {
               />
               <path
                 d="M7.01731 4.08426L7.68597 6.41759C8.05931 7.15759 8.52797 7.35092 9.69264 7.41759C10.6186 7.39492 11.156 7.28559 11.6146 6.88692C11.9273 6.61492 12.0686 6.20492 12.1373 5.79692L12.3666 4.41759M14.0386 3.08426V6.41759M5.73397 2.70626C6.79197 1.82826 7.73464 1.35692 9.68997 0.838257C9.91056 0.780018 10.1426 0.781168 10.3626 0.841591C12.0933 1.31759 13.028 1.74026 14.28 2.68026C14.3333 2.72026 14.3493 2.79492 14.312 2.85026C13.9033 3.45159 12.9906 3.93892 10.752 4.80692C10.2857 4.98634 9.76891 4.98349 9.30464 4.79892C6.92064 3.85226 5.82464 3.34559 5.69131 2.81959C5.68697 2.7986 5.68868 2.77681 5.69623 2.75675C5.70378 2.73669 5.71687 2.71918 5.73397 2.70626Z"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          ),
-        },
-        {
-          name: "My Membership",
-          path: "/dashboards/coorporate-membership",
-          // tag: 12,
-          icon: (
-            <svg
-              width="16"
-              height="17"
-              viewBox="0 0 16 17"
-              fill="none"
-              stroke="currentColor"
-              xmlns="http://www.w3.org/2000/svg"
-              className="my-auto"
-            >
-              <path
-                d="M7.99996 8.41764C9.84091 8.41764 11.3333 6.92526 11.3333 5.08431C11.3333 3.24336 9.84091 1.75098 7.99996 1.75098C6.15901 1.75098 4.66663 3.24336 4.66663 5.08431C4.66663 6.92526 6.15901 8.41764 7.99996 8.41764Z"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-              <path
-                d="M13.7266 15.0841C13.7266 12.5041 11.16 10.4175 7.99998 10.4175C4.83998 10.4175 2.27332 12.5041 2.27332 15.0841"
                 stroke-width="1.5"
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -1034,46 +985,6 @@ const SidebarDashboard = () => {
             </svg>
           ),
         },
-        // {
-        //   name: "Wishlist",
-        //   path: "/dashboards/student-wishlist",
-        //   icon: (
-        //     <svg
-        //       xmlns="http://www.w3.org/2000/svg"
-        //       width="16"
-        //       height="24"
-        //       viewBox="0 0 24 24"
-        //       fill="none"
-        //       stroke="currentColor"
-        //       strokeWidth="2"
-        //       strokeLinecap="round"
-        //       strokeLinejoin="round"
-        //       className="feather feather-bookmark"
-        //     >
-        //       <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-        //     </svg>
-        //   ),
-        // },
-        // {
-        //   name: "Reviews",
-        //   path: "/dashboards/student-reviews",
-        //   icon: (
-        //     <svg
-        //       xmlns="http://www.w3.org/2000/svg"
-        //       width="16"
-        //       height="24"
-        //       viewBox="0 0 24 24"
-        //       fill="none"
-        //       stroke="currentColor"
-        //       strokeWidth="2"
-        //       strokeLinecap="round"
-        //       strokeLinejoin="round"
-        //       className="feather feather-star"
-        //     >
-        //       <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-        //     </svg>
-        //   ),
-        // },
         {
           name: "Assignments & Quizzes",
           path: "/dashboards/coorporate-quiz",
@@ -1096,7 +1007,7 @@ const SidebarDashboard = () => {
         },
         {
           name: "Feedback & Support",
-          path: "/dashboards/feedback",
+          path: "/dashboards/coorporate-feedback",
           icon: (
             <svg
               width="16"
@@ -1134,27 +1045,6 @@ const SidebarDashboard = () => {
             </svg>
           ),
         },
-        // {
-        //   name: "Logout",
-        //   path: "#",
-        //   icon: (
-        //     <svg
-        //       xmlns="http://www.w3.org/2000/svg"
-        //       width="16"
-        //       height="24"
-        //       viewBox="0 0 24 24"
-        //       fill="none"
-        //       stroke="currentColor"
-        //       strokeWidth="2"
-        //       strokeLinecap="round"
-        //       strokeLinejoin="round"
-        //       className="feather feather-volume-1"
-        //     >
-        //       <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-        //       <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-        //     </svg>
-        //   ),
-        // },
         {
           name: "Payments",
           path: "/dashboards/coorporate-payment",
@@ -1188,26 +1078,6 @@ const SidebarDashboard = () => {
                   />
                 </clipPath>
               </defs>
-            </svg>
-          ),
-        },
-        {
-          name: "Apply for Placement",
-          path: "/dashboards/coorporate-apply",
-          icon: (
-            <svg
-              width="16"
-              height="17"
-              viewBox="0 0 16 17"
-              fill="none"
-              className="my-auto"
-              stroke="currentColor"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M4.5 5.91758C4.5 4.98932 4.86875 4.09909 5.52513 3.44271C6.1815 2.78633 7.07174 2.41758 8 2.41758C8.92826 2.41758 9.8185 2.78633 10.4749 3.44271C11.1313 4.09909 11.5 4.98932 11.5 5.91758C11.5 6.05019 11.5527 6.17737 11.6464 6.27114C11.7402 6.3649 11.8674 6.41758 12 6.41758C12.1326 6.41758 12.2598 6.3649 12.3536 6.27114C12.4473 6.17737 12.5 6.05019 12.5 5.91758C12.4999 5.15015 12.3036 4.39548 11.9297 3.72531C11.5557 3.05514 11.0166 2.49174 10.3636 2.08866C9.71049 1.68558 8.9652 1.45621 8.19852 1.42235C7.43183 1.3885 6.66922 1.55128 5.98318 1.89523C5.29714 2.23918 4.71046 2.75287 4.2789 3.38747C3.84735 4.02207 3.58526 4.7565 3.51755 5.52094C3.44984 6.28538 3.57876 7.05444 3.89205 7.75501C4.20534 8.45559 4.69259 9.0644 5.3075 9.52358C5.83479 9.91747 6.44206 10.1909 7.0865 10.3246C7.17602 10.5254 7.32921 10.6911 7.52238 10.796C7.71555 10.901 7.93793 10.9394 8.15511 10.9053C8.37229 10.8711 8.57217 10.7664 8.72382 10.6072C8.87548 10.448 8.97046 10.2433 8.99406 10.0248C9.01767 9.80619 8.96859 9.58593 8.85441 9.39805C8.74024 9.21018 8.56733 9.06517 8.36245 8.98545C8.15756 8.90573 7.93212 8.89575 7.72099 8.95706C7.50987 9.01836 7.32483 9.14753 7.1945 9.32458C6.4273 9.14314 5.74382 8.70801 5.25478 8.08965C4.76574 7.4713 4.49979 6.70595 4.5 5.91758ZM5 5.91758C5.0002 5.36568 5.15264 4.82452 5.44054 4.35366C5.72845 3.88281 6.14067 3.50049 6.63184 3.24879C7.123 2.9971 7.67409 2.88577 8.22445 2.92706C8.7748 2.96835 9.3031 3.16066 9.75122 3.48283C10.1993 3.805 10.5499 4.24454 10.7643 4.75308C10.9787 5.26163 11.0487 5.81947 10.9666 6.36523C10.8844 6.91098 10.6533 7.4235 10.2987 7.84638C9.94402 8.26926 9.4796 8.58612 8.9565 8.76208C8.68749 8.53941 8.34921 8.41757 8 8.41758C7.6365 8.41758 7.3035 8.54708 7.0435 8.76208C6.44788 8.56172 5.93021 8.17937 5.56355 7.669C5.1969 7.15863 4.99978 6.546 5 5.91758ZM8 3.91758C7.46957 3.91758 6.96086 4.1283 6.58579 4.50337C6.21071 4.87844 6 5.38715 6 5.91758C6 6.44802 6.21071 6.95672 6.58579 7.3318C6.96086 7.70687 7.46957 7.91758 8 7.91758C8.53043 7.91758 9.03914 7.70687 9.41421 7.3318C9.78929 6.95672 10 6.44802 10 5.91758C10 5.38715 9.78929 4.87844 9.41421 4.50337C9.03914 4.1283 8.53043 3.91758 8 3.91758ZM3.75 9.41758H4.4295C4.83143 9.82822 5.30114 10.1665 5.818 10.4176H3.75C3.55109 10.4176 3.36032 10.4966 3.21967 10.6373C3.07902 10.7779 3 10.9687 3 11.1676V11.4176C3 12.1541 3.47 12.8921 4.3795 13.4706C5.283 14.0456 6.5615 14.4176 7.9995 14.4176C9.4385 14.4176 10.717 14.0456 11.6205 13.4706C12.5305 12.8926 13 12.1536 13 11.4176V11.1676C13 10.9687 12.921 10.7779 12.7803 10.6373C12.6397 10.4966 12.4489 10.4176 12.25 10.4176H9.415C9.52938 10.0941 9.52938 9.7411 9.415 9.41758H12.25C12.7141 9.41758 13.1592 9.60196 13.4874 9.93015C13.8156 10.2583 14 10.7035 14 11.1676V11.4176C14 12.6141 13.2385 13.6261 12.1575 14.3141C11.0705 15.0061 9.599 15.4176 8 15.4176C6.401 15.4176 4.93 15.0061 3.8425 14.3141C2.7615 13.6261 2 12.6141 2 11.4176V11.1676C2 10.7035 2.18437 10.2583 2.51256 9.93015C2.84075 9.60196 3.28587 9.41758 3.75 9.41758Z"
-                fill="#70747E"
-              />
             </svg>
           ),
         },

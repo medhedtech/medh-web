@@ -18,7 +18,7 @@ const FreeClassesCorporate = () => {
 
   const handleCardClick = (id, isFreeCourse) => {
     const queryString = isFreeCourse ? "?isFreeCourse=true" : "";
-    router.push(`/dashboards/my-courses/${id}${queryString}`);
+    router.push(`/dashboards/coorporate-my-courses/${id}${queryString}`);
   };
 
   const [freeCourses, setFreeCourses] = useState([]);
