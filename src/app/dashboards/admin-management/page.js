@@ -1,13 +1,13 @@
 import ProtectedPage from "@/app/protectedRoutes";
-import InstructoreManage from "@/components/layout/main/dashboards/InstructoreManage";
+import CoorporateAdminTable from "@/components/layout/main/dashboards/CoorporateAdmin_Table";
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 import ThemeController from "@/components/shared/others/ThemeController";
 export const metadata = {
-  title: "Admin Reviews | Medh - Education LMS Template",
-  description: "Admin Reviews | Medh - Education LMS Template",
+  title: "Coorporate Admin Management | Medh - Education",
+  description: "Coorporate Admin Management | Medh - Education",
 };
-const Admin_Reviews = () => {
+const Admin_Coorporate_Management = () => {
   return (
     <ProtectedPage>
       <main>
@@ -15,7 +15,7 @@ const Admin_Reviews = () => {
           <div className="px-6">
             <HeadingDashboard />
           </div>
-          <InstructoreManage />
+          <CoorporateAdminTable />
         </DashboardContainer>
         <ThemeController />
       </main>
@@ -23,4 +23,4 @@ const Admin_Reviews = () => {
   );
 };
 
-export default Admin_Reviews;
+export default Admin_Coorporate_Management;
