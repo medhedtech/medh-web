@@ -13,7 +13,7 @@ const CoorporateNew_Courses = () => {
   const { getQuery, loading } = useGetQuery();
 
   const [searchTitle, setSearchTitle] = useState("");
-  const [limit] = useState(4);
+  const [limit] = useState(8);
   const [page] = useState(1);
   const [minFee, setMinFee] = useState("");
   const [maxFee, setMaxFee] = useState("");

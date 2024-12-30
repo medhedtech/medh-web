@@ -59,7 +59,7 @@ const CoorporateFeedbackAndSupport = () => {
 
   const onFeedbackSubmit = (data) => {
     postQuery({
-      url: apiUrls?.feedbacks?.createFeedback,
+      url: apiUrls?.feedbacks?.createCoorporateFeedback,
       postData: {
         feedback_text: data?.feedbackText,
         feedback_for: data?.feedbackType,
