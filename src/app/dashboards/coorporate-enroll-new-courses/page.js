@@ -9,7 +9,9 @@ const Coorporate_Enroll_New_Courses = () => {
   return (
     <ProtectedPage>
       <DashboardContainer>
+        <div className="px-8">
         <HeadingDashboard />
+        </div>
         <CoorporateNewCourses />
         <ThemeController />
       </DashboardContainer>
