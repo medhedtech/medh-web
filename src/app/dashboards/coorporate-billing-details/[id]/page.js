@@ -1,16 +1,16 @@
 import React from "react";
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
 import ProtectedPage from "@/app/protectedRoutes";
-import CoorporateCourseDetails from "@/components/layout/main/dashboards/Coorporate-Course-Details";
+import CoorporateBillDetails from "@/components/layout/main/dashboards/Coorporate-Bill-Details";
 
-const CoorporateCourseDetailsPage = () => {
+const CoorporateBillingDetails = () => {
   return (
     <ProtectedPage>
       <DashboardContainer>
-        <CoorporateCourseDetails />
+        <CoorporateBillDetails />
       </DashboardContainer>
     </ProtectedPage>
   );
 };
 
-export default CoorporateCourseDetailsPage;
+export default CoorporateBillingDetails;
