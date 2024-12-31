@@ -922,7 +922,7 @@ const SidebarDashboard = () => {
   ];
   const corporateItems = [
     {
-      title: "WELCOME, EMPLYOEE",
+      title: "WELCOME, COORPORATE-ADMIN",
       items: [
         {
           name: "Dashboard",
