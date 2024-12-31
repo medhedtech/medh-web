@@ -11,7 +11,7 @@ const CoorporateMyCoursesDashboard = () => {
         <HeadingDashboard />
       </div>
       <CoorporateEnrollCourses />
-      <CoorporateRecorded_Sessions />
+      {/* <CoorporateRecorded_Sessions /> */}
       <CoorporateNew_Courses />
     </div>
   );
