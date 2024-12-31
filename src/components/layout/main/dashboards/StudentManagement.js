@@ -122,7 +122,7 @@ const UsersTableStudent = () => {
   const columns = [
     { Header: "No.", accessor: "no" },
     { Header: "Name", accessor: "full_name" },
-    { Header: "Age", accessor: "age" },
+    // { Header: "Age", accessor: "age" },
     { Header: "Email ID", accessor: "email" },
     { Header: "Join Date", accessor: "createdAt" },
     // { Header: "Course", accessor: "course_name" },
