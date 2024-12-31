@@ -21,9 +21,9 @@ const Coorporate_EnrollCoursesCard = ({
         <Image
           src={displayImage}
           alt={title}
-          height={200} // adjust height as needed
-          width={200} // adjust width as needed
-          className="w-full h-full object-cover rounded-l-lg"
+          height={100}
+          width={100}
+          className="w-[100px] h-[100px] object-cover rounded-l-lg"
         />
       </div>
 
@@ -38,7 +38,8 @@ const Coorporate_EnrollCoursesCard = ({
         {/* Total Enrollment */}
         <div className="text-right mt-2">
           <p className="text-xs font-medium text-gray-500">
-            Total Enrolled: <span className="font-semibold">{totalEnrolled}</span>
+            Total Enrolled:{" "}
+            <span className="font-semibold">{totalEnrolled}</span>
           </p>
         </div>
       </div>
