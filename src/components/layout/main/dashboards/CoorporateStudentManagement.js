@@ -1,34 +1,18 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { FaPlus, FaChevronDown } from "react-icons/fa";
-import { useRouter } from "next/navigation";
-import AddStudentForm from "./AddStudentForm";
+import AddCoorporateStudentForm from "./CoorporateAddStudentForm";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import MyTable from "@/components/shared/common-table/page";
-import useDeleteQuery from "@/hooks/deleteQuery.hook";
 import { toast } from "react-toastify";
 import usePostQuery from "@/hooks/postQuery.hook";
 
-const formatDate = (dateString) => {
-  const date = new Date(dateString);
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = date.getFullYear();
-
-  return `${day}/${month}/${year}`;
-};
-
-const UsersTableStudent = () => {
-  const { deleteQuery } = useDeleteQuery();
+const CoorporateTableStudent = () => {
   const [showAddStudentForm, setShowAddStudentForm] = useState(false);
-  const [students, setStudents] = useState([]);
-  const [enrolledStudents, setEnrolledStudents] = useState([]);
+  const [cooporateStudents, setCooporateStudents] = useState([]);
   const [sortOrder, setSortOrder] = useState("newest");
   const [searchQuery, setSearchQuery] = useState("");
-  const [enrolledStudentSearchQuery, setEnrolledStudentSearchQuery] =
-    useState("");
-  const [expandedRowId, setExpandedRowId] = useState(null);
   const { postQuery } = usePostQuery();
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
@@ -36,65 +20,32 @@ const UsersTableStudent = () => {
     full_name: "",
     email: "",
     phone_number: "",
-    course_name: "",
   });
 
   const { getQuery } = useGetQuery();
-  const [deletedStudents, setDeletedStudents] = useState(null);
   const [updateStatus, setUpdateStatus] = useState(null);
 
-  // Fetch Students Data from API
+  // Fetch cooporateStudents Data from API
   useEffect(() => {
     const fetchStudents = async () => {
       try {
         await getQuery({
-          url: apiUrls?.user?.getAll,
+          url: apiUrls?.CoorporateStudent?.getAllCoorporateStudents,
           onSuccess: (data) => {
             console.log("Response data:", data);
             const studentEntries = data?.data.filter((user) =>
-              user.role.includes("student")
+              user.role.includes("coorporate-student")
             );
-            setStudents(studentEntries || []);
+            setCooporateStudents(studentEntries || []);
           },
-          onFail: () => setStudents([]),
+          onFail: () => setCooporateStudents([]),
         });
       } catch (error) {
-        console.error("Failed to fetch students:", error);
+        console.error("Failed to fetch cooporateStudents:", error);
       }
     };
     fetchStudents();
-  }, [deletedStudents, updateStatus]);
-
-  // Fetching enrolled students
-  useEffect(() => {
-    const fetchEnrolledStudents = async () => {
-      try {
-        await getQuery({
-          url: apiUrls?.EnrollCourse?.getEnrolledStudents,
-          onSuccess: (data) => {
-            setEnrolledStudents(data?.enrollments || []);
-            console.log("enrolled studnet data:", enrolledStudents);
-          },
-          onFail: () => setEnrolledStudents([]),
-        });
-      } catch (error) {
-        console.error("Error fetching enrolled students:", error);
-      }
-    };
-    fetchEnrolledStudents();
-  }, [deletedStudents, updateStatus]);
-
-  // Delete User
-  const deleteStudent = (id) => {
-    deleteQuery({
-      url: `${apiUrls?.user?.delete}/${id}`,
-      onSuccess: (res) => {
-        toast.success(res?.message);
-        setDeletedStudents(id);
-      },
-      onFail: (res) => console.log(res, "FAILED"),
-    });
-  };
+  }, [updateStatus]);
 
   const toggleStatus = async (id) => {
     try {
@@ -122,10 +73,19 @@ const UsersTableStudent = () => {
   const columns = [
     { Header: "No.", accessor: "no" },
     { Header: "Name", accessor: "full_name" },
-    // { Header: "Age", accessor: "age" },
     { Header: "Email ID", accessor: "email" },
+    { Header: "Phone No.", accessor: "phone_number" },
+    {
+      Header: "Gender",
+      accessor: "meta.gender",
+      render: (row) => <span>{row?.meta?.gender}</span>,
+    },
+    {
+      Header: "Age",
+      accessor: "meta.age",
+      render: (row) => <span>{row?.meta?.age}</span>,
+    },
     { Header: "Join Date", accessor: "createdAt" },
-    // { Header: "Course", accessor: "course_name" },
     {
       Header: "Status",
       accessor: "status",
@@ -156,27 +116,7 @@ const UsersTableStudent = () => {
         );
       },
     },
-    // {
-    //   Header: "Action",
-    //   accessor: "actions",
-    //   render: (row) => (
-    //     <div className="flex gap-2 items-center">
-    //       <button
-    //         onClick={() => deleteStudent(row?._id)}
-    //         className="text-white bg-red-600 border border-red-600 rounded-md px-[10px] py-1"
-    //       >
-    //         Delete
-    //       </button>
-    //     </div>
-    //   ),
-    // },
   ];
-
-  const toggleExpand = (rowId) => {
-    setExpandedRowId((prevExpandedRowId) =>
-      prevExpandedRowId === rowId ? null : rowId
-    );
-  };
 
   const handleSortChange = (order) => {
     setSortOrder(order);
@@ -193,7 +133,7 @@ const UsersTableStudent = () => {
   };
 
   const filteredData =
-    students?.filter((student) => {
+    cooporateStudents?.filter((student) => {
       const matchesName = filterOptions.full_name
         ? (student.full_name || "")
             .toLowerCase()
@@ -234,113 +174,18 @@ const UsersTableStudent = () => {
       createdAt: new Date(user.createdAt).toLocaleDateString("en-GB"),
     })) || [];
 
-  const columnsSecond = [
-    { Header: "No.", accessor: "no" },
-    { Header: "Name", accessor: "full_name" },
-    { Header: "Email ID", accessor: "email" },
-    {
-      Header: "Enrolled Courses",
-      accessor: "courses",
-      render: (row) => {
-        const courses = row.courses ? row.courses.split(", ") : [];
-        // const enrollmentDates = new Date(enrollment.createdAt);
-        const isExpanded = expandedRowId === row?._id;
-        const visibleCourses = isExpanded ? courses : courses.slice(0, 2);
-
-        return (
-          <div>
-            <ul className="list-disc pl-5 space-y-2">
-              {visibleCourses.map((course, courseIndex) => (
-                <li
-                  key={courseIndex}
-                  className="flex justify-between items-center bg-blue-200 text-blue-700 rounded-lg px-3 py-1 text-sm"
-                >
-                  <span>
-                    {courseIndex + 1}. {course}
-                  </span>
-                  {/* <span className="text-sm text-gray-500 ml-4">
-                    {enrollmentDates[courseIndex] || "N/A"}
-                  </span> */}
-                </li>
-              ))}
-            </ul>
-
-            {courses.length > 2 && (
-              <button
-                onClick={() => toggleExpand(row?._id)}
-                className="text-white bg-[#7eca9d] border border-white ml-8 mt-2 rounded-md px-[10px] py-1"
-              >
-                {isExpanded ? "View Less" : "View More"}{" "}
-              </button>
-            )}
-          </div>
-        );
-      },
-    },
-    // { Header: "Enrollment Date", accessor: "enrollment_date" },
-  ];
-
-  // Step 1: To group the course and the enrolled students
-  const groupEnrolledStudentsByCourse = enrolledStudents.reduce(
-    (acc, entry) => {
-      const student = entry?.student_id || {};
-      const course = entry?.course_id || {};
-      const studentId = student?._id;
-
-      if (!acc[studentId]) {
-        acc[studentId] = {
-          ...student,
-          courses: [],
-        };
-      }
-
-      acc[studentId].courses.push(course.course_title);
-
-      return acc;
-    },
-    {}
-  );
-  // Step 2: Filter the grouped data based on the search query
-  const filteredGroupedEnrolledStudents =
-    Object.values(groupEnrolledStudentsByCourse)
-      .filter((student) => {
-        const studentMatches =
-          student?.full_name
-            ?.toLowerCase()
-            .includes(enrolledStudentSearchQuery.toLowerCase()) ||
-          student?.email
-            ?.toLowerCase()
-            .includes(enrolledStudentSearchQuery.toLowerCase()) ||
-          student?.courses?.some((course) =>
-            course
-              .toLowerCase()
-              .includes(enrolledStudentSearchQuery.toLowerCase())
-          );
-
-        return studentMatches;
-      })
-      .map((student, index) => ({
-        no: index + 1,
-        full_name: student?.full_name || "N/A",
-        email: student?.email || "N/A",
-        courses: student?.courses.join(", ") || "No Courses",
-        enrollment_date: formatDate(student?.createdAt),
-        _id: student?._id,
-      })) || [];
-
-  // Step 3: If no search query is provided, show all grouped students
-  const dataToRender = filteredGroupedEnrolledStudents;
-
   // Add Student Form Toggle
   if (showAddStudentForm)
-    return <AddStudentForm onCancel={() => setShowAddStudentForm(false)} />;
+    return (
+      <AddCoorporateStudentForm onCancel={() => setShowAddStudentForm(false)} />
+    );
 
   return (
     <>
       <div className="bg-gray-100 dark:bg-darkblack font-Poppins min-h-screen pt-8 p-6">
         <div className="max-w-6xl mx-auto dark:bg-inherit dark:text-whitegrey3 dark:border bg-white rounded-lg shadow-lg p-6">
           <header className="flex items-center justify-between mb-4  p-6">
-            <h1 className="text-2xl font-bold">Student List</h1>
+            <h1 className="text-2xl font-bold">Employee List</h1>
             <div className="flex items-center space-x-2">
               <div className="relative flex-grow flex justify-center">
                 <input
@@ -426,7 +271,7 @@ const UsersTableStudent = () => {
                 className="bg-customGreen text-white px-4 py-2 rounded-lg flex items-center"
               >
                 <FaPlus className="mr-2" />
-                Add Student
+                Add Employee
               </button>
             </div>
           </header>
@@ -434,30 +279,8 @@ const UsersTableStudent = () => {
           <MyTable columns={columns} data={formattedData} />
         </div>
       </div>
-
-      <div className="bg-gray-100 dark:bg-darkblack font-Poppins min-h-screen pt-8  p-6">
-        <div className="max-w-6xl mx-auto dark:bg-inherit dark:text-whitegrey3 dark:border bg-white rounded-lg shadow-lg p-6">
-          <header className="flex items-center justify-between mb-4  p-6">
-            <h1 className="text-2xl font-bold"> Enrolled Student</h1>
-            <div className="flex items-center space-x-2">
-              <div className="relative flex-grow flex justify-center">
-                <input
-                  type="text"
-                  placeholder="Search here"
-                  className="border dark:bg-inherit dark:text-whitegrey3 dark:border border-gray-300 rounded-full p-2 pl-4 w-full max-w-md"
-                  onChange={(e) =>
-                    setEnrolledStudentSearchQuery(e.target.value)
-                  }
-                />
-              </div>
-            </div>
-          </header>
-          {/* Student Table */}
-          <MyTable columns={columnsSecond} data={dataToRender} />{" "}
-        </div>
-      </div>
     </>
   );
 };
 
-export default UsersTableStudent;
+export default CoorporateTableStudent;

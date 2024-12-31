@@ -10,19 +10,19 @@ const CoorporateEnroll_Courses = () => {
   const router = useRouter();
   const [enrollCourses, setEnrollCourses] = useState([]);
   const { getQuery } = useGetQuery();
-  const [studentId, setStudentId] = useState(null);
+  const [coorporateId, setCoorporateId] = useState(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedUserId = localStorage.getItem("userId");
-      setStudentId(storedUserId);
+      setCoorporateId(storedUserId);
     }
   }, []);
 
   useEffect(() => {
-    if (studentId) {
+    if (coorporateId) {
       getQuery({
-        url: `${apiUrls?.EnrollCourse?.getEnrolledCoursesByStudentId}/${studentId}`,
+        url: `${apiUrls?.CoorporateEnrollCourse?.getCoorporateCoursesByCoorporateId}/${coorporateId}`,
         onSuccess: (data) => {
           const courses = data
             .map((enrollment) => enrollment.course_id)
@@ -37,7 +37,7 @@ const CoorporateEnroll_Courses = () => {
         },
       });
     }
-  }, [studentId]);
+  }, [coorporateId]);
 
   const handleCardClick = (id) => {
     router.push(`/dashboards/coorporate-my-courses/${id}`);
