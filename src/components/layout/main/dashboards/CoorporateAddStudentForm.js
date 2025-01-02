@@ -44,6 +44,7 @@ const AddCoorporateStudentForm = () => {
     useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [coorporateId, setCoorporateId] = useState("");
   const {
     register,
     handleSubmit,
@@ -52,6 +53,18 @@ const AddCoorporateStudentForm = () => {
   } = useForm({
     resolver: yupResolver(schema),
   });
+
+
+    useEffect(() => {
+      if (typeof window !== "undefined") {
+        const storedUserId = localStorage.getItem("userId");
+        if (storedUserId) {
+          setCoorporateId(storedUserId);
+        } else {
+          console.error("No instructor ID found in localStorage");
+        }
+      }
+    }, []);
 
   const toggleConfirmPasswordVisibility = () =>
     setShowConfirmPassword((prev) => !prev);
@@ -70,6 +83,7 @@ const AddCoorporateStudentForm = () => {
           meta: {
             gender: data.gender,
             age: data.age,
+            corporate_id: coorporateId,
           },
         },
         onSuccess: () => {
