@@ -77,7 +77,7 @@ const CoorporateEmpFeedbackAndSupport = () => {
 
   const onComplaintSubmit = (data) => {
     postQuery({
-      url: apiUrls?.feedbacks?.createComplaint,
+      url: apiUrls?.feedbacks?.createEmployeeComplaint,
       postData: {
         name: data?.complaintName,
         description: data?.complaintText,
