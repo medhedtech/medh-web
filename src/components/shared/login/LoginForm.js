@@ -96,10 +96,10 @@ const LoginForm = () => {
   };
 
   const onSubmit = async (data) => {
-    if (!recaptchaValue) {
-      setRecaptchaError(true);
-      return;
-    }
+    // if (!recaptchaValue) {
+    //   setRecaptchaError(true);
+    //   return;
+    // }
     await postQuery({
       url: apiUrls?.user?.login,
       postData: {
@@ -137,11 +137,13 @@ const LoginForm = () => {
           userRole === "admin" ||
           userRole === "instructor" ||
           userRole === "student" ||
-          userRole === "coorporate"
+          userRole === "coorporate" 
         ) {
           console.log("userrole: ", userRole)
           router.push(`/dashboards/${userRole}-dashboard`);
-        } else {
+        } else if (userRole === "coorporate-student"){
+          router.push(`/dashboards/coorporate-employee-dashboard`);
+        }else {
           // Default case if the role doesn't match any predefined roles
           router.push("/");
         }

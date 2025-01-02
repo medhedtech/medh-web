@@ -12,7 +12,7 @@ const CoorporateMyCoursesDashboard = () => {
       </div>
       <CoorporateEnrollCourses />
       {/* <CoorporateRecorded_Sessions /> */}
-      <CoorporateNew_Courses />
+      {/* <CoorporateNew_Courses /> */}
     </div>
   );
 };
