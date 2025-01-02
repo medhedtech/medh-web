@@ -28,7 +28,7 @@ const NavbarLogo = () => {
           <LogIn className="w-3 h-3 text-[#FFFFFF] mr-1" /> LOGIN
         </Link>
       </div>
-      <div className="flex items-center mt-4 justify-center px-2">
+      <div className="flex items-center mt-4 justify-center px-0 sm:px-2">
         <div className="flex items-center gap-6">
           {/* Menu Button */}
           <NavbarMenu menuOpen={menuOpen} toggleMenu={toggleMenu} />
