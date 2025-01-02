@@ -202,7 +202,7 @@ const Hero1 = () => {
 
         {/* Slogan */}
         <p
-          className="text-[#7ECA9D] text-[2.5rem] font-Bulgathi font-normal text-center mt-[5px]"
+          className="text-[#7ECA9D] w-full text-[2.4rem] font-Bulgathi font-normal text-center mt-[5px]"
           style={{ color: "#7ECA9D" }}
         >
           Medh Hain Toh Mumkin Hain!
