@@ -183,6 +183,7 @@ export const apiUrls = {
     getCoorporateAssignCourse: "/enroll-coorporate/getAll",
     getCoorporateAssignCourseById: "/enroll-coorporate/get",
     getCoorporateCoursesByCoorporateId: "/enroll-coorporate/getCount",
+    getEnrolledCoursesByEmployeeId: "/enroll-coorporate/getByEmployeeId",
     getEnrolledCoorporatesByCourseId: "/enroll-coorporate/course/:course_id",
     deleteCoorporateAssignCourse: "/enroll-coorporate/delete/:id",
     watchCoorporateModule: "/enroll-coorporate/watchVideo-coorporate",
