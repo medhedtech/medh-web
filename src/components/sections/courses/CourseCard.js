@@ -168,12 +168,11 @@ const CourseCard = ({ course }) => {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        <div className="relative w-full h-[200px] overflow-hidden">
+        <div className="relative sm:object-contain object-contain w-[100%] h-[10rem] sm:h-[100%] max-h-[12rem] overflow-hidden">
           <Image
             src={course?.course_image || image6}
             alt={course?.course_title}
             layout="fill"
-            objectFit="cover"
             className="rounded-md"
           />
         </div>
