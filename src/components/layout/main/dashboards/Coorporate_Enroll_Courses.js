@@ -9,7 +9,7 @@
 // const CoorporateEnrollCourses = () => {
 //   const router = useRouter();
 //   const [enrollCourses, setEnrollCourses] = useState([]);
-//   const [coorporateId, setCoorporateId] = useState(null);
+//   const [employeeId, setEmployeeId] = useState(null);
 //   const { getQuery } = useGetQuery();
 
 //   const handleCardClick = (id) => {
@@ -19,14 +19,14 @@
 //   useEffect(() => {
 //     if (typeof window !== "undefined") {
 //       const storedUserId = localStorage.getItem("userId");
-//       setCoorporateId(storedUserId);
+//       setEmployeeId(storedUserId);
 //     }
 //   }, []);
 
 //   useEffect(() => {
-//     if (coorporateId) {
+//     if (employeeId) {
 //       getQuery({
-//         url: `${apiUrls?.CoorporateEnrollCourse?.getCoorporateCoursesByCoorporateId}/${coorporateId}`,
+//         url: `${apiUrls?.CoorporateEnrollCourse?.getCoorporateCoursesByCoorporateId}/${employeeId}`,
 //         onSuccess: (data) => {
 //           const courses = data
 //             .map((enrollment) => enrollment.course_id)
@@ -41,7 +41,7 @@
 //         },
 //       });
 //     }
-//   }, [coorporateId]);
+//   }, [employeeId]);
 
 //   return (
 //     <div className="container mx-auto mt-[-40px] p-8">
@@ -87,7 +87,7 @@ import { apiUrls } from "@/apis";
 const CoorporateEnrollCourses = () => {
   const router = useRouter();
   const [enrollCourses, setEnrollCourses] = useState([]);
-  const [coorporateId, setCoorporateId] = useState(null);
+  const [employeeId, setEmployeeId] = useState(null);
   const { getQuery } = useGetQuery();
 
   const handleCardClick = (id) => {
@@ -97,21 +97,18 @@ const CoorporateEnrollCourses = () => {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedUserId = localStorage.getItem("userId");
-      setCoorporateId(storedUserId);
+      setEmployeeId(storedUserId);
     }
   }, []);
 
   useEffect(() => {
-    if (coorporateId) {
+    if (employeeId) {
       getQuery({
-        url: `${apiUrls?.CoorporateEnrollCourse?.getCoorporateCoursesByCoorporateId}/${coorporateId}`,
+        url: `${apiUrls?.CoorporateEnrollCourse?.getEnrolledCoursesByEmployeeId}/${employeeId}`,
         onSuccess: (data) => {
-          const courses = data
-            .map((enrollment) => enrollment.course_id)
-            .filter((course) => course)
-            .slice(0, 16);
+          const courses = data.courses?.slice(0, 8);
           setEnrollCourses(courses);
-          console.log(data, "real Course Data");
+          console.log(data, "Real Course Data");
           console.log(courses, "Extracted Course Data");
         },
         onFail: (error) => {
@@ -119,20 +116,20 @@ const CoorporateEnrollCourses = () => {
         },
       });
     }
-  }, [coorporateId]);
+  }, [employeeId]);
 
   return (
     <div className="container mx-auto p-8">
       <div className="flex items-center justify-between pb-4">
         <h2 className="text-2xl font-semibold text-[#282F3E]">
-          Enrolled Courses
+          Enrolled Courses coorporate employee
         </h2>
-        {/* <a
+        <a
           href="/dashboards/coorporate-all-enrolled-courses"
           className="text-sm font-medium text-green-500 hover:underline"
         >
           View All
-        </a> */}
+        </a>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
         {enrollCourses.map((course, i) => (
