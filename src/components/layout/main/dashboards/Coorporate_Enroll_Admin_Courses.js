@@ -2,15 +2,19 @@
 import React, { useEffect, useState } from "react";
 import EnrollCoursesCard from "./EnrollCoursesCard";
 import { useRouter } from "next/navigation";
-import { FaArrowLeft } from "react-icons/fa";
-import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
+import { apiUrls } from "@/apis";
+import Coorporate_EnrollCoursesCard from "./CoorporateEnrollCourseCard";
 
-const CoorporateEnroll_Courses = () => {
+const CoorporateAdminEnrollCourses = () => {
   const router = useRouter();
   const [enrollCourses, setEnrollCourses] = useState([]);
-  const { getQuery } = useGetQuery();
   const [employeeId, setEmployeeId] = useState(null);
+  const { getQuery } = useGetQuery();
+
+  const handleCardClick = (id) => {
+    router.push(`/dashboards/coorporate-my-courses/${id}`);
+  };
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -22,11 +26,14 @@ const CoorporateEnroll_Courses = () => {
   useEffect(() => {
     if (employeeId) {
       getQuery({
-        url: `${apiUrls?.CoorporateEnrollCourse?.getEnrolledCoursesByEmployeeId}/${employeeId}`,
+        url: `${apiUrls?.CoorporateEnrollCourse?.getCoorporateCoursesByCoorporateId}/${employeeId}`,
         onSuccess: (data) => {
-          const courses = data.courses?.slice(0, 8);
+          const courses = data
+            .map((enrollment) => enrollment.course_id)
+            .filter((course) => course)
+            .slice(0, 4);
           setEnrollCourses(courses);
-          console.log(data, "Real Course Data");
+          console.log(data, "real Course Data");
           console.log(courses, "Extracted Course Data");
         },
         onFail: (error) => {
@@ -36,34 +43,24 @@ const CoorporateEnroll_Courses = () => {
     }
   }, [employeeId]);
 
-
-  const handleCardClick = (id) => {
-    router.push(`/dashboards/coorporate-my-courses/${id}`);
-  };
-
   return (
-    <div className="container mx-auto p-8 mt-[-40px]">
-      <div className="flex justify-between items-center mb-4">
-        <div
-          onClick={() => {
-            router.push("/dashboards/coorporate-my-courses");
-          }}
-          className="flex items-center gap-2"
+    <div className="container mx-auto mt-[-40px] p-8">
+      <div className="flex items-center justify-between font-normal font-Open  pb-4 ">
+        <h2 className="text-size-32 font-Open dark:text-white">
+          Enrolled Courses Coorporate
+        </h2>
+        <a
+          href="/dashboards/coorporate-all-enrolled-courses"
+          className="text-green-500 text-sm font-semibold hover:underline "
         >
-          <FaArrowLeft
-            className="cursor-pointer text-gray-700 dark:text-white"
-            size={20}
-          />
-          <h2 className="text-size-32 font-Open dark:text-white">
-            Enrolled Courses employee
-          </h2>
-        </div>
+          View All
+        </a>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {enrollCourses.map((course, i) => {
           console.log(course);
           return (
-            <EnrollCoursesCard
+            <Coorporate_EnrollCoursesCard
               key={course._id}
               title={course.course_title}
               image={course.course_image}
@@ -78,4 +75,4 @@ const CoorporateEnroll_Courses = () => {
   );
 };
 
-export default CoorporateEnroll_Courses;
+export default CoorporateAdminEnrollCourses;
