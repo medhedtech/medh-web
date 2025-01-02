@@ -127,12 +127,12 @@ const CoorporateEnrollCourses = () => {
         <h2 className="text-2xl font-semibold text-[#282F3E]">
           Enrolled Courses
         </h2>
-        <a
+        {/* <a
           href="/dashboards/coorporate-all-enrolled-courses"
           className="text-sm font-medium text-green-500 hover:underline"
         >
           View All
-        </a>
+        </a> */}
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
         {enrollCourses.map((course, i) => (
