@@ -125,7 +125,7 @@ const CoorporateBillDetails = () => {
           student_id: coorporateId,
           course_id: courseId,
           amount: amount,
-          status: 'success'
+          status: "success",
         },
         onSuccess: async () => {
           console.log("Payment successful!");
@@ -320,7 +320,7 @@ const CoorporateBillDetails = () => {
                 <button
                   onClick={() => {
                     closeModal();
-                    router.push("/dashboards/coorporate-my-courses");
+                    router.push("/dashboards/coorporate-dashboard");
                   }}
                   className="px-8 py-2 bg-primaryColor text-center text-white rounded-full hover:bg-green-500"
                 >
