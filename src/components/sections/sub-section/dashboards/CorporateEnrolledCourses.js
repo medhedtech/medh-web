@@ -172,7 +172,6 @@ const CorporateEnrolledCourses = () => {
   const [currentTab, setCurrentTab] = useState(0);
   const [enrolledCourses, setEnrolledCourses] = useState([]);
   const [liveCourses, setLiveCourses] = useState([]);
-  // const [selfPacedCourses, setSelfPacedCourses] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState(null);
   const { getQuery, loading } = useGetQuery();
 
@@ -180,24 +179,25 @@ const CorporateEnrolledCourses = () => {
     const storedUserId = localStorage.getItem("userId");
     if (storedUserId) {
       fetchEnrolledCourses(storedUserId);
-      // fetchSelfPacedCourses(storedUserId);
     }
   }, []);
 
   const fetchEnrolledCourses = (studentId) => {
     getQuery({
-      url: `${apiUrls?.CoorporateEnrollCourse?.getCoorporateCoursesByCoorporateId}/${studentId}`,
+      url: `${apiUrls?.CoorporateEnrollCourse?.getEnrolledCoursesByEmployeeId}/${studentId}`,
       onSuccess: (data) => {
-        const allCourses = data.map((enrollment) => enrollment.course_id);
-        setEnrolledCourses(allCourses);
+        if (data.success) {
+          const allCourses = data.courses;
+          setEnrolledCourses(allCourses);
 
-        // Filter live courses based on category
-        const liveCoursesFiltered = allCourses.filter(
-          (course) => course.course_category === "Live Courses"
-        );
-
-        console.log("Live courses only:", liveCoursesFiltered);
-        setLiveCourses(liveCoursesFiltered);
+          // Filter live courses based on category
+          const liveCoursesFiltered = allCourses.filter(
+            (course) => course.course_category === "Live Courses"
+          );
+          setLiveCourses(liveCoursesFiltered);
+        } else {
+          console.error("API returned an error:", data.message);
+        }
       },
       onFail: (error) => {
         console.error("Failed to fetch enrolled courses:", error);
@@ -205,53 +205,9 @@ const CorporateEnrolledCourses = () => {
     });
   };
 
-  // const fetchSelfPacedCourses = (studentId) => {
-  //   getQuery({
-  //     url: `${apiUrls?.Membership?.getMembershipBbyStudentId}/${studentId}`,
-  //     onSuccess: (response) => {
-  //       console.log("Self-paced courses response:", response);
-
-  //       // Extract the enrolled courses
-  //       const enrolledCourses = response?.enrolled_courses || [];
-
-  //       // Filter courses where is_self_paced is true
-  //       const selfPacedCourses = enrolledCourses
-  //         .filter((course) => course.is_self_paced === true)
-  //         .map((course) => ({
-  //           course_title: course.course_id?.course_title || "N/A",
-  //           assigned_instructor:
-  //             course.course_id?.assigned_instructor?.full_name ||
-  //             "No instructor",
-  //           category:
-  //             response?.data
-  //               ?.find((membership) =>
-  //                 membership.category_ids.some(
-  //                   (category) =>
-  //                     category.category_name === course.course_id?.category
-  //                 )
-  //               )
-  //               ?.category_ids.map((cat) => cat.category_name)
-  //               .join(", ") || "N/A",
-  //           resource_pdfs: course.course_id?.resource_pdfs || [],
-  //           resource_videos: course.course_id?.resource_videos || [],
-  //           course_image: course.course_id?.course_image || img5,
-  //         }));
-
-  //       console.log("Processed self-paced courses:", selfPacedCourses);
-
-  //       // Set the processed self-paced courses
-  //       setSelfPacedCourses(selfPacedCourses);
-  //     },
-  //     onFail: (error) => {
-  //       console.error("Failed to fetch self-paced courses:", error);
-  //     },
-  //   });
-  // };
-
   const tabs = [
     { name: "Enrolled Courses", content: enrolledCourses },
     { name: "Live Courses", content: liveCourses },
-    // { name: "Self-Paced Courses", content: selfPacedCourses },
   ];
 
   const handleDownload = (course) => {
