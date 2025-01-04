@@ -35,7 +35,6 @@ const Coorporate_Dashboard = () => {
         <DashboardContainer>
           {/* <CoorporateMyCoursesDashboard /> */}
           <CoorporateAdminMyCoursesDashboard/>
-          <div>dojiufhjb</div>
         </DashboardContainer>
         <ThemeController />
       </main>
