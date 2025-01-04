@@ -1,18 +1,19 @@
+
 "use client";
 import React, { useEffect, useState } from "react";
+import Coorporate_EnrollCoursesCard from "./CoorporateEnrollCourseCard";
 import { useRouter } from "next/navigation";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
-import EnrollCoursesCard from "./EnrollCoursesCard";
 
-const CoorporateEnrollCourses = () => {
+const CoorporateEmployeeEnrollCourses = () => {
   const router = useRouter();
   const [enrollCourses, setEnrollCourses] = useState([]);
   const [employeeId, setEmployeeId] = useState(null);
   const { getQuery } = useGetQuery();
 
   const handleCardClick = (id) => {
-    router.push(`/dashboards/coorporate-employee-my-courses/${id}`);
+    router.push(`/dashboards/coorporate-my-courses/${id}`);
   };
 
   useEffect(() => {
@@ -52,23 +53,20 @@ const CoorporateEnrollCourses = () => {
           View All
         </a> */}
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {enrollCourses.map((course, i) => {
-          console.log(course);
-          return (
-            <EnrollCoursesCard
-              key={course._id}
-              title={course.course_title}
-              image={course.course_image}
-              isLive={course.course_tag === "Live"}
-              progress={40}
-              onClick={() => handleCardClick(course._id)}
-            />
-          );
-        })}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
+        {enrollCourses.map((course, i) => (
+          <Coorporate_EnrollCoursesCard
+            key={course._id}
+            title={course.course_title}
+            instructor={course.instructor || "Sandeep Chauhan"}
+            image={course.course_image}
+            totalEnrolled={course.total_enrolled || "20"}
+            onClick={() => handleCardClick(course._id)}
+          />
+        ))}
       </div>
     </div>
   );
 };
 
-export default CoorporateEnrollCourses;
+export default CoorporateEmployeeEnrollCourses;

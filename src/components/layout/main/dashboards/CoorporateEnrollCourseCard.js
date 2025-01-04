@@ -21,9 +21,9 @@ const Coorporate_EnrollCoursesCard = ({
         <Image
           src={displayImage}
           alt={title}
-          height={100}
+          height={120}
           width={100}
-          className="w-[100px] h-[100px] object-cover rounded-l-lg"
+          className="h-[120px] object-cover rounded-l-lg"
         />
       </div>
 
