@@ -147,7 +147,7 @@ const AddCoorporate_Admin = () => {
   return (
     <div className="flex items-start justify-center w-full dark:bg-inherit dark:text-white bg-gray-100 p-4 pt-9">
       <div className="w-[95%] mx-auto p-6 dark:bg-inherit dark:text-white dark:border bg-white rounded-lg shadow-md font-Poppins">
-        <h2 className="text-2xl font-semibold mb-6">Add Coorporate</h2>
+        <h2 className="text-2xl font-semibold mb-6">Add Corporate</h2>
         {/* Select Category */}
         <div className="mb-6">
           <div className="flex items-center gap-7 mb-2">
@@ -465,7 +465,7 @@ const AddCoorporate_Admin = () => {
               className="px-4 py-2 bg-primaryColor text-white rounded-md hover:bg-green-500 focus:outline-none"
               disabled={loading}
             >
-              Add Coorporate Admin
+              Add Corporate Admin
             </button>
           </div>
         </form>
