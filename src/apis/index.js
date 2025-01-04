@@ -1,5 +1,5 @@
-// export const apiBaseUrl = "https://medh-backend.vercel.app/api/v1";  //vercel URL
-export const apiBaseUrl = "https://13.202.119.19.nip.io/api/v1"; //live instance URL
+export const apiBaseUrl = "https://medh-backend.vercel.app/api/v1";  //vercel URL
+// export const apiBaseUrl = "https://13.202.119.19.nip.io/api/v1"; //live instance URL
 // export const apiBaseUrl = "http://localhost:8080/api/v1"; // local URL
 
 export const apiUrls = {
@@ -55,6 +55,7 @@ export const apiUrls = {
     getMeetingByStudentId: "/online-meeting/student",
     getMeetingsByInstructorId: "/online-meeting/upcoming-classes",
     getOngoingMeetingsByinstrcutorId: "/online-meeting/ongoing-classes",
+    getAllMeetingsForAllEmployeees: "/online-meeting/all-employee-meetings",
   },
   Instructor: {
     getAllInstructors: "/auth/get-all-instrucors",
@@ -138,6 +139,8 @@ export const apiUrls = {
     assignmentsStatus: "/assignments/submition/status",
     assignmentsCountByInstructorId: "/assignments/submitted-assignments-count",
     getAssignmentsByEnrolledCourses: "/assignments/enrolled-assignments",
+    getAssignmentsCoorporateEnrolledCourses:
+      "/assignments/enrolled-assignments-coorporate",
   },
   feedbacks: {
     createFeedback: "/feedback/",
@@ -149,14 +152,13 @@ export const apiUrls = {
     getAllInstructorComplaints: "/complaint/getAll",
     createEmployeeComplaint: "/complaint/addEmployee",
     getAllEmployeeComplaints: "/complaint/getAllEmployee",
-
     deleteComplaint: "/complaint/delete",
     updateComplaintStatus: "/complaint/change-status",
     instructorFeedback: "/feedback/instructor/add",
     getAllInstructorFeedbacks: "/feedback/getAll/instructors-feedbacks",
     deleteInstructorFeedback: "/feedback/instructor",
     createCoorporateFeedback: "/feedback/coorporate/add",
-    getAllCoorporateFeedbacks: "/feedback/getAll/coorporate-feedbacks",
+    getAllCoorporateEmployeesFeedbacks: "/feedback/getAll/coorporate-feedbacks",
     deleteCoorporateFeedback: "/feedback/delete-coorporate",
   },
   resources: {},
@@ -183,10 +185,14 @@ export const apiUrls = {
     getCoorporateAssignCourse: "/enroll-coorporate/getAll",
     getCoorporateAssignCourseById: "/enroll-coorporate/get",
     getCoorporateCoursesByCoorporateId: "/enroll-coorporate/getCount",
+    getCoorporateStudentCoursesCountByEmployeeId:
+      "/enroll-coorporate/courses/corporate-student-count",
     getEnrolledCoursesByEmployeeId: "/enroll-coorporate/getByEmployeeId",
     getEnrolledCoorporatesByCourseId: "/enroll-coorporate/course/:course_id",
     deleteCoorporateAssignCourse: "/enroll-coorporate/delete/:id",
     watchCoorporateModule: "/enroll-coorporate/watchVideo-coorporate",
+    getCoorporateCountByCoorporateStudentId:
+      "/enroll-coorporate/enrolled-courses/corporate-student-count",
   },
   Subscription: {
     AddSubscription: "/subscription/create",
@@ -194,6 +200,7 @@ export const apiUrls = {
     getSubscriptionById: "/subscription/get",
     getEnrollmentStatus: "/subscription/enrollStatus",
     getCoorporateEnrollmentsStatus: "/subscription/coorporate-enrollStatus",
+    getCoorporateEmployeeEnrollmentsStatus: "/subscription/corporate-employee-enroll-status",
     updateSubscription: "/subscription/update",
     deleteSubscription: "/subscription/delete",
     getAllSubscriptionByStudentId: "/subscription/get-subscription",

@@ -26,13 +26,14 @@ const UpcomigClasses = () => {
 
   useEffect(() => {
     if (studentId) {
-      const fetchUpcomingClasses = () => {
-        getQuery({
-          url: `${apiUrls?.onlineMeeting?.getMeetingByStudentId}/${studentId}`,
-          onSuccess: (res) => {
-            // Assuming response contains an array of classes
-            console.log("upcoming", res);
-            const sortedClasses = res || [];
+      const fetchUpcomingClasses = async () => {
+        try {
+          const response = await getQuery({
+            url: apiUrls?.onlineMeeting?.getAllMeetingsForAllEmployeees,
+          });
+
+          if (response?.meetings) {
+            const sortedClasses = response.meetings || [];
 
             // Separate ongoing classes
             const ongoingClasses = sortedClasses.filter((classItem) => {
@@ -68,11 +69,13 @@ const UpcomigClasses = () => {
             setClasses(
               [...ongoingClasses, ...sortedUpcomingClasses].slice(0, 4)
             );
-          },
-          onFail: (err) => {
-            console.error("Error fetching upcoming classes:", err);
-          },
-        });
+          } else {
+            console.error("No meetings data found in response");
+          }
+        } catch (error) {
+          console.error("Error fetching upcoming classes:", error);
+          toast.error("Failed to fetch upcoming classes.");
+        }
       };
 
       fetchUpcomingClasses();
@@ -112,12 +115,12 @@ const UpcomigClasses = () => {
         <h2 className="text-size-32 font-Open dark:text-white">
           Upcoming Classes
         </h2>
-        <a
+        {/* <a
           href="/dashboards/student-upcoming-classes"
           className="text-green-500 hover:underline"
         >
           View All
-        </a>
+        </a> */}
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {classes.length > 0 ? (
