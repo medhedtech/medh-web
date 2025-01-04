@@ -178,7 +178,7 @@ const PaymentTable = () => {
 
   return (
     <div className="flex items-start justify-center md:px-12 w-full font-Open">
-      <div className="w-full bg-white dark:bg-inherit px-2 md:px-6 rounded-lg ">
+      <div className="w-full bg-white dark:bg-inherit rounded-lg ">
         <h1 className="text-size-32 px-6 py-4 dark:text-white">Payments</h1>
         <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4 space-y-4 md:space-y-0">
           <div className="relative w-full md:w-1/4 ml-6">

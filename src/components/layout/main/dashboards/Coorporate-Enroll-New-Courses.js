@@ -17,7 +17,7 @@ const CoorporateNewCourses = () => {
   const [maxFee, setMaxFee] = useState("");
   const [searchTitle, setSearchTitle] = useState("");
 
-  const [limit] = useState(20);
+  const [limit] = useState(100);
   const [page] = useState(1);
 
   // Fetch Courses
@@ -98,7 +98,7 @@ const CoorporateNewCourses = () => {
       <div className="flex justify-between flex-wrap gap-4 mb-4">
         <div className="flex items-center gap-4">
           <div
-            onClick={() => router.push("/dashboards/coorporate-my-courses")}
+            onClick={() => router.push("/dashboards/coorporate-dashboard")}
             className="flex items-center gap-2 cursor-pointer"
           >
             <FaArrowLeft className="text-gray-700 dark:text-white" size={20} />

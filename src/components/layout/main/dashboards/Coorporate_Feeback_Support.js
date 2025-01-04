@@ -1,245 +1,341 @@
 "use client";
-
-import React from "react";
-import { useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
-import usePostQuery from "@/hooks/postQuery.hook";
 import { apiUrls } from "@/apis";
+import React, { useEffect, useState } from "react";
+import MyTable from "@/components/shared/common-table/page";
+import useGetQuery from "@/hooks/getQuery.hook";
+import Preloader from "@/components/shared/others/Preloader";
 import { toast } from "react-toastify";
+import useDeleteQuery from "@/hooks/deleteQuery.hook";
+import usePostQuery from "@/hooks/postQuery.hook";
+import { FaTimes } from "react-icons/fa";
 
-const feedbackSchema = yup.object().shape({
-  feedbackType: yup.string().required("Feedback type is required"),
-  feedbackText: yup
-    .string()
-    .min(10, "Feedback must be at least 10 characters")
-    .required("Feedback is required"),
-  feedbackTitle: yup.string().required("Feedback title is required"),
-});
-
-const complaintSchema = yup.object().shape({
-  complaintName: yup.string().required("Name is required"),
-  complaintText: yup
-    .string()
-    .min(10, "Complaint must be at least 10 characters")
-    .required("Complaint text is required"),
-});
+// Function to format the date
+const formatDate = (date) => {
+  if (!date) return "";
+  const options = { day: "2-digit", month: "2-digit", year: "numeric" };
+  const formattedDate = new Date(date).toLocaleDateString("en-GB", options);
+  const [day, month, year] = formattedDate.split("/");
+  return `${day}-${month}-${year}`;
+};
 
 const CoorporateFeedbackAndSupport = () => {
-  const { postQuery, loading } = usePostQuery();
-  const {
-    register: registerFeedback,
-    handleSubmit: handleFeedbackSubmit,
-    reset: resetFeedback,
-    formState: { errors: feedbackErrors },
-    watch,
-  } = useForm({
-    resolver: yupResolver(feedbackSchema),
-    defaultValues: {
-      feedbackType: "course",
-      feedbackText: "",
-      feedbackTitle: "",
-    },
-  });
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [complaints, setComplaints] = useState([]);
+  const [editComplaint, setEditComplaint] = useState(null);
+  const [newStatus, setNewStatus] = useState("");
+  const { getQuery, loading } = useGetQuery();
+  const { deleteQuery } = useDeleteQuery();
+  const { postQuery } = usePostQuery();
+  const [selectedMessage, setSelectedMessage] = useState(null);
 
-  const feedbackType = watch("feedbackType");
-
-  const {
-    register: registerComplaint,
-    handleSubmit: handleComplaintSubmit,
-    reset: resetComplaint,
-    formState: { errors: complaintErrors },
-  } = useForm({
-    resolver: yupResolver(complaintSchema),
-    defaultValues: {
-      complaintName: "",
-      complaintText: "",
-    },
-  });
-
-  const onFeedbackSubmit = (data) => {
-    postQuery({
-      url: apiUrls?.feedbacks?.createCoorporateFeedback,
-      postData: {
-        feedback_text: data?.feedbackText,
-        feedback_for: data?.feedbackType,
-        feedback_title: data?.feedbackTitle,
+  // Fetch data from API
+  const fetchData = async (url, setState) => {
+    await getQuery({
+      url,
+      onSuccess: (response) => {
+        if (Array.isArray(response)) {
+          setState(response);
+        } else {
+          toast.error("Failed to fetch data.");
+        }
       },
-      onSuccess: () => {
-        toast.success("Feedback submitted successfully");
-        resetFeedback();
+      onFail: () => toast.error("Failed to fetch data."),
+    });
+  };
+
+  useEffect(() => {
+    fetchData(apiUrls.feedbacks.getAllCoorporateEmployeesFeedbacks, setFeedbacks);
+    fetchData(apiUrls.feedbacks.getAllEmployeeComplaints, setComplaints);
+  }, []);
+
+  // Handle delete action
+  const handleDelete = async (url, id, fetchUrl, setState) => {
+    await deleteQuery({
+      url: `${url}/${id}`,
+      onSuccess: (res) => {
+        toast.success(res?.message || "Deleted successfully.");
+        fetchData(fetchUrl, setState);
       },
-      onFail: (error) => {
-        console.log(error, "SETERROR");
+      onFail: (err) => {
+        console.error("Delete failed", err);
+        toast.error("Failed to delete.");
       },
     });
   };
 
-  const onComplaintSubmit = (data) => {
-    postQuery({
-      url: apiUrls?.feedbacks?.createComplaint,
-      postData: {
-        name: data?.complaintName,
-        description: data?.complaintText,
-      },
-      onSuccess: () => {
-        toast.success("Complaint submitted successfully");
-        resetComplaint();
-      },
-      onFail: (error) => {
-        console.log(error, "SETERROR");
-      },
-    });
+  // Handle edit action (open edit modal)
+  const handleEdit = (complaint) => {
+    setEditComplaint(complaint);
+    setNewStatus(complaint?.status || "");
   };
 
-  return (
-    <div className="p-6 w-full mx-auto">
-      <div className="mb-8">
-        <h1 className="text-size-32 dark:text-white">Feedback</h1>
+  // Handle form submission for status update
+  const handleUpdateStatus = async () => {
+    if (!newStatus) {
+      toast.error("Please select a valid status.");
+      return;
+    }
 
-        <form onSubmit={handleFeedbackSubmit(onFeedbackSubmit)}>
-          <div className="flex items-center space-x-4 mb-4">
-            <p className="mb-4 text-size-22 dark:text-white">
-              Write Review about Course/Instructor
-              <span className="text-red-500 ml-1">*</span>
-            </p>
-            <div className="flex gap-3 mb-2.5">
-              {/* Course radio button */}
-              <label
-                className={`flex items-center text-lg ${
-                  feedbackType === "course"
-                    ? "text-[#7ECA9D] font-semibold"
-                    : "text-[#B4BDC4]"
-                }`}
+    try {
+      await postQuery({
+        url: `${apiUrls.feedbacks.updateComplaintStatus}/${editComplaint}`,
+        postData: { status: newStatus },
+        onSuccess: () => {
+          toast.success("Complaint status updated successfully.");
+          fetchData(apiUrls.feedbacks.getAllEmployeeComplaints, setComplaints);
+          setEditComplaint(null);
+        },
+        onFail: () => {
+          toast.error("Failed to update complaint status.");
+        },
+      });
+    } catch (error) {
+      console.error("Error updating status:", error);
+      toast.error("Unexpected error occurred.");
+    }
+  };
+
+  // Columns configuration for feedbacks
+  const feedbackColumns = [
+    { Header: "Title", accessor: "feedback_title" },
+    // { Header: "Feedback", accessor: "feedback_text" },
+    {
+      Header: "Feedback",
+      accessor: "feedback_text",
+      render: (row) => {
+        const feedback_text = row?.feedback_text || "";
+        const messagePreview =
+          feedback_text.split(" ").slice(0, 6).join(" ") +
+          (feedback_text.split(" ").length > 6 ? "..." : "");
+
+        return (
+          <div className="flex items-center">
+            <span className="mr-2">{messagePreview}</span>
+            {feedback_text.split(" ").length > 6 && (
+              <button
+                onClick={() => setSelectedMessage(feedback_text)}
+                className="ml-2 text-green-500 rounded-md px-4 py-2 hover:text-green-700 transition-all duration-200 text-sm flex items-center space-x-0"
               >
-                <input
-                  type="radio"
-                  value="course"
-                  {...registerFeedback("feedbackType")}
-                  className="mr-2 peer"
-                />
-                Course
-              </label>
-
-              {/* Instructor radio button */}
-              <label
-                className={`flex items-center text-lg ${
-                  feedbackType === "instructor"
-                    ? "text-[#7ECA9D] font-semibold"
-                    : "text-[#B4BDC4]"
-                }`}
-              >
-                <input
-                  type="radio"
-                  value="instructor"
-                  {...registerFeedback("feedbackType")}
-                  className="mr-2 custom-radio"
-                />
-                Instructor
-              </label>
-            </div>
-
-            {/* Display error message if no radio button is selected */}
-            {feedbackErrors.feedbackType && (
-              <p className="text-red-500 text-sm">
-                {feedbackErrors.feedbackType.message}
-              </p>
+                <span className="ml-[-1.5rem]">Read More...</span>
+              </button>
             )}
           </div>
+        );
+      },
+    },
+    { Header: "Type", accessor: "feedback_for" },
+    {
+      Header: "Date",
+      accessor: "createdAt",
+      render: (row) => formatDate(row?.createdAt),
+    },
+    {
+      Header: "Action",
+      accessor: "actions",
+      render: (row) => (
+        <button
+          onClick={() =>
+            handleDelete(
+              `${apiUrls.feedbacks?.deleteCoorporateFeedback}`,
+              row._id,
+              apiUrls.feedbacks?.getAllCoorporateEmployeesFeedbacks,
+              setFeedbacks
+            )
+          }
+          className="text-[#7ECA9D] border border-[#7ECA9D] rounded-md px-[10px] py-1"
+        >
+          Delete
+        </button>
+      ),
+    },
+  ];
 
-          {/* Title Input */}
+  // Columns configuration for complaints
+  const complaintColumns = [
+    { Header: "Title", accessor: "name" },
+    // { Header: "Description", accessor: "description" },
+    {
+      Header: "Description",
+      accessor: "description",
+      render: (row) => {
+        const description = row?.description || "";
+        const messagePreview =
+          description.split(" ").slice(0, 6).join(" ") +
+          (description.split(" ").length > 6 ? "..." : "");
+
+        return (
+          <div className="flex items-center">
+            <span className="mr-2">{messagePreview}</span>
+            {description.split(" ").length > 6 && (
+              <button
+                onClick={() => setSelectedMessage(description)}
+                className="ml-2 text-green-500 rounded-md px-4 py-2 hover:text-green-700 transition-all duration-200 text-sm flex items-center space-x-0"
+              >
+                <span className="ml-[-1.5rem]">Read More...</span>
+              </button>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      Header: "Date",
+      accessor: "dateFiled",
+      render: (row) => formatDate(row?.dateFiled),
+    },
+    // { Header: "Status", accessor: "status" },
+    {
+      Header: "Status",
+      accessor: "status",
+      render: (row) => {
+        const status = row.status;
+        const statusFormatted =
+          status.charAt(0).toUpperCase() + status.slice(1);
+
+        // Define styles based on status
+        const getStatusStyles = (status) => {
+          switch (status.toLowerCase()) {
+            case "resolved":
+              return { bgColor: "bg-green-500", textColor: "text-white" };
+            case "in-progress":
+              return { bgColor: "bg-yellow", textColor: "text-white" };
+            case "open":
+              return { bgColor: "bg-gray-500", textColor: "text-white" };
+            default:
+              return { bgColor: "bg-gray-300", textColor: "text-black" };
+          }
+        };
+
+        const { bgColor, textColor } = getStatusStyles(status);
+
+        return (
+          <span
+            className={`px-2 py-1 rounded-md font-semibold ${bgColor} ${textColor}`}
+          >
+            {statusFormatted}
+          </span>
+        );
+      },
+    },
+    {
+      Header: "Action",
+      accessor: "actions",
+      render: (row) => (
+        <div className="flex gap-2 items-center">
+          <button
+            onClick={() => handleEdit(row._id)}
+            className="text-[#FFA500] border border-[#FFA500] rounded-md px-[10px] py-1"
+          >
+            Edit
+          </button>
+          <button
+            onClick={() =>
+              handleDelete(
+                `${apiUrls.feedbacks.deleteComplaint}`,
+                row._id,
+                apiUrls.feedbacks.getAllComplaints,
+                setComplaints
+              )
+            }
+            className="text-[#7ECA9D] border border-[#7ECA9D] rounded-md px-[10px] py-1"
+          >
+            Delete
+          </button>
+        </div>
+      ),
+    },
+  ];
+
+  // Render edit modal
+  const renderEditModal = () => {
+    if (!editComplaint) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+        <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+          <h2 className=" text-[20px] font-lighter mb-4">
+            Update Complaint Status
+          </h2>
           <div className="mb-4">
-            <label className="block text-gray-700 mb-2 dark:text-white">
-              Title
-              <span className="text-red-500 ml-1">*</span>
-            </label>
-            <input
-              type="text"
-              {...registerFeedback("feedbackTitle")}
-              className="w-1/2 p-3 border rounded-lg dark:bg-inherit dark:text-white text-[#434343BF] focus:outline-none focus:ring-1 focus:ring-green-300"
-            />
-            {feedbackErrors.feedbackTitle && (
-              <p className="text-red-500 text-sm">
-                {feedbackErrors.feedbackTitle.message}
-              </p>
-            )}
-          </div>
-
-          <div className="relative w-full mb-4">
-            <textarea
-              placeholder="Type Review * ................"
-              rows="4"
-              {...registerFeedback("feedbackText")}
-              className="w-full p-3 border dark:bg-inherit dark:text-white rounded-lg text-[#434343BF] focus:outline-none focus:ring-1 focus:ring-green-300"
-            />
-            {feedbackErrors.feedbackText && (
-              <p className="text-red-500 text-sm">
-                {feedbackErrors.feedbackText.message}
-              </p>
-            )}
-            <button
-              type="submit"
-              className="absolute top-44 right-4 px-6 py-2 bg-primaryColor text-white rounded-full hover:bg-green-600"
+            <label className="block mb-2  font-lighter">New Status</label>
+            <select
+              value={newStatus}
+              onChange={(e) => setNewStatus(e.target.value)}
+              className="w-full p-2 border rounded-md"
             >
-              Submit
+              <option value="">Select Status</option>
+              <option value="open">Open</option>
+              <option value="in-progress">In-Progress</option>
+              <option value="resolved">Resolved</option>
+            </select>
+          </div>
+          <div className="flex gap-4">
+            <button
+              onClick={handleUpdateStatus}
+              className="bg-[#FFA500] text-white px-4 py-2 rounded-md"
+            >
+              Update
+            </button>
+            <button
+              onClick={() => setEditComplaint(null)}
+              className="bg-gray-400 text-white px-4 py-2 rounded-md"
+            >
+              Cancel
             </button>
           </div>
-        </form>
+        </div>
+      </div>
+    );
+  };
+
+  if (loading) return <Preloader />;
+
+  return (
+    <div className="min-h-screen bg-gray-100 p-6">
+      {/* Feedback Section */}
+      <div className="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-lg">
+        <h1 className="text-2xl font-bold mb-4">Student/Employee Feedbacks</h1>
+        <MyTable
+          columns={feedbackColumns}
+          data={feedbacks}
+          entryText="Feedbacks"
+        />
       </div>
 
       {/* Complaints Section */}
-      <div>
-        <h1 className="text-size-32 dark:text-white mb-2">
-          Complaints & Grievances
-        </h1>
-
-        <form onSubmit={handleComplaintSubmit(onComplaintSubmit)}>
-          {/* Title Input */}
-          <div className="mb-4">
-            <label className="block text-gray-700 mb-2 dark:text-white">
-              Title
-              <span className="text-red-500 ml-1">*</span>
-            </label>
-            <input
-              type="text"
-              {...registerComplaint("complaintName")}
-              className="w-1/2 p-3 border rounded-lg dark:bg-inherit dark:text-white text-[#434343BF] focus:outline-none focus:ring-1 focus:ring-green-300"
-            />
-            {complaintErrors.complaintName && (
-              <p className="text-red-500 text-sm">
-                {complaintErrors.complaintName.message}
-              </p>
-            )}
-          </div>
-
-          {/* Complaint Text Area */}
-          <div className="mb-11">
-            <label className="block dark:text-white text-gray-700 mb-2">
-              Write Complaint
-              <span className="text-red-500 ml-1">*</span>
-            </label>
-            <textarea
-              placeholder="Write....."
-              rows="4"
-              {...registerComplaint("complaintText")}
-              className="w-full p-3 border dark:bg-inherit dark:text-white rounded-lg text-[#434343BF] focus:outline-none focus:ring-1 focus:ring-green-300"
-            />
-            {complaintErrors.complaintText && (
-              <p className="text-red-500 text-sm">
-                {complaintErrors.complaintText.message}
-              </p>
-            )}
-          </div>
-
-          {/* Complaint Submit Button */}
-          <button
-            type="submit"
-            className="px-6 py-2 bg-primaryColor text-white rounded-full hover:bg-green-600"
-          >
-            Submit
-          </button>
-        </form>
+      <div className="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-lg mt-10">
+        <h1 className="text-2xl font-bold mb-4">Student/Employee Complaints</h1>
+        <MyTable
+          columns={complaintColumns}
+          data={complaints}
+          entryText="Complaints"
+        />
       </div>
+      {/* Edit Modal */}
+      {renderEditModal()}
+      {/* Modal for full message */}
+      {selectedMessage && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white rounded-md p-6 max-w-[50%] w-full relative  max-h-[500px] overflow-y-auto">
+            {/* Close Button at top-right corner */}
+            <button
+              onClick={() => setSelectedMessage(null)}
+              className="absolute top-2 right-2 text-xl text-gray-500 hover:text-gray-700"
+            >
+              <FaTimes />
+            </button>
+
+            <h2 className="text-xl font-semibold mb-4">Full Message</h2>
+            <p className="mb-4">{selectedMessage}</p>
+            <button
+              onClick={() => setSelectedMessage(null)}
+              className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition-all duration-200"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
