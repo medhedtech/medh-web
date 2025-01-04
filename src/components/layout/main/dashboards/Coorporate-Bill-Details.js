@@ -100,8 +100,8 @@ const CoorporateBillDetails = () => {
           await subscribeCourse(coorporateId, courseId, courseFee);
         },
         prefill: {
-          name: "Medh Coorporate Admin",
-          email: "medh@coorporate.com",
+          name: "Medh Corporate Admin",
+          email: "medh@corporate.com",
           contact: "9876543210",
         },
         notes: {
@@ -154,7 +154,7 @@ const CoorporateBillDetails = () => {
         },
         onSuccess: () => {
           setIsModalOpen(true);
-          console.log("Coorporate enrolled successfully!");
+          console.log("Corporate enrolled successfully!");
         },
         onFail: (err) => {
           console.error("Enrollment failed:", err);
