@@ -11,8 +11,9 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { FiFileText } from "react-icons/fi";
 import Preloader from "@/components/shared/others/Preloader";
+import CoorporateQuizQuestion from "./CoorporateQuizQuestions";
 
-export default function QuizPage({ closeQuiz }) {
+export default function CoorporateQuizPage({ closeQuiz }) {
   const [selectedFilter, setSelectedFilter] = useState("");
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [showPopup, setShowPopup] = useState(false);
@@ -39,14 +40,65 @@ export default function QuizPage({ closeQuiz }) {
     }
   }, []);
 
+  //   useEffect(() => {
+  //     if (studentId) {
+  //       const fetchUpcomingClasses = () => {
+  //         getQuery({
+  //           url: apiUrls?.onlineMeeting?.getAllMeetingsForAllEmployeees,
+  //           onSuccess: (res) => {
+  //             const sortedClasses = res || [];
+
+  //             const ongoingClasses = sortedClasses.filter((classItem) => {
+  //               const classDateTime = moment(
+  //                 `${classItem.date} ${classItem.time}`,
+  //                 "YYYY-MM-DD HH:mm"
+  //               );
+  //               const currentTime = moment();
+  //               const classEndTime = classDateTime.add(1, "hour");
+
+  //               return currentTime.isBetween(classDateTime, classEndTime);
+  //             });
+
+  //             const upcomingClasses = sortedClasses.filter(
+  //               (classItem) => !ongoingClasses.includes(classItem)
+  //             );
+
+  //             const sortedUpcomingClasses = upcomingClasses.sort((a, b) => {
+  //               const aDateTime = moment(
+  //                 `${a.date} ${a.time}`,
+  //                 "YYYY-MM-DD HH:mm"
+  //               );
+  //               const bDateTime = moment(
+  //                 `${b.date} ${b.time}`,
+  //                 "YYYY-MM-DD HH:mm"
+  //               );
+  //               return aDateTime - bDateTime;
+  //             });
+
+  //             setClasses([...ongoingClasses, ...sortedUpcomingClasses]);
+  //           },
+  //           onFail: (err) => {
+  //             console.error("Error fetching upcoming classes:", err);
+  //           },
+  //         });
+  //       };
+
+  //       fetchUpcomingClasses();
+  //     }
+  //   }, [studentId]);
+
   useEffect(() => {
     if (studentId) {
-      const fetchUpcomingClasses = () => {
-        getQuery({
-          url: `${apiUrls?.onlineMeeting?.getMeetingByStudentId}/${studentId}`,
-          onSuccess: (res) => {
-            const sortedClasses = res || [];
+      const fetchUpcomingClasses = async () => {
+        try {
+          const response = await getQuery({
+            url: apiUrls?.onlineMeeting?.getAllMeetingsForAllEmployeees,
+          });
 
+          if (response?.meetings) {
+            const sortedClasses = response.meetings || [];
+
+            // Separate ongoing classes
             const ongoingClasses = sortedClasses.filter((classItem) => {
               const classDateTime = moment(
                 `${classItem.date} ${classItem.time}`,
@@ -55,9 +107,11 @@ export default function QuizPage({ closeQuiz }) {
               const currentTime = moment();
               const classEndTime = classDateTime.add(1, "hour");
 
+              // Class is ongoing if current time is between start and end time
               return currentTime.isBetween(classDateTime, classEndTime);
             });
 
+            // Sort the remaining classes by date/time
             const upcomingClasses = sortedClasses.filter(
               (classItem) => !ongoingClasses.includes(classItem)
             );
@@ -74,12 +128,17 @@ export default function QuizPage({ closeQuiz }) {
               return aDateTime - bDateTime;
             });
 
-            setClasses([...ongoingClasses, ...sortedUpcomingClasses]);
-          },
-          onFail: (err) => {
-            console.error("Error fetching upcoming classes:", err);
-          },
-        });
+            // Combine ongoing classes with sorted upcoming classes
+            setClasses(
+              [...ongoingClasses, ...sortedUpcomingClasses].slice(0, 4)
+            );
+          } else {
+            console.error("No meetings data found in response");
+          }
+        } catch (error) {
+          console.error("Error fetching upcoming classes:", error);
+          toast.error("Failed to fetch upcoming classes.");
+        }
       };
 
       fetchUpcomingClasses();
@@ -225,7 +284,7 @@ export default function QuizPage({ closeQuiz }) {
           ))}
         </select>
         {processedQuestions?.length > 0 ? (
-          <QuizQuestion
+          <CoorporateQuizQuestion
             question={processedQuestions[currentQuestion]?.question}
             options={processedQuestions[currentQuestion]?.options}
             questionId={processedQuestions[currentQuestion]?.questionId}
@@ -248,7 +307,7 @@ export default function QuizPage({ closeQuiz }) {
               size={80}
             />
             <p className="text-lg font-semibold text-gray-700 dark:text-gray-200">
-              No Quizzes Available for {selectedFilter} class student
+              No Quizzes Available for {selectedFilter} class coorporate
             </p>
             <p className="text-sm text-gray-500 pb-4 dark:text-gray-400 mt-2 text-center">
               It looks like there are no quizzes available for the selected

@@ -317,7 +317,7 @@ const SidebarDashboard = () => {
           icon: <MdCategory size={18} color="#808080" />,
         },
         {
-          name: "Coorporate Management",
+          name: "Corporate Management",
           path: "/dashboards/admin-management",
           icon: <FaUsersCog size={18} color="#808080" />,
         },

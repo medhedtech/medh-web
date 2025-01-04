@@ -5,8 +5,8 @@ import HeadingDashboardOnly from "@/components/shared/headings/HeadingDashbordsO
 
 import ThemeController from "@/components/shared/others/ThemeController";
 export const metadata = {
-  title: "Coorporate Profile | Medh",
-  description: "Coorporate Profile | Medh - Education",
+  title: "Corporate Profile | Medh",
+  description: "Corporate Profile | Medh - Education",
 };
 const Coorporate_Profile = () => {
   return (
