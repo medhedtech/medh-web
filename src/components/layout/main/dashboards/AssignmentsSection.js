@@ -22,7 +22,7 @@ const AssignmentsSection = ({ onQuizClick }) => {
   useEffect(() => {
     if (studentId) {
       getQuery({
-        url: `${apiUrls?.assignments?.getAssignmentsByEnrolledCourses}/${studentId}`,
+        url: `${apiUrls?.assignments?.getAssignmentsCoorporateEnrolledCourses}/${studentId}`,
         onSuccess: (data) => {
           setAssignments(data);
         },
