@@ -4,8 +4,8 @@ import HireSectionImg from "../../../assets/images/hireformmedh/hiresectionimg.p
 const HireSection = () => {
   return (
     <div>
-      <div className="text-center py-2">
-        <h1 className="text-[#5C6574] font-Poppins font-bold text-size-32">
+      <div className="text-center  px-4 sm:px-0 py-2">
+        <h1 className="text-[#5C6574] font-Poppins font-bold text-size-32 leading-tight my-1">
           Start your hiring process now with Recruit @ Medh.
         </h1>
         <span className="text-[#727695] font-Open text-size-15 leading-27px">
