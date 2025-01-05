@@ -213,7 +213,8 @@ export default function AboutBanner({
 
         {/* Slogan */}
         <p
-          className="text-[#A1F1B5] text-[2.5rem] font-Bulgathi font-normal text-center mt-[5px]"
+          // className="text-[#A1F1B5] text-[2.5rem] font-Bulgathi font-normal text-center mt-[5px]"
+          className="text-[#7ECA9D] w-full text-[2.4rem] font-Bulgathi font-normal text-center mt-[5px]"
           style={{ color: headingColor }}
         >
           {slogan}
