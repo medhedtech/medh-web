@@ -597,7 +597,7 @@ export default function MainBanner({
             {/* Description Section */}
             <div className="flex-col w-[100%] ">
               <p
-                className="text-[.95rem] text-left font-Poppins leading-normal"
+                className="text-[.92rem] text-left font-Poppins leading-normal"
                 style={{ color: descriptionColor }}
               >
                 {description}
@@ -635,7 +635,8 @@ export default function MainBanner({
 
         {/* Slogan */}
         <p
-          className="text-[#A1F1B5] text-[2.5rem] font-Bulgathi font-normal text-center mt-[5px]"
+          // className="text-[#A1F1B5] text-[2.5rem] font-Bulgathi font-normal text-center mt-[5px]"
+          className="text-[#7ECA9D] w-full text-[2.4rem] font-Bulgathi font-normal text-center mt-[5px]"
           style={{ color: headingColor }}
         >
           {slogan}
