@@ -83,16 +83,16 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
 
   // Handle form submission
   const onSubmit = async (data) => {
-    if (!recaptchaValue) {
-      setRecaptchaError(true);
-      return;
-    }
+    // if (!recaptchaValue) {
+    //   setRecaptchaError(true);
+    //   return;
+    // }
     try {
       const selectedCountry = countriesData.find(
         (country) => country.name === data.country
       );
       await postQuery({
-        url: apiUrls?.Corporate?.addCorporate,
+        url: apiUrls?.CorporateTraining?.addCorporate,
         postData: {
           full_name: data?.full_name,
           country: data?.country,
