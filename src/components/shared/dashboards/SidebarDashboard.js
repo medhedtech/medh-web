@@ -316,11 +316,11 @@ const SidebarDashboard = () => {
           path: "/dashboards/admin-category-manage",
           icon: <MdCategory size={18} color="#808080" />,
         },
-        {
-          name: "Corporate Management",
-          path: "/dashboards/admin-management",
-          icon: <FaUsersCog size={18} color="#808080" />,
-        },
+        // {
+        //   name: "Corporate Management",
+        //   path: "/dashboards/admin-management",
+        //   icon: <FaUsersCog size={18} color="#808080" />,
+        // },
         {
           name: "Generate Certificate",
           path: "/dashboards/admin-GenrateCertificate",
