@@ -26,9 +26,10 @@ export const apiUrls = {
       status,
       search,
       course_grade,
-      category
+      category,
+      courseId = ""
     ) =>
-      `/courses/getLimitedCourses?page=${page}&limit=${limit}&course_title=${course_title}&course_tag=${course_tag}&course_category=${course_category}&status=${status}&search=${search}&course_grade=${course_grade}&category=${category}`,
+      `/courses/getLimitedCourses?page=${page}&limit=${limit}&course_title=${course_title}&course_tag=${course_tag}&course_category=${course_category}&status=${status}&search=${search}&course_grade=${course_grade}&category=${category}&exclude=${courseId}`,
     getAllCourses: "/courses/get",
     getCourseById: "/courses/get",
     getCoorporateCourseByid: "/courses/get-coorporate",
@@ -200,7 +201,8 @@ export const apiUrls = {
     getSubscriptionById: "/subscription/get",
     getEnrollmentStatus: "/subscription/enrollStatus",
     getCoorporateEnrollmentsStatus: "/subscription/coorporate-enrollStatus",
-    getCoorporateEmployeeEnrollmentsStatus: "/subscription/corporate-employee-enroll-status",
+    getCoorporateEmployeeEnrollmentsStatus:
+      "/subscription/corporate-employee-enroll-status",
     updateSubscription: "/subscription/update",
     deleteSubscription: "/subscription/delete",
     getAllSubscriptionByStudentId: "/subscription/get-subscription",
@@ -238,11 +240,11 @@ export const apiUrls = {
     getAllNewsletter: "/newsletter/getAll",
     addNewsletter: "/newsletter/add",
   },
-  Corporate: {
-    getAllCorporate: "/corporate/getAll",
-    addCorporate: "/corporate/create",
-    updateCorporate: "/corporate/update/:id",
-    deleteCorporate: "/corporate/delete",
+  CorporateTraining: {
+    getAllCorporate: "/corporate-training/getAll",
+    addCorporate: "/corporate-training/create",
+    updateCorporate: "/corporate-training/update/:id",
+    deleteCorporate: "/corporate-training/delete",
   },
   Session_Count: {
     getCountByInstructorId: "/track-sessions/get",
