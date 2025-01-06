@@ -114,10 +114,10 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
 
   // Handle form submission
   const onSubmit = async (data) => {
-    // if (!recaptchaValue) {
-    //   setRecaptchaError(true);
-    //   return;
-    // }
+    if (!recaptchaValue) {
+      setRecaptchaError(true);
+      return;
+    }
     try {
       const selectedCountry = countriesData.find(
         (country) => country.name === data.country
@@ -146,7 +146,6 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
           setRecaptchaError(false);
           setRecaptchaValue(null);
 
-          // Reset the form fields after a successful submission
           reset();
         },
         onFail: () => {
