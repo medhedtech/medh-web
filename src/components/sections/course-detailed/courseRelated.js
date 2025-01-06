@@ -4,7 +4,7 @@ import CourseCard from "../courses/CourseCard";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 
-function CourceRalated({ categoryName }) {
+function CourceRalated({ categoryName,courseId }) {
   const [courses, setCourses] = useState([]);
   const { getQuery } = useGetQuery();
   const [limit] = useState(3);
@@ -27,7 +27,8 @@ function CourceRalated({ categoryName }) {
           "Published",
           "",
           "",
-          categoryName
+          categoryName,
+          courseId
         ),
         onSuccess: (res) => {
           console.log("Response is:", res);
