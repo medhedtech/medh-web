@@ -42,7 +42,7 @@ export default function GetInTouch() {
       onSuccess: (response) => {
         if (response?.success && Array.isArray(response.data)) {
           setCourses(response.data);
-          setFilteredCourses(response.data); // Initially show all courses
+          setFilteredCourses(response.data);
         } else {
           setCourses([]);
           setFilteredCourses([]);
@@ -58,7 +58,7 @@ export default function GetInTouch() {
   // Fetch corporates from API
   const fetchCorporatesData = async () => {
     await getQuery({
-      url: apiUrls?.Corporate?.getAllCorporate,
+      url: apiUrls?.CorporateTraining?.getAllCorporate,
       onSuccess: (response) => {
         if (response?.success && Array.isArray(response.data)) {
           setCorporates(response.data);
@@ -105,7 +105,7 @@ export default function GetInTouch() {
 
   const deleteCorporate = (id) => {
     deleteQuery({
-      url: `${apiUrls?.Corporate?.deleteCorporate}/${id}`,
+      url: `${apiUrls?.CorporateTraining?.deleteCorporate}/${id}`,
       onSuccess: (res) => {
         toast.success(res?.message);
         fetchCorporatesData();
