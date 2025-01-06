@@ -13,6 +13,7 @@ import Image from "next/image";
 import { BookOpen, CircleCheckBig, Upload } from "lucide-react";
 import ResourceUploadModal from "./ResourceUploadModal";
 import CurriculumModal from "./CurriculumModal";
+import CategorySelect from "./CategorySelect";
 
 // Validation Schema
 const schema = yup.object({
@@ -95,6 +96,7 @@ const AddCourse = () => {
     setValue,
     reset,
     trigger,
+    getValues
   } = useForm({
     resolver: yupResolver(schema),
   });
@@ -162,6 +164,10 @@ const AddCourse = () => {
     setSearchTerm("");
   };
 
+  const handleCategory = (category) =>{
+    setValue("category", category);
+  }
+
   const filteredCategories = categories?.filter((category) =>
     category.category_name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -201,6 +207,7 @@ const AddCourse = () => {
   };
 
   const handlePdfUpload = async (e) => {
+    console.log(getValues("category"),"value cat")
     const files = e.target.files;
     if (files.length > 0) {
       try {
@@ -220,6 +227,7 @@ const AddCourse = () => {
                 updatedPdfs.push(data?.data); // Append to the array
                 setPdfBrochures([...updatedPdfs]); // Update the state
                 setErrorPdf(false);
+                console.log(getValues("category"),"value cat")
               },
               onError: (error) => {
                 toast.error("PDF upload failed. Please try again.");
@@ -233,6 +241,8 @@ const AddCourse = () => {
       }
     }
   };
+
+  
 
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
@@ -437,7 +447,7 @@ const AddCourse = () => {
                 </p>
               )}
             </div>
-            <div className="relative" ref={dropdownRef}>
+            {/* <div className="relative" ref={dropdownRef}>
               <label className="block text-sm font-normal mb-1">
                 Course Category <span className="text-red-500">*</span>
               </label>
@@ -487,7 +497,8 @@ const AddCourse = () => {
                   {errors.category.message}
                 </p>
               )}
-            </div>
+            </div> */}
+            <CategorySelect handleCategory={handleCategory} errors={errors} />
 
             <div>
               <label className="block text-sm font-normal mb-1">
