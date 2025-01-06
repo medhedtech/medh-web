@@ -43,7 +43,7 @@ function CourseDetailedNew({ params }) {
       <CourseEducation courseId={courseId} />
       <AboutProgram courseId={courseId} />
       <CaurseFaq courseId={courseId} />
-      <CourceRalated categoryName={categoryName} />
+      <CourceRalated categoryName={categoryName} courseId={courseId} />
       <CourseCertificate />
       <ThemeController />
     </PageWrapper>
