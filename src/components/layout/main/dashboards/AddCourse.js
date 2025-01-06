@@ -151,25 +151,9 @@ const AddCourse = () => {
     }
   };
 
-  const toggleDropdown = (e) => {
-    e.preventDefault();
-    setDropdownOpen((prev) => !prev);
-  };
-
-  const selectCategory = (categoryName) => {
-    setSelected(categoryName);
-    setValue("category", categoryName);
-    setDropdownOpen(false);
-    setSearchTerm("");
-  };
-
   const handleCategory = (category) => {
     setValue("category", category);
   };
-
-  const filteredCategories = categories?.filter((category) =>
-    category.category_name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   const handleVideoUpload = async (e) => {
     const files = e.target.files;
