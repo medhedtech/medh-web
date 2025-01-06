@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import usePostQuery from "@/hooks/postQuery.hook";
 import { apiUrls } from "@/apis";
@@ -72,7 +72,6 @@ const AddCourse = () => {
   const [categories, setCategories] = useState(null);
   const { getQuery } = useGetQuery();
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [selected, setSelected] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const dropdownRef = useRef(null);
   const [courseDurationValue, setCourseDurationValue] = useState();
@@ -89,6 +88,7 @@ const AddCourse = () => {
   const [error, setError] = useState(false);
   const [errorPdf, setErrorPdf] = useState(false);
   const [errorVideo, setErrorVideo] = useState(false);
+  const [selected, setSelected] = useState("");
   const {
     register,
     handleSubmit,
@@ -96,7 +96,7 @@ const AddCourse = () => {
     setValue,
     reset,
     trigger,
-    getValues
+    getValues,
   } = useForm({
     resolver: yupResolver(schema),
   });
@@ -141,7 +141,6 @@ const AddCourse = () => {
         url: apiUrls?.categories?.getAllCategories,
         onSuccess: (res) => {
           setCategories(res.data);
-          console.log("All categories", res);
         },
         onFail: (err) => {
           console.error("Failed to fetch categories: ", err);
@@ -164,9 +163,9 @@ const AddCourse = () => {
     setSearchTerm("");
   };
 
-  const handleCategory = (category) =>{
+  const handleCategory = (category) => {
     setValue("category", category);
-  }
+  };
 
   const filteredCategories = categories?.filter((category) =>
     category.category_name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -207,7 +206,7 @@ const AddCourse = () => {
   };
 
   const handlePdfUpload = async (e) => {
-    console.log(getValues("category"),"value cat")
+    console.log(getValues("category"), "value cat");
     const files = e.target.files;
     if (files.length > 0) {
       try {
@@ -227,7 +226,7 @@ const AddCourse = () => {
                 updatedPdfs.push(data?.data); // Append to the array
                 setPdfBrochures([...updatedPdfs]); // Update the state
                 setErrorPdf(false);
-                console.log(getValues("category"),"value cat")
+                console.log(getValues("category"), "value cat");
               },
               onError: (error) => {
                 toast.error("PDF upload failed. Please try again.");
@@ -241,8 +240,6 @@ const AddCourse = () => {
       }
     }
   };
-
-  
 
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
@@ -447,58 +444,14 @@ const AddCourse = () => {
                 </p>
               )}
             </div>
-            {/* <div className="relative" ref={dropdownRef}>
-              <label className="block text-sm font-normal mb-1">
-                Course Category <span className="text-red-500">*</span>
-              </label>
-              <div className="p-3 border rounded-lg w-full dark:bg-inherit text-gray-600">
-                <button className="w-full text-left" onClick={toggleDropdown}>
-                  {selected || "Select Category"}
-                </button>
-                {dropdownOpen && (
-                  <div className="absolute z-10 left-0 top-20 bg-white border border-gray-600 rounded-lg w-full shadow-xl">
-                    <input
-                      type="text"
-                      className="w-full p-2 border-b focus:outline-none rounded-lg"
-                      placeholder="Search..."
-                      value={searchTerm || selectedCategory || ""}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                    <ul className="max-h-56 overflow-auto">
-                      {filteredCategories.length > 0 ? (
-                        filteredCategories.map((category) => (
-                          <li
-                            key={category._id}
-                            className="hover:bg-gray-100 rounded-lg cursor-pointer flex gap-3 px-3 py-3"
-                            onClick={() => {
-                              selectCategory(category.category_name);
-                              trigger("category");
-                            }}
-                          >
-                            <Image
-                              src={category.category_image}
-                              alt={category.category_title}
-                              width={32}
-                              height={32}
-                              className="rounded-full"
-                            />
-                            {category.category_name}
-                          </li>
-                        ))
-                      ) : (
-                        <li className="p-2 text-gray-500">No results found</li>
-                      )}
-                    </ul>
-                  </div>
-                )}
-              </div>
-              {errors.category && (
-                <p className="text-red-500 text-xs">
-                  {errors.category.message}
-                </p>
-              )}
-            </div> */}
-            <CategorySelect handleCategory={handleCategory} errors={errors} />
+
+            {/* <CategorySelect handleCategory={handleCategory} errors={errors} /> */}
+            <CategorySelect
+              handleCategory={handleCategory}
+              errors={errors}
+              selected={selected}
+              setSelected={setSelected}
+            />
 
             <div>
               <label className="block text-sm font-normal mb-1">

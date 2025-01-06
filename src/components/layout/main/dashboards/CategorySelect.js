@@ -3,14 +3,14 @@ import useGetQuery from "@/hooks/getQuery.hook";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
-const CategorySelect = ({ handleCategory, errors }) => {
+const CategorySelect = ({ handleCategory, errors, selected, setSelected }) => {
   const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [selected, setSelected] = useState("");
+
   const dropdownRef = useRef(null);
-  const {getQuery} = useGetQuery()
+  const { getQuery } = useGetQuery();
 
   const toggleDropdown = (e) => {
     e.preventDefault();
@@ -18,13 +18,10 @@ const CategorySelect = ({ handleCategory, errors }) => {
   };
 
   const filteredCategories = categories?.filter((category) => {
-    console.log(category, "inside filter");
     return category.category_name
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
   });
-
-  console.log(filteredCategories, "filtered categories");
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -34,12 +31,17 @@ const CategorySelect = ({ handleCategory, errors }) => {
     };
     document.addEventListener("mousedown", handleClickOutside);
     fetchAllCategories();
+    console.log("Categories select rendered", selected);
+    if (selected) {
+      handleCategory(selected);
+    }
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [searchTerm]);
 
   const selectCategory = (categoryName) => {
+    console.log("Selected category", categoryName);
     setSelected(categoryName);
     setDropdownOpen(false);
     setSearchTerm("");
@@ -62,8 +64,6 @@ const CategorySelect = ({ handleCategory, errors }) => {
       console.error("Error fetching categories: ", err);
     }
   };
-
-  console.log(filteredCategories, "asdasdasdasdasd");
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -94,7 +94,7 @@ const CategorySelect = ({ handleCategory, errors }) => {
                     }}
                   >
                     <Image
-                      src={category.category_image ||""}
+                      src={category.category_image || ""}
                       alt={category.category_title}
                       width={32}
                       height={32}
