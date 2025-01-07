@@ -51,7 +51,7 @@ function VedicCource() {
         searchTerm,
         gradeQuery,
         "Vedic Mathematics",
-        false
+        // false
       ),
       onSuccess: (data) => {
         let courses = data?.courses || [];
