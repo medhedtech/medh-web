@@ -6,11 +6,12 @@ import { apiUrls } from "@/apis";
 import moment from "moment";
 import { toast } from "react-toastify";
 import Image from "next/image";
+import Preloader from "../others/Preloader";
 
 const UpcomigClasses = () => {
   const [classes, setClasses] = useState([]);
   const [studentId, setStudentId] = useState(null);
-  const { getQuery } = useGetQuery();
+  const { getQuery, loading } = useGetQuery();
 
   // Fetch student ID from localStorage
   useEffect(() => {
@@ -82,6 +83,13 @@ const UpcomigClasses = () => {
     }
   }, [studentId]);
 
+  if (loading) {
+    return (
+      <div>
+        <Preloader />
+      </div>
+    );
+  }
   const handleJoinClick = (classItem) => {
     const classDateTime = moment(
       `${classItem.date} ${classItem.time}`,
