@@ -31,7 +31,7 @@ const NewCourses = () => {
           "",
           "",
           "",
-          true
+          // true
         ),
         onSuccess: (res) => {
           setCourses(res?.courses || []);
