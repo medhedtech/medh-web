@@ -3,12 +3,14 @@ import React, { useEffect, useState } from "react";
 import CourseCard from "../courses/CourseCard";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
+import usePostQuery from "@/hooks/postQuery.hook";
 
-function CourceRalated({ categoryName,courseId }) {
+function CourceRalated({ categoryName,courseId,relatedCourses }) {
   const [courses, setCourses] = useState([]);
   const { getQuery } = useGetQuery();
   const [limit] = useState(3);
   const [page] = useState(1);
+  const {postQuery} = usePostQuery();
 
   useEffect(() => {
     const fetchCourses = () => {
@@ -17,19 +19,11 @@ function CourceRalated({ categoryName,courseId }) {
         return;
       }
 
-      getQuery({
-        url: apiUrls?.courses?.getAllCoursesWithLimits(
-          page,
-          limit,
-          "",
-          "",
-          "",
-          "Published",
-          "",
-          "",
-          categoryName,
-          courseId
-        ),
+      postQuery({
+        url: apiUrls?.courses?.getAllRelatedCources,
+        postData:{
+          course_ids: relatedCourses,
+        },
         onSuccess: (res) => {
           console.log("Response is:", res);
           setCourses(res?.courses || []);
