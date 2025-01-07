@@ -200,7 +200,7 @@ function PersonalityCourse() {
         searchTerm,
         gradeQuery,
         "Personality Development",
-        false
+        // false
       ),
       onSuccess: (data) => {
         let courses = data?.courses || [];
