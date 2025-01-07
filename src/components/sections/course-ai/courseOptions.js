@@ -97,7 +97,7 @@ function CourseOptions() {
         "",
         "",
         "AI and Data Science",
-        false
+        // false
       ),
       onSuccess: (data) => {
         const filtered = (data?.courses || [])

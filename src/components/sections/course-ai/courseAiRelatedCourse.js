@@ -21,9 +21,8 @@ function CourseAiRelatedCourses() {
         "",
         "",
         "",
-        excludeId,
         "AI and Data Science",
-        false
+        // false
       ),
       onSuccess: (data) => {
         const filtered = (data?.courses || []).slice(0, 3);

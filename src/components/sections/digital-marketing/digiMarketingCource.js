@@ -22,7 +22,7 @@ function DigiMarketingCource() {
         "",
         "",
         "Digital Marketing with Data Analytics",
-        false
+        // false
       ),
       onSuccess: (data) => {
         const filtered = (data?.courses || []).slice(0, 3);
