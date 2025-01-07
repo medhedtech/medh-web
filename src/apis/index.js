@@ -41,6 +41,7 @@ export const apiUrls = {
     toggleCourseStatus: "/courses/toggle-status",
     addRecordedVideos: "/courses/recorded-videos",
     getRecorderVideosForUser: "/courses/recorded-videos",
+    getAllRelatedCources: "/courses/related-courses",
   },
   upload: {
     uploadImage: "/upload/uploadImage",

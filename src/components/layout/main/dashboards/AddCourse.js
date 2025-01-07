@@ -14,6 +14,7 @@ import { BookOpen, CircleCheckBig, Upload } from "lucide-react";
 import ResourceUploadModal from "./ResourceUploadModal";
 import CurriculumModal from "./CurriculumModal";
 import CategorySelect from "./CategorySelect";
+import SelectMultipleCourses from "./SelectMultipleCourses";
 
 // Validation Schema
 const schema = yup.object({
@@ -30,6 +31,8 @@ const schema = yup.object({
     .positive("Number of sessions must be a positive number")
     .required("Number of sessions is required"),
   course_duration: yup.string().required("Course duration is required"),
+  related_courses: yup.string(),
+  // .required("Related courses are required"),
   // session_duration: yup
   //   .string()
   //   .test(
@@ -89,6 +92,7 @@ const AddCourse = () => {
   const [errorPdf, setErrorPdf] = useState(false);
   const [errorVideo, setErrorVideo] = useState(false);
   const [selected, setSelected] = useState("");
+  const [selectedCourses, setSelectedCourses] = useState([]);
   const {
     register,
     handleSubmit,
@@ -135,6 +139,12 @@ const AddCourse = () => {
     }
   }, [selected, trigger]);
 
+  useEffect(() => {
+    if (selectedCourses) {
+      trigger("related_courses");
+    }
+  }, [selectedCourses, trigger]);
+
   const fetchAllCategories = () => {
     try {
       getQuery({
@@ -153,6 +163,10 @@ const AddCourse = () => {
 
   const handleCategory = (category) => {
     setValue("category", category);
+  };
+
+  const handleCourse = (course) => {
+    setValue("course", course);
   };
 
   const handleVideoUpload = async (e) => {
@@ -273,6 +287,7 @@ const AddCourse = () => {
         resource_videos: resourceVideos.length > 0 ? resourceVideos : [],
         resource_pdfs: resourcePdfs.length > 0 ? resourcePdfs : [],
         curriculum: curriculum.length > 0 ? curriculum : [],
+        related_courses: selectedCourses.length > 0 ? selectedCourses : [],
       };
 
       // Save data to localStorage
@@ -802,9 +817,9 @@ const AddCourse = () => {
                 className="flex items-center w-full justify-center gap-2 px-4 py-2.5 border border-gray-200 rounded-md hover:bg-gray-100 transition-colors"
               >
                 {curriculum.length > 0 ? (
-                  <CircleCheckBig className="w-4 h-16 text-customGreen" />
+                  <CircleCheckBig className="w-4 h-20 text-customGreen" />
                 ) : (
-                  <BookOpen className="w-4 h-16" />
+                  <BookOpen className="w-4 h-20" />
                 )}
                 {curriculum.length > 0 ? (
                   <span className="text-customGreen">Curriculum Added</span>
@@ -813,6 +828,13 @@ const AddCourse = () => {
                 )}
               </button>
             </div>
+            {/* Multi select courses */}
+            <SelectMultipleCourses
+              handleCourse={handleCourse}
+              errors={errors}
+              selectedCourses={selectedCourses}
+              setSelectedCourses={setSelectedCourses}
+            />
           </div>
 
           {/* Upload Section */}
