@@ -13,6 +13,7 @@ import useGetQuery from "@/hooks/getQuery.hook";
 function CourseDetailedNew({ params }) {
   const { courseId } = params;
   const [categoryName, setCategoryName] = useState([]);
+  const [courseDetails, setCourseDetails] = useState({});
   const { getQuery } = useGetQuery();
 
 
@@ -23,6 +24,7 @@ function CourseDetailedNew({ params }) {
         onSuccess: (data) => {
           setCategoryName(data?.category);
           console.log("kjahdshbahj", data);
+          setCourseDetails(data);
         },
         onFail: (err) => {
           console.error("Error fetching course details:", err);
@@ -32,6 +34,8 @@ function CourseDetailedNew({ params }) {
       console.error("Error in fetching course details:", error);
     }
   };
+
+  console.log("courseDetails", courseDetails);
 
   useEffect(() => {
   fetchCourseDetails()
@@ -43,7 +47,7 @@ function CourseDetailedNew({ params }) {
       <CourseEducation courseId={courseId} />
       <AboutProgram courseId={courseId} />
       <CaurseFaq courseId={courseId} />
-      <CourceRalated categoryName={categoryName} courseId={courseId} />
+      <CourceRalated categoryName={categoryName} courseId={courseId} relatedCourses={courseDetails?.related_courses || []} />
       <CourseCertificate />
       <ThemeController />
     </PageWrapper>
