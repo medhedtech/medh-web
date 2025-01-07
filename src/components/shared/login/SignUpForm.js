@@ -67,10 +67,10 @@ const SignUpForm = () => {
     setShowConfirmPassword((prev) => !prev);
 
   const onSubmit = async (data) => {
-    // if (!recaptchaValue) {
-    //   setRecaptchaError(true);
-    //   return;
-    // }
+    if (!recaptchaValue) {
+      setRecaptchaError(true);
+      return;
+    }
     setApiError(null);
     try {
       await postQuery({

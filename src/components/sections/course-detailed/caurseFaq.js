@@ -42,17 +42,17 @@ export default function CaurseFaq({ courseId }) {
 
   const faqs = [
     {
-      question: `What are the key highlights of the 3 months Certificate course in ${courseDetails1?.course_title} with Data Analytics?`,
+      question: `What are the key highlights of the 3 months Certificate course in ${courseDetails1?.course_title}?`,
       answer:
         `The ${courseDetails1?.course_title} Course is designed to help individuals enhance their personal and professional skills through various interactive sessions and practical exercises.`,
     },
     {
-      question: `How will this course prepare me for entry-level roles in ${courseDetails1?.course_title} and data analytics?`,
+      question: `How will this course prepare me for entry-level roles in ${courseDetails1?.course_title}?`,
       answer:
         "The duration of the course is typically 6 weeks, with classes held twice a week.",
     },
     {
-      question: `HCan this course serve as a stepping stone for further career development in ${courseDetails1?.course_title} and data analytics?`,
+      question: `Can this course serve as a stepping stone for further career development in ${courseDetails1?.course_title}?`,
       answer:
         "Yes, the course is suitable for individuals of all ages, from students to professionals.",
     },
@@ -63,7 +63,7 @@ export default function CaurseFaq({ courseId }) {
         "The course covers various topics such as communication skills, leadership, teamwork, and self-awareness.",
     },
     {
-      question: `How does the course address ethical considerations in ${courseDetails1?.course_title} and data analytics?`,
+      question: `How does the course address ethical considerations in ${courseDetails1?.course_title}?`,
       answer:
         "Absolutely! The skills learned in this course are highly beneficial for career growth and personal development.",
     },
@@ -79,7 +79,7 @@ export default function CaurseFaq({ courseId }) {
         "The duration of the course is typically 6 weeks, with classes held twice a week.",
     },
     {
-      question: `How does the 3 months Certificate course cater to the needs of professionals seeking foundational knowledge in ${courseDetails1?.course_title} and data analytics?`,
+      question: `How does the 3 months Certificate course cater to the needs of professionals seeking foundational knowledge in ${courseDetails1?.course_title}?`,
       answer:
         "Yes, the course is suitable for individuals of all ages, from students to professionals.",
     },
