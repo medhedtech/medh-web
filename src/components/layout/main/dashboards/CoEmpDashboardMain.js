@@ -18,7 +18,7 @@ const CoEmpDashboardMain = () => {
         <SearchDetails />
       ) : (
         <>
-          <CoorporateCounterStudent />
+          {/* <CoorporateCounterStudent /> */}
           <ProgressOverview />
           <UpcomigClasses />
         </>

@@ -445,7 +445,7 @@ const AddCourse = () => {
               <select
                 className="p-3 border rounded-lg w-full dark:bg-inherit text-gray-600"
                 {...register("course_tag")}
-                onChange={(e) => setCourseTag(e.target.value)}
+                // onChange={(e) => setCourseTag(e.target.value)}
               >
                 <option value="">Select type</option>
                 <option value="Live">Live</option>

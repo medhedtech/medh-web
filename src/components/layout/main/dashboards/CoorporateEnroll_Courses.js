@@ -19,22 +19,67 @@ const CoorporateEnroll_Courses = () => {
     }
   }, []);
 
-  useEffect(() => {
-    if (employeeId) {
-      getQuery({
-        url: `${apiUrls?.CoorporateEnrollCourse?.getEnrolledCoursesByEmployeeId}/${employeeId}`,
-        onSuccess: (data) => {
-          const courses = data.courses?.slice(0, 8);
-          setEnrollCourses(courses);
-          console.log(data, "Real Course Data");
-          console.log(courses, "Extracted Course Data");
-        },
-        onFail: (error) => {
-          console.error("Failed to fetch enrolled courses:", error);
-        },
-      });
-    }
-  }, [employeeId]);
+  // useEffect(() => {
+  //   if (employeeId) {
+  //     getQuery({
+  //       url: `${apiUrls?.CoorporateEnrollCourse?.getEnrolledCoursesByEmployeeId}/${employeeId}`,
+  //       onSuccess: (data) => {
+  //         const courses = data.courses?.slice(0, 8);
+  //         setEnrollCourses(courses);
+  //         console.log(data, "Real Course Data");
+  //         console.log(courses, "Extracted Course Data");
+  //       },
+  //       onFail: (error) => {
+  //         console.error("Failed to fetch enrolled courses:", error);
+  //       },
+  //     });
+  //   }
+  // }, [employeeId]);
+
+
+    useEffect(() => {
+      // Fetch enrolled courses
+      if (employeeId) {
+        getQuery({
+          url: `${apiUrls?.CoorporateEnrollCourse?.getCoorporateCoursesByCoorporateId}/${employeeId}`,
+          onSuccess: async (data) => {
+            // Map courses and fetch count for each course
+            const courses = await Promise.all(
+              data
+                .map((enrollment) => enrollment.course_id)
+                .filter((course) => course) // Ensure valid courses
+                .slice(0, 40) // Limit to 40 courses
+                .map(async (course) => {
+                  try {
+                    // Fetch student count for each course
+                    const response = await getQuery({
+                      url: `${apiUrls?.CoorporateEnrollCourse?.getCoorporateStudentCoursesCountByEmployeeId}/${course._id}`,
+                      skipStateUpdate: true, // Avoid overriding the state during nested API calls
+                    });
+                    return {
+                      ...course,
+                      studentCount: response?.count || 0, // Add student count
+                    };
+                  } catch (error) {
+                    console.error(
+                      `Error fetching count for course ${course._id}:`,
+                      error
+                    );
+                    return {
+                      ...course,
+                      studentCount: 0, // Default to 0 on error
+                    };
+                  }
+                })
+            );
+            setEnrollCourses(courses); // Update state with courses and counts
+          },
+          onFail: (error) => {
+            console.error("Failed to fetch enrolled courses:", error);
+          },
+        });
+      }
+    }, [employeeId]);
 
 
   const handleCardClick = (id) => {
@@ -46,7 +91,7 @@ const CoorporateEnroll_Courses = () => {
       <div className="flex justify-between items-center mb-4">
         <div
           onClick={() => {
-            router.push("/dashboards/coorporate-my-courses");
+            router.back();
           }}
           className="flex items-center gap-2"
         >
