@@ -6,7 +6,6 @@ import { apiUrls } from "@/apis";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import toast from "react-toastify";
-import useGetQuery from "@/hooks/getQuery.hook";
 import Preloader from "@/components/shared/others/Preloader";
 import CoorporateTableStudent from "./CoorporateStudentManagement";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
@@ -20,11 +19,6 @@ const schema = yup.object({
     .required("Mobile number is required")
     .matches(/^[6-9]\d{9}$/, "Mobile number must be a valid 10-digit number"),
   gender: yup.string().required("Gender is required"),
-  // age: yup
-  //   .number()
-  //   .typeError("Age must be a number")
-  //   .required("Age is required")
-  //   .min(18, "Age must be above 18 years"),
   password: yup
     .string()
     .min(8, "At least 8 characters required")
@@ -90,12 +84,14 @@ const AddCoorporateStudentForm = () => {
           toast.success("Student added successfully!");
           reset();
         },
-        onFail: () => {
-          toast.error("Error adding student.");
+        onFail: (error) => {
+          console.error("Error adding student:", error);
+          toast.error("An unexpected error occurred.");
         },
       });
     } catch (error) {
-      console.log("User Alredy exists with same email.");
+      console.error("Error adding student:", error);
+      toast.error("An unexpected error occurred.");
     }
   };
 
@@ -226,7 +222,7 @@ const AddCoorporateStudentForm = () => {
               <input
                 type="email"
                 id="email"
-                placeholder="enteremail@gmail.com"
+                placeholder="example@gmail.com"
                 className="w-full border border-gray-300 rounded-md py-2 pl-10 pr-3 focus:outline-none focus:ring-2 focus:ring-green-400"
                 {...register("email")}
               />
