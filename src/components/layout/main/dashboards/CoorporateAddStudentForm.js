@@ -20,11 +20,11 @@ const schema = yup.object({
     .required("Mobile number is required")
     .matches(/^[6-9]\d{9}$/, "Mobile number must be a valid 10-digit number"),
   gender: yup.string().required("Gender is required"),
-  age: yup
-    .number()
-    .typeError("Age must be a number")
-    .required("Age is required")
-    .min(18, "Age must be above 18 years"),
+  // age: yup
+  //   .number()
+  //   .typeError("Age must be a number")
+  //   .required("Age is required")
+  //   .min(18, "Age must be above 18 years"),
   password: yup
     .string()
     .min(8, "At least 8 characters required")
@@ -44,7 +44,7 @@ const AddCoorporateStudentForm = () => {
     useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [coorporateId, setCoorporateId] = useState("");
+  const [coorporateId, setCoorporateId] = useState("");
   const {
     register,
     handleSubmit,
@@ -54,17 +54,16 @@ const AddCoorporateStudentForm = () => {
     resolver: yupResolver(schema),
   });
 
-
-    useEffect(() => {
-      if (typeof window !== "undefined") {
-        const storedUserId = localStorage.getItem("userId");
-        if (storedUserId) {
-          setCoorporateId(storedUserId);
-        } else {
-          console.error("No instructor ID found in localStorage");
-        }
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedUserId = localStorage.getItem("userId");
+      if (storedUserId) {
+        setCoorporateId(storedUserId);
+      } else {
+        console.error("No instructor ID found in localStorage");
       }
-    }, []);
+    }
+  }, []);
 
   const toggleConfirmPasswordVisibility = () =>
     setShowConfirmPassword((prev) => !prev);
@@ -82,7 +81,7 @@ const AddCoorporateStudentForm = () => {
           password: data.password,
           meta: {
             gender: data.gender,
-            age: data.age,
+            age: 24,
             corporate_id: coorporateId,
           },
         },
@@ -194,7 +193,7 @@ const AddCoorporateStudentForm = () => {
           </div>
 
           {/* Age Field */}
-          <div className="flex flex-col">
+          {/* <div className="flex flex-col">
             <label
               htmlFor="age"
               className="text-xs px-2 text-[#808080] font-medium mb-1"
@@ -212,7 +211,7 @@ const AddCoorporateStudentForm = () => {
             {errors.age && (
               <span className="text-red-500 text-xs">{errors.age.message}</span>
             )}
-          </div>
+          </div> */}
 
           {/* Email Field */}
           <div className="flex flex-col">
@@ -252,6 +251,28 @@ const AddCoorporateStudentForm = () => {
               <span className="text-red-500 text-xs">
                 {errors.email.message}
               </span>
+            )}
+          </div>
+
+          <div className="relative mt-[-7px]">
+            <label className="text-xs px-2 text-[#808080] font-medium mb-1">
+              Select Gender
+              <span className="text-red-500 ml-1">*</span>
+            </label>
+            <select
+              {...register("gender")}
+              name="gender"
+              className=" block w-full h-12 mt-[-2px] border dark:text-whitegrey1 border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 dark:bg-inherit focus:ring-green-500"
+            >
+              <option value="">Select</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Others">Others</option>
+            </select>
+            {errors.gender && (
+              <p className="text-xs text-red-500 font-normal mt-[2px] ml-2">
+                {errors.gender?.message}
+              </p>
             )}
           </div>
 
@@ -319,27 +340,6 @@ const AddCoorporateStudentForm = () => {
             )}
           </div>
 
-          <div className="relative">
-            <label className="text-xs px-2 text-[#808080]  font-medium mb-1">
-              Select Gender
-              <span className="text-red-500 ml-1">*</span>
-            </label>
-            <select
-              {...register("gender")}
-              name="gender"
-              className="mt-1 block w-full mt-[-2px] border dark:text-whitegrey1 border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 dark:bg-inherit focus:ring-indigo-500"
-            >
-              <option value="">Select</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Others">Others</option>
-            </select>
-            {errors.gender && (
-              <p className="text-xs text-red-500 font-normal mt-[2px] ml-2">
-                {errors.gender?.message}
-              </p>
-            )}
-          </div>
           {/* Submit and Cancel Buttons */}
           <div className="flex justify-end items-center space-x-4 sm:col-span-2 mt-4">
             <button
