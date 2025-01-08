@@ -7,6 +7,7 @@ import moment from "moment";
 import { toast } from "react-toastify";
 import Image from "next/image";
 import Preloader from "../others/Preloader";
+import { FaBook } from "react-icons/fa";
 
 const UpcomigClasses = () => {
   const [classes, setClasses] = useState([]);
@@ -30,7 +31,7 @@ const UpcomigClasses = () => {
       const fetchUpcomingClasses = async () => {
         try {
           const response = await getQuery({
-            url: apiUrls?.onlineMeeting?.getAllMeetingsForAllEmployeees,
+            url: `${apiUrls?.onlineMeeting?.getAllMeetingsForAllEmployeees}?student_id=${studentId}`,
           });
 
           if (response?.meetings) {
@@ -162,9 +163,19 @@ const UpcomigClasses = () => {
             </div>
           ))
         ) : (
-          <p className="col-span-full text-center text-gray-500">
-            No upcoming classes available.
-          </p>
+          <div className="col-span-full h-[60vh] flex items-center justify-center text-center bg-white shadow-lg p-6 rounded-lg">
+            <div>
+              <div className="flex justify-center items-center text-primaryColor mb-4">
+                <FaBook className="text-6xl mx-2" />
+              </div>
+              <p className="text-2xl font-semibold text-gray-700">
+                No upcoming classes available
+              </p>
+              <p className="text-gray-500 mt-2 text-lg">
+                You are not enrolled in a course to see your upcoming classes.
+              </p>
+            </div>
+          </div>
         )}
       </div>
     </div>
