@@ -6,6 +6,7 @@ import { apiUrls } from "@/apis";
 import moment from "moment";
 import { toast } from "react-toastify";
 import Image from "next/image";
+import { FaBook } from "react-icons/fa";
 
 const UpcomigClassesCorporate = () => {
   const [classes, setClasses] = useState([]);
@@ -151,9 +152,21 @@ const UpcomigClassesCorporate = () => {
             </div>
           ))
         ) : (
-          <p className="col-span-full text-center text-gray-500">
-            No upcoming classes available.
-          </p>
+          <div className="col-span-full text-center bg-white shadow-lg p-6 rounded-lg">
+            <div className="flex justify-center items-center text-primaryColor mb-4">
+              <FaBook className="text-6xl mx-2" />
+            </div>
+            <p className="text-2xl font-semibold text-gray-700">
+              No upcoming classes available
+            </p>
+            <p className="text-gray-500 mt-2 text-lg">
+              Please{" "}
+              <span className="text-primaryColor font-bold underline cursor-pointer">
+                enroll
+              </span>{" "}
+              in a course to see your upcoming classes.
+            </p>
+          </div>
         )}
       </div>
     </div>

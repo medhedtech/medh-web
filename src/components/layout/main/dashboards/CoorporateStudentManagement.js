@@ -22,31 +22,38 @@ const CoorporateTableStudent = () => {
     email: "",
     phone_number: "",
   });
+  const [id, setId] = useState(null);
 
   const { getQuery, loading } = useGetQuery();
   const [updateStatus, setUpdateStatus] = useState(null);
+  useEffect(() => {
+    const userId =localStorage.getItem("userId"); 
+    setId(localStorage.getItem("userId"));
+  }, []);
 
   // Fetch cooporateStudents Data from API
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        await getQuery({
-          url: apiUrls?.CoorporateStudent?.getAllCoorporateStudents,
-          onSuccess: (data) => {
-            console.log("Response data:", data);
-            const studentEntries = data?.data.filter((user) =>
-              user.role.includes("coorporate-student")
-            );
-            setCooporateStudents(studentEntries || []);
-          },
-          onFail: () => setCooporateStudents([]),
-        });
+        if(id){
+          await getQuery({
+            url: `${apiUrls?.CoorporateStudent?.getAllCoorporateStudents}?corporate_id=${id}`,
+            onSuccess: (data) => {
+              console.log("Response data:", data);
+              const studentEntries = data?.data.filter((user) =>
+                user.role.includes("coorporate-student")
+              );
+              setCooporateStudents(studentEntries || []);
+            },
+            onFail: () => setCooporateStudents([]),
+          });
+        }
       } catch (error) {
         console.error("Failed to fetch cooporateStudents:", error);
       }
     };
     fetchStudents();
-  }, [updateStatus]);
+  }, [updateStatus,id]);
 
   const toggleStatus = async (id) => {
     try {
