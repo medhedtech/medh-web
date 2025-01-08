@@ -31,8 +31,11 @@ const schema = yup.object({
     .positive("Number of sessions must be a positive number")
     .required("Number of sessions is required"),
   course_duration: yup.string().required("Course duration is required"),
-  related_courses: yup.string(),
-  // .required("Related courses are required"),
+  related_courses: yup
+    .array()
+    .of(yup.string())
+    .min(1, "Min 1 course is required")
+    .required("Related courses are required"),
   // session_duration: yup
   //   .string()
   //   .test(
@@ -103,6 +106,9 @@ const AddCourse = () => {
     getValues,
   } = useForm({
     resolver: yupResolver(schema),
+    defaultValues: {
+      related_courses: [],
+    },
   });
 
   useEffect(() => {
@@ -139,11 +145,11 @@ const AddCourse = () => {
     }
   }, [selected, trigger]);
 
-  useEffect(() => {
-    if (selectedCourses) {
-      trigger("related_courses");
-    }
-  }, [selectedCourses, trigger]);
+  // useEffect(() => {
+  //   if (selectedCourses) {
+  //     trigger("related_courses");
+  //   }
+  // }, [selectedCourses, trigger]);
 
   const fetchAllCategories = () => {
     try {
@@ -166,7 +172,7 @@ const AddCourse = () => {
   };
 
   const handleCourse = (course) => {
-    setValue("course", course);
+    setValue("related_courses", course);
   };
 
   const handleVideoUpload = async (e) => {
@@ -271,6 +277,7 @@ const AddCourse = () => {
   };
 
   const onSubmit = async (data) => {
+    trigger("related_courses");
     if (!thumbnailImage || !pdfBrochures || !courseVideos) {
       setError(true);
       setErrorPdf(true);
@@ -834,6 +841,7 @@ const AddCourse = () => {
               errors={errors}
               selectedCourses={selectedCourses}
               setSelectedCourses={setSelectedCourses}
+              field={register("related_courses")}
             />
           </div>
 
