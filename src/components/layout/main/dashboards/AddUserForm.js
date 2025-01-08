@@ -76,7 +76,7 @@ const AddUserForm = ({ formType = "Student", onSubmit, onCancel }) => {
             <input
               type="email"
               id="email"
-              placeholder="enteremail@gmail.com"
+              placeholder="example@gmail.com"
               className="w-full border border-gray-300 rounded-md py-2 pl-10 pr-3 focus:outline-none focus:ring-2 focus:ring-green-400"
               required
             />

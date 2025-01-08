@@ -1090,7 +1090,7 @@ const SidebarDashboard = () => {
   ];
   const corporateItems = [
     {
-      title: "WELCOME, COORPORATE-ADMIN",
+      title: "WELCOME, CORPORATE-ADMIN",
       items: [
         {
           name: "Dashboard",
