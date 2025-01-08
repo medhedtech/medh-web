@@ -7,13 +7,14 @@ import useGetQuery from "@/hooks/getQuery.hook";
 import MyTable from "@/components/shared/common-table/page";
 import { toast } from "react-toastify";
 import usePostQuery from "@/hooks/postQuery.hook";
+import Preloader from "@/components/shared/others/Preloader";
 
 const CoorporateTableStudent = () => {
   const [showAddStudentForm, setShowAddStudentForm] = useState(false);
   const [cooporateStudents, setCooporateStudents] = useState([]);
   const [sortOrder, setSortOrder] = useState("newest");
   const [searchQuery, setSearchQuery] = useState("");
-  const { postQuery } = usePostQuery();
+  const { postQuery, loading: PostLoading } = usePostQuery();
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
   const [filterOptions, setFilterOptions] = useState({
@@ -22,7 +23,7 @@ const CoorporateTableStudent = () => {
     phone_number: "",
   });
 
-  const { getQuery } = useGetQuery();
+  const { getQuery, loading } = useGetQuery();
   const [updateStatus, setUpdateStatus] = useState(null);
 
   // Fetch cooporateStudents Data from API
@@ -179,6 +180,10 @@ const CoorporateTableStudent = () => {
     return (
       <AddCoorporateStudentForm onCancel={() => setShowAddStudentForm(false)} />
     );
+
+  if (loading || PostLoading) {
+    return <Preloader />;
+  }
 
   return (
     <>
