@@ -9,10 +9,12 @@ const SelectMultipleCourses = ({
   errors,
   selectedCourses,
   setSelectedCourses,
+  field
 }) => {
   const [courses, setCourses] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  console.log("Selected Courses: ", field);
 
   const dropdownRef = useRef(null);
   const { getQuery } = useGetQuery();
@@ -48,6 +50,7 @@ const SelectMultipleCourses = ({
     console.log("Selected Course IDs:", updatedSelected);
     setSelectedCourses(updatedSelected);
     handleCourse(updatedSelected);
+    // field.onChange(updatedSelected);
   };
 
   useEffect(() => {
@@ -59,6 +62,9 @@ const SelectMultipleCourses = ({
 
     document.addEventListener("mousedown", handleClickOutside);
     fetchAllCourses();
+    if(selectedCourses.length > 0) {
+      handleCourse(selectedCourses);
+    }
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
@@ -88,20 +94,9 @@ const SelectMultipleCourses = ({
   return (
     <div className="relative" ref={dropdownRef}>
       <label className="block text-sm font-normal mb-1">
-        Related Courses
-        {/* <span className="text-red-500">*</span> */}
+        Related Courses <span className="text-red-500">*</span>
       </label>
       <div className="p-3 border rounded-lg w-full dark:bg-inherit text-gray-600">
-        {/* <button className="w-full text-left" onClick={toggleDropdown}> */}
-        {/* {selectedCourses.length > 0
-            ? selectedCourses
-                .map((id) => {
-                  const course = courses.find((c) => c._id === id);
-                  return course?.course_title || "";
-                })
-                .join(", ")
-            : "Select Courses"} */}
-        {/* </button> */}
         {/* Chips Section */}
         <div className="flex flex-wrap gap-2 mb-2">
           {selectedCourses.length > 0 ? (
