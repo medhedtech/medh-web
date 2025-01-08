@@ -304,6 +304,7 @@ const OnlineMeeting = () => {
           meeting_tag: data.meeting_tag,
           time: selectedTime ? selectedTime.format("HH:mm") : null,
           date: selectedDate ? moment(selectedDate).format("YYYY-MM-DD") : null,
+          course_id: selectedCourseId,
         },
         onSuccess: () => {
           toast.success("Meeting scheduled successfully!");
