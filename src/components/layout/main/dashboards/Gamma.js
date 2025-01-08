@@ -139,7 +139,7 @@ const Gamma = () => {
                 name="email"
                 // value={formData.email}
                 // onChange={handleInputChange}
-                placeholder="enteremail@gmail.com"
+                placeholder="example@gmail.com"
                 className="mt-1 block w-full border border-gray-300 rounded-md p-2 pl-10 focus:outline-none focus:ring-2 dark:bg-inherit focus:ring-indigo-500"
               />
             </div>
