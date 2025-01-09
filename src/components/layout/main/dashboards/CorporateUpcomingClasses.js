@@ -6,7 +6,7 @@ import { apiUrls } from "@/apis";
 import moment from "moment";
 import { toast } from "react-toastify";
 import Image from "next/image";
-import { FaArrowLeft } from "react-icons/fa";
+import { FaArrowLeft, FaBook } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import Preloader from "@/components/shared/others/Preloader";
 
