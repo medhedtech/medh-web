@@ -27,7 +27,10 @@ const schema = yup.object({
     .string()
     .required("Mobile number is required")
     .matches(/^[6-9]\d{9}$/, "Mobile number must be a valid 10-digit number"),
-  email: yup.string().email().required("Email is required"),
+  email: yup
+    .string()
+    .email("Please enter a valid email address")
+    .required("Email is required"),
   course_name: yup.string(),
   // domain: yup.string().required("Domain is required"),
   amount_per_session: yup
