@@ -5,7 +5,7 @@ import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
 import Preloader from "@/components/shared/others/Preloader";
 
-const AssignmentsSection = ({ onQuizClick }) => {
+const CoorporateAssignmentsSection = ({ onQuizClick }) => {
   const { getQuery, loading } = useGetQuery();
   const [assignments, setAssignments] = useState();
   const [studentId, setStudentId] = useState("");
@@ -22,7 +22,7 @@ const AssignmentsSection = ({ onQuizClick }) => {
   useEffect(() => {
     if (studentId) {
       getQuery({
-        url: `${apiUrls?.assignments?.getAssignmentsByEnrolledCourses}/${studentId}`,
+        url: `${apiUrls?.assignments?.getAssignmentsCoorporateEnrolledCourses}/${studentId}`,
         onSuccess: (data) => {
           setAssignments(data);
         },
@@ -142,4 +142,4 @@ const AssignmentsSection = ({ onQuizClick }) => {
   );
 };
 
-export default AssignmentsSection;
+export default CoorporateAssignmentsSection;
