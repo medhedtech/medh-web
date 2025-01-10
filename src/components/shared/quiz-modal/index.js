@@ -61,7 +61,7 @@ const CreateQuizModal = ({ open, onClose, onUpload }) => {
           setCategories(res?.meetings || []);
         },
         onFail: () => {
-          toast.error("Failed to fetch categories.");
+          // toast.error("Failed to fetch categories.");
           setCategories([]);
         },
       });
