@@ -17,6 +17,7 @@ import {
   FaUsersCog,
 } from "react-icons/fa";
 import { setCookie } from "nookies";
+import { useEffect, useState } from "react";
 
 const SidebarDashboard = () => {
   const pathname = usePathname();
@@ -27,7 +28,7 @@ const SidebarDashboard = () => {
   const isInstructor = partOfPathNaem === "instructor" ? true : false;
   let isCorporate = partOfPathNaem === "coorporate" ? true : false;
   const isCorporateEmp =
-    partOfPathNaem === "coorporate" && partOfPathNaem2 === "employee" ;
+    partOfPathNaem === "coorporate" && partOfPathNaem2 === "employee";
 
   if (isCorporateEmp) {
     isCorporate = false;
@@ -36,9 +37,21 @@ const SidebarDashboard = () => {
   const handleLogout = () => {
     localStorage.removeItem("userId");
     localStorage.removeItem("token");
+    localStorage.removeItem("permissions");
 
     router.push("/login");
   };
+
+  const [permissions, setPermissions] = useState([]);
+
+  useEffect(() => {
+    const perm = localStorage.getItem("permissions");
+    if (perm) {
+      setPermissions(JSON.parse(perm));
+    }
+  }, []);
+
+  console.log("permissions", permissions);
 
   const adminItems = [
     {
@@ -65,7 +78,7 @@ const SidebarDashboard = () => {
             </svg>
           ),
         },
-        {
+        permissions.includes("edit_users") && {
           name: "User Management",
           path: null,
           icon: (
