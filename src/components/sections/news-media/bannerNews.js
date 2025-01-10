@@ -16,10 +16,10 @@ export default function BannerNews () {
         bannerImage={Banner}           
         logoImage={Cource}               
         isoImage={Iso}                 
-        heading="Medh’s Dynamic Corporate Training Courses."
-        subheading="EMPOWER YOUR WORKFORCE TO EXCEL."
-        description="Elevate their skills, motivation, and engagement to drive business growth and achieve exceptional results."
-        buttonText="Let’s Connect"
+        heading="Get the latest insights and updates from Medh"
+        subheading="STAY UPDATED WITH MEDH."
+        description="Become part of our mission to redefine Innovative EdTech and transform Skill Development for the future."
+        buttonText="Let's Connect"
         isoText="ISO CERTIFIED"
         slogan="Medh Hain Toh Mumkin Hain!"
         buttonImage={LetsConnect}

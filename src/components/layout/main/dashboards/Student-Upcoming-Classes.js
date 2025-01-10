@@ -103,10 +103,10 @@ const StudentUpcomigClasses = () => {
           }}
           className="flex items-center gap-2"
         >
-          <FaArrowLeft
+          {/* <FaArrowLeft
             className="cursor-pointer text-gray-700 dark:text-white"
             size={20}
-          />
+          /> */}
           <h2 className="text-size-32 font-Open dark:text-white">
             Upcoming Classes
           </h2>
