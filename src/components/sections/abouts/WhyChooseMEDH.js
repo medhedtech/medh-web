@@ -74,75 +74,79 @@ const WhyChooseMEDH = () => {
 
   return (
     <section id="enroll-section" className="dark:bg-screen-dark">
-    <div className="max-w-7xl mx-auto py-12  px-4 sm:px-6 lg:px-8  ">
-      <div className="text-center mb-8">
-        <h2 className="text-2xl md:text-3xl font-bold dark:text-white text-[#252525]">
-          Why Choose MEDH?
-        </h2>
-        <p className="mt-4 max-w-[840px] text-base dark:text-gray300 text-[#5C6574] mx-auto">
-          Empowering learners with the freedom to explore and excel in
-          fundamental concepts, we strive to provide a global EdTech platform to
-          shape aspirations.
-        </p>
-      </div>
-
-      <div className="rounded-lg p-4 sm:p-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {features.map((feature, idx) => (
-            <div key={idx} className="border p-6 rounded-3xl shadow-md">
-              <div className="flex flex-col justify-between items-center">
-                <div className="h-[90px] w-[90px] rounded-md bg-indigo-500 flex items-center mx-auto justify-center">
-                  <Image
-                    src={feature.icon}
-                    alt={feature.title}
-                    width={90}
-                    height={90}
-                    className="object-contain color-[#242424]"
-                  />
-                </div>
-                <div>
-                  <p className="mt-8 text-base text-center dark:text-white text-[#252525] px-2">
-                    {feature.description}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-      <Certified />
-
-      <div className="bg-[#4EB67870] flex flex-col md:flex-row justify-around rounded-3xl mt-16 p-4 lg:p-0">
-        <div className="flex justify-center ">
-          <Image src={JoinUs} alt="Join us" width={160} height={180} />
-        </div>
-
-        <div className="max-w-[520px] mx-auto md:mx-0 md:w-1/2">
-          <h2 className="text-[#444a54] text-left font-bold text-2xl pt-6 max-sm:text-center">
-            Join us at Medh to craft a brighter future.
+      <div className="max-w-7xl mx-auto py-12  px-4 sm:px-6 lg:px-8  ">
+        <div className="text-center mb-8">
+          <h2 className="text-2xl md:text-3xl font-bold dark:text-white text-[#252525]">
+            Why Choose MEDH?
           </h2>
-          <p className="text-[#323340]  text-base text-left pt-4 max-sm:text-center">
-            Contact us to learn more or explore our platform to experience the
-            power of transformative education firsthand.
+          <p className="mt-4 max-w-[840px] text-base dark:text-gray300 text-[#5C6574] mx-auto">
+            Empowering learners with the freedom to explore and excel in
+            fundamental concepts, we strive to provide a global EdTech platform
+            to shape aspirations.
           </p>
         </div>
-        <div className="my-auto mx-12 md:mx-0 max-sm:mt-4 ">
-          <div className="bg-[#F6B335] flex items-center px-4 py-3">
-            <span className="mr-2">
-              <DownArrowIcon />
-            </span>
-            <p className="text-white font-bold text-sm">Let&#39;s Connect</p>
+
+        <div className="rounded-lg p-4 sm:p-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {features.map((feature, idx) => (
+              <div key={idx} className="border p-6 rounded-3xl shadow-md">
+                <div className="flex flex-col justify-between items-center">
+                  <div className="h-[90px] w-[90px] rounded-md bg-indigo-500 flex items-center mx-auto justify-center">
+                    <Image
+                      src={feature.icon}
+                      alt={feature.title}
+                      width={90}
+                      height={90}
+                      className="object-contain color-[#242424]"
+                    />
+                  </div>
+                  <div>
+                    <p className="mt-8 text-base text-center dark:text-white text-[#252525] px-2">
+                      {feature.description}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
+        <Certified />
+
+        <div className="bg-[#4EB67870] flex flex-col md:flex-row justify-around rounded-3xl mt-16 p-4 lg:p-0">
+          <div className="flex justify-center ">
+            <Image src={JoinUs} alt="Join us" width={160} height={180} />
+          </div>
+
+          <div className="max-w-[520px] mx-auto md:mx-0 md:w-1/2">
+            <h2 className="text-[#444a54] text-left font-bold text-2xl pt-6 max-sm:text-center">
+              Join us at Medh to craft a brighter future.
+            </h2>
+            <p className="text-[#323340]  text-base text-left pt-4 max-sm:text-center">
+              Contact us to learn more or explore our platform to experience the
+              power of transformative education firsthand.
+            </p>
+          </div>
+          <div className="my-auto mx-12 md:mx-0 max-sm:mt-4 ">
+            <div className="bg-[#F6B335] flex items-center px-4 py-3">
+              <span className="mr-2">
+                <DownArrowIcon />
+              </span>
+              <a href="/contact-us">
+                <p className="text-white font-bold text-sm">
+                  Let&#39;s Connect
+                </p>
+              </a>
+            </div>
+          </div>
+        </div>
+        <div className="mt-5 text-center">
+          <p className="text-[#727695] dark:text-gray300 font-bold text-base leading-6 max-w-[720px] mx-auto">
+            Join us in our mission to redefine education and create a brighter
+            future for learners worldwide. Together, we can unlock the limitless
+            potential that lies within each of us.
+          </p>
+        </div>
       </div>
-      <div className="mt-5 text-center">
-        <p className="text-[#727695] dark:text-gray300 font-bold text-base leading-6 max-w-[720px] mx-auto">
-          Join us in our mission to redefine education and create a brighter
-          future for learners worldwide. Together, we can unlock the limitless
-          potential that lies within each of us.
-        </p>
-      </div>
-    </div>
     </section>
   );
 };
