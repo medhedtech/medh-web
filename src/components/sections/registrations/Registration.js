@@ -18,7 +18,14 @@ import ReCAPTCHA from "react-google-recaptcha";
 import countriesData from "@/utils/countrycode.json";
 // Validation schema using yup
 const schema = yup.object({
-  full_name: yup.string().required("Name is required."),
+  // full_name: yup.string().required("Name is required."),
+  full_name: yup
+    .string()
+    .matches(
+      /^[a-zA-Z\s'-]+$/,
+      "Name can only contain alphabets, spaces, hyphens, and apostrophes."
+    )
+    .required("Name is required."),
   email: yup
     .string()
     .matches(
@@ -145,6 +152,8 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
           setShowModal(true);
           setRecaptchaError(false);
           setRecaptchaValue(null);
+          setPdfBrochure(null);
+          setFileName("No file chosen");
 
           reset();
         },
