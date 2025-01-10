@@ -2,7 +2,7 @@
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 import React, { useState } from "react";
 import AssignmentsSection from "./AssignmentsSection";
-import QuizPage from "./QuizPage";
+import CoorporateAssignmentsSection from "./CoorporateAssignmentSection";
 import CoorporateQuizPage from "./CoorporateQuizPage";
 
 const CorporateEmpQuizDashboard = () => {
@@ -26,7 +26,7 @@ const CorporateEmpQuizDashboard = () => {
           <CoorporateQuizPage closeQuiz={handleBackToAssignments} />
         </div>
       ) : (
-        <AssignmentsSection onQuizClick={handleQuizClick} />
+        <CoorporateAssignmentsSection onQuizClick={handleQuizClick} />
       )}
     </div>
   );

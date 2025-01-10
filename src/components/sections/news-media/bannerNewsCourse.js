@@ -11,7 +11,7 @@ function BannerNewsCourse() {
         "Stay connected with MEDH as we continue to pioneer advancements in EdTech and skill development.",
       description:
         "Together, we can create a brighter future through the power of education.",
-      buttonText: "Let's Connect",
+      buttonText: "Contact us",
       imageUrl: CourseBannerImg,
       buttonBgColor: "#F6B335",
       icon: VerticalIcon,

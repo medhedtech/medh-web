@@ -238,7 +238,7 @@ function CourseEducation({ courseId }) {
     <div className="flex flex-wrap justify-between bg-white dark:bg-[#050622] w-full lg:space-x-8">
       {/* Left Section */}
       <div className="lg:w-[60%] w-full md:px-4 dark:pt-12 ">
-        <div className="relative lg:top-5 lg:bottom-12 bottom-5 lg:ml-[11%]">
+        {/* <div className="relative lg:top-5 lg:bottom-12 bottom-5 lg:ml-[11%]">
           <Image
             src={
               courseDetails1 && courseDetails1.course_image
@@ -250,9 +250,22 @@ function CourseEducation({ courseId }) {
             height={200}
             className="rounded-md object-cover"
           />
+        </div> */}
+        <div className="relative lg:top-10 lg:bottom-12 bottom-5 lg:ml-[11%]">
+          <Image
+            src={
+              courseDetails1 && courseDetails1.course_image
+                ? courseDetails1.course_image
+                : Education
+            }
+            alt="Education"
+            width={400}
+            height={250}
+            className="rounded-md w-full sm:w-[800px] h-full sm:h-[450px] object-cover"
+          />
         </div>
 
-        <div className="lg:ml-[11%] px-5 lg:p-0 lg:mt-10 mt-6">
+        <div className="lg:ml-[11%] px-5 lg:p-0 lg:mt-16 mt-6">
           <h1 className="lg:text-3xl text-[22px] font-bold text-[#5C6574] mb-2 lg:w-[70%] w-full dark:text-gray-50">
             {/* Digital Marketing with Data Analytics Foundation Certificate */}
             {courseDetails1?.course_title ||
