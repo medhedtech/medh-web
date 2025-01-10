@@ -58,7 +58,9 @@ const DefineRoleForm = ({ id }) => {
       });
       // Ensure response and response.data exist
       if (response && response.data) {
+        console.log("response.data", response.data);
         const emails = response.data.map((user) => user.email);
+        console.log("emails", emails);
         setEmails(emails);
       } else {
         console.error("Unexpected response structure:", response);
@@ -160,11 +162,14 @@ const DefineRoleForm = ({ id }) => {
               }`}
             >
               <option value="">Select</option>
-              {emails.map((email) => (
-                <option key={email} value={email}>
-                  {email}
-                </option>
-              ))}
+              {emails.map((email) => {
+                console.log("email option", email);
+                return (
+                  <option key={email} value={email}>
+                    {email}
+                  </option>
+                );
+              })}
             </select>
             {errors.email && (
               <p className="text-red-500 text-sm">{errors.email.message}</p>
