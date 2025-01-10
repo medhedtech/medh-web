@@ -13,7 +13,14 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 // Validation Schema
 const schema = yup.object({
   full_name: yup.string().required("Student name is required"),
-  email: yup.string().email().required("Email is required"),
+  // email: yup.string().email().required("Email is required"),
+  email: yup
+    .string()
+    .required("Email is required")
+    .matches(
+      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(com|org|net|edu|gov|in)$/,
+      "Please enter a valid email"
+    ),
   phone_number: yup
     .string()
     .required("Mobile number is required")
