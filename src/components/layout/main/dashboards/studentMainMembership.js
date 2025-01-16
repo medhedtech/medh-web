@@ -70,6 +70,11 @@ import React from "react";
 import Image from "next/image";
 import PropTypes from "prop-types";
 import { CalendarClock } from "lucide-react";
+import useGetQuery from "@/hooks/getQuery.hook";
+import Education from "@/assets/images/course-detailed/education.svg";
+import { apiUrls } from "@/apis";
+import usePostQuery from "@/hooks/postQuery.hook";
+import { capitalize } from "@mui/material";
 
 const StudentMainMembership = ({
   courseImage,
@@ -84,6 +89,7 @@ const StudentMainMembership = ({
   iconVideo,
   iconClock,
   fallbackImage,
+  planType = "Renew",
 }) => {
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -93,6 +99,9 @@ const StudentMainMembership = ({
     return `${day}-${month}-${year}`;
   };
 
+  const { getQuery, loading } = useGetQuery();
+  const { postQuery, loading: isLoading } = usePostQuery();
+
   const hasExpired = (expiryDate) => {
     const today = new Date();
     const expiry = new Date(expiryDate);
@@ -100,8 +109,85 @@ const StudentMainMembership = ({
     return expiry < today; // Returns true if expiry date is in the past
   };
 
-  const handleRenewMembership = () => {
-    console.log("Membership Renewed");
+  // const handleRenewMembership = () => {
+  //   console.log("Membership Renewed");
+  // };
+
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const renew = async (membership_id) => {
+    postQuery({
+      url: `${apiUrls?.Membership.renewMembership}/${membership_id}`,
+
+      onSuccess: (data) => {
+        window.location.reload();
+      },
+      onFail: (err) => {
+        console.error("Error renewing membership:", err);
+      },
+    });
+  };
+
+  const handleRenewMembership = async () => {
+    const studentId = localStorage.getItem("userId");
+    getQuery({
+      url: `${apiUrls?.Membership.getRenewAmount}?user_id=${studentId}&category=${courseCategory}`,
+      onSuccess: async (data) => {
+        console.log("Renew Amount: ", data);
+        const token = localStorage.getItem("token");
+        if (!token || !studentId) {
+          console.error("Please log in first.");
+          return;
+        }
+        const scriptLoaded = await loadRazorpayScript();
+        console.log("Script Loaded: ", scriptLoaded);
+        if (!scriptLoaded) {
+          toast.error("Please log in first.");
+          return;
+        }
+        if (planType) {
+          const options = {
+            key: "rzp_test_Rz8NSLJbl4LBA5",
+            amount: data.data.amount * 100 * 84.47,
+            currency: "INR",
+            name: `${capitalize(planType)} Membership`,
+            description: `Payment for ${capitalize(planType)} Membership`,
+            image: Education,
+            handler: async function (response) {
+              console.log("Payment Successful!");
+              renew(data.data.membership_id);
+              // Call subscription API after successful payment
+            },
+            prefill: {
+              name: "Medh Membership Plan",
+              email: "medh@student.com",
+              contact: "9876543210",
+            },
+            notes: {
+              address: "Razorpay address",
+            },
+            theme: {
+              color: "#7ECA9D",
+            },
+          };
+          const razorpay = new window.Razorpay(options);
+          razorpay.open();
+        }
+      },
+      onFail: (err) => {
+        console.error("Error fetching renew amount:", err);
+      },
+    });
+
+    // Load Razorpay script
   };
 
   return (
