@@ -32,6 +32,7 @@ const DefineRoleForm = ({ id }) => {
   const { postQuery, loading } = usePostQuery();
   const { getQuery } = useGetQuery();
   const [emails, setEmails] = React.useState([]);
+  const [allData, setAllData] = React.useState([]);
 
   const {
     register,
@@ -62,6 +63,7 @@ const DefineRoleForm = ({ id }) => {
         const emails = response.data.map((user) => user.email);
         console.log("emails", emails);
         setEmails(emails);
+        setAllData(response.data);
       } else {
         console.error("Unexpected response structure:", response);
         toast.error("Error fetching email list.");
@@ -157,6 +159,15 @@ const DefineRoleForm = ({ id }) => {
             <select
               id="email"
               {...register("email")}
+              onChange={(e) => {
+                const selected = allData.find(
+                  (u) => u.email === e.target.value
+                );
+                console.log("selected", selected);
+                if (selected) {
+                  setValue("permissions", selected.permissions);
+                }
+              }}
               className={`w-full mt-1 px-3 py-2 border dark:bg-inherit dark:text-whitegrey3 border-gray-300 rounded-md bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
                 errors.email ? "border-red-500" : ""
               }`}
@@ -211,7 +222,7 @@ const DefineRoleForm = ({ id }) => {
               <label className="flex items-center">
                 <input
                   type="checkbox"
-                  value="view_courses"
+                  value="course_management"
                   {...register("permissions")}
                   className="mr-2 text-indigo-600 focus:ring-indigo-500"
                   // onChange={(e) => {
@@ -231,12 +242,12 @@ const DefineRoleForm = ({ id }) => {
                   //   trigger("permissions");
                   // }}
                 />
-                View Courses
+                Course Management
               </label>
               <label className="flex items-center">
                 <input
                   type="checkbox"
-                  value="edit_users"
+                  value="student_management"
                   {...register("permissions")}
                   className="mr-2 text-indigo-600 focus:ring-indigo-500"
                   // onChange={(e) => {
@@ -255,12 +266,12 @@ const DefineRoleForm = ({ id }) => {
                   //   trigger("permissions");
                   // }}
                 />
-                Edit Users
+                Student Management
               </label>
               <label className="flex items-center">
                 <input
                   type="checkbox"
-                  value="create_report"
+                  value="instructor_management"
                   {...register("permissions")}
                   className="mr-2 text-indigo-600 focus:ring-indigo-500"
                   // onChange={(e) => {
@@ -279,7 +290,199 @@ const DefineRoleForm = ({ id }) => {
                   //   trigger("permissions");
                   // }}
                 />
-                Create Report
+                Instructor Management
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  value="corporate_management"
+                  {...register("permissions")}
+                  className="mr-2 text-indigo-600 focus:ring-indigo-500"
+                  // onChange={(e) => {
+                  //   if (e.target.checked) {
+                  //     setValue("permissions", [
+                  //       ...getValue("permissions"),
+                  //       e.target.value,
+                  //     ]);
+                  //   } else {
+                  //     setValue("permissions", [
+                  //       ...getValue("permissions").filter(
+                  //         (permission) => permission !== e.target.value
+                  //       ),
+                  //     ]);
+                  //   }
+                  //   trigger("permissions");
+                  // }}
+                />
+                Corporate Management
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  value="generate_certificate"
+                  {...register("permissions")}
+                  className="mr-2 text-indigo-600 focus:ring-indigo-500"
+                  // onChange={(e) => {
+                  //   if (e.target.checked) {
+                  //     setValue("permissions", [
+                  //       ...getValue("permissions"),
+                  //       e.target.value,
+                  //     ]);
+                  //   } else {
+                  //     setValue("permissions", [
+                  //       ...getValue("permissions").filter(
+                  //         (permission) => permission !== e.target.value
+                  //       ),
+                  //     ]);
+                  //   }
+                  //   trigger("permissions");
+                  // }}
+                />
+                Generate Certificate
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  value="get_in_touch"
+                  {...register("permissions")}
+                  className="mr-2 text-indigo-600 focus:ring-indigo-500"
+                  // onChange={(e) => {
+                  //   if (e.target.checked) {
+                  //     setValue("permissions", [
+                  //       ...getValue("permissions"),
+                  //       e.target.value,
+                  //     ]);
+                  //   } else {
+                  //     setValue("permissions", [
+                  //       ...getValue("permissions").filter(
+                  //         (permission) => permission !== e.target.value
+                  //       ),
+                  //     ]);
+                  //   }
+                  //   trigger("permissions");
+                  // }}
+                />
+                Get In Touch
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  value="enquiry_form"
+                  {...register("permissions")}
+                  className="mr-2 text-indigo-600 focus:ring-indigo-500"
+                  // onChange={(e) => {
+                  //   if (e.target.checked) {
+                  //     setValue("permissions", [
+                  //       ...getValue("permissions"),
+                  //       e.target.value,
+                  //     ]);
+                  //   } else {
+                  //     setValue("permissions", [
+                  //       ...getValue("permissions").filter(
+                  //         (permission) => permission !== e.target.value
+                  //       ),
+                  //     ]);
+                  //   }
+                  //   trigger("permissions");
+                  // }}
+                />
+                Enquiry Form
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  value="post_job"
+                  {...register("permissions")}
+                  className="mr-2 text-indigo-600 focus:ring-indigo-500"
+                  // onChange={(e) => {
+                  //   if (e.target.checked) {
+                  //     setValue("permissions", [
+                  //       ...getValue("permissions"),
+                  //       e.target.value,
+                  //     ]);
+                  //   } else {
+                  //     setValue("permissions", [
+                  //       ...getValue("permissions").filter(
+                  //         (permission) => permission !== e.target.value
+                  //       ),
+                  //     ]);
+                  //   }
+                  //   trigger("permissions");
+                  // }}
+                />
+                Post Job
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  value="feedback_and_complaints"
+                  {...register("permissions")}
+                  className="mr-2 text-indigo-600 focus:ring-indigo-500"
+                  // onChange={(e) => {
+                  //   if (e.target.checked) {
+                  //     setValue("permissions", [
+                  //       ...getValue("permissions"),
+                  //       e.target.value,
+                  //     ]);
+                  //   } else {
+                  //     setValue("permissions", [
+                  //       ...getValue("permissions").filter(
+                  //         (permission) => permission !== e.target.value
+                  //       ),
+                  //     ]);
+                  //   }
+                  //   trigger("permissions");
+                  // }}
+                />
+                Feedback And Complaints
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  value="placement_requests"
+                  {...register("permissions")}
+                  className="mr-2 text-indigo-600 focus:ring-indigo-500"
+                  // onChange={(e) => {
+                  //   if (e.target.checked) {
+                  //     setValue("permissions", [
+                  //       ...getValue("permissions"),
+                  //       e.target.value,
+                  //     ]);
+                  //   } else {
+                  //     setValue("permissions", [
+                  //       ...getValue("permissions").filter(
+                  //         (permission) => permission !== e.target.value
+                  //       ),
+                  //     ]);
+                  //   }
+                  //   trigger("permissions");
+                  // }}
+                />
+                Placement Requests
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  value="blogs"
+                  {...register("permissions")}
+                  className="mr-2 text-indigo-600 focus:ring-indigo-500"
+                  // onChange={(e) => {
+                  //   if (e.target.checked) {
+                  //     setValue("permissions", [
+                  //       ...getValue("permissions"),
+                  //       e.target.value,
+                  //     ]);
+                  //   } else {
+                  //     setValue("permissions", [
+                  //       ...getValue("permissions").filter(
+                  //         (permission) => permission !== e.target.value
+                  //       ),
+                  //     ]);
+                  //   }
+                  //   trigger("permissions");
+                  // }}
+                />
+                Blogs
               </label>
             </div>
             {errors.permissions && (
