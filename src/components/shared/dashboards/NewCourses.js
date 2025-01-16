@@ -20,19 +20,25 @@ const NewCourses = () => {
 
   useEffect(() => {
     const fetchCourses = () => {
+      const user_id = localStorage.getItem("userId");
       getQuery({
-        url: apiUrls?.courses?.getAllCoursesWithLimits(
+        url: apiUrls?.courses?.getNewCourses({
           page,
           limit,
-          "",
-          "Live",
-          "",
-          "Published",
-          "",
-          "",
-          "",
-          // true
-        ),
+          course_tag: "Live",
+          status: "Published",
+          user_id,
+        }),
+        // page,
+        // limit,
+        // "",
+        // "Live",
+        // "",
+        // "Published",
+        // "",
+        // "",
+        // "",
+        // true
         onSuccess: (res) => {
           setCourses(res?.courses || []);
         },

@@ -93,8 +93,8 @@ const StudentEnrollCourses = () => {
         onSuccess: (data) => {
           const courses = data
             .map((enrollment) => enrollment.course_id)
-            .filter((course) => course)
-            .slice(0, 80);
+            .filter((course) => course);
+          // .slice(0, 80);
           setEnrollCourses(courses);
           console.log(data, "real Course Data");
           console.log(courses, "Extracted Course Data");
