@@ -1,11 +1,6 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
-import {
-  FaCalendarAlt,
-  FaClock,
-  FaRegCalendarAlt,
-  FaRegSadCry,
-} from "react-icons/fa";
+import { FaCalendarAlt, FaClock, FaRegCalendarAlt } from "react-icons/fa";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import TimePicker from "rc-time-picker";
@@ -101,47 +96,6 @@ const OnlineMeeting = () => {
   const formatDate = (date) => {
     const options = { day: "2-digit", month: "2-digit", year: "numeric" };
     return new Date(date).toLocaleDateString("en-GB", options);
-  };
-
-  // useEffect(() => {
-  //   const storedData = localStorage.getItem("courseData");
-  //   if (storedData) {
-  //     setCourseData(JSON.parse(storedData));
-  //   }
-
-  //   const handleClickOutside = (event) => {
-  //     if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-  //       setDropdownOpen(false);
-  //     }
-  //     if (
-  //       courseDropdownRef.current &&
-  //       !courseDropdownRef.current.contains(event.target)
-  //     ) {
-  //       setCourseDropdownOpen(false);
-  //     }
-  //   };
-  //   document.addEventListener("mousedown", handleClickOutside);
-  //   fetchAllCategories();
-  //   return () => {
-  //     document.removeEventListener("mousedown", handleClickOutside);
-  //   };
-  // }, []);
-
-  const fetchAllCategories = () => {
-    try {
-      getQuery({
-        url: apiUrls?.categories?.getAllCategories,
-        onSuccess: (res) => {
-          setCategories(res.data);
-          console.log("All categories", res);
-        },
-        onFail: (err) => {
-          console.error("Failed to fetch categories: ", err);
-        },
-      });
-    } catch (err) {
-      console.error("Error fetching categories: ", err);
-    }
   };
 
   const toggleDropdown = (e) => {
@@ -439,6 +393,11 @@ const OnlineMeeting = () => {
                 <h3 className="text-lg font-semibold mb-2">
                   Meeting Title: {meeting.meet_title}
                 </h3>
+
+                <h3 className="text-sm  mb-2">
+                  <span className="font-semibold">Course Name:</span>{" "}
+                  {meeting.course_name}
+                </h3>
                 {meeting.time && (
                   <p className="text-customGreen text-sm mb-2 flex items-center">
                     <svg
@@ -564,21 +523,6 @@ const OnlineMeeting = () => {
                   X
                 </button>
               </div>
-              {/* <p className="text-sm mb-4">
-                <strong>Create the Link</strong>
-                <br />
-                1. Go to{" "}
-                <a
-                  href="https://meet.google.com"
-                  target="_blank"
-                  className="text-green-500 hover:underline"
-                >
-                  Google Meet
-                </a>{" "}
-                and generate a link.
-                <br />
-                2. Copy the Link and Paste below
-              </p> */}
               <p className="text-sm mb-4">
                 <strong>Create the Link</strong>
                 <br />

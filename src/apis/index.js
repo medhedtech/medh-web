@@ -1,5 +1,5 @@
 // export const apiBaseUrl = "https://medh-backend.vercel.app/api/v1";  //vercel URL
-export const apiBaseUrl = "https://13.202.119.19.nip.io/api/v1"; //live instance URL
+export const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL; //live instance URL
 // export const apiBaseUrl = "http://localhost:8080/api/v1"; // local URL
 
 export const apiUrls = {
@@ -30,6 +30,21 @@ export const apiUrls = {
       courseId = ""
     ) =>
       `/courses/getLimitedCourses?page=${page}&limit=${limit}&course_title=${course_title}&course_tag=${course_tag}&course_category=${course_category}&status=${status}&search=${search}&course_grade=${course_grade}&category=${category}&exclude=${courseId}`,
+    getNewCourses: ({
+      page = 1,
+      limit = 10,
+      status,
+      course_tag,
+      serach,
+      user_id,
+    }) => {
+      let url = `/courses/getNewLimitedCourses?page=${page}&limit=${limit}&status=${status}&course_tag=${course_tag}&user_id=${user_id}`;
+      if (serach) {
+        url += `&search=${serach}`;
+      }
+      return url;
+    },
+
     getAllCourses: "/courses/get",
     getCourseById: "/courses/get",
     getCoorporateCourseByid: "/courses/get-coorporate",
@@ -217,6 +232,8 @@ export const apiUrls = {
     deleteMembership: "/memberships/delete",
     getSelfPackedCount: "/memberships/membership-count",
     getMembershipBbyStudentId: "/memberships/getmembership",
+    getRenewAmount: "/memberships/get-renew-amount",
+    renewMembership: "/memberships/renew",
   },
   jobForm: {
     getAllJobPosts: "/job-post/getAll",
