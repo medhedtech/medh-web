@@ -130,6 +130,7 @@ const LoginForm = () => {
           localStorage.setItem("email", encryptedEmail);
           localStorage.setItem("password", encryptedPassword);
           localStorage.setItem("permissions", JSON.stringify(res.permissions));
+          localStorage.setItem("role", res.role);
           Cookies.set("token", res.token, { expires: 30 });
           Cookies.set("userId", res.id, { expires: 30 });
         } else {
