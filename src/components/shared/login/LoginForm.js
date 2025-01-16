@@ -99,10 +99,10 @@ const LoginForm = () => {
   };
 
   const onSubmit = async (data) => {
-    // if (!recaptchaValue) {
-    //   setRecaptchaError(true);
-    //   return;
-    // }
+    if (!recaptchaValue) {
+      setRecaptchaError(true);
+      return;
+    }
     await postQuery({
       url: apiUrls?.user?.login,
       postData: {
