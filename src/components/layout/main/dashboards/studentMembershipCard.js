@@ -25,9 +25,9 @@ const StudentMembershipCard = () => {
       setStudentId(storedUserId);
     }
 
-    const fetchCourses = () => {
+    const fetchCourses = async () => {
       try {
-        getQuery({
+        await getQuery({
           url: apiUrls?.courses?.getAllCourses,
           onSuccess: (res) => {
             setCourses(res || []);
@@ -50,7 +50,7 @@ const StudentMembershipCard = () => {
   useEffect(() => {
     const fetchMemberships = () => {
       if (hasFetched) return;
-      if (!studentId) return;
+      if (!studentId || courses.length === 0) return;
       getQuery({
         url: `${apiUrls?.Membership?.getMembershipBbyStudentId}/${studentId}`,
         onSuccess: (res) => {
@@ -90,9 +90,7 @@ const StudentMembershipCard = () => {
       });
     };
 
-    // if (studentId && !hasFetched && courses.length > 0) {
     fetchMemberships();
-    // }
   }, [studentId, courses]);
 
   return (
