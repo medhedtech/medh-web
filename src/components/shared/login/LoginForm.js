@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import LogIn from "@/assets/images/log-sign/logIn.png";
@@ -72,7 +72,10 @@ const LoginForm = () => {
           secretKey
         ).toString(CryptoJS.enc.Utf8);
 
-        setPrefilledValues({ email: decryptedEmail, password: decryptedPassword });
+        setPrefilledValues({
+          email: decryptedEmail,
+          password: decryptedPassword,
+        });
         setRememberMe(true);
       } catch (error) {
         console.error("Failed to decrypt stored email or password:", error);
@@ -126,6 +129,8 @@ const LoginForm = () => {
           localStorage.setItem("userId", res.id);
           localStorage.setItem("email", encryptedEmail);
           localStorage.setItem("password", encryptedPassword);
+          localStorage.setItem("permissions", JSON.stringify(res.permissions));
+          localStorage.setItem("role", res.role);
           Cookies.set("token", res.token, { expires: 30 });
           Cookies.set("userId", res.id, { expires: 30 });
         } else {
@@ -137,13 +142,13 @@ const LoginForm = () => {
           userRole === "admin" ||
           userRole === "instructor" ||
           userRole === "student" ||
-          userRole === "coorporate" 
+          userRole === "coorporate"
         ) {
-          console.log("userrole: ", userRole)
+          console.log("userrole: ", userRole);
           router.push(`/dashboards/${userRole}-dashboard`);
-        } else if (userRole === "coorporate-student"){
+        } else if (userRole === "coorporate-student") {
           router.push(`/dashboards/coorporate-employee-dashboard`);
-        }else {
+        } else {
           // Default case if the role doesn't match any predefined roles
           router.push("/");
         }

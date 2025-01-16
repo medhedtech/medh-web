@@ -17,6 +17,7 @@ import {
   FaUsersCog,
 } from "react-icons/fa";
 import { setCookie } from "nookies";
+import { useEffect, useState } from "react";
 
 const SidebarDashboard = () => {
   const pathname = usePathname();
@@ -27,7 +28,7 @@ const SidebarDashboard = () => {
   const isInstructor = partOfPathNaem === "instructor" ? true : false;
   let isCorporate = partOfPathNaem === "coorporate" ? true : false;
   const isCorporateEmp =
-    partOfPathNaem === "coorporate" && partOfPathNaem2 === "employee" ;
+    partOfPathNaem === "coorporate" && partOfPathNaem2 === "employee";
 
   if (isCorporateEmp) {
     isCorporate = false;
@@ -36,9 +37,27 @@ const SidebarDashboard = () => {
   const handleLogout = () => {
     localStorage.removeItem("userId");
     localStorage.removeItem("token");
+    localStorage.removeItem("permissions");
+    localStorage.removeItem("role");
 
     router.push("/login");
   };
+
+  const [permissions, setPermissions] = useState([]);
+  const [role, setRole] = useState("");
+
+  useEffect(() => {
+    const perm = localStorage.getItem("permissions");
+    const roleFromStorage = localStorage.getItem("role");
+    if (perm) {
+      setPermissions(JSON.parse(perm));
+    }
+    if (roleFromStorage) {
+      setRole(roleFromStorage);
+    }
+  }, []);
+
+  console.log("permissions", permissions);
 
   const adminItems = [
     {
@@ -65,7 +84,7 @@ const SidebarDashboard = () => {
             </svg>
           ),
         },
-        {
+        role === "super-admin" && {
           name: "User Management",
           path: null,
           icon: (
@@ -180,7 +199,7 @@ const SidebarDashboard = () => {
           ],
         },
 
-        {
+        permissions.includes("course_management") && {
           name: "Course Management",
           icon: (
             <svg
@@ -275,12 +294,12 @@ const SidebarDashboard = () => {
             },
           ],
         },
-        {
+        permissions.includes("student_management") && {
           name: "Student Management",
           path: "/dashboards/admin-studentmange",
           icon: <FaUserGraduate size={18} color="#808080" />,
         },
-        {
+        permissions.includes("instructor_management") && {
           name: "Instructor Management",
           path: "/dashboards/admin-Instuctoremange",
           // tag: 12,
@@ -311,17 +330,17 @@ const SidebarDashboard = () => {
             </svg>
           ),
         },
-        {
+        permissions.includes("course_management") && {
           name: "Categories Management",
           path: "/dashboards/admin-category-manage",
           icon: <MdCategory size={18} color="#808080" />,
         },
-        {
+        permissions.includes("corporate_management") && {
           name: "Corporate Management",
           path: "/dashboards/admin-management",
           icon: <FaUsersCog size={18} color="#808080" />,
         },
-        {
+        permissions.includes("generate_certificate") && {
           name: "Generate Certificate",
           path: "/dashboards/admin-GenrateCertificate",
           // tag: 12,
@@ -340,32 +359,32 @@ const SidebarDashboard = () => {
             </svg>
           ),
         },
-        {
+        permissions.includes("get_in_touch") && {
           name: "Get In Touch",
           path: "/dashboards/admin-get-in-touch",
           icon: <MdContactPhone size={18} color="#808080" />,
         },
-        {
+        permissions.includes("enquiry_form") && {
           name: "Enquiry Form",
           path: "/dashboards/admin-enrollments",
           icon: <FaUsers size={18} color="#808080" />,
         },
-        {
+        permissions.includes("post_job") && {
           name: "Post Job",
           path: "/dashboards/admin-job-applicants",
           icon: <MdWorkOutline size={18} color="#808080" />,
         },
-        {
+        permissions.includes("feedback_and_complaints") && {
           name: "Feedback & Complaints",
           path: "/dashboards/admin-feedback-and-complaints",
           icon: <MdFeedback size={18} color="#808080" />,
         },
-        {
+        permissions.includes("placement_requests") && {
           name: "Placement Requests",
           path: "/dashboards/admin-placements",
           icon: <FaBriefcase size={18} color="#808080" />,
         },
-        {
+        permissions.includes("blogs") && {
           name: "Blogs",
           path: "/dashboards/admin-blogs",
           icon: <FaBlog size={18} color="#808080" />,
