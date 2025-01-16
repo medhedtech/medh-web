@@ -10,6 +10,7 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { toast } from "react-toastify";
 import Preloader from "@/components/shared/others/Preloader";
+import { getValue } from "@mui/system";
 
 const schema = yup
   .object({
@@ -19,7 +20,10 @@ const schema = yup
       .email("Invalid email format")
       .required("Email is required"),
     admin_role: yup.string().required("Role is required"),
-    permissions: yup.string().required("permissions is required"),
+    permissions: yup
+      .array()
+      .of(yup.string())
+      .required("permissions is required"),
   })
   .required();
 
@@ -28,36 +32,49 @@ const DefineRoleForm = ({ id }) => {
   const { postQuery, loading } = usePostQuery();
   const { getQuery } = useGetQuery();
   const [emails, setEmails] = React.useState([]);
+  const [allData, setAllData] = React.useState([]);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
+    trigger,
   } = useForm({
     resolver: yupResolver(schema),
+    // defaultValues: {
+    //   permissions
+    // },
   });
 
-  useEffect(() => {
-    const fetchEmails = async () => {
-      try {
-        const response = await getQuery({
-          url: apiUrls.user.getAll,
-        });
-        // Ensure response and response.data exist
-        if (response && response.data) {
-          const emails = response.data.map((user) => user.email);
-          setEmails(emails);
-        } else {
-          console.error("Unexpected response structure:", response);
-          toast.error("Error fetching email list.");
-        }
-      } catch (error) {
-        console.error("Failed to fetch emails:", error);
+  const fetchEmails = async (role) => {
+    try {
+      let url = apiUrls.user.getAll;
+      if (role) {
+        url = `${apiUrls.user.getAll}?admin_role=${role}`;
+      }
+      const response = await getQuery({
+        url: url,
+      });
+      // Ensure response and response.data exist
+      if (response && response.data) {
+        console.log("response.data", response.data);
+        const emails = response.data.map((user) => user.email);
+        console.log("emails", emails);
+        setEmails(emails);
+        setAllData(response.data);
+      } else {
+        console.error("Unexpected response structure:", response);
         toast.error("Error fetching email list.");
       }
-    };
+    } catch (error) {
+      console.error("Failed to fetch emails:", error);
+      toast.error("Error fetching email list.");
+    }
+  };
 
+  useEffect(() => {
     fetchEmails();
   }, []);
 
@@ -68,7 +85,7 @@ const DefineRoleForm = ({ id }) => {
         url: apiUrls?.user?.updateByEmail,
         postData: {
           email: data.email,
-          permissions: [data.permissions],
+          permissions: data.permissions,
           admin_role: data.admin_role,
           role_description: data.role_description,
         },
@@ -99,34 +116,6 @@ const DefineRoleForm = ({ id }) => {
         </h2>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {/* Email Input */}
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700 dark:text-whitegrey1"
-            >
-              Email ID
-              <span className="text-red-500 ml-1">*</span>
-            </label>
-            <select
-              id="email"
-              {...register("email")}
-              className={`w-full mt-1 px-3 py-2 border dark:bg-inherit dark:text-whitegrey3 border-gray-300 rounded-md bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                errors.email ? "border-red-500" : ""
-              }`}
-            >
-              <option value="">Select</option>
-              {emails.map((email) => (
-                <option key={email} value={email}>
-                  {email}
-                </option>
-              ))}
-            </select>
-            {errors.email && (
-              <p className="text-red-500 text-sm">{errors.email.message}</p>
-            )}
-          </div>
-
           {/* Role Selection */}
           <div>
             <label
@@ -142,6 +131,9 @@ const DefineRoleForm = ({ id }) => {
               className={`w-full mt-1 px-3 py-2 border dark:bg-inherit dark:text-whitegrey3 border-gray-300 rounded-md bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
                 errors.admin_role ? "border-red-500" : ""
               }`}
+              onChange={(e) => {
+                fetchEmails(e.target.value);
+              }}
             >
               <option value="">Select</option>
               <option value="admin">Admin</option>
@@ -152,6 +144,46 @@ const DefineRoleForm = ({ id }) => {
               <p className="text-red-500 text-sm">
                 {errors.admin_role.message}
               </p>
+            )}
+          </div>
+
+          {/* Email Input */}
+          <div>
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 dark:text-whitegrey1"
+            >
+              Email ID
+              <span className="text-red-500 ml-1">*</span>
+            </label>
+            <select
+              id="email"
+              {...register("email")}
+              onChange={(e) => {
+                const selected = allData.find(
+                  (u) => u.email === e.target.value
+                );
+                console.log("selected", selected);
+                if (selected) {
+                  setValue("permissions", selected.permissions);
+                }
+              }}
+              className={`w-full mt-1 px-3 py-2 border dark:bg-inherit dark:text-whitegrey3 border-gray-300 rounded-md bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                errors.email ? "border-red-500" : ""
+              }`}
+            >
+              <option value="">Select</option>
+              {emails.map((email) => {
+                console.log("email option", email);
+                return (
+                  <option key={email} value={email}>
+                    {email}
+                  </option>
+                );
+              })}
+            </select>
+            {errors.email && (
+              <p className="text-red-500 text-sm">{errors.email.message}</p>
             )}
           </div>
 
@@ -189,30 +221,268 @@ const DefineRoleForm = ({ id }) => {
             <div className="space-y-2 dark:text-white">
               <label className="flex items-center">
                 <input
-                  type="radio"
-                  value="view_courses"
+                  type="checkbox"
+                  value="course_management"
                   {...register("permissions")}
                   className="mr-2 text-indigo-600 focus:ring-indigo-500"
+                  // onChange={(e) => {
+                  //   console.log("e.target.checked", getValue("permissions"));
+                  //   if (e.target.checked) {
+                  //     setValue("permissions", [
+                  //       ...getValue("permissions"),
+                  //       e.target.value,
+                  //     ]);
+                  //   } else {
+                  //     setValue("permissions", [
+                  //       ...getValue("permissions").filter(
+                  //         (permission) => permission !== e.target.value
+                  //       ),
+                  //     ]);
+                  //   }
+                  //   trigger("permissions");
+                  // }}
                 />
-                View Courses
+                Course Management
               </label>
               <label className="flex items-center">
                 <input
-                  type="radio"
-                  value="edit_users"
+                  type="checkbox"
+                  value="student_management"
                   {...register("permissions")}
                   className="mr-2 text-indigo-600 focus:ring-indigo-500"
+                  // onChange={(e) => {
+                  //   if (e.target.checked) {
+                  //     setValue("permissions", [
+                  //       ...getValue("permissions"),
+                  //       e.target.value,
+                  //     ]);
+                  //   } else {
+                  //     setValue("permissions", [
+                  //       ...getValue("permissions").filter(
+                  //         (permission) => permission !== e.target.value
+                  //       ),
+                  //     ]);
+                  //   }
+                  //   trigger("permissions");
+                  // }}
                 />
-                Edit Users
+                Student Management
               </label>
               <label className="flex items-center">
                 <input
-                  type="radio"
-                  value="create_report"
+                  type="checkbox"
+                  value="instructor_management"
                   {...register("permissions")}
                   className="mr-2 text-indigo-600 focus:ring-indigo-500"
+                  // onChange={(e) => {
+                  //   if (e.target.checked) {
+                  //     setValue("permissions", [
+                  //       ...getValue("permissions"),
+                  //       e.target.value,
+                  //     ]);
+                  //   } else {
+                  //     setValue("permissions", [
+                  //       ...getValue("permissions").filter(
+                  //         (permission) => permission !== e.target.value
+                  //       ),
+                  //     ]);
+                  //   }
+                  //   trigger("permissions");
+                  // }}
                 />
-                Create Report
+                Instructor Management
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  value="corporate_management"
+                  {...register("permissions")}
+                  className="mr-2 text-indigo-600 focus:ring-indigo-500"
+                  // onChange={(e) => {
+                  //   if (e.target.checked) {
+                  //     setValue("permissions", [
+                  //       ...getValue("permissions"),
+                  //       e.target.value,
+                  //     ]);
+                  //   } else {
+                  //     setValue("permissions", [
+                  //       ...getValue("permissions").filter(
+                  //         (permission) => permission !== e.target.value
+                  //       ),
+                  //     ]);
+                  //   }
+                  //   trigger("permissions");
+                  // }}
+                />
+                Corporate Management
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  value="generate_certificate"
+                  {...register("permissions")}
+                  className="mr-2 text-indigo-600 focus:ring-indigo-500"
+                  // onChange={(e) => {
+                  //   if (e.target.checked) {
+                  //     setValue("permissions", [
+                  //       ...getValue("permissions"),
+                  //       e.target.value,
+                  //     ]);
+                  //   } else {
+                  //     setValue("permissions", [
+                  //       ...getValue("permissions").filter(
+                  //         (permission) => permission !== e.target.value
+                  //       ),
+                  //     ]);
+                  //   }
+                  //   trigger("permissions");
+                  // }}
+                />
+                Generate Certificate
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  value="get_in_touch"
+                  {...register("permissions")}
+                  className="mr-2 text-indigo-600 focus:ring-indigo-500"
+                  // onChange={(e) => {
+                  //   if (e.target.checked) {
+                  //     setValue("permissions", [
+                  //       ...getValue("permissions"),
+                  //       e.target.value,
+                  //     ]);
+                  //   } else {
+                  //     setValue("permissions", [
+                  //       ...getValue("permissions").filter(
+                  //         (permission) => permission !== e.target.value
+                  //       ),
+                  //     ]);
+                  //   }
+                  //   trigger("permissions");
+                  // }}
+                />
+                Get In Touch
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  value="enquiry_form"
+                  {...register("permissions")}
+                  className="mr-2 text-indigo-600 focus:ring-indigo-500"
+                  // onChange={(e) => {
+                  //   if (e.target.checked) {
+                  //     setValue("permissions", [
+                  //       ...getValue("permissions"),
+                  //       e.target.value,
+                  //     ]);
+                  //   } else {
+                  //     setValue("permissions", [
+                  //       ...getValue("permissions").filter(
+                  //         (permission) => permission !== e.target.value
+                  //       ),
+                  //     ]);
+                  //   }
+                  //   trigger("permissions");
+                  // }}
+                />
+                Enquiry Form
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  value="post_job"
+                  {...register("permissions")}
+                  className="mr-2 text-indigo-600 focus:ring-indigo-500"
+                  // onChange={(e) => {
+                  //   if (e.target.checked) {
+                  //     setValue("permissions", [
+                  //       ...getValue("permissions"),
+                  //       e.target.value,
+                  //     ]);
+                  //   } else {
+                  //     setValue("permissions", [
+                  //       ...getValue("permissions").filter(
+                  //         (permission) => permission !== e.target.value
+                  //       ),
+                  //     ]);
+                  //   }
+                  //   trigger("permissions");
+                  // }}
+                />
+                Post Job
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  value="feedback_and_complaints"
+                  {...register("permissions")}
+                  className="mr-2 text-indigo-600 focus:ring-indigo-500"
+                  // onChange={(e) => {
+                  //   if (e.target.checked) {
+                  //     setValue("permissions", [
+                  //       ...getValue("permissions"),
+                  //       e.target.value,
+                  //     ]);
+                  //   } else {
+                  //     setValue("permissions", [
+                  //       ...getValue("permissions").filter(
+                  //         (permission) => permission !== e.target.value
+                  //       ),
+                  //     ]);
+                  //   }
+                  //   trigger("permissions");
+                  // }}
+                />
+                Feedback And Complaints
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  value="placement_requests"
+                  {...register("permissions")}
+                  className="mr-2 text-indigo-600 focus:ring-indigo-500"
+                  // onChange={(e) => {
+                  //   if (e.target.checked) {
+                  //     setValue("permissions", [
+                  //       ...getValue("permissions"),
+                  //       e.target.value,
+                  //     ]);
+                  //   } else {
+                  //     setValue("permissions", [
+                  //       ...getValue("permissions").filter(
+                  //         (permission) => permission !== e.target.value
+                  //       ),
+                  //     ]);
+                  //   }
+                  //   trigger("permissions");
+                  // }}
+                />
+                Placement Requests
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  value="blogs"
+                  {...register("permissions")}
+                  className="mr-2 text-indigo-600 focus:ring-indigo-500"
+                  // onChange={(e) => {
+                  //   if (e.target.checked) {
+                  //     setValue("permissions", [
+                  //       ...getValue("permissions"),
+                  //       e.target.value,
+                  //     ]);
+                  //   } else {
+                  //     setValue("permissions", [
+                  //       ...getValue("permissions").filter(
+                  //         (permission) => permission !== e.target.value
+                  //       ),
+                  //     ]);
+                  //   }
+                  //   trigger("permissions");
+                  // }}
+                />
+                Blogs
               </label>
             </div>
             {errors.permissions && (
@@ -246,8 +516,6 @@ const DefineRoleForm = ({ id }) => {
 
 export default DefineRoleForm;
 
-
-
 // "use client";
 
 // import React, { useEffect } from "react";
@@ -278,7 +546,6 @@ export default DefineRoleForm;
 //   const { postQuery, loading } = usePostQuery();
 //   const { getQuery } = useGetQuery();
 //   const [emails, setEmails] = React.useState([]);
-  
 
 //   const {
 //     register,
@@ -297,7 +564,7 @@ export default DefineRoleForm;
 //       });
 //       // Ensure response and response.data exist
 //       if (response && response.data) {
-      
+
 //         if(role){
 //           console.log("getValues",getValues("admin_role"))
 //           setEmails(response.data.filter((user) => user.admin_role === role)).map((user) => user.email);
@@ -316,7 +583,6 @@ export default DefineRoleForm;
 //   };
 
 //   useEffect(() => {
-    
 
 //     fetchEmails();
 //   }, []);
@@ -374,7 +640,7 @@ export default DefineRoleForm;
 //               className={`w-full mt-1 px-3 py-2 border dark:bg-inherit dark:text-whitegrey3 border-gray-300 rounded-md bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
 //                 errors.admin_role ? "border-red-500" : ""
 //               }`}
-             
+
 //               onChange={(e)=>{
 //                 console.log("onchange called",e.target.value)
 //                 fetchEmails(e.target.value)
@@ -419,8 +685,6 @@ export default DefineRoleForm;
 //               <p className="text-red-500 text-sm">{errors.email.message}</p>
 //             )}
 //           </div>
-
-         
 
 //           {/* Role Description */}
 //           <div>
