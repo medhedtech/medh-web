@@ -24,9 +24,9 @@ const SidebarDashboard = () => {
   const router = useRouter();
   const partOfPathNaem = pathname.split("/")[2].split("-")[0];
   const partOfPathNaem2 = pathname.split("/")[2].split("-")[1];
-  const isAdmin = partOfPathNaem === "admin" ? true : false;
-  const isInstructor = partOfPathNaem === "instructor" ? true : false;
-  let isCorporate = partOfPathNaem === "coorporate" ? true : false;
+  const isAdmin = partOfPathNaem === "admin";
+  const isInstructor = partOfPathNaem === "instructor";
+  let isCorporate = partOfPathNaem === "coorporate";
   const isCorporateEmp =
     partOfPathNaem === "coorporate" && partOfPathNaem2 === "employee";
 
@@ -389,9 +389,8 @@ const SidebarDashboard = () => {
           path: "/dashboards/admin-blogs",
           icon: <FaBlog size={18} color="#808080" />,
         },
-      ],
+      ].filter(Boolean),
     },
-
     {
       name: "Student Management",
       path: "/dashboards/admin-studentmange",
@@ -656,7 +655,7 @@ const SidebarDashboard = () => {
             </svg>
           ),
         },
-      ],
+      ].filter(Boolean),
     },
   ];
 
@@ -943,7 +942,7 @@ const SidebarDashboard = () => {
             </svg>
           ),
         },
-      ],
+      ].filter(Boolean),
     },
   ];
   const corporateEmpItems = [
@@ -1104,7 +1103,7 @@ const SidebarDashboard = () => {
             </svg>
           ),
         },
-      ],
+      ].filter(Boolean),
     },
   ];
   const corporateItems = [
@@ -1306,7 +1305,7 @@ const SidebarDashboard = () => {
             </svg>
           ),
         },
-      ],
+      ].filter(Boolean),
     },
   ];
   // const items = isAdmin
