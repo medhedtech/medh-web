@@ -44,12 +44,12 @@ const ItemDashboard = ({ item }) => {
           ) : (
             <div
               onClick={() => {
-                handleItemClick(); // Call this to handle the click for the item
-                toggleDropdown(); // Optionally toggle the dropdown
+                handleItemClick();
+                toggleDropdown();
               }}
               className="leading-1.8 flex gap-3 text-contentColor pl-10 cursor-pointer"
             >
-              {icon} {name} {/* Render as heading if no path */}
+              {icon} {name}
             </div>
           )}
         </div>
