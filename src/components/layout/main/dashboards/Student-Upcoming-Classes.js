@@ -33,7 +33,7 @@ const StudentUpcomigClasses = () => {
     if (studentId) {
       const fetchUpcomingClasses = () => {
         getQuery({
-          url: `${apiUrls?.onlineMeeting?.getMeetingByStudentId}/${studentId}`,
+          url: `${apiUrls?.onlineMeeting?.getMeetingByStudentId}/${studentId}?show_all_upcoming=true`,
           onSuccess: (res) => {
             setClasses(res || []);
           },
