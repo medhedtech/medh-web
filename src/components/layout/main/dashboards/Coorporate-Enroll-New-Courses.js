@@ -23,19 +23,28 @@ const CoorporateNewCourses = () => {
   // Fetch Courses
   useEffect(() => {
     const fetchCourses = () => {
+      const user_id = localStorage.getItem("userId");
       getQuery({
-        url: apiUrls?.courses?.getAllCoursesWithLimits(
+        url: apiUrls?.courses?.getNewCourses({
           page,
           limit,
-          "",
-          "Live",
-          "",
-          "Published",
-          "",
-          "",
-          "",
-          // true
-        ),
+          course_tag: "Live",
+          status: "Published",
+          user_id,
+        }),
+        // getQuery({
+        //   url: apiUrls?.courses?.getAllCoursesWithLimits(
+        //     page,
+        //     limit,
+        //     "",
+        //     "Live",
+        //     "",
+        //     "Published",
+        //     "",
+        //     "",
+        //     "",
+        //     // true
+        //   ),
         onSuccess: (res) => {
           setCourses(res?.courses || []);
           setFilteredCourses(res?.courses || []);
@@ -102,7 +111,9 @@ const CoorporateNewCourses = () => {
             className="flex items-center gap-2 cursor-pointer"
           >
             <FaArrowLeft className="text-gray-700 dark:text-white" size={20} />
-            <h2 className="text-3xl dark:text-white">Enroll in New Course</h2>
+            <h2 className="text-3xl dark:text-white">
+              Enroll in New Course
+            </h2>
           </div>
         </div>
         <div className="flex flex-wrap gap-4">
