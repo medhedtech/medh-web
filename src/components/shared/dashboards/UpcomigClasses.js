@@ -31,7 +31,7 @@ const UpcomigClasses = () => {
       const fetchUpcomingClasses = async () => {
         try {
           const response = await getQuery({
-            url: `${apiUrls?.onlineMeeting?.getAllMeetingsForAllEmployeees}?student_id=${studentId}`,
+            url: `${apiUrls?.onlineMeeting?.getAllMeetingsForAllEmployeees}?student_id=${studentId}&show_all_upcoming=true`,
           });
 
           if (response?.meetings) {
