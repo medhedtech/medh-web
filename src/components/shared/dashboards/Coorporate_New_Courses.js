@@ -20,19 +20,27 @@ const CoorporateNew_Courses = () => {
 
   useEffect(() => {
     const fetchCourses = () => {
+      const user_id = localStorage.getItem("userId");
       getQuery({
-        url: apiUrls?.courses?.getAllCoursesWithLimits(
+        url: apiUrls?.courses?.getNewCourses({
           page,
           limit,
-          "",
-          "Live",
-          "",
-          "Published",
-          "",
-          "",
-          "",
-          // true,
-        ),
+          course_tag: "Live",
+          status: "Published",
+          user_id,
+        }),
+        // getQuery({
+        //   url: apiUrls?.courses?.getAllCoursesWithLimits(
+        //     page,
+        //     limit,
+        //     "",
+        //     "Live",
+        //     "",
+        //     "Published",
+        //     "",
+        //     "",
+        //     "",
+        //   ),
         onSuccess: (res) => {
           setCourses(res?.courses || []);
         },
