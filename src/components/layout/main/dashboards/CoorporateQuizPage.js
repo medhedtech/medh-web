@@ -92,7 +92,7 @@ export default function CoorporateQuizPage({ closeQuiz }) {
       const fetchUpcomingClasses = async () => {
         try {
           const response = await getQuery({
-            url: apiUrls?.onlineMeeting?.getAllMeetingsForAllEmployeees,
+            url: `${apiUrls?.onlineMeeting?.getAllMeetingsForAllEmployeees}?student_id=${studentId}`,
           });
 
           if (response?.meetings) {
