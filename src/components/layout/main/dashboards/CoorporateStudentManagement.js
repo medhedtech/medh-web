@@ -88,11 +88,11 @@ const CoorporateTableStudent = () => {
       accessor: "meta.gender",
       render: (row) => <span>{row?.meta?.gender}</span>,
     },
-    {
-      Header: "Age",
-      accessor: "meta.age",
-      render: (row) => <span>{row?.meta?.age}</span>,
-    },
+    // {
+    //   Header: "Age",
+    //   accessor: "meta.age",
+    //   render: (row) => <span>{row?.meta?.age}</span>,
+    // },
     { Header: "Join Date", accessor: "createdAt" },
     {
       Header: "Status",

@@ -28,21 +28,7 @@ const SelectMultipleCourses = ({
     course.course_title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  //   const handleCheckboxChange = (course) => {
-  //     const updatedSelected = selectedCourses.includes(course)
-  //       ? selectedCourses.filter((c) => c !== course) // Remove if already selectedCourses
-  //       : [...selectedCourses, course]; // Add if not selectedCourses
-
-  //     console.log("selected Courses:", updatedSelected);
-  //     setSelectedCourses(updatedSelected);
-  //     handleCourse(updatedSelected);
-  //   };
-
   const handleCheckboxChange = (courseId) => {
-    // const updatedSelected = selectedCourses.includes(courseId)
-    //   ? selectedCourses.filter((id) => id !== courseId)
-    //   : [...selectedCourses, courseId];
-
     const updatedSelected = selectedCourses.includes(courseId)
       ? selectedCourses.filter((id) => id !== courseId)
       : [...selectedCourses, courseId];
@@ -50,7 +36,6 @@ const SelectMultipleCourses = ({
     console.log("Selected Course IDs:", updatedSelected);
     setSelectedCourses(updatedSelected);
     handleCourse(updatedSelected);
-    // field.onChange(updatedSelected);
   };
 
   useEffect(() => {
@@ -94,7 +79,8 @@ const SelectMultipleCourses = ({
   return (
     <div className="relative" ref={dropdownRef}>
       <label className="block text-sm font-normal mb-1">
-        Related Courses <span className="text-red-500">*</span>
+        Related Courses 
+        {/* <span className="text-red-500">*</span> */}
       </label>
       <div className="p-3 border rounded-lg w-full dark:bg-inherit text-gray-600">
         {/* Chips Section */}
