@@ -31,11 +31,12 @@ const schema = yup.object({
     .positive("Number of sessions must be a positive number")
     .required("Number of sessions is required"),
   course_duration: yup.string().required("Course duration is required"),
-  related_courses: yup
-    .array()
-    .of(yup.string())
-    .min(1, "Min 1 course is required")
-    .required("Related courses are required"),
+  // related_courses: yup
+  //   .array()
+  //   .of(yup.string())
+  //   .min(1, "Min 1 course is required")
+  //   .required("Related courses are required"),
+  related_courses: yup.array().of(yup.string()).min(0),
   // session_duration: yup
   //   .string()
   //   .test(
