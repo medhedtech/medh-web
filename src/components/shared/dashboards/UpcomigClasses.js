@@ -69,7 +69,7 @@ const UpcomigClasses = () => {
 
             // Combine ongoing classes with sorted upcoming classes
             setClasses(
-              [...ongoingClasses, ...sortedUpcomingClasses].slice(0, 4)
+              [...ongoingClasses, ...sortedUpcomingClasses].slice(0, 16)
             );
           } else {
             console.error("No meetings data found in response");
