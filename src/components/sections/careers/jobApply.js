@@ -253,7 +253,7 @@ function JobApply({ activeJob }) {
           </div>
 
           <ReCAPTCHA
-            sitekey="6LeNH5QqAAAAAO98HJ00v5yuCkLgHYCSvUEpGhLb"
+            sitekey="6Lf6ihYqAAAAAMNtP2TmPwnmZtxMBVHUKsL5JsS-"
             onChange={handleRecaptchaChange}
           />
           {/* ReCAPTCHA Error Message */}
