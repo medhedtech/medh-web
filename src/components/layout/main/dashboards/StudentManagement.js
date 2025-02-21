@@ -9,6 +9,7 @@ import MyTable from "@/components/shared/common-table/page";
 import useDeleteQuery from "@/hooks/deleteQuery.hook";
 import { toast } from "react-toastify";
 import usePostQuery from "@/hooks/postQuery.hook";
+import { Upload } from "lucide-react";
 
 const formatDate = (dateString) => {
   const date = new Date(dateString);
@@ -42,11 +43,13 @@ const UsersTableStudent = () => {
   const { getQuery } = useGetQuery();
   const [deletedStudents, setDeletedStudents] = useState(null);
   const [updateStatus, setUpdateStatus] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   // Fetch Students Data from API
   useEffect(() => {
     const fetchStudents = async () => {
       try {
+        setLoading(true);
         await getQuery({
           url: apiUrls?.user?.getAll,
           onSuccess: (data) => {
@@ -60,6 +63,8 @@ const UsersTableStudent = () => {
         });
       } catch (error) {
         console.error("Failed to fetch students:", error);
+      } finally {
+        setLoading(false);
       }
     };
     fetchStudents();
@@ -156,20 +161,20 @@ const UsersTableStudent = () => {
         );
       },
     },
-    // {
-    //   Header: "Action",
-    //   accessor: "actions",
-    //   render: (row) => (
-    //     <div className="flex gap-2 items-center">
-    //       <button
-    //         onClick={() => deleteStudent(row?._id)}
-    //         className="text-white bg-red-600 border border-red-600 rounded-md px-[10px] py-1"
-    //       >
-    //         Delete
-    //       </button>
-    //     </div>
-    //   ),
-    // },
+    {
+      Header: "Action",
+      accessor: "actions",
+      render: (row) => (
+        <div className="flex gap-2 items-center">
+          <button
+            onClick={() => deleteStudent(row._id)}
+            className="text-red-500 border border-red-500 rounded-md px-2 py-1 hover:bg-red-50"
+          >
+            Delete
+          </button>
+        </div>
+      )
+    },
   ];
 
   const toggleExpand = (rowId) => {
@@ -234,6 +239,28 @@ const UsersTableStudent = () => {
       createdAt: new Date(user.createdAt).toLocaleDateString("en-GB"),
     })) || [];
 
+  // Add delete handler for enrolled students
+  const deleteEnrolledStudent = async (enrollmentId) => {
+    if (confirm("Are you sure you want to delete this enrollment?")) {
+      try {
+        await postQuery({
+          url: `${apiUrls.EnrollCourse.deleteEnrollment}/${enrollmentId}`,
+          method: "DELETE",
+          onSuccess: () => {
+            toast.success("Enrollment deleted successfully");
+            // Refresh enrolled students list
+            setEnrolledStudents(prev => prev.filter(e => e._id !== enrollmentId));
+          },
+          onFail: (err) => toast.error("Failed to delete enrollment")
+        });
+      } catch (error) {
+        console.error("Delete error:", error);
+        toast.error("Error deleting enrollment");
+      }
+    }
+  };
+
+  // Update enrolled students columns to include delete action
   const columnsSecond = [
     { Header: "No.", accessor: "no" },
     { Header: "Name", accessor: "full_name" },
@@ -277,7 +304,20 @@ const UsersTableStudent = () => {
         );
       },
     },
-    // { Header: "Enrollment Date", accessor: "enrollment_date" },
+    {
+      Header: "Action",
+      accessor: "actions",
+      render: (row) => (
+        <div className="flex gap-2 items-center">
+          <button
+            onClick={() => deleteEnrolledStudent(row._id)}
+            className="text-red-500 border border-red-500 rounded-md px-2 py-1 hover:bg-red-50"
+          >
+            Delete
+          </button>
+        </div>
+      )
+    },
   ];
 
   // Step 1: To group the course and the enrolled students
@@ -330,6 +370,35 @@ const UsersTableStudent = () => {
 
   // Step 3: If no search query is provided, show all grouped students
   const dataToRender = filteredGroupedEnrolledStudents;
+
+  // Add CSV upload handler
+  const handleCSVUpload = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      try {
+        const formData = new FormData();
+        formData.append("csvFile", file);
+
+        await postQuery({
+          url: apiUrls.students.uploadCSV,
+          postData: formData,
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          onSuccess: () => {
+            toast.success("Students uploaded successfully!");
+            fetchStudents(); // Refresh student list
+          },
+          onFail: (error) => {
+            toast.error(error.message || "CSV upload failed");
+          }
+        });
+      } catch (error) {
+        console.error("Upload error:", error);
+        toast.error("Error processing CSV file");
+      }
+    }
+  };
 
   // Add Student Form Toggle
   if (showAddStudentForm)
@@ -428,10 +497,26 @@ const UsersTableStudent = () => {
                 <FaPlus className="mr-2" />
                 Add Student
               </button>
+
+              {/* Upload CSV Button */}
+              <button
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center ml-2"
+                onClick={() => document.getElementById('csvUpload').click()}
+              >
+                <Upload className="mr-2 h-4 w-4" />
+                Upload CSV
+                <input
+                  type="file"
+                  id="csvUpload"
+                  accept=".csv"
+                  className="hidden"
+                  onChange={handleCSVUpload}
+                />
+              </button>
             </div>
           </header>
           {/* Student Table */}
-          <MyTable columns={columns} data={formattedData} />
+          <MyTable columns={columns} data={formattedData} loading={loading} />
         </div>
       </div>
 
