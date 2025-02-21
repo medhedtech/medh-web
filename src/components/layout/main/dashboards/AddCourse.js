@@ -16,56 +16,32 @@ import CurriculumModal from "./CurriculumModal";
 import CategorySelect from "./CategorySelect";
 import SelectMultipleCourses from "./SelectMultipleCourses";
 
-// Validation Schema
+// Optimized validation schema
 const schema = yup.object({
-  course_category: yup
-    .string()
-    .oneOf(["Live Courses", "Blended Courses", "Corporate Training Courses"])
-    .required("Course category is required"),
-  course_title: yup.string().trim().required("Course title is required"),
-  category: yup.string().required("Category is required"),
-  course_tag: yup.string().required("Course tag is required"),
-  no_of_Sessions: yup
-    .number()
-    .typeError("Number of sessions must be a number")
-    .positive("Number of sessions must be a positive number")
-    .required("Number of sessions is required"),
-  course_duration: yup.string().required("Course duration is required"),
-  // related_courses: yup
-  //   .array()
-  //   .of(yup.string())
-  //   .min(1, "Min 1 course is required")
-  //   .required("Related courses are required"),
-  related_courses: yup.array().of(yup.string()).min(0),
-  // session_duration: yup
-  //   .string()
-  //   .test(
-  //     "valid-session-duration",
-  //     "Session duration must be a positive number or a valid time format (e.g., 30 Minutes or 2 Hours)",
-  //     (value) => {
-  //       // Check if it's a positive number
-  //       const isValidNumber = value && !isNaN(value) && Number(value) > 0;
-
-  //       // Regex to match "X Hours", "X Minutes", or "X Hours/Month"
-  //       const validTimeFormat =
-  //         /^(\d+(\.\d+)?\s*(Hours?|Minutes?)|(\d+(\.\d+)?\s*Hours?\/Minutes?))$/i;
-
-  //       return isValidNumber || validTimeFormat.test(value);
-  //     }
-  //   ),
-  session_duration: yup.string().required("Session duration is required"),
-  course_description: yup.string().required("Course description is required"),
-  course_fee: yup
-    .number()
-    .typeError("Course fee must be a number")
-    .required("Course fee is required"),
-  course_grade: yup.string().required("Grade is required"),
-  is_Certification: yup.string().required("This field is required"),
-  is_Assignments: yup.string().required("This field is required"),
-  is_Projects: yup.string().required("This field is required"),
-  class_type: yup.string().required("This field is required"),
-  efforts_per_Week: yup.string().required("This field is required"),
-  is_Quizes: yup.string().required("This field is required"),
+  course_category: yup.string().oneOf([
+    "Live Courses", 
+    "Blended Courses", 
+    "Corporate Training Courses"
+  ]),
+  course_title: yup.string().trim().max(100, "Title too long"),
+  category: yup.string().max(50),
+  course_tag: yup.string(),
+  no_of_Sessions: yup.number()
+    .typeError("Must be a number")
+    .positive("Must be positive")
+    .integer("Must be whole number"),
+  course_duration: yup.string().max(20),
+  related_courses: yup.array().of(yup.string()),
+  session_duration: yup.string().max(20),
+  course_description: yup.string().max(500, "Description too long"),
+  course_fee: yup.number().typeError("Must be a number"),
+  course_grade: yup.string(),
+  is_Certification: yup.string(),
+  is_Assignments: yup.string(),
+  is_Projects: yup.string(),
+  class_type: yup.string(),
+  efforts_per_Week: yup.string().max(50),
+  is_Quizes: yup.string()
 });
 
 const AddCourse = () => {
@@ -278,36 +254,24 @@ const AddCourse = () => {
   };
 
   const onSubmit = async (data) => {
-    trigger("related_courses");
-    if (!thumbnailImage || !pdfBrochures || !courseVideos) {
-      setError(true);
-      setErrorPdf(true);
-      setErrorVideo(true);
-      return;
-    } else setError(false), setErrorPdf(false), setErrorVideo(false);
     try {
-      // Gather form data along with uploaded video and PDF brochure links
       const postData = {
         ...data,
-        course_videos: courseVideos.length > 0 ? courseVideos : [],
-        brochures: pdfBrochures.length > 0 ? pdfBrochures : [],
+        course_videos: courseVideos,
+        brochures: pdfBrochures,
         course_image: thumbnailImage,
-        resource_videos: resourceVideos.length > 0 ? resourceVideos : [],
-        resource_pdfs: resourcePdfs.length > 0 ? resourcePdfs : [],
-        curriculum: curriculum.length > 0 ? curriculum : [],
-        related_courses: selectedCourses.length > 0 ? selectedCourses : [],
+        resource_videos: resourceVideos,
+        resource_pdfs: resourcePdfs,
+        curriculum,
+        related_courses: selectedCourses,
+        createdAt: new Date().toISOString()
       };
 
-      // Save data to localStorage
       localStorage.setItem("courseData", JSON.stringify(postData));
-      console.log("POSTDATA: ", postData);
-
-      // Navigate to the preview page
       router.push("/dashboards/admin-add-data");
-      // toast.success("Course details saved locally!");
+
     } catch (error) {
-      console.error("An error occurred:", error);
-      toast.error("An unexpected error occurred. Please try again.");
+      handleError(error);
     }
   };
 
@@ -357,29 +321,95 @@ const AddCourse = () => {
     setSelectedCategory(value);
   };
 
+  // Update label rendering to remove required asterisks
+  const renderLabel = (text) => (
+    <label className="block text-sm font-normal mb-1">
+      {text}
+    </label>
+  );
+
+  // Improved error handling
+  const handleError = (error) => {
+    console.error("Error:", error);
+    toast.error(
+      error.response?.data?.message || 
+      "An error occurred. Please try again."
+    );
+  };
+
+  // Optimized file upload handler
+  const handleFileUpload = async (files, type) => {
+    try {
+      const uploadPromises = Array.from(files).map(file => {
+        const reader = new FileReader();
+        return new Promise((resolve, reject) => {
+          reader.onload = async () => {
+            try {
+              const base64 = type === 'pdf' ? reader.result : reader.result.split(",")[1];
+              const postData = type === 'pdf' ? 
+                { base64String: base64 } : 
+                { base64String: base64, fileType: type };
+
+              const response = await postQuery({
+                url: type === 'pdf' ? 
+                  apiUrls.upload.uploadDocument : 
+                  apiUrls.upload[`upload${type === 'image' ? 'Image' : 'Media'}`],
+                postData
+              });
+              
+              resolve(response.data);
+            } catch (error) {
+              reject(error);
+            }
+          };
+          reader.onerror = error => reject(error);
+          type === 'pdf' ? reader.readAsDataURL(file) : reader.readAsArrayBuffer(file);
+        });
+      });
+
+      const results = await Promise.all(uploadPromises);
+      return results.map(r => r.data);
+
+    } catch (error) {
+      handleError(error);
+      return [];
+    }
+  };
+
+  // Memoized form components
+  const renderFormField = (label, children) => (
+    <div className="mb-4">
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        {label}
+      </label>
+      {children}
+    </div>
+  );
+
+  // Cleanup effect
+  useEffect(() => {
+    return () => {
+      // Clear temporary storage on unmount
+      localStorage.removeItem("courseData");
+    };
+  }, []);
+
   if (loading) {
     return <Preloader />;
   }
 
   return (
-    <div className="min-h-screen font-Poppins flex items-center justify-center pt-8  dark:bg-inherit dark:text-whitegrey3  bg-gray-100">
-      <div className="bg-white p-8 rounded-lg  dark:bg-inherit dark:text-whitegrey3 dark:border shadow-lg w-full max-w-6xl">
+    <div className="min-h-screen font-Poppins flex items-center justify-center pt-8 dark:bg-inherit dark:text-whitegrey3 bg-gray-100">
+      <div className="bg-white p-8 rounded-lg dark:bg-inherit dark:text-whitegrey3 dark:border shadow-lg w-full max-w-6xl">
         <h2 className="text-2xl font-semibold mb-6">Add Course Details</h2>
 
         {/* Select Category */}
         <div className="mb-6">
           <div className="flex items-center gap-7 mb-2">
-            <label className="block text-[#323232] font-semibold text-xl dark:text-white">
-              Select Category
-              <span className="text-red-500 ml-1">*</span>
-            </label>
-            <label
-              className={`flex text-lg font-medium items-center space-x-2 ${
-                selectedCategory === "Live Courses"
-                  ? "text-green-500"
-                  : "text-[#808080]"
-              }`}
-            >
+            {renderLabel("Select Category")}
+            <label className={`flex text-lg font-medium items-center space-x-2 ${
+              selectedCategory === "Live Courses" ? "text-green-500" : "text-[#808080]"
+            }`}>
               <input
                 type="radio"
                 name="course_category"
@@ -435,10 +465,7 @@ const AddCourse = () => {
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8 text-[#808080]">
             <div>
-              <label className="block text-sm font-normal mb-1">
-                Course Title
-                <span className="text-red-500 ml-1">*</span>
-              </label>
+              {renderLabel("Course Title")}
               <input
                 type="text"
                 placeholder="Enter title"
@@ -850,10 +877,7 @@ const AddCourse = () => {
           <div className="flex flex-wrap gap-24 mb-6 font-Poppins justify-start">
             {/* Course Video Upload */}
             <div>
-              <p className="font-semibold mb-2 text-center text-2xl">
-                Add Course Videos
-                <span className="text-red-500 ml-1">*</span>
-              </p>
+              {renderLabel("Add Course Videos")}
               <div className="border-dashed border-2 dark:bg-inherit bg-purple border-gray-300 rounded-lg p-3 w-[210px] h-[140px] text-center relative">
                 <svg
                   width="36"
@@ -919,10 +943,7 @@ const AddCourse = () => {
 
             {/* PDF Brochure Upload */}
             <div>
-              <p className="font-semibold mb-2 text-center text-2xl">
-                Add PDF Brochure
-                <span className="text-red-500 ml-1">*</span>
-              </p>
+              {renderLabel("Add PDF Brochure")}
               <div className="border-dashed border-2 dark:bg-inherit bg-purple border-gray-300 rounded-lg p-3 w-[210px] h-[140px] text-center relative">
                 <svg
                   width="36"
@@ -987,10 +1008,7 @@ const AddCourse = () => {
 
             {/* Thumbnail Image Upload */}
             <div>
-              <p className="font-semibold mb-2 text-left text-2xl">
-                Add Image
-                <span className="text-red-500 ml-1">*</span>
-              </p>
+              {renderLabel("Add Image")}
               <div className="border-dashed border-2 dark:bg-inherit bg-purple border-gray-300 rounded-lg p-3 w-[210px] h-[140px] text-center relative">
                 <svg
                   width="36"

@@ -88,6 +88,7 @@ export const apiUrls = {
     updateCoorporate: "/auth/update-coorporate/:id",
     deleteCoorporate: "/auth/delete-coorporate",
     toggleCoorporateStatus: "/auth/toggle-coorporate-status",
+    bulkDelete: "/api/coorporate/bulk-delete",
   },
   CoorporateStudent: {
     getAllCoorporateStudents: "/auth/get-all-coorporate-students",
