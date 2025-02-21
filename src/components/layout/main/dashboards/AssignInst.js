@@ -178,8 +178,8 @@ const AssignInstructor = () => {
     setSearchTerm("");
   };
 
-  const filteredCourses = courses?.filter((course) =>
-    course.course_title.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredCourses = courses?.filter((course) => 
+    (course.course_title || '').toLowerCase().includes((searchTerm || '').toLowerCase())
   );
 
   const toggleFullNameDropdown = (e) => {

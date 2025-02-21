@@ -24,8 +24,8 @@ const SelectMultipleCourses = ({
     setDropdownOpen((prev) => !prev);
   };
 
-  const filteredCourses = courses?.filter((course) =>
-    course.course_title.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredCourses = courses?.filter((course) => 
+    (course.course_title || '').toLowerCase().includes((searchTerm || '').toLowerCase())
   );
 
   const handleCheckboxChange = (courseId) => {
