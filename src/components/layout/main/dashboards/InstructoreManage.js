@@ -8,6 +8,7 @@ import useDeleteQuery from "@/hooks/deleteQuery.hook";
 import { toast } from "react-toastify";
 import usePostQuery from "@/hooks/postQuery.hook";
 import AddInstructor from "./AddInstructor";
+import { Upload } from "lucide-react";
 
 const InstructorTable = () => {
   const { deleteQuery } = useDeleteQuery();
@@ -100,6 +101,35 @@ const InstructorTable = () => {
     } catch (error) {
       toast.error("Something went wrong!");
       console.error("Error in toggleStatus:", error);
+    }
+  };
+
+  // Add CSV upload handler
+  const handleCSVUpload = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      try {
+        const formData = new FormData();
+        formData.append("csvFile", file);
+
+        await postQuery({
+          url: apiUrls.Instructor.uploadCSV,
+          postData: formData,
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          onSuccess: () => {
+            toast.success("Instructors uploaded successfully!");
+            fetchInstructors(); // Refresh list
+          },
+          onFail: (error) => {
+            toast.error(error.message || "CSV upload failed");
+          }
+        });
+      } catch (error) {
+        console.error("Upload error:", error);
+        toast.error("Error processing CSV file");
+      }
     }
   };
 
@@ -339,6 +369,22 @@ const InstructorTable = () => {
             >
               <FaPlus className="mr-2" />
               Add Instructor
+            </button>
+
+            {/* Upload CSV Button */}
+            <button
+              className="bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center ml-2"
+              onClick={() => document.getElementById('instructorCSVUpload').click()}
+            >
+              <Upload className="mr-2 h-4 w-4" />
+              Upload CSV
+              <input
+                type="file"
+                id="instructorCSVUpload"
+                accept=".csv"
+                className="hidden"
+                onChange={handleCSVUpload}
+              />
             </button>
           </div>
         </header>
