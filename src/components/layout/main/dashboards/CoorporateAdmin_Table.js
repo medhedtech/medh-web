@@ -29,6 +29,7 @@ const CoorporateAdminTable = () => {
     country: "",
     status: "",
   });
+  const [selectedRows, setSelectedRows] = useState([]);
 
   // Fetch instructors data from API
   const fetchInstructors = async () => {
@@ -62,14 +63,14 @@ const CoorporateAdminTable = () => {
   // Delete Instructor
   const deleteInstructor = (id) => {
     deleteQuery({
-      url: `${apiUrls.Instructor.deleteInstructor}/${id}`,
+      url: `${apiUrls.Coorporate.deleteCoorporate}/${id}`,
       onSuccess: (res) => {
         toast.success(res?.message);
         setDeletedInstructors(id);
       },
       onFail: (res) => {
-        console.error("Failed to delete instructor:", res);
-        toast.error("Failed to delete instructor");
+        console.error("Failed to delete corporate admin:", res);
+        toast.error("Failed to delete corporate admin");
       },
     });
   };
@@ -113,16 +114,20 @@ const CoorporateAdminTable = () => {
     { Header: "Country", accessor: "country" },
     { Header: "Join Date", accessor: "createdAt" },
     {
-      Header: "Resume",
+      Header: "Valid Document (Optional)",
       accessor: "meta.upload_resume",
       render: (row) => (
         <div className="flex gap-2 items-center">
-          <button
-            onClick={() => window.open(row?.meta?.upload_resume, "_blank")}
-            className="text-[#7ECA9D] px-2 py-1 hover:bg-blue-500 rounded-md transition-all duration-200"
-          >
-            <FaEye className="h-4 w-4 text-inherit" />
-          </button>
+          {row?.meta?.upload_resume ? (
+            <button
+              onClick={() => window.open(row.meta.upload_resume, "_blank")}
+              className="text-[#7ECA9D] px-2 py-1 hover:bg-blue-500 rounded-md transition-all duration-200"
+            >
+              <FaEye className="h-4 w-4 text-inherit" />
+            </button>
+          ) : (
+            <span className="text-gray-400 text-sm">No document</span>
+          )}
         </div>
       ),
     },
@@ -155,6 +160,20 @@ const CoorporateAdminTable = () => {
           </div>
         );
       },
+    },
+    {
+      Header: "Actions",
+      accessor: "actions",
+      render: (row) => (
+        <div className="flex gap-2">
+          <button
+            onClick={() => deleteInstructor(row._id)}
+            className="text-red-500 hover:text-red-700 px-2 py-1 rounded-md border border-red-500 hover:bg-red-50 transition-colors"
+          >
+            Delete
+          </button>
+        </div>
+      )
     },
   ];
 
@@ -218,6 +237,35 @@ const CoorporateAdminTable = () => {
     return (
       <AddCoorporate_Admin onCancel={() => setShowCoorporateForm(false)} />
     );
+
+  // Add bulk delete handler
+  const handleBulkDelete = async () => {
+    if (selectedRows.length === 0) {
+      toast.error("No rows selected");
+      return;
+    }
+    
+    if (confirm(`Delete ${selectedRows.length} corporate admins?`)) {
+      try {
+        await postQuery({
+          url: apiUrls.Coorporate.bulkDelete,
+          postData: { ids: selectedRows },
+          onSuccess: () => {
+            toast.success("Bulk delete successful");
+            setSelectedRows([]);
+            fetchInstructors();
+          },
+          onFail: (err) => {
+            toast.error("Bulk delete failed");
+            console.error(err);
+          }
+        });
+      } catch (error) {
+        console.error("Bulk delete error:", error);
+        toast.error("Error during bulk delete");
+      }
+    }
+  };
 
   return (
     <div className="bg-gray-100 dark:bg-darkblack font-Poppins min-h-screen">
@@ -313,6 +361,21 @@ const CoorporateAdminTable = () => {
             </button>
           </div>
         </header>
+        {/* Add bulk delete functionality at the top of the table */}
+        <div className="flex items-center justify-between mb-4 p-6">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={handleBulkDelete}
+              className="bg-red-500 text-white px-4 py-2 rounded-lg flex items-center"
+            >
+              Delete Selected
+            </button>
+            <span className="text-sm text-gray-600">
+              {selectedRows.length} selected
+            </span>
+          </div>
+          {/* ... existing search/filter inputs ... */}
+        </div>
         {/* Student Table */}
         <MyTable columns={columns} data={formattedData} />
       </div>

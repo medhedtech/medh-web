@@ -105,10 +105,6 @@ const AddCoorporate_Admin = () => {
     setShowConfirmPassword((prev) => !prev);
 
   const onSubmit = async (data) => {
-    if (pdfBrochures.length === 0) {
-      setErrorPdf(true);
-      return;
-    }
     try {
       await postQuery({
         url: apiUrls.Coorporate.createCoorporate,
@@ -121,7 +117,7 @@ const AddCoorporate_Admin = () => {
           country: data.country,
           company_website: data.company_website,
           meta: {
-            upload_resume: pdfBrochures,
+            upload_resume: pdfBrochures.length > 0 ? pdfBrochures : [],
           },
         },
         onSuccess: () => {
@@ -396,10 +392,7 @@ const AddCoorporate_Admin = () => {
 
           {/* PDF Brochure Upload */}
           <div>
-            <p className="font-semibold mb-2 text-left text-2xl">
-              Upload Valid Document
-              <span className="text-red-500 ml-1">*</span>
-            </p>
+            <p className="font-semibold mb-2 text-left text-2xl">Upload Valid Document (Optional)</p>
             <div className="border-dashed border-2 dark:bg-inherit bg-purple border-gray-300 rounded-lg p-3 w-[300px] h-[140px] text-center relative">
               <svg
                 width="36"
@@ -417,7 +410,7 @@ const AddCoorporate_Admin = () => {
               <p className="text-customGreen cursor-pointer text-sm">
                 Click to upload
               </p>
-              <p className="text-gray-400 text-xs">or drag & drop the files</p>
+              <p className="text-gray-400 text-xs">or drag & drop the files (optional)</p>
               <input
                 type="file"
                 multiple
@@ -425,35 +418,28 @@ const AddCoorporate_Admin = () => {
                 className="absolute inset-0 opacity-0 cursor-pointer"
                 onChange={handlePdfUpload}
               />
-              {pdfBrochures && pdfBrochures.length > 0 && (
-                <p className="mt-1 text-xs text-gray-500">✔ Uploaded</p>
-              )}
-            </div>
-            {/* Conditionally show the error message */}
-            {errorPdf && (
-              <p className="text-red-500 text-xs mt-2">Please upload resume</p>
-            )}
-            <div className="w-[210px] text-center relative">
-              {pdfBrochures.length > 0 && (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {pdfBrochures.map((fileUrl, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between bg-[#e9e9e9] p-2 rounded-md text-sm w-full md:w-auto"
-                    >
-                      <span className="truncate text-[#5C5C5C] max-w-[150px]">
-                        Document Uploaded Successfully
-                      </span>
-                      <button
-                        onClick={() => removePdf(index)}
-                        className="ml-2 text-[20px] text-[#5C5C5C] hover:text-red-700"
+              <div className="w-[210px] text-center relative">
+                {pdfBrochures.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {pdfBrochures.map((fileUrl, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between bg-[#e9e9e9] p-2 rounded-md text-sm w-full md:w-auto"
                       >
-                        x
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
+                        <span className="truncate text-[#5C5C5C] max-w-[150px]">
+                          Document Uploaded Successfully
+                        </span>
+                        <button
+                          onClick={() => removePdf(index)}
+                          className="ml-2 text-[20px] text-[#5C5C5C] hover:text-red-700"
+                        >
+                          x
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
