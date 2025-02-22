@@ -12,7 +12,7 @@ const Admin_Job_Aplicants = () => {
     <ProtectedPage>
       <main>
         <DashboardContainer>
-          <div className="px-6">
+          <div>
             <HeadingDashboard />
           </div>
           <AdminJobAplicants />
