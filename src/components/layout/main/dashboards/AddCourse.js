@@ -41,7 +41,9 @@ const schema = yup.object({
   is_Projects: yup.string(),
   class_type: yup.string(),
   efforts_per_Week: yup.string().max(50),
-  is_Quizes: yup.string()
+  is_Quizes: yup.string(),
+  batch_price: yup.number().typeError("Must be a number").positive("Must be positive"),
+  individual_price: yup.number().typeError("Must be a number").positive("Must be positive"),
 });
 
 const AddCourse = () => {
@@ -73,6 +75,8 @@ const AddCourse = () => {
   const [errorVideo, setErrorVideo] = useState(false);
   const [selected, setSelected] = useState("");
   const [selectedCourses, setSelectedCourses] = useState([]);
+  const [batchPrice, setBatchPrice] = useState("");
+  const [individualPrice, setIndividualPrice] = useState("");
   const {
     register,
     handleSubmit,
@@ -264,7 +268,9 @@ const AddCourse = () => {
         resource_pdfs: resourcePdfs,
         curriculum,
         related_courses: selectedCourses,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        batch_price: batchPrice,
+        individual_price: individualPrice
       };
 
       localStorage.setItem("courseData", JSON.stringify(postData));
@@ -642,23 +648,45 @@ const AddCourse = () => {
                 Course Fee
                 <span className="text-red-500 ml-1">*</span> (USD)
               </label>
-              <input
-                type="text"
-                placeholder="Enter amount in USD"
-                disabled={courseIsFree}
-                // className="p-3 border rounded-lg w-full text-gray-600 dark:bg-inherit placeholder-gray-400"
-                className={`p-3 border rounded-lg w-full ${
-                  courseIsFree
-                    ? "bg-gray-200 cursor-not-allowed"
-                    : "text-gray-600 dark:bg-inherit"
-                } placeholder-gray-400`}
-                {...register("course_fee")}
-              />
-              {errors.course_fee && (
-                <p className="text-red-500 text-xs">
-                  {errors.course_fee.message}
-                </p>
-              )}
+              <div className="flex flex-col space-y-4">
+                <div>
+                  <input
+                    type="text"
+                    placeholder="Enter amount in USD for Individual"
+                    className={`p-3 border rounded-lg w-full ${
+                      courseIsFree
+                        ? "bg-gray-200 cursor-not-allowed"
+                        : "text-gray-600 dark:bg-inherit"
+                    } placeholder-gray-400`}
+                    disabled={courseIsFree}
+                    {...register("course_fee")}
+                  />
+                  {errors.course_fee && (
+                    <p className="text-red-500 text-xs">
+                      {errors.course_fee.message}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <input
+                    type="text"
+                    placeholder="Enter amount in USD for Batch"
+                    className={`p-3 border rounded-lg w-full ${
+                      courseIsFree
+                        ? "bg-gray-200 cursor-not-allowed"
+                        : "text-gray-600 dark:bg-inherit"
+                    } placeholder-gray-400`}
+                    disabled={courseIsFree}
+                    value={batchPrice}
+                    onChange={(e) => setBatchPrice(e.target.value)}
+                  />
+                  {errors.batch_price && (
+                    <p className="text-red-500 text-xs">
+                      {errors.batch_price.message}
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
 
             <div>
@@ -871,6 +899,44 @@ const AddCourse = () => {
               setSelectedCourses={setSelectedCourses}
               field={register("related_courses")}
             />
+
+            <div>
+              <label className="block text-sm font-normal mb-1">
+                Batch Price
+                <span className="text-red-500 ml-1">*</span>
+              </label>
+              <input
+                type="number"
+                placeholder="Enter batch price"
+                className="p-3 border rounded-lg w-full text-gray-600 dark:bg-inherit placeholder-gray-400"
+                value={batchPrice}
+                onChange={(e) => setBatchPrice(e.target.value)}
+              />
+              {errors.batch_price && (
+                <p className="text-red-500 text-xs">
+                  {errors.batch_price.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-normal mb-1">
+                Individual Price
+                <span className="text-red-500 ml-1">*</span>
+              </label>
+              <input
+                type="number"
+                placeholder="Enter individual price"
+                className="p-3 border rounded-lg w-full text-gray-600 dark:bg-inherit placeholder-gray-400"
+                value={individualPrice}
+                onChange={(e) => setIndividualPrice(e.target.value)}
+              />
+              {errors.individual_price && (
+                <p className="text-red-500 text-xs">
+                  {errors.individual_price.message}
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Upload Section */}
