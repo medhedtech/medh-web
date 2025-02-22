@@ -24,11 +24,45 @@ const SidebarDashboard = () => {
   const router = useRouter();
   const partOfPathNaem = pathname.split("/")[2].split("-")[0];
   const partOfPathNaem2 = pathname.split("/")[2].split("-")[1];
-  const isAdmin = partOfPathNaem === "admin";
+  const [permissions, setPermissions] = useState([]);
+  const [role, setRole] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const perm = localStorage.getItem("permissions");
+    const roleFromStorage = localStorage.getItem("role");
+    
+    // Set isAdmin based on both path and role
+    setIsAdmin(partOfPathNaem === "admin" || roleFromStorage === "super-admin" || roleFromStorage === "admin");
+    
+    if (perm) {
+      // Grant all permissions to superadmin and admin roles
+      if (roleFromStorage === "super-admin" || roleFromStorage === "admin") {
+        setPermissions([
+          "course_management",
+          "student_management",
+          "instructor_management",
+          "corporate_management",
+          "generate_certificate",
+          "get_in_touch",
+          "enquiry_form",
+          "post_job",
+          "feedback_and_complaints",
+          "placement_requests",
+          "blogs"
+        ]);
+      } else {
+        setPermissions(JSON.parse(perm));
+      }
+    }
+    if (roleFromStorage) {
+      setRole(roleFromStorage);
+    }
+  }, [pathname]);
+
   const isInstructor = partOfPathNaem === "instructor";
   let isCorporate = partOfPathNaem === "coorporate";
-  const isCorporateEmp =
-    partOfPathNaem === "coorporate" && partOfPathNaem2 === "employee";
+  const isCorporateEmp = partOfPathNaem === "coorporate" && partOfPathNaem2 === "employee";
 
   if (isCorporateEmp) {
     isCorporate = false;
@@ -42,20 +76,6 @@ const SidebarDashboard = () => {
 
     router.push("/login");
   };
-
-  const [permissions, setPermissions] = useState([]);
-  const [role, setRole] = useState("");
-
-  useEffect(() => {
-    const perm = localStorage.getItem("permissions");
-    const roleFromStorage = localStorage.getItem("role");
-    if (perm) {
-      setPermissions(JSON.parse(perm));
-    }
-    if (roleFromStorage) {
-      setRole(roleFromStorage);
-    }
-  }, []);
 
   console.log("permissions", permissions);
 
