@@ -40,8 +40,14 @@ export default function Home() {
         url: apiUrls?.courses?.getAllCourses,
         onSuccess: async (data) => {
           console.log("Courses fetched successfully:", data);
-          setCourses(data || []);
-          await fetchInstructors(data);
+          let coursesData = [];
+          if (Array.isArray(data)) {
+            coursesData = data;
+          } else if (data && Array.isArray(data.data)) {
+            coursesData = data.data;
+          }
+          setCourses(coursesData);
+          await fetchInstructors(coursesData);
         },
         onFail: (err) => {
           console.error("Failed to fetch courses:", err);
@@ -195,7 +201,7 @@ export default function Home() {
     },
   ];
 
-  const filteredData = courses.filter((course) => {
+  const filteredData = (Array.isArray(courses) ? courses : []).filter((course) => {
     const matchesCategory = filterOptions.category
       ? (course.course_category || "")
           .toLowerCase()

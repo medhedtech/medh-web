@@ -1,13 +1,15 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { FaPlus, FaTimes } from "react-icons/fa";
+import { FaPlus, FaTimes, FaSearch, FaCalendarAlt } from "react-icons/fa";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import MyTable from "@/components/shared/common-table/page";
 import AddBlog from "./AddBlogs";
 import useDeleteQuery from "@/hooks/deleteQuery.hook";
 import { toast } from "react-toastify";
-import Preloader from "@/components/shared/others/Preloader";
+import { Loader } from "lucide-react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const formatDate = (date) => {
   if (!date) return "";
@@ -18,174 +20,267 @@ const formatDate = (date) => {
 };
 
 const AdminBlogs = () => {
+  // State Management
   const [showAddBlogForm, setShowAddBlogForm] = useState(false);
   const [blogs, setBlogs] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dateRange, setDateRange] = useState([null, null]);
+  const [startDate, endDate] = dateRange;
+  const [selectedMessage, setSelectedMessage] = useState(null);
   const { getQuery } = useGetQuery();
   const { deleteQuery, loading } = useDeleteQuery();
-  const [deletedBlogs, setDeletedBlogs] = useState(null);
-  const [selectedMessage, setSelectedMessage] = useState(null);
 
   // Fetch Blogs Data from API
-  useEffect(() => {
-    const fetchBlogs = async () => {
-      try {
-        await getQuery({
-          url: apiUrls?.Blogs?.getAllBlogs,
-          onSuccess: (response) => {
-            if (response.success) {
-              setBlogs(response.data);
-            } else {
-              console.error("Failed to fetch blogs: ", response.message);
-              setBlogs([]);
-            }
-          },
-          onFail: (err) => {
-            console.error("API error:", err);
+  const fetchBlogs = async () => {
+    try {
+      await getQuery({
+        url: apiUrls?.Blogs?.getAllBlogs,
+        onSuccess: (response) => {
+          if (response.success) {
+            // Sort by date (newest first)
+            const sortedData = response.data.sort(
+              (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+            );
+            setBlogs(sortedData);
+          } else {
+            console.error("Failed to fetch blogs: ", response.message);
             setBlogs([]);
-          },
-        });
-      } catch (error) {
-        console.error("Failed to fetch blogs:", error);
-        setBlogs([]);
-      }
-    };
-    fetchBlogs();
-  }, [deletedBlogs]);
-
-  const deleteGetInTouch = (id) => {
-    deleteQuery({
-      url: `${apiUrls?.Blogs?.deleteBlog}/${id}`,
-      onSuccess: (res) => {
-        toast.success(res?.message);
-        setDeletedBlogs(id);
-      },
-      onFail: (res) => {
-        console.log(res, "FAILED");
-      },
-    });
+            toast.error("Failed to fetch blogs");
+          }
+        },
+        onFail: (err) => {
+          console.error("API error:", err);
+          setBlogs([]);
+          toast.error("Failed to fetch blogs");
+        },
+      });
+    } catch (error) {
+      console.error("Failed to fetch blogs:", error);
+      setBlogs([]);
+      toast.error("Something went wrong!");
+    }
   };
 
-  // Filter blogs by search term
-  const filteredBlogs = blogs.filter((blog) => {
-    return (
-      blog.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      blog.description.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  });
+  useEffect(() => {
+    fetchBlogs();
+  }, []);
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this blog?")) return;
+
+    try {
+      await deleteQuery({
+        url: `${apiUrls?.Blogs?.deleteBlog}/${id}`,
+        onSuccess: (res) => {
+          toast.success(res?.message || "Blog deleted successfully");
+          fetchBlogs();
+        },
+        onFail: (error) => {
+          toast.error("Failed to delete blog");
+          console.error("Delete failed:", error);
+        },
+      });
+    } catch (error) {
+      toast.error("Something went wrong!");
+      console.error("Error:", error);
+    }
+  };
+
+  // Filter Function
+  const getFilteredData = () => {
+    let filtered = [...blogs];
+
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(item =>
+        item.title?.toLowerCase().includes(query) ||
+        item.description?.toLowerCase().includes(query)
+      );
+    }
+
+    // Apply date range filter
+    if (startDate && endDate) {
+      filtered = filtered.filter(item => {
+        const itemDate = new Date(item.createdAt);
+        return itemDate >= startDate && itemDate <= endDate;
+      });
+    }
+
+    return filtered;
+  };
 
   const columns = [
     {
       Header: "Image",
       accessor: "upload_image",
-      render: (row) => (
-        <div>
-          <img src={row?.upload_image} className="h-10 w-10 rounded-full" />
+      Cell: ({ value }) => (
+        <div className="h-10 w-10 rounded-full overflow-hidden">
+          <img 
+            src={value} 
+            alt="Blog" 
+            className="h-full w-full object-cover"
+          />
         </div>
       ),
     },
-    { Header: "Title", accessor: "title" },
-    // { Header: "Description", accessor: "description" },
+    { 
+      Header: "Title", 
+      accessor: "title",
+      Cell: ({ value }) => (
+        <div className="font-semibold text-gray-800 dark:text-gray-100">
+          {value || "N/A"}
+        </div>
+      )
+    },
     {
       Header: "Description",
       accessor: "description",
-      render: (row) => {
-        const description = row?.description || "";
-        const messagePreview =
-          description.split(" ").slice(0, 6).join(" ") +
-          (description.split(" ").length > 6 ? "..." : "");
+      Cell: ({ value }) => {
+        if (!value) return <span className="text-gray-400 italic">No description</span>;
+        
+        const words = value.split(" ");
+        const preview = words.slice(0, 6).join(" ");
+        const hasMore = words.length > 6;
 
         return (
           <div className="flex items-center">
-            <span className="mr-2">{messagePreview}</span>
-            {description.split(" ").length > 6 && (
+            <span className="text-gray-700 dark:text-gray-200">{preview}</span>
+            {hasMore && (
               <button
-                onClick={() => setSelectedMessage(description)}
-                className="ml-2 text-green-500 rounded-md px-4 py-2 hover:text-green-700 transition-all duration-200 text-sm flex items-center space-x-0"
+                onClick={() => setSelectedMessage(value)}
+                className="ml-2 text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 text-sm font-medium transition-colors"
               >
-                <span className="ml-[-1.5rem]">Read More...</span>
+                Read More
               </button>
             )}
           </div>
         );
-      },
+      }
     },
     {
       Header: "Date",
       accessor: "createdAt",
-      width: 150,
-      render: (row) => formatDate(row?.createdAt),
+      Cell: ({ value }) => (
+        <div className="text-gray-600 dark:text-gray-300 font-medium">
+          {formatDate(value)}
+        </div>
+      )
     },
     {
       Header: "Action",
       accessor: "actions",
-      render: (row) => (
-        <div className="flex gap-2 items-center">
-          <button
-            onClick={() => {
-              deleteGetInTouch(row?._id);
-            }}
-            className="text-white bg-red-600 border border-red-600 rounded-md px-[10px] py-1"
-          >
-            Delete
-          </button>
-        </div>
+      Cell: ({ row }) => (
+        <button
+          onClick={() => handleDelete(row.original._id)}
+          className="px-3 py-1.5 text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-900/30 rounded-lg transition-colors font-medium"
+        >
+          Delete
+        </button>
       ),
     },
   ];
 
-  const handleAddBlogClick = () => {
-    setShowAddBlogForm(true);
-  };
-
-  if (showAddBlogForm)
+  if (showAddBlogForm) {
     return <AddBlog onCancel={() => setShowAddBlogForm(false)} />;
-
-  if (loading) {
-    return <Preloader />;
   }
 
   return (
-    <div className=" bg-white dark:bg-darkblack font-Poppins min-h-screen">
-      <div className="max-w-6xl mx-auto dark:bg-inherit dark:text-whitegrey3 dark:border bg-white ">
-        <header className="flex px-6 items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold">Blogs List</h1>
-          <div className="flex items-center space-x-2">
-            <button
-              className="bg-customGreen text-white px-4 py-2 rounded-lg flex items-center"
-              onClick={handleAddBlogClick}
-            >
-              <FaPlus className="mr-2" /> Add Blog
-            </button>
+    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen p-6 space-y-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm overflow-hidden">
+          {/* Header */}
+          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
+                Blog Management
+              </h1>
+
+              <button
+                onClick={() => setShowAddBlogForm(true)}
+                className="inline-flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors font-medium"
+              >
+                <FaPlus className="w-4 h-4 mr-2" />
+                Add Blog
+              </button>
+            </div>
+
+            {/* Filters */}
+            <div className="mt-6 flex flex-wrap items-center gap-4">
+              {/* Search */}
+              <div className="relative flex-grow max-w-md">
+                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search blogs..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:focus:ring-emerald-500 dark:focus:border-emerald-500 transition-colors"
+                />
+              </div>
+
+              {/* Date Range Picker */}
+              <div className="relative">
+                <DatePicker
+                  selectsRange={true}
+                  startDate={startDate}
+                  endDate={endDate}
+                  onChange={(update) => setDateRange(update)}
+                  placeholderText="Select date range"
+                  className="pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:focus:ring-emerald-500 dark:focus:border-emerald-500 transition-colors"
+                />
+                <FaCalendarAlt className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              </div>
+            </div>
           </div>
-        </header>
 
-        <MyTable
-          columns={columns}
-          data={filteredBlogs}
-          entryText={`Total no. of entries: ${filteredBlogs.length}`}
-        />
+          {/* Content */}
+          <div className="p-6">
+            {loading ? (
+              <div className="flex items-center justify-center p-8">
+                <Loader className="animate-spin h-8 w-8 text-emerald-600 dark:text-emerald-400" />
+              </div>
+            ) : (
+              <MyTable
+                columns={columns}
+                data={getFilteredData()}
+                entryText="Total blogs: "
+              />
+            )}
+          </div>
+        </div>
       </div>
-      {/* Modal for full message */}
-      {selectedMessage && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white rounded-md p-6 max-w-[50%] w-full relative  max-h-[500px] overflow-y-auto">
-            {/* Close Button at top-right corner */}
-            <button
-              onClick={() => setSelectedMessage(null)}
-              className="absolute top-2 right-2 text-xl text-gray-500 hover:text-gray-700"
-            >
-              <FaTimes />
-            </button>
 
-            <h2 className="text-xl font-semibold mb-4">Full Message</h2>
-            <p className="mb-4">{selectedMessage}</p>
-            <button
-              onClick={() => setSelectedMessage(null)}
-              className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition-all duration-200"
-            >
-              Close
-            </button>
+      {/* Message Modal */}
+      {selectedMessage && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-2xl transform transition-all">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  Full Description
+                </h2>
+                <button
+                  onClick={() => setSelectedMessage(null)}
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                >
+                  <FaTimes className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="prose dark:prose-invert max-w-none">
+                <p className="text-gray-700 dark:text-gray-200 whitespace-pre-wrap">
+                  {selectedMessage}
+                </p>
+              </div>
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={() => setSelectedMessage(null)}
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg transition-colors font-medium"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

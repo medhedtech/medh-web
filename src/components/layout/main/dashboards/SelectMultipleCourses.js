@@ -24,7 +24,7 @@ const SelectMultipleCourses = ({
     setDropdownOpen((prev) => !prev);
   };
 
-  const filteredCourses = courses?.filter((course) => 
+  const filteredCourses = (Array.isArray(courses) ? courses : []).filter((course) => 
     (course.course_title || '').toLowerCase().includes((searchTerm || '').toLowerCase())
   );
 
