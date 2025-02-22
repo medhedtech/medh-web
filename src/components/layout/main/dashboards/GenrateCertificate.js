@@ -10,6 +10,7 @@ import useGetQuery from "@/hooks/getQuery.hook";
 import usePostQuery from "@/hooks/postQuery.hook";
 import { FiUsers } from "react-icons/fi";
 import { toast } from "react-toastify";
+import { Loader } from "lucide-react";
 
 const CertificatePage = () => {
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
@@ -18,42 +19,50 @@ const CertificatePage = () => {
   const [completionDate, setCompletionDate] = useState(null);
   const [users, setUsers] = useState([]);
   const [selectedCertificate, setSelectedCertificate] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortOrder, setSortOrder] = useState("newest");
   const { getQuery } = useGetQuery();
   const { postQuery } = usePostQuery();
 
   useEffect(() => {
-    getQuery({
-      url: apiUrls?.certificate?.getAllCertificate,
-      onSuccess: (data) => {
-        console.log(data, "Real Course Data");
-        const formattedData = data.map((item) => ({
-          id: item._id,
-          student_id: item.student_id._id,
-          name: item.student_id.full_name,
-          course_id: item.course_id._id,
-          course: item.course_id.course_title,
-          date: new Date(item.completed_on).toLocaleDateString(),
-          profileImage: img1,
-        }));
-        setUsers(formattedData);
-      },
-      onFail: (error) => {
-        setUsers([]);
-        console.error("Failed to fetch enrolled courses:", error);
-      },
-    });
+    fetchCertificates();
   }, []);
 
-  // useEffect(() => {
-  //   if (selectedCertificate && selectedCertificate.date) {
-  //     setCompletionDate(new Date(selectedCertificate.date));
-  //   }
-  // }, [selectedCertificate]);
+  const fetchCertificates = async () => {
+    setLoading(true);
+    try {
+      await getQuery({
+        url: apiUrls?.certificate?.getAllCertificate,
+        onSuccess: (data) => {
+          const formattedData = data.map((item) => ({
+            id: item._id,
+            student_id: item.student_id._id,
+            name: item.student_id.full_name,
+            course_id: item.course_id._id,
+            course: item.course_id.course_title,
+            date: new Date(item.completed_on).toLocaleDateString(),
+            profileImage: img1,
+          }));
+          setUsers(formattedData);
+        },
+        onFail: (error) => {
+          setUsers([]);
+          console.error("Failed to fetch enrolled courses:", error);
+          toast.error("Failed to fetch certificates");
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching certificates:", error);
+      toast.error("Something went wrong!");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (selectedCertificate?.date) {
       const parsedDate = new Date(selectedCertificate.date);
-      // Ensure the parsed date is valid
       setCompletionDate(isNaN(parsedDate.getTime()) ? null : parsedDate);
     } else {
       setCompletionDate(null);
@@ -80,15 +89,17 @@ const CertificatePage = () => {
           url: apiUrls?.certificate?.addCertificate,
           postData: payload,
           onSuccess: (data) => {
-            console.log("Certificate created successfully:", data);
-            toast.success("Certificate created successfully:");
+            toast.success("Certificate created successfully");
             closeModal();
+            fetchCertificates(); // Refresh the list
           },
           onFail: (error) => {
+            toast.error("Failed to create certificate");
             console.error("Failed to create certificate:", error);
           },
         });
       } catch (error) {
+        toast.error("Error generating certificate");
         console.error("Error generating certificate:", error);
       }
     }
@@ -99,143 +110,200 @@ const CertificatePage = () => {
     setSelectedCertificate(null);
   };
 
+  const handleSortChange = (order) => {
+    setSortOrder(order);
+    setIsSortDropdownOpen(false);
+  };
+
+  // Filter and sort users
+  const filteredAndSortedUsers = users
+    .filter((user) =>
+      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.course.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .sort((a, b) => {
+      if (sortOrder === "newest") {
+        return new Date(b.date) - new Date(a.date);
+      } else {
+        return new Date(a.date) - new Date(b.date);
+      }
+    });
+
   return (
-    <div className="flex min-h-screen pt-9 dark:bg-inherit dark:text-white bg-gray-100 p-6">
-      <div className="w-full max-w-6xl dark:bg-inherit dark:border bg-white rounded-lg shadow-md p-8">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-semibold">Certificate</h2>
-        </div>
+    <div className="bg-gray-50 dark:bg-darkblack min-h-screen p-6 space-y-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="bg-white dark:bg-inherit dark:text-whitegrey3 dark:border rounded-xl shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Certificate Management</h1>
 
-        <h3 className="text-xl font-semibold mb-4">Issue Certificate</h3>
+              <div className="flex flex-wrap items-center gap-3">
+                {/* Search Bar */}
+                <div className="relative flex-grow max-w-md">
+                  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search by name or course..."
+                    className="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-600 dark:bg-gray-800 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
 
-        <div className="flex items-center mb-6 space-x-4 ">
-          <div className="relative w-full max-w-md">
-            <input
-              type="text"
-              placeholder="Search..."
-              className="w-full py-2 pl-10 pr-4 border dark:bg-inherit border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-            <FaSearch className="absolute left-3 top-2.5 text-gray-400" />
+                {/* Sort Dropdown */}
+                <div className="relative">
+                  <button
+                    onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
+                    className="flex items-center px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+                  >
+                    <FaSort className="mr-2" />
+                    {sortOrder === "newest" ? "Newest First" : "Oldest First"}
+                  </button>
+                  {isSortDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg z-20">
+                      <button
+                        onClick={() => handleSortChange("newest")}
+                        className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 rounded"
+                      >
+                        Newest First
+                      </button>
+                      <button
+                        onClick={() => handleSortChange("oldest")}
+                        className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 rounded"
+                      >
+                        Oldest First
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
 
-          <button
-            onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
-            className="px-6 py-2 border-gray-400 border text-gray-700 rounded-full hover:bg-gray-300 flex items-center"
-          >
-            <FaFilter className="mr-2" />
-            Filter
-          </button>
-
-          <button
-            onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
-            className="px-6 py-2 border-gray-400 border text-gray-700 rounded-full hover:bg-gray-300 flex items-center"
-          >
-            <FaSort className="mr-2" />
-            Sort
-          </button>
-        </div>
-
-        <div className="space-y-9">
-          {users.length > 0 ? (
-            users.map((user) => (
-              <div key={user.id} className="flex justify-between items-center">
-                <div className="flex items-center">
-                  <Image
-                    src={user.profileImage}
-                    alt={`${user.name} profile`}
-                    className="w-12 h-12 rounded-full mr-4"
-                  />
-                  <div>
-                    <p className="font-semibold text-gray-800 dark:text-white">
-                      {user.name}
-                    </p>
-                    <p className="text-xs text-gray-600">
-                      Completed{" "}
-                      <span className="text-customGreen underline cursor-pointer">
-                        {user.course}
-                      </span>{" "}
-                      on {user.date}
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => handleGenerateCertificate(user)}
-                  className="text-customGreen font-normal hover:underline"
-                >
-                  Generate Certificate
-                </button>
+          {/* Certificate List */}
+          <div className="p-6">
+            {loading ? (
+              <div className="flex items-center justify-center p-8">
+                <Loader className="animate-spin h-8 w-8 text-blue-600" />
               </div>
-            ))
-          ) : (
-            <div className="flex flex-col items-center justify-center p-6 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-lg">
-              <FiUsers
-                className="text-gray-400 dark:text-gray-500 mb-4"
-                size={80}
-              />
-              <p className="text-lg font-semibold text-gray-700 dark:text-gray-200">
-                No Users Found
-              </p>
-              <p className="text-sm text-gray-500 pb-4 dark:text-gray-400 mt-2 text-center">
-                It looks like there are no users to display right now. Once
-                users complete a course, they&#39;ll show up here.
-              </p>
-            </div>
-          )}
+            ) : filteredAndSortedUsers.length > 0 ? (
+              <div className="space-y-4">
+                {filteredAndSortedUsers.map((user) => (
+                  <div
+                    key={user.id}
+                    className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="w-12 h-12 rounded-full overflow-hidden">
+                        <Image
+                          src={user.profileImage}
+                          alt={`${user.name} profile`}
+                          width={48}
+                          height={48}
+                          className="object-cover"
+                        />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900 dark:text-white">
+                          {user.name}
+                        </h3>
+                        <div className="text-sm text-gray-600 dark:text-gray-300">
+                          <span className="font-medium text-blue-600 dark:text-blue-400">
+                            {user.course}
+                          </span>
+                          <span className="mx-2">•</span>
+                          <span>Completed on {user.date}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleGenerateCertificate(user)}
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                    >
+                      Generate Certificate
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center p-8 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <FiUsers className="w-16 h-16 text-gray-400 mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                  No Certificates Found
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 text-center">
+                  No students have completed their courses yet. Certificates will appear here once students complete their courses.
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
+      {/* Certificate Generation Modal */}
       {isModalOpen && selectedCertificate && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white dark:bg-black dark:text-white rounded-lg shadow-lg p-6 w-full max-w-md relative">
-            <button
-              onClick={closeModal}
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-            >
-              &times;
-            </button>
-            <h2 className="text-xl font-semibold mb-4 font-Poppins text-[#434343]">
-              Generate Certificate
-            </h2>
-            <form className="space-y-4">
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md m-4">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                Generate Certificate
+              </h2>
+              <button
+                onClick={closeModal}
+                className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="space-y-4">
               <div>
-                <label className="block text-gray-700">Course Name</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Course Name
+                </label>
                 <input
                   type="text"
                   value={selectedCertificate.course}
                   readOnly
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg"
                 />
               </div>
+              
               <div>
-                <label className="block text-gray-700">Student Name</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Student Name
+                </label>
                 <input
                   type="text"
                   value={selectedCertificate.name}
                   readOnly
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-100"
+                  className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg"
                 />
               </div>
+              
               <div>
-                <label className="block text-gray-700">Completion Date</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Completion Date
+                </label>
                 <div className="relative">
                   <FaCalendarAlt className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10" />
                   <DatePicker
                     selected={completionDate}
                     onChange={(date) => setCompletionDate(date)}
-                    dateFormat="MM-dd-yyyy"
-                    className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-md"
+                    dateFormat="MM/dd/yyyy"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
+            </div>
 
+            <div className="mt-6">
               <button
-                type="button"
                 onClick={handleCreateCertificate}
-                className="w-full py-2 bg-green-600 text-white font-semibold rounded-full"
+                className="w-full py-2 px-4 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors"
               >
                 Generate Certificate
               </button>
-            </form>
+            </div>
           </div>
         </div>
       )}

@@ -1,84 +1,199 @@
 "use client";
 import { BellIcon, SearchIcon } from "@/assets/images/icon/SearchIcon";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import teacherImage1 from "@/assets/images/teacher/teacher__1.png";
 import Link from "next/link";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
+import { toast } from "react-toastify";
+import { FaSpinner, FaUserCircle, FaSignOutAlt, FaCog } from "react-icons/fa";
 
 const HeadingDashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [userId, setUserId] = useState(null);
   const { getQuery, loading } = useGetQuery();
   const [userData, setUserData] = useState(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const dropdownRef = useRef(null);
+  const notificationRef = useRef(null);
 
-  useEffect(()=>{
-    if(typeof window !== "undefined"){
+  // Handle clicks outside dropdowns
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+        setShowNotifications(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
       const storedUserId = localStorage.getItem("userId");
-      setUserId(storedUserId)
+      setUserId(storedUserId);
     }
   }, []);
 
   useEffect(() => {
+    const fetchUserData = async () => {
       if (userId) {
-        getQuery({
-          url: `${apiUrls?.user?.getDetailsbyId}/${userId}`,
-          onSuccess: (data) => {
-            setUserData(data?.data);
-            console.log("User data in header: ", data?.data)
-          },
-          onFail: (error) => {
-            console.error("Failed to fetch user details:", error);
-          },
-        });
+        try {
+          await getQuery({
+            url: `${apiUrls?.user?.getDetailsbyId}/${userId}`,
+            onSuccess: (data) => {
+              setUserData(data?.data);
+            },
+            onFail: (error) => {
+              console.error("Failed to fetch user details:", error);
+              toast.error("Failed to load user profile");
+            },
+          });
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+          toast.error("An error occurred while loading user data");
+        }
       }
-    }, [userId]);
+    };
+
+    fetchUserData();
+  }, [userId]);
+
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+    // Add your search logic here
+  };
+
+  const handleLogout = () => {
+    // Add your logout logic here
+    localStorage.removeItem("userId");
+    // Redirect to login page or handle logout
+  };
 
   return (
-    <div
-      className="flex  my-6 justify-between items-center p-4 bg-white rounded-lg shadow-xl dark:bg-gray-800 dark:shadow-gray-700"
-      style={{
-        boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
-      }}
-    >
-      {/* Search Bar */}
-      <div className="relative flex-grow max-w-[70%]">
-        {/* <SearchIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-white transition-all duration-200" />
-        <input
-          type="text"
-          placeholder="Search..........."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-12 py-3 text-sm rounded-lg focus:outline-none bg-[#F7F7F7] dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 focus:ring-2 focus:ring-primaryColor focus:border-transparent transition duration-300"
-        /> */}
-      </div>
+    <div className="sticky top-0 z-50 bg-white dark:bg-gray-800 shadow-lg transition-all duration-300">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          {/* Search Section */}
+          <div className="flex-1 max-w-lg">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <SearchIcon className={`h-5 w-5 ${isSearchFocused ? 'text-primary' : 'text-gray-400'} transition-colors duration-200`} />
+              </div>
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={handleSearch}
+                onFocus={() => setIsSearchFocused(true)}
+                onBlur={() => setIsSearchFocused(false)}
+                className="w-full pl-10 pr-4 py-2 rounded-lg border-2 focus:outline-none focus:border-primary bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600 transition-all duration-200"
+              />
+            </div>
+          </div>
 
-      {/* Notification and User Section */}
-      <div className="flex items-center gap-6">
-        {/* Bell Icon (if needed) */}
-        {/* <BellIcon className="text-gray-500 hover:text-black cursor-pointer dark:text-gray-300 dark:hover:text-white transition duration-150 ease-in-out" /> */}
+          {/* Right Section */}
+          <div className="flex items-center space-x-6">
+            {/* Notifications */}
+            <div className="relative" ref={notificationRef}>
+              <button
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+              >
+                <BellIcon className="h-6 w-6 text-gray-500 dark:text-gray-300" />
+                {notifications.length > 0 && (
+                  <span className="absolute top-0 right-0 h-4 w-4 bg-red-500 rounded-full flex items-center justify-center text-xs text-white">
+                    {notifications.length}
+                  </span>
+                )}
+              </button>
 
-        <div className="border-l-2 border-gray-300 h-10 mx-4 dark:border-gray-600" />
+              {/* Notifications Dropdown */}
+              {showNotifications && (
+                <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-2 border dark:border-gray-700">
+                  <div className="px-4 py-2 border-b dark:border-gray-700">
+                    <h3 className="text-lg font-semibold dark:text-white">Notifications</h3>
+                  </div>
+                  {notifications.length === 0 ? (
+                    <div className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
+                      No new notifications
+                    </div>
+                  ) : (
+                    notifications.map((notification, index) => (
+                      <div
+                        key={index}
+                        className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
+                      >
+                        {/* Add notification content here */}
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
 
-        {/* User Avatar & Dropdown */}
-        <div className="flex items-center gap-3">
-          <Link href={`/dashboards/${userData?.role[0]}-profile`}>
-            <Image
-              src={userData?.user_image || teacherImage1}
-              alt="User Avatar"
-              width={40}
-              height={40}
-              className="w-10 h-10 rounded-full object-cover ring-2 ring-primaryColor transition-all duration-300 hover:ring-4"
-            />
-          </Link>
+            {/* User Profile */}
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="flex items-center space-x-3 focus:outline-none"
+              >
+                <div className="relative w-10 h-10 rounded-full overflow-hidden ring-2 ring-primary hover:ring-4 transition-all duration-200">
+                  {loading ? (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-700">
+                      <FaSpinner className="animate-spin text-primary" />
+                    </div>
+                  ) : (
+                    <Image
+                      src={userData?.user_image || teacherImage1}
+                      alt="User Avatar"
+                      layout="fill"
+                      objectFit="cover"
+                      className="rounded-full"
+                    />
+                  )}
+                </div>
+                <span className="hidden md:block text-sm font-medium dark:text-white">
+                  {userData?.full_name || 'Loading...'}
+                </span>
+              </button>
 
-          {/* <select className="bg-transparent text-gray-700 font-medium dark:text-white border-none cursor-pointer focus:outline-none dark:bg-gray-800 dark:focus:ring-primaryColor focus:ring-2 focus:ring-primaryColor transition duration-300">
-            <option value="ram">Ram</option>
-            <option value="john">John</option>
-            <option value="doe">Doe</option>
-          </select> */}
-          <p>{userData?.full_name}</p>
+              {/* Profile Dropdown */}
+              {isDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-2 border dark:border-gray-700">
+                  <Link
+                    href={`/dashboards/${userData?.role[0]}-profile`}
+                    className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
+                    <FaUserCircle className="mr-3" />
+                    Profile
+                  </Link>
+                  <Link
+                    href="/settings"
+                    className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
+                    <FaCog className="mr-3" />
+                    Settings
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/10"
+                  >
+                    <FaSignOutAlt className="mr-3" />
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

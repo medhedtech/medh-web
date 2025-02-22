@@ -12,7 +12,7 @@ const Admin_Categories = () => {
     <ProtectedPage>
       <main>
         <DashboardContainer>
-          <div className="px-6">
+          <div>
             <HeadingDashboard />
           </div>
           <CategoriesManage />

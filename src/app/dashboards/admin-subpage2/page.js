@@ -12,7 +12,7 @@ const Admin_Reviews = () => {
     <ProtectedPage>
       <main>
         <DashboardContainer>
-          <div className="px-8">
+          <div>
             <HeadingDashboard />
           </div>
           <Omega />
