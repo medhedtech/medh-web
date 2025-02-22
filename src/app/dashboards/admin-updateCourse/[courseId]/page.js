@@ -12,7 +12,7 @@ const Admin_Update_Course = () => {
     <ProtectedPage>
       <main>
         <DashboardContainer>
-          <div className="px-4">
+          <div>
             <HeadingDashboard />
           </div>
           <UpdateCourse />

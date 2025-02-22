@@ -10,7 +10,7 @@ const InstructorTrack = () => {
     <ProtectedPage>
       <main>
         <DashboardContainer>
-          <div className="px-8">
+          <div>
             <HeadingDashboard />
           </div>
           <Instructor_Tracking_component />

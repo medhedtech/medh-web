@@ -18,6 +18,7 @@ const schema = yup
     email: yup.string().email().required("Email is required"),
     phone_number: yup
       .string()
+      .matches(/^\d+$/, "Phone number should contain only digits")
       .min(10, "At least 10 digits required")
       .max(10, "Must be exactly 10 digits")
       .required("Phone number is required"),
@@ -33,6 +34,10 @@ const schema = yup
       .string()
       .min(8, "At least 8 characters required")
       .required("Password is required"),
+    agree_terms: yup
+      .boolean()
+      .oneOf([true], "You must accept the terms and conditions")
+      .required("Agree terms is required")
   })
   .required();
 
@@ -56,25 +61,19 @@ const Gamma = () => {
 
   const onSubmit = async (data) => {
     setApiError(null);
-    // const { confirm_password, ...rest } = data;
+    const { confirm_password, ...userData } = data;
 
     try {
       await postQuery({
         url: apiUrls?.user?.register,
-        postData: {
-          full_name: data?.full_name,
-          email: data?.email,
-          admin_role: data?.admin_role,
-          phone_number: data?.phone_number,
-          password: data?.password,
-        },
+        postData: userData,
         onSuccess: () => {
           router.push("/dashboards/admin-subpage3");
           toast.success("User created successfully!");
         },
         onFail: (error) => {
           console.log("Registration failed:", error);
-          toast.error("User already registerd with same email!");
+          toast.error("User already registered with same email!");
           setApiError(error.message);
         },
       });
@@ -96,6 +95,7 @@ const Gamma = () => {
         <h2 className="text-xl font-semibold text-gray-800 mb-6 dark:text-white">
           Create a new user
         </h2>
+        {apiError && <p className="mb-4 text-red-500">{apiError}</p>}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="relative">
@@ -111,9 +111,11 @@ const Gamma = () => {
               <input
                 {...register("full_name")}
                 type="text"
+                id="full_name"
                 name="full_name"
                 placeholder="Karan Singh"
-                className="mt-1 block w-full border border-gray-300 rounded-md p-2 pl-10 focus:outline-none focus:ring-2 dark:bg-inherit dark: focus:ring-indigo-500"
+                autoComplete="name"
+                className="w-full h-12 pl-12 text-sm focus:outline-none text-black bg-[#F7F7F7] dark:text-contentColor-dark border-2 border-borderColor dark:border-borderColor-dark placeholder:text-black placeholder:opacity-80 font-medium rounded-[12px]"
               />
             </div>
             {errors.full_name && (
@@ -136,11 +138,11 @@ const Gamma = () => {
               <input
                 {...register("email")}
                 type="email"
+                id="email"
                 name="email"
-                // value={formData.email}
-                // onChange={handleInputChange}
                 placeholder="example@gmail.com"
-                className="mt-1 block w-full border border-gray-300 rounded-md p-2 pl-10 focus:outline-none focus:ring-2 dark:bg-inherit focus:ring-indigo-500"
+                autoComplete="email"
+                className="w-full h-12 pl-12 text-sm focus:outline-none text-black bg-[#F7F7F7] dark:text-contentColor-dark border-2 border-borderColor dark:border-borderColor-dark placeholder:text-black placeholder:opacity-80 font-medium rounded-[12px]"
               />
             </div>
             {errors.email && (
@@ -163,12 +165,12 @@ const Gamma = () => {
               <input
                 {...register("phone_number")}
                 type="text"
+                id="phone_number"
                 name="phone_number"
                 maxLength={10}
-                // value={formData.phoneNumber}
-                // onChange={handleInputChange}
                 placeholder="8317074259"
-                className="mt-1 block w-full border border-gray-300 rounded-md p-2 pl-10 focus:outline-none focus:ring-2 dark:bg-inherit focus:ring-indigo-500"
+                autoComplete="tel"
+                className="w-full h-12 pl-12 text-sm focus:outline-none text-black bg-[#F7F7F7] border-2 border-borderColor dark:border-borderColor-dark placeholder:text-black placeholder:opacity-80 font-medium rounded-[12px]"
               />
             </div>
             {errors.phone_number && (
@@ -185,15 +187,14 @@ const Gamma = () => {
             </label>
             <select
               {...register("admin_role")}
+              id="admin_role"
               name="admin_role"
-              // value={formData.admin_role}
-              // onChange={handleInputChange}
-              className="mt-1 block w-full border dark:text-whitegrey1 border-gray-300 rounded-md px-2 py-0 focus:outline-none focus:ring-2 dark:bg-inherit focus:ring-indigo-500"
+              className="w-full h-12 pl-4 text-sm focus:outline-none text-black bg-[#F7F7F7] border-2 border-borderColor dark:border-borderColor-dark placeholder:text-black placeholder:opacity-80 font-medium rounded-[12px]"
             >
               <option value="">Select</option>
               <option value="admin">Admin</option>
               <option value="super-admin">Super-Admin</option>
-              <option value="cooporate-admin">Cooporate-Admin</option>
+              <option value="corporate-admin">Corporate Admin</option>
             </select>
             {errors.admin_role && (
               <p className="text-xs text-red-500 font-normal mt-[2px] ml-2">
@@ -216,12 +217,15 @@ const Gamma = () => {
               <input
                 {...register("password")}
                 type={showPassword ? "text" : "password"}
+                id="password"
                 placeholder="Password"
-                className="w-full border border-gray-300 dark:bg-inherit rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-green-400"
+                autoComplete="new-password"
+                className="w-full h-12 pl-12 pr-10 text-sm focus:outline-none text-black bg-[#F7F7F7] dark:text-contentColor-dark border-2 border-borderColor dark:border-borderColor-dark placeholder:text-black placeholder:opacity-80 font-medium rounded-[12px]"
               />
               <button
                 type="button"
                 onClick={togglePasswordVisibility}
+                aria-label={showPassword ? "Hide password" : "Show password"}
                 className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
               >
                 {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
@@ -246,12 +250,15 @@ const Gamma = () => {
               <input
                 {...register("confirm_password")}
                 type={showConfirmPassword ? "text" : "password"}
+                id="confirm_password"
                 placeholder="Confirm Password"
-                className="w-full border border-gray-300 dark:bg-inherit rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-green-400"
+                autoComplete="new-password"
+                className="w-full h-12 pl-12 pr-10 text-sm focus:outline-none text-black bg-[#F7F7F7] dark:text-contentColor-dark border-2 border-borderColor dark:border-borderColor-dark placeholder:text-black placeholder:opacity-80 font-medium rounded-[12px]"
               />
               <button
                 type="button"
                 onClick={toggleConfirmPasswordVisibility}
+                aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
                 className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
               >
                 {showConfirmPassword ? (
@@ -268,16 +275,37 @@ const Gamma = () => {
             )}
           </div>
         </div>
+
+        <div className="flex flex-col mt-4">
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="agree_terms"
+              {...register("agree_terms")}
+              className="w-6 h-6 mr-2 appearance-none border-2 border-gray-400 rounded cursor-pointer checked:bg-[#7ECA9D] checked:border-[#7ECA9D] checked:before:content-['✔'] checked:before:text-white checked:before:text-[12px] checked:before:flex checked:before:justify-center checked:before:items-center"
+            />
+            <label htmlFor="agree_terms" className="text-sm text-gray-700 cursor-pointer">
+              I accept the <a href="/terms-and-conditions" className="text-primaryColor underline hover:no-underline">terms of use</a> and <a href="/privacy-policy" className="text-primaryColor underline hover:no-underline">privacy policy</a>.
+            </label>
+          </div>
+          {errors.agree_terms && (
+            <p className="text-red-500 text-xs ml-2 mt-[-5px]">
+              {errors.agree_terms.message}
+            </p>
+          )}
+        </div>
+
         <div className="flex justify-end mt-6 gap-4">
           <button
             type="button"
-            className="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 dark:bg-inherit dark:text-white dark:border"
+            onClick={() => router.back()}
+            className="rounded-[150px] text-primaryColor border border-primaryColor px-[25px] py-[10px] hover:text-white hover:bg-primaryColor"
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="bg-customGreen text-white px-4 py-2 rounded-md"
+            className="text-size-15 rounded-[150px] text-white bg-primaryColor px-[25px] py-[10px] w-full border border-primaryColor hover:text-primaryColor hover:bg-white inline-block group dark:hover:text-white dark:hover:bg-gray-800"
           >
             Create User
           </button>
