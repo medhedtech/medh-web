@@ -18,7 +18,7 @@ const Admin_Reviews = () => {
       <main>
         {/* <DsahboardWrapper> */}
         <DashboardContainer>
-          <div className="px-6">
+          <div>
             <HeadingDashboard />
           </div>
           {/* <Previewdetail /> */}

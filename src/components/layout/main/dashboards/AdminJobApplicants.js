@@ -3,10 +3,12 @@ import { apiUrls } from "@/apis";
 import React, { useEffect, useState } from "react";
 import MyTable from "@/components/shared/common-table/page";
 import useGetQuery from "@/hooks/getQuery.hook";
-import Preloader from "@/components/shared/others/Preloader";
 import useDeleteQuery from "@/hooks/deleteQuery.hook";
 import { toast } from "react-toastify";
-import { FaEye, FaPlus, FaTimes } from "react-icons/fa";
+import { FaEye, FaPlus, FaTimes, FaSearch, FaCalendarAlt } from "react-icons/fa";
+import { Loader } from "lucide-react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import AddJobPost from "./AddjobPost";
 
 const formatDate = (date) => {
@@ -18,236 +20,411 @@ const formatDate = (date) => {
 };
 
 export default function AdminJobApplicants() {
-  const [enrollments, setEnrollments] = useState([]);
-  const [newPosts, setNewPosts] = useState([]);
+  // State Management
+  const [applicants, setApplicants] = useState([]);
+  const [jobPosts, setJobPosts] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dateRange, setDateRange] = useState([null, null]);
+  const [startDate, endDate] = dateRange;
+  const [selectedMessage, setSelectedMessage] = useState(null);
+  const [showAddPostForm, setShowAddPostForm] = useState(false);
+  const [activeTab, setActiveTab] = useState("posts"); // posts or applicants
   const { getQuery, loading } = useGetQuery();
   const { deleteQuery } = useDeleteQuery();
-  const [showAddPostForm, setShowAddPostForm] = useState(false);
-  const [selectedMessage, setSelectedMessage] = useState(null);
 
   // Fetch data from API (generic fetch function)
   const fetchData = async (url, setState) => {
-    await getQuery({
-      url,
-      onSuccess: (response) => {
-        if (response?.success && Array.isArray(response.data)) {
-          setState(response.data);
-        } else {
-          toast.error("Failed to fetch data.");
+    try {
+      await getQuery({
+        url,
+        onSuccess: (response) => {
+          if (response?.success && Array.isArray(response.data)) {
+            // Sort by date (newest first)
+            const sortedData = response.data.sort(
+              (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+            );
+            setState(sortedData);
+          } else {
+            setState([]);
+            toast.error("Invalid data format received");
+          }
+        },
+        onFail: () => {
           setState([]);
-        }
-      },
-      onFail: () => {
-        toast.error("Failed to fetch data.");
-        setState([]);
-      },
-    });
+          toast.error("Failed to fetch data");
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      toast.error("Something went wrong!");
+    }
   };
 
   // Fetch job applicants and posted jobs
   useEffect(() => {
-    fetchData(apiUrls?.jobForm?.getAllJobPosts, setEnrollments);
-    fetchData(apiUrls?.jobForm?.getAllNewJobs, setNewPosts);
+    fetchData(apiUrls?.jobForm?.getAllJobPosts, setApplicants);
+    fetchData(apiUrls?.jobForm?.getAllNewJobs, setJobPosts);
   }, []);
 
   const handleDelete = async (url, id, fetchUrl, setState) => {
-    await deleteQuery({
-      url: `${url}/${id}`,
-      onSuccess: (res) => {
-        toast.success(res?.message || "Deleted successfully.");
-        fetchData(fetchUrl, setState);
-      },
-      onFail: (err) => {
-        console.error("Delete failed", err);
-        toast.error("Failed to delete.");
-      },
-    });
+    if (!window.confirm("Are you sure you want to delete this item?")) return;
+
+    try {
+      await deleteQuery({
+        url: `${url}/${id}`,
+        onSuccess: (res) => {
+          toast.success(res?.message || "Deleted successfully");
+          fetchData(fetchUrl, setState);
+        },
+        onFail: (error) => {
+          toast.error("Failed to delete");
+          console.error("Delete failed:", error);
+        },
+      });
+    } catch (error) {
+      toast.error("Something went wrong!");
+      console.error("Error:", error);
+    }
   };
 
-  const columns = [
-    { Header: "Name", accessor: "full_name" },
-    { Header: "Email", accessor: "email" },
-    { Header: "Country", accessor: "country" },
-    { Header: "Phone", accessor: "phone_number" },
-    { Header: "Post Applied", accessor: "designation" },
-    // { Header: "Message", accessor: "message" },
+  // Filter Function
+  const getFilteredData = (data) => {
+    if (!data) return [];
+    let filtered = [...data];
+
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(item => {
+        if (activeTab === 'posts') {
+          return (
+            item.title?.toLowerCase().includes(query) ||
+            item.description?.toLowerCase().includes(query)
+          );
+        } else {
+          return (
+            item.full_name?.toLowerCase().includes(query) ||
+            item.email?.toLowerCase().includes(query) ||
+            item.designation?.toLowerCase().includes(query) ||
+            item.country?.toLowerCase().includes(query)
+          );
+        }
+      });
+    }
+
+    // Apply date range filter
+    if (startDate && endDate) {
+      filtered = filtered.filter(item => {
+        const itemDate = new Date(item.createdAt);
+        return itemDate >= startDate && itemDate <= endDate;
+      });
+    }
+
+    return filtered;
+  };
+
+  const applicantColumns = [
+    { 
+      Header: "Name", 
+      accessor: "full_name",
+      Cell: ({ value }) => (
+        <div className="font-semibold text-gray-800 dark:text-gray-100">
+          {value || "N/A"}
+        </div>
+      )
+    },
+    { 
+      Header: "Email", 
+      accessor: "email",
+      Cell: ({ value }) => (
+        <div className="text-gray-700 dark:text-gray-200">
+          {value || "N/A"}
+        </div>
+      )
+    },
+    { 
+      Header: "Country", 
+      accessor: "country",
+      Cell: ({ value }) => (
+        <div className="text-gray-700 dark:text-gray-200">
+          {value || "N/A"}
+        </div>
+      )
+    },
+    { 
+      Header: "Phone", 
+      accessor: "phone_number",
+      Cell: ({ value }) => (
+        <div className="text-gray-700 dark:text-gray-200">
+          {value || "N/A"}
+        </div>
+      )
+    },
+    {
+      Header: "Position",
+      accessor: "designation",
+      Cell: ({ value }) => (
+        <div className="text-emerald-600 dark:text-emerald-400 font-medium">
+          {value || "N/A"}
+        </div>
+      )
+    },
     {
       Header: "Message",
       accessor: "message",
-      render: (row) => {
-        const message = row?.message || "";
-        const messagePreview =
-          message.split(" ").slice(0, 6).join(" ") +
-          (message.split(" ").length > 6 ? "..." : "");
+      Cell: ({ value }) => {
+        if (!value) return <span className="text-gray-400 italic">No message</span>;
+        
+        const words = value.split(" ");
+        const preview = words.slice(0, 6).join(" ");
+        const hasMore = words.length > 6;
 
         return (
           <div className="flex items-center">
-            <span className="mr-2">{messagePreview}</span>
-            {message.split(" ").length > 6 && (
+            <span className="text-gray-700 dark:text-gray-200">{preview}</span>
+            {hasMore && (
               <button
-                onClick={() => setSelectedMessage(message)}
-                className="ml-2 text-green-500 rounded-md px-4 py-2 hover:text-green-700 transition-all duration-200 text-sm flex items-center space-x-0"
+                onClick={() => setSelectedMessage(value)}
+                className="ml-2 text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 text-sm font-medium transition-colors"
               >
-                <span className="ml-[-1.5rem]">Read More...</span>
+                Read More
               </button>
             )}
           </div>
         );
-      },
+      }
     },
     {
       Header: "Date",
       accessor: "createdAt",
-      width: 150,
-      render: (row) => formatDate(row?.createdAt),
+      Cell: ({ value }) => (
+        <div className="text-gray-600 dark:text-gray-300 font-medium">
+          {formatDate(value)}
+        </div>
+      )
     },
     {
       Header: "Action",
       accessor: "actions",
-      render: (row) => (
-        <div className="flex gap-2 items-center">
+      Cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          {row.original?.resume_image && (
+            <button
+              onClick={() => window.open(row.original.resume_image, "_blank")}
+              className="p-1.5 text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-900/30 rounded-lg transition-colors"
+              title="View Resume"
+            >
+              <FaEye className="w-4 h-4" />
+            </button>
+          )}
           <button
-            onClick={() => window.open(row?.resume_image, "_blank")}
-            className="text-[#7ECA9D] px-2 py-1 hover:bg-blue-500 rounded-md transition-all duration-200"
-          >
-            <FaEye className="h-4 w-4 text-inherit" />
-          </button>
-          <button
-            onClick={() =>
-              handleDelete(
-                apiUrls?.jobForm?.deleteJobPost,
-                row?._id,
-                apiUrls?.jobForm?.getAllJobPosts,
-                setEnrollments
-              )
-            }
-            className="text-[#7ECA9D] border border-[#7ECA9D] rounded-md px-[10px] py-1"
+            onClick={() => handleDelete(
+              apiUrls?.jobForm?.deleteJobPost,
+              row.original._id,
+              apiUrls?.jobForm?.getAllJobPosts,
+              setApplicants
+            )}
+            className="px-3 py-1.5 text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-900/30 rounded-lg transition-colors font-medium"
           >
             Delete
           </button>
         </div>
-      ),
-    },
+      )
+    }
   ];
 
-  const columns2 = [
-    { Header: "Title", accessor: "title" },
-    // { Header: "Description", accessor: "description" },
+  const jobPostColumns = [
+    { 
+      Header: "Title", 
+      accessor: "title",
+      Cell: ({ value }) => (
+        <div className="font-semibold text-gray-800 dark:text-gray-100">
+          {value || "N/A"}
+        </div>
+      )
+    },
     {
       Header: "Description",
       accessor: "description",
-      render: (row) => {
-        const description = row?.description || "";
-        const messagePreview =
-          description.split(" ").slice(0, 6).join(" ") +
-          (description.split(" ").length > 6 ? "..." : "");
+      Cell: ({ value }) => {
+        if (!value) return <span className="text-gray-400 italic">No description</span>;
+        
+        const words = value.split(" ");
+        const preview = words.slice(0, 6).join(" ");
+        const hasMore = words.length > 6;
 
         return (
           <div className="flex items-center">
-            <span className="mr-2">{messagePreview}</span>
-            {description.split(" ").length > 6 && (
+            <span className="text-gray-700 dark:text-gray-200">{preview}</span>
+            {hasMore && (
               <button
-                onClick={() => setSelectedMessage(description)}
-                className="ml-2 text-green-500 rounded-md px-4 py-2 hover:text-green-700 transition-all duration-200 text-sm flex items-center space-x-0"
+                onClick={() => setSelectedMessage(value)}
+                className="ml-2 text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 text-sm font-medium transition-colors"
               >
-                <span className="ml-[-1.5rem]">Read More...</span>
+                Read More
               </button>
             )}
           </div>
         );
-      },
+      }
     },
     {
       Header: "Date",
       accessor: "createdAt",
-      width: 150,
-      render: (row) => formatDate(row?.createdAt),
+      Cell: ({ value }) => (
+        <div className="text-gray-600 dark:text-gray-300 font-medium">
+          {formatDate(value)}
+        </div>
+      )
     },
     {
       Header: "Action",
       accessor: "actions",
-      render: (row) => (
-        <div className="flex gap-2 items-center">
-          <button
-            onClick={() =>
-              handleDelete(
-                apiUrls?.jobForm?.deleteNewJobPost,
-                row?._id,
-                apiUrls?.jobForm?.getAllNewJobs,
-                setNewPosts
-              )
-            }
-            className="text-[#7ECA9D] border border-[#7ECA9D] rounded-md px-[10px] py-1"
-          >
-            Delete
-          </button>
-        </div>
-      ),
-    },
+      Cell: ({ row }) => (
+        <button
+          onClick={() => handleDelete(
+            apiUrls?.jobForm?.deleteNewJobPost,
+            row.original._id,
+            apiUrls?.jobForm?.getAllNewJobs,
+            setJobPosts
+          )}
+          className="px-3 py-1.5 text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-900/30 rounded-lg transition-colors font-medium"
+        >
+          Delete
+        </button>
+      )
+    }
   ];
 
-  if (showAddPostForm)
+  if (showAddPostForm) {
     return <AddJobPost onCancel={() => setShowAddPostForm(false)} />;
-
-  if (loading) return <Preloader />;
-
-  const handleAddPostClick = () => {
-    setShowAddPostForm(true);
-  };
+  }
 
   return (
-    <div className="bg-gray-100 dark:bg-inherit dark:text-white font-Poppins min-h-screen">
-      {/* Job Posts Section */}
-      <div className="max-w-6xl dark:bg-inherit dark:text-white mx-auto bg-white rounded-lg shadow-lg">
-        <header className="flex px-6 items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold">Job Posts</h1>
-          <div className="flex items-center space-x-2">
-            <button
-              className="bg-customGreen text-white px-4 py-2 rounded-lg flex items-center"
-              onClick={handleAddPostClick}
-            >
-              <FaPlus className="mr-2" /> Add Job Post
-            </button>
+    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen p-6 space-y-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm overflow-hidden">
+          {/* Header */}
+          <div className="p-6 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
+                Job Management
+              </h1>
+
+              <div className="flex items-center gap-4">
+                {/* Tabs */}
+                <div className="flex space-x-4">
+                  <button
+                    onClick={() => setActiveTab("posts")}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                      activeTab === "posts"
+                        ? "bg-emerald-600 text-white shadow-sm hover:bg-emerald-700"
+                        : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    }`}
+                  >
+                    Job Posts
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("applicants")}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                      activeTab === "applicants"
+                        ? "bg-emerald-600 text-white shadow-sm hover:bg-emerald-700"
+                        : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    }`}
+                  >
+                    Applicants
+                  </button>
+                </div>
+
+                {/* Add Job Post Button */}
+                {activeTab === "posts" && (
+                  <button
+                    onClick={() => setShowAddPostForm(true)}
+                    className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-2 font-medium"
+                  >
+                    <FaPlus className="w-4 h-4" />
+                    Add Job Post
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Filters */}
+            <div className="mt-6 flex flex-wrap items-center gap-4">
+              {/* Search */}
+              <div className="relative flex-grow max-w-md">
+                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder={activeTab === "posts" ? "Search job posts..." : "Search applicants..."}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:focus:ring-emerald-500 dark:focus:border-emerald-500 transition-colors"
+                />
+              </div>
+
+              {/* Date Range Picker */}
+              <div className="relative">
+                <DatePicker
+                  selectsRange={true}
+                  startDate={startDate}
+                  endDate={endDate}
+                  onChange={(update) => setDateRange(update)}
+                  placeholderText="Select date range"
+                  className="pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:focus:ring-emerald-500 dark:focus:border-emerald-500 transition-colors"
+                />
+                <FaCalendarAlt className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              </div>
+            </div>
           </div>
-        </header>
-        <MyTable
-          columns={columns2}
-          data={newPosts}
-          entryText="Total no. of job posts: "
-        />
+
+          {/* Content */}
+          <div className="p-6 bg-white dark:bg-gray-800">
+            {loading ? (
+              <div className="flex items-center justify-center p-8">
+                <Loader className="animate-spin h-8 w-8 text-emerald-600 dark:text-emerald-400" />
+              </div>
+            ) : (
+              <MyTable
+                columns={activeTab === "posts" ? jobPostColumns : applicantColumns}
+                data={getFilteredData(activeTab === "posts" ? jobPosts : applicants)}
+                entryText={`Total ${activeTab === "posts" ? "job posts" : "applicants"}: `}
+              />
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Applicants List Section */}
-      <div className="max-w-6xl mt-20 dark:bg-inherit dark:text-white mx-auto bg-white rounded-lg shadow-lg">
-        <header className="flex px-6 items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold">Applicants List</h1>
-        </header>
-        <MyTable
-          columns={columns}
-          data={enrollments}
-          entryText="Total no. of applicants: "
-        />
-      </div>
-      {/* Modal for full message */}
+      {/* Message Modal */}
       {selectedMessage && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white rounded-md p-6 max-w-[50%] w-full relative  max-h-[500px] overflow-y-auto">
-            {/* Close Button at top-right corner */}
-            <button
-              onClick={() => setSelectedMessage(null)}
-              className="absolute top-2 right-2 text-xl text-gray-500 hover:text-gray-700"
-            >
-              <FaTimes />
-            </button>
-
-            <h2 className="text-xl font-semibold mb-4">Full Message</h2>
-            <p className="mb-4">{selectedMessage}</p>
-            <button
-              onClick={() => setSelectedMessage(null)}
-              className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition-all duration-200"
-            >
-              Close
-            </button>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-2xl transform transition-all">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  {activeTab === "posts" ? "Full Description" : "Full Message"}
+                </h2>
+                <button
+                  onClick={() => setSelectedMessage(null)}
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                >
+                  <FaTimes className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="prose dark:prose-invert max-w-none">
+                <p className="text-gray-700 dark:text-gray-200 whitespace-pre-wrap">
+                  {selectedMessage}
+                </p>
+              </div>
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={() => setSelectedMessage(null)}
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg transition-colors font-medium"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

@@ -1,6 +1,6 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { FaPlus, FaChevronDown, FaEye } from "react-icons/fa";
+import React, { useState, useEffect, useCallback } from "react";
+import { FaPlus, FaChevronDown, FaEye, FaTrash, FaFilter, FaSearch, FaSpinner } from "react-icons/fa";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import MyTable from "@/components/shared/common-table/page";
@@ -8,125 +8,245 @@ import useDeleteQuery from "@/hooks/deleteQuery.hook";
 import { toast } from "react-toastify";
 import usePostQuery from "@/hooks/postQuery.hook";
 import AddCoorporate_Admin from "./AddCoorporateAdmin";
+import Preloader from "@/components/shared/others/Preloader";
+
+// Custom debounce function
+const useDebounce = (value, delay) => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+};
 
 const CoorporateAdminTable = () => {
   const { deleteQuery } = useDeleteQuery();
   const { postQuery } = usePostQuery();
   const { getQuery } = useGetQuery();
 
-  // State Initialization
+  // State Management
   const [instructors, setInstructors] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [pageError, setPageError] = useState(null);
   const [deletedInstructors, setDeletedInstructors] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState("newest");
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
   const [showCoorporateForm, setShowCoorporateForm] = useState(false);
-  const [filterOptions, setFilterOptions] = useState({
-    full_name: "",
-    email: "",
-    phone_number: "",
-    country: "",
-    status: "",
-  });
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
   const [selectedRows, setSelectedRows] = useState([]);
+  const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
+  const [filterOptions, setFilterOptions] = useState({
+    status: "",
+    company_type: "",
+    country: ""
+  });
 
-  // Fetch instructors data from API
-  const fetchInstructors = async () => {
+  // Replace the debounced search with our custom hook
+  const [searchInput, setSearchInput] = useState("");
+  const debouncedSearchTerm = useDebounce(searchInput, 300);
+
+  // Update search effect
+  useEffect(() => {
+    setSearchQuery(debouncedSearchTerm);
+  }, [debouncedSearchTerm]);
+
+  // Enhanced fetch instructors with better error handling and retry mechanism
+  const fetchInstructors = useCallback(async (retryCount = 0) => {
     try {
+      setIsLoading(true);
+      setPageError(null);
+      
       await getQuery({
         url: apiUrls.Coorporate.getAllCoorporates,
         onSuccess: (response) => {
+          let data = [];
           if (Array.isArray(response)) {
-            setInstructors(response);
+            data = response;
           } else if (response?.data && Array.isArray(response.data)) {
-            setInstructors(response.data);
+            data = response.data;
           } else {
-            setInstructors([]);
-            console.error("Invalid API response:", response);
+            throw new Error("Invalid data format received");
           }
+          setInstructors(data.map(item => ({
+            ...item,
+            createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : null
+          })));
         },
-        onFail: () => {
-          setInstructors([]);
+        onFail: (error) => {
+          if (retryCount < 3) {
+            setTimeout(() => fetchInstructors(retryCount + 1), 1000 * (retryCount + 1));
+          } else {
+            setPageError(error?.message || "Failed to fetch corporate admins");
+            toast.error("Failed to load corporate admins. Please try again.");
+          }
         },
       });
     } catch (error) {
-      console.error("Failed to fetch instructors:", error);
-      setInstructors([]);
+      setPageError("An unexpected error occurred");
+      toast.error("Error loading data. Please refresh the page.");
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, [getQuery]);
 
   useEffect(() => {
     fetchInstructors();
   }, [deletedInstructors]);
 
-  // Delete Instructor
-  const deleteInstructor = (id) => {
-    deleteQuery({
-      url: `${apiUrls.Coorporate.deleteCoorporate}/${id}`,
-      onSuccess: (res) => {
-        toast.success(res?.message);
-        setDeletedInstructors(id);
-      },
-      onFail: (res) => {
-        console.error("Failed to delete corporate admin:", res);
-        toast.error("Failed to delete corporate admin");
-      },
-    });
+  // Enhanced delete handler with better error handling
+  const handleDelete = async (id) => {
+    try {
+      setIsLoading(true);
+      await deleteQuery({
+        url: `${apiUrls.Coorporate.deleteCoorporate}/${id}`,
+        onSuccess: (res) => {
+          toast.success(res?.message || "Corporate admin deleted successfully");
+          setDeletedInstructors(id);
+          setShowDeleteConfirm(false);
+          setItemToDelete(null);
+          fetchInstructors();
+        },
+        onFail: (error) => {
+          toast.error(error?.message || "Failed to delete corporate admin. Please try again.");
+        },
+      });
+    } catch (error) {
+      toast.error("An unexpected error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Toggle Instructor Status
+  // Status Toggle Handler
   const toggleStatus = async (id) => {
     try {
+      setIsLoading(true);
       await postQuery({
         url: `${apiUrls.Coorporate.toggleCoorporateStatus}/${id}`,
         postData: {},
         onSuccess: (response) => {
-          const updatedInstructor = response?.data;
-          if (updatedInstructor) {
-            toast.success(
-              `${updatedInstructor.full_name}'s status changed to ${updatedInstructor.status}.`
-            );
+          const updatedAdmin = response?.data;
+          if (updatedAdmin) {
+            toast.success(`Status updated to ${updatedAdmin.status}`);
             fetchInstructors();
           } else {
-            console.error("Instructor data not found in response!", response);
-            toast.error("Failed to update instructor status");
+            throw new Error("Invalid response data");
           }
         },
-        onFail: (res) => {
-          toast.error("Instructor status cannot be changed!");
-          console.error("Failed to toggle status:", res);
+        onFail: (error) => {
+          toast.error(error?.message || "Failed to update status");
         },
       });
     } catch (error) {
-      toast.error("Something went wrong!");
-      console.error("Error in toggleStatus:", error);
+      toast.error("Failed to update status");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Enhanced bulk delete handler
+  const handleBulkDelete = async () => {
+    if (selectedRows.length === 0) {
+      toast.warning("Please select items to delete");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      await postQuery({
+        url: apiUrls.Coorporate.bulkDelete,
+        postData: { ids: selectedRows },
+        onSuccess: () => {
+          toast.success(`Successfully deleted ${selectedRows.length} items`);
+          setSelectedRows([]);
+          fetchInstructors();
+          setShowBulkDeleteConfirm(false);
+        },
+        onFail: (error) => {
+          toast.error(error?.message || "Bulk delete failed. Please try again.");
+        },
+      });
+    } catch (error) {
+      toast.error("An unexpected error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   // Table Columns Configuration
   const columns = [
-    { Header: "No.", accessor: "no" },
-    { Header: "Company Name", accessor: "full_name" },
-    { Header: "Phone Number", accessor: "phone_number" },
-    { Header: "Company Email", accessor: "email" },
-    { Header: "Company Type", accessor: "company_type" },
-    { Header: "Country", accessor: "country" },
-    { Header: "Join Date", accessor: "createdAt" },
+    { 
+      Header: "No.", 
+      accessor: "no",
+      width: 70
+    },
+    { 
+      Header: "Company Name", 
+      accessor: "full_name",
+      width: 200,
+      Cell: ({ value }) => (
+        <div className="font-medium text-gray-900 dark:text-gray-100">
+          {value}
+        </div>
+      )
+    },
+    { 
+      Header: "Phone Number", 
+      accessor: "phone_number",
+      width: 150
+    },
+    { 
+      Header: "Company Email", 
+      accessor: "email",
+      width: 200
+    },
+    { 
+      Header: "Company Type", 
+      accessor: "company_type",
+      width: 150
+    },
+    { 
+      Header: "Country", 
+      accessor: "country",
+      width: 120
+    },
+    { 
+      Header: "Join Date", 
+      accessor: "createdAt",
+      width: 120,
+      Cell: ({ value }) => (
+        <span className="text-sm text-gray-600 dark:text-gray-400">
+          {new Date(value).toLocaleDateString()}
+        </span>
+      )
+    },
     {
-      Header: "Valid Document (Optional)",
+      Header: "Document",
       accessor: "meta.upload_resume",
-      render: (row) => (
-        <div className="flex gap-2 items-center">
-          {row?.meta?.upload_resume ? (
+      width: 100,
+      Cell: ({ row }) => (
+        <div className="flex justify-center">
+          {row.original?.meta?.upload_resume ? (
             <button
-              onClick={() => window.open(row.meta.upload_resume, "_blank")}
-              className="text-[#7ECA9D] px-2 py-1 hover:bg-blue-500 rounded-md transition-all duration-200"
+              onClick={() => window.open(row.original.meta.upload_resume, "_blank")}
+              className="text-blue-600 hover:text-blue-800 transition-colors p-2 rounded-full hover:bg-blue-100"
+              title="View Document"
             >
-              <FaEye className="h-4 w-4 text-inherit" />
+              <FaEye className="h-5 w-5" />
             </button>
           ) : (
-            <span className="text-gray-400 text-sm">No document</span>
+            <span className="text-gray-400 text-sm">N/A</span>
           )}
         </div>
       ),
@@ -134,28 +254,26 @@ const CoorporateAdminTable = () => {
     {
       Header: "Status",
       accessor: "status",
-      render: (row) => {
-        const isActive = row?.status === "Active";
+      width: 120,
+      Cell: ({ row }) => {
+        const isActive = row.original?.status === "Active";
         return (
-          <div className="flex gap-2 items-center">
+          <div className="flex items-center gap-2">
             <button
-              onClick={() => toggleStatus(row?._id)}
-              className={`w-10 h-5 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 ${
-                isActive ? "bg-green-500" : "bg-gray-400"
+              onClick={() => toggleStatus(row.original?._id)}
+              className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                isActive ? 'bg-green-500' : 'bg-gray-400'
               }`}
+              disabled={isLoading}
             >
-              <div
-                className={`w-4 h-4 bg-white rounded-full transform transition-transform duration-300 ${
-                  isActive ? "translate-x-5" : "translate-x-0"
+              <span
+                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition duration-200 ease-in-out ${
+                  isActive ? 'translate-x-5' : 'translate-x-0'
                 }`}
-              ></div>
+              />
             </button>
-            <span
-              className={`ml-2 text-sm ${
-                isActive ? "text-green-700" : "text-red-700"
-              }`}
-            >
-              {isActive ? "Active" : "Inactive"}
+            <span className={`text-sm font-medium ${isActive ? 'text-green-600' : 'text-red-600'}`}>
+              {isActive ? 'Active' : 'Inactive'}
             </span>
           </div>
         );
@@ -164,221 +282,300 @@ const CoorporateAdminTable = () => {
     {
       Header: "Actions",
       accessor: "actions",
-      render: (row) => (
-        <div className="flex gap-2">
+      width: 100,
+      Cell: ({ row }) => (
+        <div className="flex justify-center gap-2">
           <button
-            onClick={() => deleteInstructor(row._id)}
-            className="text-red-500 hover:text-red-700 px-2 py-1 rounded-md border border-red-500 hover:bg-red-50 transition-colors"
+            onClick={() => {
+              setItemToDelete(row.original);
+              setShowDeleteConfirm(true);
+            }}
+            className="text-red-600 hover:text-red-800 transition-colors p-2 rounded-full hover:bg-red-100"
+            title="Delete"
           >
-            Delete
+            <FaTrash className="h-4 w-4" />
           </button>
         </div>
-      )
+      ),
     },
   ];
 
-  // Filtering and Sorting the Data
-  const filteredData =
-    instructors?.filter((instructor) => {
-      const matchesName = filterOptions.full_name
-        ? (instructor.full_name || "")
-            .toLowerCase()
-            .includes(filterOptions.full_name.toLowerCase())
-        : true;
+  // Data Filtering and Sorting
+  const filteredData = instructors?.filter((instructor) => {
+    const searchFields = [
+      instructor.full_name,
+      instructor.email,
+      instructor.phone_number,
+      instructor.company_type,
+      instructor.country
+    ].map(field => (field || "").toLowerCase());
 
-      const matchesStatus = filterOptions.status
-        ? (instructor.status || "")
-            .toLowerCase()
-            .includes(filterOptions.status.toLowerCase())
-        : true;
+    const matchesSearch = searchQuery === "" || 
+      searchFields.some(field => field.includes(searchQuery.toLowerCase()));
 
-      const matchesSearchQuery =
-        instructor.full_name
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase()) ||
-        instructor.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        instructor.phone_number.includes(searchQuery);
+    const matchesStatus = !filterOptions.status || 
+      instructor.status?.toLowerCase() === filterOptions.status.toLowerCase();
 
-      return matchesSearchQuery && matchesName && matchesStatus;
-    }) || [];
+    const matchesType = !filterOptions.company_type || 
+      instructor.company_type?.toLowerCase() === filterOptions.company_type.toLowerCase();
+
+    const matchesCountry = !filterOptions.country || 
+      instructor.country?.toLowerCase() === filterOptions.country.toLowerCase();
+
+    return matchesSearch && matchesStatus && matchesType && matchesCountry;
+  }) || [];
 
   const sortedData = [...filteredData].sort((a, b) => {
-    if (sortOrder === "newest") {
-      return new Date(b.createdAt) - new Date(a.createdAt);
-    } else if (sortOrder === "oldest") {
-      return new Date(a.createdAt) - new Date(b.createdAt);
-    }
-    return 0;
+    const dateA = new Date(a.createdAt);
+    const dateB = new Date(b.createdAt);
+    return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
   });
 
-  const formattedData =
-    sortedData.map((user, index) => ({
-      ...user,
-      no: index + 1,
-      createdAt: new Date(user.createdAt).toLocaleDateString("en-GB"),
-    })) || [];
+  const formattedData = sortedData.map((item, index) => ({
+    ...item,
+    no: index + 1,
+  }));
 
-  const handleSortChange = (order) => {
-    setSortOrder(order);
-    setIsSortDropdownOpen(false);
-  };
-
-  const handleFilterDropdownToggle = () => {
-    setIsFilterDropdownOpen(!isFilterDropdownOpen);
-  };
-
-  const handleFilterSelect = (filterType, value) => {
-    setFilterOptions((prev) => ({ ...prev, [filterType]: value }));
-    setIsFilterDropdownOpen(false);
-  };
-
-  // Add Instructor Form Toggle
-  if (showCoorporateForm)
-    return (
-      <AddCoorporate_Admin onCancel={() => setShowCoorporateForm(false)} />
-    );
-
-  // Add bulk delete handler
-  const handleBulkDelete = async () => {
-    if (selectedRows.length === 0) {
-      toast.error("No rows selected");
-      return;
-    }
-    
-    if (confirm(`Delete ${selectedRows.length} corporate admins?`)) {
-      try {
-        await postQuery({
-          url: apiUrls.Coorporate.bulkDelete,
-          postData: { ids: selectedRows },
-          onSuccess: () => {
-            toast.success("Bulk delete successful");
-            setSelectedRows([]);
-            fetchInstructors();
-          },
-          onFail: (err) => {
-            toast.error("Bulk delete failed");
-            console.error(err);
-          }
-        });
-      } catch (error) {
-        console.error("Bulk delete error:", error);
-        toast.error("Error during bulk delete");
-      }
-    }
-  };
+  if (showCoorporateForm) {
+    return <AddCoorporate_Admin onCancel={() => setShowCoorporateForm(false)} />;
+  }
 
   return (
-    <div className="bg-gray-100 dark:bg-darkblack font-Poppins min-h-screen">
-      <div className="max-w-6xl mx-auto dark:bg-inherit dark:text-whitegrey3 dark:border bg-white p-2">
-        <header className="flex items-center px-6 justify-between mb-4">
-          <h1 className="text-2xl font-bold">Corporate List</h1>
-          <div className="flex items-center space-x-2">
-            <div className="relative flex-grow flex justify-center">
-              <input
-                type="text"
-                placeholder="Search here"
-                className="border dark:bg-inherit dark:text-whitegrey3 dark:border border-gray-300 rounded-full p-2 pl-4 w-full max-w-md"
-                onChange={(e) => setSearchQuery(e.target.value)}
+    <div className="bg-gray-50 dark:bg-darkblack min-h-screen p-4">
+      <div className="max-w-7xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg">
+        {/* Enhanced Header Section */}
+        <div className="p-6 border-b dark:border-gray-700">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              Corporate Admins
+              {isLoading && <FaSpinner className="animate-spin text-xl" />}
+            </h1>
+
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Enhanced Search Input */}
+              <div className="relative flex-grow max-w-md">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FaSearch className="text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search by name, email, or company..."
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                />
+              </div>
+
+              {/* Enhanced Filter Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
+                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200"
+                >
+                  <FaFilter className="text-gray-500" />
+                  <span>Filters</span>
+                  <span className="bg-green-100 text-green-800 text-xs font-medium px-2 py-0.5 rounded-full">
+                    {Object.values(filterOptions).filter(Boolean).length}
+                  </span>
+                </button>
+                
+                {isFilterDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border dark:border-gray-700 z-10">
+                    <div className="p-3 space-y-3">
+                      <div>
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
+                          Status
+                        </label>
+                        <select
+                          value={filterOptions.status}
+                          onChange={(e) => setFilterOptions(prev => ({...prev, status: e.target.value}))}
+                          className="w-full p-2 rounded border dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-green-500"
+                        >
+                          <option value="">All Status</option>
+                          <option value="Active">Active</option>
+                          <option value="Inactive">Inactive</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
+                          Company Type
+                        </label>
+                        <select
+                          value={filterOptions.company_type}
+                          onChange={(e) => setFilterOptions(prev => ({...prev, company_type: e.target.value}))}
+                          className="w-full p-2 rounded border dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-green-500"
+                        >
+                          <option value="">All Types</option>
+                          <option value="Enterprise">Enterprise</option>
+                          <option value="Startup">Startup</option>
+                          <option value="SME">SME</option>
+                        </select>
+                      </div>
+
+                      <div className="pt-2 flex justify-end">
+                        <button
+                          onClick={() => {
+                            setFilterOptions({
+                              status: "",
+                              company_type: "",
+                              country: ""
+                            });
+                            setIsFilterDropdownOpen(false);
+                          }}
+                          className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                        >
+                          Clear Filters
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Enhanced Add Button */}
+              <button
+                onClick={() => setShowCoorporateForm(true)}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg flex items-center gap-2 hover:bg-green-700 transition-all duration-200 shadow-sm hover:shadow-md"
+              >
+                <FaPlus className="text-sm" />
+                <span>Add Admin</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Enhanced Bulk Actions */}
+        {selectedRows.length > 0 && (
+          <div className="p-4 bg-yellow-50 dark:bg-gray-700 border-b dark:border-gray-600">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600 dark:text-gray-300">
+                {selectedRows.length} item(s) selected
+              </span>
+              <button
+                onClick={() => setShowBulkDeleteConfirm(true)}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg flex items-center gap-2 hover:bg-red-700 transition-all duration-200"
+                disabled={isLoading}
+              >
+                <FaTrash className="text-sm" />
+                <span>Delete Selected</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Enhanced Main Content */}
+        <div className="p-6">
+          {isLoading && <Preloader />}
+          
+          {pageError && (
+            <div className="text-center py-8">
+              <p className="text-red-600 dark:text-red-400 mb-4">{pageError}</p>
+              <button
+                onClick={() => fetchInstructors()}
+                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 flex items-center gap-2 mx-auto"
+              >
+                <FaSpinner className={`${isLoading ? 'animate-spin' : ''}`} />
+                Retry
+              </button>
+            </div>
+          )}
+
+          {!isLoading && !pageError && (
+            <div className="overflow-hidden rounded-lg border dark:border-gray-700">
+              <MyTable 
+                columns={columns} 
+                data={formattedData}
+                onRowSelect={setSelectedRows}
+                selectedRows={selectedRows}
               />
             </div>
-            <div className="relative">
-              <button
-                onClick={handleFilterDropdownToggle}
-                className="border-2 px-4 py-1 rounded-lg flex items-center"
-              >
-                Filters
-                <svg
-                  className="w-4 h-4 ml-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M19 9l-7 7-7-7"
-                  ></path>
-                </svg>
-              </button>
-              {isFilterDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg">
-                  <button
-                    onClick={() => handleFilterSelect("status", "Active")}
-                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    Active
-                  </button>
-                  <button
-                    onClick={() => handleFilterSelect("status", "Inactive")}
-                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    Inactive
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Sort Button with Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md dark:bg-inherit dark:text-whitegrey3 dark:border hover:bg-gray-300 flex items-center space-x-1"
-              >
-                <span>
-                  {sortOrder === "newest" ? "New to Oldest" : "Oldest to New"}
-                </span>
-                <FaChevronDown />
-              </button>
-              {isSortDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
-                  <a
-                    href="#"
-                    onClick={() => handleSortChange("oldest")}
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    Oldest to New
-                  </a>
-                  <a
-                    href="#"
-                    onClick={() => handleSortChange("newest")}
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    Newest to Old
-                  </a>
-                </div>
-              )}
-            </div>
-
-            {/* Add Student Button */}
-            <button
-              onClick={() => setShowCoorporateForm(true)}
-              className="bg-customGreen text-white px-4 py-2 rounded-lg flex items-center"
-            >
-              <FaPlus className="mr-2" />
-              Add Corporate Admin
-            </button>
-          </div>
-        </header>
-        {/* Add bulk delete functionality at the top of the table */}
-        <div className="flex items-center justify-between mb-4 p-6">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={handleBulkDelete}
-              className="bg-red-500 text-white px-4 py-2 rounded-lg flex items-center"
-            >
-              Delete Selected
-            </button>
-            <span className="text-sm text-gray-600">
-              {selectedRows.length} selected
-            </span>
-          </div>
-          {/* ... existing search/filter inputs ... */}
+          )}
         </div>
-        {/* Student Table */}
-        <MyTable columns={columns} data={formattedData} />
       </div>
+
+      {/* Enhanced Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4 transform transition-all duration-200">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              Confirm Delete
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
+              Are you sure you want to delete <span className="font-medium">{itemToDelete?.full_name}</span>? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setItemToDelete(null);
+                }}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                disabled={isLoading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDelete(itemToDelete?._id)}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors flex items-center gap-2"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <FaSpinner className="animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <>
+                    <FaTrash />
+                    <span>Delete</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Enhanced Bulk Delete Confirmation Modal */}
+      {showBulkDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4 transform transition-all duration-200">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              Confirm Bulk Delete
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
+              Are you sure you want to delete {selectedRows.length} selected items? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowBulkDeleteConfirm(false)}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                disabled={isLoading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleBulkDelete}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors flex items-center gap-2"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <FaSpinner className="animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <>
+                    <FaTrash />
+                    <span>Delete Selected</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
