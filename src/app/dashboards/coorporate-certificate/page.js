@@ -19,7 +19,7 @@ const CorporateCertificate = () => {
     <ProtectedPage>
       <main>
         <DashboardContainer>
-          <div className="px-6">
+          <div>
             <HeadingDashboard />
           </div>
           {showCertificate ? (

@@ -4,8 +4,8 @@ import React, { useEffect, useState } from "react";
 import ProfileImg from "@/assets/images/dashbord/profileImg.png";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
-import Preloader from "../others/Preloader";
-import InstaIcon from "@/assets/images/instaa-icon.webp";
+import { Loader, Mail, Phone, Calendar, UserCheck, Building, Hash, Briefcase, Edit2, ExternalLink } from "lucide-react";
+import { toast } from "react-toastify";
 
 const formatDate = (dateString) => {
   if (!dateString) return "N/A";
@@ -16,9 +16,51 @@ const formatDate = (dateString) => {
   return `${day}-${month}-${year}`;
 };
 
+const ProfileField = ({ icon: Icon, label, value, isLink = false }) => (
+  <li className="mb-6 transform hover:scale-[1.01] transition-all duration-200">
+    <div className="flex items-center gap-4 p-4 rounded-lg bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
+      <div className="flex-shrink-0">
+        <Icon className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+      </div>
+      <div className="flex-grow">
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{label}</p>
+        {isLink ? (
+          <div className="flex items-center gap-2">
+            <a 
+              href={value} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-lg font-medium text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
+            >
+              {value} <ExternalLink className="w-4 h-4" />
+            </a>
+          </div>
+        ) : (
+          <p className="text-lg font-medium text-gray-900 dark:text-gray-100">
+            {value || "N/A"}
+          </p>
+        )}
+      </div>
+    </div>
+  </li>
+);
+
+const SocialLink = ({ href, icon: Icon, label, color }) => (
+  <a
+    href={href}
+    target="_blank"
+    rel="noopener noreferrer"
+    className={`flex items-center gap-2 px-4 py-2 rounded-lg ${color} text-white hover:opacity-90 transition-opacity`}
+  >
+    <Icon className="w-5 h-5" />
+    <span>{label}</span>
+  </a>
+);
+
 const ProfileDetails = ({ onEditClick }) => {
   const [studentId, setStudentId] = useState(null);
   const [profileData, setProfileData] = useState(null);
+  const [isImageLoading, setIsImageLoading] = useState(true);
   const { getQuery, loading } = useGetQuery();
 
   useEffect(() => {
@@ -34,278 +76,150 @@ const ProfileDetails = ({ onEditClick }) => {
         url: `${apiUrls?.user?.getDetailsbyId}/${studentId}`,
         onSuccess: (data) => {
           setProfileData(data?.data);
-          console.log("profile data", data?.data);
         },
         onFail: (error) => {
           console.error("Failed to fetch user details:", error);
+          toast.error("Failed to load profile data");
         },
       });
     }
   }, [studentId]);
 
-  if (loading || !profileData) {
-    return <Preloader />;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader className="w-8 h-8 animate-spin text-emerald-600" />
+      </div>
+    );
   }
 
   return (
-    <div className=" md:py-50px mb-30px  dark:bg-whiteColor-dark shadow-accordion dark:shadow-accordion-dark rounded-5">
-      <div className="px-5 mb-4 mt-[-24px] dark:border-borderColor-dark flex justify-between">
-        <h2 className="text-2xl font-semibold px-4 text-blackColor dark:text-blackColor-dark">
-          Profile
-        </h2>
-        {/* Edit Icon */}
-        <span onClick={onEditClick} className="cursor-pointer">
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
+    <div className="bg-gray-50 dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden">
+      {/* Header */}
+      <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
+            Profile Details
+          </h2>
+          <button
+            onClick={onEditClick}
+            className="p-2 text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-900/20 rounded-lg transition-colors"
+            title="Edit Profile"
           >
-            <path
-              d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13"
-              stroke="#7ECA9D"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-            <path
-              d="M18.5 2.50023C18.8978 2.1024 19.4374 1.87891 20 1.87891C20.5626 1.87891 21.1022 2.1024 21.5 2.50023C21.8978 2.89805 22.1213 3.43762 22.1213 4.00023C22.1213 4.56284 21.8978 5.1024 21.5 5.50023L12 15.0002L8 16.0002L9 12.0002L18.5 2.50023Z"
-              stroke="#7ECA9D"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
-        </span>
+            <Edit2 className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
-      <div
-        className="shadow-lg p-4  mx-4 rounded-lg dark:text-white"
-        style={{ boxShadow: "0px 4px 24px 0px #0000001F" }}
-      >
-        <div className="py-4.5 px-5">
-          <Image
-            src={profileData?.user_image || ProfileImg}
-            alt="profile img"
-            width={192}
-            height={173}
-          />
+      {/* Profile Content */}
+      <div className="p-6">
+        {/* Profile Image Section */}
+        <div className="flex flex-col items-center mb-8">
+          <div className="relative w-32 h-32 mb-4">
+            <div className="absolute inset-0 bg-emerald-600 rounded-full animate-pulse" 
+                 style={{ opacity: isImageLoading ? 1 : 0 }} />
+            <Image
+              src={profileData?.user_image || ProfileImg}
+              alt="Profile"
+              width={128}
+              height={128}
+              className="rounded-full object-cover border-4 border-emerald-600 dark:border-emerald-400"
+              onLoadingComplete={() => setIsImageLoading(false)}
+            />
+          </div>
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            {profileData?.full_name || "N/A"}
+          </h3>
+          <p className="text-gray-600 dark:text-gray-400">
+            {profileData?.role?.[0] || "N/A"}
+          </p>
         </div>
-        <ul className="px-4 ">
-          <li className=" grid grid-cols-1 md:grid-cols-12 mb-3">
-            <div className="md:col-start-1 md:col-span-4">
-              <span className="inline-block text-[20px]">Full Name</span>
-            </div>
-            <div className="md:col-start-5 md:col-span-8">
-              <span className="inline-block text-[20px] text-[#544C4C]">
-                {/* Manik Yadav */}
-                {profileData?.full_name || "N/A"}
-              </span>
-            </div>
-          </li>
-          <li className=" grid grid-cols-1 md:grid-cols-12 mb-3">
-            <div className="md:col-start-1 md:col-span-4">
-              <span className="inline-block text-[20px]">Email Id</span>
-            </div>
-            <div className="md:col-start-5 md:col-span-8">
-              <span className="inline-block text-[20px] text-[#544C4C]">
-                {profileData?.email || "N/A"}
-              </span>
-            </div>
-          </li>
 
-          <li className=" grid grid-cols-1 md:grid-cols-12 mb-3">
-            <div className="md:col-start-1 md:col-span-4">
-              <span className="inline-block text-[20px]">Mobile Number</span>
-            </div>
-            <div className="md:col-start-5 md:col-span-8">
-              <span className="inline-block text-[20px] text-[#544C4C]">
-                {profileData?.phone_number || "N/A"}
-              </span>
-            </div>
-          </li>
+        {/* Profile Fields */}
+        <div className="space-y-1">
+          <ul className="space-y-4">
+            <ProfileField 
+              icon={Mail} 
+              label="Email Address" 
+              value={profileData?.email} 
+            />
+            <ProfileField 
+              icon={Phone} 
+              label="Phone Number" 
+              value={profileData?.phone_number} 
+            />
+            <ProfileField 
+              icon={Calendar} 
+              label="Date of Birth" 
+              value={profileData?.age ? formatDate(profileData.age) : "N/A"} 
+            />
+            <ProfileField 
+              icon={UserCheck} 
+              label="Date of Joining" 
+              value={formatDate(profileData?.createdAt)} 
+            />
+            <ProfileField 
+              icon={Hash} 
+              label="Registration ID" 
+              value={profileData?.registration_id || "9019"} 
+            />
+            <ProfileField 
+              icon={Briefcase} 
+              label="Domain" 
+              value={profileData?.role?.[0]} 
+            />
+          </ul>
 
-          <li className=" grid grid-cols-1 md:grid-cols-12 mb-3">
-            <div className="md:col-start-1 md:col-span-4">
-              <span className="inline-block text-[20px]">D.O.B</span>
-            </div>
-            <div className="md:col-start-5 md:col-span-8">
-              <span className="inline-block text-[20px] text-[#544C4C]">
-                {profileData?.age ? formatDate(profileData.age) : "N/A"}
-              </span>
-            </div>
-          </li>
-          <li className=" grid grid-cols-1 md:grid-cols-12 mb-3">
-            <div className="md:col-start-1 md:col-span-4">
-              <span className="inline-block text-[20px]">Date of Joining </span>
-            </div>
-            <div className="md:col-start-5 md:col-span-8">
-              <span className="inline-block text-[20px] text-[#544C4C]">
-                {profileData?.createdAt
-                  ? formatDate(profileData.createdAt)
-                  : "N/A"}
-              </span>
-            </div>
-          </li>
-
-          <li className=" grid grid-cols-1 md:grid-cols-12 mb-3">
-            <div className="md:col-start-1 md:col-span-4">
-              <span className="inline-block text-[20px]">
-                Registration Id Number
-              </span>
-            </div>
-            <div className="md:col-start-5 md:col-span-8">
-              <span className="inline-block text-[20px] text-[#544C4C]">
-                9019
-              </span>
-            </div>
-          </li>
-
-          <li className=" grid grid-cols-1 md:grid-cols-12 mb-3">
-            <div className="md:col-start-1 md:col-span-4">
-              <span className="inline-block text-[20px]">
-                Domain Belongs to
-              </span>
-            </div>
-            <div className="md:col-start-5 md:col-span-8">
-              <span className="inline-block text-[20px] text-[#544C4C]">
-                {profileData?.role || "N/A"}
-              </span>
-            </div>
-          </li>
-          <li className=" grid grid-cols-1 md:grid-cols-12 mb-3">
-            <div className="md:col-start-1 md:col-span-4">
-              <span className="inline-block text-[20px]">
-                Social Media Links
-              </span>
-            </div>
-            <div className="md:col-start-5 md:col-span-8">
-              <div className="flex gap-2">
-                <a
-                  href={profileData.facebook_link || ""}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary px-[15px] py-1 flex justify-center items-center"
-                >
-                  <span>
-                    <svg
-                      width="40"
-                      height="40"
-                      viewBox="0 0 40 40"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <g clip-path="url(#clip0_269_2834)">
-                        <path
-                          d="M20 40C31.0457 40 40 31.0457 40 20C40 8.9543 31.0457 0 20 0C8.9543 0 0 8.9543 0 20C0 31.0457 8.9543 40 20 40Z"
-                          fill="#3C5A9A"
-                        />
-                        <path
-                          d="M26.5023 6.13916H22.0718C19.4426 6.13916 16.5182 7.24497 16.5182 11.0561C16.531 12.384 16.5182 13.6558 16.5182 15.0871H13.4766V19.9273H16.6123V33.8612H22.3744V19.8353H26.1776L26.5217 15.0736H22.2751C22.2751 15.0736 22.2846 12.9553 22.2751 12.3402C22.2751 10.8341 23.8423 10.9203 23.9365 10.9203C24.6823 10.9203 26.1323 10.9225 26.5045 10.9203V6.13916H26.5023Z"
-                          fill="white"
-                        />
-                      </g>
-                      <defs>
-                        <clipPath id="clip0_269_2834">
-                          <rect width="40" height="40" fill="white" />
-                        </clipPath>
-                      </defs>
+          {/* Social Media Links */}
+          {(profileData?.facebook_link || profileData?.linkedin_link || profileData?.instagram_link) && (
+            <div className="mt-8">
+              <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                Social Media
+              </h4>
+              <div className="flex flex-wrap gap-3">
+                {profileData?.facebook_link && (
+                  <a
+                    href={profileData.facebook_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-4 py-2 bg-[#3C5A9A] text-white rounded-lg hover:opacity-90 transition-opacity"
+                  >
+                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                     </svg>
-                  </span>
-                </a>
-
-                <a
-                  href={profileData.linkedin_link || ""}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary px-[15px] py-1 flex justify-center items-center"
-                >
-                  <span>
-                    <svg
-                      width="40"
-                      height="40"
-                      viewBox="0 0 40 40"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <g clip-path="url(#clip0_269_2837)">
-                        <path
-                          d="M20 0C8.95422 0 0 8.95421 0 20C0 31.0457 8.95422 39.9999 20 39.9999C31.0457 39.9999 40 31.0457 40 20C39.9999 8.95421 31.0455 0 20 0ZM14.6639 29.669H10.2727V15.4823H14.6639V29.669ZM12.4474 13.6245C11.0133 13.6245 9.85069 12.4524 9.85069 11.0068C9.85069 9.56102 11.0135 8.38902 12.4474 8.38902C13.8814 8.38902 15.044 9.56102 15.044 11.0068C15.0441 12.4525 13.8814 13.6245 12.4474 13.6245ZM31.1199 29.669H26.75V22.2222C26.75 20.1797 25.9742 19.0396 24.3592 19.0396C22.6015 19.0396 21.6833 20.227 21.6833 22.2222V29.669H17.4716V15.4823H21.6833V17.393C21.6833 17.393 22.9501 15.0496 25.9583 15.0496C28.9665 15.0496 31.12 16.8864 31.12 20.6862L31.1199 29.669Z"
-                          fill="url(#paint0_linear_269_2837)"
-                        />
-                      </g>
-                      <defs>
-                        <linearGradient
-                          id="paint0_linear_269_2837"
-                          x1="5.85785"
-                          y1="5.85785"
-                          x2="34.1421"
-                          y2="34.1421"
-                          gradientUnits="userSpaceOnUse"
-                        >
-                          <stop stop-color="#2489BE" />
-                          <stop offset="1" stop-color="#0575B3" />
-                        </linearGradient>
-                        <clipPath id="clip0_269_2837">
-                          <rect width="40" height="40" fill="white" />
-                        </clipPath>
-                      </defs>
+                    <span>Facebook</span>
+                  </a>
+                )}
+                {profileData?.linkedin_link && (
+                  <a
+                    href={profileData.linkedin_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-4 py-2 bg-[#0A66C2] text-white rounded-lg hover:opacity-90 transition-opacity"
+                  >
+                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
                     </svg>
-                  </span>
-                </a>
-                {/* <a
-                  href={profileData.instagram_link || ""}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary px-[15px] py-1 flex justify-center items-center"
-                >
-                  <span>
-                    <svg
-                      width="40"
-                      height="40"
-                      viewBox="0 0 40 40"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <g clip-path="url(#clip0_269_2839)">
-                        <path
-                          d="M20 40C31.0457 40 40 31.0457 40 20C40 8.9543 31.0457 0 20 0C8.9543 0 0 8.9543 0 20C0 31.0457 8.9543 40 20 40Z"
-                          fill="#2DAAE1"
-                        />
-                        <path
-                          d="M32.8232 12.0446C31.8798 12.4632 30.8666 12.7462 29.8013 12.8734C30.8885 12.2223 31.7215 11.1906 32.1147 9.96265C31.0819 10.5761 29.9516 11.0079 28.7729 11.2395C27.8136 10.217 26.4457 9.57861 24.9324 9.57861C22.0276 9.57861 19.6718 11.9335 19.6718 14.8399C19.6718 15.2518 19.7182 15.6535 19.8074 16.0393C15.4346 15.8195 11.5579 13.7249 8.96295 10.5421C8.50984 11.3195 8.25048 12.2232 8.25048 13.1875C8.25048 15.0126 9.17945 16.623 10.591 17.5663C9.75538 17.5404 8.93811 17.3148 8.2075 16.9085V16.9749C8.2075 19.5244 10.0208 21.6501 12.4279 22.1336C11.9857 22.2547 11.5217 22.318 11.0416 22.318C10.7022 22.318 10.3729 22.2859 10.0512 22.2254C10.7207 24.315 12.6638 25.836 14.9655 25.879C13.1648 27.2905 10.8958 28.132 8.43154 28.132C8.00709 28.132 7.5876 28.1066 7.17578 28.057C9.50454 29.5502 12.2696 30.4219 15.2409 30.4219C24.9181 30.4219 30.2106 22.4048 30.2106 15.4523C30.2106 15.224 30.2055 14.9975 30.1945 14.7718C31.2257 14.0259 32.1158 13.1024 32.8232 12.0446Z"
-                          fill="white"
-                        />
-                      </g>
-                      <defs>
-                        <clipPath id="clip0_269_2839">
-                          <rect width="40" height="40" fill="white" />
-                        </clipPath>
-                      </defs>
+                    <span>LinkedIn</span>
+                  </a>
+                )}
+                {profileData?.instagram_link && (
+                  <a
+                    href={profileData.instagram_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#F77737] text-white rounded-lg hover:opacity-90 transition-opacity"
+                  >
+                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 0C8.74 0 8.333.015 7.053.072 5.775.132 4.905.333 4.14.63c-.789.306-1.459.717-2.126 1.384S.935 3.35.63 4.14C.333 4.905.131 5.775.072 7.053.012 8.333 0 8.74 0 12s.015 3.667.072 4.947c.06 1.277.261 2.148.558 2.913.306.788.717 1.459 1.384 2.126.667.666 1.336 1.079 2.126 1.384.766.296 1.636.499 2.913.558C8.333 23.988 8.74 24 12 24s3.667-.015 4.947-.072c1.277-.06 2.148-.262 2.913-.558.788-.306 1.459-.718 2.126-1.384.666-.667 1.079-1.335 1.384-2.126.296-.765.499-1.636.558-2.913.06-1.28.072-1.687.072-4.947s-.015-3.667-.072-4.947c-.06-1.277-.262-2.149-.558-2.913-.306-.789-.718-1.459-1.384-2.126C21.319 1.347 20.651.935 19.86.63c-.765-.297-1.636-.499-2.913-.558C15.667.012 15.26 0 12 0zm0 2.16c3.203 0 3.585.016 4.85.071 1.17.055 1.805.249 2.227.415.562.217.96.477 1.382.896.419.42.679.819.896 1.381.164.422.36 1.057.413 2.227.057 1.266.07 1.646.07 4.85s-.015 3.585-.074 4.85c-.061 1.17-.256 1.805-.421 2.227-.224.562-.479.96-.899 1.382-.419.419-.824.679-1.38.896-.42.164-1.065.36-2.235.413-1.274.057-1.649.07-4.859.07-3.211 0-3.586-.015-4.859-.074-1.171-.061-1.816-.256-2.236-.421-.569-.224-.96-.479-1.379-.899-.421-.419-.69-.824-.9-1.38-.165-.42-.359-1.065-.42-2.235-.045-1.26-.061-1.649-.061-4.844 0-3.196.016-3.586.061-4.861.061-1.17.255-1.814.42-2.234.21-.57.479-.96.9-1.381.419-.419.81-.689 1.379-.898.42-.166 1.051-.361 2.221-.421 1.275-.045 1.65-.06 4.859-.06l.045.03zm0 3.678c-3.405 0-6.162 2.76-6.162 6.162 0 3.405 2.76 6.162 6.162 6.162 3.405 0 6.162-2.76 6.162-6.162 0-3.405-2.76-6.162-6.162-6.162zM12 16c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm7.846-10.405c0 .795-.646 1.44-1.44 1.44-.795 0-1.44-.646-1.44-1.44 0-.794.646-1.439 1.44-1.439.793-.001 1.44.645 1.44 1.439z"/>
                     </svg>
-                  </span>
-                </a> */}
-                <a
-                  href={profileData.instagram_link || ""}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary px-[15px] py-1 flex justify-center items-center"
-                >
-                  <span>
-                    <Image
-                      src={InstaIcon}
-                      alt="Instagram"
-                      width="40"
-                      height="40"
-                      className="object-contain"
-                    />
-                  </span>
-                </a>
+                    <span>Instagram</span>
+                  </a>
+                )}
               </div>
             </div>
-          </li>
-        </ul>
+          )}
+        </div>
       </div>
     </div>
   );

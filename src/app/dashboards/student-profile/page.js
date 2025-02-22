@@ -12,7 +12,7 @@ const Student_Profile = () => {
     <ProtectedPage>
       <main>
         <DashboardContainer>
-          <div className="px-4">
+          <div>
             <HeadingDashboard />
           </div>
           <StudentProfileMain />

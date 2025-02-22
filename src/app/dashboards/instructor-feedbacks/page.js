@@ -10,7 +10,7 @@ const Instructor_Feedbacks = () => {
     <ProtectedPage>
       <main>
         <DashboardContainer>
-          <div className="px-8">
+          <div>
             <HeadingDashboard />
           </div>
           <InstructorFeedbackComponents />

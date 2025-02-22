@@ -12,7 +12,7 @@ const Admin_Reviews = () => {
     <ProtectedPage>
       <main>
         <DashboardContainer>
-          <div className="px-6">
+          <div>
             <HeadingDashboard />
           </div>
           <InstructoreManage />
