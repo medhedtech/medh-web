@@ -13,10 +13,9 @@ const Admin_Reviews = () => {
       <main>
         {/* <DsahboardWrapper> */}
         <DashboardContainer>
-          <div className="px-10">
+          <div>
             <HeadingDashboard />
           </div>
-
           <AssignInst />
         </DashboardContainer>
         {/* </DsahboardWrapper> */}

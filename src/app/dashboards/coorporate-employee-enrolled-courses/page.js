@@ -15,7 +15,7 @@ const Corporate_Emp_Enrolled_Courses = () => {
     <ProtectedPage>
       <main>
         <DashboardContainer>
-          <div className="px-12">
+          <div>
             <HeadingDashboard />
           </div>
           <CorporateEnrolledCoursesMain />
