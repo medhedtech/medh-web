@@ -12,7 +12,7 @@ const Coorporate_Student_Management = () => {
     <ProtectedPage>
       <main>
         <DashboardContainer>
-          <div className="px-6">
+          <div>
             <HeadingDashboard />
           </div>
           <CoorporateTableStudent />

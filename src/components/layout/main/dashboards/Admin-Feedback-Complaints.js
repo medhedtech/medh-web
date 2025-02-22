@@ -7,7 +7,9 @@ import Preloader from "@/components/shared/others/Preloader";
 import { toast } from "react-toastify";
 import useDeleteQuery from "@/hooks/deleteQuery.hook";
 import usePostQuery from "@/hooks/postQuery.hook";
-import { FaTimes } from "react-icons/fa";
+import { FaTimes, FaSearch, FaCalendarAlt } from "react-icons/fa";
+import { Loader } from "lucide-react";
+import DatePicker from "react-datepicker";
 
 // Function to format the date
 const formatDate = (date) => {
@@ -19,53 +21,82 @@ const formatDate = (date) => {
 };
 
 export default function AdminFeedbackComplaints() {
+  // State Management
   const [feedbacks, setFeedbacks] = useState([]);
   const [instructorFeedbacks, setInstructorFeedbacks] = useState([]);
   const [complaints, setComplaints] = useState([]);
   const [editComplaint, setEditComplaint] = useState(null);
   const [newStatus, setNewStatus] = useState("");
+  const [selectedMessage, setSelectedMessage] = useState(null);
+  const [activeTab, setActiveTab] = useState("feedbacks"); // feedbacks, instructor_feedbacks, or complaints
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dateRange, setDateRange] = useState([null, null]);
+  const [startDate, endDate] = dateRange;
   const { getQuery, loading } = useGetQuery();
   const { deleteQuery } = useDeleteQuery();
   const { postQuery } = usePostQuery();
-  const [selectedMessage, setSelectedMessage] = useState(null);
 
   // Fetch data from API
   const fetchData = async (url, setState) => {
-    await getQuery({
-      url,
-      onSuccess: (response) => {
-        if (Array.isArray(response)) {
-          setState(response);
-        } else {
-          toast.error("Failed to fetch data.");
-        }
-      },
-      onFail: () => toast.error("Failed to fetch data."),
-    });
+    try {
+      await getQuery({
+        url,
+        onSuccess: (response) => {
+          if (Array.isArray(response?.data)) {
+            // Sort by date (newest first)
+            const sortedData = response.data.sort(
+              (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+            );
+            setState(sortedData);
+          } else if (Array.isArray(response)) {
+            // Handle direct array response
+            const sortedData = response.sort(
+              (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+            );
+            setState(sortedData);
+          } else {
+            setState([]);
+            toast.error("Invalid data format received");
+          }
+        },
+        onFail: () => {
+          setState([]);
+          toast.error("Failed to fetch data");
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      toast.error("Something went wrong!");
+      setState([]);
+    }
   };
 
   useEffect(() => {
     fetchData(apiUrls.feedbacks.getAllFeedbacks, setFeedbacks);
     fetchData(apiUrls.feedbacks.getAllComplaints, setComplaints);
-    fetchData(
-      apiUrls.feedbacks.getAllInstructorFeedbacks,
-      setInstructorFeedbacks
-    );
+    fetchData(apiUrls.feedbacks.getAllInstructorFeedbacks, setInstructorFeedbacks);
   }, []);
 
   // Handle delete action
   const handleDelete = async (url, id, fetchUrl, setState) => {
-    await deleteQuery({
-      url: `${url}/${id}`,
-      onSuccess: (res) => {
-        toast.success(res?.message || "Deleted successfully.");
-        fetchData(fetchUrl, setState);
-      },
-      onFail: (err) => {
-        console.error("Delete failed", err);
-        toast.error("Failed to delete.");
-      },
-    });
+    if (!window.confirm("Are you sure you want to delete this item?")) return;
+
+    try {
+      await deleteQuery({
+        url: `${url}/${id}`,
+        onSuccess: (res) => {
+          toast.success(res?.message || "Deleted successfully");
+          fetchData(fetchUrl, setState);
+        },
+        onFail: (error) => {
+          toast.error("Failed to delete");
+          console.error("Delete failed:", error);
+        },
+      });
+    } catch (error) {
+      toast.error("Something went wrong!");
+      console.error("Error:", error);
+    }
   };
 
   // Handle edit action (open edit modal)
@@ -77,7 +108,7 @@ export default function AdminFeedbackComplaints() {
   // Handle form submission for status update
   const handleUpdateStatus = async () => {
     if (!newStatus) {
-      toast.error("Please select a valid status.");
+      toast.error("Please select a valid status");
       return;
     }
 
@@ -86,321 +117,354 @@ export default function AdminFeedbackComplaints() {
         url: `${apiUrls.feedbacks.updateComplaintStatus}/${editComplaint}`,
         postData: { status: newStatus },
         onSuccess: () => {
-          toast.success("Complaint status updated successfully.");
+          toast.success("Complaint status updated successfully");
           fetchData(apiUrls.feedbacks.getAllComplaints, setComplaints);
           setEditComplaint(null);
         },
         onFail: () => {
-          toast.error("Failed to update complaint status.");
+          toast.error("Failed to update complaint status");
         },
       });
     } catch (error) {
       console.error("Error updating status:", error);
-      toast.error("Unexpected error occurred.");
+      toast.error("Unexpected error occurred");
     }
   };
 
-  // Columns configuration for feedbacks
-  const feedbackColumns = [
-    { Header: "Title", accessor: "feedback_title" },
-    // { Header: "Feedback", accessor: "feedback_text" },
+  // Filter Function
+  const getFilteredData = (data) => {
+    if (!data) return [];
+    let filtered = [...data];
+
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(item =>
+        item.full_name?.toLowerCase().includes(query) ||
+        item.email?.toLowerCase().includes(query) ||
+        item.feedback_title?.toLowerCase().includes(query) ||
+        item.feedback_text?.toLowerCase().includes(query) ||
+        item.message?.toLowerCase().includes(query) ||
+        item.name?.toLowerCase().includes(query) ||
+        item.description?.toLowerCase().includes(query)
+      );
+    }
+
+    // Apply date range filter
+    if (startDate && endDate) {
+      filtered = filtered.filter(item => {
+        const itemDate = new Date(item.createdAt);
+        return itemDate >= startDate && itemDate <= endDate;
+      });
+    }
+
+    return filtered;
+  };
+
+  // Table Columns
+  const getFeedbackColumns = (type) => [
+    { 
+      Header: "Title", 
+      accessor: type === "complaints" ? "name" : "feedback_title",
+      Cell: ({ value }) => (
+        <div className="font-semibold text-gray-800 dark:text-gray-100">
+          {value || "N/A"}
+        </div>
+      )
+    },
     {
-      Header: "Feedback",
-      accessor: "feedback_text",
-      render: (row) => {
-        const feedback_text = row?.feedback_text || "";
-        const messagePreview =
-          feedback_text.split(" ").slice(0, 6).join(" ") +
-          (feedback_text.split(" ").length > 6 ? "..." : "");
+      Header: type === "complaints" ? "Description" : "Feedback",
+      accessor: type === "complaints" ? "description" : "feedback_text",
+      Cell: ({ value }) => {
+        if (!value) return <span className="text-gray-400 italic">No message</span>;
+        
+        const words = value.split(" ");
+        const preview = words.slice(0, 6).join(" ");
+        const hasMore = words.length > 6;
 
         return (
           <div className="flex items-center">
-            <span className="mr-2">{messagePreview}</span>
-            {feedback_text.split(" ").length > 6 && (
+            <span className="text-gray-700 dark:text-gray-200">{preview}</span>
+            {hasMore && (
               <button
-                onClick={() => setSelectedMessage(feedback_text)}
-                className="ml-2 text-green-500 rounded-md px-4 py-2 hover:text-green-700 transition-all duration-200 text-sm flex items-center space-x-0"
+                onClick={() => setSelectedMessage(value)}
+                className="ml-2 text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 text-sm font-medium transition-colors"
               >
-                <span className="ml-[-1.5rem]">Read More...</span>
+                Read More
               </button>
             )}
           </div>
         );
-      },
-    },
-    { Header: "Type", accessor: "feedback_for" },
-    {
-      Header: "Date",
-      accessor: "createdAt",
-      render: (row) => formatDate(row?.createdAt),
+      }
     },
     {
-      Header: "Action",
-      accessor: "actions",
-      render: (row) => (
-        <button
-          onClick={() =>
-            handleDelete(
-              `${apiUrls.feedbacks.deleteFeedback}`,
-              row._id,
-              apiUrls.feedbacks.getAllFeedbacks,
-              setFeedbacks
-            )
-          }
-          className="text-[#7ECA9D] border border-[#7ECA9D] rounded-md px-[10px] py-1"
-        >
-          Delete
-        </button>
-      ),
+      Header: "Type",
+      accessor: "feedback_for",
+      Cell: ({ value }) => value ? (
+        <div className="text-emerald-600 dark:text-emerald-400 font-medium">
+          {value}
+        </div>
+      ) : null,
+      show: type !== "complaints"
     },
-  ];
-
-  // Columns configuration for feedbacks
-  const instructorFeedbackColumns = [
-    { Header: "Title", accessor: "feedback_title" },
-    // { Header: "Feedback", accessor: "feedback_text" },
-    {
-      Header: "Feedback",
-      accessor: "feedback_text",
-      render: (row) => {
-        const feedback_text = row?.feedback_text || "";
-        const messagePreview =
-          feedback_text.split(" ").slice(0, 6).join(" ") +
-          (feedback_text.split(" ").length > 6 ? "..." : "");
-
-        return (
-          <div className="flex items-center">
-            <span className="mr-2">{messagePreview}</span>
-            {feedback_text.split(" ").length > 6 && (
-              <button
-                onClick={() => setSelectedMessage(feedback_text)}
-                className="ml-2 text-green-500 rounded-md px-4 py-2 hover:text-green-700 transition-all duration-200 text-sm flex items-center space-x-0"
-              >
-                <span className="ml-[-1.5rem]">Read More...</span>
-              </button>
-            )}
-          </div>
-        );
-      },
-    },
-    { Header: "Type", accessor: "feedback_for" },
-    {
-      Header: "Date",
-      accessor: "createdAt",
-      render: (row) => formatDate(row?.createdAt),
-    },
-    {
-      Header: "Action",
-      accessor: "actions",
-      render: (row) => (
-        <button
-          onClick={() =>
-            handleDelete(
-              `${apiUrls.feedbacks.deleteInstructorFeedback}`,
-              row._id,
-              apiUrls.feedbacks.getAllInstructorFeedbacks,
-              setInstructorFeedbacks
-            )
-          }
-          className="text-[#7ECA9D] border border-[#7ECA9D] rounded-md px-[10px] py-1"
-        >
-          Delete
-        </button>
-      ),
-    },
-  ];
-
-  // Columns configuration for complaints
-  const complaintColumns = [
-    { Header: "Title", accessor: "name" },
-    // { Header: "Description", accessor: "description" },
-    {
-      Header: "Description",
-      accessor: "description",
-      render: (row) => {
-        const description = row?.description || "";
-        const messagePreview =
-          description.split(" ").slice(0, 6).join(" ") +
-          (description.split(" ").length > 6 ? "..." : "");
-
-        return (
-          <div className="flex items-center">
-            <span className="mr-2">{messagePreview}</span>
-            {description.split(" ").length > 6 && (
-              <button
-                onClick={() => setSelectedMessage(description)}
-                className="ml-2 text-green-500 rounded-md px-4 py-2 hover:text-green-700 transition-all duration-200 text-sm flex items-center space-x-0"
-              >
-                <span className="ml-[-1.5rem]">Read More...</span>
-              </button>
-            )}
-          </div>
-        );
-      },
-    },
-    {
-      Header: "Date",
-      accessor: "dateFiled",
-      render: (row) => formatDate(row?.dateFiled),
-    },
-    // { Header: "Status", accessor: "status" },
     {
       Header: "Status",
       accessor: "status",
-      render: (row) => {
-        const status = row.status;
-        const statusFormatted =
-          status.charAt(0).toUpperCase() + status.slice(1);
+      Cell: ({ value }) => {
+        if (!value || type !== "complaints") return null;
 
-        // Define styles based on status
+        const statusFormatted = value.charAt(0).toUpperCase() + value.slice(1);
         const getStatusStyles = (status) => {
           switch (status.toLowerCase()) {
             case "resolved":
-              return { bgColor: "bg-green-500", textColor: "text-white" };
+              return "bg-green-500 text-white";
             case "in-progress":
-              return { bgColor: "bg-yellow", textColor: "text-white" };
+              return "bg-yellow-500 text-white";
             case "open":
-              return { bgColor: "bg-gray-500", textColor: "text-white" };
+              return "bg-gray-500 text-white";
             default:
-              return { bgColor: "bg-gray-300", textColor: "text-black" };
+              return "bg-gray-300 text-black";
           }
         };
 
-        const { bgColor, textColor } = getStatusStyles(status);
-
         return (
-          <span
-            className={`px-2 py-1 rounded-md font-semibold ${bgColor} ${textColor}`}
-          >
+          <span className={`px-2 py-1 rounded-md font-semibold ${getStatusStyles(value)}`}>
             {statusFormatted}
           </span>
         );
       },
+      show: type === "complaints"
+    },
+    {
+      Header: "Date",
+      accessor: "createdAt",
+      Cell: ({ value }) => (
+        <div className="text-gray-600 dark:text-gray-300 font-medium">
+          {formatDate(value)}
+        </div>
+      )
     },
     {
       Header: "Action",
       accessor: "actions",
-      render: (row) => (
-        <div className="flex gap-2 items-center">
+      Cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          {type === "complaints" && (
+            <button
+              onClick={() => handleEdit(row.original._id)}
+              className="px-3 py-1.5 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/30 rounded-lg transition-colors font-medium"
+            >
+              Edit
+            </button>
+          )}
           <button
-            onClick={() => handleEdit(row._id)}
-            className="text-[#FFA500] border border-[#FFA500] rounded-md px-[10px] py-1"
-          >
-            Edit
-          </button>
-          <button
-            onClick={() =>
-              handleDelete(
-                `${apiUrls.feedbacks.deleteComplaint}`,
-                row._id,
-                apiUrls.feedbacks.getAllComplaints,
-                setComplaints
-              )
-            }
-            className="text-[#7ECA9D] border border-[#7ECA9D] rounded-md px-[10px] py-1"
+            onClick={() => handleDelete(
+              type === "complaints"
+                ? apiUrls.feedbacks.deleteComplaint
+                : type === "instructor_feedbacks"
+                ? apiUrls.feedbacks.deleteInstructorFeedback
+                : apiUrls.feedbacks.deleteFeedback,
+              row.original._id,
+              type === "complaints"
+                ? apiUrls.feedbacks.getAllComplaints
+                : type === "instructor_feedbacks"
+                ? apiUrls.feedbacks.getAllInstructorFeedbacks
+                : apiUrls.feedbacks.getAllFeedbacks,
+              type === "complaints"
+                ? setComplaints
+                : type === "instructor_feedbacks"
+                ? setInstructorFeedbacks
+                : setFeedbacks
+            )}
+            className="px-3 py-1.5 text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-900/30 rounded-lg transition-colors font-medium"
           >
             Delete
           </button>
         </div>
-      ),
-    },
+      )
+    }
   ];
 
-  // Render edit modal
-  const renderEditModal = () => {
-    if (!editComplaint) return null;
+  return (
+    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen p-6 space-y-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm overflow-hidden">
+          {/* Header */}
+          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
+                Feedback & Complaints Management
+              </h1>
 
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-        <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-          <h2 className=" text-[20px] font-lighter mb-4">
-            Update Complaint Status
-          </h2>
-          <div className="mb-4">
-            <label className="block mb-2  font-lighter">New Status</label>
-            <select
-              value={newStatus}
-              onChange={(e) => setNewStatus(e.target.value)}
-              className="w-full p-2 border rounded-md"
-            >
-              <option value="">Select Status</option>
-              <option value="open">Open</option>
-              <option value="in-progress">In-Progress</option>
-              <option value="resolved">Resolved</option>
-            </select>
+              {/* Tabs */}
+              <div className="flex space-x-4">
+                <button
+                  onClick={() => setActiveTab("feedbacks")}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    activeTab === "feedbacks"
+                      ? "bg-emerald-600 text-white shadow-sm hover:bg-emerald-700"
+                      : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  }`}
+                >
+                  Student Feedbacks
+                </button>
+                <button
+                  onClick={() => setActiveTab("instructor_feedbacks")}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    activeTab === "instructor_feedbacks"
+                      ? "bg-emerald-600 text-white shadow-sm hover:bg-emerald-700"
+                      : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  }`}
+                >
+                  Instructor Feedbacks
+                </button>
+                <button
+                  onClick={() => setActiveTab("complaints")}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    activeTab === "complaints"
+                      ? "bg-emerald-600 text-white shadow-sm hover:bg-emerald-700"
+                      : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  }`}
+                >
+                  Complaints
+                </button>
+              </div>
+            </div>
+
+            {/* Filters */}
+            <div className="mt-6 flex flex-wrap items-center gap-4">
+              {/* Search */}
+              <div className="relative flex-grow max-w-md">
+                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder={`Search ${activeTab.replace("_", " ")}...`}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:focus:ring-emerald-500 dark:focus:border-emerald-500 transition-colors"
+                />
+              </div>
+
+              {/* Date Range Picker */}
+              <div className="relative">
+                <DatePicker
+                  selectsRange={true}
+                  startDate={startDate}
+                  endDate={endDate}
+                  onChange={(update) => setDateRange(update)}
+                  placeholderText="Select date range"
+                  className="pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:focus:ring-emerald-500 dark:focus:border-emerald-500 transition-colors"
+                />
+                <FaCalendarAlt className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              </div>
+            </div>
           </div>
-          <div className="flex gap-4">
-            <button
-              onClick={handleUpdateStatus}
-              className="bg-[#FFA500] text-white px-4 py-2 rounded-md"
-            >
-              Update
-            </button>
-            <button
-              onClick={() => setEditComplaint(null)}
-              className="bg-gray-400 text-white px-4 py-2 rounded-md"
-            >
-              Cancel
-            </button>
+
+          {/* Content */}
+          <div className="p-6">
+            {loading ? (
+              <div className="flex items-center justify-center p-8">
+                <Loader className="animate-spin h-8 w-8 text-emerald-600 dark:text-emerald-400" />
+              </div>
+            ) : (
+              <MyTable
+                columns={getFeedbackColumns(activeTab)}
+                data={getFilteredData(
+                  activeTab === "complaints"
+                    ? complaints
+                    : activeTab === "instructor_feedbacks"
+                    ? instructorFeedbacks
+                    : feedbacks
+                )}
+                entryText={`Total ${activeTab.replace("_", " ")}: `}
+              />
+            )}
           </div>
         </div>
       </div>
-    );
-  };
 
-  if (loading) return <Preloader />;
-
-  return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      {/* Feedback Section */}
-      <div className="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-lg">
-        <h1 className="text-2xl font-bold mb-4">Student Feedbacks</h1>
-        <MyTable
-          columns={feedbackColumns}
-          data={feedbacks}
-          entryText="Feedbacks"
-        />
-      </div>
-
-      <div className="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-lg mt-10">
-        <h1 className="text-2xl font-bold mb-4">Instructor Feedbacks</h1>
-        <MyTable
-          columns={instructorFeedbackColumns}
-          data={instructorFeedbacks}
-          entryText="Instructor Feedbacks"
-        />
-      </div>
-      {/* Complaints Section */}
-      <div className="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-lg mt-10">
-        <h1 className="text-2xl font-bold mb-4">Student Complaints</h1>
-        <MyTable
-          columns={complaintColumns}
-          data={complaints}
-          entryText="Complaints"
-        />
-      </div>
       {/* Edit Modal */}
-      {renderEditModal()}
-      {/* Modal for full message */}
-      {selectedMessage && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white rounded-md p-6 max-w-[50%] w-full relative  max-h-[500px] overflow-y-auto">
-            {/* Close Button at top-right corner */}
-            <button
-              onClick={() => setSelectedMessage(null)}
-              className="absolute top-2 right-2 text-xl text-gray-500 hover:text-gray-700"
-            >
-              <FaTimes />
-            </button>
+      {editComplaint && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md transform transition-all">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  Update Complaint Status
+                </h2>
+                <button
+                  onClick={() => setEditComplaint(null)}
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                >
+                  <FaTimes className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    New Status
+                  </label>
+                  <select
+                    value={newStatus}
+                    onChange={(e) => setNewStatus(e.target.value)}
+                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:focus:ring-emerald-500 dark:focus:border-emerald-500"
+                  >
+                    <option value="">Select Status</option>
+                    <option value="open">Open</option>
+                    <option value="in-progress">In-Progress</option>
+                    <option value="resolved">Resolved</option>
+                  </select>
+                </div>
+                <div className="flex justify-end gap-3">
+                  <button
+                    onClick={() => setEditComplaint(null)}
+                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg transition-colors font-medium"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleUpdateStatus}
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors font-medium"
+                  >
+                    Update
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
-            <h2 className="text-xl font-semibold mb-4">Full Message</h2>
-            <p className="mb-4">{selectedMessage}</p>
-            <button
-              onClick={() => setSelectedMessage(null)}
-              className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition-all duration-200"
-            >
-              Close
-            </button>
+      {/* Message Modal */}
+      {selectedMessage && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-2xl transform transition-all">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  {activeTab === "complaints" ? "Full Description" : "Full Message"}
+                </h2>
+                <button
+                  onClick={() => setSelectedMessage(null)}
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                >
+                  <FaTimes className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="prose dark:prose-invert max-w-none">
+                <p className="text-gray-700 dark:text-gray-200 whitespace-pre-wrap">
+                  {selectedMessage}
+                </p>
+              </div>
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={() => setSelectedMessage(null)}
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg transition-colors font-medium"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

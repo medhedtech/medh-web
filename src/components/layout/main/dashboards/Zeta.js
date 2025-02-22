@@ -46,10 +46,7 @@ const UsersTable = () => {
     { Header: "Name", accessor: "full_name" },
     { Header: "Email", accessor: "email" },
     { Header: "Join Date", accessor: "createdAt" },
-    {
-      Header: "Role",
-      accessor: "admin_role",
-    },
+    { Header: "Role", accessor: "admin_role" },
     {
       Header: "Status",
       accessor: "status",
@@ -65,6 +62,22 @@ const UsersTable = () => {
             {row.status}
           </div>
         </div>
+      ),
+    },
+    {
+      Header: "Action",
+      accessor: "action",
+      render: (row) => (
+        <button
+          onClick={() => {
+            if (window.confirm("Are you sure you want to delete this user?")) {
+              deleteUser(row.id);
+            }
+          }}
+          className="bg-red-500 text-white px-2 py-1 rounded"
+        >
+          Delete
+        </button>
       ),
     },
   ];

@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { FaPlus, FaChevronDown } from "react-icons/fa";
+import { FaPlus, FaChevronDown, FaSearch, FaFilter } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import AddStudentForm from "./AddStudentForm";
 import { apiUrls } from "@/apis";
@@ -9,7 +9,7 @@ import MyTable from "@/components/shared/common-table/page";
 import useDeleteQuery from "@/hooks/deleteQuery.hook";
 import { toast } from "react-toastify";
 import usePostQuery from "@/hooks/postQuery.hook";
-import { Upload } from "lucide-react";
+import { Upload, Loader } from "lucide-react";
 
 const formatDate = (dateString) => {
   const date = new Date(dateString);
@@ -125,15 +125,51 @@ const UsersTableStudent = () => {
 
   // Table Columns Configuration
   const columns = [
-    { Header: "No.", accessor: "no" },
-    { Header: "Name", accessor: "full_name" },
-    // { Header: "Age", accessor: "age" },
-    { Header: "Email ID", accessor: "email" },
-    { Header: "Join Date", accessor: "createdAt" },
-    // { Header: "Course", accessor: "course_name" },
+    { 
+      Header: "No.", 
+      accessor: "no",
+      className: "w-16 text-center"
+    },
+    { 
+      Header: "Name", 
+      accessor: "full_name",
+      className: "min-w-[200px]",
+      render: (row) => (
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold">
+            {row.full_name?.charAt(0)?.toUpperCase()}
+          </div>
+          <div>
+            <div className="font-medium text-gray-900 dark:text-white">{row.full_name}</div>
+            <div className="text-sm text-gray-500">{row.phone_number || 'No phone'}</div>
+          </div>
+        </div>
+      )
+    },
+    { 
+      Header: "Email ID", 
+      accessor: "email",
+      className: "min-w-[250px]",
+      render: (row) => (
+        <div className="text-gray-600 dark:text-gray-300">
+          {row.email}
+        </div>
+      )
+    },
+    { 
+      Header: "Join Date", 
+      accessor: "createdAt",
+      className: "min-w-[120px]",
+      render: (row) => (
+        <div className="text-gray-600 dark:text-gray-300">
+          {row.createdAt}
+        </div>
+      )
+    },
     {
       Header: "Status",
       accessor: "status",
+      className: "min-w-[150px]",
       render: (row) => {
         const isActive = row?.status === "Active";
         return (
@@ -151,8 +187,8 @@ const UsersTableStudent = () => {
               ></div>
             </button>
             <span
-              className={`ml-2 text-sm ${
-                isActive ? "text-green-700" : "text-red-700"
+              className={`text-sm font-medium ${
+                isActive ? "text-green-600" : "text-gray-600"
               }`}
             >
               {isActive ? "Active" : "Inactive"}
@@ -164,11 +200,12 @@ const UsersTableStudent = () => {
     {
       Header: "Action",
       accessor: "actions",
+      className: "w-[100px]",
       render: (row) => (
         <div className="flex gap-2 items-center">
           <button
             onClick={() => deleteStudent(row._id)}
-            className="text-red-500 border border-red-500 rounded-md px-2 py-1 hover:bg-red-50"
+            className="text-red-500 hover:text-red-700 font-medium text-sm"
           >
             Delete
           </button>
@@ -260,44 +297,66 @@ const UsersTableStudent = () => {
     }
   };
 
-  // Update enrolled students columns to include delete action
+  // Update enrolled students columns
   const columnsSecond = [
-    { Header: "No.", accessor: "no" },
-    { Header: "Name", accessor: "full_name" },
-    { Header: "Email ID", accessor: "email" },
+    { 
+      Header: "No.", 
+      accessor: "no",
+      className: "w-16 text-center"
+    },
+    { 
+      Header: "Name", 
+      accessor: "full_name",
+      className: "min-w-[200px]",
+      render: (row) => (
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-semibold">
+            {row.full_name?.charAt(0)?.toUpperCase()}
+          </div>
+          <div className="font-medium text-gray-900 dark:text-white">
+            {row.full_name}
+          </div>
+        </div>
+      )
+    },
+    { 
+      Header: "Email ID", 
+      accessor: "email",
+      className: "min-w-[250px]",
+      render: (row) => (
+        <div className="text-gray-600 dark:text-gray-300">
+          {row.email}
+        </div>
+      )
+    },
     {
       Header: "Enrolled Courses",
       accessor: "courses",
+      className: "min-w-[300px]",
       render: (row) => {
         const courses = row.courses ? row.courses.split(", ") : [];
-        // const enrollmentDates = new Date(enrollment.createdAt);
         const isExpanded = expandedRowId === row?._id;
         const visibleCourses = isExpanded ? courses : courses.slice(0, 2);
 
         return (
           <div>
-            <ul className="list-disc pl-5 space-y-2">
+            <div className="space-y-2">
               {visibleCourses.map((course, courseIndex) => (
-                <li
+                <div
                   key={courseIndex}
-                  className="flex justify-between items-center bg-blue-200 text-blue-700 rounded-lg px-3 py-1 text-sm"
+                  className="inline-flex items-center bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-full px-3 py-1 text-sm mr-2"
                 >
-                  <span>
-                    {courseIndex + 1}. {course}
-                  </span>
-                  {/* <span className="text-sm text-gray-500 ml-4">
-                    {enrollmentDates[courseIndex] || "N/A"}
-                  </span> */}
-                </li>
+                  {course}
+                </div>
               ))}
-            </ul>
+            </div>
 
             {courses.length > 2 && (
               <button
                 onClick={() => toggleExpand(row?._id)}
-                className="text-white bg-[#7eca9d] border border-white ml-8 mt-2 rounded-md px-[10px] py-1"
+                className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium mt-2"
               >
-                {isExpanded ? "View Less" : "View More"}{" "}
+                {isExpanded ? "Show Less" : `+${courses.length - 2} more`}
               </button>
             )}
           </div>
@@ -307,11 +366,12 @@ const UsersTableStudent = () => {
     {
       Header: "Action",
       accessor: "actions",
+      className: "w-[100px]",
       render: (row) => (
         <div className="flex gap-2 items-center">
           <button
             onClick={() => deleteEnrolledStudent(row._id)}
-            className="text-red-500 border border-red-500 rounded-md px-2 py-1 hover:bg-red-50"
+            className="text-red-500 hover:text-red-700 font-medium text-sm"
           >
             Delete
           </button>
@@ -400,148 +460,164 @@ const UsersTableStudent = () => {
     }
   };
 
-  // Add Student Form Toggle
-  if (showAddStudentForm)
-    return <AddStudentForm onCancel={() => setShowAddStudentForm(false)} />;
-
   return (
-    <>
-      <div className="bg-gray-100 dark:bg-darkblack font-Poppins min-h-screen pt-8 p-6">
-        <div className="max-w-6xl mx-auto dark:bg-inherit dark:text-whitegrey3 dark:border bg-white rounded-lg shadow-lg p-6">
-          <header className="flex items-center justify-between mb-4  p-6">
-            <h1 className="text-2xl font-bold">Student List</h1>
-            <div className="flex items-center space-x-2">
-              <div className="relative flex-grow flex justify-center">
-                <input
-                  type="text"
-                  placeholder="Search here"
-                  className="border dark:bg-inherit dark:text-whitegrey3 dark:border border-gray-300 rounded-full p-2 pl-4 w-full max-w-md"
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              <div className="relative">
-                <button
-                  onClick={handleFilterDropdownToggle}
-                  className="border-2 px-4 py-1 rounded-lg flex items-center"
-                >
-                  Filters
-                  <svg
-                    className="w-4 h-4 ml-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M19 9l-7 7-7-7"
-                    ></path>
-                  </svg>
-                </button>
-                {isFilterDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg">
+    <div className="bg-gray-50 dark:bg-darkblack min-h-screen p-6 space-y-8">
+      {showAddStudentForm ? (
+        <AddStudentForm onCancel={() => setShowAddStudentForm(false)} />
+      ) : (
+        <>
+          {/* Students List Section */}
+          <div className="max-w-7xl mx-auto">
+            <div className="bg-white dark:bg-inherit dark:text-whitegrey3 dark:border rounded-xl shadow-sm overflow-hidden">
+              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Student Management</h1>
+                  
+                  <div className="flex flex-wrap items-center gap-3">
+                    {/* Search Bar */}
+                    <div className="relative flex-grow max-w-md">
+                      <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="Search students..."
+                        className="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-600 dark:bg-gray-800 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                      />
+                    </div>
+
+                    {/* Filter Dropdown */}
+                    <div className="relative">
+                      <button
+                        onClick={handleFilterDropdownToggle}
+                        className="flex items-center px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+                      >
+                        <FaFilter className="mr-2" />
+                        Filters
+                      </button>
+                      {isFilterDropdownOpen && (
+                        <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg z-20">
+                          <div className="p-2">
+                            <button
+                              onClick={() => handleFilterSelect("status", "Active")}
+                              className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 rounded"
+                            >
+                              Active Students
+                            </button>
+                            <button
+                              onClick={() => handleFilterSelect("status", "Inactive")}
+                              className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 rounded"
+                            >
+                              Inactive Students
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Sort Dropdown */}
+                    <div className="relative">
+                      <button
+                        onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
+                        className="flex items-center px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+                      >
+                        <span>{sortOrder === "newest" ? "Newest First" : "Oldest First"}</span>
+                        <FaChevronDown className="ml-2" />
+                      </button>
+                      {isSortDropdownOpen && (
+                        <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg z-20">
+                          <button
+                            onClick={() => handleSortChange("newest")}
+                            className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 rounded"
+                          >
+                            Newest First
+                          </button>
+                          <button
+                            onClick={() => handleSortChange("oldest")}
+                            className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 rounded"
+                          >
+                            Oldest First
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Action Buttons */}
                     <button
-                      onClick={() => handleFilterSelect("status", "Active")}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setShowAddStudentForm(true)}
+                      className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                     >
-                      All
+                      <FaPlus className="mr-2" />
+                      Add Student
                     </button>
+                    
                     <button
-                      onClick={() => handleFilterSelect("status", "Inactive")}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => document.getElementById('csvUpload').click()}
+                      className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                     >
-                      Inactive
+                      <Upload className="mr-2 h-4 w-4" />
+                      Import CSV
+                      <input
+                        type="file"
+                        id="csvUpload"
+                        accept=".csv"
+                        className="hidden"
+                        onChange={handleCSVUpload}
+                      />
                     </button>
                   </div>
-                )}
+                </div>
               </div>
 
-              {/* Sort Button with Dropdown */}
-              <div className="relative">
-                <button
-                  onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md dark:bg-inherit dark:text-whitegrey3 dark:border hover:bg-gray-300 flex items-center space-x-1"
-                >
-                  <span>
-                    {sortOrder === "newest" ? "New to Oldest" : "Oldest to New"}
-                  </span>
-                  <FaChevronDown />
-                </button>
-                {isSortDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
-                    <a
-                      href="#"
-                      onClick={() => handleSortChange("oldest")}
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      Oldest to New
-                    </a>
-                    <a
-                      href="#"
-                      onClick={() => handleSortChange("newest")}
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      Newest to Old
-                    </a>
+              {/* Student Table */}
+              <div className="overflow-x-auto">
+                {loading ? (
+                  <div className="flex items-center justify-center p-8">
+                    <Loader className="animate-spin h-8 w-8 text-blue-600" />
                   </div>
+                ) : (
+                  <MyTable 
+                    columns={columns} 
+                    data={formattedData}
+                    className="w-full"
+                  />
                 )}
               </div>
-
-              {/* Add Student Button */}
-              <button
-                onClick={() => setShowAddStudentForm(true)}
-                className="bg-customGreen text-white px-4 py-2 rounded-lg flex items-center"
-              >
-                <FaPlus className="mr-2" />
-                Add Student
-              </button>
-
-              {/* Upload CSV Button */}
-              <button
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center ml-2"
-                onClick={() => document.getElementById('csvUpload').click()}
-              >
-                <Upload className="mr-2 h-4 w-4" />
-                Upload CSV
-                <input
-                  type="file"
-                  id="csvUpload"
-                  accept=".csv"
-                  className="hidden"
-                  onChange={handleCSVUpload}
-                />
-              </button>
             </div>
-          </header>
-          {/* Student Table */}
-          <MyTable columns={columns} data={formattedData} loading={loading} />
-        </div>
-      </div>
+          </div>
 
-      <div className="bg-gray-100 dark:bg-darkblack font-Poppins min-h-screen pt-8  p-6">
-        <div className="max-w-6xl mx-auto dark:bg-inherit dark:text-whitegrey3 dark:border bg-white rounded-lg shadow-lg p-6">
-          <header className="flex items-center justify-between mb-4  p-6">
-            <h1 className="text-2xl font-bold"> Enrolled Student</h1>
-            <div className="flex items-center space-x-2">
-              <div className="relative flex-grow flex justify-center">
-                <input
-                  type="text"
-                  placeholder="Search here"
-                  className="border dark:bg-inherit dark:text-whitegrey3 dark:border border-gray-300 rounded-full p-2 pl-4 w-full max-w-md"
-                  onChange={(e) =>
-                    setEnrolledStudentSearchQuery(e.target.value)
-                  }
+          {/* Enrolled Students Section */}
+          <div className="max-w-7xl mx-auto mt-8">
+            <div className="bg-white dark:bg-inherit dark:text-whitegrey3 dark:border rounded-xl shadow-sm overflow-hidden">
+              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Enrolled Students</h2>
+                  
+                  {/* Search Bar */}
+                  <div className="relative flex-grow max-w-md">
+                    <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search enrolled students..."
+                      className="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-600 dark:bg-gray-800 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      onChange={(e) => setEnrolledStudentSearchQuery(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Enrolled Students Table */}
+              <div className="overflow-x-auto">
+                <MyTable 
+                  columns={columnsSecond} 
+                  data={dataToRender}
+                  className="w-full" 
                 />
               </div>
             </div>
-          </header>
-          {/* Student Table */}
-          <MyTable columns={columnsSecond} data={dataToRender} />{" "}
-        </div>
-      </div>
-    </>
+          </div>
+        </>
+      )}
+    </div>
   );
 };
 
