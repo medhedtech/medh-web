@@ -60,7 +60,9 @@ const AddCourse = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const dropdownRef = useRef(null);
   const [courseDurationValue, setCourseDurationValue] = useState({ months: '', weeks: '' });
+  const [courseDurationUnit, setCourseDurationUnit] = useState("");
   const [sessionDurationValue, setSessionDurationValue] = useState({ hours: '', minutes: '' });
+  const [sessionDurationUnit, setSessionDurationUnit] = useState("");
   const [isResourceModatOpen, setResourceModalOpen] = useState(false);
   const [resourceVideos, setResourceVideos] = useState([]);
   const [resourcePdfs, setResourcePdfs] = useState([]);
@@ -75,6 +77,9 @@ const AddCourse = () => {
   const [selectedCourses, setSelectedCourses] = useState([]);
   const [batchPrice, setBatchPrice] = useState("");
   const [individualPrice, setIndividualPrice] = useState("");
+  const [prices, setPrices] = useState([
+    { id: 1, currency: 'USD', individual: '', batch: '' }
+  ]);
   const {
     register,
     handleSubmit,
@@ -89,6 +94,20 @@ const AddCourse = () => {
       related_courses: [],
     },
   });
+
+  const currencyOptions = [
+    { code: 'USD', symbol: '$', name: 'US Dollar' },
+    { code: 'EUR', symbol: '€', name: 'Euro' },
+    { code: 'GBP', symbol: '£', name: 'British Pound' },
+    { code: 'INR', symbol: '₹', name: 'Indian Rupee' },
+    { code: 'AUD', symbol: 'A$', name: 'Australian Dollar' },
+    { code: 'CAD', symbol: 'C$', name: 'Canadian Dollar' }
+  ];
+
+  const getCurrencySymbol = (currencyCode) => {
+    const currency = currencyOptions.find(c => c.code === currencyCode);
+    return currency ? currency.symbol : '';
+  };
 
   useEffect(() => {
     const storedData = localStorage.getItem("courseData");
@@ -267,8 +286,7 @@ const AddCourse = () => {
         curriculum,
         related_courses: selectedCourses,
         createdAt: new Date().toISOString(),
-        batch_price: batchPrice,
-        individual_price: individualPrice
+        prices: prices.filter(price => price.currency && (price.individual || price.batch))
       };
 
       localStorage.setItem("courseData", JSON.stringify(postData));
@@ -279,23 +297,15 @@ const AddCourse = () => {
     }
   };
 
-  useEffect(() => {
-    if (courseDurationValue.months || courseDurationValue.weeks) {
-      const duration = [];
-      if (courseDurationValue.months) duration.push(`${courseDurationValue.months} Months`);
-      if (courseDurationValue.weeks) duration.push(`${courseDurationValue.weeks} Weeks`);
-      setValue("course_duration", duration.join(' '));
-    }
-  }, [courseDurationValue, setValue]);
+  const handleCourseDuration = (unit) => {
+    setCourseDurationUnit(unit);
+    setValue("course_duration", `${courseDurationValue.months} ${unit} ${courseDurationValue.weeks} weeks`);
+  };
 
-  useEffect(() => {
-    if (sessionDurationValue.hours || sessionDurationValue.minutes) {
-      const duration = [];
-      if (sessionDurationValue.hours) duration.push(`${sessionDurationValue.hours} Hours`);
-      if (sessionDurationValue.minutes) duration.push(`${sessionDurationValue.minutes} Minutes`);
-      setValue("session_duration", duration.join(' '));
-    }
-  }, [sessionDurationValue, setValue]);
+  const handleSessionDuration = (unit) => {
+    setSessionDurationUnit(unit);
+    setValue("session_duration", `${sessionDurationValue.hours} ${unit} ${sessionDurationValue.minutes} minutes`);
+  };
 
   const handleResourceModal = (e) => {
     e.preventDefault();
@@ -405,6 +415,25 @@ const AddCourse = () => {
       localStorage.removeItem("courseData");
     };
   }, []);
+
+  const addNewCurrency = () => {
+    setPrices(prev => [...prev, { 
+      id: prev.length + 1, 
+      currency: '', 
+      individual: '', 
+      batch: '' 
+    }]);
+  };
+
+  const removeCurrency = (id) => {
+    setPrices(prev => prev.filter(price => price.id !== id));
+  };
+
+  const updatePrice = (id, field, value) => {
+    setPrices(prev => prev.map(price => 
+      price.id === id ? { ...price, [field]: value } : price
+    ));
+  };
 
   if (loading) {
     return <Preloader />;
@@ -542,27 +571,29 @@ const AddCourse = () => {
               <label className="block text-sm font-normal mb-1">
                 Duration<span className="text-red-500 ml-1">*</span>
               </label>
-              <div className="flex flex-col gap-3">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    className="p-3 border rounded-lg w-1/2 dark:bg-inherit text-gray-600"
-                    placeholder="Enter months"
-                    value={courseDurationValue.months || ''}
-                    onChange={(e) => setCourseDurationValue(prev => ({...prev, months: e.target.value}))}
-                  />
-                  <span className="text-gray-600">Months</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    className="p-3 border rounded-lg w-1/2 dark:bg-inherit text-gray-600"
-                    placeholder="Enter weeks"
-                    value={courseDurationValue.weeks || ''}
-                    onChange={(e) => setCourseDurationValue(prev => ({...prev, weeks: e.target.value}))}
-                  />
-                  <span className="text-gray-600">Weeks</span>
-                </div>
+              <div className="relative">
+                <input
+                  type="text"
+                  className="p-3 border rounded-lg w-full dark:bg-inherit text-gray-600"
+                  placeholder="e.g., 2 months 3 weeks"
+                  value={`${courseDurationValue.months || ''} ${courseDurationValue.months ? 'months' : ''} ${courseDurationValue.weeks || ''} ${courseDurationValue.weeks ? 'weeks' : ''}`.trim()}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    const matches = value.match(/(\d+)\s*months?\s*(\d+)\s*weeks?/i);
+                    if (matches) {
+                      setCourseDurationValue({
+                        months: matches[1],
+                        weeks: matches[2]
+                      });
+                    } else {
+                      setCourseDurationValue({
+                        months: '',
+                        weeks: ''
+                      });
+                    }
+                  }}
+                />
+                <div className="text-xs text-gray-500 mt-1">Format: "X months Y weeks" (e.g., "2 months 3 weeks")</div>
               </div>
               {errors.course_duration && (
                 <p className="text-red-500 text-xs mt-1">
@@ -575,27 +606,29 @@ const AddCourse = () => {
               <label className="block text-sm font-normal mb-1">
                 Session Duration<span className="text-red-500 ml-1">*</span>
               </label>
-              <div className="flex flex-col gap-3">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    placeholder="Enter hours"
-                    className="p-3 border rounded-lg w-1/2 text-gray-600 dark:bg-inherit"
-                    value={sessionDurationValue.hours || ''}
-                    onChange={(e) => setSessionDurationValue(prev => ({...prev, hours: e.target.value}))}
-                  />
-                  <span className="text-gray-600">Hours</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    placeholder="Enter minutes"
-                    className="p-3 border rounded-lg w-1/2 text-gray-600 dark:bg-inherit"
-                    value={sessionDurationValue.minutes || ''}
-                    onChange={(e) => setSessionDurationValue(prev => ({...prev, minutes: e.target.value}))}
-                  />
-                  <span className="text-gray-600">Minutes</span>
-                </div>
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="e.g., 1 hour 30 minutes"
+                  className="p-3 border rounded-lg w-full text-gray-600 dark:bg-inherit"
+                  value={`${sessionDurationValue.hours || ''} ${sessionDurationValue.hours ? 'hours' : ''} ${sessionDurationValue.minutes || ''} ${sessionDurationValue.minutes ? 'minutes' : ''}`.trim()}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    const matches = value.match(/(\d+)\s*hours?\s*(\d+)\s*minutes?/i);
+                    if (matches) {
+                      setSessionDurationValue({
+                        hours: matches[1],
+                        minutes: matches[2]
+                      });
+                    } else {
+                      setSessionDurationValue({
+                        hours: '',
+                        minutes: ''
+                      });
+                    }
+                  }}
+                />
+                <div className="text-xs text-gray-500 mt-1">Format: "X hours Y minutes" (e.g., "1 hour 30 minutes")</div>
               </div>
               {errors.session_duration && (
                 <p className="text-red-500 text-xs mt-1">
@@ -604,49 +637,101 @@ const AddCourse = () => {
               )}
             </div>
 
-            <div>
-              <label className="block text-sm font-normal mb-1">
-                Course Fee
-                <span className="text-red-500 ml-1">*</span> (USD)
+            <div className="col-span-2">
+              <label className="block text-sm font-normal mb-3">
+                Course Fee<span className="text-red-500 ml-1">*</span>
               </label>
-              <div className="flex flex-col space-y-4">
-                <div>
-                  <input
-                    type="text"
-                    placeholder="Enter amount in USD for Individual"
-                    className={`p-3 border rounded-lg w-full ${
-                      courseIsFree
-                        ? "bg-gray-200 cursor-not-allowed"
-                        : "text-gray-600 dark:bg-inherit"
-                    } placeholder-gray-400`}
-                    disabled={courseIsFree}
-                    {...register("course_fee")}
-                  />
-                  {errors.course_fee && (
-                    <p className="text-red-500 text-xs">
-                      {errors.course_fee.message}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <input
-                    type="text"
-                    placeholder="Enter amount in USD for Batch"
-                    className={`p-3 border rounded-lg w-full ${
-                      courseIsFree
-                        ? "bg-gray-200 cursor-not-allowed"
-                        : "text-gray-600 dark:bg-inherit"
-                    } placeholder-gray-400`}
-                    disabled={courseIsFree}
-                    value={batchPrice}
-                    onChange={(e) => setBatchPrice(e.target.value)}
-                  />
-                  {errors.batch_price && (
-                    <p className="text-red-500 text-xs">
-                      {errors.batch_price.message}
-                    </p>
-                  )}
-                </div>
+              <div className="space-y-4">
+                {prices.map((price) => (
+                  <div key={price.id} className="flex flex-col space-y-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-800">
+                    <div className="flex justify-between items-center">
+                      <div className="flex-1">
+                        <label className="block text-xs text-gray-500 mb-1">Currency</label>
+                        <select
+                          className="p-3 border rounded-lg w-full dark:bg-inherit text-gray-600"
+                          value={price.currency}
+                          onChange={(e) => updatePrice(price.id, 'currency', e.target.value)}
+                          disabled={courseIsFree}
+                        >
+                          <option value="">Select Currency</option>
+                          {currencyOptions.map(currency => (
+                            <option key={currency.code} value={currency.code}>
+                              {currency.code} - {currency.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      {prices.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeCurrency(price.id)}
+                          className="ml-4 text-red-500 hover:text-red-700 self-end"
+                        >
+                          Remove Currency
+                        </button>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">Individual Price</label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                            {price.currency ? getCurrencySymbol(price.currency) : ''}
+                          </span>
+                          <input
+                            type="number"
+                            placeholder="Enter amount for Individual"
+                            className={`p-3 pl-7 border rounded-lg w-full ${
+                              courseIsFree || !price.currency
+                                ? "bg-gray-200 cursor-not-allowed"
+                                : "text-gray-600 dark:bg-inherit"
+                            } placeholder-gray-400`}
+                            disabled={courseIsFree || !price.currency}
+                            value={price.individual}
+                            onChange={(e) => updatePrice(price.id, 'individual', e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">Batch Price</label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                            {price.currency ? getCurrencySymbol(price.currency) : ''}
+                          </span>
+                          <input
+                            type="number"
+                            placeholder="Enter amount for Batch"
+                            className={`p-3 pl-7 border rounded-lg w-full ${
+                              courseIsFree || !price.currency
+                                ? "bg-gray-200 cursor-not-allowed"
+                                : "text-gray-600 dark:bg-inherit"
+                            } placeholder-gray-400`}
+                            disabled={courseIsFree || !price.currency}
+                            value={price.batch}
+                            onChange={(e) => updatePrice(price.id, 'batch', e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {!courseIsFree && (
+                  <button
+                    type="button"
+                    onClick={addNewCurrency}
+                    className="flex items-center gap-2 text-blue-500 hover:text-blue-700 text-sm mt-4"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M10 4V16M4 10H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    </svg>
+                    Add Another Currency
+                  </button>
+                )}
+                {errors.course_fee && (
+                  <p className="text-red-500 text-xs">
+                    {errors.course_fee.message}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -860,233 +945,174 @@ const AddCourse = () => {
               setSelectedCourses={setSelectedCourses}
               field={register("related_courses")}
             />
-
-            <div>
-              <label className="block text-sm font-normal mb-1">
-                Batch Price
-                <span className="text-red-500 ml-1">*</span>
-              </label>
-              <input
-                type="number"
-                placeholder="Enter batch price"
-                className="p-3 border rounded-lg w-full text-gray-600 dark:bg-inherit placeholder-gray-400"
-                value={batchPrice}
-                onChange={(e) => setBatchPrice(e.target.value)}
-              />
-              {errors.batch_price && (
-                <p className="text-red-500 text-xs">
-                  {errors.batch_price.message}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-normal mb-1">
-                Individual Price
-                <span className="text-red-500 ml-1">*</span>
-              </label>
-              <input
-                type="number"
-                placeholder="Enter individual price"
-                className="p-3 border rounded-lg w-full text-gray-600 dark:bg-inherit placeholder-gray-400"
-                value={individualPrice}
-                onChange={(e) => setIndividualPrice(e.target.value)}
-              />
-              {errors.individual_price && (
-                <p className="text-red-500 text-xs">
-                  {errors.individual_price.message}
-                </p>
-              )}
-            </div>
           </div>
 
           {/* Upload Section */}
-          <div className="flex flex-wrap gap-24 mb-6 font-Poppins justify-start">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-6 font-Poppins">
             {/* Course Video Upload */}
-            <div>
-              {renderLabel("Add Course Videos")}
-              <div className="border-dashed border-2 dark:bg-inherit bg-purple border-gray-300 rounded-lg p-3 w-[210px] h-[140px] text-center relative">
-                <svg
-                  width="36"
-                  height="36"
-                  viewBox="0 0 48 48"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="mt-2 mx-auto"
-                >
-                  <path
-                    d="M8 40C6.9 40 5.95867 39.6087 5.176 38.826C4.39333 38.0433 4.00133 37.1013 4 36V22C4.86667 22.6667 5.81667 23.1667 6.85 23.5C7.88333 23.8333 8.93333 24 10 24C12.7667 24 15.1253 23.0247 17.076 21.074C19.0267 19.1233 20.0013 16.7653 20 14C20 12.9333 19.8333 11.8833 19.5 10.85C19.1667 9.81667 18.6667 8.86667 18 8H32C33.1 8 34.042 8.392 34.826 9.176C35.61 9.96 36.0013 10.9013 36 12V21L44 13V35L36 27V36C36 37.1 35.6087 38.042 34.826 38.826C34.0433 39.61 33.1013 40.0013 32 40H8ZM8 20V16H4V12H8V8H12V12H16V16H12V20H8ZM10 32H30L23.25 23L18 30L14.75 25.65L10 32Z"
-                    fill="#808080"
-                  />
+            <div className="w-full">
+              <label className="block text-sm font-normal mb-2 flex items-center gap-2">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M14 10L21 7V17L14 14M14 10V14M14 10L3 7V17L14 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-                <p className="text-customGreen cursor-pointer text-sm">
-                  Click to upload
-                </p>
-                <p className="text-gray-400 text-xs">
-                  or drag & drop the files
-                </p>
-                <input
-                  type="file"
-                  multiple
-                  accept="video/*"
-                  className="absolute inset-0 opacity-0 dark:bg-inherit cursor-pointer"
-                  onChange={handleVideoUpload}
-                />
-                {courseVideos && courseVideos.length > 0 && (
-                  <p className="mt-1 text-xs text-gray-500">✔ Uploaded</p>
-                )}
-              </div>
-              {/* Conditionally show the error message */}
-              {errorVideo && (
-                <p className="text-red-500 mt-2 text-xs">
-                  Please upload course videos
-                </p>
-              )}
-
-              {/* Uploaded Course Videos */}
-              <div className="w-[210px] text-center relative">
+                Add Course Videos<span className="text-red-500">*</span>
+              </label>
+              <div className={`border-2 ${courseVideos.length > 0 ? 'border-green-500 bg-green-50' : 'border-dashed border-gray-300'} rounded-lg p-4 transition-all duration-300 relative ${errorVideo ? 'border-red-500 bg-red-50' : ''}`}>
+                <div className="text-center">
+                  <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                    <path d="M28 8H12a4 4 0 00-4 4v20m0 0v4a4 4 0 004 4h20a4 4 0 004-4V28m-4-4l5-5m0 0l-5-5m5 5H28" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <div className="mt-4 flex text-sm justify-center">
+                    <label className="relative cursor-pointer rounded-md font-medium text-blue-600 hover:text-blue-500">
+                      <span>Upload videos</span>
+                      <input
+                        type="file"
+                        multiple
+                        accept="video/*"
+                        className="sr-only"
+                        onChange={handleVideoUpload}
+                      />
+                    </label>
+                    <p className="pl-1 text-gray-500">or drag and drop</p>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">MP4, WebM, Ogg up to 100MB</p>
+                </div>
                 {courseVideos.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {courseVideos.map((fileUrl, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between bg-[#e9e9e9] p-2 rounded-md text-sm w-full md:w-auto"
-                      >
-                        <span className="truncate text-[#5C5C5C] max-w-[150px]">
-                          Video {index + 1}
-                        </span>
+                  <div className="mt-4 space-y-2">
+                    <p className="text-sm font-medium text-gray-700">Uploaded Videos:</p>
+                    {courseVideos.map((video, index) => (
+                      <div key={index} className="flex items-center justify-between bg-white p-2 rounded-md shadow-sm">
+                        <div className="flex items-center">
+                          <svg className="h-5 w-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/>
+                          </svg>
+                          <span className="text-sm text-gray-600 truncate max-w-[150px]">Video {index + 1}</span>
+                        </div>
                         <button
                           onClick={() => removeVideo(index)}
-                          className="ml-2 text-[20px] text-[#5C5C5C] hover:text-red-700"
+                          className="text-red-500 hover:text-red-700 p-1"
                         >
-                          x
+                          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/>
+                          </svg>
                         </button>
                       </div>
                     ))}
                   </div>
+                )}
+                {errorVideo && (
+                  <p className="text-red-500 text-xs mt-2 text-center">Please upload course videos</p>
                 )}
               </div>
             </div>
 
             {/* PDF Brochure Upload */}
-            <div>
-              {renderLabel("Add PDF Brochure")}
-              <div className="border-dashed border-2 dark:bg-inherit bg-purple border-gray-300 rounded-lg p-3 w-[210px] h-[140px] text-center relative">
-                <svg
-                  width="36"
-                  height="36"
-                  viewBox="0 0 48 48"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="mt-2 mx-auto"
-                >
-                  <path
-                    d="M8 40C6.9 40 5.95867 39.6087 5.176 38.826C4.39333 38.0433 4.00133 37.1013 4 36V22C4.86667 22.6667 5.81667 23.1667 6.85 23.5C7.88333 23.8333 8.93333 24 10 24C12.7667 24 15.1253 23.0247 17.076 21.074C19.0267 19.1233 20.0013 16.7653 20 14C20 12.9333 19.8333 11.8833 19.5 10.85C19.1667 9.81667 18.6667 8.86667 18 8H32C33.1 8 34.042 8.392 34.826 9.176C35.61 9.96 36.0013 10.9013 36 12V21L44 13V35L36 27V36C36 37.1 35.6087 38.042 34.826 38.826C34.0433 39.61 33.1013 40.0013 32 40H8ZM8 20V16H4V12H8V8H12V12H16V16H12V20H8ZM10 32H30L23.25 23L18 30L14.75 25.65L10 32Z"
-                    fill="#808080"
-                  />
+            <div className="w-full">
+              <label className="block text-sm font-normal mb-2 flex items-center gap-2">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M7 21H17C19.2091 21 21 19.2091 21 17V7C21 4.79086 19.2091 3 17 3H7C4.79086 3 3 4.79086 3 7V17C3 19.2091 4.79086 21 7 21Z" stroke="currentColor" strokeWidth="2"/>
+                  <path d="M7 16.8L9.5 14.3L11.999 16.799L16.5 12.3L17.5 13.3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-                <p className="text-customGreen cursor-pointer text-sm">
-                  Click to upload
-                </p>
-                <p className="text-gray-400 text-xs">
-                  or drag & drop the files
-                </p>
-                <input
-                  type="file"
-                  multiple
-                  accept=".pdf"
-                  className="absolute inset-0 opacity-0 cursor-pointer"
-                  onChange={handlePdfUpload}
-                />
-                {pdfBrochures && pdfBrochures.length > 0 && (
-                  <p className="mt-1 text-xs text-gray-500">✔ Uploaded</p>
-                )}
-              </div>
-              {/* Conditionally show the error message */}
-              {errorPdf && (
-                <p className="text-red-500 text-xs mt-2">
-                  Please upload pdf brochure
-                </p>
-              )}
-
-              <div className="w-[210px] text-center relative">
+                Add PDF Brochure<span className="text-red-500">*</span>
+              </label>
+              <div className={`border-2 ${pdfBrochures.length > 0 ? 'border-green-500 bg-green-50' : 'border-dashed border-gray-300'} rounded-lg p-4 transition-all duration-300 relative ${errorPdf ? 'border-red-500 bg-red-50' : ''}`}>
+                <div className="text-center">
+                  <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                    <path d="M28 8H12a4 4 0 00-4 4v20m0 0v4a4 4 0 004 4h20a4 4 0 004-4V28m-4-4l5-5m0 0l-5-5m5 5H28" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <div className="mt-4 flex text-sm justify-center">
+                    <label className="relative cursor-pointer rounded-md font-medium text-blue-600 hover:text-blue-500">
+                      <span>Upload PDF</span>
+                      <input
+                        type="file"
+                        multiple
+                        accept=".pdf"
+                        className="sr-only"
+                        onChange={handlePdfUpload}
+                      />
+                    </label>
+                    <p className="pl-1 text-gray-500">or drag and drop</p>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">PDF files up to 10MB</p>
+                </div>
                 {pdfBrochures.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {pdfBrochures.map((fileUrl, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between bg-[#e9e9e9] p-2 rounded-md text-sm w-full md:w-auto"
-                      >
-                        <span className="truncate text-[#5C5C5C] max-w-[150px]">
-                          Pdf {index + 1}
-                        </span>
+                  <div className="mt-4 space-y-2">
+                    <p className="text-sm font-medium text-gray-700">Uploaded PDFs:</p>
+                    {pdfBrochures.map((pdf, index) => (
+                      <div key={index} className="flex items-center justify-between bg-white p-2 rounded-md shadow-sm">
+                        <div className="flex items-center">
+                          <svg className="h-5 w-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/>
+                          </svg>
+                          <span className="text-sm text-gray-600 truncate max-w-[150px]">PDF {index + 1}</span>
+                        </div>
                         <button
                           onClick={() => removePdf(index)}
-                          className="ml-2 text-[20px] text-[#5C5C5C] hover:text-red-700"
+                          className="text-red-500 hover:text-red-700 p-1"
                         >
-                          x
+                          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/>
+                          </svg>
                         </button>
                       </div>
                     ))}
                   </div>
                 )}
+                {errorPdf && (
+                  <p className="text-red-500 text-xs mt-2 text-center">Please upload PDF brochure</p>
+                )}
               </div>
             </div>
 
             {/* Thumbnail Image Upload */}
-            <div>
-              {renderLabel("Add Image")}
-              <div className="border-dashed border-2 dark:bg-inherit bg-purple border-gray-300 rounded-lg p-3 w-[210px] h-[140px] text-center relative">
-                <svg
-                  width="36"
-                  height="36"
-                  viewBox="0 0 48 48"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="mt-2 mx-auto"
-                >
-                  <path
-                    d="M8 40C6.9 40 5.95867 39.6087 5.176 38.826C4.39333 38.0433 4.00133 37.1013 4 36V22C4.86667 22.6667 5.81667 23.1667 6.85 23.5C7.88333 23.8333 8.93333 24 10 24C12.7667 24 15.1253 23.0247 17.076 21.074C19.0267 19.1233 20.0013 16.7653 20 14C20 12.9333 19.8333 11.8833 19.5 10.85C19.1667 9.81667 18.6667 8.86667 18 8H32C33.1 8 34.042 8.392 34.826 9.176C35.61 9.96 36.0013 10.9013 36 12V21L44 13V35L36 27V36C36 37.1 35.6087 38.042 34.826 38.826C34.0433 39.61 33.1013 40.0013 32 40H8ZM8 20V16H4V12H8V8H12V12H16V16H12V20H8ZM10 32H30L23.25 23L18 30L14.75 25.65L10 32Z"
-                    fill="#808080"
-                  />
+            <div className="w-full">
+              <label className="block text-sm font-normal mb-2 flex items-center gap-2">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M4 16L8.586 11.414C9.367 10.633 10.633 10.633 11.414 11.414L16 16M14 14L15.586 12.414C16.367 11.633 17.633 11.633 18.414 12.414L20 14M14 8H14.01M6 20H18C19.1046 20 20 19.1046 20 18V6C20 4.89543 19.1046 4 18 4H6C4.89543 4 4 4.89543 4 6V18C4 19.1046 4.89543 20 6 20Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-                <p className="text-customGreen cursor-pointer text-sm">
-                  Click to upload thumbnail
-                </p>
-                <p className="text-gray-400 text-xs">or drag & drop the file</p>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="absolute inset-0 opacity-0 cursor-pointer"
-                  onChange={handleImageUpload}
-                />
-                {thumbnailImage && (
-                  <p className="mt-1 text-xs text-gray-500">✔ Uploaded</p>
-                )}
-              </div>
-
-              {/* Conditionally show the error message */}
-              {error && (
-                <p className="text-red-500 text-xs mt-2">
-                  Please upload a thumbnail image
-                </p>
-              )}
-
-              <div className="w-[210px] text-center relative">
-                {thumbnailImage && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <div className="flex items-center justify-between bg-[#e9e9e9] p-2 rounded-md text-sm w-full md:w-auto">
-                      <span className="truncate text-[#5C5C5C] max-w-[150px]">
-                        Image Uploaded
-                      </span>
+                Add Thumbnail Image<span className="text-red-500">*</span>
+              </label>
+              <div className={`border-2 ${thumbnailImage ? 'border-green-500 bg-green-50' : 'border-dashed border-gray-300'} rounded-lg p-4 transition-all duration-300 relative ${error ? 'border-red-500 bg-red-50' : ''}`}>
+                <div className="text-center">
+                  {thumbnailImage ? (
+                    <div className="relative">
+                      <img
+                        src={thumbnailImage}
+                        alt="Thumbnail"
+                        className="mx-auto h-32 w-auto rounded-lg object-cover"
+                      />
                       <button
                         onClick={removeImage}
-                        className="ml-2 text-[20px] text-[#5C5C5C] hover:text-red-700"
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
                       >
-                        x
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
                       </button>
                     </div>
-                  </div>
+                  ) : (
+                    <>
+                      <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                        <path d="M28 8H12a4 4 0 00-4 4v20m0 0v4a4 4 0 004 4h20a4 4 0 004-4V28m-4-4l5-5m0 0l-5-5m5 5H28" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      <div className="mt-4 flex text-sm justify-center">
+                        <label className="relative cursor-pointer rounded-md font-medium text-blue-600 hover:text-blue-500">
+                          <span>Upload image</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="sr-only"
+                            onChange={handleImageUpload}
+                          />
+                        </label>
+                        <p className="pl-1 text-gray-500">or drag and drop</p>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">PNG, JPG, GIF up to 5MB</p>
+                    </>
+                  )}
+                </div>
+                {error && (
+                  <p className="text-red-500 text-xs mt-2 text-center">Please upload a thumbnail image</p>
                 )}
               </div>
             </div>
