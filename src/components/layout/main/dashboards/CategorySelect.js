@@ -1,118 +1,130 @@
-import { apiUrls } from "@/apis";
-import useGetQuery from "@/hooks/getQuery.hook";
-import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+"use client";
+import React, { useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 
-const CategorySelect = ({ handleCategory, errors, selected, setSelected }) => {
-  const [categories, setCategories] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState("");
+const CategorySelect = ({ handleCategory, handleCategoryType, errors, selected, selectedType, setSelected, setSelectedType }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isTypeOpen, setIsTypeOpen] = useState(false);
 
-  const dropdownRef = useRef(null);
-  const { getQuery } = useGetQuery();
+  const categories = [
+    "Web Development",
+    "Mobile Development",
+    "Data Science",
+    "Machine Learning",
+    "Cloud Computing",
+    "DevOps",
+    "Cybersecurity",
+    "Artificial Intelligence",
+    "Blockchain",
+    "UI/UX Design"
+  ];
 
-  const toggleDropdown = (e) => {
-    e.preventDefault();
-    setDropdownOpen((prev) => !prev);
+  const categoryTypes = [
+    "Live",
+    "Hybrid",
+    "Pre-Recorded",
+    "Free"
+  ];
+
+  const handleSelect = (category) => {
+    setSelected(category);
+    handleCategory(category);
+    setIsOpen(false);
   };
 
-  const filteredCategories = categories?.filter((category) => {
-    return category.category_name
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-  });
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setDropdownOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    fetchAllCategories();
-    console.log("Categories select rendered", selected);
-    if (selected) {
-      handleCategory(selected);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [searchTerm]);
-
-  const selectCategory = (categoryName) => {
-    console.log("Selected category", categoryName);
-    setSelected(categoryName);
-    setDropdownOpen(false);
-    setSearchTerm("");
-    handleCategory(categoryName);
-  };
-
-  const fetchAllCategories = () => {
-    try {
-      getQuery({
-        url: apiUrls?.categories?.getAllCategories,
-        onSuccess: (res) => {
-          setCategories(res.data);
-          console.log("All categories", res);
-        },
-        onFail: (err) => {
-          console.error("Failed to fetch categories: ", err);
-        },
-      });
-    } catch (err) {
-      console.error("Error fetching categories: ", err);
-    }
+  const handleTypeSelect = (type) => {
+    setSelectedType(type);
+    handleCategoryType(type);
+    setIsTypeOpen(false);
   };
 
   return (
-    <div className="relative" ref={dropdownRef}>
-      <label className="block text-sm font-normal mb-1">
-        Course Category <span className="text-red-500">*</span>
-      </label>
-      <div className="p-3 border rounded-lg w-full dark:bg-inherit text-gray-600">
-        <button className="w-full text-left" onClick={toggleDropdown}>
-          {selected || "Select Category"}
-        </button>
-        {dropdownOpen && (
-          <div className="absolute z-10 left-0 top-20 bg-white border border-gray-600 rounded-lg w-full shadow-xl">
-            <input
-              type="text"
-              className="w-full p-2 border-b focus:outline-none rounded-lg"
-              placeholder="Search..."
-              value={searchTerm || selectedCategory || ""}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <ul className="max-h-56 overflow-auto">
-              {filteredCategories.length > 0 ? (
-                filteredCategories.map((category) => (
-                  <li
-                    key={category._id}
-                    className="hover:bg-gray-100 rounded-lg cursor-pointer flex gap-3 px-3 py-3"
-                    onClick={() => {
-                      selectCategory(category.category_name);
-                    }}
-                  >
-                    <Image
-                      src={category.category_image || ""}
-                      alt={category.category_title}
-                      width={32}
-                      height={32}
-                      className="rounded-full"
-                    />
-                    {category.category_name}
-                  </li>
-                ))
-              ) : (
-                <li className="p-2 text-gray-500">No results found</li>
-              )}
-            </ul>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Category Select */}
+      <div className="relative">
+        <label className="block text-sm font-medium mb-2">
+          Course Category <span className="text-red-500">*</span>
+        </label>
+        <div 
+          className="relative cursor-pointer"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <div className={`
+            w-full p-3 border rounded-lg flex justify-between items-center
+            ${errors?.category ? 'border-red-500' : 'border-gray-300'}
+            hover:border-gray-400 transition-colors
+            dark:bg-gray-700 dark:border-gray-600
+          `}>
+            <span className={selected ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500'}>
+              {selected || 'Select category'}
+            </span>
+            <ChevronDown className={`w-5 h-5 transition-transform ${isOpen ? 'transform rotate-180' : ''}`} />
           </div>
+
+          {isOpen && (
+            <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-60 overflow-auto">
+              {categories.map((category) => (
+                <div
+                  key={category}
+                  className={`
+                    p-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700
+                    ${selected === category ? 'bg-green-50 dark:bg-green-900 text-green-600 dark:text-green-400' : ''}
+                  `}
+                  onClick={() => handleSelect(category)}
+                >
+                  {category}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        {errors?.category && (
+          <p className="text-red-500 text-xs mt-1">{errors.category.message}</p>
         )}
       </div>
-      {errors.category && (
-        <p className="text-red-500 text-xs">{errors.category.message}</p>
-      )}
+
+      {/* Category Type Select */}
+      <div className="relative">
+        <label className="block text-sm font-medium mb-2">
+          Category Type <span className="text-red-500">*</span>
+        </label>
+        <div 
+          className="relative cursor-pointer"
+          onClick={() => setIsTypeOpen(!isTypeOpen)}
+        >
+          <div className={`
+            w-full p-3 border rounded-lg flex justify-between items-center
+            ${errors?.categoryType ? 'border-red-500' : 'border-gray-300'}
+            hover:border-gray-400 transition-colors
+            dark:bg-gray-700 dark:border-gray-600
+          `}>
+            <span className={selectedType ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500'}>
+              {selectedType || 'Select type'}
+            </span>
+            <ChevronDown className={`w-5 h-5 transition-transform ${isTypeOpen ? 'transform rotate-180' : ''}`} />
+          </div>
+
+          {isTypeOpen && (
+            <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
+              {categoryTypes.map((type) => (
+                <div
+                  key={type}
+                  className={`
+                    p-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700
+                    ${selectedType === type ? 'bg-green-50 dark:bg-green-900 text-green-600 dark:text-green-400' : ''}
+                  `}
+                  onClick={() => handleTypeSelect(type)}
+                >
+                  {type}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        {errors?.categoryType && (
+          <p className="text-red-500 text-xs mt-1">{errors.categoryType.message}</p>
+        )}
+      </div>
     </div>
   );
 };
