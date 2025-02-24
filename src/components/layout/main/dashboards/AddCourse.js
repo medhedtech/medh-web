@@ -59,10 +59,8 @@ const AddCourse = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const dropdownRef = useRef(null);
-  const [courseDurationValue, setCourseDurationValue] = useState();
-  const [courseDurationUnit, setCourseDurationUnit] = useState("");
-  const [sessionDurationValue, setSessionDurationValue] = useState();
-  const [sessionDurationUnit, setSessionDurationUnit] = useState("");
+  const [courseDurationValue, setCourseDurationValue] = useState({ months: '', weeks: '' });
+  const [sessionDurationValue, setSessionDurationValue] = useState({ hours: '', minutes: '' });
   const [isResourceModatOpen, setResourceModalOpen] = useState(false);
   const [resourceVideos, setResourceVideos] = useState([]);
   const [resourcePdfs, setResourcePdfs] = useState([]);
@@ -281,15 +279,23 @@ const AddCourse = () => {
     }
   };
 
-  const handleCourseDuration = (unit) => {
-    setCourseDurationUnit(unit);
-    setValue("course_duration", `${courseDurationValue} ${unit}`);
-  };
+  useEffect(() => {
+    if (courseDurationValue.months || courseDurationValue.weeks) {
+      const duration = [];
+      if (courseDurationValue.months) duration.push(`${courseDurationValue.months} Months`);
+      if (courseDurationValue.weeks) duration.push(`${courseDurationValue.weeks} Weeks`);
+      setValue("course_duration", duration.join(' '));
+    }
+  }, [courseDurationValue, setValue]);
 
-  const handleSessionDuration = (unit) => {
-    setSessionDurationUnit(unit);
-    setValue("session_duration", `${sessionDurationValue} ${unit}`);
-  };
+  useEffect(() => {
+    if (sessionDurationValue.hours || sessionDurationValue.minutes) {
+      const duration = [];
+      if (sessionDurationValue.hours) duration.push(`${sessionDurationValue.hours} Hours`);
+      if (sessionDurationValue.minutes) duration.push(`${sessionDurationValue.minutes} Minutes`);
+      setValue("session_duration", duration.join(' '));
+    }
+  }, [sessionDurationValue, setValue]);
 
   const handleResourceModal = (e) => {
     e.preventDefault();
@@ -534,52 +540,30 @@ const AddCourse = () => {
 
             <div>
               <label className="block text-sm font-normal mb-1">
-                Duration
-                <span className="text-red-500 ml-1">*</span> (In Months/Weeks)
+                Duration<span className="text-red-500 ml-1">*</span>
               </label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  className="p-3 border rounded-lg w-1/2 dark:bg-inherit text-gray-600"
-                  placeholder="Enter duration"
-                  value={courseDurationValue}
-                  onChange={(e) => setCourseDurationValue(e.target.value)}
-                />
-
-                <div className="flex gap-4 items-center">
-                  <label
-                    className={`flex items-center gap-1 cursor-pointer p-2 border rounded-lg ${
-                      courseDurationUnit === "Weeks"
-                        ? "bg-[#3B82F6] text-white"
-                        : "hover:bg-gray-100 dark:bg-inherit dark:border-gray-700"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      className="hidden"
-                      value="Weeks"
-                      onClick={(e) => handleCourseDuration(e.target.value)}
-                    />
-                    Weeks
-                  </label>
-                  <label
-                    className={`flex items-center gap-1 cursor-pointer p-2 border rounded-lg ${
-                      courseDurationUnit === "Months"
-                        ? "bg-[#3B82F6] text-white"
-                        : "hover:bg-gray-100 dark:bg-inherit dark:border-gray-700"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      value="Months"
-                      className="hidden"
-                      onClick={(e) => handleCourseDuration(e.target.value)}
-                    />
-                    Months
-                  </label>
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    className="p-3 border rounded-lg w-1/2 dark:bg-inherit text-gray-600"
+                    placeholder="Enter months"
+                    value={courseDurationValue.months || ''}
+                    onChange={(e) => setCourseDurationValue(prev => ({...prev, months: e.target.value}))}
+                  />
+                  <span className="text-gray-600">Months</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    className="p-3 border rounded-lg w-1/2 dark:bg-inherit text-gray-600"
+                    placeholder="Enter weeks"
+                    value={courseDurationValue.weeks || ''}
+                    onChange={(e) => setCourseDurationValue(prev => ({...prev, weeks: e.target.value}))}
+                  />
+                  <span className="text-gray-600">Weeks</span>
                 </div>
               </div>
-              {/* Error messages */}
               {errors.course_duration && (
                 <p className="text-red-500 text-xs mt-1">
                   {errors.course_duration.message}
@@ -589,53 +573,30 @@ const AddCourse = () => {
 
             <div>
               <label className="block text-sm font-normal mb-1">
-                Session Duration
-                <span className="text-red-500 ml-1">*</span>
+                Session Duration<span className="text-red-500 ml-1">*</span>
               </label>
-              <div className="flex items-center gap-2">
-                {/* Numeric input for session duration */}
-                <input
-                  type="number"
-                  placeholder="Enter duration"
-                  className="p-3 border rounded-lg w-1/2 text-gray-600 dark:bg-inherit placeholder-gray-400"
-                  value={sessionDurationValue}
-                  onChange={(e) => setSessionDurationValue(e.target.value)}
-                />
-                {/* Radio buttons for selecting Hours or Minutes */}
-                <div className="flex gap-4 items-center">
-                  <label
-                    className={`flex items-center gap-1 cursor-pointer p-2 border rounded-lg ${
-                      sessionDurationUnit === "Minutes"
-                        ? "bg-[#3B82F6] text-white"
-                        : "hover:bg-gray-100 dark:bg-inherit dark:border-gray-700"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      value="Minutes"
-                      className="hidden"
-                      onClick={(e) => handleSessionDuration(e.target.value)}
-                    />
-                    Minutes
-                  </label>
-                  <label
-                    className={`flex items-center gap-1 cursor-pointer p-2 border rounded-lg ${
-                      sessionDurationUnit === "Hours"
-                        ? "bg-[#3B82F6] text-white"
-                        : "hover:bg-gray-100 dark:bg-inherit dark:border-gray-700"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      value="Hours"
-                      className="hidden"
-                      onClick={(e) => handleSessionDuration(e.target.value)}
-                    />
-                    Hours
-                  </label>
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    placeholder="Enter hours"
+                    className="p-3 border rounded-lg w-1/2 text-gray-600 dark:bg-inherit"
+                    value={sessionDurationValue.hours || ''}
+                    onChange={(e) => setSessionDurationValue(prev => ({...prev, hours: e.target.value}))}
+                  />
+                  <span className="text-gray-600">Hours</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    placeholder="Enter minutes"
+                    className="p-3 border rounded-lg w-1/2 text-gray-600 dark:bg-inherit"
+                    value={sessionDurationValue.minutes || ''}
+                    onChange={(e) => setSessionDurationValue(prev => ({...prev, minutes: e.target.value}))}
+                  />
+                  <span className="text-gray-600">Minutes</span>
                 </div>
               </div>
-              {/* Error messages */}
               {errors.session_duration && (
                 <p className="text-red-500 text-xs mt-1">
                   {errors.session_duration.message}
