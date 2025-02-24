@@ -1,13 +1,14 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import ItemsDashboard from "./ItemsDashboard";
-import NavbarLogo from "@/components/layout/header/NavbarLogo";
+import Link from "next/link";
 import {
   MdContactPhone,
   MdWorkOutline,
   MdFeedback,
   MdCategory,
+  MdMenu,
+  MdClose
 } from "react-icons/md";
 import {
   FaUsers,
@@ -17,11 +18,14 @@ import {
   FaUsersCog,
 } from "react-icons/fa";
 import { setCookie } from "nookies";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import NavbarLogo from "@/components/layout/header/NavbarLogo";
 
 const SidebarDashboard = () => {
   const pathname = usePathname();
   const router = useRouter();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   const partOfPathNaem = pathname.split("/")[2].split("-")[0];
   const partOfPathNaem2 = pathname.split("/")[2].split("-")[1];
   const isAdmin = partOfPathNaem === "admin";
@@ -449,6 +453,7 @@ const SidebarDashboard = () => {
       ],
     },
   ];
+
   const instructorItems = [
     {
       title: "WELCOME, INSTRUCTOR",
@@ -1325,21 +1330,139 @@ const SidebarDashboard = () => {
   } else {
     items = studentItems;
   }
-  return (
-    <div className="w-72 font-Open">
-      {/* navigation menu */}
-      <div className=" pt-5 2xl:pr-4 2xl:pt-5 rounded-lg2 shadow-accordion dark:shadow-accordion-dark bg-whiteColor dark:bg-whiteColor-dark h-full">
-        <div className="pt-6 px-8">
-          <NavbarLogo />
-        </div>
-        <div className="pt-4 px-8 w-[250px]">
-          {/* <h2 className="text-xl text-gh font-bold mb-4">MAIN</h2> */}
-        </div>
-        {items?.map((item, idx) => (
-          <ItemsDashboard key={idx} item={item} />
-        ))}
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
+  // Sidebar content component to avoid duplication
+  const SidebarContent = () => (
+    <div className="h-full flex flex-col">
+      <div className="p-4 md:p-6 border-b border-gray-200 dark:border-gray-800">
+        <NavbarLogo />
       </div>
+
+      <nav className="flex-1 overflow-y-auto">
+        <div className="px-2 md:px-4 py-4 md:py-6">
+          {items?.map((section, idx) => (
+            <div key={idx} className="mb-6">
+              {section.title && (
+                <h3 className="px-3 mb-4 text-xs font-semibold tracking-wider text-gray-500 dark:text-gray-400 uppercase">
+                  {section.title}
+                </h3>
+              )}
+              <div className="space-y-1">
+                {section.items?.filter(Boolean).map((item, itemIdx) => (
+                  <div key={itemIdx}>
+                    {item.path ? (
+                      <Link
+                        href={item.path}
+                        onClick={closeMobileMenu}
+                        className={`group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ${
+                          pathname === item.path
+                            ? "text-primary-600 bg-primary-50 dark:bg-gray-800"
+                            : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                        }`}
+                      >
+                        <span className={`inline-flex items-center justify-center w-5 h-5 mr-3 ${
+                          pathname === item.path
+                            ? "text-primary-600"
+                            : "text-gray-500 dark:text-gray-400 group-hover:text-primary-600"
+                        }`}>
+                          {item.icon}
+                        </span>
+                        <span>{item.name}</span>
+                        {item.tag && (
+                          <span className="ml-auto px-2 py-0.5 text-xs font-semibold bg-red-100 text-red-600 rounded-full">
+                            {item.tag}
+                          </span>
+                        )}
+                      </Link>
+                    ) : item.onClick ? (
+                      <button
+                        onClick={(e) => {
+                          item.onClick(e);
+                          closeMobileMenu();
+                        }}
+                        className="w-full group flex items-center px-3 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
+                      >
+                        <span className="inline-flex items-center justify-center w-5 h-5 mr-3 text-gray-500 dark:text-gray-400 group-hover:text-primary-600">
+                          {item.icon}
+                        </span>
+                        <span>{item.name}</span>
+                      </button>
+                    ) : null}
+
+                    {item.subItems && (
+                      <div className="mt-1 ml-8 space-y-1">
+                        {item.subItems.map((subItem, subIdx) => (
+                          <Link
+                            key={subIdx}
+                            href={subItem.path}
+                            onClick={closeMobileMenu}
+                            className={`flex items-center px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
+                              pathname === subItem.path
+                                ? "text-primary-600 bg-primary-50 dark:bg-gray-800 font-medium"
+                                : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                            }`}
+                          >
+                            <span className="inline-flex items-center justify-center w-4 h-4 mr-2">
+                              {subItem.icon}
+                            </span>
+                            <span>{subItem.name}</span>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </nav>
     </div>
+  );
+
+  return (
+    <>
+      {/* Mobile Menu Button */}
+      <button
+        onClick={toggleMobileMenu}
+        className="fixed top-4 right-4 z-50 md:hidden p-2 rounded-lg bg-white dark:bg-gray-800 shadow-lg"
+      >
+        {isMobileMenuOpen ? (
+          <MdClose className="w-6 h-6" />
+        ) : (
+          <MdMenu className="w-6 h-6" />
+        )}
+      </button>
+
+      {/* Desktop Sidebar */}
+      <aside className="hidden md:block w-72 min-h-screen bg-white dark:bg-gray-900 shadow-xl">
+        <SidebarContent />
+      </aside>
+
+      {/* Mobile Sidebar */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-40 md:hidden">
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={closeMobileMenu}
+          />
+          
+          {/* Sidebar */}
+          <aside className="fixed inset-y-0 left-0 w-72 bg-white dark:bg-gray-900 shadow-xl">
+            <SidebarContent />
+          </aside>
+        </div>
+      )}
+    </>
   );
 };
 
