@@ -19,99 +19,87 @@ import Tooltip from "@/components/shared/others/Tooltip";
 
 // Optimized validation schema
 const schema = yup.object({
-  course_category: yup.string()
-    .required("Course category is required")
-    .oneOf(["Live Courses", "Blended Courses", "Corporate Training Courses"]),
-  category_type: yup.string()
-    .required("Category type is required")
-    .oneOf(["Live", "Hybrid", "Pre-Recorded", "Free"]),
-  course_title: yup.string()
-    .required("Course title is required")
+  course_category: yup
+    .string()
+    .required('Course category is required'),
+  category_type: yup
+    .string()
+    .oneOf(['Live', 'Hybrid', 'Pre-Recorded', 'Free'])
+    .required('Category type is required'),
+  course_title: yup
+    .string()
+    .required('Course title is required')
     .trim()
-    .max(100, "Title too long"),
-  category: yup.string()
-    .required("Category is required")
-    .oneOf([
-      "Web Development",
-      "Mobile Development",
-      "Data Science",
-      "Machine Learning",
-      "Cloud Computing",
-      "DevOps",
-      "Cybersecurity",
-      "Artificial Intelligence",
-      "Blockchain",
-      "UI/UX Design"
-    ], "Please select a valid category"),
-  no_of_Sessions: yup.number()
-    .required("Number of sessions is required")
-    .typeError("Must be a number")
-    .positive("Must be positive")
-    .integer("Must be whole number"),
-  course_duration: yup.string()
-    .required("Course duration is required")
-    .matches(/^\d+ months \d+ weeks$/, "Invalid duration format"),
-  session_duration: yup.string()
-    .required("Session duration is required")
-    .matches(/^\d+ hours \d+ minutes$/, "Invalid duration format"),
-  course_grade: yup.string()
-    .required("Course grade is required"),
-  is_Certification: yup.string()
-    .required("Certification selection is required"),
-  is_Assignments: yup.string()
-    .required("Assignments selection is required"),
-  class_type: yup.string()
-    .required("Class type is required"),
-  is_Projects: yup.string()
-    .required("Projects selection is required"),
-  is_Quizes: yup.string()
-    .required("Quizzes selection is required"),
-  efforts_per_Week: yup.string()
-    .required("Weekly effort is required")
-    .matches(/^\d+ - \d+ hours \/ week$/, "Invalid format (e.g., '3 - 4 hours / week')"),
-  course_description: yup.string()
-    .required("Course description is required")
-    .max(500, "Description too long"),
-  related_courses: yup.array().of(yup.string()),
-  prices: yup.array().of(
-    yup.object().shape({
-      currency: yup.string().required("Currency is required"),
-      individual: yup.number()
-        .typeError("Must be a number")
-        .positive("Must be positive")
-        .required("Individual price is required"),
-      batch: yup.number()
-        .typeError("Must be a number")
-        .positive("Must be positive")
-        .required("Batch price is required")
-    })
-  ).min(1, "At least one currency is required"),
-  course_mode: yup.string()
-    .required("Course mode is required")
-    .oneOf(["Live Online", "Offline", "Hybrid"]),
+    .max(100, 'Title too long'),
+  no_of_Sessions: yup
+    .number()
+    .required('Number of sessions is required')
+    .typeError('Must be a number')
+    .positive('Must be positive')
+    .integer('Must be whole number'),
+  course_duration: yup
+    .string()
+    .required('Course duration is required')
+    .matches(/^\d+ months \d+ weeks$/, 'Invalid duration format'),
+  session_duration: yup
+    .string()
+    .required('Session duration is required')
+    .matches(/^\d+ hours \d+ minutes$/, 'Invalid duration format'),
+  course_description: yup
+    .string()
+    .required('Course description is required')
+    .max(500, 'Description too long'),
+  course_fee: yup
+    .number()
+    .when('category_type', {
+      is: (val) => val === 'Free',
+      then: () => yup
+        .number()
+        .transform((value) => (isNaN(value) ? 0 : value))
+        .test('is-zero', 'Course fee must be 0 for free courses', val => val === 0),
+      otherwise: () => yup
+        .number()
+        .transform((value) => (isNaN(value) ? undefined : value))
+        .typeError('Course fee must be a valid number')
+        .required('Course fee is required')
+        .min(0, 'Course fee cannot be negative')
+    }),
+  course_grade: yup
+    .string()
+    .required('Course grade is required'),
+  is_Certification: yup
+    .string()
+    .oneOf(['Yes', 'No'])
+    .required('This field is required'),
+  is_Assignments: yup
+    .string()
+    .oneOf(['Yes', 'No'])
+    .required('This field is required'),
+  is_Projects: yup
+    .string()
+    .oneOf(['Yes', 'No'])
+    .required('This field is required'),
+  class_type: yup
+    .string()
+    .oneOf(['Live Courses', 'Blended Courses', 'Corporate Training Courses'])
+    .required('This field is required'),
+  efforts_per_Week: yup
+    .string()
+    .required('This field is required')
+    .matches(/^\d+\s*-\s*\d+\s*hours?\s*\/\s*week$/i, 'Format should be like "3 - 4 hours / week"'),
+  is_Quizes: yup
+    .string()
+    .oneOf(['Yes', 'No'])
+    .required('This field is required'),
+  related_courses: yup.array().of(yup.string()).default([]),
   online_sessions: yup.object().shape({
-    count: yup.number()
-      .required("Number of sessions is required")
-      .positive("Must be positive")
-      .integer("Must be whole number"),
-    duration: yup.string()
-      .required("Session duration is required")
-      .matches(/^\d+-\d+ min$/, "Invalid duration format (e.g., '60-90 min')")
-  }),
-  curriculum_weeks: yup.array().of(
-    yup.object().shape({
-      title: yup.string().required("Week title is required"),
-      topics: yup.array().of(yup.string()).required("Topics are required")
-    })
-  ).min(1, "At least one curriculum week is required"),
-  tools_technologies: yup.array().of(yup.string()),
-  bonus_modules: yup.array().of(yup.string()),
-  faqs: yup.array().of(
-    yup.object().shape({
-      question: yup.string().required("FAQ question is required"),
-      answer: yup.string().required("FAQ answer is required")
-    })
-  )
+    count: yup.string().required('Session count is required'),
+    duration: yup.string().required('Session duration is required')
+  }).required('Online sessions are required').nullable(false),
+  course_mode: yup
+    .string()
+    .oneOf(['Live Online', 'Offline', 'Hybrid'])
+    .required('Course mode is required')
 });
 
 const AddCourse = () => {
@@ -156,11 +144,18 @@ const AddCourse = () => {
     reset,
     trigger,
     getValues,
+    watch,
   } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
       related_courses: [],
+      online_sessions: {
+        count: "",
+        duration: "60-90 min"
+      },
+      course_mode: "",
     },
+    mode: "onChange",
   });
   const [currentStep, setCurrentStep] = useState(1);
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
@@ -168,7 +163,6 @@ const AddCourse = () => {
   const [courseGrade, setCourseGrade] = useState("");
   const [certification, setCertification] = useState("");
   const [assignments, setAssignments] = useState("");
-  const [classType, setClassType] = useState("");
   const [projects, setProjects] = useState("");
   const [quizzes, setQuizzes] = useState("");
   const [courseMode, setCourseMode] = useState("");
@@ -180,6 +174,7 @@ const AddCourse = () => {
   const [toolsTechnologies, setToolsTechnologies] = useState([]);
   const [bonusModules, setBonusModules] = useState([]);
   const [faqs, setFaqs] = useState([]);
+  const [classType, setClassType] = useState("");
   
   const formSteps = [
     { number: 1, title: "Basic Info" },
@@ -203,22 +198,59 @@ const AddCourse = () => {
   };
 
   useEffect(() => {
-    const storedData = localStorage.getItem("courseData");
-    if (storedData) {
-      setCourseData(JSON.parse(storedData));
+    const savedFormData = localStorage.getItem('courseFormData');
+    if (savedFormData) {
+      const parsedData = JSON.parse(savedFormData);
+      
+      // Restore form values
+      Object.entries(parsedData.formValues || {}).forEach(([key, value]) => {
+        setValue(key, value);
+      });
+
+      // Restore state values
+      setSelectedCategory(parsedData.selectedCategory || "");
+      setCourseVideos(parsedData.courseVideos || []);
+      setPdfBrochures(parsedData.pdfBrochures || []);
+      setThumbnailImage(parsedData.thumbnailImage || null);
+      setResourceVideos(parsedData.resourceVideos || []);
+      setResourcePdfs(parsedData.resourcePdfs || []);
+      setCurriculum(parsedData.curriculum || []);
+      setCourseTag(parsedData.courseTag);
+      setCourseIsFree(parsedData.courseIsFree || false);
+      setSelected(parsedData.selected || "");
+      setSelectedCourses(parsedData.selectedCourses || []);
+      setPrices(parsedData.prices || [{ id: 1, currency: 'USD', individual: '', batch: '' }]);
+      setCourseDurationValue(parsedData.courseDurationValue || { months: '', weeks: '' });
+      setSessionDurationValue(parsedData.sessionDurationValue || { hours: '', minutes: '' });
+      setCurriculumWeeks(parsedData.curriculumWeeks || []);
+      setToolsTechnologies(parsedData.toolsTechnologies || []);
+      setBonusModules(parsedData.bonusModules || []);
+      setFaqs(parsedData.faqs || []);
+      setClassType(parsedData.classType || "");
+      setCourseGrade(parsedData.courseGrade || "");
+      setCertification(parsedData.certification || "");
+      setAssignments(parsedData.assignments || "");
+      setProjects(parsedData.projects || "");
+      setQuizzes(parsedData.quizzes || "");
+      setCourseMode(parsedData.courseMode || "");
+      setOnlineSessions(parsedData.onlineSessions || { count: "", duration: "60-90 min" });
     }
 
+    // Add click outside handler
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
+    
+    // Fetch categories
     fetchAllCategories();
+
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+  }, [setValue]);
 
   useEffect(() => {
     if (courseTag === "Free") {
@@ -232,42 +264,62 @@ const AddCourse = () => {
 
   useEffect(() => {
     if (selected) {
-      trigger("category");
+      trigger("course_category").catch(error => {
+        console.error('Validation error:', error);
+      });
     }
   }, [selected, trigger]);
 
-  // useEffect(() => {
-  //   if (selectedCourses) {
-  //     trigger("related_courses");
-  //   }
-  // }, [selectedCourses, trigger]);
-
-  const fetchAllCategories = () => {
+  const fetchAllCategories = async () => {
     try {
-      getQuery({
+      await getQuery({
         url: apiUrls?.categories?.getAllCategories,
-        onSuccess: (res) => {
-          setCategories(res.data);
+        onSuccess: (data) => {
+          const fetchedCategories = data.data;
+          if (Array.isArray(fetchedCategories)) {
+            const normalizedData = fetchedCategories.map((item) => ({
+              id: item._id,
+              name: item.name || item.category_name || "Unnamed Category",
+              image: item.category_image || null,
+              createdAt: item.createdAt,
+              updatedAt: item.updatedAt,
+            }));
+            setCategories(normalizedData);
+            console.log('Normalized categories: ', normalizedData);
+          } else {
+            console.error("Unexpected response:", data);
+            setCategories([]);
+            toast.error("Failed to load categories");
+          }
         },
-        onFail: (err) => {
-          console.error("Failed to fetch categories: ", err);
+        onFail: (error) => {
+          console.error("Failed to fetch categories:", error);
+          setCategories([]);
+          toast.error("Failed to load categories");
         },
       });
-    } catch (err) {
-      console.error("Error fetching categories: ", err);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      setCategories([]);
+      toast.error("Failed to load categories");
     }
   };
 
-  const handleCategory = (category) => {
-    setSelected(category);
-    setValue("category", category);
-    trigger("category");
-  };
-
-  const handleChange = (category) => {
+  const handleChange = async (category) => {
+    console.log('Setting category:', category);
     setSelectedCategory(category);
     setValue("course_category", category);
-    trigger("course_category");
+    setValue("category", category);
+    // Only trigger validation if there's a value
+    if (category) {
+      try {
+        await trigger("course_category");
+        await trigger("category");
+      } catch (error) {
+        console.error('Validation error:', error);
+      }
+    }
+    setDropdownOpen(false);
   };
 
   const handleCourse = (course) => {
@@ -376,27 +428,107 @@ const AddCourse = () => {
     }
   };
 
+  const logFormErrors = (errors) => {
+    console.log('Form Validation Errors:', errors);
+  };
+
   const onSubmit = async (data) => {
     try {
-      const postData = {
-        ...data,
-        course_videos: courseVideos,
-        brochures: pdfBrochures,
-        course_image: thumbnailImage,
-        resource_videos: resourceVideos,
-        resource_pdfs: resourcePdfs,
-        curriculum,
-        related_courses: selectedCourses,
-        createdAt: new Date().toISOString(),
-        prices: prices.filter(price => price.currency && (price.individual || price.batch))
+      // Ensure online_sessions is properly formatted
+      const formattedOnlineSessions = {
+        count: data.online_sessions?.count || "",
+        duration: data.online_sessions?.duration || "60-90 min"
       };
 
-      localStorage.setItem("courseData", JSON.stringify(postData));
-      router.push("/dashboards/admin-add-data");
+      // Use class_type as course_category since they share the same enum values
+      const postData = {
+        ...data,
+        course_videos: courseVideos || [],
+        brochures: pdfBrochures || [],
+        course_image: thumbnailImage || "",
+        resource_videos: resourceVideos || [],
+        resource_pdfs: resourcePdfs || [],
+        curriculum: curriculum || [],
+        related_courses: selectedCourses || [],
+        createdAt: new Date().toISOString(),
+        // Ensure these required fields are present with correct values
+        category_type: data.category_type,
+        course_category: data.class_type, // Use class_type value for course_category
+        class_type: data.class_type,
+        course_mode: data.course_mode,
+        online_sessions: formattedOnlineSessions
+      };
 
+      // Validate course_category enum
+      const validCategories = ['Live Courses', 'Blended Courses', 'Corporate Training Courses'];
+      if (!validCategories.includes(postData.course_category)) {
+        toast.error("Please select a valid course category");
+        return;
+      }
+
+      // Show loading toast
+      const loadingToastId = toast.loading("Submitting course...");
+
+      try {
+        // Save to localStorage first
+        localStorage.setItem('courseData', JSON.stringify(postData));
+
+        // Make API call
+        await postQuery({
+          url: `${apiUrls?.courses?.createCourse}`,
+          postData,
+          onSuccess: (response) => {
+            // Clear form data
+            localStorage.removeItem('courseData');
+            reset();
+            clearUploads();
+            
+            // Show success message
+            toast.update(loadingToastId, {
+              render: "Course added successfully!",
+              type: "success",
+              isLoading: false,
+              autoClose: 3000
+            });
+
+            // Update the route
+            router.push('/dashboards/admin-add-data');
+          },
+          onError: (error) => {
+            console.error('API Error:', error);
+            const errorMessage = error?.response?.data?.error?.message || 
+                               error?.response?.data?.message || 
+                               "Failed to add course";
+            toast.update(loadingToastId, {
+              render: errorMessage,
+              type: "error",
+              isLoading: false,
+              autoClose: 5000
+            });
+          }
+        });
+      } catch (error) {
+        toast.update(loadingToastId, {
+          render: "Failed to submit course. Please try again.",
+          type: "error",
+          isLoading: false,
+          autoClose: 5000
+        });
+      }
     } catch (error) {
-      handleError(error);
+      console.error('Form submission error:', error);
+      toast.error("An unexpected error occurred");
     }
+  };
+
+  const clearUploads = () => {
+    setCourseVideos([]);
+    setPdfBrochures([]);
+    setThumbnailImage(null);
+    setResourceVideos([]);
+    setResourcePdfs([]);
+    setCurriculum([]);
+    setSelectedCourses([]);
   };
 
   const handleCourseDuration = (unit) => {
@@ -404,9 +536,22 @@ const AddCourse = () => {
     setValue("course_duration", `${courseDurationValue.months} ${unit} ${courseDurationValue.weeks} weeks`);
   };
 
-  const handleSessionDuration = (unit) => {
-    setSessionDurationUnit(unit);
-    setValue("session_duration", `${sessionDurationValue.hours} ${unit} ${sessionDurationValue.minutes} minutes`);
+  const handleSessionDurationChange = async (field, value) => {
+    const newSessionDuration = {
+      ...sessionDurationValue,
+      [field]: value
+    };
+    setSessionDurationValue(newSessionDuration);
+    
+    if (newSessionDuration.hours || newSessionDuration.minutes) {
+      const formattedDuration = `${newSessionDuration.hours || '0'} hours ${newSessionDuration.minutes || '0'} minutes`;
+      try {
+        setValue("session_duration", formattedDuration);
+        await trigger("session_duration");
+      } catch (error) {
+        console.error('Validation error:', error);
+      }
+    }
   };
 
   const handleResourceModal = (e) => {
@@ -528,29 +673,51 @@ const AddCourse = () => {
   };
 
   const updatePrice = (id, field, value) => {
+    // Convert empty string to undefined to avoid NaN issues
+    const numericValue = value === '' ? undefined : Number(value);
+    
     setPrices(prev => prev.map(price => 
-      price.id === id ? { ...price, [field]: value } : price
+      price.id === id ? { ...price, [field]: numericValue } : price
     ));
-  };
 
-  const handleCategoryType = (type) => {
-    setSelectedType(type);
-    setValue("category_type", type);
-    if (type === "Free") {
-      setCourseIsFree(true);
-      setPrices([{ id: 1, currency: 'USD', individual: '0', batch: '0' }]);
-    } else {
-      setCourseIsFree(false);
+    // If this is affecting course_fee, update form value
+    if (field === 'individual' || field === 'batch') {
+      setValue('course_fee', numericValue);
+      trigger('course_fee').catch(console.error);
     }
   };
 
-  const handleDurationChange = (field, value) => {
-    if (field === 'course') {
-      setCourseDurationValue(value);
-      setValue("course_duration", `${value.months} months ${value.weeks} weeks`);
-    } else {
-      setSessionDurationValue(value);
-      setValue("session_duration", `${value.hours} hours ${value.minutes} minutes`);
+  const handleCategoryTypeSelect = async (type) => {
+    console.log('Setting category type:', type);
+    setSelectedType(type);
+    setValue("category_type", type);
+    // Only trigger validation if there's a value
+    if (type) {
+      try {
+        await trigger("category_type");
+      } catch (error) {
+        console.error('Validation error:', error);
+      }
+    }
+  };
+
+  const handleCourseMode = async (mode) => {
+    setCourseMode(mode);
+    try {
+      setValue("course_mode", mode);
+      await trigger("course_mode");
+    } catch (error) {
+      console.error('Validation error:', error);
+    }
+  };
+
+  const handleOnlineSessions = async (sessions) => {
+    setOnlineSessions(sessions);
+    try {
+      setValue("online_sessions", sessions);
+      await trigger("online_sessions");
+    } catch (error) {
+      console.error('Validation error:', error);
     }
   };
 
@@ -565,7 +732,7 @@ const AddCourse = () => {
     const updatedWeeks = [...curriculumWeeks];
     updatedWeeks[index][field] = value;
     setCurriculumWeeks(updatedWeeks);
-    setValue("curriculum_weeks", updatedWeeks);
+    setValue("curriculum_weeks", updatedWeeks).catch(console.error);
   };
 
   const handleFaqAdd = () => {
@@ -579,7 +746,170 @@ const AddCourse = () => {
     const updatedFaqs = [...faqs];
     updatedFaqs[index][field] = value;
     setFaqs(updatedFaqs);
-    setValue("faqs", updatedFaqs);
+    setValue("faqs", updatedFaqs).catch(console.error);
+  };
+
+  // Save form data whenever it changes
+  const formValues = watch();
+  useEffect(() => {
+    const saveFormData = () => {
+      const dataToSave = {
+        formValues,
+        selectedCategory,
+        courseVideos,
+        pdfBrochures,
+        thumbnailImage,
+        resourceVideos,
+        resourcePdfs,
+        curriculum,
+        courseTag,
+        courseIsFree,
+        selected,
+        selectedCourses,
+        prices,
+        courseDurationValue,
+        sessionDurationValue,
+        curriculumWeeks,
+        toolsTechnologies,
+        bonusModules,
+        faqs,
+        classType,
+        courseGrade,
+        certification,
+        assignments,
+        projects,
+        quizzes,
+        courseMode,
+        onlineSessions,
+      };
+      localStorage.setItem('courseFormData', JSON.stringify(dataToSave));
+    };
+
+    // Debounce the save operation to prevent too frequent saves
+    const timeoutId = setTimeout(saveFormData, 500);
+    return () => clearTimeout(timeoutId);
+  }, [
+    formValues,
+    selectedCategory,
+    courseVideos,
+    pdfBrochures,
+    thumbnailImage,
+    resourceVideos,
+    resourcePdfs,
+    curriculum,
+    courseTag,
+    courseIsFree,
+    selected,
+    selectedCourses,
+    prices,
+    courseDurationValue,
+    sessionDurationValue,
+    curriculumWeeks,
+    toolsTechnologies,
+    bonusModules,
+    faqs,
+    classType,
+    courseGrade,
+    certification,
+    assignments,
+    projects,
+    quizzes,
+    courseMode,
+    onlineSessions,
+  ]);
+
+  useEffect(() => {
+    if (onlineSessions.count && onlineSessions.duration) {
+      setValue("online_sessions", onlineSessions);
+      trigger("online_sessions").catch(error => {
+        console.error('Validation error:', error);
+      });
+    }
+  }, [onlineSessions, setValue, trigger]);
+
+  useEffect(() => {
+    if (courseMode) {
+      setValue("course_mode", courseMode);
+      trigger("course_mode").catch(error => {
+        console.error('Validation error:', error);
+      });
+    }
+  }, [courseMode, setValue, trigger]);
+
+  useEffect(() => {
+    if (courseDurationValue.months && courseDurationValue.weeks) {
+      const duration = `${courseDurationValue.months} months ${courseDurationValue.weeks} weeks`;
+      setValue("course_duration", duration);
+      trigger("course_duration").catch(error => {
+        console.error('Validation error:', error);
+      });
+    }
+  }, [courseDurationValue, setValue, trigger]);
+
+  useEffect(() => {
+    if (sessionDurationValue.hours && sessionDurationValue.minutes) {
+      const duration = `${sessionDurationValue.hours} hours ${sessionDurationValue.minutes} minutes`;
+      setValue("session_duration", duration);
+      trigger("session_duration").catch(error => {
+        console.error('Validation error:', error);
+      });
+    }
+  }, [sessionDurationValue, setValue, trigger]);
+
+  const handleDurationChange = async (type, value) => {
+    if (type === 'course') {
+      setCourseDurationValue(value);
+      if (value.months && value.weeks) {
+        const duration = `${value.months} months ${value.weeks} weeks`;
+        try {
+          setValue('course_duration', duration);
+          await trigger('course_duration');
+        } catch (error) {
+          console.error('Validation error:', error);
+        }
+      }
+    } else {
+      setSessionDurationValue(value);
+      if (value.hours && value.minutes) {
+        const duration = `${value.hours} hours ${value.minutes} minutes`;
+        try {
+          setValue('session_duration', duration);
+          await trigger('session_duration');
+        } catch (error) {
+          console.error('Validation error:', error);
+        }
+      }
+    }
+  };
+
+  const handleCategoryTypeChange = (e) => {
+    const value = e.target.value;
+    setCourseTag(value);
+    setValue('category_type', value);
+    
+    if (value === 'Free') {
+      setCourseIsFree(true);
+      setValue('course_fee', 0); // Set as number 0, not string
+    } else {
+      setCourseIsFree(false);
+      setValue('course_fee', ''); // Clear the value
+      trigger('course_fee'); // Trigger validation
+    }
+    
+    trigger('category_type').catch(console.error);
+  };
+
+  // Update the tools and technologies handlers
+  const handleToolsTechnologiesChange = (e) => {
+    const tools = e.target.value.split('\n').filter(tool => tool.trim());
+    setToolsTechnologies(tools);
+    setValue("tools_technologies", tools);
+  };
+
+  const handleBonusModulesChange = (e) => {
+    const modules = e.target.value.split('\n').filter(module => module.trim());
+    setBonusModules(modules);
+    setValue("bonus_modules", modules);
   };
 
   if (loading) {
@@ -593,82 +923,124 @@ const AddCourse = () => {
           <h2 className="text-3xl font-bold mb-4 text-gray-800 dark:text-gray-100">Add Course Details</h2>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+        <form 
+          onSubmit={handleSubmit(onSubmit, logFormErrors)} 
+          className="space-y-8"
+          noValidate
+        >
           {/* Basic Info Section */}
           <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl shadow-sm">
             <h3 className="text-xl font-semibold mb-6">Basic Information</h3>
             
-            {/* Course Category Radio Buttons */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium mb-2">Course Category <span className="text-red-500">*</span></label>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {["Live Courses", "Blended Courses", "Corporate Training Courses"].map((category) => (
-                  <label
-                    key={category} 
-                    className={`
-                      flex items-center p-4 rounded-lg border-2 cursor-pointer transition-all
-                      ${selectedCategory === category 
-                        ? 'border-customGreen bg-green-50 dark:bg-green-900' 
-                        : 'border-gray-200 hover:border-gray-300'
-                      }
-                    `}
-                  >
-                    <input
-                      type="radio"
-                      name="course_category"
-                      value={category}
-                      checked={selectedCategory === category}
-                      onChange={(e) => handleChange(e.target.value)}
-                      className="sr-only"
-                    />
-                    <div className="flex items-center w-full">
-                      <div className={`
-                        w-4 h-4 rounded-full border-2 mr-3 flex items-center justify-center
-                        ${selectedCategory === category ? 'border-customGreen' : 'border-gray-400'}
-                      `}>
-                        {selectedCategory === category && (
-                          <div className="w-2 h-2 rounded-full bg-customGreen" />
-                        )}
-                      </div>
-                      <span className="text-sm font-medium">{category}</span>
-                    </div>
-                  </label>
-                ))}
-              </div>
-              {errors.course_category && (
-                <p className="text-red-500 text-xs mt-1">{errors.course_category.message}</p>
-              )}
-            </div>
-
-            {/* Course Title and Categories */}
+            {/* Course Category and Title */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
+              {/* Course Category */}
+              <div className="relative">
+                <label className="block text-sm font-medium mb-2">Course Category (Optional)</label>
+                <div className="relative" ref={dropdownRef}>
+                  <div 
+                    className={`w-full p-3 border rounded-lg flex justify-between items-center cursor-pointer
+                      ${(errors?.course_category || errors?.category) ? 'border-red-500' : 'border-gray-300'}
+                      hover:border-gray-400 transition-colors`}
+                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                  >
+                    <span className={selectedCategory ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500'}>
+                      {selectedCategory || 'Select category'}
+                    </span>
+                    <svg className={`w-5 h-5 transition-transform ${dropdownOpen ? 'transform rotate-180' : ''}`} 
+                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+
+                  {dropdownOpen && (
+                    <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-60 overflow-auto">
+                      {/* Search input */}
+                      <div className="sticky top-0 p-2 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                        <input
+                          type="text"
+                          className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
+                          placeholder="Search categories..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                      </div>
+
+                      {categories && Array.isArray(categories) ? (
+                        categories
+                          .filter(category => 
+                            category.name.toLowerCase().includes(searchTerm.toLowerCase())
+                          )
+                          .map((category) => (
+                            <div
+                              key={category.id}
+                              className={`p-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center
+                                ${selectedCategory === category.name ? 'bg-green-50 dark:bg-green-900 text-green-600 dark:text-green-400' : ''}`}
+                              onClick={() => {
+                                handleChange(category.name);
+                                setDropdownOpen(false);
+                                setSearchTerm('');
+                              }}
+                            >
+                              <div className={`w-4 h-4 rounded-full border-2 mr-3 flex items-center justify-center
+                                ${selectedCategory === category.name ? 'border-customGreen' : 'border-gray-400'}`}>
+                                {selectedCategory === category.name && (
+                                  <div className="w-2 h-2 rounded-full bg-customGreen" />
+                                )}
+                              </div>
+                              <span className="text-sm font-medium">{category.name}</span>
+                            </div>
+                          ))
+                      ) : (
+                        <div className="p-3 text-gray-500 text-center">No categories available</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+                {(errors?.course_category || errors?.category) && (
+                  <p className="text-red-500 text-xs mt-1">Category is required</p>
+                )}
+              </div>
+
+              {/* Category Type */}
+              <div className="relative">
+                <label className="block text-sm font-medium mb-2">
+                  Category Type (Optional)
+                </label>
+                <select
+                  className={`w-full p-3 border rounded-lg ${errors.category_type ? 'border-red-500' : 'border-gray-300'}`}
+                  value={selectedType}
+                  onChange={(e) => handleCategoryTypeSelect(e.target.value)}
+                >
+                  <option value="">Select Type</option>
+                  <option value="Live">Live</option>
+                  <option value="Hybrid">Hybrid</option>
+                  <option value="Pre-Recorded">Pre-Recorded</option>
+                  <option value="Free">Free</option>
+                </select>
+                {errors.category_type && (
+                  <p className="text-red-500 text-xs mt-1">{errors.category_type.message}</p>
+                )}
+              </div>
+
+              {/* Course Title */}
+              <div>
                 <label className="block text-sm font-medium mb-2">
                   Course Title <span className="text-red-500">*</span>
                 </label>
-              <input
-                type="text"
-                placeholder="Enter title"
+                <input
+                  type="text"
+                  placeholder="Enter title"
                   className={`
                     w-full p-3 border rounded-lg focus:ring-2 focus:ring-customGreen
                     ${errors.course_title ? 'border-red-500' : 'border-gray-300'}
                   `}
-                {...register("course_title")}
-              />
-              {errors.course_title && (
+                  {...register("course_title")}
+                />
+                {errors.course_title && (
                   <p className="text-red-500 text-xs mt-1">{errors.course_title.message}</p>
-              )}
-            </div>
-
-            <CategorySelect
-              handleCategory={handleCategory}
-                handleCategoryType={handleCategoryType}
-              errors={errors}
-              selected={selected}
-                selectedType={selectedType}
-              setSelected={setSelected}
-                setSelectedType={setSelectedType}
-            />
+                )}
+              </div>
             </div>
 
             {/* Course Duration and Sessions */}
@@ -727,37 +1099,25 @@ const AddCourse = () => {
                 <label className="block text-sm font-medium mb-2">
                   Session Duration <span className="text-red-500">*</span>
               </label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-4">
                   <input
-                    type="text"
-                    placeholder="Start (e.g., 60)"
-                    className="w-full p-3 border rounded-lg"
-                    value={onlineSessions.duration.split('-')[0]}
-                    onChange={(e) => {
-                      const end = onlineSessions.duration.split('-')[1] || '90 min';
-                      setOnlineSessions({
-                        ...onlineSessions,
-                        duration: `${e.target.value}-${end}`
-                      });
-                      setValue("session_duration", `${e.target.value}-${end}`);
-                    }}
+                    type="number"
+                    placeholder="Hours"
+                    className={`w-full p-3 border rounded-lg ${errors.session_duration ? 'border-red-500' : 'border-gray-300'}`}
+                    value={sessionDurationValue.hours}
+                    onChange={(e) => handleSessionDurationChange('hours', e.target.value)}
                   />
                   <input
-                    type="text"
-                    placeholder="End (e.g., 90)"
-                    className="w-full p-3 border rounded-lg"
-                    value={onlineSessions.duration.split('-')[1]?.replace(' min', '')}
-                    onChange={(e) => {
-                      const start = onlineSessions.duration.split('-')[0] || '60';
-                      setOnlineSessions({
-                        ...onlineSessions,
-                        duration: `${start}-${e.target.value} min`
-                      });
-                      setValue("session_duration", `${start}-${e.target.value} min`);
-                    }}
+                    type="number"
+                    placeholder="Minutes"
+                    className={`w-full p-3 border rounded-lg ${errors.session_duration ? 'border-red-500' : 'border-gray-300'}`}
+                    value={sessionDurationValue.minutes}
+                    onChange={(e) => handleSessionDurationChange('minutes', e.target.value)}
                   />
                 </div>
-                <p className="text-sm text-gray-500 mt-1">{onlineSessions.duration} each</p>
+                {errors.session_duration && (
+                  <p className="text-red-500 text-xs mt-1">{errors.session_duration.message}</p>
+                )}
             </div>
               </div>
             </div>
@@ -782,9 +1142,14 @@ const AddCourse = () => {
                   value={courseGrade}
               >
                 <option value="">Select Grade</option>
-                  {["Beginner", "Intermediate", "Advanced", "All Levels"].map(grade => (
-                    <option key={grade} value={grade}>{grade}</option>
-                  ))}
+                <option value="Preschool">Preschool</option>
+                <option value="Grade 1-2">Grade 1-2</option>
+                <option value="Grade 3-4">Grade 3-4</option>
+                <option value="Grade 5-6">Grade 5-6</option>
+                <option value="Grade 7-8">Grade 7-8</option>
+                <option value="Grade 9-10">Grade 9-10</option>
+                <option value="Grade 11-12">Grade 11-12</option>
+                <option value="UG - Graduate - Professionals">UG - Graduate - Professionals</option>
               </select>
               {errors.course_grade && (
                   <p className="text-red-500 text-xs mt-1">{errors.course_grade.message}</p>
@@ -821,21 +1186,21 @@ const AddCourse = () => {
                   Class Type <span className="text-red-500">*</span>
               </label>
               <select
-                  className={`
-                    w-full p-3 border rounded-lg focus:ring-2 focus:ring-customGreen
-                    ${errors.class_type ? 'border-red-500' : 'border-gray-300'}
-                  `}
-                  {...register("class_type")}
-                  onChange={(e) => setClassType(e.target.value)}
-                  value={classType}
+                className={`
+                  w-full p-3 border rounded-lg focus:ring-2 focus:ring-customGreen
+                  ${errors.class_type ? 'border-red-500' : 'border-gray-300'}
+                `}
+                {...register("class_type")}
+                onChange={(e) => setClassType(e.target.value)}
+                value={classType}
               >
                 <option value="">Select...</option>
-                  {["Online", "Offline", "Hybrid"].map(type => (
-                    <option key={type} value={type}>{type}</option>
-                  ))}
+                <option value="Live Courses">Live Courses</option>
+                <option value="Blended Courses">Blended Courses</option>
+                <option value="Corporate Training Courses">Corporate Training Courses</option>
               </select>
-                {errors.class_type && (
-                  <p className="text-red-500 text-xs mt-1">{errors.class_type.message}</p>
+              {errors.class_type && (
+                <p className="text-red-500 text-xs mt-1">{errors.class_type.message}</p>
               )}
             </div>
 
@@ -1006,8 +1371,13 @@ const AddCourse = () => {
                           className={`w-full pl-8 pr-3 py-3 border rounded-lg focus:ring-2 focus:ring-customGreen
                             transition-all ${courseIsFree || !price.currency ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                           disabled={courseIsFree || !price.currency}
-                          value={price.individual}
-                          onChange={(e) => updatePrice(price.id, 'individual', e.target.value)}
+                          value={price.individual ?? ''}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            updatePrice(price.id, 'individual', value);
+                          }}
+                          min="0"
+                          step="0.01"
                         />
                       </div>
                     </div>
@@ -1024,8 +1394,13 @@ const AddCourse = () => {
                           className={`w-full pl-8 pr-3 py-3 border rounded-lg focus:ring-2 focus:ring-customGreen
                             transition-all ${courseIsFree || !price.currency ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                           disabled={courseIsFree || !price.currency}
-                          value={price.batch}
-                          onChange={(e) => updatePrice(price.id, 'batch', e.target.value)}
+                          value={price.batch ?? ''}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            updatePrice(price.id, 'batch', value);
+                          }}
+                          min="0"
+                          step="0.01"
                         />
                       </div>
                     </div>
@@ -1183,7 +1558,7 @@ const AddCourse = () => {
               <div className="w-full">
                 <label className="block text-sm font-medium mb-2 flex items-center gap-2">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4 16L8.586 11.414C9.367 10.633 10.633 10.633 11.414 11.414L16 16M14 14L15.586 12.414C16.367 11.633 17.633 11.633 18.414 12.414L20 14M14 8H14.01M6 20H18C19.1046 20 20 19.1046 20 18V6C20 4.89543 19.1046 4 18 4H6C4.89543 4 4 4.89543 4 6V18C4 19.1046 4.89543 20 6 20Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M4 16L8.586 11.414C9.367 10.633 10.633 10.633 11.414 11.414L16 16M14 14L15.586 12.414C16.367 11.633 17.633 11.633 18.414 12.414L20 14M14 8H14.01M6 20H18C19.1046 20 20 19.1046 20 18V6C20 4.89543 19.1046 4 18 4H6C4.89543 4 4 4.89543 4 6 4V18C4 19.1046 4.89543 20 6 20Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                   Add Thumbnail Image
                 </label>
@@ -1269,7 +1644,7 @@ const AddCourse = () => {
                       onClick={() => {
                         const updatedWeeks = curriculumWeeks.filter((_, i) => i !== index);
                         setCurriculumWeeks(updatedWeeks);
-                        setValue("curriculum_weeks", updatedWeeks);
+                        setValue("curriculum_weeks", updatedWeeks).catch(console.error);
                       }}
                       className="text-red-500 hover:text-red-700"
                     >
@@ -1304,11 +1679,7 @@ const AddCourse = () => {
                   rows="4"
                   className="w-full p-2 border rounded-lg"
                   value={toolsTechnologies.join('\n')}
-                  onChange={(e) => {
-                    const tools = e.target.value.split('\n').filter(tool => tool.trim());
-                    setToolsTechnologies(tools);
-                    setValue("tools_technologies", tools);
-                  }}
+                  onChange={handleToolsTechnologiesChange}
                 />
               </div>
 
@@ -1321,11 +1692,7 @@ const AddCourse = () => {
                   rows="4"
                   className="w-full p-2 border rounded-lg"
                   value={bonusModules.join('\n')}
-                  onChange={(e) => {
-                    const modules = e.target.value.split('\n').filter(module => module.trim());
-                    setBonusModules(modules);
-                    setValue("bonus_modules", modules);
-                  }}
+                  onChange={handleBonusModulesChange}
                 />
               </div>
             </div>
@@ -1371,8 +1738,8 @@ const AddCourse = () => {
                       type="button"
                       onClick={() => {
                         const updatedFaqs = faqs.filter((_, i) => i !== index);
-                        setFaqs(updatedFaqs);
-                        setValue("faqs", updatedFaqs);
+                        setFaqs(updatedFaqs).catch(console.error);
+                        setValue("faqs", updatedFaqs).catch(console.error);
                       }}
                       className="ml-4 text-red-500 hover:text-red-700"
                     >
@@ -1390,10 +1757,47 @@ const AddCourse = () => {
             </p>
           </div>
 
+          {/* Course Mode Selection */}
+          <select
+            className={`w-full p-3 border rounded-lg ${errors.course_mode ? 'border-red-500' : 'border-gray-300'}`}
+            value={courseMode}
+            onChange={(e) => handleCourseMode(e.target.value)}
+          >
+            <option value="">Select Course Mode</option>
+            <option value="Live Online">Live Online</option>
+            <option value="Offline">Offline</option>
+            <option value="Hybrid">Hybrid</option>
+          </select>
+          {errors.course_mode && (
+            <p className="text-red-500 text-xs mt-1">{errors.course_mode.message}</p>
+          )}
+
+          {/* Online Sessions */}
+          <div className="grid grid-cols-2 gap-4">
+            <input
+              type="number"
+              placeholder="Number of sessions"
+              className={`w-full p-3 border rounded-lg ${errors.online_sessions?.count ? 'border-red-500' : 'border-gray-300'}`}
+              value={onlineSessions.count}
+              onChange={(e) => handleOnlineSessions({ ...onlineSessions, count: e.target.value })}
+            />
+            <input
+              type="text"
+              placeholder="Duration (e.g., 60-90 min)"
+              className={`w-full p-3 border rounded-lg ${errors.online_sessions?.duration ? 'border-red-500' : 'border-gray-300'}`}
+              value={onlineSessions.duration}
+              onChange={(e) => handleOnlineSessions({ ...onlineSessions, duration: e.target.value })}
+            />
+          </div>
+          {(errors.online_sessions?.count || errors.online_sessions?.duration) && (
+            <p className="text-red-500 text-xs mt-1">Please fill in all session details</p>
+          )}
+
           {/* Submit Button */}
           <div className="flex justify-end mt-8">
             <button
               type="submit"
+              onClick={() => console.log('Submit button clicked')}
               className="px-6 py-3 bg-customGreen text-white rounded-lg hover:bg-green-600 transition-colors"
             >
               Submit Course
