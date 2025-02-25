@@ -1,20 +1,32 @@
+import Link from "next/link";
 import React from "react";
-import DropdownItem from "./DropdownItem";
 
-const DropdownItems = ({ list }) => {
-  const { title, items } = list;
+const DropdownItems = ({ list, onItemClick }) => {
+  const { items } = list;
   return (
-    <div>
-      {/* <h3 className="text-lg text-blackColor font-semibold border-b border-borderColor dark:text-blackColor-dark p-10px mb-10px">
-        {title}
-      </h3> */}
-      <div className="bg-[#F6B335] w-full h-2"></div>
-      <ul className=" w-full px-5">
-        {items?.map((item, idx) => (
-          <DropdownItem key={idx} item={item} />
-        ))}
-      </ul>
-    </div>
+    <ul className="flex flex-col">
+      {items?.map((item, idx) => (
+        <li key={idx} className="group">
+          <Link
+            href={item.path}
+            onClick={onItemClick}
+            className="flex items-center px-4 py-2 text-sm text-contentColor dark:text-contentColor-dark hover:bg-primary-50 dark:hover:bg-gray-700 hover:text-primary-600 dark:hover:text-primary-400 rounded-md transition-colors duration-200"
+          >
+            {item.icon && (
+              <span className="mr-2 text-primary-500 dark:text-primary-400">
+                {item.icon}
+              </span>
+            )}
+            <span>{item.name}</span>
+            {item.badge && (
+              <span className="ml-auto px-2 py-0.5 text-xs font-medium rounded-full bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200">
+                {item.badge}
+              </span>
+            )}
+          </Link>
+        </li>
+      ))}
+    </ul>
   );
 };
 

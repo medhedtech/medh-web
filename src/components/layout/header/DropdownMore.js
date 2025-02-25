@@ -1,8 +1,28 @@
+"use client";
+
 import DropdownContainer from "@/components/shared/containers/DropdownContainer";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import DropdownItems from "./DropdownItems";
 
-const DropdownMore = () => {
+const DropdownMore = ({ isMenuOpen, onMenuToggle }) => {
+  // Use local state that syncs with parent's state
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  
+  // Sync with parent component's state
+  useEffect(() => {
+    if (isMenuOpen !== undefined) {
+      setIsDropdownOpen(isMenuOpen);
+    }
+  }, [isMenuOpen]);
+  
+  // Propagate state changes to parent
+  const handleToggle = (newState) => {
+    setIsDropdownOpen(newState);
+    if (onMenuToggle) {
+      onMenuToggle(newState);
+    }
+  };
+  
   const lists = [
     {
       items: [
@@ -41,12 +61,24 @@ const DropdownMore = () => {
       ],
     },
   ];
+  
   return (
-    <div>
-      <DropdownContainer> 
-        <div className="w-fit ">
+    <div className="absolute top-full z-50 mt-1 right-0">
+      <DropdownContainer 
+        isOpen={isDropdownOpen} 
+        onToggle={handleToggle}
+        position="right"
+        width="w-64"
+        maxHeight="300px"
+        className="py-1"
+      >
+        <div className="w-full">
           {lists?.map((list, idx) => (
-            <DropdownItems key={idx} list={list} />
+            <DropdownItems 
+              key={idx} 
+              list={list} 
+              onItemClick={() => handleToggle(false)}
+            />
           ))}
         </div>
       </DropdownContainer>
