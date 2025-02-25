@@ -6,30 +6,20 @@ import { usePathname } from "next/navigation";
 
 const Footer = () => {
   const pathname = usePathname();
-  const isHome8 = pathname === "/home-8" || pathname === "/home-8-dark";
-  const isHome9 = pathname === "/home-9" || pathname === "/home-9-dark";
-  const isHome10 = pathname === "/home-10" || pathname === "/home-10-dark";
+
   return (
-    <footer
-      className={`${
-        isHome9
-          ? "2xl:bg-[url(../assets/images/footer/footer_bg.png)]"
-          : isHome10
-          ? "2xl:bg-[url(../assets/images/footer/footer_bg_ai.png)] "
-          : ""
-      } bg-[#0C0E2B] 2xl:bg-cover`}
-    >
-      <div
-        className={`${
-          isHome8 ? "container-fluid-2" : "container"
-        }   pt-65px pb-5 lg:pb-10  `}
-      >
-        {/* footer top or subscription */}
-        {/* <FooterTop /> */}
-        {/* footer main */}
+    <footer className="bg-gradient-to-b from-[#0C0E2B] to-[#070818] relative">
+      {/* Decorative top border */}
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-green-500 to-transparent opacity-50"></div>
+      
+      <div className="max-w-6xl mx-auto px-4 pt-16 pb-0">
+        {/* Footer main content */}
         <FooterNavList />
 
-        {/* footer copyright  */}
+        {/* Divider */}
+        <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent my-8"></div>
+        
+        {/* Copyright section */}
         <CopyRight />
       </div>
     </footer>
