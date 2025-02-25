@@ -1,7 +1,7 @@
+"use client";
 import CategoryFilter from "@/components/sections/courses/CategoryFilter";
-import { ArrowLeftIcon, SlidersVertical } from "lucide-react";
+import { ArrowLeft, Filter, Search, X } from "lucide-react";
 import React from "react";
-import { FaTimes } from "react-icons/fa";
 
 const CategoryToggle = ({
   categorySliderOpen,
@@ -15,62 +15,73 @@ const CategoryToggle = ({
 }) => {
   return (
     <div className="md:hidden">
-      <div className="flex md:hidden justify-end w-full gap-6 items-center">
-        Select Category:
-        <SlidersVertical
-          className="text-green-500 font-bold "
-          onClick={toggleCategorySlider}
-        />
+      {/* Mobile sidebar trigger */}
+      <div 
+        className="flex justify-between items-center py-2"
+        aria-hidden={!categorySliderOpen}
+      >
+        <span className="text-sm text-gray-600 dark:text-gray-400">
+          {selectedCategory.length} {selectedCategory.length === 1 ? 'category' : 'categories'} selected
+        </span>
       </div>
 
-      {/* Sidebar Menu */}
+      {/* Slide-in sidebar for mobile */}
       <div
-        className={`fixed top-0 right-0 w-[90vw] max-w-[400px] h-[100vh] bg-white shadow-lg z-[10000000] transition-transform duration-500 ease-out transform overflow-auto ${
+        className={`fixed top-0 right-0 w-[90vw] max-w-[400px] h-[100vh] bg-white dark:bg-gray-800 shadow-xl z-[10000000] transition-transform duration-300 ease-in-out transform ${
           categorySliderOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <div className="flex items-center p-4 gap-4">
-          <button onClick={toggleCategorySlider} className="text-xl font-bold">
-            <ArrowLeftIcon />
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+          <button 
+            onClick={toggleCategorySlider} 
+            className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            aria-label="Close categories panel"
+          >
+            <ArrowLeft size={20} />
           </button>
-
-          <h1 className="w-full text-center text-xl leading-none font-semibold -ps-2 ">
-            Select Category
-          </h1>
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
+            Categories
+          </h2>
+          <div className="w-8"></div> {/* Spacer for alignment */}
         </div>
 
-        <div className=" w-full p-4">
-          <div className=" border border-[#CDCFD5] px-2 py-1 rounded-md w-full mb-6">
+        {/* Search and category filters */}
+        <div className="p-4 overflow-auto h-[calc(100vh-70px)]">
+          {/* Search input */}
+          <div className="relative mb-6 group">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search size={18} className="text-gray-400 group-focus-within:text-primary-500 transition-colors" />
+            </div>
             <input
               type="text"
-              placeholder="Search by category ......"
+              placeholder="Search categories..."
               value={searchTerm}
               onChange={handleSearch}
-              className="outline-none px-2 py-2 w-full dark:bg-screen-dark dark:text-gray50"
+              className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all"
             />
           </div>
-          <span className="text-[#5C6574] dark:text-white font-bold text-xl">
-            Category
-          </span>
+          
+          {/* Category filter component */}
           <CategoryFilter
             categories={categories}
             selectedCategory={selectedCategory}
             setSelectedCategory={setSelectedCategory}
+            heading="Filter by Category"
           />
-          <div className="w-full mt-12 mb-8 px-4 text-[#5C6574]">
-            {/* {(selectedCategory || searchTerm || sortOrder !== "A-Z") && ( */}
-            {(selectedCategory.length > 0 || searchTerm) && (
-              <div className="flex justify-between items-center">
-                <button
-                  onClick={handleClearFilters}
-                  className="flex items-center border border-[#7ECA9D] text-[#7ECA9D] px-4 py-2 rounded-md hover:bg-[#7ECA9D] hover:text-white transition duration-300"
-                >
-                  <FaTimes className="mr-2" />
-                  Clear All Filters
-                </button>
-              </div>
-            )}
-          </div>
+          
+          {/* Clear filters button */}
+          {(selectedCategory.length > 0 || searchTerm) && (
+            <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-4">
+              <button
+                onClick={handleClearFilters}
+                className="flex items-center justify-center w-full px-4 py-3 bg-primary-50 hover:bg-primary-100 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 dark:hover:bg-primary-900/30 font-medium rounded-lg transition-colors"
+              >
+                <X size={18} className="mr-2" />
+                Clear All Filters
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

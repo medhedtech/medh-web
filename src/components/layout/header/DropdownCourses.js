@@ -1,9 +1,30 @@
+"use client";
+
 import DropdownContainer from "@/components/shared/containers/DropdownContainer";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import DropdownItems from "./DropdownItems";
 import Image from "next/image";
 import megaMenu1 from "@/assets/images/mega/mega_menu_1.png";
-const DropdownCourses = () => {
+
+const DropdownCourses = ({ isMenuOpen, onMenuToggle }) => {
+  // Use local state that syncs with parent's state
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  
+  // Sync with parent component's state
+  useEffect(() => {
+    if (isMenuOpen !== undefined) {
+      setIsDropdownOpen(isMenuOpen);
+    }
+  }, [isMenuOpen]);
+  
+  // Propagate state changes to parent
+  const handleToggle = (newState) => {
+    setIsDropdownOpen(newState);
+    if (onMenuToggle) {
+      onMenuToggle(newState);
+    }
+  };
+  
   const lists = [
     // {
     //   title: "Get Started 1",
@@ -135,25 +156,28 @@ const DropdownCourses = () => {
       ],
     },
   ];
+  
   return (
-    <DropdownContainer>
-      <div className="w-fit ">
-        {lists?.map((list, idx) => (
-          <DropdownItems key={idx} list={list} />
-        ))}
-
-        {/* dropdown banner */}
-        {/* <div>
-          <Image
-            prioriy="false"
-            placeholder="blur"
-            src={megaMenu1}
-            alt="Mega Menu"
-            className="w-full rounded-standard"
-          />
-        </div> */}
-      </div>
-    </DropdownContainer>
+    <div className="absolute top-full z-50 mt-1 left-0">
+      <DropdownContainer 
+        isOpen={isDropdownOpen} 
+        onToggle={handleToggle}
+        position="left"
+        width="w-64"
+        maxHeight="300px"
+        className="py-1"
+      >
+        <div className="w-full">
+          {lists?.map((list, idx) => (
+            <DropdownItems 
+              key={idx} 
+              list={list} 
+              onItemClick={() => handleToggle(false)}
+            />
+          ))}
+        </div>
+      </DropdownContainer>
+    </div>
   );
 };
 

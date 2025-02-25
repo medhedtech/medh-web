@@ -3,6 +3,7 @@ import React, { useEffect } from "react";
 import Navbar from "./Navbar";
 import MobileMenu from "./MobileMenu";
 import HeaderTop from "./HeaderTop";
+import ThemeToggle from "@/components/shared/others/ThemeToggle";
 
 import useIsTrue from "@/hooks/useIsTrue";
 import Aos from "aos";
@@ -25,6 +26,11 @@ const Header = () => {
   }, []);
   return (
     <header>
+      {/* Skip to content link for keyboard users */}
+      <a href="#main-content" className="skip-to-content">
+        Skip to content
+      </a>
+      
       <div>
         {/* header top */}
         {isHome2Dark || isHome2 ? "" : <HeaderTop />}

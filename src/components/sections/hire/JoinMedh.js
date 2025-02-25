@@ -1,11 +1,12 @@
 "use client";
 import Image from "next/image";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Educator from "@/assets/images/hire/Educator.png";
 import Partner from "@/assets/images/hire/Partner.png";
 import EducationBg from "@/assets/images/about/joinSvg.png";
 import SchoolBg from "@/assets/images/about/Image.svg";
 import { useRouter } from "next/navigation";
+import { PlusCircle, ArrowRight } from "lucide-react";
 
 // AddIcon component
 const AddIcon = ({ fill = "white" }) => {
@@ -29,13 +30,13 @@ const AddIcon = ({ fill = "white" }) => {
 const JoinMedh = ({
   educatorImage = Educator,
   educatorTitle = "Join Medh as an Educator",
-  educatorText = "Join Medh’s pioneering learning community and contribute to shaping a transformative educational journey for learners worldwide.",
+  educatorText = "Join Medh's pioneering learning community and contribute to shaping a transformative educational journey for learners worldwide.",
   educatorButtonText = "Get Started",
   educatorButtonColor = "#7ECA9D",
   partnerImage = Partner,
   partnerTitle = "Partner with Medh as a School / Institute",
   partnerText = "To implement customized skill development programs, empowering your students to excel in their chosen fields on a global scale.",
-  partnerButtonText = "Let’s Collaborate",
+  partnerButtonText = "Let's Collaborate",
   partnerButtonColor = "white",
   partnerTextColor = "white",
   partnerBackgroundColor = "#F6B335",
@@ -44,81 +45,142 @@ const JoinMedh = ({
   SchoolBg,
 }) => {
   const router = useRouter();
-  return (
-    <div className="flex flex-col gap-4 md:gap-0">
-      {/* Educator Section */}
-      <div className="flex flex-col md:flex-row md:items-center bg-white dark:bg-[#050622]">
-        <Image
-          src={educatorImage}
-          width={720}
-          height={375}
-          className="w-full md:w-1/2 object-cover"
-        />
-        {/* Education text */}
-        <div className="flex flex-col justify-center px-4 md:w-1/2 md:px-8 lg:pl-24">
-          <h1 className="font-bold text-[#252525] text-3xl mt-4 md:mt-0 dark:text-gray-50">
-            {educatorTitle}
-          </h1>
-          <p className="text-[#727695] text-base leading-7 mt-2 dark:text-gray-300">
-            {educatorText}
-          </p>
-          <div
-            onClick={() => {
-              router.push("/join-us-as-educator");
-            }}
-            className="cursor-pointer text-white px-4 py-[.5rem] rounded-3xl  flex w-fit items-center gap-2.5 mt-4"
-            style={{ backgroundColor: educatorButtonColor }}
-          >
-            <AddIcon />
-            {educatorButtonText}
-          </div>
-        </div>
-      </div>
+  const [isVisible, setIsVisible] = useState(false);
+  
+  useEffect(() => {
+    // Add entrance animation effect
+    const timer = setTimeout(() => setIsVisible(true), 300);
+    return () => clearTimeout(timer);
+  }, []);
 
-      {/* School Collaboration Section */}
-      <div
-        className="flex flex-col md:flex-row md:items-center gap-4 lg:gap-0"
-        style={{
-          backgroundColor: partnerBackgroundColor,
-        }}
-      >
-        {/* school text */}
-        <div className="flex flex-col  justify-center px-4 md:w-1/2 md:px-8 lg:pl-24">
-          <h1
-            className="font-bold text-3xl mt-4 md:mt-0"
-            style={{ color: partnerTextColor }}
-          >
-            {partnerTitle}
-          </h1>
-          <p
-            className="text-base leading-7 mt-2"
-            style={{ color: partnerTextColor }}
-          >
-            {partnerText}
-          </p>
-          <div
-            onClick={() => {
-              router.push("/join-us-as-school-institute");
-            }}
-            className="cursor-pointer px-4 py-[.5rem] rounded-3xl flex items-center gap-2.5 mt-4 w-fit"
-            style={{
-              backgroundColor: partnerButtonColor,
-              color: partnerBtnColor,
-            }}
-          >
-            <AddIcon
-              fill={partnerButtonColor === "white" ? "black" : "white"}
-            />
-            {partnerButtonText}
+  // Convert hex colors to CSS variables or use defaults
+  const isPrimaryEducatorBtn = educatorButtonColor === "#7ECA9D";
+  const educatorBtnClass = isPrimaryEducatorBtn 
+    ? "bg-primary-500 hover:bg-primary-600 text-white" 
+    : "";
+  
+  const isPrimaryPartnerBg = partnerBackgroundColor === "#F6B335";
+  const partnerBgClass = isPrimaryPartnerBg 
+    ? "bg-secondary-500 dark:bg-secondary-600" 
+    : "";
+  
+  return (
+    <div className={`flex flex-col gap-8 transition-opacity duration-700 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
+      {/* Educator Section */}
+      <section className="relative overflow-hidden bg-white dark:bg-gray-900">
+        {/* Decorative elements */}
+        <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-primary-100 dark:bg-primary-900/20 rounded-full blur-3xl opacity-50 transform translate-x-1/3 -translate-y-1/4"></div>
+        <div className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-primary-100 dark:bg-primary-900/20 rounded-full blur-3xl opacity-50 transform -translate-x-1/3 translate-y-1/4"></div>
+        
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row items-center">
+            {/* Image container with animated effect */}
+            <div className="w-full md:w-1/2 relative group">
+              <div className="absolute inset-0 bg-primary-500/10 dark:bg-primary-500/20 rounded-3xl transform rotate-3 scale-95 opacity-0 group-hover:opacity-100 transition-all duration-500 md:-ml-6"></div>
+              <div className="relative overflow-hidden rounded-2xl md:rounded-3xl shadow-xl">
+                <Image
+                  src={educatorImage}
+                  width={720}
+                  height={450}
+                  alt={educatorTitle}
+                  className="w-full object-cover transform transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              </div>
+            </div>
+            
+            {/* Content container */}
+            <div className="w-full md:w-1/2 p-6 md:p-12 lg:p-16">
+              <div className="max-w-lg">
+                <span className="inline-block px-4 py-1.5 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-sm font-medium rounded-full mb-4">
+                  Become an Educator
+                </span>
+                
+                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">
+                  {educatorTitle}
+                </h2>
+                
+                <p className="text-gray-600 dark:text-gray-300 text-lg leading-relaxed mb-8">
+                  {educatorText}
+                </p>
+                
+                <button
+                  onClick={() => router.push("/join-us-as-educator")}
+                  className={`inline-flex items-center px-6 py-3 ${educatorBtnClass} rounded-full shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2`}
+                  style={!isPrimaryEducatorBtn ? { backgroundColor: educatorButtonColor, color: 'white' } : {}}
+                  aria-label={`${educatorButtonText} as an educator`}
+                >
+                  <PlusCircle className="mr-2 h-5 w-5" />
+                  <span>{educatorButtonText}</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-        <Image
-          src={partnerImage}
-          width={720}
-          height={375}
-          className="w-full md:w-1/2 object-cover"
-        />
-      </div>
+      </section>
+
+      {/* School Partnership Section */}
+      <section className={`relative overflow-hidden ${partnerBgClass}`}
+        style={!isPrimaryPartnerBg ? { backgroundColor: partnerBackgroundColor } : {}}
+      >
+        {/* Decorative elements */}
+        <div className="absolute top-0 left-0 w-1/3 h-1/3 bg-white/10 rounded-full blur-3xl opacity-50 transform -translate-x-1/3 -translate-y-1/4"></div>
+        <div className="absolute bottom-0 right-0 w-1/3 h-1/3 bg-white/10 rounded-full blur-3xl opacity-50 transform translate-x-1/3 translate-y-1/4"></div>
+        
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col-reverse md:flex-row items-center">
+            {/* Content container */}
+            <div className="w-full md:w-1/2 p-6 md:p-12 lg:p-16">
+              <div className="max-w-lg">
+                <span className="inline-block px-4 py-1.5 bg-white/20 text-white text-sm font-medium rounded-full mb-4">
+                  Institutional Partnership
+                </span>
+                
+                <h2 className="text-3xl md:text-4xl font-bold mb-6" style={{ color: partnerTextColor }}>
+                  {partnerTitle}
+                </h2>
+                
+                <p className="text-lg leading-relaxed mb-8 opacity-90" style={{ color: partnerTextColor }}>
+                  {partnerText}
+                </p>
+                
+                <button
+                  onClick={() => router.push("/join-us-as-school-institute")}
+                  className="inline-flex items-center px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2"
+                  style={{ 
+                    backgroundColor: partnerButtonColor, 
+                    color: partnerBtnColor,
+                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+                  }}
+                  aria-label={`${partnerButtonText} as a school or institute`}
+                >
+                  {partnerButtonColor === "white" ? (
+                    <PlusCircle className="mr-2 h-5 w-5" style={{ color: partnerBtnColor }} />
+                  ) : (
+                    <PlusCircle className="mr-2 h-5 w-5" style={{ color: 'white' }} />
+                  )}
+                  <span>{partnerButtonText}</span>
+                </button>
+              </div>
+            </div>
+            
+            {/* Image container with animated effect */}
+            <div className="w-full md:w-1/2 relative group">
+              <div className="absolute inset-0 bg-white/20 rounded-3xl transform -rotate-3 scale-95 opacity-0 group-hover:opacity-100 transition-all duration-500 md:-mr-6"></div>
+              <div className="relative overflow-hidden rounded-2xl md:rounded-3xl shadow-xl">
+                <Image
+                  src={partnerImage}
+                  width={720}
+                  height={450}
+                  alt={partnerTitle}
+                  className="w-full object-cover transform transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 };
