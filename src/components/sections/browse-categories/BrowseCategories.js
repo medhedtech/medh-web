@@ -1,160 +1,178 @@
 "use client";
 import Image from "next/image";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import personalityIcon from "@/assets/images/courses/Personal.png";
 import aiIcon from "@/assets/images/courses/ai.png";
 import vedicIcon from "@/assets/images/courses/Maths.png";
-import NetworkingIcon from "@/assets/images/icon/NetworkingIcon";
-import ArrowIcon from "@/assets/images/icon/ArrowIcon";
-import RelevantIcon from "@/assets/images/icon/RelevantIcon";
-import RecognizedIcon from "@/assets/images/icon/RecognizedIcon";
+import { ChevronRight, BookOpen, Award, Users, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 const BrowseCategories = () => {
   const router = useRouter();
+  const [isVisible, setIsVisible] = useState(false);
+  
+  useEffect(() => {
+    // Add entrance animation effect
+    const timer = setTimeout(() => setIsVisible(true), 300);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Features data
+  const features = [
+    {
+      id: 1,
+      title: "Industry-Relevant Skills",
+      description: "Designed in collaboration with industry experts, ensuring that students acquire practical, up-to-date skills for their desired career paths.",
+      icon: <BookOpen className="text-primary-500 dark:text-primary-400" size={24} />
+    },
+    {
+      id: 2,
+      title: "Industry-Recognized Certifications",
+      description: "Offer industry-recognized certifications upon completion, adding credibility to the student's skillset and enhancing their professional profile.",
+      icon: <Award className="text-primary-500 dark:text-primary-400" size={24} />
+    },
+    {
+      id: 3,
+      title: "Networking Opportunities",
+      description: "Provide opportunities to connect with industry professionals, mentors, and fellow learners, fostering valuable collaboration.",
+      icon: <Users className="text-secondary-500 dark:text-secondary-400" size={24} />
+    },
+  ];
+
+  // Categories data
+  const categories = [
+    {
+      id: 1,
+      title: "Personality Development",
+      image: personalityIcon,
+      href: "/personality-development-course",
+      color: "from-primary-400 to-primary-600"
+    },
+    {
+      id: 2,
+      title: "AI and Data Science",
+      image: aiIcon,
+      href: "/ai-and-data-science-course",
+      color: "from-primary-500 to-primary-700"
+    },
+    {
+      id: 3,
+      title: "Vedic Mathematics",
+      image: vedicIcon,
+      href: "/vedic-mathematics-course",
+      color: "from-primary-600 to-primary-800"
+    }
+  ];
+
   return (
-    <div className="py-12 px-4 md:px-8 dark:bg-screen-dark lg:px-32">
-      {/* Browse Trending Categories Section */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-8">
-        <div className="md:px-6 mb-4 md:mb-0">
-          <h3 className="text-[#7ECA9D] font-semibold uppercase tracking-wider text-xl text-center md:text-left">
-            Course Categories
-          </h3>
-          <h1 className="text-gray-800 dark:text-white font-bold text-2xl md:text-3xl text-center md:text-left mt-2">
-            Browse Trending Categories
-          </h1>
-        </div>
-        <div className="md:px-6">
-          <button
-            onClick={() => {
-              router.push("/skill-development-courses");
-            }}
-            className="bg-[#7ECA9D] rounded-[2px] text-white px-4 py-2  font-semibold flex gap-3 w-full md:w-auto"
-          >
-            <span>
-              <ArrowIcon />
+    <div className={`py-16 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900 transition-opacity duration-700 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
+      <div className="max-w-7xl mx-auto">
+        {/* Browse Trending Categories Section */}
+        <div className="flex flex-col md:flex-row justify-between items-center mb-12">
+          <div className="mb-6 md:mb-0">
+            <span className="inline-block px-4 py-1.5 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-sm font-medium rounded-full mb-2">
+              Course Categories
             </span>
-            View All
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
+              Browse Trending Categories
+            </h2>
+          </div>
+          
+          <button
+            onClick={() => router.push("/skill-development-courses")}
+            className="inline-flex items-center px-5 py-2.5 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-lg transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+            aria-label="View all courses"
+          >
+            <span>View All</span>
+            <ChevronRight className="ml-2 h-5 w-5" />
           </button>
         </div>
-      </div>
 
-      {/* Categories Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3  gap-6">
-        <Link href="/personality-development-course">
-          {/* Category Card 1 */}
-          <div className="bg-[#7ECA9D] dark:bg-screen-gray-100 dark:border-whitegrey border  flex flex-col justify-between shadow-md">
-            <Image
-              src={personalityIcon}
-              width={200}
-              height={200}
-              alt="Personality Development"
-              className="mx-auto"
-            />
-            <h3 className="text-xl font-bold mt-4 py-4 text-center bg-[#F6B335] text-black-200 border-t border-black">
-              Personality Development
-            </h3>
-          </div>
-        </Link>
+        {/* Categories Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+          {categories.map((category) => (
+            <Link 
+              href={category.href} 
+              key={category.id}
+              className="group block"
+            >
+              <div className="relative overflow-hidden bg-white dark:bg-gray-800 rounded-2xl shadow-lg transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                {/* Gradient background */}
+                <div className={`absolute inset-0 bg-gradient-to-br ${category.color} opacity-10 group-hover:opacity-20 transition-opacity`}></div>
+                
+                {/* Card content */}
+                <div className="relative z-10 flex flex-col items-center p-6">
+                  <div className="relative w-48 h-48 mb-6 transform transition-transform group-hover:scale-105">
+                    <Image
+                      src={category.image}
+                      alt={category.title}
+                      className="object-contain"
+                      fill
+                      sizes="(max-width: 768px) 100vw, 192px"
+                    />
+                  </div>
+                  
+                  <div className="w-full bg-gradient-to-r from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700 text-white p-4 rounded-lg flex items-center justify-between group-hover:from-primary-600 group-hover:to-primary-700 transition-colors">
+                    <h3 className="text-xl font-bold">{category.title}</h3>
+                    <ArrowRight className="h-5 w-5 transform transition-transform group-hover:translate-x-1" />
+                  </div>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
 
-        {/* Category Card 2 */}
-        <Link href="/ai-and-data-science-course">
-          <div className="bg-[#7ECA9D] dark:bg-screen-gray-100 dark:border-whitegrey border  flex flex-col justify-between   shadow-md">
-            <Image
-              src={aiIcon}
-              width={200}
-              height={200}
-              alt="AI and Data Science"
-              className="mx-auto"
-            />
-            <h3 className="text-xl font-bold mt-4 py-4 text-center bg-[#F6B335] text-black-200 border-t border-black">
-              AI and Data Science
-            </h3>
-          </div>
-        </Link>
-
-        {/* Category Card 3 */}
-        <Link href="/vedic-mathematics-course">
-          <div className="bg-[#7ECA9D] dark:bg-screen-gray-100 dark:border-whitegrey border  flex flex-col justify-between  shadow-md">
-            <Image
-              src={vedicIcon}
-              width={200}
-              height={200}
-              alt="Vedic Mathematics"
-              className="mx-auto"
-            />
-            <h3 className="text-xl font-bold mt-4 py-4 text-center bg-[#F6B335] text-black-200 border-t border-black">
-              Vedic Mathematics
-            </h3>
-          </div>
-        </Link>
-      </div>
-
-      {/* Immersive Learning Section */}
-      <div className="mt-16">
-        <h3 className="text-center text-blue-500 text-sm font-semibold tracking-wide uppercase mb-2 dark:text-white">
-          Make Connections
-        </h3>
-        <h2 className="text-center text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-200">
-          Immersive Learning: Your Tailored Pathway to Excellence.
-        </h2>
-        <p className="text-center text-gray-600 mt-4 px-4 md:px-16 lg:px-32 dark:text-gray-300">
-          Offers engaging, interactive experiences, fostering deep
-          understanding, critical thinking,
-          <br className="hidden md:inline" /> and skill development in diverse
-          educational settings.
-        </p>
-        {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
-          {/* Feature 1 */}
-          <div className="bg-white p-6 dark:bg-screen-dark dark:border-whitegrey border shadow-lg text-center rounded-lg transition-all duration-300 hover:bg-[#7ECA9D] hover:text-white hover:shadow-xl relative overflow-hidden">
-            <div className="flex justify-center">
-              <RelevantIcon stroke="#7ECA9D" fill="#7ECA9D" />
-            </div>
-            <h3 className="text-xl font-bold dark:text-gray300 mt-4">Industry-Relevant Skills</h3>
-            <p className="text-gray-600 mt-2 dark:text-gray300 hover:text-white">
-              Designed in collaboration with industry experts, ensuring that
-              students acquire practical, up-to-date skills for their desired
-              career paths.
+        {/* Immersive Learning Section */}
+        <div className="relative py-12">
+          {/* Decorative elements */}
+          <div className="absolute top-0 right-0 -mt-12 -mr-12 w-64 h-64 bg-primary-100 dark:bg-primary-900/20 rounded-full opacity-50 blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 -mb-12 -ml-12 w-64 h-64 bg-secondary-100 dark:bg-secondary-900/20 rounded-full opacity-50 blur-3xl"></div>
+          
+          <div className="relative text-center mb-16">
+            <span className="inline-block px-4 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm font-medium rounded-full mb-2">
+              Make Connections
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              Immersive Learning: Your Tailored Pathway to Excellence
+            </h2>
+            <p className="max-w-3xl mx-auto text-gray-600 dark:text-gray-300 text-lg">
+              Offers engaging, interactive experiences, fostering deep understanding, critical thinking, 
+              and skill development in diverse educational settings.
             </p>
-
-            {/* Animated Background Effect */}
-            <div className="absolute inset-0 bg-[#7ECA9D] transform -translate-y-full transition-all duration-300 group-hover:translate-y-0 z-0"></div>
           </div>
-
-          {/* Feature 2 */}
-          <div className="bg-white p-6 shadow-lg dark:bg-screen-dark dark:border-whitegrey border text-center rounded-lg transition-all duration-300 hover:bg-[#7ECA9D] hover:text-white hover:shadow-xl relative overflow-hidden">
-            <div className="flex justify-center">
-              <RecognizedIcon stroke="#7ECA9D" fill="#7ECA9D" />
-            </div>
-            <h3 className="text-xl dark:text-gray300 font-bold mt-4">
-              Industry-Recognized Certifications
-            </h3>
-            <p className="text-gray-600 mt-2 dark:text-gray300 hover:text-white">
-              Offer industry-recognized certifications upon completion, adding
-              credibility to the student&#39;s skillset and enhancing their
-              professional profile.
-            </p>
-
-            {/* Animated Background Effect */}
-            <div className="absolute inset-0 bg-[#7ECA9D] transform -translate-y-full transition-all duration-300 group-hover:translate-y-0 z-0"></div>
-          </div>
-
-          {/* Feature 3 */}
-          <div className="bg-white dark:bg-screen-dark dark:border-whitegrey border p-6 shadow-lg text-center rounded-lg transition-all duration-300 hover:bg-[#7ECA9D] hover:text-white hover:shadow-xl relative overflow-hidden">
-            <div className="flex justify-center">
-              <NetworkingIcon stroke="#F6B335" fill="#F6B335" />
-            </div>
-            <h3 className="text-xl dark:text-gray300 font-bold mt-4">Networking Opportunities</h3>
-            <p className="text-gray-600 mt-2 dark:text-gray300 hover:text-white">
-              Provide opportunities for students to connect with industry
-              professionals, mentors, and fellow learners, fostering valuable
-              collaboration.
-            </p>
-
-            {/* Animated Background Effect */}
-            <div className="absolute inset-0 bg-[#7ECA9D] transform -translate-y-full transition-all duration-300 group-hover:translate-y-0 z-0"></div>
+          
+          {/* Features Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {features.map((feature) => (
+              <div 
+                key={feature.id}
+                className="relative bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg transition-all duration-300 hover:shadow-xl transform hover:-translate-y-1 group"
+              >
+                {/* Gradient border effect */}
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary-500 to-secondary-500 opacity-0 group-hover:opacity-100 blur transition-opacity p-0.5 -z-10"></div>
+                
+                {/* Card content */}
+                <div className="flex flex-col h-full">
+                  <div className="p-3 bg-primary-50 dark:bg-primary-900/30 rounded-xl inline-flex items-center justify-center w-14 h-14 mb-4">
+                    {feature.icon}
+                  </div>
+                  
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
+                    {feature.title}
+                  </h3>
+                  
+                  <p className="text-gray-600 dark:text-gray-300 flex-grow mb-4">
+                    {feature.description}
+                  </p>
+                  
+                  <Link href="#" className="inline-flex items-center text-primary-600 dark:text-primary-400 font-medium group-hover:text-primary-700 dark:group-hover:text-primary-300 transition-colors">
+                    Learn more
+                    <ChevronRight className="ml-1 h-4 w-4 transform transition-transform group-hover:translate-x-1" />
+                  </Link>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
