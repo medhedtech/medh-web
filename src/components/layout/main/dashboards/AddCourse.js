@@ -124,7 +124,16 @@ const AddCourse = () => {
   const [courseTag, setCourseTag] = useState();
   const [courseIsFree, setCourseIsFree] = useState(false);
   const [selectedCourses, setSelectedCourses] = useState([]);
-  const [prices, setPrices] = useState([{ id: 1, currency: "USD", individual: "", batch: "" }]);
+  const [prices, setPrices] = useState([{ 
+    id: 1, 
+    currency: "USD", 
+    individual: "", 
+    batch: "", 
+    min_batch_size: 2,
+    max_batch_size: 10,
+    early_bird_discount: 0,
+    group_discount: 0
+  }]);
   const [courseGrade, setCourseGrade] = useState("");
   const [certification, setCertification] = useState("");
   const [assignments, setAssignments] = useState("");
@@ -188,7 +197,7 @@ const AddCourse = () => {
       setCourseTag(parsedData.courseTag);
       setCourseIsFree(parsedData.courseIsFree || false);
       setSelectedCourses(parsedData.selectedCourses || []);
-      setPrices(parsedData.prices || [{ id: 1, currency: "USD", individual: "", batch: "" }]);
+      setPrices(parsedData.prices || [{ id: 1, currency: "USD", individual: "", batch: "", min_batch_size: 2, max_batch_size: 10, early_bird_discount: 0, group_discount: 0 }]);
       setCourseDurationValue(parsedData.courseDurationValue || { months: "", weeks: "" });
       setSessionDurationValue(parsedData.sessionDurationValue || { hours: "", minutes: "" });
       setCurriculumWeeks(parsedData.curriculumWeeks || []);
@@ -431,11 +440,56 @@ const AddCourse = () => {
       // Format the efforts per week
       const formattedEffortsPerWeek = `${data.min_hours_per_week} - ${data.max_hours_per_week} hours / week`;
 
+      // Format prices for API - remove id which is only for UI
+      const formattedPrices = prices.map(({ id, ...priceData }) => priceData);
+
       // Derive online sessions details from the "No. of Sessions" and "Session Duration" fields.
       const derivedOnlineSessions = {
         count: data.no_of_Sessions,
         duration: data.session_duration,
       };
+      
+      // Validate curriculum weeks
+      if (curriculumWeeks.length > 0) {
+        const invalidWeeks = curriculumWeeks.filter(
+          week => !week.weekTitle.trim() || !week.weekDescription.trim()
+        );
+        
+        if (invalidWeeks.length > 0) {
+          const emptyFields = [];
+          if (invalidWeeks.some(week => !week.weekTitle.trim())) emptyFields.push("title");
+          if (invalidWeeks.some(week => !week.weekDescription.trim())) emptyFields.push("description");
+          
+          toast.error(
+            `Please fill in all curriculum week ${emptyFields.join(" and ")}s. All fields are required.`, 
+            {
+              position: "top-right",
+              autoClose: 5000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+            }
+          );
+          return;
+        }
+      }
+
+      // Format curriculum to match the schema structure
+      const formattedCurriculum = curriculumWeeks.map(week => ({
+        weekTitle: week.weekTitle.trim(),
+        weekDescription: week.weekDescription.trim(),
+        topics: [week.weekDescription.trim()], // Convert description to topics array
+        resources: [] // Initialize empty resources array
+      }));
+
+      // Format FAQs to ensure they match the schema structure
+      const formattedFaqs = faqs.map(faq => ({
+        question: faq.question.trim(),
+        answer: faq.answer.trim()
+      }));
+
+      // Note: toolsTechnologies and bonusModules are already formatted in their respective handlers
 
       const postData = {
         ...data,
@@ -445,14 +499,19 @@ const AddCourse = () => {
         course_image: thumbnailImage || "",
         resource_videos: resourceVideos || [],
         resource_pdfs: resourcePdfs || [],
-        curriculum: curriculum || [],
+        curriculum: formattedCurriculum,
         related_courses: selectedCourses || [],
+        tools_technologies: toolsTechnologies,
+        bonus_modules: bonusModules,
+        faqs: formattedFaqs,
+        prices: formattedPrices,
         createdAt: new Date().toISOString(),
         category_type: data.category_type,
         course_category: data.class_type,
         class_type: data.class_type,
         course_mode: data.category_type,
         online_sessions: derivedOnlineSessions,
+        isFree: data.category_type === "Free"
       };
 
       const validCategories = ["Live Courses", "Blended Courses", "Corporate Training Courses"];
@@ -475,18 +534,59 @@ const AddCourse = () => {
             setPdfBrochures([]);
             setThumbnailImage(null);
             toast.update(loadingToastId, {
-              render: "Course added successfully!",
+              render: `Course "${data.course_title}" added successfully!`,
               type: "success",
               isLoading: false,
               autoClose: 3000,
             });
+            
+            // Add a second toast with more details
+            setTimeout(() => {
+              toast.success("You can view and edit the course in the courses list.", {
+                position: "top-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+              });
+            }, 500);
+            
             router.push("/dashboards/admin-add-data");
           },
           onError: (error) => {
-            const errorMessage =
-              error?.response?.data?.error?.message ||
-              error?.response?.data?.message ||
-              "Failed to add course";
+            // Log detailed error information for debugging
+            console.error("API Error:", error?.response?.data);
+            
+            // Extract error information
+            const errorData = error?.response?.data;
+            let errorMessage = "Failed to add course. Please try again.";
+            
+            // Handle specific error cases with user-friendly messages
+            if (errorData?.error) {
+              if (typeof errorData.error === 'object') {
+                // Handle validation errors
+                const validationErrors = Object.entries(errorData.error);
+                if (validationErrors.length > 0) {
+                  const [field, message] = validationErrors[0];
+                  errorMessage = `${message} (${field})`;
+                  
+                  // Special handling for common errors
+                  if (field.includes('curriculum_weeks')) {
+                    errorMessage = `Curriculum error: ${message}`;
+                  } else if (field.includes('course_fee')) {
+                    errorMessage = `Course fee error: ${message}`;
+                  } else if (field.includes('course_title')) {
+                    errorMessage = `Course title error: ${message}`;
+                  }
+                }
+              } else if (typeof errorData.error === 'string') {
+                errorMessage = errorData.error;
+              }
+            } else if (errorData?.message) {
+              errorMessage = errorData.message;
+            }
+            
             toast.update(loadingToastId, {
               render: errorMessage,
               type: "error",
@@ -504,7 +604,29 @@ const AddCourse = () => {
         });
       }
     } catch (error) {
-      toast.error("An unexpected error occurred");
+      console.error("Form submission error:", error);
+      
+      // Provide more specific error messages based on the error type
+      let errorMessage = "An unexpected error occurred. Please try again.";
+      
+      if (error?.message) {
+        if (error.message.includes("network")) {
+          errorMessage = "Network error. Please check your internet connection.";
+        } else if (error.message.includes("timeout")) {
+          errorMessage = "Request timed out. Please try again later.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      toast.error(errorMessage, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     }
   };
 
@@ -580,15 +702,26 @@ const AddCourse = () => {
   };
 
   const handleToolsTechnologiesChange = (e) => {
-    const tools = e.target.value.split("\n").filter((tool) => tool.trim());
-    setToolsTechnologies(tools);
-    setValue("tools_technologies", tools);
+    const toolsInput = e.target.value.split("\n").filter((tool) => tool.trim());
+    // Convert simple strings to structured objects matching schema
+    const formattedTools = toolsInput.map(tool => ({
+      name: tool,
+      category: 'other',
+      description: '',
+      logo_url: ''
+    }));
+    setToolsTechnologies(formattedTools);
   };
 
   const handleBonusModulesChange = (e) => {
-    const modules = e.target.value.split("\n").filter((module) => module.trim());
-    setBonusModules(modules);
-    setValue("bonus_modules", modules);
+    const modulesInput = e.target.value.split("\n").filter((module) => module.trim());
+    // Convert simple strings to structured objects matching schema
+    const formattedModules = modulesInput.map(module => ({
+      title: module,
+      description: '',
+      resources: []
+    }));
+    setBonusModules(formattedModules);
   };
 
   // Cleanup: remove temporary storage on unmount
@@ -597,7 +730,7 @@ const AddCourse = () => {
   }, []);
 
   const addNewCurrency = () => {
-    setPrices((prev) => [...prev, { id: prev.length + 1, currency: "", individual: "", batch: "" }]);
+    setPrices((prev) => [...prev, { id: prev.length + 1, currency: "", individual: "", batch: "", min_batch_size: 2, max_batch_size: 10, early_bird_discount: 0, group_discount: 0 }]);
   };
 
   const removeCurrency = (id) => {
@@ -605,11 +738,19 @@ const AddCourse = () => {
   };
 
   const updatePrice = (id, field, value) => {
-    const numericValue = value === "" ? undefined : Number(value);
+    let numericValue = value;
+    
+    // Convert to number for numeric fields
+    if (field !== 'currency') {
+      numericValue = value === "" ? undefined : Number(value);
+    }
+    
     setPrices((prev) =>
       prev.map((price) => (price.id === id ? { ...price, [field]: numericValue } : price))
     );
-    if (field === "individual" || field === "batch") {
+    
+    // If updating batch price, use it as the course_fee value
+    if (field === "batch") {
       setValue("course_fee", numericValue);
       trigger("course_fee").catch(console.error);
     }
@@ -630,9 +771,24 @@ const AddCourse = () => {
           <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl shadow-sm">
             <h3 className="text-xl font-semibold mb-6">Basic Information</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Course Title */}
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Course Title <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="Enter title"
+                  className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-customGreen ${
+                    errors.course_title ? "border-red-500" : "border-gray-300"
+                  }`}
+                  {...register("course_title")}
+                />
+                {errors.course_title && <p className="text-red-500 text-xs mt-1">{errors.course_title.message}</p>}
+              </div>
               {/* Course Category */}
               <div className="relative">
-                <label className="block text-sm font-medium mb-2">Course Category (Optional)</label>
+                <label className="block text-sm font-medium mb-2">Course Category</label>
                 <div className="relative" ref={dropdownRef}>
                   <div
                     className={`w-full p-3 border rounded-lg flex justify-between items-center cursor-pointer ${
@@ -706,7 +862,7 @@ const AddCourse = () => {
               </div>
               {/* Category Type now doubles as Select Course Mode */}
               <div className="relative">
-                <label className="block text-sm font-medium mb-2">Category Type (Optional / Course Mode)</label>
+                <label className="block text-sm font-medium mb-2">Category Type</label>
                 <select
                   className={`w-full p-3 border rounded-lg ${errors.category_type ? "border-red-500" : "border-gray-300"}`}
                   value={selectedType}
@@ -723,21 +879,7 @@ const AddCourse = () => {
                 </select>
                 {errors.category_type && <p className="text-red-500 text-xs mt-1">{errors.category_type.message}</p>}
               </div>
-              {/* Course Title */}
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Course Title <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  placeholder="Enter title"
-                  className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-customGreen ${
-                    errors.course_title ? "border-red-500" : "border-gray-300"
-                  }`}
-                  {...register("course_title")}
-                />
-                {errors.course_title && <p className="text-red-500 text-xs mt-1">{errors.course_title.message}</p>}
-              </div>
+              
             </div>
             {/* Course Duration and Sessions */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
@@ -1055,9 +1197,9 @@ const AddCourse = () => {
                       </button>
                     )}
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div className="relative">
-                      <label className="block text-sm font-medium mb-2">Individual Price</label>
+                      <label className="block text-sm font-medium mb-2">Individual Price (Per Person)</label>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2">
                           {price.currency ? getCurrencySymbol(price.currency) : <DollarSign className="w-4 h-4 text-gray-400" />}
@@ -1075,9 +1217,10 @@ const AddCourse = () => {
                           step="0.01"
                         />
                       </div>
+                      <p className="text-xs text-gray-500 mt-1">Individual enrollment price</p>
                     </div>
                     <div className="relative">
-                      <label className="block text-sm font-medium mb-2">Batch Price</label>
+                      <label className="block text-sm font-medium mb-2">Batch Price (Per Person)</label>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2">
                           {price.currency ? getCurrencySymbol(price.currency) : <DollarSign className="w-4 h-4 text-gray-400" />}
@@ -1095,8 +1238,98 @@ const AddCourse = () => {
                           step="0.01"
                         />
                       </div>
+                      <p className="text-xs text-gray-500 mt-1">Price per person in a batch enrollment</p>
                     </div>
                   </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Batch Size</label>
+                      <div className="flex space-x-2">
+                        <div className="flex-1">
+                          <label className="block text-xs text-gray-500 mb-1">Min</label>
+                          <input
+                            type="number"
+                            placeholder="2"
+                            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-customGreen"
+                            value={price.min_batch_size}
+                            onChange={(e) => updatePrice(price.id, "min_batch_size", e.target.value)}
+                            min="2"
+                            disabled={courseIsFree}
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <label className="block text-xs text-gray-500 mb-1">Max</label>
+                          <input
+                            type="number"
+                            placeholder="10"
+                            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-customGreen"
+                            value={price.max_batch_size}
+                            onChange={(e) => updatePrice(price.id, "max_batch_size", e.target.value)}
+                            min={price.min_batch_size || 2}
+                            disabled={courseIsFree}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Discounts (%)</label>
+                      <div className="flex space-x-2">
+                        <div className="flex-1">
+                          <label className="block text-xs text-gray-500 mb-1">Early Bird</label>
+                          <input
+                            type="number"
+                            placeholder="0"
+                            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-customGreen"
+                            value={price.early_bird_discount}
+                            onChange={(e) => updatePrice(price.id, "early_bird_discount", e.target.value)}
+                            min="0"
+                            max="100"
+                            disabled={courseIsFree}
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <label className="block text-xs text-gray-500 mb-1">Group</label>
+                          <input
+                            type="number"
+                            placeholder="0"
+                            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-customGreen"
+                            value={price.group_discount}
+                            onChange={(e) => updatePrice(price.id, "group_discount", e.target.value)}
+                            min="0"
+                            max="100"
+                            disabled={courseIsFree}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {!courseIsFree && (
+                    <div className="border-t pt-4 mt-4">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Individual Price:</span>
+                        <span className="font-medium">
+                          {price.currency && price.individual ? `${getCurrencySymbol(price.currency)}${price.individual}` : '-'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm mt-1">
+                        <span className="text-gray-600">Batch Price (per person):</span>
+                        <span className="font-medium text-customGreen">
+                          {price.currency && price.batch ? `${getCurrencySymbol(price.currency)}${price.batch}` : '-'}
+                        </span>
+                      </div>
+                      {price.early_bird_discount > 0 && (
+                        <div className="flex justify-between text-sm mt-1">
+                          <span className="text-gray-600">With Early Bird Discount:</span>
+                          <span className="font-medium text-customGreen">
+                            {price.currency && price.batch ? 
+                              `${getCurrencySymbol(price.currency)}${(price.batch * (1 - price.early_bird_discount/100)).toFixed(2)}` : '-'}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
               {!courseIsFree && (
@@ -1111,6 +1344,14 @@ const AddCourse = () => {
                   Add Another Currency
                 </button>
               )}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4 text-sm text-blue-800">
+                <p className="flex items-center">
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="font-medium">Note:</span> The batch price will be used as the course fee value.
+                </p>
+              </div>
             </div>
           </div>
           {/* Upload Section */}
@@ -1261,7 +1502,7 @@ const AddCourse = () => {
               <button
                 type="button"
                 onClick={() => {
-                  setCurriculumWeeks([...curriculumWeeks, { title: "", topics: [] }]);
+                  setCurriculumWeeks([...curriculumWeeks, { weekTitle: "", weekDescription: "" }]);
                 }}
                 className="flex items-center gap-2 text-customGreen hover:text-green-700"
               >
@@ -1271,19 +1512,23 @@ const AddCourse = () => {
                 Add Week
               </button>
             </div>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+              Add the curriculum structure week by week. Each week should have a title and a detailed description of what will be covered.
+            </p>
             <div className="space-y-4">
               {curriculumWeeks.map((week, index) => (
                 <div key={index} className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow-sm">
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex-1 mr-4">
+                      <label className="block text-sm font-medium mb-2">Week Title</label>
                       <input
                         type="text"
                         placeholder="Week Title (e.g., Weeks 1-2: Introduction)"
                         className="w-full p-2 border rounded-lg"
-                        value={week.title}
+                        value={week.weekTitle}
                         onChange={(e) => {
                           const updated = [...curriculumWeeks];
-                          updated[index].title = e.target.value;
+                          updated[index].weekTitle = e.target.value;
                           setCurriculumWeeks(updated);
                         }}
                       />
@@ -1301,14 +1546,15 @@ const AddCourse = () => {
                       </svg>
                     </button>
                   </div>
+                  <label className="block text-sm font-medium mb-2">Week Description</label>
                   <textarea
-                    placeholder="Enter topics (one per line)"
+                    placeholder="Enter week description (detailed content of what will be covered)"
                     rows="4"
                     className="w-full p-2 border rounded-lg"
-                    value={week.topics.join("\n")}
+                    value={week.weekDescription}
                     onChange={(e) => {
                       const updated = [...curriculumWeeks];
-                      updated[index].topics = e.target.value.split("\n");
+                      updated[index].weekDescription = e.target.value;
                       setCurriculumWeeks(updated);
                     }}
                   />
@@ -1328,9 +1574,12 @@ const AddCourse = () => {
                   placeholder="Enter tools and technologies..."
                   rows="4"
                   className="w-full p-2 border rounded-lg"
-                  value={toolsTechnologies.join("\n")}
+                  value={toolsTechnologies.map(tool => tool.name).join("\n")}
                   onChange={handleToolsTechnologiesChange}
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Each tool will be categorized as 'other' by default. Categories will be assigned by the system or can be updated later.
+                </p>
               </div>
               <div className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow-sm">
                 <label className="block text-sm font-medium mb-2">
@@ -1340,9 +1589,12 @@ const AddCourse = () => {
                   placeholder="Enter bonus modules..."
                   rows="4"
                   className="w-full p-2 border rounded-lg"
-                  value={bonusModules.join("\n")}
+                  value={bonusModules.map(module => module.title).join("\n")}
                   onChange={handleBonusModulesChange}
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Descriptions and resources for each module can be added later.
+                </p>
               </div>
             </div>
           </div>
