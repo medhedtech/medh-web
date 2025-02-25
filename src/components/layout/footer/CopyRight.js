@@ -5,202 +5,111 @@ import logoImage from "@/assets/images/logo/logo_2.png";
 import useIsSecondary from "@/hooks/useIsSecondary";
 import qr from "@/assets/images/footer/qr.png";
 import { useRouter } from "next/navigation";
+import { Facebook, Instagram, Linkedin, Youtube } from "lucide-react";
+
 const CopyRight = () => {
   const { isSecondary } = useIsSecondary();
   const router = useRouter();
+  
+  const handleNavigation = (path) => {
+    router.push(path);
+  };
+  
+  const socialLinks = [
+    {
+      name: "Facebook",
+      url: "https://www.facebook.com/medhupskill/",
+      icon: <Facebook size={18} />
+    },
+    {
+      name: "LinkedIn",
+      url: "https://www.linkedin.com/company/101210304/admin/feed/posts/",
+      icon: <Linkedin size={18} />
+    },
+    {
+      name: "Instagram",
+      url: "https://www.instagram.com/medhupskill/",
+      icon: <Instagram size={18} />
+    },
+    {
+      name: "YouTube",
+      url: "https://www.youtube.com/channel/UC4EMmw69w-877_fxJExZWyw",
+      icon: <Youtube size={18} />
+    }
+  ];
+  
+  const policyLinks = [
+    { name: "Terms of Service", path: "/terms-and-services" },
+    { name: "Privacy Policy", path: "/privacy-policy" },
+    { name: "Reschedule Policy", path: "/reschedule-policy" },
+    { name: "Cancellation & Refund Policy", path: "/cancellation-and-refund-policy" }
+  ];
+
   return (
-    <div>
-      <div className="relative mx-auto mt-6 w-[150px] h-[150px]">
-        <Image src={qr} alt="qr" fill className="object-contain" />
-      </div>
-      <div className="mx-auto flex justify-center mt-3 mb-6">
-        <ul className="flex gap-3 lg:gap-2 2xl:gap-3 lg:justify-end">
-          <li>
-            <a
-              target="_blank"
-              rel="noopener noreferrer"
-              href="https://www.facebook.com/medhupskill/"
-              className="w-40.19px lg:w-35px 2xl:w-40.19px h-37px rounded-full lg:h-35px 2xl:h-37px leading-37px lg:leading-35px 2xl:leading-37px text-white bg-white bg-opacity-10 text-center"
-            >
-              <i className="icofont-facebook"></i>
-            </a>
-          </li>
-
-          <li>
-            <a
-              target="_blank"
-              rel="noopener noreferrer"
-              href="https://www.linkedin.com/company/101210304/admin/feed/posts/"
-              className="w-40.19px lg:w-35px 2xl:w-40.19px h-37px rounded-full lg:h-35px 2xl:h-37px leading-37px lg:leading-35px 2xl:leading-37px text-white bg-white bg-opacity-10 text-center"
-            >
-              <i className="icofont-linkedin"></i>
-            </a>
-          </li>
-          <li>
-            <a
-              target="_blank"
-              rel="noopener noreferrer"
-              href="https://www.instagram.com/medhupskill/"
-              className="w-40.19px lg:w-35px 2xl:w-40.19px h-37px rounded-full lg:h-35px 2xl:h-37px leading-37px lg:leading-35px 2xl:leading-37px text-white bg-white bg-opacity-10 text-center"
-            >
-              <i className="icofont-instagram"></i>
-            </a>
-          </li>
-          <li>
-            <a
-              target="_blank"
-              rel="noopener noreferrer"
-              href="https://www.youtube.com/channel/UC4EMmw69w-877_fxJExZWyw"
-              className="w-40.19px lg:w-35px 2xl:w-40.19px h-37px rounded-full lg:h-35px 2xl:h-37px leading-37px lg:leading-35px 2xl:leading-37px text-white bg-white bg-opacity-10 text-center"
-            >
-              <i className="icofont-youtube-play"></i>
-            </a>
-          </li>
-        </ul>
-      </div>
-      <div className="text-white flex justify-center gap-1 mt-2 text-sm">
-        <span
-          onClick={() => {
-            router.push("/terms-and-services");
-          }}
-          className="cursor-pointer"
-        >
-          Terms of Service{" "}
-        </span>
-        |
-        <span
-          onClick={() => {
-            router.push("/privacy-policy");
-          }}
-          className="cursor-pointer"
-        >
-          Privacy Policy{" "}
-        </span>
-        |
-        <span
-          onClick={() => {
-            router.push("/reschedule-policy");
-          }}
-          className="cursor-pointer"
-        >
-          Reschedule Policy
-        </span>
-        |
-        <span
-          onClick={() => {
-            router.push("/cancellation-and-refund-policy");
-          }}
-          className="cursor-pointer"
-        >
-          Cancellation & Refund Policy
-        </span>
-      </div>
-      <div>
-        <h3 className="text-sm text-white text-center mt-4">
-          All trademarks and logos appearing on this website are the property of
-          their respective owners.
-        </h3>
-        <p className="text-sm text-white text-center">
-          Copyright © 2023. All Rights Reserved.
-        </p>
-        <p className="text-sm text-white text-center">
-          MEDH – LEARN. UPSKILL. ELEVATE.
-        </p>
-      </div>
-      {/* {isSecondary ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-10 lg:mt-4 items-center border-t border-darkcolor">
-          <div>
-            <p className="text-base text-center sm:text-start text-darkgray">
-              © 2024 Powered by{" "}
-              <a href="#" className="hover:text-primaryColor">
-                Edurock
-              </a>{" "}
-              . All Rights Reserved.
-            </p>
+    <div className="bg-gray-900 dark:bg-gray-950 py-8 px-4">
+      <div className="max-w-6xl mx-auto">
+        {/* QR Code Section */}
+        <div className="flex flex-col items-center mb-8">
+          <div className="relative w-[140px] h-[140px] bg-white p-2 rounded-lg shadow-md">
+            <Image 
+              src={qr} 
+              alt="Scan QR code" 
+              fill 
+              className="object-contain rounded-md" 
+            />
           </div>
-
-          <div>
-            <ul className="flex items-center justify-center sm:justify-end">
-              <li>
-                <a
-                  href="#"
-                  className="text-base text-darkgray hover:text-primaryColor pr-4 border-r border-darkgray leading-1"
-                >
-                  Terms of Use
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-base text-darkgray hover:text-primaryColor pl-4"
-                >
-                  Privacy Policy
-                </a>
-              </li>
-            </ul>
+          <p className="text-gray-400 text-sm mt-3">Scan to visit our mobile app</p>
+        </div>
+        
+        {/* Social Media Links */}
+        <div className="flex justify-center mb-8">
+          <div className="flex gap-3">
+            {socialLinks.map((link, index) => (
+              <a
+                key={index}
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`Visit our ${link.name} page`}
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-800 hover:bg-green-600 text-gray-300 hover:text-white transition-colors duration-300"
+              >
+                {link.icon}
+              </a>
+            ))}
           </div>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-30px pt-10 items-center">
-          <div className="lg:col-start-1 lg:col-span-3">
-            <a href="index.html">
-              <Image src={logoImage} alt="" placeholder="blur" />
-            </a>
-          </div>
-
-          <div className="lg:col-start-4 lg:col-span-6">
-            <p className="text-whiteColor">
-              Copyright © <span className="text-primaryColor">2024 </span> by
-              edurock. All Rights Reserved.
-            </p>
-          </div>
-
-          <div className="lg:col-start-10 lg:col-span-3">
-            <ul className="flex gap-3 lg:gap-2 2xl:gap-3 lg:justify-end">
-              <li>
-                <a
-                  href="https://www.facebook.com"
-                  className="w-40.19px lg:w-35px 2xl:w-40.19px h-37px lg:h-35px 2xl:h-37px leading-37px lg:leading-35px 2xl:leading-37px text-whiteColor bg-whiteColor bg-opacity-10 hover:bg-primaryColor text-center"
-                >
-                  <i className="icofont-facebook"></i>
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://www.twitter.com"
-                  className="w-40.19px lg:w-35px 2xl:w-40.19px h-37px lg:h-35px 2xl:h-37px leading-37px lg:leading-35px 2xl:leading-37px text-whiteColor bg-whiteColor bg-opacity-10 hover:bg-primaryColor text-center"
-                >
-                  <i className="icofont-twitter"></i>
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://www.vimeo.com"
-                  className="w-40.19px lg:w-35px 2xl:w-40.19px h-37px lg:h-35px 2xl:h-37px leading-37px lg:leading-35px 2xl:leading-37px text-whiteColor bg-whiteColor bg-opacity-10 hover:bg-primaryColor text-center"
-                >
-                  <i className="icofont-vimeo"></i>
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://www.linkedin.com"
-                  className="w-40.19px lg:w-35px 2xl:w-40.19px h-37px lg:h-35px 2xl:h-37px leading-37px lg:leading-35px 2xl:leading-37px text-whiteColor bg-whiteColor bg-opacity-10 hover:bg-primaryColor text-center"
-                >
-                  <i className="icofont-linkedin"></i>
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://www.skype.com"
-                  className="w-40.19px lg:w-35px 2xl:w-40.19px h-37px lg:h-35px 2xl:h-37px leading-37px lg:leading-35px 2xl:leading-37px text-whiteColor bg-whiteColor bg-opacity-10 hover:bg-primaryColor text-center"
-                >
-                  <i className="icofont-skype"></i>
-                </a>
-              </li>
-            </ul>
-          </div>
+        
+        {/* Policy Links */}
+        <div className="flex flex-wrap justify-center gap-2 md:gap-4 mb-6 text-sm">
+          {policyLinks.map((link, index) => (
+            <React.Fragment key={index}>
+              <button
+                onClick={() => handleNavigation(link.path)}
+                className="text-gray-400 hover:text-green-400 transition-colors duration-200 cursor-pointer"
+              >
+                {link.name}
+              </button>
+              {index < policyLinks.length - 1 && (
+                <span className="text-gray-600">|</span>
+              )}
+            </React.Fragment>
+          ))}
         </div>
-      )} */}
+        
+        {/* Copyright Text */}
+        <div className="text-center">
+          <p className="text-gray-500 dark:text-gray-400 text-sm mb-2">
+            All trademarks and logos appearing on this website are the property of
+            their respective owners.
+          </p>
+          <p className="text-gray-400 dark:text-gray-500 text-sm mb-1">
+            Copyright © {new Date().getFullYear()}. All Rights Reserved.
+          </p>
+          <p className="text-green-500 font-medium text-sm">
+            MEDH – LEARN. UPSKILL. ELEVATE.
+          </p>
+        </div>
+      </div>
     </div>
   );
 };

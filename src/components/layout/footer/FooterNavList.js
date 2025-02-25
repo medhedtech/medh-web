@@ -56,7 +56,7 @@ const FooterNavList = () => {
       ],
     },
     {
-      heading: "Our Course",
+      heading: "Our Courses",
       items: [
         {
           name: "AI and Data Science",
@@ -75,7 +75,7 @@ const FooterNavList = () => {
           path: "/vedic-mathematics-course",
         },
         {
-          name: "View Other Courses",
+          name: "View All Courses",
           path: "/skill-development-courses",
         },
       ],
@@ -83,20 +83,26 @@ const FooterNavList = () => {
   ];
 
   return (
-    <section>
-      <div className="flex justify-between flex-col md:flex-row gap-8 lg:gap-2">
-        {/* left */}
-        {/* <FooterAbout /> */}
-
-        {/* nav area */}
-        {lists.map((list, idx) => (
-          <FooterNavItems key={idx} list={list} idx={idx} />
-        ))}
-
-        {/* right */}
+    <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+      {/* About Section - Left Column */}
+      <div className="md:col-span-4">
+        <FooterAbout />
+      </div>
+      
+      {/* Navigation Sections - Middle and Right Columns */}
+      <div className="md:col-span-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {lists.map((list, idx) => (
+            <FooterNavItems key={idx} list={list} idx={idx} />
+          ))}
+        </div>
+      </div>
+      
+      {/* Recent Posts - Full Width Bottom Section */}
+      <div className="md:col-span-12 mt-8">
         <FooterRecentPosts />
       </div>
-    </section>
+    </div>
   );
 };
 
