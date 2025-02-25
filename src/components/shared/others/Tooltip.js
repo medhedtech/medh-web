@@ -66,12 +66,11 @@ const Tooltip = ({ children, content, position = 'top' }) => {
         <div 
           ref={tooltipRef}
           className={`
-            absolute z-[1000] ${positionClasses[position]}
+            absolute z-[9999] ${positionClasses[position]}
             px-3 py-2 text-sm text-white bg-gray-800 
-            rounded-lg shadow-lg whitespace-nowrap
+            rounded-lg shadow-lg max-w-xs
             transition-opacity duration-200
             dark:bg-gray-700
-            pointer-events-none
           `}
           style={{ pointerEvents: 'none' }}
         >
