@@ -2,27 +2,39 @@ import useIsSecondary from "@/hooks/useIsSecondary";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
+import { Calendar } from "lucide-react";
 
 const FooterRecentPost = ({ post }) => {
   const { title, date, image, id } = post;
 
   return (
-    <li>
+    <li className="mb-4 last:mb-0">
       <Link
         href={`/courses/${id}`}
-        className="flex items-center gap-3 group cursor-pointer"
+        className="flex items-center gap-4 group hover:bg-gray-800/30 p-2 rounded-lg transition-all duration-300"
       >
-        <div>
-          <Image
-            src={image}
-            alt=""
-            className="w-61px h-54px"
-            placeholder="blur"
-          />
+        <div className="relative overflow-hidden rounded-md flex-shrink-0">
+          <div className="w-16 h-16 relative">
+            <Image
+              src={image}
+              alt={title}
+              fill
+              sizes="64px"
+              className="object-cover group-hover:scale-110 transition-transform duration-300"
+              placeholder="blur"
+              blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN88P/BfwAJhAPYe5T/vAAAAABJRU5ErkJggg=="
+            />
+            <div className="absolute inset-0 bg-green-500/0 group-hover:bg-green-500/20 transition-colors duration-300"></div>
+          </div>
         </div>
-        <div>
-          <p className="text-xs text-darkgray mb-7px">{date}</p>
-          <h6 className="text-size-15 text-whiteColor font-bold group-hover:text-primaryColor transition-all duration-300">
+        
+        <div className="flex-grow">
+          <div className="flex items-center text-gray-400 mb-1.5">
+            <Calendar size={12} className="mr-1.5" />
+            <p className="text-xs">{date}</p>
+          </div>
+          
+          <h6 className="text-sm font-medium text-gray-200 group-hover:text-green-400 transition-colors line-clamp-2">
             {title}
           </h6>
         </div>
