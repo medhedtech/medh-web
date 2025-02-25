@@ -72,7 +72,7 @@ export default function CoursePreview() {
           <h2 className="text-2xl font-semibold text-gray-800 mb-2">No Course Data Available</h2>
           <p className="text-gray-600 mb-4">Please go back and fill in the course details first.</p>
           <button
-            onClick={() => router.push("/dashboards/admin-add-course")}
+            onClick={() => router.push("/dashboards/admin-addcourse")}
             className="bg-customGreen text-white px-6 py-2 rounded-lg hover:bg-green-600 transition-colors"
           >
             Add Course Details
