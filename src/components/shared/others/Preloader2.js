@@ -1,18 +1,57 @@
+"use client";
+import { useEffect, useState } from "react";
 import Image from "next/image";
-import spinnerImage from "@/assets/images/pre.png";
+import logoImage from "@/assets/images/logo/Medh_logo.png";
+
 const Preloader2 = () => {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Shorter loading time for secondary preloader
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
-    <div className="preloader flex min-h-[60vh] w-full items-center justify-center dark:bg-inherit bg-whiteColor transition-all duration-700 ">
-      {/* spinner  */}
-      <div className="w-90px h-90px border-5px border-t-blue border-r-blue border-b-blue-light border-l-blue-light rounded-full animate-spin-infinit"></div>
-      <div className="absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2">
-        <Image
-          src={spinnerImage}
-          alt="Preloader"
-          className="h-10 w-10 block"
-          placeholder="blur"
-        />
+    <div 
+      className={`flex flex-col items-center justify-center min-h-[60vh] w-full transition-opacity duration-300 ${
+        loading ? "opacity-100" : "opacity-0 pointer-events-none"
+      }`}
+    >
+      {/* Logo and loading indicator */}
+      <div className="flex flex-col items-center">
+        <div className="relative mb-6">
+          <Image
+            src={logoImage}
+            alt="MEDH"
+            width={120}
+            height={40}
+            className="h-10 w-auto object-contain"
+          />
+        </div>
+        
+        {/* Loading bar */}
+        <div className="relative w-36 h-1 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
+          <div className="absolute top-0 left-0 h-full bg-gradient-to-r from-green-600 to-green-400 rounded-full animate-loading-bar-small"></div>
+        </div>
+        
+        <p className="text-gray-500 dark:text-gray-400 text-xs mt-3">Loading content...</p>
       </div>
+      
+      <style jsx global>{`
+        @keyframes loading-bar-small {
+          0% { width: 0%; left: 0; }
+          50% { width: 60%; left: 20% }
+          100% { width: 0%; left: 100% }
+        }
+        
+        .animate-loading-bar-small {
+          animation: loading-bar-small 1.5s ease-in-out infinite;
+        }
+      `}</style>
     </div>
   );
 };

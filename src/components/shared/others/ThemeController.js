@@ -1,56 +1,62 @@
 'use client';
 
-import { useEffect } from 'react';
-import theme from '@/libs/theme';
+import { useState, useEffect } from 'react';
+import { Moon, Sun } from 'lucide-react';
+
 const ThemeController = () => {
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Initialize theme based on system preference or stored preference
   useEffect(() => {
-    theme();
+    // Check if theme is stored in localStorage
+    const storedTheme = localStorage.getItem('theme');
+    
+    // Check system preference if no stored theme
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    // Set initial theme
+    if (storedTheme === 'dark' || (!storedTheme && prefersDark)) {
+      setIsDarkMode(true);
+      document.documentElement.classList.add('dark');
+    } else {
+      setIsDarkMode(false);
+      document.documentElement.classList.remove('dark');
+    }
   }, []);
+
+  // Toggle theme function
+  const toggleTheme = () => {
+    if (isDarkMode) {
+      // Switch to light mode
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+      setIsDarkMode(false);
+    } else {
+      // Switch to dark mode
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+      setIsDarkMode(true);
+    }
+  };
+
   return (
-    <div className="fixed top-[100px] 3xl:top-[300px] transition-all duration-300 right-[-50px] hover:right-0 z-xl">
-      <button className="theme-controller w-90px h-10 bg-primaryColor dark:bg-whiteColor-dark rounded-l-lg2 text-whiteColor px-10px flex items-center dark:shadow-theme-controller">
-        {/* dark  */}
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="mr-10px w-5 block dark:hidden"
-          viewBox="0 0 512 512"
-        >
-          <path
-            d="M160 136c0-30.62 4.51-61.61 16-88C99.57 81.27 48 159.32 48 248c0 119.29 96.71 216 216 216 88.68 0 166.73-51.57 200-128-26.39 11.49-57.38 16-88 16-119.29 0-216-96.71-216-216z"
-            fill="none"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="32"
-          ></path>
-        </svg>
-        <span className="text-base block dark:hidden">Dark</span>
-        {/* light  */}
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="hidden mr-10px w-5 dark:block"
-          viewBox="0 0 512 512"
-        >
-          <path
-            fill="none"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeMiterlimit="10"
-            strokeWidth="32"
-            d="M256 48v48M256 416v48M403.08 108.92l-33.94 33.94M142.86 369.14l-33.94 33.94M464 256h-48M96 256H48M403.08 403.08l-33.94-33.94M142.86 142.86l-33.94-33.94"
-          ></path>
-          <circle
-            cx="256"
-            cy="256"
-            r="80"
-            fill="none"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeMiterlimit="10"
-            strokeWidth="32"
-          ></circle>
-        </svg>
-        <span className="text-base hidden dark:block">Light</span>
+    <div className="fixed top-24 md:top-32 right-0 z-40 transition-transform duration-300 transform hover:translate-x-0 translate-x-14">
+      <button
+        onClick={toggleTheme}
+        aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+        className="flex items-center gap-2 py-2 pl-3 pr-4 bg-gradient-to-r from-gray-900 to-gray-800 dark:from-gray-200 dark:to-white text-white dark:text-gray-800 rounded-l-lg shadow-lg transition-all duration-300 hover:pl-4"
+      >
+        {isDarkMode ? (
+          <>
+            <Sun size={20} className="text-yellow-400" />
+            <span className="text-sm font-medium">Light</span>
+          </>
+        ) : (
+          <>
+            <Moon size={20} className="text-blue-300" />
+            <span className="text-sm font-medium">Dark</span>
+          </>
+        )}
       </button>
     </div>
   );

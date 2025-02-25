@@ -14,21 +14,22 @@ import Email from "@/assets/images/log-sign/Email.svg";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import ReCAPTCHA from "react-google-recaptcha";
 import Cookies from "js-cookie";
 import CryptoJS from "crypto-js";
+import FixedShadow from "../others/FixedShadow";
 
 const schema = yup
   .object({
-    email: yup.string().email().required("Email is required"),
+    email: yup.string().email("Please enter a valid email").required("Email is required"),
     password: yup
       .string()
-      .min(8, "At least 8 character required")
+      .min(8, "Password must be at least 8 characters")
       .required("Password is required"),
     agree_terms: yup
       .boolean()
-      .oneOf([true], "You must accept the agree to proceed"),
+      .oneOf([true], "You must accept the terms to proceed"),
   })
   .required();
 
@@ -168,168 +169,190 @@ const LoginForm = () => {
   }
 
   return (
-    <div className="mx-auto md:flex md:justify-between h-auto max-w-[1064px] shadow-2xl border-2 p-5">
-      <div className="hidden md:flex mx-auto">
-        <div className="w-[504px] h-[774px] my-auto flex justify-center">
+    <div className="relative mx-auto md:flex md:justify-between h-auto max-w-[1064px] shadow-xl rounded-2xl border border-gray-100 dark:border-gray-800 overflow-hidden">
+      <FixedShadow align="left" color="green" opacity={0.05} size="xl" />
+      <FixedShadow align="right" color="blue" opacity={0.03} size="lg" />
+      
+      {/* Left side - Image */}
+      <div className="hidden md:block md:w-1/2 bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
+        <div className="h-full flex items-center justify-center p-8">
           <Image
             src={LogIn}
-            alt="login-icon"
-            className="w-full h-full object-contain"
+            alt="Login illustration"
+            className="w-full h-auto max-w-md object-contain"
+            priority
           />
         </div>
       </div>
-      <div className="transition-opacity duration-150 ease-linear md:w-[50%] w-full md:px-3 pt-3">
-        <div className="md:m-6 rounded-[10px] p-5">
-          {/* heading */}
-          <div className="w-[179px] mx-auto">
-            <a href="/">
-              <Image priority="false" src={logo1} alt="logo" className="py-2" />
-            </a>
-          </div>
-          <div className="pt-11">
-            <h1 className="font-Open font-semibold text-3xl">Welcome Back!</h1>
-            <p className="text-[#545454] text-size-17">
-              Log in to access your account
-            </p>
-          </div>
+      
+      {/* Right side - Form */}
+      <div className="w-full md:w-1/2 p-6 md:p-10 bg-white dark:bg-gray-900 transition-all duration-300">
+        {/* Logo */}
+        <div className="w-[160px] mx-auto mb-8">
+          <a href="/" className="block">
+            <Image 
+              src={logo1} 
+              alt="Medh Logo" 
+              className="w-full h-auto" 
+              priority
+            />
+          </a>
+        </div>
+        
+        {/* Heading */}
+        <div className="text-center mb-8">
+          <h1 className="font-semibold text-3xl text-gray-900 dark:text-white mb-2">Welcome Back!</h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            Log in to access your account
+          </p>
+        </div>
 
-          <form className="pt-6" onSubmit={handleSubmit(onSubmit)}>
-            <div className="gap-4 mb-6">
-              <div className="relative">
-                <Image
-                  src={Email}
-                  alt="email-icon"
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2"
-                />
-                <input
-                  {...register("email")}
-                  type="email"
-                  placeholder="E-Mail"
-                  className="w-full h-12 pl-12 text-sm focus:outline-none text-black bg-[#F7F7F7] dark:text-contentColor-dark border-2 border-borderColor dark:border-borderColor-dark placeholder:text-black placeholder:opacity-80 font-medium  rounded-[12px]"
-                />
-              </div>
-
-              {errors.email && (
-                <p className="text-xs text-red-500 font-normal mt-1 ml-2">
-                  {errors.email?.message}
-                </p>
-              )}
+        {/* Form */}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* Email Field */}
+          <div>
+            <div className="relative">
+              <Mail 
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400" 
+                size={18} 
+              />
+              <input
+                {...register("email")}
+                type="email"
+                id="email"
+                placeholder="Email address"
+                className="w-full h-12 pl-12 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 outline-none"
+                aria-invalid={errors.email ? "true" : "false"}
+              />
             </div>
+            {errors.email && (
+              <p className="mt-1 text-sm text-red-500" role="alert">
+                {errors.email?.message}
+              </p>
+            )}
+          </div>
 
-            <div className="gap-4 mb-4">
-              <div className="relative">
-                <Image
-                  src={lock}
-                  alt="lock-icon"
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2"
-                />
-                <input
-                  {...register("password")}
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Password"
-                  className="w-full h-12 pl-12 pr-10 text-sm focus:outline-none text-black bg-[#F7F7F7] dark:text-contentColor-dark border-2 border-borderColor dark:border-borderColor-dark placeholder:text-black placeholder:opacity-80 font-medium  rounded-[12px]"
-                />
-                {/* Toggle Icon */}
-                <span
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-500 hover:text-gray-700"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                >
-                  {showPassword ? (
-                    <FaEyeSlash size={20} />
-                  ) : (
-                    <FaEye size={20} />
-                  )}
-                </span>
-              </div>
-              {errors.password && (
-                <p className="text-xs text-red-500 font-normal mt-1 ml-2">
-                  {errors.password?.message}
-                </p>
-              )}
+          {/* Password Field */}
+          <div>
+            <div className="relative">
+              <Lock 
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400" 
+                size={18} 
+              />
+              <input
+                {...register("password")}
+                type={showPassword ? "text" : "password"}
+                id="password"
+                placeholder="Password"
+                className="w-full h-12 pl-12 pr-12 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 outline-none"
+                aria-invalid={errors.password ? "true" : "false"}
+              />
+              <button
+                type="button"
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
+            {errors.password && (
+              <p className="mt-1 text-sm text-red-500" role="alert">
+                {errors.password?.message}
+              </p>
+            )}
+          </div>
 
+          {/* ReCAPTCHA */}
+          <div className="flex justify-center">
             <ReCAPTCHA
               sitekey="6LdHwxUqAAAAANjZ5-6I5-UYrL8owEGEi_QyJBX9"
               onChange={handleRecaptchaChange}
             />
-            {/* ReCAPTCHA Error Message */}
-            {recaptchaError && (
-              <span className="text-red-500 text-[12px]">
-                Please complete the ReCAPTCHA verification.
-              </span>
-            )}
+          </div>
+          {recaptchaError && (
+            <p className="text-sm text-red-500 text-center" role="alert">
+              Please complete the ReCAPTCHA verification.
+            </p>
+          )}
 
-            <div className="flex justify-between items-center cursor-pointer mt-2 mb-4">
-              <div className="flex items-center cursor-pointer my-2">
-                <input
-                  type="checkbox"
-                  id="remember_me"
-                  onChange={handleRememberMeChange}
-                  className="w-6 h-6 mr-2 appearance-none border-2 border-gray-400 rounded-full cursor-pointer checked:bg-[#7ECA9D] checked:border-[#7ECA9D] checked:before:content-['✔'] checked:before:text-white checked:before:text-[12px] checked:before:flex checked:before:justify-center checked:before:items-center"
-                />
-                <label
-                  htmlFor="remember_me"
-                  className="text-sm text-gray-700 cursor-pointer"
-                >
-                  Remember Me
-                </label>
-              </div>
-              <div className="text-primaryColor font-semibold font-Open">
-                <a href="/forgot-password"> Forgot Password?</a>
-              </div>
-            </div>
+          {/* Remember Me & Forgot Password */}
+          <div className="flex flex-wrap justify-between items-center gap-2">
+            <label className="flex items-center space-x-2 cursor-pointer">
+              <input
+                type="checkbox"
+                id="remember_me"
+                onChange={handleRememberMeChange}
+                checked={rememberMe}
+                className="w-5 h-5 rounded-md text-green-500 border-gray-300 focus:ring-green-500 transition-colors"
+              />
+              <span className="text-sm text-gray-700 dark:text-gray-300">Remember Me</span>
+            </label>
+            <a 
+              href="/forgot-password" 
+              className="text-sm font-medium text-green-600 hover:text-green-700 dark:text-green-500 dark:hover:text-green-400 transition-colors"
+            >
+              Forgot Password?
+            </a>
+          </div>
 
-            <div className="flex items-center cursor-pointer my-2">
+          {/* Terms Checkbox */}
+          <div>
+            <label className="flex items-start space-x-2 cursor-pointer">
               <input
                 type="checkbox"
                 id="terms"
                 {...register("agree_terms")}
-                className="w-6 h-6 mr-2 appearance-none border-2 border-gray-400 rounded-full cursor-pointer checked:bg-[#7ECA9D] checked:border-[#7ECA9D] checked:before:content-['✔'] checked:before:text-white checked:before:text-[12px] checked:before:flex checked:before:justify-center checked:before:items-center"
+                className="w-5 h-5 mt-0.5 rounded-md text-green-500 border-gray-300 focus:ring-green-500 transition-colors"
               />
-              <label
-                htmlFor="terms"
-                className="text-sm text-gray-700 cursor-pointer"
-              >
+              <span className="text-sm text-gray-700 dark:text-gray-300">
                 I accept the{" "}
                 <a
                   href="/terms-and-conditions"
-                  className="text-primaryColor underline hover:no-underline"
+                  className="text-green-600 hover:text-green-700 dark:text-green-500 dark:hover:text-green-400 underline hover:no-underline transition-colors"
                 >
                   terms of use
                 </a>{" "}
                 and{" "}
                 <a
                   href="/privacy-policy"
-                  className="text-primaryColor underline hover:no-underline"
+                  className="text-green-600 hover:text-green-700 dark:text-green-500 dark:hover:text-green-400 underline hover:no-underline transition-colors"
                 >
                   privacy policy
                 </a>
                 .
-              </label>
-            </div>
+              </span>
+            </label>
             {errors.agree_terms && (
-              <p className="text-red-500 text-xs ml-2 mt-[-5px]">
+              <p className="mt-1 text-sm text-red-500" role="alert">
                 {errors.agree_terms.message}
               </p>
             )}
+          </div>
 
-            <div className="mt-12 text-center">
-              <button
-                type="submit"
-                className="text-size-15 rounded-[150px] text-whiteColor bg-primaryColor px-25px py-10px w-full border border-primaryColor hover:text-primaryColor hover:bg-whiteColor inline-block group dark:hover:text-whiteColor dark:hover:bg-whiteColor-dark"
+          {/* Submit Button */}
+          <div>
+            <button
+              type="submit"
+              className="w-full py-3 px-4 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium rounded-xl shadow-sm hover:shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+            >
+              Sign In
+            </button>
+          </div>
+
+          {/* Sign Up Link */}
+          <div className="text-center mt-6">
+            <p className="text-gray-600 dark:text-gray-400">
+              Don't have an account?{" "}
+              <a 
+                href="/signup" 
+                className="font-medium text-green-600 hover:text-green-700 dark:text-green-500 dark:hover:text-green-400 transition-colors"
               >
-                SIGN IN
-              </button>
-            </div>
-
-            <div className="flex justify-center mt-5 text-[#545454] gap-4 font-Open text-sm">
-              <p>Don&#39;t have an Account? </p>
-              <a href="/signup" className="text-primaryColor font-semibold">
                 Sign Up
               </a>
-            </div>
-          </form>
-        </div>
+            </p>
+          </div>
+        </form>
       </div>
     </div>
   );
