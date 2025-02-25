@@ -40,25 +40,17 @@ const ThemeController = () => {
   };
 
   return (
-    <div className="fixed top-24 md:top-32 right-0 z-40 transition-transform duration-300 transform hover:translate-x-0 translate-x-14">
-      <button
-        onClick={toggleTheme}
-        aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
-        className="flex items-center gap-2 py-2 pl-3 pr-4 bg-gradient-to-r from-gray-900 to-gray-800 dark:from-gray-200 dark:to-white text-white dark:text-gray-800 rounded-l-lg shadow-lg transition-all duration-300 hover:pl-4"
-      >
-        {isDarkMode ? (
-          <>
-            <Sun size={20} className="text-yellow-400" />
-            <span className="text-sm font-medium">Light</span>
-          </>
-        ) : (
-          <>
-            <Moon size={20} className="text-blue-300" />
-            <span className="text-sm font-medium">Dark</span>
-          </>
-        )}
-      </button>
-    </div>
+    <button 
+      onClick={toggleTheme}
+      className="fixed top-4 right-4 z-50 p-2 rounded-full bg-white dark:bg-gray-800 shadow-md hover:shadow-lg transition-all duration-300 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400"
+      aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+    >
+      {isDarkMode ? (
+        <Sun size={20} className="text-yellow-500" />
+      ) : (
+        <Moon size={20} className="text-indigo-600" />
+      )}
+    </button>
   );
 };
 

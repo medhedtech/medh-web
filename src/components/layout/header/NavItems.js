@@ -3,7 +3,6 @@ import Navitem from "./Navitem";
 import DropdownDemoes from "./DropdownDemoes";
 import DropdownPages from "./DropdownPages";
 import DropdownCourses from "./DropdownCourses";
-import DropdownWrapper from "@/components/shared/wrappers/DropdownWrapper";
 import DropdownDashboard from "./DropdownDashboard";
 import DropdownEcommerce from "./DropdownEcommerce";
 import DropdownMore from "./DropdownMore";
@@ -21,7 +20,7 @@ const NavItems = () => {
       id: 2,
       name: "Corporate Training",
       path: "/corporate-training-courses",
-      // dropdown: <DropdownCourses />,
+      dropdown: null,
       isRelative: false,
     },
     {
@@ -35,15 +34,14 @@ const NavItems = () => {
       id: 3,
       name: "Hire From Medh",
       path: "/hire-from-medh",
-      // dropdown: <DropdownDashboard />,
+      dropdown: null,
       isRelative: true,
     },
-
     {
       id: 5,
       name: "Blogs",
       path: "/blogs",
-      // dropdown: <DropdownEcommerce />,
+      dropdown: null,
       isRelative: true,
     },
   ];
@@ -53,7 +51,7 @@ const NavItems = () => {
       <ul className="nav-list flex justify-end">
         {navItems.map((navItem, idx) => (
           <Navitem key={idx} idx={idx} navItem={{ ...navItem, idx: idx }}>
-            <DropdownWrapper>{navItem.dropdown}</DropdownWrapper>
+            {navItem.dropdown}
           </Navitem>
         ))}
       </ul>
