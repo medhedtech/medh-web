@@ -22,12 +22,14 @@ import Preloader from "@/components/shared/others/Preloader";
 import SignInModal from "@/components/shared/signin-modal";
 import usePostQuery from "@/hooks/postQuery.hook";
 import { toast } from "react-toastify";
+import { HelpCircle, DollarSign, Award, BookOpen, Check, Star, Zap } from "lucide-react";
 
 function CourseEducation({ courseId }) {
   const { getQuery, loading } = useGetQuery();
   const { postQuery } = usePostQuery();
   const [courseDetails1, setCourseDetails1] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showFullDescription, setShowFullDescription] = useState(false);
 
   useEffect(() => {
     if (courseId) {
@@ -53,74 +55,32 @@ function CourseEducation({ courseId }) {
     }
   };
 
-  // JSON data for course details
-  const courseDetails = [
-    { label: "EMI Options", value: "Yes", icon: Emi },
-    {
-      label: "Certification",
-      value: courseDetails1?.is_Certification || "N/A",
-      icon: Cer,
+  // Course highlights
+  const highlights = [
+    { 
+      label: "Industry-recognized certification", 
+      value: courseDetails1?.is_Certification === "Yes",
+      icon: Award
     },
-    {
-      label: "Mode",
-      value: courseDetails1?.course_category || "Live Online",
-      icon: Mode,
+    { 
+      label: "Hands-on assignments", 
+      value: courseDetails1?.is_Assignments === "Yes",
+      icon: BookOpen
     },
-    {
-      label: "Duration",
-      value: courseDetails1?.course_duration || "4 months / 16 weeks",
-      icon: Course,
+    { 
+      label: "Real-world projects", 
+      value: courseDetails1?.is_Projects === "Yes",
+      icon: Zap
     },
-    {
-      label: "Online Sessions",
-      value: courseDetails1?.no_of_Sessions || "10",
-      icon: Session,
+    { 
+      label: "Interactive quizzes", 
+      value: courseDetails1?.is_Quizes === "Yes",
+      icon: Star
     },
-    {
-      label: "Efforts",
-      value: courseDetails1?.efforts_per_Week
-        ? `${courseDetails1.efforts_per_Week} hours / week`
-        : "4-6 hours per week",
-      icon: Efforts,
-    },
-    {
-      label: "Classes",
-      value: courseDetails1?.class_type || "Weekends / Weekdays",
-      icon: Classes,
-    },
-    {
-      label: "Assignments",
-      value: courseDetails1?.is_Assignments || "N/A",
-      icon: Assignments,
-    },
-    {
-      label: "Quizzes",
-      value: courseDetails1?.is_Quizes || "N/A",
-      icon: Quizzes,
-    },
-    {
-      label: "Projects",
-      value: courseDetails1?.is_Projects || "N/A",
-      icon: Projects,
-    },
-  ];
-
-  // Simplified block details
-  const courseInfo = [
-    {
-      label: "DURATION",
-      value: courseDetails1?.course_duration || "4 months / 16 weeks",
-      icon: Couresegray,
-    },
-    {
-      label: "ONLINE SESSIONS",
-      value: courseDetails1?.no_of_Sessions || "10",
-      icon: Modegray,
-    },
-    {
-      label: "MODE",
-      value: courseDetails1?.course_category + " " + "Online",
-      icon: Sessiongray,
+    { 
+      label: "Flexible payment options", 
+      value: true,
+      icon: DollarSign
     },
   ];
 
@@ -142,12 +102,13 @@ function CourseEducation({ courseId }) {
       setIsModalOpen(true);
       return;
     }
-    // Load Razorpay script
+    
     const scriptLoaded = await loadRazorpayScript();
     if (!scriptLoaded) {
       toast.error("Please log in first.");
       return;
     }
+    
     if (courseDetails1) {
       const courseFee = Number(courseDetails1?.course_fee) || 59500;
       const options = {
@@ -159,17 +120,12 @@ function CourseEducation({ courseId }) {
         image: Education,
         handler: async function (response) {
           toast.success("Payment Successful!");
-
-          // Call subscription API after successful payment
           await subscribeCourse(studentId, courseId, courseFee);
         },
         prefill: {
           name: "Medh Student",
           email: "medh@student.com",
           contact: "9876543210",
-        },
-        notes: {
-          address: "Razorpay address",
         },
         theme: {
           color: "#7ECA9D",
@@ -192,9 +148,6 @@ function CourseEducation({ courseId }) {
           status: "success",
         },
         onSuccess: async () => {
-          console.log("Payment successful!");
-
-          // Call enrollCourse API after successful subscription
           await enrollCourse(studentId, courseId);
         },
         onFail: (err) => {
@@ -235,122 +188,127 @@ function CourseEducation({ courseId }) {
   }
 
   return (
-    <div className="flex flex-wrap justify-between bg-white dark:bg-[#050622] w-full lg:space-x-8">
-      {/* Left Section */}
-      <div className="lg:w-[60%] w-full md:px-4 dark:pt-12 ">
-        {/* <div className="relative lg:top-5 lg:bottom-12 bottom-5 lg:ml-[11%]">
-          <Image
-            src={
-              courseDetails1 && courseDetails1.course_image
-                ? courseDetails1.course_image
-                : Education
-            }
-            alt="Education"
-            width={830}
-            height={200}
-            className="rounded-md object-cover"
-          />
-        </div> */}
-        <div className="relative lg:top-10 lg:bottom-12 bottom-5 lg:ml-[11%]">
-          <Image
-            src={
-              courseDetails1 && courseDetails1.course_image
-                ? courseDetails1.course_image
-                : Education
-            }
-            alt="Education"
-            width={400}
-            height={250}
-            className="rounded-md w-full sm:w-[800px] h-full sm:h-[450px] object-cover"
-          />
-        </div>
-
-        <div className="lg:ml-[11%] px-5 lg:p-0 lg:mt-16 mt-6">
-          <h1 className="lg:text-3xl text-[22px] font-bold text-[#5C6574] mb-2 lg:w-[70%] w-full dark:text-gray-50">
-            {/* Digital Marketing with Data Analytics Foundation Certificate */}
-            {courseDetails1?.course_title ||
-              "Digital Marketing with Data Analytics Foundation Certificate"}
-          </h1>
-          <div className="flex space-x-0 lg:text-sm text-[12px] text-gray-500 mb-4 lg:space-x-12">
-            {courseInfo.map((info, index) => (
-              <div key={index} className="flex space-x-8 lg:space-x-12">
-                <div className="flex justify-center items-center">
-                  <Image src={info.icon} width={20} alt={info.label} />
-                  <div className="lg:ml-4 ml-2">
-                    <h4 className="font-semibold text-primaryColor">
-                      {info.label}
-                    </h4>
-                    <p className="dark:text-gray-300">{info.value}</p>
+    <div className="max-w-6xl mx-auto px-4 py-6 bg-white dark:bg-[#050622]">
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* Course Image and Title */}
+        <div className="lg:w-2/3">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+            <div className="relative h-[300px] md:h-[400px] group">
+              <Image
+                src={courseDetails1?.course_image || Education}
+                alt={courseDetails1?.course_title || "Course"}
+                fill
+                className="object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+              <div className="absolute bottom-0 left-0 p-5 w-full">
+                <span className="inline-block px-3 py-1 bg-green-500 text-white text-xs font-medium rounded-full mb-2">
+                  {courseDetails1?.course_grade || "All Levels"}
+                </span>
+                <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow-sm">
+                  {courseDetails1?.course_title || "Digital Marketing with Data Analytics"}
+                </h1>
+              </div>
+            </div>
+            
+            <div className="p-5">
+              {/* Course Description */}
+              {courseDetails1?.course_description && (
+                <div className="mb-4">
+                  <h2 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-100">About This Course</h2>
+                  <div className="relative">
+                    <p className={`text-gray-600 dark:text-gray-300 ${!showFullDescription && 'line-clamp-3'}`}>
+                      {courseDetails1.course_description}
+                    </p>
+                    {courseDetails1.course_description.length > 150 && (
+                      <button 
+                        onClick={() => setShowFullDescription(!showFullDescription)}
+                        className="text-green-600 dark:text-green-400 font-medium text-sm mt-1 hover:underline focus:outline-none"
+                      >
+                        {showFullDescription ? 'Show less' : 'Read more'}
+                      </button>
+                    )}
                   </div>
                 </div>
-                {index !== courseInfo.length - 1 && (
-                  <span className="border-r-2 lg:pr-10 pr-0"></span>
-                )}
-              </div>
-            ))}
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Right Section */}
-      <div className="lg:w-[35%] w-full flex justify-center items-center flex-col lg:mr-6 mt-10 dark:text-gray-200 ">
-        <div className="bg-gray-50  dark:bg-[#050622]  lg:w-[70%] w-full rounded-md shadow-sm border-2 border-gray-200 dark:border-gray-600  ">
-          <div className="bg-[#F5F2FF]  dark:bg-[#050622] p-4 border-b-2 border-gray-200 dark:border-gray-600 md:px-4">
-            <div className="flex justify-between items-center">
-              <div className="mb-2">
-                <p className="text-[1rem] font-normal font-Popins leading-6 text-[#41454F] dark:text-gray-200">
-                  {courseDetails1?.course_duration || "4 Months Course"}
-                </p>
-                <h3 className="text-2xl font-bold text-[#5C6574] dark:text-gray-50">
-                  USD $ {courseDetails1?.course_fee || "595.00"}
-                </h3>
+        {/* Pricing and Enrollment */}
+        <div className="lg:w-1/3">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm sticky top-24">
+            {/* Price Card */}
+            <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-gray-700 dark:to-gray-700 p-5 rounded-t-xl">
+              <div className="flex justify-between items-center mb-4">
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-medium">Course Fee</p>
+                  <div className="flex items-center">
+                    <h3 className="text-3xl font-bold text-gray-800 dark:text-gray-50">
+                      ${courseDetails1?.course_fee || "595"}
+                    </h3>
+                    <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">USD</span>
+                  </div>
+                </div>
+                <div className="bg-white dark:bg-gray-600 p-2 rounded-full shadow-sm">
+                  <Award className="h-6 w-6 text-green-500 dark:text-green-400" />
+                </div>
               </div>
-              {/* <div className="text-right text-gray-500">
-                <button className="text-[#FCA400]">Share</button>
-              </div> */}
-            </div>
-            <div className="flex gap-4 my-2 text-sm  md:text-[16px]">
+              
               <button
                 onClick={handleBuyNow}
-                className="bg-[#7eca9d] text-white px-8 py-2 rounded-[30px] hover:bg-[#40b36e]"
+                className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-300 font-medium flex items-center justify-center mb-3 shadow-sm"
               >
-                BUY NOW
+                Enroll Now
               </button>
-              {/* <button className="bg-inherit text-[#FCA400] border border-[#FCA400] px-5 py-1 rounded-[30px] hover:bg-[#F6B335] hover:text-white">
-                WISHLIST
-              </button> */}
+              
+              <div className="flex items-center justify-center text-xs text-gray-500 dark:text-gray-300 space-x-2">
+                <span className="flex items-center">
+                  <Check size={14} className="mr-1 text-green-500" />
+                  Lifetime access
+                </span>
+                <span>•</span>
+                <span className="flex items-center">
+                  <Check size={14} className="mr-1 text-green-500" />
+                  Money-back guarantee
+                </span>
+              </div>
             </div>
-            <p className="text-gray-500 dark:text-gray-200">
-              Enrollment validity: Lifetime
-            </p>
-          </div>
 
-          {/* Dynamically Render Course Details */}
-          <div className="text-sm px-4 md:px-8 ">
-            {courseDetails.map((detail, index) => (
-              <div
-                key={index}
-                className="flex justify-between my-[6px] pb-2 border-b border-dashed"
-              >
-                <div className="flex items-center">
-                  {/* Display Font Awesome icons properly */}
-                  {detail.icon && React.isValidElement(detail.icon) ? (
-                    <detail.icon size={24} className="text-primaryColor" />
-                  ) : (
-                    <Image
-                      src={detail.icon}
-                      width={24}
-                      height={24}
-                      alt={detail.label}
-                    />
-                  )}
-                  <span className="ml-2">{detail.label}:</span>
-                </div>
-                <div>
-                  <span>{detail.value}</span>
+            {/* Course Highlights */}
+            <div className="p-5">
+              <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-100">
+                What You'll Get
+              </h3>
+              <div className="space-y-3">
+                {highlights
+                  .filter(item => item.value)
+                  .map((item, index) => (
+                    <div key={index} className="flex items-center">
+                      <div className="p-1.5 rounded-full mr-3 bg-green-100 dark:bg-green-900/50">
+                        {item.icon && <item.icon size={16} className="text-green-600 dark:text-green-400" />}
+                      </div>
+                      <span className="text-gray-800 dark:text-gray-200">
+                        {item.label}
+                      </span>
+                    </div>
+                  ))}
+              </div>
+              
+              <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <BookOpen size={16} className="text-blue-500 mr-2" />
+                    <span className="text-sm text-gray-600 dark:text-gray-300">
+                      {courseDetails1?.class_type || "Live Online Classes"}
+                    </span>
+                  </div>
+                  <span className="bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300 text-xs px-2 py-1 rounded-full">
+                    Limited Seats
+                  </span>
                 </div>
               </div>
-            ))}
+            </div>
           </div>
         </div>
       </div>
