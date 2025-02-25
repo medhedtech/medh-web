@@ -18,7 +18,7 @@ import SelectMultipleCourses from "./SelectMultipleCourses";
 import Tooltip from "@/components/shared/others/Tooltip";
 import Cookies from "js-cookie";
 
-// Optimized validation schema
+// Optimized validation schema (removed validations for online_sessions and course_mode)
 const schema = yup.object({
   course_category: yup.string().required("Course category is required"),
   category_type: yup
@@ -80,27 +80,24 @@ const schema = yup.object({
     .string()
     .oneOf(["Live Courses", "Blended Courses", "Corporate Training Courses"])
     .required("This field is required"),
-  efforts_per_Week: yup
-    .string()
-    .required("This field is required")
-    .matches(/^\d+\s*-\s*\d+\s*hours?\s*\/\s*week$/i, 'Format should be like "3 - 4 hours / week"'),
+  min_hours_per_week: yup
+    .number()
+    .required("Minimum hours is required")
+    .typeError("Must be a number")
+    .positive("Must be positive")
+    .integer("Must be whole number"),
+  max_hours_per_week: yup
+    .number()
+    .required("Maximum hours is required")
+    .typeError("Must be a number")
+    .positive("Must be positive")
+    .integer("Must be whole number")
+    .min(yup.ref('min_hours_per_week'), "Maximum hours must be greater than minimum hours"),
   is_Quizes: yup
     .string()
     .oneOf(["Yes", "No"])
     .required("This field is required"),
   related_courses: yup.array().of(yup.string()).default([]),
-  online_sessions: yup
-    .object()
-    .shape({
-      count: yup.string().required("Session count is required"),
-      duration: yup.string().required("Session duration is required"),
-    })
-    .required("Online sessions are required")
-    .nullable(false),
-  course_mode: yup
-    .string()
-    .oneOf(["Live Online", "Offline", "Hybrid"])
-    .required("Course mode is required"),
 });
 
 const AddCourse = () => {
@@ -133,8 +130,7 @@ const AddCourse = () => {
   const [assignments, setAssignments] = useState("");
   const [projects, setProjects] = useState("");
   const [quizzes, setQuizzes] = useState("");
-  const [courseMode, setCourseMode] = useState("");
-  const [onlineSessions, setOnlineSessions] = useState({ count: "", duration: "60-90 min" });
+  // Removed separate courseMode state since category_type now serves that purpose
   const [curriculumWeeks, setCurriculumWeeks] = useState([]);
   const [toolsTechnologies, setToolsTechnologies] = useState([]);
   const [bonusModules, setBonusModules] = useState([]);
@@ -155,8 +151,6 @@ const AddCourse = () => {
     resolver: yupResolver(schema),
     defaultValues: {
       related_courses: [],
-      online_sessions: { count: "", duration: "60-90 min" },
-      course_mode: "",
     },
     mode: "onChange",
   });
@@ -207,8 +201,7 @@ const AddCourse = () => {
       setAssignments(parsedData.assignments || "");
       setProjects(parsedData.projects || "");
       setQuizzes(parsedData.quizzes || "");
-      setCourseMode(parsedData.courseMode || "");
-      setOnlineSessions(parsedData.onlineSessions || { count: "", duration: "60-90 min" });
+      // Note: We no longer have a separate course_mode; category_type now covers that.
       setSelectedType(parsedData.selectedType || "");
     }
     fetchAllCategories();
@@ -250,8 +243,7 @@ const AddCourse = () => {
         assignments,
         projects,
         quizzes,
-        courseMode,
-        onlineSessions,
+        // category_type is already captured in selectedType
         selectedType,
       };
       Cookies.set("courseFormData", JSON.stringify(dataToSave), {
@@ -286,8 +278,6 @@ const AddCourse = () => {
     assignments,
     projects,
     quizzes,
-    courseMode,
-    onlineSessions,
     selectedType,
   ]);
 
@@ -438,12 +428,18 @@ const AddCourse = () => {
 
   const onSubmit = async (data) => {
     try {
-      const formattedOnlineSessions = {
-        count: data.online_sessions?.count || "",
-        duration: data.online_sessions?.duration || "60-90 min",
+      // Format the efforts per week
+      const formattedEffortsPerWeek = `${data.min_hours_per_week} - ${data.max_hours_per_week} hours / week`;
+
+      // Derive online sessions details from the "No. of Sessions" and "Session Duration" fields.
+      const derivedOnlineSessions = {
+        count: data.no_of_Sessions,
+        duration: data.session_duration,
       };
+
       const postData = {
         ...data,
+        efforts_per_Week: formattedEffortsPerWeek,
         course_videos: courseVideos || [],
         brochures: pdfBrochures || [],
         course_image: thumbnailImage || "",
@@ -455,8 +451,8 @@ const AddCourse = () => {
         category_type: data.category_type,
         course_category: data.class_type,
         class_type: data.class_type,
-        course_mode: data.course_mode,
-        online_sessions: formattedOnlineSessions,
+        course_mode: data.category_type,
+        online_sessions: derivedOnlineSessions,
       };
 
       const validCategories = ["Live Courses", "Blended Courses", "Corporate Training Courses"];
@@ -567,6 +563,7 @@ const AddCourse = () => {
     }
   };
 
+  // Category Type now serves as the course mode selector
   const handleCategoryTypeChange = (e) => {
     const value = e.target.value;
     setCourseTag(value);
@@ -707,9 +704,9 @@ const AddCourse = () => {
                   <p className="text-red-500 text-xs mt-1">Category is required</p>
                 )}
               </div>
-              {/* Category Type */}
+              {/* Category Type now doubles as Select Course Mode */}
               <div className="relative">
-                <label className="block text-sm font-medium mb-2">Category Type (Optional)</label>
+                <label className="block text-sm font-medium mb-2">Category Type (Optional / Course Mode)</label>
                 <select
                   className={`w-full p-3 border rounded-lg ${errors.category_type ? "border-red-500" : "border-gray-300"}`}
                   value={selectedType}
@@ -965,17 +962,36 @@ const AddCourse = () => {
                 <label className="block text-sm font-medium mb-2">
                   Efforts Per Week <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
-                  placeholder='e.g., 3 - 4 hours / week'
-                  className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-customGreen ${
-                    errors.efforts_per_Week ? "border-red-500" : "border-gray-300"
-                  }`}
-                  {...register("efforts_per_Week")}
-                />
-                {errors.efforts_per_Week && (
-                  <p className="text-red-500 text-xs mt-1">{errors.efforts_per_Week.message}</p>
-                )}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Minimum Hours</label>
+                    <input
+                      type="number"
+                      placeholder="Min hours"
+                      className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-customGreen ${
+                        errors.min_hours_per_week ? "border-red-500" : "border-gray-300"
+                      }`}
+                      {...register("min_hours_per_week")}
+                    />
+                    {errors.min_hours_per_week && (
+                      <p className="text-red-500 text-xs mt-1">{errors.min_hours_per_week.message}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Maximum Hours</label>
+                    <input
+                      type="number"
+                      placeholder="Max hours"
+                      className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-customGreen ${
+                        errors.max_hours_per_week ? "border-red-500" : "border-gray-300"
+                      }`}
+                      {...register("max_hours_per_week")}
+                    />
+                    {errors.max_hours_per_week && (
+                      <p className="text-red-500 text-xs mt-1">{errors.max_hours_per_week.message}</p>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
             <div className="mt-6">
@@ -1393,42 +1409,6 @@ const AddCourse = () => {
               Note: For additional queries, please contact our support team.
             </p>
           </div>
-          {/* Course Mode Selection */}
-          <select
-            className={`w-full p-3 border rounded-lg ${errors.course_mode ? "border-red-500" : "border-gray-300"}`}
-            value={courseMode}
-            onChange={(e) => setCourseMode(e.target.value)}
-          >
-            <option value="">Select Course Mode</option>
-            <option value="Live Online">Live Online</option>
-            <option value="Offline">Offline</option>
-            <option value="Hybrid">Hybrid</option>
-          </select>
-          {errors.course_mode && <p className="text-red-500 text-xs mt-1">{errors.course_mode.message}</p>}
-          {/* Online Sessions */}
-          <div className="grid grid-cols-2 gap-4">
-            <input
-              type="number"
-              placeholder="Number of sessions"
-              className={`w-full p-3 border rounded-lg ${
-                errors.online_sessions?.count ? "border-red-500" : "border-gray-300"
-              }`}
-              value={onlineSessions.count}
-              onChange={(e) => handleOnlineSessions({ ...onlineSessions, count: e.target.value })}
-            />
-            <input
-              type="text"
-              placeholder="Duration (e.g., 60-90 min)"
-              className={`w-full p-3 border rounded-lg ${
-                errors.online_sessions?.duration ? "border-red-500" : "border-gray-300"
-              }`}
-              value={onlineSessions.duration}
-              onChange={(e) => handleOnlineSessions({ ...onlineSessions, duration: e.target.value })}
-            />
-          </div>
-          {(errors.online_sessions?.count || errors.online_sessions?.duration) && (
-            <p className="text-red-500 text-xs mt-1">Please fill in all session details</p>
-          )}
           {/* Submit Button */}
           <div className="flex justify-end mt-8">
             <button type="submit" className="px-6 py-3 bg-customGreen text-white rounded-lg hover:bg-green-600 transition-colors">
