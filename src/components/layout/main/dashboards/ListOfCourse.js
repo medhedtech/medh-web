@@ -73,10 +73,8 @@ export default function Home() {
 
   const handleMultipleDelete = () => {
     if (selectedCourses.length === 0) return;
-
     const confirmDelete = window.confirm(`Are you sure you want to delete ${selectedCourses.length} selected courses?`);
     if (!confirmDelete) return;
-
     selectedCourses.forEach((id) => handleDelete(id));
     setSelectedCourses([]);
   };
@@ -113,6 +111,7 @@ export default function Home() {
     { Header: "Category", accessor: "category" },
     { Header: "Course Name", accessor: "course_title" },
     { Header: "Instructor", accessor: "instructor" },
+    { Header: "Status", accessor: "status" },
     { Header: "Price", accessor: "course_fee", render: (row) => `$${row.course_fee}` },
     {
       Header: "Actions",
@@ -123,7 +122,7 @@ export default function Home() {
             <MdEdit size={24} />
           </button>
           <button onClick={() => handleDelete(row?._id)} className="text-red-600 hover:text-red-800 p-2">
-            Delete
+            <FaTrash size={18} />
           </button>
         </div>
       ),
