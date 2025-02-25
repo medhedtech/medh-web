@@ -67,7 +67,7 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { toast } from "react-toastify";
-import { FaTimes } from "react-icons/fa";
+import { Mail, X, CheckCircle, Loader2 } from "lucide-react";
 import usePostQuery from "@/hooks/postQuery.hook";
 import { apiUrls } from "@/apis";
 
@@ -75,8 +75,8 @@ import { apiUrls } from "@/apis";
 const schema = yup.object().shape({
   email: yup
     .string()
-    .email("Please enter a valid email.")
-    .required("Email is required."),
+    .email("Please enter a valid email")
+    .required("Email is required"),
 });
 
 const FooterRecentPosts = () => {
@@ -118,69 +118,89 @@ const FooterRecentPosts = () => {
 
   return (
     <>
-      <div
-        className="sm:col-start-1 sm:col-span-12 md:col-start-7 md:col-span-6 lg:col-start-10 lg:col-span-3 pl-0 2xl:pl-50px"
-        data-aos="fade-up"
-      >
-        <div className="flex flex-col gap-6">
-          <FooterHeading>
-            Subscribe to Our
-            <br /> Newsletter!
-          </FooterHeading>
-          <div className="text-white">
-            We don&#39;t send spam, so don&#39;t worry.
+      <div className="bg-gray-800/30 rounded-lg p-6 backdrop-blur-sm">
+        <div className="mb-5">
+          <FooterHeading>Newsletter</FooterHeading>
+          <div className="mt-1 w-12 h-0.5 bg-gradient-to-r from-green-500 to-transparent rounded-full"></div>
+        </div>
+        
+        <p className="text-gray-300 text-sm mb-6">
+          Stay updated with our latest courses, events, and educational insights.
+        </p>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Mail size={16} className="text-gray-400" />
+            </div>
+            <input
+              type="email"
+              placeholder="Enter your email"
+              className={`w-full pl-10 pr-3 py-3 bg-gray-900/50 border ${
+                errors.email ? "border-red-500" : "border-gray-700"
+              } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200`}
+              {...register("email")}
+            />
+            {errors.email && (
+              <p className="text-red-400 text-xs mt-1.5 ml-1">
+                {errors.email.message}
+              </p>
+            )}
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div>
-              <input
-                type="text"
-                placeholder="Enter your email"
-                className="p-2 bg-transparent border border-white text-white w-full rounded-md focus:ring-2 focus:ring-[#F6B335] focus:outline-none"
-                {...register("email")}
-              />
-              {errors.email && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.email.message}
-                </p>
-              )}
-            </div>
-
-            <button
-              type="submit"
-              className="bg-[#7ECA9D] text-white px-4 py-2 w-full rounded-md hover:bg-[#7ECA9D] transition duration-200"
-            >
-              {loading ? "Loading..." : "SUBSCRIBE"}
-            </button>
-          </form>
-        </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 px-4 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white font-medium rounded-lg transition-all duration-300 flex items-center justify-center"
+          >
+            {loading ? (
+              <>
+                <Loader2 size={16} className="animate-spin mr-2" />
+                Subscribing...
+              </>
+            ) : (
+              "Subscribe Now"
+            )}
+          </button>
+        </form>
+        
+        <p className="text-gray-400 text-xs mt-4 text-center">
+          We respect your privacy and will never share your information.
+        </p>
       </div>
 
+      {/* Success Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg w-96 p-6 relative">
-            {/* Close Icon */}
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-gray-900 border border-gray-800 rounded-xl shadow-2xl w-full max-w-md p-6 relative animate-fadeIn">
+            {/* Close Button */}
             <button
               onClick={() => setShowModal(false)}
-              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 focus:outline-none"
+              className="absolute top-4 right-4 text-gray-400 hover:text-white focus:outline-none transition-colors"
+              aria-label="Close modal"
             >
-              <FaTimes size={20} />
+              <X size={20} />
             </button>
 
-            {/* Modal Content */}
-            <div className="text-center">
-              <h2 className="text-lg md:text-[28px] font-semibold text-green-500">
-                🎉 Success!
+            {/* Success Content */}
+            <div className="text-center py-4">
+              <div className="mx-auto w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mb-4">
+                <CheckCircle size={32} className="text-green-500" />
+              </div>
+              
+              <h2 className="text-xl font-semibold text-white mb-2">
+                Subscription Successful!
               </h2>
-              <p className="text-gray-700 mt-2">
-                Your email has been subscribed successfully!
-                {/* A confirmation email is on the way. Follow the instructions and check the spam folder. Thank you. */}
+              
+              <p className="text-gray-300 mb-6">
+                Thank you for subscribing to our newsletter. You'll now receive updates on our latest courses and educational content.
               </p>
+              
               <button
                 onClick={() => setShowModal(false)}
-                className="mt-4 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                className="px-6 py-2.5 bg-green-600 hover:bg-green-500 text-white rounded-lg transition-colors duration-200"
               >
-                OK
+                Continue
               </button>
             </div>
           </div>
