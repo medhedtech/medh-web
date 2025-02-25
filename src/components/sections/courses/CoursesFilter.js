@@ -1,14 +1,13 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import CategoryFilter from "./CategoryFilter";
 import CourseCard from "./CourseCard";
 import Pagination from "@/components/shared/pagination/Pagination";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
 import { useRouter } from "next/navigation";
-import { FaTimes } from "react-icons/fa";
+import { X, Filter, Search, ChevronDown, Zap } from "lucide-react";
 import Preloader2 from "@/components/shared/others/Preloader2";
-import { SlidersVertical } from "lucide-react";
 import CategoryToggle from "@/components/shared/courses/CategoryToggle";
 
 const categories = [
@@ -67,6 +66,29 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
   const { getQuery, loading } = useGetQuery();
   const [selectedGrade, setSelectedGrade] = useState(null);
   const [categorySliderOpen, setCategorySliderOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+  const [activeFilters, setActiveFilters] = useState([]);
+  
+  // Create ref for the main content area for scrolling
+  const contentRef = useRef(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsVisible(true);
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Scroll to top when filtered courses change
+  useEffect(() => {
+    if (contentRef.current) {
+      contentRef.current.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start' 
+      });
+    }
+  }, [currentPage]);
 
   const toggleCategorySlider = () => {
     setCategorySliderOpen(!categorySliderOpen);
@@ -86,12 +108,10 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
         "",
         "Published",
         searchTerm,
-        // "",
         gradeQuery,
         categoryQuery
       ),
       onSuccess: (data) => {
-        console.log("got data: ", data);
         setAllCourses(data?.courses || []);
         setTotalPages(data?.totalPages || 1);
       },
@@ -103,7 +123,6 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
 
   const applyFilters = () => {
     let filtered = allCourses;
-    console.log(allCourses);
 
     if (searchTerm) {
       filtered = filtered.filter(
@@ -124,22 +143,15 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
     }
 
     if (selectedCategory && selectedCategory.length) {
-      filtered = filtered.filter(
-        (course) => {
-          const lowercase = selectedCategory.map((c) => c.toLowerCase());
+      filtered = filtered.filter((course) => {
+        const lowercase = selectedCategory.map((c) => c.toLowerCase());
 
-          if (course.category) {
-            return lowercase.includes(course.category.toLowerCase());
-          } else {
-            return false;
-          }
+        if (course.category) {
+          return lowercase.includes(course.category.toLowerCase());
+        } else {
+          return false;
         }
-        // course.category &&
-        // course.category.toLowerCase() === selectedCategory.toLowerCase()
-      );
-
-      console.log("Selected Category: ", selectedCategory);
-      console.log("filtered: ", filtered);
+      });
     }
 
     // Sorting the filtered courses based on the selected sort order
@@ -183,6 +195,38 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
     setFilteredCourses(filtered);
   };
 
+  // Update active filters
+  useEffect(() => {
+    const filters = [];
+    
+    if (searchTerm) {
+      filters.push({ type: 'search', value: searchTerm });
+    }
+    
+    if (selectedGrade) {
+      filters.push({ type: 'grade', value: selectedGrade });
+    }
+    
+    if (sortOrder !== "newest-first") {
+      let sortLabel = "";
+      switch(sortOrder) {
+        case "A-Z": sortLabel = "A to Z"; break;
+        case "Z-A": sortLabel = "Z to A"; break;
+        case "oldest-first": sortLabel = "Oldest First"; break;
+        case "duration-asc": sortLabel = "Duration (Short to Long)"; break;
+        case "duration-desc": sortLabel = "Duration (Long to Short)"; break;
+        default: sortLabel = sortOrder;
+      }
+      filters.push({ type: 'sort', value: sortLabel });
+    }
+
+    selectedCategory.forEach(cat => {
+      filters.push({ type: 'category', value: cat });
+    });
+    
+    setActiveFilters(filters);
+  }, [searchTerm, selectedCategory, sortOrder, selectedGrade]);
+
   useEffect(() => {
     fetchCourses();
   }, [currentPage, searchTerm, selectedCategory, sortOrder, selectedGrade]);
@@ -192,166 +236,272 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
   }, [allCourses, searchTerm, selectedCategory]);
 
   const handlePageChange = (page) => {
+    // When page changes, we first set the state
     setCurrentPage(page);
+    
+    // The useEffect hook will handle scrolling when currentPage changes
   };
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
+    // Reset to page 1 when searching
+    setCurrentPage(1);
   };
 
   const handleSortChange = (e) => {
     setSortOrder(e.target.value);
+    // Reset to page 1 when changing sort order
+    setCurrentPage(1);
   };
 
   const handleClearFilters = () => {
     setSelectedCategory([]);
     setSearchTerm("");
-    setSortOrder("A-Z");
+    setSortOrder("newest-first");
+    setSelectedGrade(null);
+    setCurrentPage(1);
+  };
+
+  const removeFilter = (filterType, value) => {
+    if (filterType === 'search') {
+      setSearchTerm('');
+    } else if (filterType === 'grade') {
+      setSelectedGrade(null);
+    } else if (filterType === 'sort') {
+      setSortOrder('newest-first');
+    } else if (filterType === 'category') {
+      setSelectedCategory(prev => prev.filter(cat => cat !== value));
+    }
+    // Reset to page 1 when removing a filter
     setCurrentPage(1);
   };
 
   return (
-    <section>
-      <div className="min-h-screen bg-white dark:bg-screen-dark dark:text-white p-0 sm:p-4">
-        <div className="container mx-auto">
-          {/* Header */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-            <h1 className="text-3xl md:text-4xl font-bold text-[#7ECA9D] mb-4 md:mb-0 pt-2 sm:pt-0">
-              {/* Skill Development Courses */}
-              {CustomText}
+    <section className="bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 py-12" ref={contentRef}>
+      <div className="container mx-auto px-4">
+        {/* Header with animation */}
+        <div className={`transition-all duration-1000 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10">
+            <h1 className="text-3xl md:text-4xl font-bold text-primary-600 dark:text-primary-400 mb-4 md:mb-0">
+              {CustomText || "Skill Development Courses"}
             </h1>
             <div>{CustomButton}</div>
           </div>
-          <div className="flex flex-col md:flex-row justify-between items-center mb-12 space-y-4 md:space-y-10">
-            <div className="self-end border border-[#CDCFD5] px-2 py-1 rounded-md w-full md:w-1/4 hidden md:block">
+          
+          {/* Search and filter controls */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            {/* Search field */}
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search size={18} className="text-gray-400 group-focus-within:text-primary-500 transition-colors" />
+              </div>
               <input
                 type="text"
-                placeholder="Search by category ......"
+                placeholder="Search courses..."
                 value={searchTerm}
                 onChange={handleSearch}
-                className="outline-none px-2 py-2 w-full dark:bg-screen-dark dark:text-gray50"
+                className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all"
               />
             </div>
 
-            {/* Grade Filter as Dropdown */}
-            <div className="w-full md:w-1/4 rounded-md px-2 py-0 border border-[#CDCFD5]">
+            {/* Grade filter */}
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Zap size={18} className="text-gray-400 group-focus-within:text-primary-500 transition-colors" />
+              </div>
               <select
                 id="gradeFilter"
-                className="w-full px-2 py-2 outline-none dark:bg-screen-dark dark:text-gray50"
+                className="w-full pl-10 pr-10 py-3 rounded-lg appearance-none border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all"
                 value={selectedGrade || ""}
-                onChange={(e) => setSelectedGrade(e.target.value)}
+                onChange={(e) => {
+                  setSelectedGrade(e.target.value);
+                  setCurrentPage(1); // Reset to page 1 when changing grade
+                }}
               >
-                <option value="">Select Grade</option>
+                <option value="">All Grade Levels</option>
                 {grades.map((grade, index) => (
                   <option key={index} value={grade}>
                     {grade}
                   </option>
                 ))}
               </select>
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <ChevronDown size={18} className="text-gray-400 group-focus-within:text-primary-500 transition-colors" />
+              </div>
             </div>
-            {/* Sidebar Filter */}
-            <div className="border border-[#CDCFD5] px-2 py-0 rounded-md  w-full md:w-1/4">
+
+            {/* Sort order */}
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Filter size={18} className="text-gray-400 group-focus-within:text-primary-500 transition-colors" />
+              </div>
               <select
-                className="w-full outline-none px-2 py-2 dark:bg-screen-dark dark:text-gray50"
+                className="w-full pl-10 pr-10 py-3 rounded-lg appearance-none border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all"
                 value={sortOrder}
                 onChange={handleSortChange}
               >
-                <option value="A-Z">Program Title (A-Z)</option>
-                <option value="Z-A">Program Title (Z-A)</option>
-                <option value="newest-first">
-                  Release Date (Newest First)
-                </option>
-                <option value="oldest-first">
-                  Release Date (Oldest First)
-                </option>
-                <option value="duration-asc">
-                  Course Duration (Ascending)
-                </option>
-                <option value="duration-desc">
-                  Course Duration (Descending)
-                </option>
+                <option value="newest-first">Newest First</option>
+                <option value="oldest-first">Oldest First</option>
+                <option value="A-Z">Title (A-Z)</option>
+                <option value="Z-A">Title (Z-A)</option>
+                <option value="duration-asc">Duration (Short to Long)</option>
+                <option value="duration-desc">Duration (Long to Short)</option>
               </select>
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <ChevronDown size={18} className="text-gray-400 group-focus-within:text-primary-500 transition-colors" />
+              </div>
             </div>
           </div>
+          
+          {/* Active filters display */}
+          {activeFilters.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-6">
+              {activeFilters.map((filter, index) => (
+                <div 
+                  key={index} 
+                  className="flex items-center bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 rounded-full pl-3 pr-2 py-1.5 text-sm"
+                >
+                  <span className="mr-1 capitalize">{filter.type === 'category' ? '' : `${filter.type}:`}</span>
+                  <span className="font-medium truncate max-w-[200px]">{filter.value}</span>
+                  <button 
+                    onClick={() => removeFilter(filter.type, filter.value)}
+                    className="ml-1 p-1 rounded-full hover:bg-primary-100 dark:hover:bg-primary-800/30 transition-colors"
+                    aria-label={`Remove ${filter.type} filter: ${filter.value}`}
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ))}
+              
+              <button 
+                onClick={handleClearFilters}
+                className="flex items-center text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium pl-2 pr-3 py-1.5 border border-primary-200 dark:border-primary-800/30 rounded-full transition-colors"
+                aria-label="Clear all filters"
+              >
+                <X size={14} className="mr-1" />
+                Clear All
+              </button>
+            </div>
+          )}
+          
+          {/* Mobile category toggle */}
+          <div className="block md:hidden mb-6">
+            <button
+              onClick={toggleCategorySlider}
+              className="w-full flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm hover:shadow transition-all"
+              aria-expanded={categorySliderOpen}
+              aria-label="Toggle category filter"
+            >
+              <span className="flex items-center text-gray-700 dark:text-gray-200">
+                <Filter size={18} className="mr-2 text-primary-500 dark:text-primary-400" />
+                Categories
+              </span>
+              <ChevronDown 
+                size={18} 
+                className={`text-gray-500 transition-transform duration-300 ${categorySliderOpen ? 'rotate-180' : ''}`} 
+              />
+            </button>
+          </div>
+        </div>
 
+        {/* Filter and content area */}
+        <div className={`transition-all duration-1000 ease-out delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           <CategoryToggle
             categorySliderOpen={categorySliderOpen}
             toggleCategorySlider={toggleCategorySlider}
             categories={categories}
             selectedCategory={selectedCategory}
-            setSelectedCategory={setSelectedCategory}
+            setSelectedCategory={(categories) => {
+              setSelectedCategory(categories);
+              setCurrentPage(1); // Reset to page 1 when changing categories
+            }}
             handleClearFilters={handleClearFilters}
             searchTerm={searchTerm}
             handleSearch={handleSearch}
           />
-          <div className="flex flex-col md:flex-row mt-6">
-            {/* Categories Section */}
-            <div className="hidden md:block w-full md:w-[30%]">
-              <span className="text-[#5C6574] dark:text-white font-bold text-xl">
-                Category
-              </span>
-              <CategoryFilter
-                categories={categories}
-                selectedCategory={selectedCategory}
-                setSelectedCategory={setSelectedCategory}
-              />
-              <div className="w-full mt-12 mb-8 px-4 text-[#5C6574]">
-                {/* {(selectedCategory || searchTerm || sortOrder !== "A-Z") && ( */}
-                {(selectedCategory.length > 0 ||
-                  searchTerm ||
-                  sortOrder !== "A-Z" ||
-                  selectedGrade) && (
-                  <div className="flex justify-between items-center">
-                    <button
-                      onClick={handleClearFilters}
-                      className="flex items-center border border-[#7ECA9D] text-[#7ECA9D] px-4 py-2 rounded-md hover:bg-[#7ECA9D] hover:text-white transition duration-300"
-                    >
-                      <FaTimes className="mr-2" />
-                      Clear All Filters
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="w-full md:w-3/4 ">
-              <div className="w-full md:w-[100%] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {loading ? (
-                  <div className="col-span-full min-h-[70vh] text-center">
-                    <Preloader2 />
-                  </div>
-                ) : filteredCourses.length > 0 ? (
-                  filteredCourses.map((course, index) => (
-                    <CourseCard
-                      key={index}
-                      course={course}
-                      onBrochureClick={() => handleOpenModal(course)}
-                    />
-                  ))
-                ) : (
-                  <div className="col-span-full flex justify-center items-center min-h-[70vh] text-center text-[#5C6574]">
-                    No courses found.
-                  </div>
-                )}
-              </div>
-              <div className="w-full mt-12 mb-8 px-4 text-[#5C6574] border rounded-md border-[#CDCFD5]">
-                <Pagination
-                  totalPages={totalPages}
-                  currentPage={currentPage}
-                  onPageChange={handlePageChange}
+          
+          <div className="flex flex-col md:flex-row gap-8">
+            {/* Desktop Categories Section */}
+            <div className="hidden md:block w-1/4 transition-all">
+              <div className="sticky top-24 bg-white dark:bg-gray-800 p-5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+                <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
+                  Categories
+                </h3>
+                
+                <CategoryFilter
+                  categories={categories}
+                  selectedCategory={selectedCategory}
+                  setSelectedCategory={(categories) => {
+                    setSelectedCategory(categories);
+                    setCurrentPage(1); // Reset to page 1 when changing categories
+                  }}
                 />
               </div>
             </div>
+            
+            {/* Courses grid */}
+            <div className="w-full md:w-3/4">
+              {loading ? (
+                <div className="flex justify-center items-center min-h-[50vh]">
+                  <Preloader2 />
+                </div>
+              ) : filteredCourses.length > 0 ? (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredCourses.map((course, index) => (
+                      <div 
+                        key={course._id || index}
+                        className="transition-all duration-500"
+                        style={{ transitionDelay: `${index * 100}ms` }}
+                      >
+                        <CourseCard course={course} />
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                    <div className="mt-12 flex justify-center">
+                      <Pagination
+                        totalPages={totalPages}
+                        currentPage={currentPage}
+                        onPageChange={handlePageChange}
+                      />
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center min-h-[50vh] text-center p-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+                  <div className="w-16 h-16 flex items-center justify-center rounded-full bg-primary-50 dark:bg-primary-900/20 mb-4">
+                    <Search size={24} className="text-primary-500 dark:text-primary-400" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">No courses found</h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-6">
+                    We couldn't find any courses matching your search criteria.
+                  </p>
+                  <button
+                    onClick={handleClearFilters}
+                    className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-lg transition-colors"
+                  >
+                    Clear All Filters
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
+        
+        {/* Backdrop for mobile category slider */}
+        {categorySliderOpen && (
+          <div
+            className="md:hidden backdrop-blur-sm bg-black bg-opacity-50 fixed top-0 left-0 w-full h-[100vh] z-[1000001]"
+            onClick={() => {
+              setCategorySliderOpen(false);
+            }}
+            aria-hidden="true"
+          ></div>
+        )}
       </div>
-      {categorySliderOpen && (
-        <div
-          className="md:hidden backdrop-blur-sm bg-black bg-opacity-50 fixed top-0 left-0 w-full h-[100vh] z-[1000001]"
-          onClick={() => {
-            setCategorySliderOpen(false);
-          }}
-        ></div>
-      )}
     </section>
   );
 };

@@ -1,47 +1,34 @@
 import React from "react";
 
-const FixedShadow = ({ 
-  align = "left", 
-  color = "green",
-  opacity = 0.03,
-  size = "lg"
-}) => {
-  // Size variants
-  const sizeClasses = {
-    sm: "w-[300px] h-[300px]",
-    md: "w-[500px] h-[500px]",
-    lg: "w-[800px] h-[800px]",
-    xl: "w-[1200px] h-[1200px]"
-  };
-  
-  // Color variants
-  const colorClasses = {
-    green: "from-green-500",
-    blue: "from-blue-500",
-    purple: "from-purple-500",
-    teal: "from-teal-500"
-  };
-  
-  // Position based on alignment
-  const positionClasses = {
-    left: "left-[-400px] top-[10%]",
-    right: "right-[-400px] top-[60%]",
-    top: "top-[-400px] left-[50%] -translate-x-1/2",
-    bottom: "bottom-[-400px] left-[50%] -translate-x-1/2"
-  };
-  
+const FixedShadow = ({ align }) => {
   return (
-    <div 
-      className={`
-        fixed ${positionClasses[align]} ${sizeClasses[size]}
-        rounded-full blur-[150px] 
-        bg-gradient-radial ${colorClasses[color]} to-transparent
-        pointer-events-none
-        z-[-1]
-      `}
-      style={{ opacity }}
-      aria-hidden="true"
-    />
+    <div
+      className={`fixed ${
+        align === "right" ? "right-0" : "left-0"
+      } top-0 w-full h-full pointer-events-none`}
+    >
+      {/* Primary gradient blob */}
+      <div
+        className={`absolute ${
+          align === "right" ? "right-0 top-[15%]" : "left-0 top-0"
+        } w-[60%] h-[60%] opacity-20 blur-[130px] rounded-full 
+        ${align === "right" 
+          ? "bg-gradient-to-br from-purple.medium via-secondary-300 to-primary-300" 
+          : "bg-gradient-to-br from-primary-300 via-accent-teal to-accent-cyan"
+        } dark:opacity-15 animate-pulse-slow`}
+      ></div>
+      
+      {/* Secondary smaller gradient blob */}
+      <div
+        className={`absolute ${
+          align === "right" ? "right-[20%] bottom-[10%]" : "left-[20%] bottom-[5%]"
+        } w-[30%] h-[30%] opacity-15 blur-[100px] rounded-full 
+        ${align === "right" 
+          ? "bg-gradient-to-tr from-accent-indigo via-accent-purple to-accent-pink" 
+          : "bg-gradient-to-tr from-accent-yellow via-secondary-400 to-accent-red"
+        } dark:opacity-10 animate-float`}
+      ></div>
+    </div>
   );
 };
 

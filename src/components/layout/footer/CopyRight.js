@@ -5,7 +5,7 @@ import logoImage from "@/assets/images/logo/logo_2.png";
 import useIsSecondary from "@/hooks/useIsSecondary";
 import qr from "@/assets/images/footer/qr.png";
 import { useRouter } from "next/navigation";
-import { Facebook, Instagram, Linkedin, Youtube } from "lucide-react";
+import { Facebook, Instagram, Linkedin, Youtube, ExternalLink, QrCode } from "lucide-react";
 
 const CopyRight = () => {
   const { isSecondary } = useIsSecondary();
@@ -46,24 +46,30 @@ const CopyRight = () => {
   ];
 
   return (
-    <div className="bg-gray-900 dark:bg-gray-950 py-8 px-4">
+    <div className="relative overflow-hidden py-10 px-4 font-body">
       <div className="max-w-6xl mx-auto">
         {/* QR Code Section */}
-        <div className="flex flex-col items-center mb-8">
-          <div className="relative w-[140px] h-[140px] bg-white p-2 rounded-lg shadow-md">
-            <Image 
-              src={qr} 
-              alt="Scan QR code" 
-              fill 
-              className="object-contain rounded-md" 
-            />
+        <div className="flex flex-col items-center mb-12">
+          <div className="group relative w-[140px] h-[140px] bg-white/10 p-3 rounded-2xl shadow-lg backdrop-blur-sm border border-white/10 transition-all duration-300 hover:shadow-primary-500/20">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary-500/20 to-secondary-500/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div className="relative z-10 bg-white rounded-xl overflow-hidden w-full h-full shadow-inner">
+              <Image 
+                src={qr} 
+                alt="Scan QR code" 
+                fill 
+                className="object-contain p-1.5" 
+              />
+            </div>
           </div>
-          <p className="text-gray-400 text-sm mt-3">Scan to visit our mobile app</p>
+          <div className="flex items-center mt-4 text-gray-300">
+            <QrCode size={14} className="mr-2 text-primary-400" />
+            <p className="text-sm font-medium tracking-wide">Scan to visit our mobile app</p>
+          </div>
         </div>
         
         {/* Social Media Links */}
-        <div className="flex justify-center mb-8">
-          <div className="flex gap-3">
+        <div className="flex justify-center mb-10">
+          <div className="flex gap-4">
             {socialLinks.map((link, index) => (
               <a
                 key={index}
@@ -71,7 +77,7 @@ const CopyRight = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={`Visit our ${link.name} page`}
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-800 hover:bg-green-600 text-gray-300 hover:text-white transition-colors duration-300"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-800/80 hover:bg-primary-600 text-gray-300 hover:text-white transition-all duration-300 transform hover:-translate-y-1 shadow-lg hover:shadow-primary-500/30"
               >
                 {link.icon}
               </a>
@@ -80,17 +86,17 @@ const CopyRight = () => {
         </div>
         
         {/* Policy Links */}
-        <div className="flex flex-wrap justify-center gap-2 md:gap-4 mb-6 text-sm">
+        <div className="flex flex-wrap justify-center gap-3 md:gap-6 mb-8 text-sm">
           {policyLinks.map((link, index) => (
             <React.Fragment key={index}>
               <button
                 onClick={() => handleNavigation(link.path)}
-                className="text-gray-400 hover:text-green-400 transition-colors duration-200 cursor-pointer"
+                className="text-gray-400 hover:text-primary-400 transition-colors duration-200 cursor-pointer font-medium"
               >
                 {link.name}
               </button>
               {index < policyLinks.length - 1 && (
-                <span className="text-gray-600">|</span>
+                <span className="text-gray-700 hidden md:inline">•</span>
               )}
             </React.Fragment>
           ))}
@@ -98,14 +104,14 @@ const CopyRight = () => {
         
         {/* Copyright Text */}
         <div className="text-center">
-          <p className="text-gray-500 dark:text-gray-400 text-sm mb-2">
+          <p className="text-gray-500 text-sm mb-3 max-w-2xl mx-auto font-light">
             All trademarks and logos appearing on this website are the property of
             their respective owners.
           </p>
-          <p className="text-gray-400 dark:text-gray-500 text-sm mb-1">
+          <p className="text-gray-400 text-sm mb-2 tracking-wide">
             Copyright © {new Date().getFullYear()}. All Rights Reserved.
           </p>
-          <p className="text-green-500 font-medium text-sm">
+          <p className="bg-gradient-to-r from-primary-500 to-secondary-500 bg-clip-text text-transparent font-semibold tracking-wide">
             MEDH – LEARN. UPSKILL. ELEVATE.
           </p>
         </div>
