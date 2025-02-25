@@ -335,7 +335,7 @@ export default function ListOfCourse() {
     };
     
     return (
-      <div className="relative w-[120px]" onClick={(e) => e.stopPropagation()}>
+      <div className="relative" onClick={(e) => e.stopPropagation()}>
         <select
           className={`bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1 text-sm appearance-none pr-8 focus:outline-none focus:ring-1 focus:ring-green-500 w-full cursor-pointer ${isUpdating ? 'opacity-70' : ''}`}
           value={currentStatus}
@@ -898,8 +898,8 @@ export default function ListOfCourse() {
       ),
       accessor: 'course_title',
       render: (row) => (
-        <Tooltip content={`${row.course_title} - ${row.course_category || "Uncategorized"}`} position="bottom">
-          <div className="flex flex-col w-[220px]">
+        <Tooltip content={`${row.course_title} - ${row.course_category || "Uncategorized"}`}>
+          <div className="flex flex-col min-w-[200px] max-w-[300px]">
             <div className="font-medium text-gray-900 dark:text-white truncate">{row.course_title}</div>
             <div className="text-xs text-gray-500 truncate">{row.course_category || "Uncategorized"}</div>
           </div>
@@ -1066,7 +1066,7 @@ export default function ListOfCourse() {
       ),
       disableSorting: true
     }
-  ], [paginatedData, selectedCourses, sortField, sortDirection, handleSort, handleSelectCourse, instructorNames, setAssignInstructorModal]);
+  ], [paginatedData, selectedCourses, sortField, sortDirection]);
 
   // Enhanced export function with more options
   const exportCourses = async (format = exportFormat, scope = exportScope) => {
@@ -2157,7 +2157,6 @@ export default function ListOfCourse() {
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
-          position: relative;
         }
       `}</style>
       <div className="max-w-7xl mx-auto rounded-xl overflow-hidden">
@@ -2340,62 +2339,19 @@ export default function ListOfCourse() {
           </div>
         </div>
         
-        <div className="bg-white dark:bg-gray-800 rounded-b-xl border-x border-b border-gray-100 dark:border-gray-700 overflow-visible shadow-sm">
-          <div className="overflow-x-auto table-container" style={{ maxWidth: '100%', position: 'relative' }}>
+        <div className="bg-white dark:bg-gray-800 rounded-b-xl border-x border-b border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm">
+          <div className="overflow-x-auto table-container" style={{ maxWidth: '100%' }}>
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className="bg-gray-50 dark:bg-gray-800">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    <CustomCheckbox
-                      checked={paginatedData.length > 0 && paginatedData.every(course => selectedCourses.includes(course._id))}
-                      onChange={handleSelectAll}
-                    />
-                  </th>
-                  <th 
-                    className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
-                    onClick={() => handleSort('no')}
-                  >
-                    No. {sortField === 'no' && <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>}
-                  </th>
-                  <th 
-                    className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
-                    onClick={() => handleSort('course_title')}
-                  >
-                    Title & Category {sortField === 'course_title' && <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>}
-                  </th>
-                  <th 
-                    className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
-                    onClick={() => handleSort('status')}
-                  >
-                    Status {sortField === 'status' && <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>}
-                  </th>
-                  <th 
-                    className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
-                    onClick={() => handleSort('course_fee')}
-                  >
-                    Price {sortField === 'course_fee' && <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>}
-                  </th>
-                  <th 
-                    className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
-                    onClick={() => handleSort('assigned_instructor')}
-                  >
-                    Instructor {sortField === 'assigned_instructor' && <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>}
-                  </th>
-                  <th 
-                    className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
-                    onClick={() => handleSort('no_of_Sessions')}
-                  >
-                    Sessions {sortField === 'no_of_Sessions' && <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>}
-                  </th>
-                  <th 
-                    className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
-                    onClick={() => handleSort('createdAt')}
-                  >
-                    Created {sortField === 'createdAt' && <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>}
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Actions
-                  </th>
+                  {columns.map((column, idx) => (
+                    <th 
+                      key={idx}
+                      className={`px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${column.disableSorting ? '' : 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                    >
+                      {column.Header}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
@@ -2406,7 +2362,7 @@ export default function ListOfCourse() {
                     onClick={(e) => handleRowClick(e, row._id)}
                   >
                     {columns.map((column, colIdx) => (
-                      <td key={colIdx} className="px-6 py-4 whitespace-nowrap overflow-visible">
+                      <td key={colIdx} className="px-6 py-4 whitespace-nowrap">
                         {column.render ? column.render(row) : row[column.accessor] || "-"}
                       </td>
                     ))}

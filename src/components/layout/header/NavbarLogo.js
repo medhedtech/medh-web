@@ -43,7 +43,7 @@ const NavbarLogo = () => {
           </div>
 
           {/* Center Logo */}
-          <div className="flex justify-center items-center flex-1 px-4">
+          <div className="flex items-center flex-1 px-4">
             <Link 
               href="/" 
               className="relative block transition-transform duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#7ECA9D] focus:ring-opacity-50"
