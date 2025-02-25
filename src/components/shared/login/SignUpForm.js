@@ -9,27 +9,24 @@ import usePostQuery from "@/hooks/postQuery.hook";
 import { apiUrls } from "@/apis";
 import Preloader from "../others/Preloader";
 import logo1 from "@/assets/images/logo/medh_logo-1.png";
-import Name from "@/assets/images/log-sign/Name.svg";
-import lock from "@/assets/images/log-sign/lock.svg";
-import Email from "@/assets/images/log-sign/Email.svg";
-import phone from "@/assets/images/log-sign/phone.svg";
-import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { useRouter } from "next/navigation";
+import { Eye, EyeOff, User, Mail, Phone, Lock } from "lucide-react";
 import ReCAPTCHA from "react-google-recaptcha";
+import FixedShadow from "../others/FixedShadow";
 
 const schema = yup
   .object({
     full_name: yup.string().required("Name is required"),
-    email: yup.string().email().required("Email is required"),
+    email: yup.string().email("Please enter a valid email").required("Email is required"),
     phone_number: yup
       .string()
-      .min(10, "At least 10 digits required")
-      .max(10, "Must be exactly 10 digits")
+      .min(10, "Phone number must be at least 10 digits")
+      .max(10, "Phone number must be exactly 10 digits")
       .required("Phone number is required"),
     password: yup
       .string()
-      .min(8, "At least 8 characters required")
+      .min(8, "Password must be at least 8 characters")
       .required("Password is required"),
     confirm_password: yup
       .string()
@@ -37,7 +34,7 @@ const schema = yup
       .required("Confirm password is required"),
     agree_terms: yup
       .boolean()
-      .oneOf([true], "You must accept the agree to proceed"),
+      .oneOf([true], "You must accept the terms to proceed"),
   })
   .required();
 
@@ -120,229 +117,249 @@ const SignUpForm = () => {
     return <Preloader />;
   }
 
-  const countries = [
-    { name: "IN", code: "+91" },
-    { name: "US", code: "+1" },
-    { name: "UK", code: "+44" },
-    // Add more countries as needed
-  ];
-
   return (
-    <div className="mx-auto md:flex md:justify-between p-5 h-auto max-w-[1064px] shadow-2xl border-2">
-      <div className="hidden md:flex mx-auto">
-        <div className="w-[504px] h-[774px] my-auto flex justify-center">
+    <div className="relative mx-auto md:flex md:justify-between h-auto max-w-[1064px] shadow-xl rounded-2xl border border-gray-100 dark:border-gray-800 overflow-hidden">
+      <FixedShadow align="left" color="purple" opacity={0.05} size="xl" />
+      <FixedShadow align="right" color="teal" opacity={0.03} size="lg" />
+      
+      {/* Left side - Image */}
+      <div className="hidden md:block md:w-1/2 bg-gradient-to-br from-purple-50 to-teal-50 dark:from-gray-900 dark:to-gray-800">
+        <div className="h-full flex items-center justify-center p-8">
           <Image
             src={SignIn}
-            alt="sign-up image"
-            className="w-full h-full object-contain"
+            alt="Sign up illustration"
+            className="w-full h-auto max-w-md object-contain"
+            priority
           />
         </div>
       </div>
-      <div className="transition-opacity duration-150 ease-linear md:w-[50%] w-full md:px-3 pt-3">
-        <div className="md:m-6 rounded-[10px] p-5">
-          {/* heading */}
-          <div className="w-[179px] mx-auto">
-            <a href="/">
-              <Image priority="false" src={logo1} alt="logo" className="py-2" />
-            </a>
+      
+      {/* Right side - Form */}
+      <div className="w-full md:w-1/2 p-6 md:p-10 bg-white dark:bg-gray-900 transition-all duration-300">
+        {/* Logo */}
+        <div className="w-[160px] mx-auto mb-6">
+          <a href="/" className="block">
+            <Image 
+              src={logo1} 
+              alt="Medh Logo" 
+              className="w-full h-auto" 
+              priority
+            />
+          </a>
+        </div>
+        
+        {/* Heading */}
+        <div className="text-center mb-6">
+          <h1 className="font-semibold text-3xl text-gray-900 dark:text-white mb-2">Getting Started!</h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            Create an account to see your content
+          </p>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          {/* Full Name Field */}
+          <div>
+            <div className="relative">
+              <User 
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400" 
+                size={18} 
+              />
+              <input
+                {...register("full_name")}
+                type="text"
+                id="full_name"
+                placeholder="Full Name"
+                className="w-full h-12 pl-12 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 outline-none"
+                aria-invalid={errors.full_name ? "true" : "false"}
+              />
+            </div>
+            {errors.full_name && (
+              <p className="mt-1 text-sm text-red-500" role="alert">
+                {errors.full_name?.message}
+              </p>
+            )}
           </div>
-          <div className="pt-11">
-            <h1 className="font-Open font-semibold text-3xl">
-              Getting Started!
-            </h1>
-            <p className="text-[#545454] text-base">
-              Create an Account to see your content.
-            </p>
+
+          {/* Email Field */}
+          <div>
+            <div className="relative">
+              <Mail 
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400" 
+                size={18} 
+              />
+              <input
+                {...register("email")}
+                type="email"
+                id="email"
+                placeholder="Email Address"
+                className="w-full h-12 pl-12 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 outline-none"
+                aria-invalid={errors.email ? "true" : "false"}
+              />
+            </div>
+            {errors.email && (
+              <p className="mt-1 text-sm text-red-500" role="alert">
+                {errors.email?.message}
+              </p>
+            )}
           </div>
 
-          <form
-            className="pt-6"
-            // data-aos="fade-up"
-            onSubmit={handleSubmit(onSubmit)}
-          >
-            <div className="w-full mb-6 flex flex-col gap-4">
-              <div className="relative">
-                <Image
-                  src={Name}
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2"
-                  alt="name-icon"
-                />
-                <input
-                  {...register("full_name")}
-                  type="text"
-                  placeholder="Enter Your Name"
-                  className="w-full h-12 pl-10 text-sm focus:outline-none text-black bg-[#F7F7F7] dark:text-contentColor-dark border-2 border-borderColor dark:border-borderColor-dark placeholder:text-black placeholder:opacity-80 font-medium rounded-[12px]"
-                />
-              </div>
-              {errors.full_name && (
-                <p className="text-xs text-red-500 font-normal mt-[-10px] ml-2">
-                  {errors.full_name?.message}
-                </p>
-              )}
+          {/* Phone Number Field */}
+          <div>
+            <div className="relative">
+              <Phone 
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400" 
+                size={18} 
+              />
+              <input
+                {...register("phone_number")}
+                type="tel"
+                id="phone_number"
+                placeholder="Phone Number"
+                className="w-full h-12 pl-12 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 outline-none"
+                aria-invalid={errors.phone_number ? "true" : "false"}
+              />
             </div>
+            {errors.phone_number && (
+              <p className="mt-1 text-sm text-red-500" role="alert">
+                {errors.phone_number?.message}
+              </p>
+            )}
+          </div>
 
-            <div className="gap-4 mb-6">
-              <div className="relative">
-                <Image
-                  src={Email}
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2"
-                  alt="email-icon"
-                />
-                <input
-                  {...register("email")}
-                  type="email"
-                  placeholder="Enter Your E-Mail"
-                  className="w-full h-12 pl-10 text-sm focus:outline-none text-black bg-[#F7F7F7] dark:text-contentColor-dark border-2 border-borderColor dark:border-borderColor-dark placeholder:text-black placeholder:opacity-80 font-medium  rounded-[12px]"
-                />
-              </div>
-              {errors.email && (
-                <p className="text-xs text-red-500 font-normal mt-[3px] ml-2">
-                  {errors.email?.message}
-                </p>
-              )}
+          {/* Password Field */}
+          <div>
+            <div className="relative">
+              <Lock 
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400" 
+                size={18} 
+              />
+              <input
+                {...register("password")}
+                type={showPassword ? "text" : "password"}
+                id="password"
+                placeholder="Password"
+                className="w-full h-12 pl-12 pr-12 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 outline-none"
+                aria-invalid={errors.password ? "true" : "false"}
+              />
+              <button
+                type="button"
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors"
+                onClick={togglePasswordVisibility}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
+            {errors.password && (
+              <p className="mt-1 text-sm text-red-500" role="alert">
+                {errors.password?.message}
+              </p>
+            )}
+          </div>
 
-            <div className="gap-4 mb-4">
-              <div className="relative">
-                <Image
-                  src={phone}
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2"
-                  alt="phone-icon"
-                />
-                <input
-                  {...register("phone_number")}
-                  type="phone"
-                  placeholder="Phone Number"
-                  className="w-full h-12 pl-10 text-sm focus:outline-none text-black bg-[#F7F7F7] dark:text-contentColor-dark border-2 border-borderColor dark:border-borderColor-dark placeholder:text-black placeholder:opacity-80 font-medium  rounded-[12px]"
-                />
-              </div>
-              {errors.phone_number && (
-                <p className="text-xs text-red-500 font-normal mt-[2px] ml-2">
-                  {errors.phone_number?.message}
-                </p>
-              )}
+          {/* Confirm Password Field */}
+          <div>
+            <div className="relative">
+              <Lock 
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400" 
+                size={18} 
+              />
+              <input
+                {...register("confirm_password")}
+                type={showConfirmPassword ? "text" : "password"}
+                id="confirm_password"
+                placeholder="Confirm Password"
+                className="w-full h-12 pl-12 pr-12 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 outline-none"
+                aria-invalid={errors.confirm_password ? "true" : "false"}
+              />
+              <button
+                type="button"
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors"
+                onClick={toggleConfirmPasswordVisibility}
+                aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+              >
+                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
+            {errors.confirm_password && (
+              <p className="mt-1 text-sm text-red-500" role="alert">
+                {errors.confirm_password?.message}
+              </p>
+            )}
+          </div>
 
-            <div className="gap-4 mb-4">
-              <div className="relative">
-                <Image
-                  src={lock}
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2"
-                  alt="lock-icon"
-                />
-                <input
-                  {...register("password")}
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Password"
-                  className="w-full h-12 pl-10 pr-10 text-sm focus:outline-none text-black bg-[#F7F7F7] dark:text-contentColor-dark border-2 border-borderColor dark:border-borderColor-dark placeholder:text-black placeholder:opacity-80 font-medium  rounded-[12px]"
-                />
-                <button
-                  type="button"
-                  onClick={togglePasswordVisibility}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
-                >
-                  {showPassword ? (
-                    <FaEyeSlash size={20} />
-                  ) : (
-                    <FaEye size={20} />
-                  )}
-                </button>
-              </div>
-              {errors.password && (
-                <p className="text-xs text-red-500 font-normal mt-[2px] ml-2">
-                  {errors.password?.message}
-                </p>
-              )}
-            </div>
-
-            {/* Confirm Password Field */}
-            <div className="gap-4 mb-4">
-              <div className="relative">
-                <Image
-                  src={lock}
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2"
-                  alt="lock-icon"
-                />
-                <input
-                  {...register("confirm_password")}
-                  type={showConfirmPassword ? "text" : "password"}
-                  placeholder="Confirm Password"
-                  className="w-full h-12 pl-10 pr-10 text-sm focus:outline-none text-black bg-[#F7F7F7] dark:text-contentColor-dark border-2 border-borderColor dark:border-borderColor-dark placeholder:text-[#000000] placeholder:opacity-80 font-medium  rounded-[12px]"
-                />
-                <button
-                  type="button"
-                  onClick={toggleConfirmPasswordVisibility}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
-                >
-                  {showConfirmPassword ? (
-                    <FaEyeSlash size={20} />
-                  ) : (
-                    <FaEye size={20} />
-                  )}
-                </button>
-              </div>
-              {errors.confirm_password && (
-                <p className="text-xs text-red-500 font-normal mt-[2px] ml-2">
-                  {errors.confirm_password?.message}
-                </p>
-              )}
-            </div>
-
+          {/* ReCAPTCHA */}
+          <div className="flex justify-center">
             <ReCAPTCHA
               sitekey="6LdHwxUqAAAAANjZ5-6I5-UYrL8owEGEi_QyJBX9"
               onChange={handleRecaptchaChange}
             />
-            {/* ReCAPTCHA Error Message */}
-            {recaptchaError && (
-              <span className="text-red-500 text-[12px]">
-                Please complete the ReCAPTCHA verification.
-              </span>
-            )}
+          </div>
+          {recaptchaError && (
+            <p className="text-sm text-red-500 text-center" role="alert">
+              Please complete the ReCAPTCHA verification.
+            </p>
+          )}
 
-            <div className="flex items-center cursor-pointer my-2">
+          {/* Terms Checkbox */}
+          <div>
+            <label className="flex items-start space-x-2 cursor-pointer">
               <input
                 type="checkbox"
                 id="terms"
                 {...register("agree_terms")}
-                className="w-6 h-6 mr-2 appearance-none border-2 border-gray-400 rounded-full cursor-pointer checked:bg-[#7ECA9D] checked:border-[#7ECA9D] checked:before:content-['✔'] checked:before:text-white checked:before:text-[12px] checked:before:flex checked:before:justify-center checked:before:items-center"
+                className="w-5 h-5 mt-0.5 rounded-md text-purple-500 border-gray-300 focus:ring-purple-500 transition-colors"
               />
-              <label
-                htmlFor="terms"
-                className="text-xs text-[#545454] cursor-pointer"
-              >
-                Agree to <a href="/terms-and-conditions">Terms & Conditions</a>
-              </label>
-            </div>
+              <span className="text-sm text-gray-700 dark:text-gray-300">
+                I accept the{" "}
+                <a
+                  href="/terms-and-conditions"
+                  className="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 underline hover:no-underline transition-colors"
+                >
+                  terms and conditions
+                </a>
+              </span>
+            </label>
             {errors.agree_terms && (
-              <p className="text-red-500 text-xs ml-2 mt-[-5px]">
+              <p className="mt-1 text-sm text-red-500" role="alert">
                 {errors.agree_terms.message}
               </p>
             )}
+          </div>
 
-            {/* API Error Display */}
-            {apiError && (
-              <p className="text-xs text-red-500 font-normal mt-1 ">
+          {/* API Error Display */}
+          {apiError && (
+            <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+              <p className="text-sm text-red-600 dark:text-red-400" role="alert">
                 {apiError}
               </p>
-            )}
-
-            <div className="mt-6 text-center">
-              <button
-                type="submit"
-                className="text-size-15 rounded-[150px] text-whiteColor bg-primaryColor px-25px py-10px w-full border-2 border-primaryColor hover:text-primaryColor hover:bg-whiteColor inline-block group dark:hover:text-whiteColor dark:hover:bg-whiteColor-dark"
-              >
-                SIGN UP
-              </button>
             </div>
+          )}
 
-            <div className="flex justify-center mt-5 text-[#545454] gap-4 font-Open text-sm">
-              <p>Already have an account? </p>
-              <a href="/login" className="text-primaryColor font-semibold">
+          {/* Submit Button */}
+          <div>
+            <button
+              type="submit"
+              className="w-full py-3 px-4 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-medium rounded-xl shadow-sm hover:shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+            >
+              Sign Up
+            </button>
+          </div>
+
+          {/* Sign In Link */}
+          <div className="text-center mt-6">
+            <p className="text-gray-600 dark:text-gray-400">
+              Already have an account?{" "}
+              <a 
+                href="/login" 
+                className="font-medium text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 transition-colors"
+              >
                 Sign In
               </a>
-            </div>
-          </form>
-        </div>
+            </p>
+          </div>
+        </form>
       </div>
     </div>
   );

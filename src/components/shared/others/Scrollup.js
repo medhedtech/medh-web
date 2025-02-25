@@ -1,17 +1,44 @@
 "use client";
-import scrollUp from "@/libs/scrollUp";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
+import { ChevronUp } from "lucide-react";
+
 // scroll up button
 const Scrollup = () => {
+  const [isVisible, setIsVisible] = useState(false);
+
+  // Show button when page is scrolled down
+  const toggleVisibility = () => {
+    if (window.scrollY > 300) {
+      setIsVisible(true);
+    } else {
+      setIsVisible(false);
+    }
+  };
+
+  // Set up scroll event listener
   useEffect(() => {
-    scrollUp();
+    window.addEventListener("scroll", toggleVisibility);
+    return () => window.removeEventListener("scroll", toggleVisibility);
   }, []);
+
+  // Scroll to top function
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+  };
+
   return (
-    <div>
-      <button className="scroll-up w-50px h-50px leading-50px text-center text-primaryColor bg-white hover:text-whiteColor hover:bg-primaryColor rounded-full fixed right-5 bottom-[60px] shadow-scroll-up z-medium text-xl dark:text-whiteColor dark:bg-primaryColor dark:hover:text-whiteColor-dark hidden">
-        <i className="icofont-rounded-up"></i>
-      </button>
-    </div>
+    <button
+      onClick={scrollToTop}
+      aria-label="Scroll to top"
+      className={`fixed right-5 bottom-8 z-50 flex items-center justify-center w-12 h-12 rounded-full shadow-lg bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white transition-all duration-300 ${
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10 pointer-events-none"
+      }`}
+    >
+      <ChevronUp size={24} />
+    </button>
   );
 };
 

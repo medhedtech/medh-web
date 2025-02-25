@@ -1,76 +1,84 @@
 import useIsSecondary from "@/hooks/useIsSecondary";
+import { Clock, Facebook, Instagram, Linkedin, Twitter, Youtube } from "lucide-react";
+import Image from "next/image";
+import logoImage from "@/assets/images/logo/Medh_logo.png";
 
 const FooterAbout = () => {
   const { isSecondary } = useIsSecondary();
+  
+  const socialLinks = [
+    {
+      name: "Facebook",
+      url: "https://www.facebook.com/medhupskill/",
+      icon: <Facebook size={16} />
+    },
+    {
+      name: "LinkedIn",
+      url: "https://www.linkedin.com/company/101210304/admin/feed/posts/",
+      icon: <Linkedin size={16} />
+    },
+    {
+      name: "Instagram",
+      url: "https://www.instagram.com/medhupskill/",
+      icon: <Instagram size={16} />
+    },
+    {
+      name: "YouTube",
+      url: "https://www.youtube.com/channel/UC4EMmw69w-877_fxJExZWyw",
+      icon: <Youtube size={16} />
+    }
+  ];
+  
   return (
-    <div
-      className="sm:col-start-1 sm:col-span-12 md:col-span-6  lg:col-span-4 mr-30px"
-      data-aos="fade-up"
-    >
-      <h4 className="text-size-22 font-bold text-whiteColor mb-3">About us</h4>
-      <p className="text-base lg:text-sm 2xl:text-base text-darkgray mb-30px leading-1.8 2xl:leading-1.8">
-        orporate clients and leisure travelers has been relying on Groundlink
-        for dependable safe, and professional chauffeured car end service in
-        major cities across World.
+    <div className="sm:col-start-1 sm:col-span-12 md:col-span-6 lg:col-span-4 mb-8 lg:mb-0">
+      {/* Logo */}
+      <div className="mb-6">
+        <Image 
+          src={logoImage} 
+          alt="MEDH" 
+          width={150} 
+          height={50} 
+          className="h-10 w-auto object-contain" 
+        />
+      </div>
+      
+      {/* About Text */}
+      <h4 className="text-xl font-bold text-white mb-4 flex items-center">
+        <span className="w-1 h-5 bg-green-500 rounded-sm mr-3 inline-block"></span>
+        About us
+      </h4>
+      
+      <p className="text-gray-300 mb-6 leading-relaxed text-sm md:text-base">
+        MEDH is a premier online education platform dedicated to helping professionals upskill and advance their careers. We offer expert-led courses in high-demand fields with personalized learning experiences.
       </p>
+      
       {isSecondary ? (
-        <ul className="flex gap-3 lg:gap-2 2xl:gap-3" data-aos="fade-up">
-          <li>
-            <a
-              href="https://www.facebook.com/"
-              className="w-11 md:w-10 2xl:w-11 h-11 md:h-10 2xl:h-11 leading-11 md:leading-10 2xl:leading-11 text-whitegrey bg-darkgray bg-opacity-10 hover:text-whiteColor dark:text-whiteColor-dark dark:bg-whiteColor dark:hover:bg-secondaryColor dark:hover:text-whiteColor rounded-full text-center"
-            >
-              <i className="icofont-facebook"></i>
-            </a>
-          </li>
-          <li>
-            <a
-              href="https://x.com/"
-              className="w-11 md:w-10 2xl:w-11 h-11 md:h-10 2xl:h-11 leading-11 md:leading-10 2xl:leading-11 text-whitegrey bg-darkgray bg-opacity-10 hover:text-whiteColor dark:text-whiteColor-dark dark:bg-whiteColor dark:hover:bg-secondaryColor dark:hover:text-whiteColor rounded-full text-center"
-            >
-              <i className="icofont-twitter"></i>
-            </a>
-          </li>
-          <li>
-            <a
-              href="https://vimeo.com/"
-              className="w-11 md:w-10 2xl:w-11 h-11 md:h-10 2xl:h-11 leading-11 md:leading-10 2xl:leading-11 text-whitegrey bg-darkgray bg-opacity-10 hover:text-whiteColor dark:text-whiteColor-dark dark:bg-whiteColor dark:hover:bg-secondaryColor dark:hover:text-whiteColor rounded-full text-center"
-            >
-              <i className="icofont-vimeo"></i>
-            </a>
-          </li>
-          <li>
-            <a
-              href="https://www.linkedin.com/"
-              className="w-11 md:w-10 2xl:w-11 h-11 md:h-10 2xl:h-11 leading-11 md:leading-10 2xl:leading-11 text-whitegrey bg-darkgray bg-opacity-10 hover:text-whiteColor dark:text-whiteColor-dark dark:bg-whiteColor dark:hover:bg-secondaryColor dark:hover:text-whiteColor rounded-full text-center"
-            >
-              <i className="icofont-linkedin"></i>
-            </a>
-          </li>
-          <li>
-            <a
-              href="https://www.skype.com/"
-              className="w-11 md:w-10 2xl:w-11 h-11 md:h-10 2xl:h-11 leading-11 md:leading-10 2xl:leading-11 text-whitegrey bg-darkgray bg-opacity-10 hover:text-whiteColor dark:text-whiteColor-dark dark:bg-whiteColor dark:hover:bg-secondaryColor dark:hover:text-whiteColor rounded-full text-center"
-            >
-              <i className="icofont-skype"></i>
-            </a>
-          </li>
-        </ul>
+        <div className="mt-6">
+          <h5 className="text-sm uppercase text-gray-400 mb-3 tracking-wider">Follow us</h5>
+          <div className="flex gap-3">
+            {socialLinks.map((link, index) => (
+              <a
+                key={index}
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`Visit our ${link.name} page`}
+                className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-800 hover:bg-green-600 text-gray-300 hover:text-white transition-colors duration-300"
+              >
+                {link.icon}
+              </a>
+            ))}
+          </div>
+        </div>
       ) : (
-        <div className="flex items-center">
-          <div>
-            <i className="icofont-clock-time text-3xl text-whiteColor h-78px w-78px bg-primaryColor leading-78px mr-22px block text-center"></i>
+        <div className="bg-gray-800 rounded-lg p-4 flex items-center">
+          <div className="mr-4 bg-green-600 rounded-full p-3 flex-shrink-0">
+            <Clock size={24} className="text-white" />
           </div>
           <div>
-            <h6 className="text-lg text-whiteColor font-medium leading-29px">
-              OPENING HOURES
-            </h6>
-            <p className="text-sm text-whiteColor text-opacity-60 mb-1">
-              Mon - Sat(8.00 - 6.00)
-            </p>
-            <p className="text-sm text-whiteColor text-opacity-60">
-              Sunday - Closed
-            </p>
+            <h6 className="text-white font-medium mb-1">BUSINESS HOURS</h6>
+            <p className="text-gray-400 text-sm">Mon - Sat (8:00 AM - 6:00 PM)</p>
+            <p className="text-gray-400 text-sm">Sunday - Closed</p>
           </div>
         </div>
       )}
