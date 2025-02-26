@@ -6,7 +6,7 @@ import MyTable from "@/components/shared/common-table/page";
 import useGetQuery from "@/hooks/getQuery.hook";
 import Preloader from "@/components/shared/others/Preloader";
 import { useRouter } from "next/navigation";
-import { FaPlus, FaTrash, FaSearch, FaFilter, FaEye } from "react-icons/fa";
+import { FaPlus, FaTrash, FaSearch, FaFilter, FaEye, FaCheck } from "react-icons/fa";
 import { MdEdit } from "react-icons/md";
 import useDeleteQuery from "@/hooks/deleteQuery.hook";
 import usePostQuery from "@/hooks/postQuery.hook";
@@ -14,13 +14,94 @@ import { toast } from "react-toastify";
 import Tooltip from "@/components/shared/others/Tooltip";
 import Image from "next/image";
 
+// Add this new component before the ListOfCourse component
+const StatusToggleButton = ({ status, onToggle, courseId }) => {
+  const [isToggling, setIsToggling] = useState(false);
+  const isPublished = status === "Published";
+
+  const handleToggle = async (e) => {
+    e.stopPropagation();
+    if (isToggling) return;
+
+    setIsToggling(true);
+    await onToggle(courseId);
+    setTimeout(() => setIsToggling(false), 500);
+  };
+
+  const getStatusColor = (currentStatus) => {
+    switch (currentStatus) {
+      case "Published":
+        return "text-green-600 dark:text-green-500";
+      case "Draft":
+        return "text-yellow-600 dark:text-yellow-500";
+      case "Archived":
+        return "text-gray-600 dark:text-gray-400";
+      case "Active":
+        return "text-blue-600 dark:text-blue-500";
+      default:
+        return "text-gray-600 dark:text-gray-400";
+    }
+  };
+
+  const getToggleColor = (currentStatus) => {
+    switch (currentStatus) {
+      case "Published":
+        return "bg-green-500 hover:bg-green-600";
+      case "Draft":
+        return "bg-yellow-500 hover:bg-yellow-600";
+      case "Archived":
+        return "bg-gray-500 hover:bg-gray-600";
+      case "Active":
+        return "bg-blue-500 hover:bg-blue-600";
+      default:
+        return "bg-gray-300 hover:bg-gray-400";
+    }
+  };
+
+  return (
+    <div className="flex gap-2 items-center">
+      <div className="relative">
+        <button
+          onClick={handleToggle}
+          disabled={isToggling}
+          className={`w-12 h-6 flex items-center rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 ${
+            getToggleColor(status)
+          }`}
+          title={`Click to toggle course status`}
+        >
+          <span
+            className={`${
+              isPublished ? 'translate-x-6' : 'translate-x-1'
+            } inline-block w-4 h-4 transform bg-white rounded-full transition-transform duration-300 ease-in-out shadow-sm`}
+          />
+        </button>
+      </div>
+      <span
+        className={`text-sm font-medium ${getStatusColor(status)}`}
+      >
+        {isToggling ? (
+          <span className="inline-flex items-center">
+            <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Updating...
+          </span>
+        ) : (
+          status || 'Draft'
+        )}
+      </span>
+    </div>
+  );
+};
+
 export default function ListOfCourse() {
   const router = useRouter();
   const { deleteQuery } = useDeleteQuery();
   const { postQuery, loading: postLoading } = usePostQuery();
   const { getQuery, loading } = useGetQuery();
 
-  const [courses, setCourses] = useState([]);
+  const [courses, setCourses] = useState([]);  // Initialize as empty array
   const [selectedCourses, setSelectedCourses] = useState([]);
   const [instructorNames, setInstructorNames] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
@@ -232,84 +313,60 @@ export default function ListOfCourse() {
     }
   }, [courses]);
 
-  // Status change handler function
-  const handleStatusChange = async (courseId, newStatus) => {
-    // Validate inputs
-    if (!courseId || !newStatus) {
-      toast.error("Invalid course or status selection");
-      return;
-    }
-    
-    // Find the course to update for optimistic UI updates
-    const courseToUpdate = courses.find(course => course._id === courseId);
-    if (!courseToUpdate) {
-      toast.error("Course not found");
-      return;
-    }
-    
-    // Show loading toast
-    const loadingToastId = toast.loading(`Updating course status to ${newStatus}...`);
-    
-    // Store original status in case we need to revert
-    const originalStatus = courseToUpdate.status || getCourseStatus(courseToUpdate);
-    
-    // Optimistic UI update
-    setCourses(prev => prev.map(course => 
-      course._id === courseId 
-        ? {...course, status: newStatus}
-        : course
-    ));
+  // Update the toggleStatus function with improved error handling and loading state
+  const toggleStatus = async (id, currentStatus) => {
+    const loadingToastId = toast.loading("Updating course status...");
     
     try {
-      // Use the main updateCourse endpoint directly for more reliable updates
-      const updatePayload = {
-        status: newStatus,
-        isPublished: newStatus === "Published",
-        isDraft: newStatus === "Draft",
-        isArchived: newStatus === "Archived",
-        isActive: newStatus === "Active"
-      };
-      
       await postQuery({
-        url: `${apiUrls?.courses?.updateCourse}/${courseId}`,
-        postData: updatePayload,
-        onSuccess: () => {
+        url: `${apiUrls?.courses?.toggleCourseStatus}/${id}`,
+        postData: {},
+        onSuccess: (response) => {
+          const updatedStatus = response?.course?.status;
+          if (updatedStatus) {
+            toast.update(loadingToastId, {
+              render: `Course status changed to ${updatedStatus}`,
+              type: "success",
+              isLoading: false,
+              autoClose: 2000,
+            });
+            // Refresh data and analytics
+            setUpdateStatus(Date.now());
+            fetchCourseAnalytics();
+          } else {
+            toast.update(loadingToastId, {
+              render: "Failed to update course status",
+              type: "error",
+              isLoading: false,
+              autoClose: 3000,
+            });
+          }
+        },
+        onFail: (error) => {
+          console.error('Toggle Status API Error:', error);
           toast.update(loadingToastId, {
-            render: `Course status updated to ${newStatus}`,
-            type: "success",
+            render: error?.message || 'Failed to change course status',
+            type: "error",
             isLoading: false,
             autoClose: 3000,
           });
-          // Refresh data
-          setUpdateStatus(Date.now());
-          // Refresh analytics
-          fetchCourseAnalytics();
-        },
-        onError: (error) => {
-          console.warn("Main status update failed, trying fallback:", error);
           
-          // Try fallback method with updateCourseStatus
-          tryFallbackStatusUpdate(courseId, newStatus, originalStatus, loadingToastId);
-        }
+          // Revert optimistic update if needed
+          setCourses(prev => prev.map(course => 
+            course._id === id 
+              ? {...course, status: currentStatus}
+              : course
+          ));
+        },
       });
-    } catch (err) {
-      // Revert optimistic update on any uncaught errors
-      setCourses(prev => prev.map(course => 
-        course._id === courseId 
-          ? {...course, status: originalStatus}
-          : course
-      ));
-      
+    } catch (error) {
+      console.error('Status toggle error:', error);
       toast.update(loadingToastId, {
-        render: "An error occurred during status update",
+        render: "Something went wrong while updating status",
         type: "error",
         isLoading: false,
         autoClose: 3000,
       });
-      console.error("Status update error:", err);
-      
-      // Try fallback method as a last resort
-      tryFallbackStatusUpdate(courseId, newStatus, originalStatus, loadingToastId);
     }
   };
 
@@ -382,9 +439,9 @@ export default function ListOfCourse() {
       await getQuery({
         url: apiUrls?.courses?.getAllCourses,
         onSuccess: async (data) => {
-          const coursesData = Array.isArray(data) ? data : data?.data || [];
-          setCourses(coursesData);
-          await fetchInstructors(coursesData);
+          console.log('Courses fetched:', data); // Check the status values
+          setCourses(data || []);
+          await fetchInstructors(data);
           
           // Extract unique categories for filtering
           const uniqueCategories = [...new Set(coursesData.map(course => course.course_category))].filter(Boolean);
@@ -538,103 +595,77 @@ export default function ListOfCourse() {
   };
 
   // Filter and sort data
-  const filteredData = courses
+  const filteredData = Array.isArray(courses) ? courses
     .filter(course => {
+      if (!course) return false;  // Skip null/undefined courses
+      
       // Basic search filter
-      const matchesSearch = course.course_title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           course.course_category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           instructorNames[course.assigned_instructor]?.toLowerCase().includes(searchQuery.toLowerCase());
-      
-      // Basic category filter
-      const matchesCategory = filterCategory ? course.course_category === filterCategory : true;
-      
+      const matchesSearch = (course.course_title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           (course.course_category || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           (course.course_description || '').toLowerCase().includes(searchQuery.toLowerCase());
+
+      // Category filter
+      const matchesCategory = !filterCategory || course.course_category === filterCategory;
+
       // Advanced filters
-      // Status filter
-      const matchesStatus = !filters.status || getCourseStatus(course) === filters.status;
-      
-      // Date range filter
-      const createdDate = course.createdAt ? new Date(course.createdAt) : null;
-      const matchesDateRange = 
-        (!filters.dateRange.start || !createdDate || new Date(filters.dateRange.start) <= createdDate) &&
-        (!filters.dateRange.end || !createdDate || new Date(filters.dateRange.end) >= createdDate);
+      const matchesStatus = !filters.status || course.status === filters.status;
+      const matchesFeatured = !filters.featured || course.featured === filters.featured;
+      const matchesLevel = !filters.level || course.level === filters.level;
+      const matchesMode = !filters.mode || course.mode === filters.mode;
       
       // Price range filter
-      const price = parseFloat(course.course_fee) || 0;
-      const matchesPriceRange = 
-        (filters.priceRange.min === "" || price >= parseFloat(filters.priceRange.min)) &&
-        (filters.priceRange.max === "" || price <= parseFloat(filters.priceRange.max));
-      
-      // Featured courses filter
-      const matchesFeatured = !filters.featured || course.isFeatured === true;
-      
-      // Enrollment filter
+      const matchesPriceRange = (!filters.priceRange.min || (course.price >= parseFloat(filters.priceRange.min))) &&
+                               (!filters.priceRange.max || (course.price <= parseFloat(filters.priceRange.max)));
+
+      // Enrollment range filter
       const enrollmentCount = course.enrollments?.length || 0;
-      const matchesEnrollment =
-        (filters.enrollment.min === "" || enrollmentCount >= parseInt(filters.enrollment.min)) &&
-        (filters.enrollment.max === "" || enrollmentCount <= parseInt(filters.enrollment.max));
-      
+      const matchesEnrollment = (!filters.enrollment.min || enrollmentCount >= parseInt(filters.enrollment.min)) &&
+                               (!filters.enrollment.max || enrollmentCount <= parseInt(filters.enrollment.max));
+
+      // Rating range filter
+      const matchesRating = (!filters.rating.min || course.rating >= parseFloat(filters.rating.min)) &&
+                           (!filters.rating.max || course.rating <= parseFloat(filters.rating.max));
+
+      // Date range filter
+      const courseDate = new Date(course.createdAt);
+      const matchesDateRange = (!filters.dateRange.start || courseDate >= new Date(filters.dateRange.start)) &&
+                             (!filters.dateRange.end || courseDate <= new Date(filters.dateRange.end));
+
       // Instructor filter
-      const matchesInstructor = !filters.instructor || course.assigned_instructor === filters.instructor;
-      
-      // Course level filter
-      const matchesLevel = !filters.level || course.course_level === filters.level;
-      
-      // Course mode filter (online/offline/hybrid)
-      const matchesMode = !filters.mode || course.course_mode === filters.mode;
-      
-      // Rating filter
-      const rating = course.rating || 0;
-      const matchesRating =
-        (filters.rating.min === "" || rating >= parseFloat(filters.rating.min)) &&
-        (filters.rating.max === "" || rating <= parseFloat(filters.rating.max));
-      
-      // Sessions count filter
-      const sessionCount = course.no_of_Sessions || 0;
-      const matchesSessions =
-        (filters.sessions.min === "" || sessionCount >= parseInt(filters.sessions.min)) &&
-        (filters.sessions.max === "" || sessionCount <= parseInt(filters.sessions.max));
-      
-      // Course duration filter
-      const duration = parseFloat(course.total_duration) || 0;
-      const matchesDuration =
-        (filters.duration.min === "" || duration >= parseFloat(filters.duration.min)) &&
-        (filters.duration.max === "" || duration <= parseFloat(filters.duration.max));
-      
-      // Discount filter
-      const matchesDiscount = !filters.hasDiscount || (course.discount && course.discount > 0);
-      
-      // Certificate filter
-      const matchesCertificate = !filters.hasCertificate || course.hasCertificate === true;
-      
+      const matchesInstructor = !filters.instructor || course.instructor_id === filters.instructor;
+
       // Tags filter
       const matchesTags = filters.tags.length === 0 || 
-        (course.tags && filters.tags.some(tag => course.tags.includes(tag)));
-      
+                         filters.tags.every(tag => course.tags?.includes(tag));
+
+      // Certificate filter
+      const matchesCertificate = !filters.hasCertificate || course.hasCertificate;
+
+      // Discount filter
+      const matchesDiscount = !filters.hasDiscount || (course.discountPrice && course.discountPrice < course.price);
+
       return matchesSearch && 
              matchesCategory && 
              matchesStatus && 
-             matchesDateRange && 
-             matchesPriceRange && 
              matchesFeatured && 
-             matchesEnrollment && 
-             matchesInstructor && 
              matchesLevel && 
              matchesMode && 
+             matchesPriceRange && 
+             matchesEnrollment && 
              matchesRating && 
-             matchesSessions && 
-             matchesDuration && 
-             matchesDiscount && 
+             matchesDateRange && 
+             matchesInstructor && 
+             matchesTags && 
              matchesCertificate && 
-             matchesTags;
+             matchesDiscount;
     })
     .sort((a, b) => {
-      // Handle sorting
       if (!sortField) return 0;
       
       // Special case for instructor name sorting
-      if (sortField === 'assigned_instructor') {
-        const instructorA = instructorNames[a.assigned_instructor] || '';
-        const instructorB = instructorNames[b.assigned_instructor] || '';
+      if (sortField === 'instructor') {
+        const instructorA = instructorNames[a.instructor_id] || '';
+        const instructorB = instructorNames[b.instructor_id] || '';
         return sortDirection === "asc" 
           ? instructorA.localeCompare(instructorB)
           : instructorB.localeCompare(instructorA);
@@ -642,8 +673,8 @@ export default function ListOfCourse() {
       
       // Special case for status sorting
       if (sortField === 'status') {
-        const statusA = getCourseStatus(a);
-        const statusB = getCourseStatus(b);
+        const statusA = a.status || 'Draft';
+        const statusB = b.status || 'Draft';
         return sortDirection === "asc" 
           ? statusA.localeCompare(statusB)
           : statusB.localeCompare(statusA);
@@ -663,12 +694,12 @@ export default function ListOfCourse() {
         comparison = a[sortField] - b[sortField];
       } else if (a[sortField] instanceof Date && b[sortField] instanceof Date) {
         comparison = a[sortField] - b[sortField];
-      } else if (sortField === 'course_fee') {
+      } else if (sortField === 'price') {
         // Handle price sorting
-        const priceA = parseFloat(a[sortField]) || 0;
-        const priceB = parseFloat(b[sortField]) || 0;
+        const priceA = parseFloat(a.price) || 0;
+        const priceB = parseFloat(b.price) || 0;
         comparison = priceA - priceB;
-      } else if (sortField === 'createdAt') {
+      } else if (sortField === 'createdAt' || sortField === 'updatedAt') {
         // Handle date sorting
         const dateA = a[sortField] ? new Date(a[sortField]) : new Date(0);
         const dateB = b[sortField] ? new Date(b[sortField]) : new Date(0);
@@ -683,9 +714,9 @@ export default function ListOfCourse() {
     .map((course, index) => ({
       ...course,
       no: index + 1,
-      instructor: instructorNames[course.assigned_instructor] || "-",
-      status: getCourseStatus(course),
-    }));
+      instructor: instructorNames[course.instructor_id] || "-",
+      status: course.status || "Draft"
+    })) : [];
 
   // Add a function to handle row clicks for selection
   const handleRowClick = (e, rowId) => {
@@ -713,59 +744,81 @@ export default function ListOfCourse() {
       toast.info("Please select courses to perform this action");
       return;
     }
-    
-    if (batchAction === "delete") {
-      // Handle batch delete separately
-      handleMultipleDelete();
-      return;
+
+    // Handle different batch actions
+    switch (batchAction) {
+      case "delete":
+        handleMultipleDelete();
+        break;
+      case "assign_instructor":
+        setAssignInstructorModal({ open: true, courseId: selectedCourses });
+        break;
+      case "schedule_publish":
+        // For batch scheduling, we'll show modal for first course as reference
+        const firstCourse = courses.find(course => course._id === selectedCourses[0]);
+        setScheduleModal({ 
+          open: true, 
+          courseId: selectedCourses,
+          courseTitle: `${selectedCourses.length} selected courses`
+        });
+        break;
+      case "export":
+        setExportModal(true);
+        break;
+      default:
+        // Handle status changes
+        const confirmAction = window.confirm(`Are you sure you want to mark ${selectedCourses.length} selected courses as "${batchAction}"?`);
+        if (!confirmAction) return;
+        
+        const loadingToastId = toast.loading(`Updating ${selectedCourses.length} courses...`);
+        
+        let successCount = 0;
+        let failCount = 0;
+        
+        const updatePromises = selectedCourses.map(id => 
+          new Promise(resolve => {
+            postQuery({
+              url: `${apiUrls?.courses?.updateCourseStatus}/${id}`,
+              postData: { status: batchAction },
+              onSuccess: () => {
+                successCount++;
+                resolve();
+              },
+              onFail: (error) => {
+                failCount++;
+                // Try fallback if available
+                tryFallbackStatusUpdate(id, batchAction, getCourseStatus(courses.find(c => c._id === id)), loadingToastId)
+                  .then(() => {
+                    successCount++;
+                    resolve();
+                  })
+                  .catch(() => resolve());
+              },
+            });
+          })
+        );
+        
+        Promise.all(updatePromises).then(() => {
+          if (successCount > 0) {
+            toast.update(loadingToastId, {
+              render: `Successfully updated ${successCount} courses${failCount > 0 ? `, failed to update ${failCount} courses` : ''}`,
+              type: failCount > 0 ? "warning" : "success",
+              isLoading: false,
+              autoClose: 3000,
+            });
+          } else {
+            toast.update(loadingToastId, {
+              render: "Failed to update courses",
+              type: "error",
+              isLoading: false,
+              autoClose: 3000,
+            });
+          }
+          
+          setBatchAction("");
+          setUpdateStatus(Date.now());
+        });
     }
-    
-    // Confirm before applying status changes
-    const confirmAction = window.confirm(`Are you sure you want to mark ${selectedCourses.length} selected courses as "${batchAction}"?`);
-    if (!confirmAction) return;
-    
-    const loadingToastId = toast.loading(`Updating ${selectedCourses.length} courses...`);
-    
-    let successCount = 0;
-    let failCount = 0;
-    
-    const updatePromises = selectedCourses.map(id => 
-      new Promise(resolve => {
-        postQuery({
-          url: `${apiUrls?.courses?.updateCourseStatus}/${id}`,
-          postData: { status: batchAction },
-          onSuccess: () => {
-            successCount++;
-            resolve();
-          },
-          onFail: () => {
-            failCount++;
-            resolve();
-          },
-        });
-      })
-    );
-    
-    Promise.all(updatePromises).then(() => {
-      if (successCount > 0) {
-        toast.update(loadingToastId, {
-          render: `Successfully updated ${successCount} courses${failCount > 0 ? `, failed to update ${failCount} courses` : ''}`,
-          type: failCount > 0 ? "warning" : "success",
-          isLoading: false,
-          autoClose: 3000,
-        });
-      } else {
-        toast.update(loadingToastId, {
-          render: "Failed to update courses",
-          type: "error",
-          isLoading: false,
-          autoClose: 3000,
-        });
-      }
-      
-      setBatchAction("");
-      setUpdateStatus(Date.now());
-    });
   };
 
   // Add pagination handlers
@@ -922,7 +975,11 @@ export default function ListOfCourse() {
       ),
       accessor: 'status',
       render: (row) => (
-        <StatusDropdown courseId={row._id} currentStatus={row.status} />
+        <StatusToggleButton
+          status={row?.status}
+          onToggle={(id) => toggleStatus(id, row?.status)}
+          courseId={row?._id}
+        />
       )
     },
     {
@@ -2171,36 +2228,36 @@ export default function ListOfCourse() {
               {selectedCourses.length > 0 && (
                 <>
                   <select
-                    className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm"
+                    className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm min-w-[200px]"
                     value={batchAction}
                     onChange={(e) => setBatchAction(e.target.value)}
                   >
                     <option value="">Batch Actions ({selectedCourses.length})</option>
-                    <option value="Published">Mark as Published</option>
-                    <option value="Draft">Mark as Draft</option>
-                    <option value="Archived">Archive Courses</option>
-                    <option value="Active">Set as Active</option>
-                    <option value="delete">Delete Selected</option>
+                    <optgroup label="Status Actions">
+                      <option value="Published">Mark as Published</option>
+                      <option value="Draft">Mark as Draft</option>
+                      <option value="Archived">Archive Courses</option>
+                      <option value="Active">Set as Active</option>
+                    </optgroup>
+                    <optgroup label="Other Actions">
+                      <option value="assign_instructor">Assign Instructor</option>
+                      <option value="schedule_publish">Schedule Publish</option>
+                      <option value="export">Export Selected</option>
+                      <option value="delete">Delete Selected</option>
+                    </optgroup>
                   </select>
                   
                   <button
                     onClick={handleBatchAction}
-                    className={`px-4 py-2.5 rounded-lg transition-colors shadow-sm ${
+                    className={`px-4 py-2.5 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2 ${
                       batchAction
                         ? "bg-green-600 hover:bg-green-700 text-white"
                         : "bg-gray-200 text-gray-500 cursor-not-allowed"
                     }`}
                     disabled={!batchAction}
                   >
-                    Apply
-                  </button>
-                  
-                  <button 
-                    onClick={handleMultipleDelete}
-                    className="bg-red-500 hover:bg-red-600 text-white px-5 py-2.5 rounded-lg flex items-center justify-center transition-all shadow-sm hover:shadow animate-fadeIn"
-                  >
-                    <FaTrash className="mr-2 h-4 w-4" /> 
-                    Delete Selected ({selectedCourses.length})
+                    {batchAction === "delete" ? <FaTrash className="w-4 h-4" /> : <FaCheck className="w-4 h-4" />}
+                    Apply to Selected
                   </button>
                 </>
               )}
