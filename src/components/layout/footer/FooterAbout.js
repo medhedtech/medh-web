@@ -1,7 +1,7 @@
 import useIsSecondary from "@/hooks/useIsSecondary";
 import { Clock, Facebook, Instagram, Linkedin, Twitter, Youtube } from "lucide-react";
 import Image from "next/image";
-import logoImage from "@/assets/images/logo/Medh_logo.png";
+import logoImage from "@/assets/images/logo/medh_logo.png";
 
 const FooterAbout = () => {
   const { isSecondary } = useIsSecondary();
