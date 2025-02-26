@@ -8,17 +8,18 @@ import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 import ThemeController from "@/components/shared/others/ThemeController";
 import Link from "next/link";
 import useAuth from '@/hooks/useAuth';
+import { FaPlus, FaFileExport } from 'react-icons/fa';
 
 // Loading component for better UX
 const LoadingState = () => (
-  <div className="w-full p-8">
+  <div className="w-full p-8 animate-fade-in">
     <div className="animate-pulse space-y-6">
-      <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+      <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded-xl w-1/4"></div>
       <div className="space-y-4">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="bg-gray-200 dark:bg-gray-700 rounded-lg p-4 space-y-3">
-            <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-3/4"></div>
-            <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-1/2"></div>
+          <div key={i} className="bg-gray-200 dark:bg-gray-700 rounded-xl p-4 space-y-3 transform hover:scale-[1.01] transition-all duration-200">
+            <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded-lg w-3/4"></div>
+            <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded-lg w-1/2"></div>
           </div>
         ))}
       </div>
@@ -39,38 +40,17 @@ const AdminCourseList = () => {
         <DashboardContainer>
           <div className="space-y-6 p-4 md:p-6">
             {/* Header Section */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 md:p-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 
+                          bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 md:p-6
+                          transform hover:translate-y-[-2px] transition-all duration-200">
               <div className="flex-1">
                 <HeadingDashboard />
-                <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                  Manage and organize your course catalog
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-3 w-full sm:w-auto">
-                <Link
-                  href="/dashboards/admin-addcourse"
-                  className="w-full sm:w-auto px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 
-                           transition-all duration-200 text-sm font-medium text-center
-                           focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2
-                           active:transform active:scale-95"
-                >
-                  Add New Course
-                </Link>
-                <button
-                  onClick={() => window.print()}
-                  className="w-full sm:w-auto px-4 py-2 border border-gray-300 dark:border-gray-600 
-                           text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700
-                           transition-all duration-200 text-sm font-medium text-center
-                           focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2
-                           active:transform active:scale-95"
-                >
-                  Export List
-                </button>
               </div>
             </div>
 
             {/* Main Content */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden
+                          transform hover:translate-y-[-2px] transition-all duration-200">
               <div className="p-4 md:p-6">
                 <Suspense fallback={<LoadingState />}>
                   <ListOfCourse />
@@ -81,8 +61,11 @@ const AdminCourseList = () => {
         </DashboardContainer>
 
         {/* Theme Controller */}
-        <div className="fixed bottom-4 right-4 z-50 transition-transform duration-200 hover:scale-105">
-          <ThemeController />
+        <div className="fixed bottom-6 right-6 z-50">
+          <div className="transform hover:scale-110 transition-transform duration-200
+                        hover:rotate-12 active:rotate-0">
+            <ThemeController />
+          </div>
         </div>
       </div>
     </ProtectedPage>
@@ -90,3 +73,46 @@ const AdminCourseList = () => {
 };
 
 export default AdminCourseList;
+
+// Add these styles to your global CSS
+/*
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out forwards;
+}
+
+:root {
+  --primary: #10B981;
+  --primary-dark: #059669;
+}
+
+.bg-primary {
+  background-color: var(--primary);
+}
+
+.bg-primary-dark {
+  background-color: var(--primary-dark);
+}
+
+.hover\:bg-primary-dark:hover {
+  background-color: var(--primary-dark);
+}
+
+.focus\:ring-primary:focus {
+  --tw-ring-color: var(--primary);
+}
+
+.text-primary {
+  color: var(--primary);
+}
+*/
