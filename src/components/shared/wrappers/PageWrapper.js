@@ -10,15 +10,37 @@ const PageWrapper = ({ children }) => {
   const [pageLoaded, setPageLoaded] = useState(false);
   
   useEffect(() => {
+    // Function to handle scroll to top
+    const scrollToTop = () => {
+      window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: 'instant' // Use 'instant' for refresh to avoid animation
+      });
+    };
+
+    // Scroll to top on component mount (refresh)
+    scrollToTop();
+
+    // Handle scroll on page load
+    const handleLoad = () => {
+      scrollToTop();
+      setPageLoaded(true);
+    };
+
+    // Add event listeners
+    window.addEventListener('load', handleLoad);
+    
     // Simulate a small delay for smoother transitions
     const timer = setTimeout(() => {
       setPageLoaded(true);
     }, 100);
     
-    // Scroll to top when page changes
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    
-    return () => clearTimeout(timer);
+    // Cleanup
+    return () => {
+      window.removeEventListener('load', handleLoad);
+      clearTimeout(timer);
+    };
   }, []);
 
   return (
