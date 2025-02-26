@@ -16,9 +16,10 @@ const HeroSection = ({
       <Image
         src={backgroundImage}
         alt="Courses Background"
-        layout="fill"
-        objectFit="cover"
-        className="absolute h-[530px] left-0 w-full z-0"
+        fill
+        sizes="100vw"
+        priority
+        className="absolute h-[530px] left-0 w-full z-0 object-cover"
       />
 
       {/* Fade Overlay */}
@@ -77,6 +78,7 @@ const HeroSection = ({
             height={rightImage.height}
             alt={rightImage.alt}
             className="max-w-full h-full mx-auto"
+            priority
           />
         </div>
       </div>
