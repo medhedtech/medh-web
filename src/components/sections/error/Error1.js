@@ -18,9 +18,11 @@ const Error1 = () => {
   const [isShielded, setIsShielded] = useState(false);
   const [currentTheme, setCurrentTheme] = useState('default');
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
   const [glowParticles, setGlowParticles] = useState([]);
   const [isExploded, setIsExploded] = useState(false);
   const [errorText, setErrorText] = useState("404");
+  const [isMounted, setIsMounted] = useState(false);
 
   // Game themes with different visuals
   const themes = {
@@ -37,6 +39,28 @@ const Error1 = () => {
       powerUp: 'from-neon-yellow to-neon-orange'
     }
   };
+
+  // Initialize window size and mount status
+  useEffect(() => {
+    setIsMounted(true);
+    const updateWindowSize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    };
+    
+    // Initial size
+    updateWindowSize();
+    
+    // Add resize listener
+    window.addEventListener('resize', updateWindowSize);
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('resize', updateWindowSize);
+    };
+  }, []);
 
   // Initialize game
   const startGame = () => {
@@ -182,9 +206,10 @@ const Error1 = () => {
 
   // Handle mouse movement for parallax effect
   const handleMouseMove = (e) => {
+    if (!isMounted) return;
     const { clientX, clientY } = e;
-    const moveX = (clientX - window.innerWidth / 2) * 0.05;
-    const moveY = (clientY - window.innerHeight / 2) * 0.05;
+    const moveX = (clientX - (windowSize.width / 2)) * 0.05;
+    const moveY = (clientY - (windowSize.height / 2)) * 0.05;
     setMousePosition({ x: moveX, y: moveY });
   };
 
@@ -231,7 +256,7 @@ const Error1 = () => {
         <div className="absolute inset-0" style={{
           backgroundImage: 'radial-gradient(circle, #4ECDC4 1px, transparent 1px)',
           backgroundSize: '50px 50px',
-          transform: `translate(${mousePosition.x}px, ${mousePosition.y}px)`
+          transform: isMounted ? `translate(${mousePosition.x}px, ${mousePosition.y}px)` : 'none'
         }} />
       </div>
 
@@ -384,8 +409,8 @@ const Error1 = () => {
           }}
           transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
           style={{
-            '--x': `${50 + (mousePosition.x / window.innerWidth) * 100}%`,
-            '--y': `${50 + (mousePosition.y / window.innerHeight) * 100}%`
+            '--x': isMounted ? `${50 + (mousePosition.x / windowSize.width) * 100}%` : '50%',
+            '--y': isMounted ? `${50 + (mousePosition.y / windowSize.height) * 100}%` : '50%'
           }}
         />
       </div>
