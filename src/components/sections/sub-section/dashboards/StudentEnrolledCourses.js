@@ -6,8 +6,39 @@ import useGetQuery from "@/hooks/getQuery.hook";
 import img3 from "@/assets/images/resources/img3.png";
 import img5 from "@/assets/images/resources/img5.png";
 import PDFImage from "@/assets/images/dashbord/bxs_file-pdf.png";
-import Preloader from "@/components/shared/others/Preloader";
-import { AiOutlineDownload, AiOutlineClose } from "react-icons/ai";
+import { motion, AnimatePresence } from "framer-motion";
+import { Download, X, FileVideo, FilePdf, BookOpen, Video, File, Search } from "lucide-react";
+import { toast } from "react-toastify";
+
+const TabButton = ({ active, onClick, children }) => (
+  <motion.button
+    onClick={onClick}
+    className={`px-6 py-2.5 font-medium text-lg rounded-full transition-all duration-200 ${
+      active 
+        ? "bg-primary-50 text-primary-600 dark:bg-primary-900/20 dark:text-primary-400" 
+        : "text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
+    }`}
+    whileHover={{ scale: 1.02 }}
+    whileTap={{ scale: 0.98 }}
+  >
+    {children}
+  </motion.button>
+);
+
+const ResourceDownloadButton = ({ icon: Icon, label, onClick }) => (
+  <motion.button
+    onClick={onClick}
+    className="flex items-center justify-between w-full p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group"
+    whileHover={{ scale: 1.01 }}
+    whileTap={{ scale: 0.99 }}
+  >
+    <div className="flex items-center gap-3">
+      <Icon className="w-5 h-5 text-primary-500" />
+      <span className="text-gray-700 dark:text-gray-300">{label}</span>
+    </div>
+    <Download className="w-5 h-5 text-primary-500 group-hover:scale-110 transition-transform" />
+  </motion.button>
+);
 
 const StudentEnrolledCourses = () => {
   const [currentTab, setCurrentTab] = useState(0);
@@ -15,6 +46,7 @@ const StudentEnrolledCourses = () => {
   const [liveCourses, setLiveCourses] = useState([]);
   const [selfPacedCourses, setSelfPacedCourses] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const { getQuery, loading } = useGetQuery();
 
   useEffect(() => {
@@ -31,17 +63,14 @@ const StudentEnrolledCourses = () => {
       onSuccess: (data) => {
         const allCourses = data.map((enrollment) => enrollment.course_id);
         setEnrolledCourses(allCourses);
-
-        // Filter live courses based on category
         const liveCoursesFiltered = allCourses.filter(
           (course) => course.course_category === "Live Courses"
         );
-
-        console.log("Live courses only:", liveCoursesFiltered);
         setLiveCourses(liveCoursesFiltered);
       },
       onFail: (error) => {
         console.error("Failed to fetch enrolled courses:", error);
+        toast.error("Failed to fetch enrolled courses. Please try again.");
       },
     });
   };
@@ -50,12 +79,7 @@ const StudentEnrolledCourses = () => {
     getQuery({
       url: `${apiUrls?.Membership?.getMembershipBbyStudentId}/${studentId}`,
       onSuccess: (response) => {
-        console.log("Self-paced courses response:", response);
-
-        // Extract the enrolled courses
         const enrolledCourses = response?.enrolled_courses || [];
-
-        // Filter courses where is_self_paced is true
         const selfPacedCourses = enrolledCourses
           .filter((course) => course.is_self_paced === true)
           .map((course) => ({
@@ -77,14 +101,11 @@ const StudentEnrolledCourses = () => {
             resource_videos: course.course_id?.resource_videos || [],
             course_image: course.course_id?.course_image || img5,
           }));
-
-        console.log("Processed self-paced courses:", selfPacedCourses);
-
-        // Set the processed self-paced courses
         setSelfPacedCourses(selfPacedCourses);
       },
       onFail: (error) => {
         console.error("Failed to fetch self-paced courses:", error);
+        toast.error("Failed to fetch self-paced courses. Please try again.");
       },
     });
   };
@@ -103,175 +124,232 @@ const StudentEnrolledCourses = () => {
     setSelectedCourse(null);
   };
 
-  const renderMaterialDownloadLinks = (course) => {
-    // Function to download the file
-    const handleDownload = (fileUrl, fileName) => {
-      // Create an invisible anchor tag to trigger the download
-      const link = document.createElement("a");
-      link.href = fileUrl;
-      link.download = fileName;
-
-      // Append the link to the body and trigger a click on it
-      document.body.appendChild(link);
-      link.click();
-
-      // Clean up and remove the link after download trigger
-      document.body.removeChild(link);
-    };
-
-    return (
-      <div className="space-y-4">
-        {/* Loop through video resources */}
-        {course?.resource_videos?.map((video, idx) => (
-          <div
-            key={idx}
-            className="flex justify-between items-center space-x-2"
-          >
-            <div className="flex items-center space-x-2">
-              <Image
-                src={img3}
-                width={20}
-                height={20}
-                alt="Download Video"
-                className="object-cover"
-              />
-              <span>Download Video {idx + 1}</span>
-            </div>
-            <button
-              onClick={() => handleDownload(video, `video_${idx + 1}.mp4`)}
-              className="text-[#7ECA9D] hover:underline"
-            >
-              <AiOutlineDownload size={20} className="text-[#7ECA9D]" />
-            </button>
-          </div>
-        ))}
-
-        {/* Loop through PDF resources */}
-        {course?.resource_pdfs?.map((pdf, idx) => (
-          <div
-            key={idx}
-            className="flex justify-between items-center space-x-2"
-          >
-            <div className="flex items-center space-x-2">
-              <Image
-                src={PDFImage}
-                width={20}
-                height={20}
-                alt="Download PDF"
-                className="object-cover"
-              />
-              <span>Download PDF {idx + 1}</span>
-            </div>
-            <button
-              onClick={() => handleDownload(pdf, `document_${idx + 1}.pdf`)}
-              className="text-[#7ECA9D] hover:underline"
-            >
-              <AiOutlineDownload size={20} className="text-[#7ECA9D]" />
-            </button>
-          </div>
-        ))}
-      </div>
-    );
+  const downloadFile = (fileUrl, fileName) => {
+    const link = document.createElement("a");
+    link.href = fileUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success(`Downloading ${fileName}`);
   };
 
+  const filteredContent = tabs[currentTab].content.filter(course => 
+    course?.course_title?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   if (loading) {
-    return <Preloader />;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+          className="flex items-center gap-3"
+        >
+          <BookOpen className="w-8 h-8 text-primary-500" />
+          <span className="text-gray-600 dark:text-gray-400 text-lg">Loading your courses...</span>
+        </motion.div>
+      </div>
+    );
   }
 
   return (
-    <div className="p-12 rounded-lg max-w-full mx-auto font-Open">
-      <h2 className="text-3xl font-semibold mb-8 font-Open dark:text-white">
-        Course Resources
-      </h2>
-
-      {/* Tab Buttons */}
-      <div className="flex mb-6">
-        {tabs.map((tab, idx) => (
-          <button
-            key={idx}
-            onClick={() => setCurrentTab(idx)}
-            className={`px-4 py-2 font-medium text-lg ${
-              currentTab === idx
-                ? "text-[#7ECA9D] border-2 border-[#7ECA9D] rounded-[36px]"
-                : "text-gray-500"
-            }`}
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="p-8 lg:p-12 rounded-lg max-w-7xl mx-auto"
+    >
+      <div className="flex flex-col space-y-6">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex items-center gap-3"
           >
-            {tab.name}
-          </button>
-        ))}
-      </div>
+            <div className="p-3 rounded-xl bg-primary-50 dark:bg-primary-900/20">
+              <BookOpen className="w-6 h-6 text-primary-500 dark:text-primary-400" />
+            </div>
+            <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 dark:text-white">
+              Course Resources
+            </h2>
+          </motion.div>
 
-      {/* Tab Content */}
-      <div>
-        {tabs.map((tab, idx) => (
-          <div key={idx} className={idx === currentTab ? "block" : "hidden"}>
-            {tab.content.length > 0 ? (
-              <div className="space-y-4">
-                {tab.content.map((course, index) => {
-                  console.log("course title data:", course);
-                  return (
-                    <div
-                      key={index}
-                      className="p-5 bg-white dark:bg-inherit dark:border shadow rounded-lg flex gap-4 items-start font-Open"
+          {/* Search Bar */}
+          <motion.div 
+            className="relative max-w-md w-full"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search courses..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all duration-200"
+            />
+          </motion.div>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex flex-wrap gap-2">
+          {tabs.map((tab, idx) => (
+            <TabButton
+              key={idx}
+              active={currentTab === idx}
+              onClick={() => setCurrentTab(idx)}
+            >
+              {tab.name}
+            </TabButton>
+          ))}
+        </div>
+
+        {/* Content */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentTab}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="space-y-4"
+          >
+            {filteredContent.length > 0 ? (
+              filteredContent.map((course, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="p-6 bg-white dark:bg-gray-800 shadow-sm hover:shadow-md dark:border-gray-700 rounded-xl transition-all duration-200"
+                >
+                  <div className="flex flex-col md:flex-row gap-6">
+                    <motion.div 
+                      whileHover={{ scale: 1.05 }}
+                      className="relative w-full md:w-[200px] h-[160px] rounded-lg overflow-hidden"
                     >
                       <Image
                         src={course?.course_image || img5}
                         alt={course?.course_title || "Course Image"}
-                        width={100}
-                        height={120}
-                        className="rounded-md h-[120px] object-cover"
+                        fill
+                        className="object-cover"
                       />
-                      <div>
-                        <h3 className="text-xl text-[#171A1F] font-normal font-Open dark:text-white">
-                          {course?.course_title || "No Title Available"}
-                        </h3>
-                        <p className="text-[#9095A0]">
-                          Instructor:{" "}
+                    </motion.div>
+                    <div className="flex-1 space-y-3">
+                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                        {course?.course_title || "No Title Available"}
+                      </h3>
+                      <div className="space-y-1">
+                        <p className="text-gray-600 dark:text-gray-400">
+                          <span className="font-medium">Instructor:</span>{" "}
                           {course?.assigned_instructor?.full_name || "N/A"}
                         </p>
-                        <p className="text-[#9095A0]">
-                          Category: {course?.category || "N/A"}
+                        <p className="text-gray-600 dark:text-gray-400">
+                          <span className="font-medium">Category:</span>{" "}
+                          {course?.category || "N/A"}
                         </p>
-                        <button
-                          className="text-[#7ECA9D] font-medium mt-2"
-                          onClick={() => handleDownload(course)}
-                        >
-                          Course Materials
-                        </button>
                       </div>
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => handleDownload(course)}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors"
+                      >
+                        <File className="w-4 h-4" />
+                        View Course Materials
+                      </motion.button>
                     </div>
-                  );
-                })}
-              </div>
+                  </div>
+                </motion.div>
+              ))
             ) : (
-              <p className="text-gray-500">No courses available in this tab.</p>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex flex-col items-center justify-center text-center py-12"
+              >
+                <BookOpen className="w-16 h-16 text-gray-400 mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                  {searchTerm ? "No courses found" : "No courses available"}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  {searchTerm 
+                    ? "Try adjusting your search term to find what you're looking for."
+                    : "There are no courses available in this category yet."}
+                </p>
+              </motion.div>
             )}
-          </div>
-        ))}
-      </div>
+          </motion.div>
+        </AnimatePresence>
 
-      {/* Modal for Downloading Materials */}
-      {selectedCourse && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full relative">
-            <h3 className="text-xl font-semibold mb-4">
-              Course Materials - {selectedCourse?.course_title}
-            </h3>
-
-            {/* Render the download links */}
-            {renderMaterialDownloadLinks(selectedCourse)}
-
-            {/* Close button with the X icon */}
-            <button
+        {/* Download Modal */}
+        <AnimatePresence>
+          {selectedCourse && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center p-4 z-50"
               onClick={handleCloseModal}
-              className="absolute top-5 right-5 text-xl text-gray-700 hover:text-gray-800"
             >
-              <AiOutlineClose />
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl max-w-md w-full relative"
+              >
+                <motion.button
+                  whileHover={{ scale: 1.1, rotate: 90 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={handleCloseModal}
+                  className="absolute top-4 right-4 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </motion.button>
+
+                <div className="mb-6">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                    Course Materials
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    {selectedCourse?.course_title}
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  {selectedCourse?.resource_videos?.map((video, idx) => (
+                    <ResourceDownloadButton
+                      key={`video-${idx}`}
+                      icon={FileVideo}
+                      label={`Video Resource ${idx + 1}`}
+                      onClick={() => downloadFile(video, `video_${idx + 1}.mp4`)}
+                    />
+                  ))}
+                  
+                  {selectedCourse?.resource_pdfs?.map((pdf, idx) => (
+                    <ResourceDownloadButton
+                      key={`pdf-${idx}`}
+                      icon={FilePdf}
+                      label={`PDF Resource ${idx + 1}`}
+                      onClick={() => downloadFile(pdf, `document_${idx + 1}.pdf`)}
+                    />
+                  ))}
+
+                  {!selectedCourse?.resource_videos?.length && !selectedCourse?.resource_pdfs?.length && (
+                    <p className="text-center text-gray-500 dark:text-gray-400 py-4">
+                      No materials available for this course.
+                    </p>
+                  )}
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.div>
   );
 };
 
