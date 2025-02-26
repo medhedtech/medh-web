@@ -14,19 +14,52 @@ import { Eye, EyeOff, User, Mail, Phone, Lock, AlertCircle, Loader2, Moon, Sun }
 import ReCAPTCHA from "react-google-recaptcha";
 import FixedShadow from "../others/FixedShadow";
 
+// Helper function to clean and normalize phone number
+const cleanPhoneNumber = (value) => {
+  if (!value) return '';
+  // Remove all non-digit characters
+  let cleaned = value.replace(/\D/g, '');
+  // Remove leading zero if present
+  if (cleaned.startsWith('0')) {
+    cleaned = cleaned.substring(1);
+  }
+  // Remove country code '91' if present and the number is longer than 10 digits
+  if (cleaned.startsWith('91') && cleaned.length > 10) {
+    cleaned = cleaned.substring(2);
+  }
+  return cleaned;
+};
+
+// Improved phone number validation function using cleanPhoneNumber
+const validatePhoneNumber = (value) => {
+  const number = cleanPhoneNumber(value);
+  // Check if it's exactly 10 digits and starts with 6-9
+  return /^[6-9]\d{9}$/.test(number);
+};
+
 const schema = yup
   .object({
-    full_name: yup.string().required("Name is required"),
-    email: yup.string().email("Please enter a valid email").required("Email is required"),
+    full_name: yup.string()
+      .required("Name is required")
+      .min(2, "Name must be at least 2 characters")
+      .matches(/^[a-zA-Z\s]*$/, "Name can only contain letters and spaces"),
+    email: yup.string()
+      .email("Please enter a valid email")
+      .required("Email is required")
+      .lowercase()
+      .trim(),
     phone_number: yup
       .string()
-      .min(10, "Phone number must be at least 10 digits")
-      .max(10, "Phone number must be exactly 10 digits")
-      .required("Phone number is required"),
+      .required("Phone number is required")
+      .test("phone", "Phone number must be exactly 10 digits and start with 6-9", validatePhoneNumber),
     password: yup
       .string()
+      .required("Password is required")
       .min(8, "Password must be at least 8 characters")
-      .required("Password is required"),
+      .matches(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
+        "Password must contain at least one uppercase letter, one lowercase letter, one number and one special character"
+      ),
     confirm_password: yup
       .string()
       .oneOf([yup.ref("password"), null], "Passwords must match")
@@ -109,46 +142,80 @@ const SignUpForm = () => {
     }
     setApiError(null);
     try {
-      await postQuery({
+      // Clean and format phone number
+      const cleanedNumber = cleanPhoneNumber(data.phone_number);
+      if (cleanedNumber.length !== 10) {
+        toast.error("Phone number must be exactly 10 digits");
+        return;
+      }
+      const formattedPhoneNumber = `+91${cleanedNumber}`;
+
+      // Prepare the request data
+      const requestData = {
+        full_name: data.full_name.trim(),
+        email: data.email.toLowerCase().trim(),
+        password: data.password,
+        phone_number: formattedPhoneNumber,
+        agree_terms: data.agree_terms,
+        recaptcha_token: recaptchaValue
+      };
+
+      // Make the API call
+      const response = await postQuery({
         url: apiUrls?.user?.register,
-        postData: {
-          full_name: data?.full_name,
-          email: data?.email,
-          password: data?.password,
-          phone_number: data?.phone_number,
-          agree_terms: data?.agree_terms,
-        },
-        onSuccess: () => {
+        postData: requestData,
+        onSuccess: (response) => {
           setRecaptchaError(false);
           setRecaptchaValue(null);
-          router.push("/login");
-          toast.success("Registration successful!");
+          
+          // Store any necessary data from response
+          if (response?.data?.token) {
+            localStorage.setItem('auth_token', response.data.token);
+          }
+          
+          toast.success("Registration successful! Redirecting to login...");
+          
+          // Delay redirect slightly to show success message
+          setTimeout(() => {
+            router.push("/login");
+          }, 1500);
         },
         onFail: (error) => {
-          console.log("Full error object:", error);
+          console.error("Registration Error:", error);
 
-          const errorMessage = error?.response?.data?.message;
-          if (!errorMessage) {
-            toast.error("An unexpected error occurred.");
-            setApiError("An unexpected error occurred.");
-            return;
-          }
+          // Handle specific error cases
+          const errorResponse = error?.response?.data;
+          const errorMessage = errorResponse?.message || errorResponse?.error;
 
-          if (errorMessage === "User already exists") {
-            toast.error(
-              "This email is already registered. Please try logging in."
-            );
-          } else if (errorMessage.toLowerCase().includes("validation")) {
-            toast.error("Please check your input fields and try again.");
+          if (typeof errorMessage === 'string') {
+            if (errorMessage.includes('already exists')) {
+              toast.error("This email is already registered. Please try logging in instead.");
+            } else if (errorMessage.toLowerCase().includes('validation')) {
+              toast.error("Please check your input and try again.");
+            } else if (errorMessage.toLowerCase().includes('phone')) {
+              toast.error("Please enter a valid 10-digit phone number.");
+            } else if (errorMessage.toLowerCase().includes('recaptcha')) {
+              toast.error("ReCAPTCHA verification failed. Please try again.");
+              setRecaptchaError(true);
+            } else {
+              toast.error(errorMessage || "Registration failed. Please try again.");
+            }
           } else {
-            toast.error("Registration failed. Please try again.");
+            toast.error("An unexpected error occurred. Please try again later.");
           }
-          setApiError(errorMessage);
+
+          setApiError(errorMessage || "Registration failed. Please try again.");
+          
+          // Reset reCAPTCHA if it's expired or invalid
+          if (errorMessage?.toLowerCase().includes('recaptcha')) {
+            setRecaptchaValue(null);
+          }
         },
       });
     } catch (error) {
-      setApiError("An unexpected error occurred. Please try again.");
-      toast.error("An unexpected error occurred. Please try again.");
+      console.error("Registration Error:", error);
+      setApiError("Network error. Please check your connection and try again.");
+      toast.error("Network error. Please check your connection and try again.");
     }
   };
 
