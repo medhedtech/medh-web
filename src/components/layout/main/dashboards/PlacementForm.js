@@ -7,6 +7,8 @@ import { toast } from "react-toastify";
 import usePostQuery from "@/hooks/postQuery.hook";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
+import { motion, AnimatePresence } from "framer-motion";
+import { Briefcase, Send, Loader2, Building2, GraduationCap, MapPin, Mail, Phone, User, MessageSquare } from "lucide-react";
 
 const schema = yup.object({
   full_name: yup.string().required("Name is required"),
@@ -27,11 +29,42 @@ const schema = yup.object({
   message: yup.string().required("Message is required"),
 });
 
+const FormInput = ({ label, icon: Icon, error, ...props }) => (
+  <div className="relative">
+    <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
+      {label}
+    </label>
+    <div className="relative">
+      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        <Icon className="h-5 w-5 text-gray-400" />
+      </div>
+      <input
+        className={`w-full pl-10 pr-4 py-2.5 rounded-lg border ${
+          error ? 'border-red-500 focus:border-red-500' : 'border-gray-300 dark:border-gray-600 focus:border-primary-500'
+        } bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all duration-200`}
+        {...props}
+      />
+    </div>
+    <AnimatePresence mode="wait">
+      {error && (
+        <motion.p
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          className="text-red-500 text-xs mt-1"
+        >
+          {error}
+        </motion.p>
+      )}
+    </AnimatePresence>
+  </div>
+);
+
 const PlacementForm = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting, isDirty },
     reset,
   } = useForm({
     resolver: yupResolver(schema),
@@ -49,14 +82,12 @@ const PlacementForm = () => {
     }
   }, []);
 
-  // Fetch user details by ID and prefill form fields
   const fetchUserDetailsById = async () => {
     if (!studentId) return;
     await getQuery({
       url: `${apiUrls?.user?.getDetailsbyId}/${studentId}`,
       onSuccess: (res) => {
         if (res?.data) {
-          // Use the reset function to prefill form fields
           reset({
             full_name: res.data.full_name || "",
             email: res.data.email || "",
@@ -92,14 +123,7 @@ const PlacementForm = () => {
       url: apiUrls?.placements?.addPlacements,
       postData: {
         studentId,
-        full_name: data?.full_name,
-        area_of_interest: data?.area_of_interest,
-        message: data?.message,
-        course_completed_year: data?.course_completed_year,
-        completed_course: data?.completed_course,
-        email: data?.email,
-        city: data?.city,
-        phone_number: data?.phone_number,
+        ...data,
       },
       onSuccess: () => {
         toast.success("Placement details submitted successfully!");
@@ -115,176 +139,168 @@ const PlacementForm = () => {
   };
 
   return (
-    <div className="flex items-center justify-center w-full p-4">
-      <div className="w-[98%] bg-white dark:bg-inherit dark:text-white p-6 rounded-lg shadow-md font-Poppins">
-        <h2 className="text-xl font-semibold mb-4">Add Placement Details</h2>
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="grid grid-cols-1 md:grid-cols-2 gap-6"
-        >
-          {/* Name */}
-          <div>
-            <label htmlFor="full_name" className="text-sm font-medium">
-              Name
-            </label>
-            <input
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="flex items-center justify-center w-full p-4"
+    >
+      <div className="w-full max-w-4xl bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg">
+        <div className="flex items-center gap-3 mb-8">
+          <div className="p-3 rounded-xl bg-primary-50 dark:bg-primary-900/20">
+            <Briefcase className="w-6 h-6 text-primary-500" />
+          </div>
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
+            Placement Details
+          </h2>
+        </div>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <FormInput
+              label="Full Name"
+              icon={User}
               type="text"
-              id="full_name"
-              className="w-full border border-gray-300 rounded-md py-2 px-3"
+              error={errors.full_name?.message}
               {...register("full_name")}
             />
-            {errors.name && (
-              <p className="text-red-500 text-xs mt-1">{errors.full_name.message}</p>
-            )}
-          </div>
 
-          {/* Email */}
-          <div>
-            <label htmlFor="email" className="text-sm font-medium">
-              Email Id
-            </label>
-            <input
+            <FormInput
+              label="Email"
+              icon={Mail}
               type="email"
-              id="email"
-              className="w-full border border-gray-300 rounded-md py-2 px-3"
+              error={errors.email?.message}
               {...register("email")}
             />
-            {errors.email && (
-              <p className="text-red-500 text-xs mt-1">
-                {errors.email.message}
-              </p>
-            )}
-          </div>
 
-          {/* Mobile */}
-          <div>
-            <label htmlFor="phone_number" className="text-sm font-medium">
-              Mobile Number
-            </label>
-            <input
-              type="text"
-              id="phone_number"
-              className="w-full border border-gray-300 rounded-md py-2 px-3"
+            <FormInput
+              label="Phone Number"
+              icon={Phone}
+              type="tel"
+              error={errors.phone_number?.message}
               {...register("phone_number")}
             />
-            {errors.phone_number && (
-              <p className="text-red-500 text-xs mt-1">
-                {errors.phone_number.message}
-              </p>
-            )}
-          </div>
 
-          {/* City */}
-          <div>
-            <label htmlFor="city" className="text-sm font-medium">
-              City
-            </label>
-            <input
+            <FormInput
+              label="City"
+              icon={MapPin}
               type="text"
-              id="city"
-              className="w-full border border-gray-300 rounded-md py-2 px-3"
+              error={errors.city?.message}
               {...register("city")}
             />
-            {errors.city && (
-              <p className="text-red-500 text-xs mt-1">{errors.city.message}</p>
-            )}
-          </div>
 
-          {/* Completed Course */}
-          <div>
-            <label htmlFor="completed_course" className="text-sm font-medium">
-              Completed Course
-            </label>
-            <input
+            <FormInput
+              label="Completed Course"
+              icon={GraduationCap}
               type="text"
-              id="completed_course"
-              className="w-full border border-gray-300 rounded-md py-2 px-3"
+              error={errors.completed_course?.message}
               {...register("completed_course")}
             />
-            {errors.completed_course && (
-              <p className="text-red-500 text-xs mt-1">
-                {errors.completed_course.message}
-              </p>
-            )}
-          </div>
 
-          <div>
-            <label
-              htmlFor="course_completed_year"
-              className="text-sm font-medium"
-            >
-              Course Completed Year
-            </label>
-            <select
-              id="course_completed_year"
-              className="w-full border border-gray-300 rounded-md py-3 px-3"
-              {...register("course_completed_year")}
-            >
-              <option value="">Select Year</option>
-              {[...Array(5)].map((_, index) => {
-                const year = new Date().getFullYear() - index;
-                return (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                );
-              })}
-            </select>
-            {errors.course_completed_year && (
-              <p className="text-red-500 text-xs mt-1">
-                {errors.course_completed_year.message}
-              </p>
-            )}
-          </div>
+            <div className="relative">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
+                Course Completed Year
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <GraduationCap className="h-5 w-5 text-gray-400" />
+                </div>
+                <select
+                  className={`w-full pl-10 pr-4 py-2.5 rounded-lg border ${
+                    errors.course_completed_year ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                  } bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all duration-200`}
+                  {...register("course_completed_year")}
+                >
+                  <option value="">Select Year</option>
+                  {[...Array(5)].map((_, index) => {
+                    const year = new Date().getFullYear() - index;
+                    return (
+                      <option key={year} value={year}>
+                        {year}
+                      </option>
+                    );
+                  })}
+                </select>
+                <AnimatePresence mode="wait">
+                  {errors.course_completed_year && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="text-red-500 text-xs mt-1"
+                    >
+                      {errors.course_completed_year.message}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
 
-          {/* Area of Interest */}
-          <div>
-            <label htmlFor="area_of_interest" className="text-sm font-medium">
-              Area of Interest
-            </label>
-            <input
+            <FormInput
+              label="Area of Interest"
+              icon={Building2}
               type="text"
-              id="area_of_interest"
-              className="w-full border border-gray-300 rounded-md py-2 px-3"
+              error={errors.area_of_interest?.message}
               {...register("area_of_interest")}
             />
-            {errors.area_of_interest && (
-              <p className="text-red-500 text-xs mt-1">
-                {errors.area_of_interest.message}
-              </p>
-            )}
           </div>
 
-          {/* Message */}
-          <div className="md:col-span-2">
-            <label htmlFor="message" className="text-sm font-medium">
+          <div className="relative">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
               Message
             </label>
-            <textarea
-              id="message"
-              className="w-full border border-gray-300 rounded-md py-2 px-3"
-              {...register("message")}
-            />
-            {errors.message && (
-              <p className="text-red-500 text-xs mt-1">
-                {errors.message.message}
-              </p>
-            )}
+            <div className="relative">
+              <div className="absolute top-3 left-3 pointer-events-none">
+                <MessageSquare className="h-5 w-5 text-gray-400" />
+              </div>
+              <textarea
+                className={`w-full pl-10 pr-4 py-2.5 rounded-lg border ${
+                  errors.message ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                } bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all duration-200 min-h-[100px]`}
+                {...register("message")}
+              />
+              <AnimatePresence mode="wait">
+                {errors.message && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="text-red-500 text-xs mt-1"
+                  >
+                    {errors.message.message}
+                  </motion.p>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
 
-          {/* Submit Button */}
-          <div className="flex justify-end md:col-span-2">
-            <button
+          <motion.div 
+            className="flex justify-end"
+            initial={false}
+            animate={{ opacity: isDirty ? 1 : 0.5 }}
+          >
+            <motion.button
               type="submit"
-              disabled={loading}
-              className="px-4 py-2 bg-primaryColor text-white rounded-md hover:bg-green-500 focus:outline-none"
+              disabled={loading || !isDirty}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium transition-all duration-200
+                ${isDirty 
+                  ? 'bg-primary-500 hover:bg-primary-600 text-white' 
+                  : 'bg-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-400'}`}
             >
-              {loading ? "Submitting..." : "Add Placement"}
-            </button>
-          </div>
+              {loading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <>
+                  <Send className="w-5 h-5" />
+                  Submit Details
+                </>
+              )}
+            </motion.button>
+          </motion.div>
         </form>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
