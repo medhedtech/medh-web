@@ -1,15 +1,18 @@
 "use client";
 
 import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Crown, Star, Users, CheckCircle } from "lucide-react";
 
 const data = {
   tabs: [
     {
       id: 1,
       name: "MEDH Membership Overview",
+      icon: <Users className="w-5 h-5" />,
       content: (
         <>
-          <p className="text-lightGrey14 mb-6 md:text-[15px] text-[14px] dark:text-gray300 ">
+          <p className="text-gray-600 dark:text-gray-300 text-lg leading-relaxed">
             MEDH Membership is designed to provide members with unparalleled
             access to resources, support, and opportunities that drive
             educational and professional development. Our membership program is
@@ -25,14 +28,20 @@ const data = {
     {
       id: 2,
       name: "Silver Membership",
+      icon: <Star className="w-5 h-5" />,
       content: (
-        <>
-          <ul className="list-none list-inside space-y-2 pb-2 dark:text-gray300">
+        <div className="space-y-6">
+          <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg">
+            <p className="text-primary-500 dark:text-primary-400 font-semibold mb-2">
+              Choose Your Path
+            </p>
+            <p className="text-gray-600 dark:text-gray-300">
+              Explore and learn any or all courses within a 'Single-Course-Category' of your preferences
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-6">
             {[
-              {
-                title:
-                  "You have a choice to explore and learn any or all courses within a ‘Single-Course-Category’ of your preferences",
-              },
               {
                 title: "Exclusive Content Access",
                 description:
@@ -54,31 +63,51 @@ const data = {
                   "Stay informed with our monthly newsletter featuring the latest updates, tips, and insights from industry experts.",
               },
             ].map((feature, index) => (
-              <li key={index}>
-                <strong className="text-[1rem] font-bold tracking-wide dark:text-gray50">
-                  {feature.title}:
-                </strong>{" "}
-                {feature.description}
-              </li>
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md hover:shadow-lg transition-all"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0">
+                    <CheckCircle className="w-6 h-6 text-primary-500 dark:text-primary-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-800 dark:text-white mb-2">
+                      {feature.title}
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm">
+                      {feature.description}
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
             ))}
-          </ul>
-        </>
+          </div>
+        </div>
       ),
     },
-
     {
       id: 3,
       name: "Gold Membership",
+      icon: <Crown className="w-5 h-5" />,
       content: (
-        <>
-        <p className="text-lightGrey14 font-bold md:text-[15px] text-[14px] dark:text-gray300 ">
-          You have a choice to explore and learn any or all programs within
-          any of the Three-Course-Categories of your preference.
-        </p>
-        <p className="text-lightGrey14 md:text-[15px] text-[14px] dark:text-gray300 my-4">
-          All Silver Membership Benefits plus additional perks.
-        </p>
-          <ul className="list-none list-inside space-y-2 pb-2 dark:text-gray300">
+        <div className="space-y-6">
+          <div className="bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 p-6 rounded-lg border border-yellow-100 dark:border-yellow-900/20">
+            <h3 className="text-amber-600 dark:text-amber-400 font-semibold mb-3">
+              Premium Access
+            </h3>
+            <p className="text-gray-700 dark:text-gray-300 font-medium">
+              Explore and learn any or all programs within any of the Three-Course-Categories of your preference.
+            </p>
+            <p className="text-primary-500 dark:text-primary-400 mt-4 font-medium">
+              All Silver Membership Benefits plus additional perks.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
             {[
               {
                 title: "Premium Content Access",
@@ -101,15 +130,30 @@ const data = {
                   "Enjoy up to 30% discount on all Medh courses, including LIVE and Blended both, maximizing your learning opportunities.",
               },
             ].map((feature, index) => (
-              <li key={index}>
-                <strong className="text-[1rem] font-bold tracking-wide dark:text-gray50">
-                  {feature.title}:
-                </strong>{" "}
-                {feature.description}
-              </li>
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md hover:shadow-lg transition-all border border-amber-100 dark:border-amber-900/20"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0">
+                    <CheckCircle className="w-6 h-6 text-amber-500 dark:text-amber-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-800 dark:text-white mb-2">
+                      {feature.title}
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm">
+                      {feature.description}
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
             ))}
-          </ul>
-        </>
+          </div>
+        </div>
       ),
     },
   ],
@@ -121,50 +165,77 @@ const MembershipOverview = () => {
   const activeContent = data.tabs.find((tab) => tab.id === activeTab);
 
   return (
-    <div className="bg-white dark:bg-screen-dark h-auto py-10  w-full flex justify-center items-center">
-      <div className="w-full md:w-[80%]">
-        <div className="flex items-center flex-col w-80% md:mb-20 mb-10 px-4">
-          <h1 className="text-[24px] text-center leading-7 md:text-4xl font-bold md:mb-3 mb-2 text-[#41454F] dark:text-gray-50">
-            Unlock Your Potential with MEDH Membership! Become an expert in your
-            chosen field of interest by gaining comprehensive knowledge and
-            skills.
+    <section className="relative overflow-hidden bg-gradient-to-b from-white via-gray-50 to-white dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-16">
+      {/* Background Decorative Elements */}
+      <div className="absolute inset-0">
+        <div className="absolute top-0 left-0 w-2/3 h-2/3 bg-gradient-to-br from-primary-500/10 via-secondary-500/10 to-transparent rounded-full blur-3xl opacity-60 -translate-x-1/4 -translate-y-1/4"></div>
+        <div className="absolute bottom-0 right-0 w-2/3 h-2/3 bg-gradient-to-tl from-primary-500/10 via-secondary-500/10 to-transparent rounded-full blur-3xl opacity-60 translate-x-1/4 translate-y-1/4"></div>
+      </div>
+
+      <div className="container mx-auto px-4 relative z-10">
+        {/* Header Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center max-w-4xl mx-auto mb-16"
+        >
+          <span className="inline-block px-4 py-1.5 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-sm font-medium rounded-full mb-4">
+            Membership Benefits
+          </span>
+          
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white mb-6">
+            Unlock Your Potential with <span className="text-primary-500 dark:text-primary-400">MEDH Membership</span>
           </h1>
-          <p className="text-center md:text-[15px] text-[14px] leading-6 md:leading-7 md:w-[70%] text-[#727695] dark:text-gray-300">
+          
+          <p className="text-gray-600 dark:text-gray-300 text-lg">
             Welcome to MEDH Membership, where we empower individuals, students,
             and educational institutions with exclusive benefits that foster
-            growth, learning, and success. Whether you are looking to enhance
-            your skills in your chosen domains, gain access to premium content,
-            or receive personalized support, our membership program offers
-            something for everyone.
+            growth, learning, and success.
           </p>
-        </div>
+        </motion.div>
 
         {/* Tabs */}
-        <div className="flex md:mx-0 mx-4 space-x-2 flex-wrap">
+        <div className="flex justify-center mb-12 space-x-4">
           {data.tabs.map((tab) => (
-            <button
+            <motion.button
               key={tab.id}
-              className={`px-1 md:px-6 md:py-2 py-1  transition sm:mb-0 mb-1 ${
-                activeTab === tab.id
-                  ? "bg-primaryColor text-white font-semibold"
-                  : "bg-white text-primaryColor border border-primaryColor"
-              } hover:bg-primaryColor hover:text-white`}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center px-6 py-3 rounded-lg transition-all ${
+                activeTab === tab.id
+                  ? "bg-primary-500 text-white shadow-lg shadow-primary-500/30"
+                  : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-gray-700"
+              }`}
             >
+              <span className="mr-2">{tab.icon}</span>
               {tab.name}
-            </button>
+            </motion.button>
           ))}
         </div>
 
-        {/* Content Rendering */}
-        <section className=" bg-white mx-4 md:mx-0 dark:bg-screen-dark px-2 md:px-6 py-8 border-2 border-gray-200 text-lightGrey14">
-          <h1 className="text-[23px] font-bold text-primaryColor dark:text-gray50">
-            {activeContent.name}
-          </h1>
-          <div className="mt-4">{activeContent.content}</div>
-        </section>
+        {/* Content Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 relative overflow-hidden"
+        >
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              {activeContent.content}
+            </motion.div>
+          </AnimatePresence>
+        </motion.div>
       </div>
-    </div>
+    </section>
   );
 };
 

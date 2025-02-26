@@ -12,6 +12,7 @@ import WhyMedh from "@/components/sections/why-medh/WhyMedh";
 import React from "react";
 import ArrowIcon from "@/assets/images/icon/ArrowIcon";
 import { useRouter } from "next/navigation";
+import ThemeController from "@/components/shared/others/ThemeController";
 
 const Home1 = () => {
   const router = useRouter();
@@ -32,7 +33,7 @@ const Home1 = () => {
     <>
       <Hero1 />
       <BrandHero />
-      <About1 />
+      {/* <About1 /> */}
       {/* <PopularSubjects /> */}
       <CoursesFilter
         CustomButton={CustomButton}
@@ -46,6 +47,7 @@ const Home1 = () => {
       <JoinMedh />
       <Blogs />
       <Hire />
+      <ThemeController />
     </>
   );
 };
