@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import DownloadBrochureModal from "@/components/shared/download-broucher";
 import image6 from "@/assets/images/courses/image6.png";
-import { Clock, Calendar, Award, BookOpen, Check, ArrowRight, Download, ExternalLink } from "lucide-react";
+import { Clock, Calendar, Award, BookOpen, Check, ArrowRight, Download, ExternalLink, Star } from "lucide-react";
 
 // API imports if needed
 import { apiUrls } from "@/apis";
@@ -116,9 +116,18 @@ const CourseCard = ({ course }) => {
       
       {/* Course Content */}
       <div className="p-5">
-        <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-2 line-clamp-2 min-h-[3.5rem]">
+        <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-2 line-clamp-2">
           {course?.course_title || "Course Title"}
         </h3>
+        
+        {course?.rating && (
+          <div className="flex items-center space-x-1 mb-2">
+            <Star className="w-4 h-4 text-yellow-500" />
+            <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
+              {course.rating}
+            </span>
+          </div>
+        )}
         
         <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-2 min-h-[2.5rem]">
           {course?.course_short_desc || "Master in-demand skills with our expert-led professional course."}

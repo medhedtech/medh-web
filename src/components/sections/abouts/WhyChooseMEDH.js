@@ -1,6 +1,9 @@
 "use client";
 import React from "react";
+import { motion } from "framer-motion";
 import Image from "next/image";
+import { ArrowDown } from "lucide-react";
+import Link from "next/link";
 import About1 from "@/assets/images/about/about1.png";
 import About2 from "@/assets/images/about/about2.png";
 import About3 from "@/assets/images/about/about3.png";
@@ -11,7 +14,6 @@ import About7 from "@/assets/images/about/about7.png";
 import About8 from "@/assets/images/about/about8.png";
 import About9 from "@/assets/images/about/about9.png";
 import Certified from "../why-medh/Certified";
-import DownArrowIcon from "@/assets/images/icon/DownArrowIcon";
 import JoinUs from "@/assets/images/about/join-us.png";
 
 const WhyChooseMEDH = () => {
@@ -73,79 +75,130 @@ const WhyChooseMEDH = () => {
   ];
 
   return (
-    <section id="enroll-section" className="dark:bg-screen-dark">
-      <div className="max-w-7xl mx-auto py-12  px-4 sm:px-6 lg:px-8  ">
-        <div className="text-center mb-8">
-          <h2 className="text-2xl md:text-3xl font-bold dark:text-white text-[#252525]">
-            Why Choose MEDH?
+    <section className="relative overflow-hidden bg-gradient-to-b from-white via-gray-50 to-white dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-20">
+      {/* Background Decorative Elements */}
+      <div className="absolute inset-0">
+        <div className="absolute top-0 left-0 w-2/3 h-2/3 bg-gradient-to-br from-primary-500/10 via-secondary-500/10 to-transparent rounded-full blur-3xl opacity-60 -translate-x-1/4 -translate-y-1/4"></div>
+        <div className="absolute bottom-0 right-0 w-2/3 h-2/3 bg-gradient-to-tl from-primary-500/10 via-secondary-500/10 to-transparent rounded-full blur-3xl opacity-60 translate-x-1/4 translate-y-1/4"></div>
+      </div>
+
+      <div className="container mx-auto px-4 relative z-10">
+        {/* Header Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-16"
+        >
+          <span className="inline-block px-4 py-1.5 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-sm font-medium rounded-full mb-4">
+            Why Choose Us
+          </span>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white mb-6">
+            Why Choose <span className="text-primary-500 dark:text-primary-400">MEDH</span>?
           </h2>
-          <p className="mt-4 max-w-[840px] text-base dark:text-gray300 text-[#5C6574] mx-auto">
+          <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto text-lg">
             Empowering learners with the freedom to explore and excel in
             fundamental concepts, we strive to provide a global EdTech platform
             to shape aspirations.
           </p>
-        </div>
+        </motion.div>
 
-        <div className="rounded-lg p-4 sm:p-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((feature, idx) => (
-              <div key={idx} className="border p-6 rounded-3xl shadow-md">
-                <div className="flex flex-col justify-between items-center">
-                  <div className="h-[90px] w-[90px] rounded-md bg-indigo-500 flex items-center mx-auto justify-center">
-                    <Image
-                      src={feature.icon}
-                      alt={feature.title}
-                      width={90}
-                      height={90}
-                      className="object-contain color-[#242424]"
-                    />
-                  </div>
-                  <div>
-                    <p className="mt-8 text-base text-center dark:text-white text-[#252525] px-2">
-                      {feature.description}
-                    </p>
-                  </div>
+        {/* Features Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+          {features.map((feature, idx) => (
+            <motion.div
+              key={idx}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.1 }}
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all p-6 group"
+            >
+              <div className="flex flex-col items-center">
+                <div className="w-20 h-20 bg-gradient-to-br from-primary-500/20 to-secondary-500/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                  <Image
+                    src={feature.icon}
+                    alt={feature.title}
+                    width={60}
+                    height={60}
+                    className="object-contain"
+                  />
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-        <Certified />
-
-        <div className="bg-[#4EB67870] flex flex-col md:flex-row justify-around rounded-3xl mt-16 p-4 lg:p-0">
-          <div className="flex justify-center ">
-            <Image src={JoinUs} alt="Join us" width={160} height={180} />
-          </div>
-
-          <div className="max-w-[520px] mx-auto md:mx-0 md:w-1/2">
-            <h2 className="text-[#444a54] text-left font-bold text-2xl pt-6 max-sm:text-center">
-              Join us at Medh to craft a brighter future.
-            </h2>
-            <p className="text-[#323340]  text-base text-left pt-4 max-sm:text-center">
-              Contact us to learn more or explore our platform to experience the
-              power of transformative education firsthand.
-            </p>
-          </div>
-          <div className="my-auto mx-12 md:mx-0 max-sm:mt-4 ">
-            <div className="bg-[#F6B335] flex items-center px-4 py-3">
-              <span className="mr-2">
-                <DownArrowIcon />
-              </span>
-              <a href="/contact-us">
-                <p className="text-white font-bold text-sm">
-                  Let&#39;s Connect
+                <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4 text-center bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
+                  {feature.title}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 text-center leading-relaxed">
+                  {feature.description}
                 </p>
-              </a>
-            </div>
-          </div>
+              </div>
+            </motion.div>
+          ))}
         </div>
-        <div className="mt-5 text-center">
-          <p className="text-[#727695] dark:text-gray300 font-bold text-base leading-6 max-w-[720px] mx-auto">
+
+        {/* Certification Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <Certified />
+        </motion.div>
+
+        {/* Join Us Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="bg-gradient-to-r from-[#4EB67870] to-[#4EB67840] rounded-3xl p-8 mt-16 relative overflow-hidden"
+        >
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
+          
+          <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
+            <div className="flex-shrink-0">
+              <Image
+                src={JoinUs}
+                alt="Join us"
+                width={160}
+                height={180}
+                className="transform hover:scale-105 transition-transform"
+              />
+            </div>
+
+            <div className="flex-1 text-center md:text-left">
+              <h3 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white mb-4">
+                Join us at Medh to craft a brighter future.
+              </h3>
+              <p className="text-gray-700 dark:text-gray-200 text-lg mb-6">
+                Contact us to learn more or explore our platform to experience the
+                power of transformative education firsthand.
+              </p>
+            </div>
+
+            <Link href="/contact-us">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="bg-[#F6B335] hover:bg-[#e5a52f] text-white px-6 py-3 rounded-lg flex items-center gap-2 transition-colors shadow-lg"
+              >
+                <span className="font-bold">Let's Connect</span>
+                <ArrowDown className="w-5 h-5" />
+              </motion.button>
+            </Link>
+          </div>
+        </motion.div>
+
+        {/* Final Message */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="text-center mt-12"
+        >
+          <p className="text-gray-600 dark:text-gray-300 font-medium text-lg max-w-3xl mx-auto">
             Join us in our mission to redefine education and create a brighter
             future for learners worldwide. Together, we can unlock the limitless
             potential that lies within each of us.
           </p>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
