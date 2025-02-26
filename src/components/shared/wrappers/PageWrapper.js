@@ -10,19 +10,16 @@ const PageWrapper = ({ children }) => {
   const [pageLoaded, setPageLoaded] = useState(false);
   
   useEffect(() => {
-    // Function to handle scroll to top
+    // Function to handle smooth scroll to top
     const scrollToTop = () => {
       window.scrollTo({
         top: 0,
         left: 0,
-        behavior: 'instant' // Use 'instant' for refresh to avoid animation
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth'
       });
     };
 
-    // Scroll to top on component mount (refresh)
-    scrollToTop();
-
-    // Handle scroll on page load
+    // Handle initial page load
     const handleLoad = () => {
       scrollToTop();
       setPageLoaded(true);
@@ -30,6 +27,29 @@ const PageWrapper = ({ children }) => {
 
     // Add event listeners
     window.addEventListener('load', handleLoad);
+    
+    // Initialize smooth scroll behavior for all anchor links
+    const handleSmoothScroll = (e) => {
+      const target = e.target.closest('a[href^="#"]');
+      if (!target) return;
+
+      const id = target.getAttribute('href');
+      if (!id || id === '#') return;
+
+      const element = document.querySelector(id);
+      if (!element) return;
+
+      e.preventDefault();
+      const yOffset = -80; // Offset for fixed header
+      const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+
+      window.scrollTo({
+        top: y,
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth'
+      });
+    };
+
+    document.addEventListener('click', handleSmoothScroll);
     
     // Simulate a small delay for smoother transitions
     const timer = setTimeout(() => {
@@ -39,20 +59,26 @@ const PageWrapper = ({ children }) => {
     // Cleanup
     return () => {
       window.removeEventListener('load', handleLoad);
+      document.removeEventListener('click', handleSmoothScroll);
       clearTimeout(timer);
     };
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen scroll-smooth">
       <CartContextProvider>
         {/* header */}
         <Header />
 
         {/* main */}
-        <main className={`flex-grow transition-opacity duration-500 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
+        <main 
+          className={`
+            flex-grow transition-opacity duration-500 
+            ${pageLoaded ? 'opacity-100' : 'opacity-0'}
+          `}
+        >
           <WishlistContextProvider>
-            <div className="animate-fadeIn">
+            <div className="animate-fadeIn scroll-smooth">
               {children}
             </div>
           </WishlistContextProvider>
