@@ -261,43 +261,54 @@ const CoursesPrimary = ({ isNotSidebar, isList, card }) => {
   };
 
   return (
-    <div>
+    <div className="bg-gradient-to-br from-white via-gray-100 to-gray-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 min-h-screen">
       <div
-        className="container tab py-10 md:py-30px lg:py-40px 2xl:py-60px"
+        className="container mx-auto py-8 md:py-12 px-4 sm:px-6 lg:px-8"
         ref={coursesRef}
       >
-        {/* courses header  */}
+        {/* Modern Courses Header */}
         <div
-          className="courses-header flex justify-between items-center flex-wrap px-13px py-5px border border-borderColor dark:border-borderColor-dark mb-30px gap-y-5"
+          className="bg-white dark:bg-gray-800 rounded-xl shadow-sm mb-8 p-4 sm:p-6"
           data-aos="fade-up"
         >
-          <div>
-            {currentCourses ? (
-              <p className="text-blackColor dark:text-blackColor-dark">
-                Showing {skip ? skip : skip + 1} -{" "}
-                {skip + limit >= totalCourses ? totalCourses : skip + limit} of{" "}
-                {totalCourses} Results
-              </p>
-            ) : (
-              ""
-            )}
-          </div>
-          <div className="flex items-center">
-            <div className="tab-links transition-all duraton-300 text-contentColor dark:text-contentColor-dark flex gap-11px">
-              {tapButtons?.map(({ name, content }, idx) => (
-                <TabButtonSecondary
-                  key={idx}
-                  name={name}
-                  button={"icon"}
-                  currentIdx={currentIdx}
-                  handleTabClick={handleTabClick}
-                  idx={idx}
-                />
-              ))}
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+            {/* Results Counter */}
+            <div className="w-full sm:w-auto">
+              {currentCourses ? (
+                <div className="flex items-center space-x-2">
+                  <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full text-sm font-medium">
+                    {totalCourses} Courses
+                  </span>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm">
+                    Showing {skip ? skip : skip + 1} -{" "}
+                    {skip + limit >= totalCourses ? totalCourses : skip + limit} results
+                  </p>
+                </div>
+              ) : (
+                ""
+              )}
             </div>
-            <div className="pl-50px sm:pl-20 pr-10px">
+
+            {/* View Toggle and Sort */}
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+                {tapButtons?.map(({ name, content }, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleTabClick(idx)}
+                    className={`${
+                      currentIdx === idx
+                        ? "bg-blue-600 text-white shadow-sm"
+                        : "text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-300"
+                    } p-2 rounded-md transition-all duration-200`}
+                  >
+                    {name}
+                  </button>
+                ))}
+              </div>
+
               <select
-                className="text-blackColor bg-whiteColor py-2 pr-2 pl-3 rounded-md outline-none border-4 border-transparent focus:border-blue-light box-border"
+                className="bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg border border-gray-200 dark:border-gray-600 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
                 onChange={(e) => setSortInput(e.target.value)}
               >
                 {sortInputs.map((input, idx) => (
@@ -309,24 +320,25 @@ const CoursesPrimary = ({ isNotSidebar, isList, card }) => {
             </div>
           </div>
         </div>
+
         <div
           className={`grid grid-cols-1 ${
-            isNotSidebar || category ? "" : "md:grid-cols-12"
-          } gap-30px`}
+            isNotSidebar || category ? "" : "lg:grid-cols-12"
+          } gap-8`}
         >
-          {/* courses sidebar  */}
+          {/* Modern Sidebar */}
           {isNotSidebar ? (
             ""
           ) : !category ? (
-            <div className="md:col-start-1 md:col-span-4 lg:col-span-3">
-              <div className="flex flex-col ">
-                {/* search input  */}
+            <div className="lg:col-span-3">
+              <div className="space-y-6">
+                {/* Search Box */}
                 <div
-                  className="pt-30px pr-15px pl-10px pb-23px 2xl:pt-10 2xl:pr-25px 2xl:pl-5 2xl:pb-33px mb-30px border border-borderColor dark:border-borderColor-dark "
+                  className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6"
                   data-aos="fade-up"
                 >
-                  <h4 className="text-size-22 text-blackColor dark:text-blackColor-dark font-bold leading-30px mb-25px">
-                    Search here
+                  <h4 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                    Search Courses
                   </h4>
                   <form
                     onSubmit={(e) => {
@@ -334,7 +346,7 @@ const CoursesPrimary = ({ isNotSidebar, isList, card }) => {
                       setIsSearch(true);
                       setSearchString("");
                     }}
-                    className="w-full px-4 py-10px text-sm text-blackColor dark:text-blackColor-dark bg-placeholder bg-opacity-5 dark:bg-lightGrey10-dark flex justify-center items-center leading-26px dark:border dark:border-whiteColor relative"
+                    className="relative"
                   >
                     <input
                       onChange={handleSearchProducts}
@@ -346,187 +358,165 @@ const CoursesPrimary = ({ isNotSidebar, isList, card }) => {
                       onKeyUp={startSearch}
                       type="text"
                       value={searchString}
-                      placeholder="Search Produce"
-                      className="placeholder:text-placeholder   dark:placeholder:text-[rgb(183, 183, 183)] bg-transparent focus:outline-none placeholder:opacity-80 w-full placeholder:font-medium  "
+                      placeholder="Search courses..."
+                      className="w-full bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg pl-4 pr-10 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
                     />
-                    <button type="submit">
-                      <i className="icofont-search-1 text-base"></i>
+                    <button
+                      type="submit"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400"
+                    >
+                      <i className="icofont-search-1 text-lg"></i>
                     </button>
+
+                    {/* Search Results Dropdown */}
                     {searchCourses?.length ? (
-                      <ul
-                        className={`absolute  left-full top-full transition-all opacity-0 ${
+                      <div
+                        className={`absolute z-20 left-0 right-0 mt-2 transition-all ${
                           searchCourses?.length && isBlock
-                            ? "visible opacity-100"
-                            : "invisible"
-                        }  flex flex-col  gap-y-1  border-b border-borderColor dark:border-borderColor-dark overflow-y-auto bg-whiteColor dark:bg-whiteColor-dark p-10px shadow-dropdown-card dark:shadow-brand-dark w-full rounded-b-md`}
+                            ? "opacity-100"
+                            : "opacity-0 pointer-events-none"
+                        }`}
                       >
-                        {[...searchCourses]
-                          ?.slice(0, 5)
-                          .map(({ id, title, image, price }, idx) => (
-                            <li
-                              key={idx}
-                              className="relative flex gap-x-1.5 items-center"
-                            >
-                              <Link href={`/courses/${id}`}>
-                                <Image
-                                  prioriy="false"
-                                  placeholder="blur"
-                                  src={image}
-                                  alt="photo"
-                                  className="w-12 py-[3px]"
-                                />
-                              </Link>
-                              <div>
-                                <Link
-                                  href={`/courses/${id}`}
-                                  className="text-xs md:text-sm text-darkblack hover:text-secondaryColor leading-4 block capitalize dark:text-darkblack-dark dark:hover:text-secondaryColor"
-                                >
-                                  {title.length > 16
-                                    ? title.slice(0, 16) + "..."
-                                    : title}
-                                </Link>
-                                <p className="text-size-10 text-darkblack leading-5 block pb-5px dark:text-darkblack-dark">
-                                  <span className="text-secondaryColor">
+                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden">
+                          {[...searchCourses]
+                            ?.slice(0, 5)
+                            .map(({ id, title, image, price }, idx) => (
+                              <div
+                                key={idx}
+                                className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                              >
+                                <div className="w-12 h-12 relative rounded-lg overflow-hidden flex-shrink-0">
+                                  <Image
+                                    priority={false}
+                                    src={image}
+                                    alt={title}
+                                    layout="fill"
+                                    objectFit="cover"
+                                    className="transition-transform group-hover:scale-105"
+                                  />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <Link
+                                    href={`/courses/${id}`}
+                                    className="text-sm font-medium text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 truncate block"
+                                  >
+                                    {title}
+                                  </Link>
+                                  <p className="text-sm text-primary-600 dark:text-primary-400 font-medium">
                                     ${price.toFixed(2)}
-                                  </span>
-                                </p>
+                                  </p>
+                                </div>
                               </div>
-                            </li>
-                          ))}
-                      </ul>
-                    ) : (
-                      ""
-                    )}
+                            ))}
+                        </div>
+                      </div>
+                    ) : null}
                   </form>
                 </div>
-                {/* categories  */}
+
+                {/* Filter Sections */}
                 {filterIputs?.map(({ name, inputs }, idx) => (
                   <div
                     key={idx}
-                    className="pt-30px pr-15px pl-10px pb-23px 2xl:pt-10 2xl:pr-25px 2xl:pl-5 2xl:pb-33px mb-30px border border-borderColor dark:border-borderColor-dark"
+                    className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6"
                     data-aos="fade-up"
                   >
-                    <h4 className="text-size-22 text-blackColor dark:text-blackColor-dark font-bold leading-30px mb-15px">
+                    <h4 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                       {name}
                     </h4>
-                    <ul
-                      className={`flex flex-col  ${
-                        name === "Categories"
-                          ? "gap-y-4"
-                          : name === "Tag"
-                          ? "gap-y-23px"
-                          : "gap-y-10px"
-                      }`}
-                    >
+                    <div className="space-y-3">
                       {name === "Categories"
                         ? inputs?.map(({ name: name2, totalCount }, idx1) => (
-                            <li key={idx1}>
-                              {" "}
-                              <button
-                                onClick={() => handleFilters(name, name2)}
-                                className={`${
-                                  currentCategories.includes(name2)
-                                    ? "bg-primaryColor text-contentColor-dark "
-                                    : "text-contentColor  dark:text-contentColor-dark hover:text-contentColor-dark hover:bg-primaryColor "
-                                } text-sm font-medium px-13px py-2 border border-borderColor dark:border-borderColor-dark flex justify-between leading-7 transition-all duration-300 w-full`}
-                              >
-                                <span>
-                                  {name2?.length > 18
-                                    ? name2.slice(0, 12) + "."
-                                    : name2}
-                                </span>{" "}
-                                <span>
-                                  {totalCount < 10
-                                    ? `0${totalCount}`
-                                    : totalCount}
-                                </span>
-                              </button>
-                            </li>
+                            <button
+                              key={idx1}
+                              onClick={() => handleFilters(name, name2)}
+                              className={`${
+                                currentCategories.includes(name2)
+                                  ? "bg-primary-500 text-white"
+                                  : "bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-primary-500 hover:text-white"
+                              } w-full px-4 py-2 rounded-lg flex justify-between items-center transition-all duration-200`}
+                            >
+                              <span className="text-sm font-medium truncate">
+                                {name2}
+                              </span>
+                              <span className="text-sm font-medium">
+                                {totalCount < 10 ? `0${totalCount}` : totalCount}
+                              </span>
+                            </button>
                           ))
                         : name === "Tag"
                         ? inputs?.map((input, idx1) => (
-                            <li
-                              key={idx + input}
-                              className={`${
-                                currentTags.includes(input)
-                                  ? "text-primaryColor"
-                                  : "text-contentColor hover:text-primaryColor dark:hover:text-primaryColor  dark:text-contentColor-dark"
-                              }  text-size-15 font-medium  flex justify-between leading-26px group`}
+                            <label
+                              key={idx1}
+                              className="flex items-center space-x-3 cursor-pointer group"
                             >
-                              <button
-                                onClick={() => handleFilters(name, input)}
-                                className="w-full flex items-center gap-11px"
-                              >
-                                <span
-                                  className={`w-14px h-15px border  ${
-                                    currentTags.includes(input)
-                                      ? "bg-primaryColor border-primaryColor"
-                                      : "border-darkdeep6  group-hover:bg-primaryColor group-hover:border-primaryColor"
-                                  }  `}
-                                ></span>
-                                <span>{input}</span>
-                              </button>
-                            </li>
+                              <input
+                                type="checkbox"
+                                checked={currentTags.includes(input)}
+                                onChange={() => handleFilters(name, input)}
+                                className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                              />
+                              <span className="text-sm text-gray-700 dark:text-gray-200 group-hover:text-primary-600 dark:group-hover:text-primary-400">
+                                {input}
+                              </span>
+                            </label>
                           ))
                         : inputs?.map((input, idx1) => (
-                            <li
-                              key={idx1 + input}
+                            <button
+                              key={idx1}
+                              onClick={() => handleFilters(name, input)}
                               className={`${
                                 currentSkillLevel.includes(input)
-                                  ? "text-primaryColor "
-                                  : "text-contentColor dark:text-contentColor-dark  hover:text-primaryColor dark:hover:text-primaryColor "
-                              } text-size-15 font-medium leading-26px`}
+                                  ? "text-primary-600 dark:text-primary-400"
+                                  : "text-gray-700 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400"
+                              } block text-sm font-medium w-full text-left py-1 transition-colors`}
                             >
-                              <button
-                                onClick={() => handleFilters(name, input)}
-                                className="w-full text-start "
-                              >
-                                {input}
-                              </button>
-                            </li>
+                              {input}
+                            </button>
                           ))}
-                    </ul>
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
-          ) : (
-            ""
-          )}
-          {/* courses main  */}
+          ) : null}
+
+          {/* Courses Grid/List */}
           <div
             className={`${
               isNotSidebar || category
                 ? ""
-                : "md:col-start-5 md:col-span-8 lg:col-start-4 lg:col-span-9"
-            } space-y-[30px]`}
+                : "lg:col-span-9"
+            }`}
           >
             {currentCourses ? (
               <>
-                <div className="tab-contents">
+                <div className="space-y-6">
                   {tapButtons?.map(({ content }, idx) => (
-                    <TabContentWrapper
+                    <div
                       key={idx}
-                      isShow={idx === currentIdx ? true : false}
+                      className={`${
+                        idx === currentIdx ? "block" : "hidden"
+                      }`}
                     >
                       {content}
-                    </TabContentWrapper>
+                    </div>
                   ))}
                 </div>
 
-                {/* pagination  */}
+                {/* Modern Pagination */}
                 {totalCourses > 11 ? (
-                  <Pagination
-                    pages={paginationItems}
-                    totalItems={totalCourses}
-                    handlePagesnation={handlePagesnation}
-                    currentPage={currentPage}
-                    skip={skip}
-                    limit={limit}
-                  />
-                ) : (
-                  ""
-                )}
+                  <div className="mt-8">
+                    <Pagination
+                      pages={paginationItems}
+                      totalItems={totalCourses}
+                      handlePagesnation={handlePagesnation}
+                      currentPage={currentPage}
+                      skip={skip}
+                      limit={limit}
+                    />
+                  </div>
+                ) : null}
               </>
             ) : (
               <NoData message={"No Course"} />

@@ -1,19 +1,23 @@
+
 import AdvisoryBoard from "@/components/sections/team/advisoryBoard";
 import DynamicTeam from "@/components/sections/team/dynamicTeam";
 import ThemeController from "@/components/shared/others/ThemeController";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
-import React from "react";
 
-const Team = () => {
+export const metadata = {
+  title: "Our Team | Medh - Education LMS Platform",
+  description: "Meet our dynamic team and advisory board members at Medh. Learn about the experts and professionals driving innovation in education technology.",
+  keywords: "Medh team, advisory board, education experts, EdTech professionals, leadership team",
+};
+
+export default function TeamPage() {
   return (
-    <div>
+    <main className="min-h-screen bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
       <PageWrapper>
         <DynamicTeam />
         <AdvisoryBoard />
         <ThemeController />
       </PageWrapper>
-    </div>
+    </main>
   );
-};
-
-export default Team;
+}

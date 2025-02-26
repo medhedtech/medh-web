@@ -5,7 +5,6 @@ import React from "react";
 const ErrorMain = () => {
   return (
     <>
-      <HeroPrimary path={"Error Page"} title={"Error Page"} />
       <Error1 />
     </>
   );
