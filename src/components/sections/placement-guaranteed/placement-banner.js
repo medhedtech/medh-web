@@ -118,9 +118,10 @@ const PlacementGauranteedBanner = () => {
         <Image
           src={bgImage}
           alt="Background Image"
-          layout="fill"
-          objectFit="cover"
-          className="w-full h-full"
+          fill
+          sizes="100vw"
+          className="w-full h-full object-cover"
+          priority
         />
       </div>
 
