@@ -7,6 +7,7 @@ import DashboardContainer from "@/components/shared/containers/DashboardContaine
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 import ThemeController from "@/components/shared/others/ThemeController";
 import Link from "next/link";
+import useAuth from '@/hooks/useAuth';
 
 // Loading component for better UX
 const LoadingState = () => (
