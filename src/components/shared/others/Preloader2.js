@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import logoImage from "@/assets/images/logo/Medh_logo.png";
+import logoImage from "@/assets/images/logo/medh_logo.png";
 
 const Preloader2 = () => {
   const [loading, setLoading] = useState(true);
