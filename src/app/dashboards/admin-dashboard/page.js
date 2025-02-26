@@ -1,4 +1,3 @@
-import { Metadata } from "next";
 import ProtectedPage from "@/app/protectedRoutes";
 import AdminDashboardMain from "@/components/layout/main/dashboards/AdminDashboardMain";
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
