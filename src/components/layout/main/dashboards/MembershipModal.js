@@ -74,7 +74,7 @@ const MembershipModal = ({ isOpen, onClose }) => {
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
                 >
-                  <g clip-path="url(#clip0_91_3102)">
+                  <g clipPath="url(#clip0_91_3102)">
                     <rect width="56" height="56" rx="14" fill="#7ECA9D" />
                     <circle
                       cx="7.87262"
@@ -194,7 +194,7 @@ const MembershipModal = ({ isOpen, onClose }) => {
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
                 >
-                  <g clip-path="url(#clip0_91_3146)">
+                  <g clipPath="url(#clip0_91_3146)">
                     <rect width="56" height="56" rx="14" fill="white" />
                     <circle
                       cx="7.87262"

@@ -293,7 +293,7 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
                         id="full_name"
                         type="text"
                         placeholder="Enter your full name"
-                        className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white transition-colors"
+                        className="w-full px-4 py-3 rounded-lg bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
                       />
                       {errors.full_name && (
                         <span className="text-red-500 text-sm mt-1 flex items-center">
@@ -310,7 +310,7 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
                         id="email"
                         type="email"
                         placeholder="Enter your email address"
-                        className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white transition-colors"
+                        className="w-full px-4 py-3 rounded-lg bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
                       />
                       {errors.email && (
                         <span className="text-red-500 text-sm mt-1 flex items-center">
@@ -327,7 +327,7 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
                         <select
                           {...register("country")}
                           id="country"
-                          className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white transition-colors"
+                          className="w-full px-4 py-3 rounded-lg bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
                         >
                           {countriesData.map((country) => {
                             const countryName =
@@ -335,7 +335,7 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
                                 ? country.name.slice(0, 20) + "..."
                                 : country.name;
                             return (
-                              <option key={country.code} value={country.name}>
+                              <option key={country.code} value={country.name} className="bg-white dark:bg-gray-700">
                                 {countryName} ({country.dial_code})
                               </option>
                             );
@@ -350,7 +350,7 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
                           id="phone_number"
                           type="tel"
                           placeholder="10-digit number"
-                          className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white transition-colors"
+                          className="w-full px-4 py-3 rounded-lg bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
                         />
                       </div>
                     </div>
@@ -369,7 +369,7 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
                         {...register("message")}
                         id="message"
                         placeholder="How can we help you?"
-                        className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white transition-colors h-32"
+                        className="w-full px-4 py-3 rounded-lg bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors h-32"
                       />
                       {errors.message && (
                         <span className="text-red-500 text-sm mt-1 flex items-center">
@@ -439,29 +439,30 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
                           {...register("accept")}
                           type="checkbox"
                           id="accept"
-                          className="h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                          className="h-4 w-4 text-primary-600 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors cursor-pointer"
                         />
                       </div>
                       <label
                         htmlFor="accept"
-                        className="text-sm text-gray-700 dark:text-gray-300"
+                        className="text-sm text-gray-900 dark:text-gray-100 cursor-pointer select-none"
                       >
                         By submitting this form, I accept
                         <Link href="/terms-and-services">
-                          <span className="text-primary-600 dark:text-primary-400 hover:underline ml-1">
+                          <span className="text-primary-600 dark:text-primary-400 hover:underline ml-1 font-medium">
                             Terms of Service
                           </span>
                         </Link>{" "}
                         &{" "}
                         <Link href="/privacy-policy">
-                          <span className="text-primary-600 dark:text-primary-400 hover:underline">
+                          <span className="text-primary-600 dark:text-primary-400 hover:underline font-medium">
                             Privacy Policy
                           </span>
                         </Link>
                       </label>
                     </div>
                     {errors.accept && (
-                      <span className="text-red-500 text-sm block">
+                      <span className="text-red-500 text-sm block mt-1 flex items-center">
+                        <Info size={14} className="mr-1 flex-shrink-0" />
                         {errors.accept.message}
                       </span>
                     )}

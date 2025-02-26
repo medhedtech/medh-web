@@ -23,7 +23,8 @@ const BlogCard = ({
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           className="object-cover object-center transform group-hover:scale-105 transition-transform duration-500"
-          priority={false}
+          loading="lazy"
+          quality={75}
         />
         
         {/* Category tag - could be dynamic in the future */}
@@ -35,39 +36,33 @@ const BlogCard = ({
       </div>
       
       {/* Content area */}
-      <div className="flex-1 flex flex-col p-5">
+      <div className="p-6 flex flex-col flex-grow">
         {/* Meta information */}
-        <div className="flex items-center gap-3 text-gray-500 dark:text-gray-400 text-xs mb-3">
-          <div className="flex items-center">
-            <Calendar className="h-3 w-3 mr-1" />
+        <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-3">
+          <div className="flex items-center gap-1">
+            <User size={14} />
+            <span>{author}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Calendar size={14} />
             <span>{date}</span>
           </div>
-          <div className="flex items-center">
-            <Clock className="h-3 w-3 mr-1" />
+          <div className="flex items-center gap-1">
+            <Clock size={14} />
             <span>{readTime}</span>
           </div>
         </div>
         
         {/* Title */}
-        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors line-clamp-2">
-          {title || "Untitled Blog Post"}
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 line-clamp-2 flex-grow">
+          {title}
         </h3>
         
-        {/* Author info */}
-        <div className="flex items-center mt-auto mb-4 pt-3 border-t border-gray-100 dark:border-gray-700">
-          <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-            <User className="h-4 w-4 mr-1.5 text-primary-500 dark:text-primary-400" />
-            <span>By {author}</span>
-          </div>
-        </div>
-        
-        {/* Button */}
-        <div className="mt-auto">
-          <button className="inline-flex items-center text-primary-600 dark:text-primary-400 font-medium hover:text-primary-700 dark:hover:text-primary-300 group-hover:translate-x-1 transition-transform">
-            {buttonText || "Read More"}
-            <ArrowRight className="ml-1.5 h-4 w-4 transform group-hover:translate-x-1 transition-transform" />
-          </button>
-        </div>
+        {/* Read More Button */}
+        <button className="inline-flex items-center text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium transition-colors">
+          {buttonText}
+          <ArrowRight size={16} className="ml-1 transition-transform group-hover:translate-x-1" />
+        </button>
       </div>
     </div>
   );
