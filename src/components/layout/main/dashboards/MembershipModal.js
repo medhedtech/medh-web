@@ -83,7 +83,7 @@ const MembershipModal = ({ isOpen, onClose }) => {
                       transform="rotate(-0.403168 7.87262 21.0921)"
                       fill="url(#paint0_linear_91_3102)"
                       stroke="url(#paint1_linear_91_3102)"
-                      stroke-width="0.085853"
+                      strokeWidth="0.085853"
                     />
                     <circle
                       cx="28.0914"
@@ -92,14 +92,14 @@ const MembershipModal = ({ isOpen, onClose }) => {
                       transform="rotate(-0.403168 28.0914 50.7752)"
                       fill="url(#paint2_linear_91_3102)"
                       stroke="url(#paint3_radial_91_3102)"
-                      stroke-width="0.085853"
+                      strokeWidth="0.085853"
                     />
                     <path
                       d="M40 28C40 34.6274 34.6274 40 28 40C21.3726 40 16 34.6274 16 28C16 21.3726 21.3726 16 28 16M34.6667 28C34.6667 31.6819 31.6819 34.6667 28 34.6667C24.3181 34.6667 21.3333 31.6819 21.3333 28C21.3333 24.3181 24.3181 21.3333 28 21.3333M31.6772 24.4688L36.9558 25.0232L39.8172 21.0172L36.3835 19.8727L35.239 16.439L31.233 19.3004L31.6772 24.4688ZM31.6772 24.4688L28 27.9999"
                       stroke="white"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                   </g>
                   <defs>
@@ -203,7 +203,7 @@ const MembershipModal = ({ isOpen, onClose }) => {
                       transform="rotate(-0.403168 7.87262 41.0921)"
                       fill="url(#paint0_linear_91_3146)"
                       stroke="url(#paint1_linear_91_3146)"
-                      stroke-width="0.085853"
+                      strokeWidth="0.085853"
                     />
                     <circle
                       opacity="0.4"
@@ -213,14 +213,14 @@ const MembershipModal = ({ isOpen, onClose }) => {
                       transform="rotate(-0.403168 39.0904 20.7752)"
                       fill="url(#paint2_linear_91_3146)"
                       stroke="url(#paint3_radial_91_3146)"
-                      stroke-width="0.085853"
+                      strokeWidth="0.085853"
                     />
                     <path
                       d="M16.1498 24.0002H39.8497M21.398 16.0675L27.9998 24.0003L34.6127 16.0731M39.5811 23.3723L34.9831 16.4752C34.8673 16.3015 34.8094 16.2147 34.7329 16.1519C34.6652 16.0962 34.5872 16.0545 34.5033 16.029C34.4086 16.0002 34.3043 16.0002 34.0955 16.0002H21.9039C21.6952 16.0002 21.5909 16.0002 21.4961 16.029C21.4123 16.0545 21.3343 16.0962 21.2666 16.1519C21.1901 16.2147 21.1322 16.3015 21.0164 16.4752L16.4184 23.3723C16.2676 23.5984 16.1923 23.7114 16.1653 23.833C16.1414 23.9404 16.1445 24.0521 16.1743 24.158C16.208 24.2779 16.2895 24.3866 16.4526 24.604L27.1464 38.8624C27.4359 39.2484 27.5806 39.4414 27.7581 39.5104C27.9135 39.5709 28.086 39.5709 28.2414 39.5104C28.4188 39.4414 28.5636 39.2484 28.8531 38.8624L39.5469 24.604C39.71 24.3866 39.7915 24.2779 39.8252 24.158C39.855 24.0521 39.8581 23.9404 39.8342 23.833C39.8072 23.7114 39.7318 23.5984 39.5811 23.3723Z"
                       stroke="#1B223C"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                   </g>
                   <defs>
