@@ -1,13 +1,20 @@
-import { ArrowLeftIcon, SlidersVertical } from "lucide-react";
+"use client";
+
+import { ArrowLeft, SlidersHorizontal } from "lucide-react";
 import React from "react";
-import CategoryFilter from "../courses/CategoryFilter";
+import dynamic from "next/dynamic";
+
+// Dynamically import CategoryFilter with SSR disabled
+const CategoryFilter = dynamic(() => import("../courses/CategoryFilter"), {
+  ssr: false,
+});
 
 const GradeSliderVC = ({toggleGradeSlider, gradeSliderOpen, searchTerm, setSearchTerm, categories, selectedGrade, setSelectedGrade}) => {
   return (
     <div className="md:hidden w-full">
       <div className="flex md:hidden justify-end w-full gap-6 items-center">
         Select Grade:
-        <SlidersVertical
+        <SlidersHorizontal
           className="text-green-500 font-bold "
           onClick={toggleGradeSlider}
         />
@@ -20,7 +27,7 @@ const GradeSliderVC = ({toggleGradeSlider, gradeSliderOpen, searchTerm, setSearc
       >
         <div className="flex items-center p-4 gap-4">
           <button onClick={toggleGradeSlider} className="text-xl font-bold">
-            <ArrowLeftIcon />
+            <ArrowLeft />
           </button>
 
           <h1 className="w-full text-center text-xl leading-none font-semibold -ps-2 ">

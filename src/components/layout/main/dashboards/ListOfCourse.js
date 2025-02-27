@@ -1,20 +1,20 @@
 "use client";
 
-import { apiUrls } from "@/apis";
 import React, { useEffect, useState, useMemo } from "react";
-import MyTable from "@/components/shared/common-table/page";
-import useGetQuery from "@/hooks/getQuery.hook";
-import Preloader from "@/components/shared/others/Preloader";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 import { FaPlus, FaTrash, FaSearch, FaFilter, FaEye, FaCheck } from "react-icons/fa";
 import { MdEdit } from "react-icons/md";
-import useDeleteQuery from "@/hooks/deleteQuery.hook";
-import usePostQuery from "@/hooks/postQuery.hook";
-import { toast } from "react-toastify";
-import Tooltip from "@/components/shared/others/Tooltip";
 import Image from "next/image";
+import Tooltip from "@/components/shared/others/Tooltip";
+import Preloader from "@/components/shared/others/Preloader";
+import useGetQuery from "@/hooks/getQuery.hook";
+import usePostQuery from "@/hooks/postQuery.hook";
+import useDeleteQuery from "@/hooks/deleteQuery.hook";
+import { apiUrls } from "@/apis";
+import MyTable from "@/components/shared/common-table/page";
 
-// Add this new component before the ListOfCourse component
+// StatusToggleButton Component
 const StatusToggleButton = ({ status, onToggle, courseId }) => {
   const [isToggling, setIsToggling] = useState(false);
   const isPublished = status === "Published";
@@ -95,7 +95,571 @@ const StatusToggleButton = ({ status, onToggle, courseId }) => {
   );
 };
 
-export default function ListOfCourse() {
+// AssignInstructorModal Component
+const AssignInstructorModal = ({ onClose, setAssignInstructorModal, courseId, courses, instructors, setInstructors, setInstructorNames, setUpdateStatus }) => {
+  const [selectedInstructorId, setSelectedInstructorId] = useState("");
+  const [loadingInstructors, setLoadingInstructors] = useState(false);
+  const [modalInstructors, setModalInstructors] = useState([]);
+  const [isAssigning, setIsAssigning] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const { getQuery } = useGetQuery();
+  const { postQuery } = usePostQuery();
+
+  const course = courses.find(c => c._id === courseId);
+
+  // Enhanced instructor loading with better error handling
+  const loadInstructors = async () => {
+    setLoadingInstructors(true);
+    const loadingToastId = toast.loading("Loading instructors...");
+
+    try {
+      // First try to get instructors using the primary endpoint
+      await getQuery({
+        url: apiUrls?.instructors?.getAllInstructors || apiUrls?.getAllInstructors,
+        onSuccess: (response) => {
+          let instructorsData = [];
+          
+          // Handle different response formats
+          if (Array.isArray(response)) {
+            instructorsData = response;
+          } else if (response?.data && Array.isArray(response.data)) {
+            instructorsData = response.data;
+          } else if (response?.instructors && Array.isArray(response.instructors)) {
+            instructorsData = response.instructors;
+          } else if (response?.results && Array.isArray(response.results)) {
+            instructorsData = response.results;
+          }
+
+          // Validate and normalize instructor data
+          const validInstructors = instructorsData
+            .filter(instructor => instructor && (instructor._id || instructor.id))
+            .map(instructor => ({
+              _id: instructor._id || instructor.id,
+              full_name: instructor.full_name || 
+                        `${instructor.firstName || instructor.first_name || ''} ${instructor.lastName || instructor.last_name || ''}`.trim(),
+              email: instructor.email,
+              firstName: instructor.firstName || instructor.first_name,
+              lastName: instructor.lastName || instructor.last_name,
+              expertise: instructor.expertise,
+              instructor_image: instructor.instructor_image,
+              ...instructor
+            }));
+
+          if (validInstructors.length > 0) {
+            console.log(`Successfully loaded ${validInstructors.length} instructors`);
+            setModalInstructors(validInstructors);
+            
+            // Update the global instructor states
+            const instructorsMap = {};
+            const namesMap = {};
+            validInstructors.forEach(instructor => {
+              instructorsMap[instructor._id] = instructor;
+              namesMap[instructor._id] = instructor.full_name;
+            });
+            
+            setInstructors(instructorsMap);
+            setInstructorNames(namesMap);
+            
+            toast.update(loadingToastId, {
+              render: `${validInstructors.length} instructors loaded successfully`,
+              type: "success",
+              isLoading: false,
+              autoClose: 2000,
+            });
+          } else {
+            throw new Error("No valid instructors found in the response");
+          }
+        },
+        onFail: (error) => {
+          console.error("Failed to load instructors:", error);
+          throw error;
+        }
+      });
+    } catch (error) {
+      console.error("Error in loadInstructors:", error);
+      
+      // Try alternative endpoint
+      try {
+        await getQuery({
+          url: apiUrls?.Instructor?.getAllInstructors || `${apiUrls?.baseUrl}/api/instructors`,
+          onSuccess: (response) => {
+            const instructorsData = Array.isArray(response) ? response : response?.data || [];
+            
+            if (instructorsData.length > 0) {
+              const validInstructors = instructorsData
+                .filter(instructor => instructor && (instructor._id || instructor.id))
+                .map(instructor => ({
+                  _id: instructor._id || instructor.id,
+                  full_name: instructor.full_name || 
+                            `${instructor.firstName || instructor.first_name || ''} ${instructor.lastName || instructor.last_name || ''}`.trim(),
+                  email: instructor.email,
+                  firstName: instructor.firstName || instructor.first_name,
+                  lastName: instructor.lastName || instructor.last_name,
+                  expertise: instructor.expertise,
+                  instructor_image: instructor.instructor_image,
+                  ...instructor
+                }));
+
+              setModalInstructors(validInstructors);
+              
+              // Update global states
+              const instructorsMap = {};
+              const namesMap = {};
+              validInstructors.forEach(instructor => {
+                instructorsMap[instructor._id] = instructor;
+                namesMap[instructor._id] = instructor.full_name;
+              });
+              
+              setInstructors(instructorsMap);
+              setInstructorNames(namesMap);
+              
+              toast.update(loadingToastId, {
+                render: `${validInstructors.length} instructors loaded successfully`,
+                type: "success",
+                isLoading: false,
+                autoClose: 2000,
+              });
+            } else {
+              throw new Error("No instructors found");
+            }
+          },
+          onFail: (error) => {
+            throw error;
+          }
+        });
+      } catch (fallbackError) {
+        console.error("Fallback instructor loading failed:", fallbackError);
+        toast.update(loadingToastId, {
+          render: "Failed to load instructors. Please try again.",
+          type: "error",
+          isLoading: false,
+          autoClose: 3000,
+        });
+      }
+    } finally {
+      setLoadingInstructors(false);
+    }
+  };
+
+  // Enhanced assignment handling
+  const handleAssign = async () => {
+    if (!selectedInstructorId) {
+      toast.error("Please select an instructor");
+      return;
+    }
+
+    setIsAssigning(true);
+    const loadingToastId = toast.loading("Assigning instructor...");
+    
+    try {
+      const instructor = modalInstructors.find(i => i._id === selectedInstructorId);
+      if (!instructor) {
+        throw new Error("Selected instructor not found");
+      }
+
+      await postQuery({
+        url: `${apiUrls?.assignedInstructors?.createAssignedInstructor}`,
+        postData: {
+          instructor_id: selectedInstructorId,
+          course_id: courseId,
+          full_name: instructor.full_name || `${instructor.firstName} ${instructor.lastName}`,
+          email: instructor.email,
+          course_title: course?.course_title
+        },
+        onSuccess: () => {
+          toast.update(loadingToastId, {
+            render: "Instructor assigned successfully",
+            type: "success",
+            isLoading: false,
+            autoClose: 2000,
+          });
+          setAssignInstructorModal({ open: false, assignmentId: null });
+          setUpdateStatus(Date.now());
+        },
+        onFail: (error) => {
+          toast.update(loadingToastId, {
+            render: `Failed to assign instructor: ${error?.message || "Unknown error"}`,
+            type: "error",
+            isLoading: false,
+            autoClose: 3000,
+          });
+        }
+      });
+    } catch (error) {
+      toast.update(loadingToastId, {
+        render: "An error occurred while assigning instructor",
+        type: "error",
+        isLoading: false,
+        autoClose: 3000,
+      });
+      console.error("Error in handleAssign:", error);
+    } finally {
+      setIsAssigning(false);
+    }
+  };
+
+  // Load instructors when modal opens
+  useEffect(() => {
+    loadInstructors();
+  }, []);
+
+  // Filter instructors based on search term
+  const filteredInstructors = modalInstructors.filter(instructor => {
+    const fullName = instructor.full_name || `${instructor.firstName} ${instructor.lastName}`;
+    return fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           instructor.email?.toLowerCase().includes(searchTerm.toLowerCase());
+  });
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setAssignInstructorModal({ open: false, assignmentId: null })}>
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md shadow-xl" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+            Assign Instructor
+          </h3>
+          <button
+            onClick={() => setAssignInstructorModal({ open: false, assignmentId: null })}
+            className="text-gray-400 hover:text-gray-500 transition-colors"
+          >
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="mb-4">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Select an instructor for course: <span className="font-medium text-green-600">{course?.course_title}</span>
+          </p>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Search Instructors {filteredInstructors.length > 0 ? `(${filteredInstructors.length} available)` : ''}
+            </label>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search by name or email..."
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2.5 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent shadow-sm"
+            />
+          </div>
+
+          <div className="max-h-60 overflow-y-auto">
+            {loadingInstructors ? (
+              <div className="flex justify-center items-center h-20">
+                <svg className="animate-spin h-5 w-5 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              </div>
+            ) : filteredInstructors.length > 0 ? (
+              <div className="space-y-2">
+                {filteredInstructors.map(instructor => (
+                  <div
+                    key={instructor._id}
+                    onClick={() => setSelectedInstructorId(instructor._id)}
+                    className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                      selectedInstructorId === instructor._id
+                        ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-500'
+                        : 'hover:bg-gray-50 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    <div className="flex flex-col">
+                      <span className="font-medium text-gray-900 dark:text-white">
+                        {instructor.full_name || `${instructor.firstName} ${instructor.lastName}`}
+                      </span>
+                      {instructor.email && (
+                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                          {instructor.email}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center text-gray-500 dark:text-gray-400 py-4">
+                {searchTerm ? 'No instructors found matching your search' : 'No instructors available'}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-3 mt-6">
+          <button
+            onClick={() => setAssignInstructorModal({ open: false, assignmentId: null })}
+            className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleAssign}
+            disabled={!selectedInstructorId || isAssigning || loadingInstructors}
+            className={`px-4 py-2 rounded-lg text-white transition-colors flex items-center ${
+              !selectedInstructorId || isAssigning || loadingInstructors
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-primary-600 hover:bg-primary-700'
+            }`}
+          >
+            {isAssigning && (
+              <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            )}
+            {isAssigning ? 'Assigning...' : 'Assign Instructor'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// SchedulePublishModal Component
+const SchedulePublishModal = ({ courseId, courseTitle, onClose }) => {
+  const [scheduledDate, setScheduledDate] = useState('');
+  const [scheduledTime, setScheduledTime] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [notifyUsers, setNotifyUsers] = useState(true);
+
+  // Set default time to current time + 1 hour
+  useEffect(() => {
+    const now = new Date();
+    now.setHours(now.getHours() + 1);
+    
+    // Format date as YYYY-MM-DD
+    const formattedDate = now.toISOString().split('T')[0];
+    setScheduledDate(formattedDate);
+    
+    // Format time as HH:MM
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    setScheduledTime(`${hours}:${minutes}`);
+  }, []);
+
+  const handleSchedule = async () => {
+    if (!scheduledDate || !scheduledTime) {
+      toast.error("Please select both date and time");
+      return;
+    }
+
+    // Combine date and time into ISO string
+    const scheduledDateTime = new Date(`${scheduledDate}T${scheduledTime}`);
+
+    // Validate that the scheduled time is in the future
+    if (scheduledDateTime <= new Date()) {
+      toast.error("Please select a future date and time");
+      return;
+    }
+
+    setIsLoading(true);
+    const loadingToastId = toast.loading("Scheduling course publish...");
+
+    try {
+      await postQuery({
+        url: apiUrls?.courses?.schedulePublish,
+        postData: {
+          courseId,
+          scheduledTime: scheduledDateTime.toISOString(),
+          notifyUsers
+        },
+        onSuccess: () => {
+          toast.update(loadingToastId, {
+            render: "Course scheduled for publishing",
+            type: "success",
+            isLoading: false,
+            autoClose: 3000,
+          });
+          setScheduledCourses(prev => ({
+            ...prev,
+            [courseId]: scheduledDateTime.toISOString()
+          }));
+          onClose();
+        },
+        onFail: (error) => {
+          toast.update(loadingToastId, {
+            render: `Failed to schedule: ${error?.message || "Unknown error"}`,
+            type: "error",
+            isLoading: false,
+            autoClose: 3000,
+          });
+        }
+      });
+    } catch (error) {
+      toast.update(loadingToastId, {
+        render: "An error occurred while scheduling",
+        type: "error",
+        isLoading: false,
+        autoClose: 3000,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onClose}>
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md shadow-xl" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+            Schedule Course Publish
+          </h3>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-500 transition-colors"
+          >
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="mb-4">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Schedule publishing for: <span className="font-medium text-gray-900 dark:text-white">{courseTitle}</span>
+          </p>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Date
+            </label>
+            <input
+              type="date"
+              value={scheduledDate}
+              onChange={(e) => setScheduledDate(e.target.value)}
+              min={new Date().toISOString().split('T')[0]}
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2.5 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent shadow-sm"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Time
+            </label>
+            <input
+              type="time"
+              value={scheduledTime}
+              onChange={(e) => setScheduledTime(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2.5 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent shadow-sm"
+            />
+          </div>
+
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="notifyUsers"
+              checked={notifyUsers}
+              onChange={(e) => setNotifyUsers(e.target.checked)}
+              className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+            />
+            <label htmlFor="notifyUsers" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+              Notify enrolled users when published
+            </label>
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-3 mt-6">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSchedule}
+            disabled={isLoading || !scheduledDate || !scheduledTime}
+            className={`px-4 py-2 rounded-lg text-white transition-colors flex items-center gap-2 ${
+              isLoading || !scheduledDate || !scheduledTime
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-primary-600 hover:bg-primary-700'
+            }`}
+          >
+            {isLoading ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Scheduling...
+              </>
+            ) : (
+              <>
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Schedule Publish
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ExportModal Component
+const ExportModal = () => {
+  const [exportFormat, setExportFormat] = useState('csv');
+  const [exportScope, setExportScope] = useState('filtered');
+  const [exportLoading, setExportLoading] = useState(false);
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md shadow-xl">
+        <h3 className="text-xl font-semibold mb-4">Export Data</h3>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-2">Export Format</label>
+            <select
+              value={exportFormat}
+              onChange={(e) => setExportFormat(e.target.value)}
+              className="w-full rounded-lg border p-2"
+            >
+              <option value="csv">CSV</option>
+              <option value="excel">Excel</option>
+              <option value="json">JSON</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Export Scope</label>
+            <select
+              value={exportScope}
+              onChange={(e) => setExportScope(e.target.value)}
+              className="w-full rounded-lg border p-2"
+            >
+              <option value="filtered">Current Filtered Data</option>
+              <option value="all">All Data</option>
+            </select>
+          </div>
+        </div>
+        <div className="flex justify-end gap-3 mt-6">
+          <button 
+            className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
+            onClick={() => setExportModal(false)}
+          >
+            Cancel
+          </button>
+          <button
+            className={`px-4 py-2 rounded-lg text-white ${
+              exportLoading ? 'bg-gray-400' : 'bg-green-600 hover:bg-green-700'
+            }`}
+            disabled={exportLoading}
+          >
+            {exportLoading ? 'Exporting...' : 'Export'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Main ListOfCourse Component
+const ListOfCourse = () => {
   const router = useRouter();
   const { deleteQuery } = useDeleteQuery();
   const { postQuery, loading: postLoading } = usePostQuery();
@@ -130,11 +694,12 @@ export default function ListOfCourse() {
     duration: { min: "", max: "" },
     hasDiscount: false,
     hasCertificate: false,
-    tags: []
+    tags: [],
+    course_grade: ""
   });
   const [analyticsData, setAnalyticsData] = useState({});
   const [instructors, setInstructors] = useState({}); // Store instructors in an object for quick lookup
-  const [assignInstructorModal, setAssignInstructorModal] = useState({ open: false, courseId: null });
+  const [assignInstructorModal, setAssignInstructorModal] = useState({ open: false, assignmentId: null });
   const [activeActionMenu, setActiveActionMenu] = useState(null);
   const [scheduleModal, setScheduleModal] = useState({ open: false, courseId: null, courseTitle: "" });
   const [exportModal, setExportModal] = useState(false);
@@ -142,6 +707,7 @@ export default function ListOfCourse() {
   const [exportScope, setExportScope] = useState('filtered');
   const [exportLoading, setExportLoading] = useState(false);
   const [coursesData, setCoursesData] = useState([]); // Initialize as an empty array
+  const [pageLoading, setPageLoading] = useState(false);
 
   // Add new status management functionality
   const statusTransitions = {
@@ -282,30 +848,36 @@ export default function ListOfCourse() {
   };
 
   // Modified analytics fetch function with improved error handling
-  const fetchCourseAnalytics = () => {
-    const loadingToastId = toast.loading("Loading analytics...");
-    
+  const fetchCourseAnalytics = async () => {
     try {
-      // Generate analytics data from courses
-      const data = generateAnalyticsData();
-      setAnalyticsData(data);
-      
-      toast.update(loadingToastId, {
-        render: "Analytics loaded successfully",
-        type: "success",
-        isLoading: false,
-        autoClose: 1000,
-      });
+      const analytics = {
+        totalCourses: courses.length,
+        published: courses.filter(course => course.status === 'Published').length,
+        draft: courses.filter(course => course.status === 'Draft').length,
+        active: courses.filter(course => course.status === 'Active').length,
+        archived: courses.filter(course => course.status === 'Archived').length,
+        totalEnrollments: courses.reduce((total, course) => total + (course.enrollments || 0), 0),
+        thisMonthEnrollments: courses.reduce((total, course) => {
+          const thisMonth = new Date().getMonth();
+          const thisYear = new Date().getFullYear();
+          const enrollmentsThisMonth = (course.enrollmentHistory || []).filter(enrollment => {
+            const enrollmentDate = new Date(enrollment.date);
+            return enrollmentDate.getMonth() === thisMonth && enrollmentDate.getFullYear() === thisYear;
+          }).length;
+          return total + enrollmentsThisMonth;
+        }, 0)
+      };
+      setCoursesData(analytics);
     } catch (error) {
-      console.error("Analytics generation error:", error);
-      toast.update(loadingToastId, {
-        render: "Error loading analytics",
-        type: "error",
-        isLoading: false,
-        autoClose: 3000,
-      });
+      console.error('Error fetching course analytics:', error);
+      toast.error('Failed to load course analytics');
     }
   };
+
+  // Call fetchCourseAnalytics when courses change
+  useEffect(() => {
+    fetchCourseAnalytics();
+  }, [courses]);
 
   // Initialize analytics data when component mounts
   useEffect(() => {
@@ -331,6 +903,14 @@ export default function ListOfCourse() {
               isLoading: false,
               autoClose: 2000,
             });
+            
+            // Immediately update the courses state with the new status
+            setCourses(prev => prev.map(course => 
+              course._id === id 
+                ? {...course, status: updatedStatus}
+                : course  
+            ));
+            
             // Refresh data and analytics
             setUpdateStatus(Date.now());
             fetchCourseAnalytics();
@@ -436,71 +1016,386 @@ export default function ListOfCourse() {
   };
 
   useEffect(() => {
-    const fetchCourses = async () => {
+    const fetchCourses = async (retryCount = 0) => {
+      const loadingToastId = toast.loading("Loading courses...");
+      setPageLoading(true);
+
+      try {
       await getQuery({
         url: apiUrls?.courses?.getAllCourses,
-        onSuccess: async (data) => {
-          console.log('Courses fetched:', data); // Check the status values
-          // Ensure data is an array before setting it
-          const coursesArray = Array.isArray(data) ? data : [];
-          setCourses(coursesArray);
-          
-          // Only fetch instructors if we have courses
-          if (coursesArray.length > 0) {
-            await fetchInstructors(coursesArray);
-          }
+          onSuccess: (response) => {
+            // Handle different response formats
+            let coursesData = [];
+            if (Array.isArray(response)) {
+              coursesData = response;
+            } else if (response?.data && Array.isArray(response.data)) {
+              coursesData = response.data;
+            } else if (response?.courses && Array.isArray(response.courses)) {
+              coursesData = response.courses;
+            }
+
+            // Validate and transform course data
+            const validatedCourses = coursesData.map(course => ({
+              ...course,
+              course_title: course.course_title || 'Untitled Course',
+              course_duration: course.course_duration || 'Not specified',
+              status: course.status || 'draft',
+              created_at: course.created_at || course.createdAt || new Date().toISOString(),
+              _id: course._id || course.id // Handle different ID formats
+            }));
+
+            // Update both states to ensure compatibility
+            setCoursesData(validatedCourses);
+            setCourses(validatedCourses); // Add this line to update the courses state used by the table
           
           // Extract unique categories for filtering
-          const uniqueCategories = [...new Set(coursesArray.map(course => course.course_category))].filter(Boolean);
+            const uniqueCategories = [...new Set(validatedCourses.map(course => course.course_category))].filter(Boolean);
           setCategories(uniqueCategories);
-        },
-        onFail: (err) => {
-          console.error("Failed to fetch courses:", err);
-          toast.error("Failed to load courses. Please try again.");
-          // Initialize with empty array on failure
-          setCourses([]);
-        },
-      });
-    };
+            
+            // Update analytics after loading courses
+            const analytics = generateAnalyticsData(validatedCourses);
+            setAnalyticsData(analytics);
 
-    const fetchInstructors = async (courses) => {
-      // Guard clause to prevent mapping over undefined
-      if (!Array.isArray(courses)) {
-        console.error("Courses data is not an array:", courses);
-        return;
-      }
+            toast.update(loadingToastId, {
+              render: `${validatedCourses.length} courses loaded successfully`,
+              type: "success",
+              isLoading: false,
+              autoClose: 2000,
+            });
 
-      const instructorsMap = {};
-      try {
-        await Promise.all(
-          courses.map(async (course) => {
-            if (course?.assigned_instructor) { // Add null check with optional chaining
-              try {
-                const response = await getQuery({
-                  url: `${apiUrls?.assignedInstructors?.getAssignedInstructorById}/${course.assigned_instructor}`,
-                  onSuccess: (data) => {
-                    instructorsMap[course.assigned_instructor] = data?.assignment?.full_name || "Instructor not available";
-                  },
-                  onFail: () => {
-                    instructorsMap[course.assigned_instructor] = "Not available";
-                  },
-                });
-              } catch (error) {
-                console.error(`Error fetching instructor for course ${course._id}:`, error);
-                instructorsMap[course.assigned_instructor] = "Error loading instructor";
-              }
+            // Fetch instructors for the loaded courses
+            fetchInstructors(validatedCourses);
+          },
+          onFail: async (error) => {
+            console.error("Error fetching courses:", error);
+
+            // Implement retry logic
+            if (retryCount < 2) {
+              toast.update(loadingToastId, {
+                render: `Retrying... (Attempt ${retryCount + 1}/2)`,
+                type: "info",
+                isLoading: true,
+              });
+
+              // Exponential backoff
+              await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));
+              return fetchCourses(retryCount + 1);
             }
-          })
-        );
-        setInstructorNames(instructorsMap);
+
+            // Try fallback endpoint if all retries fail
+            try {
+              const fallbackUrl = `${apiUrls.baseUrl || ''}/api/courses/all`;
+              await getQuery({
+                url: fallbackUrl,
+                onSuccess: (fallbackData) => {
+                  const courses = Array.isArray(fallbackData) ? fallbackData : fallbackData?.data || [];
+                  setCoursesData(courses);
+                  setCourses(courses); // Update both states
+                  
+                  toast.update(loadingToastId, {
+                    render: `${courses.length} courses loaded using fallback`,
+                    type: "success",
+                    isLoading: false,
+                    autoClose: 3000,
+                  });
+                },
+                onFail: (fallbackError) => {
+                  throw fallbackError;
+                }
+              });
+            } catch (fallbackError) {
+              handleApiError(error, loadingToastId, "Failed to load courses. Please try again later.");
+              // Initialize with empty arrays on complete failure
+              setCoursesData([]);
+              setCourses([]);
+            }
+          }
+        });
       } catch (error) {
-        console.error("Error in fetchInstructors:", error);
-        setInstructorNames({});
+        console.error("Unexpected error in fetchCourses:", error);
+        handleApiError(error, loadingToastId, "An unexpected error occurred while loading courses.");
+        // Initialize with empty arrays on error
+        setCoursesData([]);
+        setCourses([]);
+      } finally {
+        setPageLoading(false);
       }
     };
 
     fetchCourses();
-  }, [updateStatus]);
+  }, []);
+
+    const fetchInstructors = async (retryCount = 0) => {
+      try {
+        console.log("Fetching instructors with improved method...");
+        await loadInstructorsWithFallbacks();
+      } catch (error) {
+        console.error("Instructor fetch failed completely:", error);
+        if (retryCount < 2) {
+          console.log(`Retrying instructor fetch (attempt ${retryCount + 1}/3)...`);
+          setTimeout(() => fetchInstructors(retryCount + 1), 2000);
+        } else {
+          toast.error("Failed to load instructors after multiple attempts");
+        }
+      }
+    };
+
+  // Special debugging function to log API URLs
+  const logApiEndpoints = () => {
+    console.log("Available API endpoints:", {
+      instructor: {
+        lowercase: apiUrls.instructors?.getAllInstructors,
+        uppercase: apiUrls.Instructor?.getAllInstructors,
+        directPath: apiUrls?.["instructors/getAllInstructors"] || apiUrls?.["Instructor/getAllInstructors"] 
+      },
+      alternateStructure: {
+        instructors: apiUrls?.instructors,
+        Instructor: apiUrls?.Instructor
+      },
+      completeApiUrls: apiUrls
+    });
+  };
+
+  // Enhanced instructor loading that works across all components
+  const loadInstructorsWithFallbacks = async () => {
+    const loadingToastId = toast.loading("Loading instructors...");
+    
+    // Log API endpoints for debugging
+    logApiEndpoints();
+    
+    try {
+      // List all possible instructor API paths we might try
+      const possibleEndpoints = [
+        apiUrls.instructors?.getAllInstructors,
+        apiUrls.Instructor?.getAllInstructors,
+        `${apiUrls.baseUrl}/instructors/getAllInstructors`,
+        `${apiUrls.baseUrl}/Instructor/getAllInstructors`,
+        apiUrls?.["instructors/getAllInstructors"],
+        apiUrls?.["Instructor/getAllInstructors"]
+      ].filter(Boolean); // Remove undefined/null values
+      
+      console.log("Trying instructor endpoints:", possibleEndpoints);
+      
+      if (possibleEndpoints.length === 0) {
+        console.error("No valid instructor API endpoints found!");
+        throw new Error("API configuration issue: No instructor endpoints available");
+      }
+      
+      // Try each endpoint until one works
+      let success = false;
+      let instructorsData = [];
+      
+      for (const endpoint of possibleEndpoints) {
+        if (success) break;
+        
+        try {
+          console.log(`Attempting to fetch instructors from: ${endpoint}`);
+          
+          const response = await new Promise((resolve, reject) => {
+            getQuery({
+              url: endpoint,
+              onSuccess: (data) => resolve(data),
+              onFail: (err) => reject(err),
+            });
+          });
+          
+          console.log("Instructor API response:", response);
+          
+          // Handle various response formats
+          if (Array.isArray(response)) {
+            instructorsData = response;
+            success = true;
+          } else if (response?.data && Array.isArray(response.data)) {
+            instructorsData = response.data;
+            success = true;
+          } else if (response?.instructors && Array.isArray(response.instructors)) {
+            instructorsData = response.instructors;
+            success = true;
+          } else if (response?.results && Array.isArray(response.results)) {
+            instructorsData = response.results;
+            success = true;
+          }
+          
+          if (success) {
+            console.log(`Successfully loaded ${instructorsData.length} instructors from ${endpoint}`);
+            
+            // Update both instructors and instructorNames states
+            const instructorsMap = {};
+            const namesMap = {};
+            instructorsData.forEach(instructor => {
+              instructorsMap[instructor._id] = instructor;
+              namesMap[instructor._id] = instructor.full_name || `${instructor.firstName} ${instructor.lastName}`;
+            });
+            
+            setInstructors(instructorsMap);
+            setInstructorNames(namesMap);
+            
+            toast.update(loadingToastId, {
+              render: `${instructorsData.length} instructors loaded successfully`,
+              type: "success",
+              isLoading: false,
+              autoClose: 2000,
+            });
+          }
+        } catch (err) {
+          console.warn(`Endpoint ${endpoint} failed:`, err);
+          // Continue to next endpoint
+        }
+      }
+      
+      if (!success) {
+        // All endpoints failed
+        throw new Error("All instructor API endpoints failed");
+      }
+    } catch (error) {
+      console.error("Failed to load instructors:", error);
+      toast.update(loadingToastId, {
+        render: "Failed to load instructors. Please try again.",
+        type: "error",
+        isLoading: false,
+        autoClose: 3000,
+      });
+      
+      // Try alternative approach - direct fetch if available
+      return tryDirectInstructorFetch(loadingToastId);
+    }
+  };
+
+  // Direct fetch fallback as a last resort
+  const tryDirectInstructorFetch = async (toastId) => {
+    try {
+      console.log("Attempting direct instructor fetch as fallback");
+      
+      // Create a fetch URL using common patterns
+      const baseUrl = apiUrls.baseUrl || window.location.origin;
+      const possibleUrls = [
+        `${baseUrl}/api/instructors`,
+        `${baseUrl}/api/Instructor`,
+        `${baseUrl}/instructors`,
+        `${baseUrl}/Instructor`
+      ];
+      
+      for (const url of possibleUrls) {
+        try {
+          const response = await fetch(url);
+          if (!response.ok) continue;
+          
+          const data = await response.json();
+          console.log("Direct fetch response:", data);
+          
+          let instructorsData = [];
+          if (Array.isArray(data)) {
+            instructorsData = data;
+          } else if (data?.data && Array.isArray(data.data)) {
+            instructorsData = data.data;
+          } else if (data?.instructors && Array.isArray(data.instructors)) {
+            instructorsData = data.instructors;
+          } else if (data?.results && Array.isArray(data.results)) {
+            instructorsData = data.results;
+          }
+          
+          if (instructorsData.length > 0) {
+            // Update both instructors and instructorNames states
+            const instructorsMap = {};
+            const namesMap = {};
+            instructorsData.forEach(instructor => {
+              instructorsMap[instructor._id] = instructor;
+              namesMap[instructor._id] = instructor.full_name || `${instructor.firstName} ${instructor.lastName}`;
+            });
+            
+            setInstructors(instructorsMap);
+            setInstructorNames(namesMap);
+            
+            toast.update(toastId, {
+              render: `${instructorsData.length} instructors loaded with fallback method`,
+              type: "success",
+              isLoading: false,
+              autoClose: 2000,
+            });
+            
+            return instructorsData;
+          }
+        } catch (err) {
+          console.warn(`Direct fetch to ${url} failed:`, err);
+        }
+      }
+      
+      // All attempts failed
+      console.error("All instructor loading methods failed");
+      toast.update(toastId, {
+        render: "Could not load instructors. API might be unavailable.",
+        type: "error",
+        isLoading: false,
+        autoClose: 3000,
+      });
+      return [];
+    } catch (finalError) {
+      console.error("Fatal error in instructor loading:", finalError);
+      return [];
+    }
+  };
+
+  // Function to assign instructor to a course
+  const assignInstructor = async (courseId, instructorId) => {
+    if (!courseId || !instructorId) {
+      toast.error("Missing required data: course ID or instructor ID");
+      return;
+    }
+    
+    const loadingToastId = toast.loading("Assigning instructor...");
+    
+    try {
+      // Get the instructor details for proper payload construction
+      const instructor = instructors[instructorId];
+      if (!instructor) {
+        console.error("Instructor not found:", { instructorId, availableInstructors: Object.keys(instructors).length });
+        toast.update(loadingToastId, {
+          render: "Selected instructor data not found",
+          type: "error",
+          isLoading: false,
+          autoClose: 3000,
+        });
+        return;
+      }
+      
+      await postQuery({
+        url: apiUrls?.assignedInstructors?.createAssignedInstructor,
+        postData: {
+          full_name: instructor.full_name || `${instructor.firstName} ${instructor.lastName}`,
+          email: instructor.email,
+          course_title: courses.find(c => c._id === courseId)?.course_title,
+          user_id: instructorId,
+          course_id: courseId
+        },
+        onSuccess: () => {
+          toast.update(loadingToastId, {
+            render: "Instructor assigned successfully",
+            type: "success",
+            isLoading: false,
+            autoClose: 3000,
+          });
+          
+          // Update the courses list with new instructor
+          setCourses(prev => prev.map(course => 
+            course._id === courseId 
+              ? {...course, instructorId, instructor_name: instructor.full_name || `${instructor.firstName} ${instructor.lastName}`}
+              : course
+          ));
+          
+          // Close the modal
+          setAssignInstructorModal({ open: false, assignmentId: null });
+          
+          // Refresh data
+          setUpdateStatus(Date.now());
+        },
+        onFail: (error) => {
+          handleApiError(error, loadingToastId, 'Failed to assign instructor');
+        }
+      });
+    } catch (error) {
+      handleApiError(error, loadingToastId, 'Failed to assign instructor');
+    }
+  };
 
   const handleDelete = (id) => {
     // Show confirmation dialog
@@ -622,12 +1517,14 @@ export default function ListOfCourse() {
   // Filter and sort data
   const filteredData = Array.isArray(courses) ? courses
     .filter(course => {
-      if (!course) return false;  // Skip null/undefined courses
+      if (!course) return false;
       
       // Basic search filter
       const matchesSearch = (course.course_title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
                            (course.course_category || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           (course.course_description || '').toLowerCase().includes(searchQuery.toLowerCase());
+                           (course.course_description || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           (course.course_grade || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           (course.course_duration || '').toLowerCase().includes(searchQuery.toLowerCase());
 
       // Category filter
       const matchesCategory = !filterCategory || course.course_category === filterCategory;
@@ -638,36 +1535,16 @@ export default function ListOfCourse() {
       const matchesLevel = !filters.level || course.level === filters.level;
       const matchesMode = !filters.mode || course.mode === filters.mode;
       
+      // Grade filter
+      const matchesGrade = !filters.course_grade || course.course_grade === filters.course_grade;
+      
+      // Duration filter
+      const matchesDuration = (!filters.duration.min || extractDurationWeeks(course.course_duration) >= parseInt(filters.duration.min)) &&
+                             (!filters.duration.max || extractDurationWeeks(course.course_duration) <= parseInt(filters.duration.max));
+      
       // Price range filter
       const matchesPriceRange = (!filters.priceRange.min || (course.price >= parseFloat(filters.priceRange.min))) &&
                                (!filters.priceRange.max || (course.price <= parseFloat(filters.priceRange.max)));
-
-      // Enrollment range filter
-      const enrollmentCount = course.enrollments?.length || 0;
-      const matchesEnrollment = (!filters.enrollment.min || enrollmentCount >= parseInt(filters.enrollment.min)) &&
-                               (!filters.enrollment.max || enrollmentCount <= parseInt(filters.enrollment.max));
-
-      // Rating range filter
-      const matchesRating = (!filters.rating.min || course.rating >= parseFloat(filters.rating.min)) &&
-                           (!filters.rating.max || course.rating <= parseFloat(filters.rating.max));
-
-      // Date range filter
-      const courseDate = new Date(course.createdAt);
-      const matchesDateRange = (!filters.dateRange.start || courseDate >= new Date(filters.dateRange.start)) &&
-                             (!filters.dateRange.end || courseDate <= new Date(filters.dateRange.end));
-
-      // Instructor filter
-      const matchesInstructor = !filters.instructor || course.instructor_id === filters.instructor;
-
-      // Tags filter
-      const matchesTags = filters.tags.length === 0 || 
-                         filters.tags.every(tag => course.tags?.includes(tag));
-
-      // Certificate filter
-      const matchesCertificate = !filters.hasCertificate || course.hasCertificate;
-
-      // Discount filter
-      const matchesDiscount = !filters.hasDiscount || (course.discountPrice && course.discountPrice < course.price);
 
       return matchesSearch && 
              matchesCategory && 
@@ -676,16 +1553,28 @@ export default function ListOfCourse() {
              matchesLevel && 
              matchesMode && 
              matchesPriceRange && 
-             matchesEnrollment && 
-             matchesRating && 
-             matchesDateRange && 
-             matchesInstructor && 
-             matchesTags && 
-             matchesCertificate && 
-             matchesDiscount;
+             matchesGrade &&
+             matchesDuration;
     })
     .sort((a, b) => {
       if (!sortField) return 0;
+      
+      // Add sorting for new fields
+      if (sortField === 'course_grade') {
+        const gradeA = a.course_grade || '';
+        const gradeB = b.course_grade || '';
+        return sortDirection === "asc" 
+          ? gradeA.localeCompare(gradeB)
+          : gradeB.localeCompare(gradeA);
+      }
+      
+      if (sortField === 'course_duration') {
+        const durationA = extractDurationWeeks(a.course_duration) || 0;
+        const durationB = extractDurationWeeks(b.course_duration) || 0;
+        return sortDirection === "asc" 
+          ? durationA - durationB
+          : durationB - durationA;
+      }
       
       // Special case for instructor name sorting
       if (sortField === 'instructor') {
@@ -740,7 +1629,9 @@ export default function ListOfCourse() {
       ...course,
       no: index + 1,
       instructor: instructorNames[course.instructor_id] || "-",
-      status: course.status || "Draft"
+      status: course.status || "Draft",
+      course_grade: course.course_grade || "Not Set",
+      course_duration: course.course_duration || "Not Set"
     })) : [];
 
   // Add a function to handle row clicks for selection
@@ -776,7 +1667,7 @@ export default function ListOfCourse() {
         handleMultipleDelete();
         break;
       case "assign_instructor":
-        setAssignInstructorModal({ open: true, courseId: selectedCourses });
+        setAssignInstructorModal({ open: true, assignmentId: selectedCourses });
         break;
       case "schedule_publish":
         // For batch scheduling, we'll show modal for first course as reference
@@ -890,6 +1781,7 @@ export default function ListOfCourse() {
     if (filters.hasDiscount) count++;
     if (filters.hasCertificate) count++;
     if (filters.tags.length > 0) count++;
+    if (filters.course_grade) count++;
     
     return count;
   };
@@ -916,7 +1808,8 @@ export default function ListOfCourse() {
       duration: { min: "", max: "" },
       hasDiscount: false,
       hasCertificate: false,
-      tags: []
+      tags: [],
+      course_grade: ""
     });
     setFilterCategory("");
     setSearchQuery("");
@@ -978,7 +1871,16 @@ export default function ListOfCourse() {
       render: (row) => (
         <Tooltip content={`${row.course_title} - ${row.course_category || "Uncategorized"}`} position="bottom">
           <div className="flex flex-col w-[220px]">
-            <div className="font-medium text-gray-900 dark:text-white truncate">{row.course_title}</div>
+            <div className="flex items-center gap-2">
+              <div className="font-medium text-gray-900 dark:text-white truncate">
+                {row.course_title}
+              </div>
+              {row.important && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300">
+                  Important
+                </span>
+              )}
+            </div>
             <div className="text-xs text-gray-500 truncate">{row.course_category || "Uncategorized"}</div>
           </div>
         </Tooltip>
@@ -1050,19 +1952,30 @@ export default function ListOfCourse() {
       ),
       accessor: 'assigned_instructor',
       render: (row) => (
-        <div className="flex items-center">
-          <span className="text-gray-800 dark:text-gray-200">{row.instructor || "-"}</span>
+        <div className="flex items-center gap-2">
+          <div className="flex flex-col">
+            <span className="text-gray-800 dark:text-gray-200 font-medium">
+              {row.instructor || "Unassigned"}
+            </span>
+            {row.instructor_email && (
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                {row.instructor_email}
+              </span>
+            )}
+          </div>
+          <Tooltip content="Assign Instructor">
           <button 
-            className="ml-2 text-green-600 hover:text-green-700 rounded-full p-1 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
+              className="ml-2 p-1.5 rounded-full text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
             onClick={(e) => {
               e.stopPropagation();
-              setAssignInstructorModal({ open: true, courseId: row._id });
+                setAssignInstructorModal({ open: true, assignmentId: row._id });
             }}
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
             </svg>
           </button>
+          </Tooltip>
         </div>
       )
     },
@@ -1107,19 +2020,72 @@ export default function ListOfCourse() {
       )
     },
     {
+      Header: (
+        <div 
+          className="cursor-pointer flex items-center" 
+          onClick={() => handleSort('course_grade')}
+        >
+          <span>Grade Level</span>
+          {sortField === 'course_grade' && (
+            <span className="ml-1">
+              {sortDirection === 'asc' ? '↑' : '↓'}
+            </span>
+          )}
+        </div>
+      ),
+      accessor: 'course_grade',
+      render: (row) => (
+        <div className="flex items-center">
+          <span className={`px-2.5 py-1 rounded-full text-sm font-medium ${
+            row.course_grade ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+          }`}>
+            {row.course_grade || 'Not Set'}
+          </span>
+        </div>
+      )
+    },
+    {
+      Header: (
+        <div 
+          className="cursor-pointer flex items-center" 
+          onClick={() => handleSort('course_duration')}
+        >
+          <span>Duration</span>
+          {sortField === 'course_duration' && (
+            <span className="ml-1">
+              {sortDirection === 'asc' ? '↑' : '↓'}
+            </span>
+          )}
+        </div>
+      ),
+      accessor: 'course_duration',
+      render: (row) => (
+        <div className="flex items-center">
+          <span className="px-2.5 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300">
+            {row.course_duration || 'Not Set'}
+          </span>
+        </div>
+      )
+    },
+    {
       Header: 'Actions',
       accessor: 'actions',
       render: (row) => (
-        <div className="flex space-x-2">
-          <Tooltip content="View Course">
+        <div className="flex items-center justify-end gap-2">
+          {/* Primary Actions Group */}
+          <div className="flex items-center bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg shadow-sm">
+            <Tooltip content="View Course Details">
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 viewCourse(row._id);
               }}
-              className="text-blue-600 hover:text-blue-800 p-1 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-colors"
+                className="p-2 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 hover:text-blue-700 rounded-l-lg border-r border-gray-100 dark:border-gray-700 transition-colors"
             >
-              <FaEye size={16} />
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
             </button>
           </Tooltip>
           <Tooltip content="Edit Course">
@@ -1128,1003 +2094,53 @@ export default function ListOfCourse() {
                 e.stopPropagation();
                 editCourse(row._id);
               }}
-              className="text-green-600 hover:text-green-800 p-1 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-full transition-colors"
+                className="p-2 hover:bg-green-50 dark:hover:bg-green-900/20 text-green-600 hover:text-green-700 border-r border-gray-100 dark:border-gray-700 transition-colors"
             >
-              <MdEdit size={18} />
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
             </button>
           </Tooltip>
-          <Tooltip content="Delete Course">
+            <Tooltip content="Schedule Publish">
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                handleDelete(row._id);
-              }}
-              className="text-red-600 hover:text-red-800 p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors"
-            >
-              <FaTrash size={16} />
+                  setScheduleModal({ 
+                    open: true, 
+                    courseId: row._id,
+                    courseTitle: row.course_title 
+                  });
+                }}
+                className="p-2 hover:bg-purple-50 dark:hover:bg-purple-900/20 text-purple-600 hover:text-purple-700 rounded-r-lg transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
             </button>
           </Tooltip>
+        </div>
+
+          {/* Secondary Actions Group */}
+          <div className="flex items-center gap-1">
+            <Tooltip content="Delete Course">
+            <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDelete(row._id);
+                }}
+                className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 hover:text-red-700 rounded-lg border border-red-100 dark:border-red-800/30 transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+            </button>
+            </Tooltip>
+          </div>
         </div>
       ),
       disableSorting: true
     }
   ], [paginatedData, selectedCourses, sortField, sortDirection, handleSort, handleSelectCourse, instructorNames, setAssignInstructorModal]);
-
-  // Enhanced export function with more options
-  const exportCourses = async (format = exportFormat, scope = exportScope) => {
-    try {
-      setExportLoading(true);
-      
-      // Determine which courses to export based on scope
-      const dataToExport = scope === 'all' ? courses : filteredData;
-      
-      // Prepare the export data with comprehensive course information
-      const exportData = dataToExport.map(course => {
-        // Create a complete course object with all relevant data
-        return {
-          id: course._id,
-          title: course.course_title || 'Untitled',
-          category: course.course_category || 'Uncategorized',
-          status: course.status || 'Unknown',
-          price: course.course_fee || 0,
-          isFree: course.isFree || course.category_type === "Free",
-          instructor: instructorNames[course.assigned_instructor] || "Unassigned",
-          instructorId: course.assigned_instructor || "",
-          sessions: course.no_of_Sessions || 0,
-          created: course.createdAt ? new Date(course.createdAt).toISOString() : '',
-          updated: course.updatedAt ? new Date(course.updatedAt).toISOString() : '',
-          description: course.course_description || '',
-          image: course.course_image || '',
-          duration: course.total_duration || '',
-          mode: course.course_mode || '',
-          level: course.course_level || '',
-          featured: course.isFeatured || false,
-          enrollments: course.enrollments?.length || 0,
-          tags: course.tags || [],
-          rating: course.rating || 0,
-          reviews: course.reviews?.length || 0
-        };
-      });
-      
-      if (format === 'csv') {
-        // Handle CSV export
-        if (exportData.length === 0) {
-          toast.error("No data available to export");
-          setExportLoading(false);
-          return;
-        }
-        
-        // Get all unique keys from all objects for complete headers
-        const allKeys = [...new Set(exportData.flatMap(item => Object.keys(item)))];
-        
-        // Create CSV content
-        const headers = allKeys;
-        const csvContent = [
-          headers.join(','),
-          ...exportData.map(row => 
-            headers.map(header => {
-              const value = row[header];
-              // Handle different data types for CSV compatibility
-              if (value === null || value === undefined) return '';
-              if (typeof value === 'object') return JSON.stringify(value).replace(/"/g, '""');
-              if (typeof value === 'string') return `"${value.replace(/"/g, '""')}"`;
-              return value;
-            }).join(',')
-          )
-        ].join('\n');
-        
-        // Create and trigger download
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.setAttribute('href', url);
-        link.setAttribute('download', `courses-export-${new Date().toISOString().split('T')[0]}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-      } else if (format === 'json') {
-        // Handle JSON export
-        const jsonString = JSON.stringify(exportData, null, 2);
-        const blob = new Blob([jsonString], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.setAttribute('href', url);
-        link.setAttribute('download', `courses-export-${new Date().toISOString().split('T')[0]}.json`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-      } else if (format === 'excel') {
-        // For Excel, we'll generate a CSV that Excel can open
-        if (exportData.length === 0) {
-          toast.error("No data available to export");
-          setExportLoading(false);
-          return;
-        }
-        
-        // Get all unique keys from all objects for complete headers
-        const allKeys = [...new Set(exportData.flatMap(item => Object.keys(item)))];
-        
-        // Create CSV content optimized for Excel
-        const headers = allKeys;
-        const csvContent = [
-          headers.join(','),
-          ...exportData.map(row => 
-            headers.map(header => {
-              const value = row[header];
-              // Handle different data types for Excel compatibility
-              if (value === null || value === undefined) return '';
-              if (typeof value === 'object') return `"${JSON.stringify(value).replace(/"/g, '""')}"`;
-              if (typeof value === 'string') return `"${value.replace(/"/g, '""')}"`;
-              return value;
-            }).join(',')
-          )
-        ].join('\n');
-        
-        // Create and trigger download
-        const blob = new Blob([csvContent], { type: 'application/vnd.ms-excel' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.setAttribute('href', url);
-        link.setAttribute('download', `courses-export-${new Date().toISOString().split('T')[0]}.xls`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
-      
-      toast.success(`Successfully exported ${exportData.length} courses as ${format.toUpperCase()}`);
-      
-    } catch (error) {
-      console.error("Export error:", error);
-      toast.error("Failed to export data. Please try again.");
-    } finally {
-      setExportLoading(false);
-      setExportModal(false);
-    }
-  };
-
-  // Export modal component
-  const ExportModal = () => {
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
-          <h3 className="text-lg font-semibold mb-4">Export Course Data</h3>
-          <p className="mb-4 text-sm text-gray-600 dark:text-gray-300">
-            Choose your export preferences:
-          </p>
-          
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-2">Export Format</label>
-            <div className="flex gap-4">
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="format"
-                  value="csv"
-                  checked={exportFormat === 'csv'}
-                  onChange={() => setExportFormat('csv')}
-                  className="mr-2"
-                />
-                <span>CSV</span>
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="format"
-                  value="json"
-                  checked={exportFormat === 'json'}
-                  onChange={() => setExportFormat('json')}
-                  className="mr-2"
-                />
-                <span>JSON</span>
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="format"
-                  value="excel"
-                  checked={exportFormat === 'excel'}
-                  onChange={() => setExportFormat('excel')}
-                  className="mr-2"
-                />
-                <span>Excel</span>
-              </label>
-            </div>
-          </div>
-          
-          <div className="mb-6">
-            <label className="block text-sm font-medium mb-2">Data to Export</label>
-            <div className="flex gap-4">
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="scope"
-                  value="filtered"
-                  checked={exportScope === 'filtered'}
-                  onChange={() => setExportScope('filtered')}
-                  className="mr-2"
-                />
-                <span>Current filtered data ({filteredData.length} courses)</span>
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="scope"
-                  value="all"
-                  checked={exportScope === 'all'}
-                  onChange={() => setExportScope('all')}
-                  className="mr-2"
-                />
-                <span>All courses ({courses.length})</span>
-              </label>
-            </div>
-          </div>
-          
-          <div className="flex justify-end space-x-3">
-            <button 
-              className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300"
-              onClick={() => setExportModal(false)}
-            >
-              Cancel
-            </button>
-            <button 
-              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center"
-              onClick={() => exportCourses(exportFormat, exportScope)}
-              disabled={exportLoading}
-            >
-              {exportLoading ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Exporting...
-                </>
-              ) : (
-                <>Export</>
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // After your state declaration for [exportLoading, setExportLoading]
-  // Add these utility functions for improved instructor loading
-
-  // Special debugging function to log API URLs
-  const logApiEndpoints = () => {
-    console.log("Available API endpoints:", {
-      instructor: {
-        lowercase: apiUrls.instructors?.getAllInstructors,
-        uppercase: apiUrls.Instructor?.getAllInstructors,
-        directPath: apiUrls?.["instructors/getAllInstructors"] || apiUrls?.["Instructor/getAllInstructors"] 
-      },
-      alternateStructure: {
-        instructors: apiUrls?.instructors,
-        Instructor: apiUrls?.Instructor
-      }
-    });
-  };
-
-  // Enhanced instructor loading that works across all components
-  const loadInstructorsWithFallbacks = async () => {
-    const loadingToastId = toast.loading("Loading instructors...");
-    
-    // Log API endpoints for debugging
-    logApiEndpoints();
-    
-    try {
-      // List all possible instructor API paths we might try
-      const possibleEndpoints = [
-        apiUrls.instructors?.getAllInstructors,
-        apiUrls.Instructor?.getAllInstructors,
-        `${apiUrls.baseUrl}/instructors/getAllInstructors`,
-        `${apiUrls.baseUrl}/Instructor/getAllInstructors`,
-        apiUrls?.["instructors/getAllInstructors"],
-        apiUrls?.["Instructor/getAllInstructors"]
-      ].filter(Boolean); // Remove undefined/null values
-      
-      console.log("Trying instructor endpoints:", possibleEndpoints);
-      
-      if (possibleEndpoints.length === 0) {
-        console.error("No valid instructor API endpoints found!");
-        throw new Error("API configuration issue: No instructor endpoints available");
-      }
-      
-      // Try each endpoint until one works
-      let success = false;
-      let instructorsData = [];
-      
-      for (const endpoint of possibleEndpoints) {
-        if (success) break;
-        
-        try {
-          console.log(`Attempting to fetch instructors from: ${endpoint}`);
-          
-          const response = await new Promise((resolve, reject) => {
-            getQuery({
-              url: endpoint,
-              onSuccess: (data) => resolve(data),
-              onFail: (err) => reject(err),
-            });
-          });
-          
-          console.log("Instructor API response:", response);
-          
-          // Handle various response formats
-          if (Array.isArray(response)) {
-            instructorsData = response;
-            success = true;
-          } else if (response?.data && Array.isArray(response.data)) {
-            instructorsData = response.data;
-            success = true;
-          } else if (response?.instructors && Array.isArray(response.instructors)) {
-            instructorsData = response.instructors;
-            success = true;
-          } else if (response?.results && Array.isArray(response.results)) {
-            instructorsData = response.results;
-            success = true;
-          }
-          
-          if (success) {
-            console.log(`Successfully loaded ${instructorsData.length} instructors from ${endpoint}`);
-          }
-        } catch (err) {
-          console.warn(`Endpoint ${endpoint} failed:`, err);
-          // Continue to next endpoint
-        }
-      }
-      
-      if (success) {
-        setInstructors(instructorsData);
-        toast.update(loadingToastId, {
-          render: `${instructorsData.length} instructors loaded successfully`,
-          type: "success",
-          isLoading: false,
-          autoClose: 2000,
-        });
-        return instructorsData;
-      } else {
-        // All endpoints failed
-        throw new Error("All instructor API endpoints failed");
-      }
-    } catch (error) {
-      console.error("Failed to load instructors:", error);
-      toast.update(loadingToastId, {
-        render: "Failed to load instructors. Please try again.",
-        type: "error",
-        isLoading: false,
-        autoClose: 3000,
-      });
-      
-      // Try alternative approach - direct fetch if available
-      return tryDirectInstructorFetch(loadingToastId);
-    }
-  };
-
-  // Direct fetch fallback as a last resort
-  const tryDirectInstructorFetch = async (toastId) => {
-    try {
-      console.log("Attempting direct instructor fetch as fallback");
-      
-      // Create a fetch URL using common patterns
-      const baseUrl = apiUrls.baseUrl || window.location.origin;
-      const possibleUrls = [
-        `${baseUrl}/api/instructors`,
-        `${baseUrl}/api/Instructor`,
-        `${baseUrl}/instructors`,
-        `${baseUrl}/Instructor`
-      ];
-      
-      for (const url of possibleUrls) {
-        try {
-          const response = await fetch(url);
-          if (!response.ok) continue;
-          
-          const data = await response.json();
-          console.log("Direct fetch response:", data);
-          
-          let instructorsData = [];
-          if (Array.isArray(data)) {
-            instructorsData = data;
-          } else if (data?.data && Array.isArray(data.data)) {
-            instructorsData = data.data;
-          } else if (data?.instructors && Array.isArray(data.instructors)) {
-            instructorsData = data.instructors;
-          } else if (data?.results && Array.isArray(data.results)) {
-            instructorsData = data.results;
-          }
-          
-          if (instructorsData.length > 0) {
-            setInstructors(instructorsData);
-            
-            toast.update(toastId, {
-              render: `${instructorsData.length} instructors loaded with fallback method`,
-              type: "success",
-              isLoading: false,
-              autoClose: 2000,
-            });
-            
-            return instructorsData;
-          }
-        } catch (err) {
-          console.warn(`Direct fetch to ${url} failed:`, err);
-        }
-      }
-      
-      // All attempts failed
-      console.error("All instructor loading methods failed");
-      toast.update(toastId, {
-        render: "Could not load instructors. API might be unavailable.",
-        type: "error",
-        isLoading: false,
-        autoClose: 3000,
-      });
-      return [];
-    } catch (finalError) {
-      console.error("Fatal error in instructor loading:", finalError);
-      return [];
-    }
-  };
-
-  // Now replace the existing fetchInstructors function (around line 1129) with this improved version
-  // Replace this function (it should be near line 1129 based on grep results)
-  // IMPORTANT: Keep the mapping function for instructorNames at lines ~337, it's different from this one.
-
-  // Replace this function:
-  // const fetchInstructors = async () => {
-  //   try {
-  //     const loadingToastId = toast.loading("Loading instructors...");
-  //     
-  //     await getQuery({
-  //       url: apiUrls?.instructors?.getAllInstructors,
-  //       onSuccess: (data) => {
-  //         const instructorsData = Array.isArray(data) ? data : data?.data || [];
-  //         setInstructors(instructorsData);
-  //         
-  //         toast.update(loadingToastId, {
-  //           render: `${instructorsData.length} instructors loaded`,
-  //           type: "success",
-  //           isLoading: false,
-  //           autoClose: 1000,
-  //         });
-  //       },
-  //       onFail: (error) => {
-  //         console.error("Failed to fetch instructors:", error);
-  //         toast.update(loadingToastId, {
-  //           render: "Failed to load instructors",
-  //           type: "error",
-  //           isLoading: false,
-  //           autoClose: 3000,
-  //         });
-  //       }
-  //     });
-  //   } catch (err) {
-  //     console.error("Error fetching instructors:", err);
-  //     toast.error("Error loading instructors. Please try again.");
-  //   }
-  // };
-
-  // With this improved version:
-  const fetchInstructors = async (retryCount = 0) => {
-    try {
-      console.log("Fetching instructors with improved method...");
-      const instructorsData = await loadInstructorsWithFallbacks();
-      return instructorsData;
-    } catch (error) {
-      console.error("Instructor fetch failed completely:", error);
-      if (retryCount < 2) {
-        console.log(`Retrying instructor fetch (attempt ${retryCount + 1}/3)...`);
-        setTimeout(() => fetchInstructors(retryCount + 1), 2000);
-      } else {
-        toast.error("Failed to load instructors after multiple attempts");
-      }
-      return [];
-    }
-  };
-
-  // Now update the AssignInstructorModal component (around line 1217) with improved loading logic:
-  // Replace the existing AssignInstructorModal component with this:
-  // Improve the AssignInstructorModal component (around line 1217)
-  // In the AssignInstructorModal component, replace the useEffect section with this:
-
-  // const AssignInstructorModal = () => {
-  //   const [selectedInstructorId, setSelectedInstructorId] = useState("");
-  //   const [loadingInstructors, setLoadingInstructors] = useState(false);
-  //   const course = courses.find(c => c._id === assignInstructorModal.courseId);
-  //   
-  //   // Fetch instructors when modal opens if needed
-  //   useEffect(() => {
-  //     if (instructors.length === 0 && !loadingInstructors) {
-  //       setLoadingInstructors(true);
-  //       fetchInstructors().finally(() => setLoadingInstructors(false));
-  //     }
-  //   }, []);
-
-  // With this:
-  const AssignInstructorModal = () => {
-    const [selectedInstructorId, setSelectedInstructorId] = useState("");
-    const [loadingInstructors, setLoadingInstructors] = useState(false);
-    const [modalInstructors, setModalInstructors] = useState([]);
-    const course = courses.find(c => c._id === assignInstructorModal.courseId);
-    
-    // Enhanced function to load instructors specifically for the modal
-    const loadInstructorsForModal = async () => {
-      // If we already have instructors in the main component, use those
-      if (instructors.length > 0) {
-        console.log("Using pre-loaded instructors:", instructors.length);
-        setModalInstructors(instructors);
-        return;
-      }
-      
-      setLoadingInstructors(true);
-      try {
-        console.log("Loading instructors in modal...");
-        const instructorsData = await loadInstructorsWithFallbacks();
-        setModalInstructors(instructorsData || []);
-      } catch (error) {
-        console.error("Failed to load instructors in modal:", error);
-      } finally {
-        setLoadingInstructors(false);
-      }
-    };
-    
-    // Load instructors when modal opens
-    useEffect(() => {
-      loadInstructorsForModal();
-    }, []);
-    
-    // Debug logging
-    useEffect(() => {
-      console.log(`Modal has ${modalInstructors.length || 0} modal instructors and ${instructors.length || 0} global instructors available`);
-    }, [modalInstructors, instructors]);
-    
-    
-    // Display the instructor list - prefer modal instructors if available
-    const displayInstructors = modalInstructors.length > 0 ? modalInstructors : instructors;
-
-    // Keep the rest of the component as is, but update the instructor mapping to use displayInstructors:
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={(e) => e.stopPropagation()}>
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
-          <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">Assign Instructor</h3>
-          <p className="mb-4 text-sm text-gray-600 dark:text-gray-300">
-            Select an instructor for course: <span className="font-medium text-green-600">{course?.course_title}</span>
-          </p>
-          
-          <div className="mb-6">
-            <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-              Instructor {displayInstructors.length > 0 ? `(${displayInstructors.length} available)` : ''}
-            </label>
-            {loadingInstructors ? (
-              <div className="flex justify-center items-center h-10">
-                <svg className="animate-spin h-5 w-5 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-              </div>
-            ) : (
-              <>
-                {displayInstructors.length === 0 ? (
-                  <div className="text-center py-4 border border-dashed border-gray-300 rounded-lg">
-                    <p className="text-gray-500 mb-2">No instructors found</p>
-                    <button
-                      className="text-green-600 hover:text-green-700 text-sm font-medium"
-                      onClick={loadInstructorsForModal}
-                    >
-                      Refresh Instructors
-                    </button>
-                  </div>
-                ) : (
-                  <select
-                    className="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    value={selectedInstructorId}
-                    onChange={(e) => setSelectedInstructorId(e.target.value)}
-                  >
-                    <option value="">Select an Instructor</option>
-                    {displayInstructors.map(instructor => (
-                      <option key={instructor._id} value={instructor._id}>
-                        {instructor.full_name} {instructor.expertise ? `- ${instructor.expertise}` : ''}
-                      </option>
-                    ))}
-                  </select>
-                )}
-              </>
-            )}
-          </div>
-          
-          <div className="flex justify-end space-x-3">
-            <button 
-              className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300"
-              onClick={() => setAssignInstructorModal({ open: false, courseId: null })}
-            >
-              Cancel
-            </button>
-            <button 
-              className={`px-4 py-2 rounded-md text-white ${
-                !selectedInstructorId ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
-              }`}
-              onClick={() => assignInstructor(assignInstructorModal.courseId, selectedInstructorId)}
-              disabled={!selectedInstructorId}
-            >
-              Assign
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // Schedule Publish Modal Component
-  const SchedulePublishModal = ({ courseId, courseTitle, onClose }) => {
-    const [scheduledDate, setScheduledDate] = useState('');
-    const [scheduledTime, setScheduledTime] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-    const [notifyUsers, setNotifyUsers] = useState(true);
-    
-    // Set default time to current time + 1 hour
-    useEffect(() => {
-      const now = new Date();
-      now.setHours(now.getHours() + 1);
-      
-      // Format date as YYYY-MM-DD
-      const formattedDate = now.toISOString().split('T')[0];
-      setScheduledDate(formattedDate);
-      
-      // Format time as HH:MM
-      const hours = String(now.getHours()).padStart(2, '0');
-      const minutes = String(now.getMinutes()).padStart(2, '0');
-      setScheduledTime(`${hours}:${minutes}`);
-    }, []);
-    
-    const handleSchedule = async () => {
-      if (!scheduledDate || !scheduledTime) {
-        toast.error("Please select both date and time");
-        return;
-      }
-      
-      // Combine date and time into ISO string
-      const scheduledDateTime = new Date(`${scheduledDate}T${scheduledTime}`);
-      
-      // Validate that the scheduled time is in the future
-      if (scheduledDateTime <= new Date()) {
-        toast.error("Please select a future date and time");
-        return;
-      }
-      
-      setIsLoading(true);
-      const loadingToastId = toast.loading("Scheduling course publish...");
-      
-      try {
-        await postQuery({
-          url: apiUrls?.courses?.schedulePublish,
-          postData: { 
-            courseId, 
-            scheduledTime: scheduledDateTime.toISOString(),
-            notifyUsers
-          },
-          onSuccess: (data) => {
-            toast.update(loadingToastId, {
-              render: "Course scheduled for publishing",
-              type: "success",
-              isLoading: false,
-              autoClose: 3000,
-            });
-            
-            // Update the scheduledCourses state
-            setScheduledCourses(prev => ({
-              ...prev,
-              [courseId]: scheduledDateTime.toISOString()
-            }));
-            
-            onClose();
-          },
-          onError: (error) => {
-            toast.update(loadingToastId, {
-              render: `Failed to schedule: ${error.message || "Unknown error"}`,
-              type: "error",
-              isLoading: false,
-              autoClose: 5000,
-            });
-          }
-        });
-      } catch (err) {
-        toast.update(loadingToastId, {
-          render: "An error occurred while scheduling",
-          type: "error",
-          isLoading: false,
-          autoClose: 3000,
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={onClose}>
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
-          <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Schedule Course Publish</h3>
-          <p className="mb-4 text-sm text-gray-600 dark:text-gray-300">
-            Set when you want to publish: <span className="font-medium text-green-600">{courseTitle}</span>
-          </p>
-          
-          <div className="space-y-4 mb-6">
-            <div>
-              <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Date</label>
-              <input
-                type="date"
-                className="w-full rounded-md border border-gray-300 dark:border-gray-600 p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                value={scheduledDate}
-                onChange={(e) => setScheduledDate(e.target.value)}
-                min={new Date().toISOString().split('T')[0]} // Prevent past dates
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Time</label>
-              <input
-                type="time"
-                className="w-full rounded-md border border-gray-300 dark:border-gray-600 p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                value={scheduledTime}
-                onChange={(e) => setScheduledTime(e.target.value)}
-              />
-            </div>
-            
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="notifyUsers"
-                checked={notifyUsers}
-                onChange={(e) => setNotifyUsers(e.target.checked)}
-                className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-              />
-              <label htmlFor="notifyUsers" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
-                Notify enrolled users when published
-              </label>
-            </div>
-          </div>
-          
-          <div className="flex justify-end space-x-3">
-            <button 
-              className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300"
-              onClick={onClose}
-            >
-              Cancel
-            </button>
-            <button 
-              className={`px-4 py-2 rounded-md text-white ${
-                isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
-              }`}
-              onClick={handleSchedule}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <div className="flex items-center">
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Scheduling...
-                </div>
-              ) : (
-                "Schedule Publish"
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // Replace the existing assignInstructor function with this industry-standard implementation
-  const assignInstructor = async (courseId, instructorId) => {
-    // Input validation
-    if (!courseId || !instructorId) {
-      toast.error("Missing required data: course ID or instructor ID");
-      return;
-    }
-    
-    const loadingToastId = toast.loading("Assigning instructor...");
-    console.time("instructor-assignment"); // Performance tracking
-    
-    try {
-      // Get the instructor details for proper payload construction
-      const instructor = instructors.find(i => i._id === instructorId);
-      if (!instructor) {
-        console.error("Instructor not found:", { instructorId, availableInstructors: instructors.length });
-        toast.update(loadingToastId, {
-          render: "Selected instructor data not found",
-          type: "error",
-          isLoading: false,
-          autoClose: 3000,
-        });
-        return;
-      }
-      
-      // Get the course details
-      const course = courses.find(c => c._id === courseId);
-      if (!course) {
-        console.error("Course not found:", { courseId, availableCourses: courses.length });
-        toast.update(loadingToastId, {
-          render: "Course data not found",
-          type: "error",
-          isLoading: false,
-          autoClose: 3000,
-        });
-        return;
-      }
-      
-      // Log operation for diagnostics & auditing
-      console.info("Assignment operation:", {
-        operation: "assign_instructor",
-        courseId,
-        courseTitle: course.course_title,
-        instructorId,
-        instructorName: instructor.full_name,
-        timestamp: new Date().toISOString()
-      });
-      
-      // Primary approach: Use the assignedInstructors.createAssignedInstructor endpoint
-      // This approach is confirmed working in AssignInst.js
-      const postData = {
-        full_name: instructor.full_name,
-        email: instructor.email,
-        course_title: course.course_title,
-        user_id: instructorId,
-        course_id: courseId  // Add course_id for completeness
-      };
-      
-      // Execute the assignment with proper error handling
-      await postQuery({
-        url: apiUrls?.assignedInstructors?.createAssignedInstructor,
-        postData,
-        onSuccess: (data) => {
-          console.info("Assignment successful:", {
-            instructorName: instructor.full_name,
-            courseTitle: course.course_title
-          });
-          
-          // Update UI state with optimistic update
-          setInstructorNames(prev => ({
-            ...prev,
-            [courseId]: instructor.full_name
-          }));
-          
-          // Success notification
-          toast.update(loadingToastId, {
-            render: `${instructor.full_name} assigned to ${course.course_title} successfully`,
-            type: "success",
-            isLoading: false,
-            autoClose: 3000,
-          });
-          
-          // Reset UI state and refresh data
-          setAssignInstructorModal({ open: false, courseId: null });
-          setUpdateStatus(Date.now());
-        },
-        onFail: async (error) => {
-          console.error("Assignment API error:", {
-            error,
-            endpoint: apiUrls?.assignedInstructors?.createAssignedInstructor,
-            payload: postData
-          });
-          
-          // Try fallback approach if primary fails
-          const fallbackSuccess = await tryFallbackAssignment(courseId, instructorId, instructor, course, loadingToastId);
-          
-          if (!fallbackSuccess) {
-            toast.update(loadingToastId, {
-              render: `Failed to assign instructor: ${error?.message || "Unknown error"}`,
-              type: "error",
-              isLoading: false,
-              autoClose: 5000,
-            });
-          }
-        }
-      });
-    } catch (error) {
-      console.error("Assignment exception:", error);
-      toast.update(loadingToastId, {
-        render: "An unexpected error occurred during assignment",
-        type: "error",
-        isLoading: false, 
-        autoClose: 4000,
-      });
-    } finally {
-      console.timeEnd("instructor-assignment"); // Performance tracking end
-    }
-  };
-
-  // Helper function to try fallback assignment methods
-  const tryFallbackAssignment = async (courseId, instructorId, instructor, course, toastId) => {
-    console.log("Attempting fallback assignment methods");
-    
-    try {
-      // Fallback approach 1: Try courses.assignInstructor endpoint
-      let success = await tryAssignmentEndpoint(
-        apiUrls?.courses?.assignInstructor,
-        { courseId, instructorId },
-        "courses.assignInstructor"
-      );
-      
-      if (success) return true;
-      
-      // Fallback approach 2: Try courses/${courseId}/assignInstructor endpoint
-      const baseUrl = apiUrls.baseUrl || window.location.origin;
-      success = await tryAssignmentEndpoint(
-        `${baseUrl}/courses/${courseId}/assignInstructor`,
-        { instructorId },
-        "direct course endpoint"
-      );
-      
-      if (success) return true;
-      
-      // Fallback approach 3: Try updateAssignedInstructor endpoint
-      success = await tryAssignmentEndpoint(
-        apiUrls?.assignedInstructors?.updateAssignedInstructor,
-        {
-          courseId,
-          instructorId,
-          full_name: instructor.full_name,
-          email: instructor.email,
-          course_title: course.course_title
-        },
-        "updateAssignedInstructor"
-      );
-      
-      if (success) return true;
-      
-      // If all fallbacks fail, return false
-      return false;
-    } catch (error) {
-      console.error("Fallback assignment failed:", error);
-      return false;
-    }
-  };
-
-  // Helper function to try a specific endpoint for assignment
-  const tryAssignmentEndpoint = async (endpoint, data, endpointName) => {
-    if (!endpoint) return false;
-    
-    try {
-      console.log(`Trying ${endpointName} endpoint:`, endpoint);
-      
-      return new Promise(resolve => {
-        postQuery({
-          url: endpoint,
-          postData: data,
-          onSuccess: () => {
-            console.log(`Assignment successful with ${endpointName} endpoint`);
-            // Update UI state with optimistic update
-            if (data.courseId && data.instructorId) {
-              const instructor = instructors.find(i => i._id === data.instructorId);
-              if (instructor) {
-                setInstructorNames(prev => ({
-                  ...prev,
-                  [data.courseId]: instructor.full_name
-                }));
-              }
-            }
-            
-            // Reset UI state and refresh data
-            setAssignInstructorModal({ open: false, courseId: null });
-            setUpdateStatus(Date.now());
-            resolve(true);
-          },
-          onFail: (error) => {
-            console.warn(`${endpointName} endpoint failed:`, error);
-            resolve(false);
-          }
-        });
-      });
-    } catch (error) {
-      console.error(`Error with ${endpointName} endpoint:`, error);
-      return false;
-    }
-  };
 
   // Fallback method for status updates when the main method fails
   const tryFallbackStatusUpdate = async (courseId, newStatus, originalStatus, loadingToastId) => {
@@ -2161,64 +2177,24 @@ export default function ListOfCourse() {
   };
 
   // Centralized error handling function
-  const handleApiError = (error, toastId) => {
+  const handleApiError = (error, toastId, customMessage = null) => {
+    const errorMessage = customMessage || error?.message || "An error occurred";
     console.error("API Error:", error);
+    
     toast.update(toastId, {
-      render: "An error occurred. Please try again.",
+      render: errorMessage,
       type: "error",
       isLoading: false,
-      autoClose: 3000,
+      autoClose: 4000,
     });
   };
-
-  // Example integration in an API call
-  const fetchCourses = async () => {
-    const toastId = toast.loading("Loading courses...");
-    try {
-      const response = await getQuery("/api/courses");
-      if (!response.ok) throw new Error("Failed to fetch courses");
-      const data = await response.json();
-      setCoursesData(data); // Set the state with fetched data
-      toast.update(toastId, {
-        render: "Courses loaded successfully.",
-        type: "success",
-        isLoading: false,
-        autoClose: 3000,
-      });
-    } catch (error) {
-      handleApiError(error, toastId);
-    }
-  };
-
-  // Example integration in another API call
-  const deleteCourse = async (courseId) => {
-    const toastId = toast.loading("Deleting course...");
-    try {
-      const response = await deleteQuery(`/api/courses/${courseId}`);
-      if (!response.ok) throw new Error("Failed to delete course");
-      setCourses((prevCourses) => prevCourses.filter(course => course.id !== courseId));
-      toast.update(toastId, {
-        render: "Course deleted successfully.",
-        type: "success",
-        isLoading: false,
-        autoClose: 3000,
-      });
-    } catch (error) {
-      handleApiError(error, toastId);
-    }
-  };
-
-  useEffect(() => {
-    fetchCourses();
-    fetchInstructors();
-  }, []);
 
   const onSuccess = (data) => {
     console.log("Success", data, coursesData);
     // Use coursesData here if needed
   };
 
-  if (loading || postLoading) return <Preloader />;
+  if (loading || postLoading || pageLoading) return <Preloader />;
 
   return (
     <div className="bg-gray-50 dark:bg-gray-900 min-h-screen p-4 sm:p-6">
@@ -2309,9 +2285,9 @@ export default function ListOfCourse() {
             </div>
             <div className="flex flex-col sm:flex-row gap-3 mt-4 sm:mt-0">
               {selectedCourses.length > 0 && (
-                <>
+                <div className="flex flex-col sm:flex-row gap-3">
                   <select
-                    className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm min-w-[200px]"
+                    className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-500 shadow-sm min-w-[200px] text-gray-700 dark:text-gray-200"
                     value={batchAction}
                     onChange={(e) => setBatchAction(e.target.value)}
                   >
@@ -2322,7 +2298,7 @@ export default function ListOfCourse() {
                       <option value="Archived">Archive Courses</option>
                       <option value="Active">Set as Active</option>
                     </optgroup>
-                    <optgroup label="Other Actions">
+                    <optgroup label="Course Actions">
                       <option value="assign_instructor">Assign Instructor</option>
                       <option value="schedule_publish">Schedule Publish</option>
                       <option value="export">Export Selected</option>
@@ -2332,23 +2308,60 @@ export default function ListOfCourse() {
                   
                   <button
                     onClick={handleBatchAction}
-                    className={`px-4 py-2.5 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2 ${
-                      batchAction
-                        ? "bg-green-600 hover:bg-green-700 text-white"
-                        : "bg-gray-200 text-gray-500 cursor-not-allowed"
-                    }`}
                     disabled={!batchAction}
+                    className={`px-4 py-2.5 rounded-lg transition-all flex items-center justify-center gap-2 ${
+                      batchAction
+                        ? "bg-primary-600 hover:bg-primary-700 text-white shadow-sm hover:shadow"
+                        : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    }`}
                   >
-                    {batchAction === "delete" ? <FaTrash className="w-4 h-4" /> : <FaCheck className="w-4 h-4" />}
-                    Apply to Selected
+                    {batchAction === "delete" ? (
+                      <>
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        Delete Selected
+                      </>
+                    ) : batchAction === "assign_instructor" ? (
+                      <>
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        Assign Instructor
+                      </>
+                    ) : batchAction === "schedule_publish" ? (
+                      <>
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        Schedule Selected
+                      </>
+                    ) : batchAction === "export" ? (
+                      <>
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Export Selected
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                        Apply Action
+                      </>
+                    )}
                   </button>
-                </>
+                </div>
               )}
               <button
                 onClick={() => router.push("/dashboards/admin-addcourse")}
-                className="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-lg flex items-center justify-center transition-all shadow-sm hover:shadow"
+                className="bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-lg flex items-center justify-center transition-all shadow-sm hover:shadow"
               >
-                <FaPlus className="mr-2 h-4 w-4" /> Add Course
+                <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Add Course
               </button>
             </div>
           </div>
@@ -2428,15 +2441,15 @@ export default function ListOfCourse() {
               <div className="flex justify-between text-sm">
                 <div>
                   <p className="text-gray-500 mb-1">Total Courses</p>
-                  <p className="text-3xl font-bold text-gray-900 dark:text-white">{analyticsData.totalCourses || 0}</p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white">{coursesData.totalCourses || 0}</p>
                 </div>
                 <div>
                   <p className="text-gray-500 mb-1">Published</p>
-                  <p className="text-2xl font-semibold text-green-600">{analyticsData.published || 0}</p>
+                  <p className="text-2xl font-semibold text-green-600">{coursesData.published || 0}</p>
                 </div>
                 <div>
                   <p className="text-gray-500 mb-1">Draft</p>
-                  <p className="text-2xl font-semibold text-yellow-600">{analyticsData.draft || 0}</p>
+                  <p className="text-2xl font-semibold text-yellow-600">{coursesData.draft || 0}</p>
                 </div>
               </div>
             </div>
@@ -2532,6 +2545,18 @@ export default function ListOfCourse() {
                     onClick={() => handleSort('createdAt')}
                   >
                     Created {sortField === 'createdAt' && <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>}
+                  </th>
+                  <th 
+                    className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                    onClick={() => handleSort('course_grade')}
+                  >
+                    Grade Level {sortField === 'course_grade' && <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>}
+                  </th>
+                  <th 
+                    className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                    onClick={() => handleSort('course_duration')}
+                  >
+                    Duration {sortField === 'course_duration' && <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>}
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Actions
@@ -2642,7 +2667,18 @@ export default function ListOfCourse() {
       </div>
       
       {/* Modals */}
-      {assignInstructorModal.open && <AssignInstructorModal />}
+      {assignInstructorModal.open && (
+        <AssignInstructorModal
+          onClose={() => setAssignInstructorModal({ open: false, assignmentId: null })}
+          setAssignInstructorModal={setAssignInstructorModal}
+          courseId={assignInstructorModal.courseId}
+          courses={courses}
+          instructors={instructors}
+          setInstructors={setInstructors}
+          setInstructorNames={setInstructorNames}
+          setUpdateStatus={setUpdateStatus}
+        />
+      )}
       {scheduleModal.open && (
         <SchedulePublishModal 
           courseId={scheduleModal.courseId}
@@ -2654,3 +2690,23 @@ export default function ListOfCourse() {
     </div>
   );
 }
+
+// Add helper function to extract weeks from duration string
+const extractDurationWeeks = (duration) => {
+  if (!duration) return 0;
+  const matches = duration.match(/(\d+)\s*(week|month|day|hour)/i);
+  if (!matches) return 0;
+
+  const [_, value, unit] = matches;
+  const numValue = parseInt(value);
+
+  switch (unit.toLowerCase()) {
+    case 'month': return numValue * 4;
+    case 'week': return numValue;
+    case 'day': return Math.ceil(numValue / 7);
+    case 'hour': return Math.ceil(numValue / (7 * 24));
+    default: return numValue;
+  }
+};
+
+export default ListOfCourse;
