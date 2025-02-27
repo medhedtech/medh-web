@@ -118,8 +118,40 @@ const LoginForm = () => {
         agree_terms: data?.agree_terms,
       },
       onSuccess: (res) => {
-        const decoded = jwtDecode(res.token);
-        const userRole = decoded.user.role[0];
+        // Decode token and extract user role with better error handling
+        let userRole = '';
+        try {
+          const decoded = jwtDecode(res.token);
+          console.log("Decoded token:", decoded); // Debug log
+          
+          // Try different possible paths for role in the token
+          if (decoded.user && decoded.user.role) {
+            // If role is an array, take the first one, otherwise use it directly
+            userRole = Array.isArray(decoded.user.role) 
+              ? decoded.user.role[0] 
+              : decoded.user.role;
+          } else if (decoded.role) {
+            // Alternative path: directly in the token
+            userRole = Array.isArray(decoded.role) 
+              ? decoded.role[0] 
+              : decoded.role;
+          }
+          
+          // Additional fallback: check if the role is returned directly in the response
+          if (!userRole && res.role) {
+            userRole = res.role;
+          }
+
+          console.log("Extracted userRole:", userRole); // Debug log
+        } catch (error) {
+          console.error("Error decoding token or extracting role:", error);
+          // Fallback to using role from response if available
+          userRole = res.role || '';
+        }
+        
+        // Store role in localStorage for later use
+        localStorage.setItem("role", userRole);
+
         if (rememberMe) {
           // Encrypt email and password
           const encryptedEmail = CryptoJS.AES.encrypt(
@@ -137,25 +169,32 @@ const LoginForm = () => {
           localStorage.setItem("email", encryptedEmail);
           localStorage.setItem("password", encryptedPassword);
           localStorage.setItem("permissions", JSON.stringify(res.permissions));
-          localStorage.setItem("role", res.role);
           Cookies.set("token", res.token, { expires: 30 });
           Cookies.set("userId", res.id, { expires: 30 });
         } else {
           // Save token in localStorage for session
           localStorage.setItem("token", res.token);
           localStorage.setItem("userId", res.id);
+          // Still save permissions even for session login
+          localStorage.setItem("permissions", JSON.stringify(res.permissions));
         }
+
+        // Handle routing based on role
+        // Convert role to lowercase for case-insensitive comparison
+        const roleLower = userRole.toLowerCase();
         if (
-          userRole === "admin" ||
-          userRole === "instructor" ||
-          userRole === "student" ||
-          userRole === "coorporate"
+          roleLower === "admin" || roleLower === "super-admin" ||
+          roleLower === "instructor" ||
+          roleLower === "student" ||
+          roleLower === "coorporate"
         ) {
-          console.log("userrole: ", userRole);
-          router.push(`/dashboards/${userRole}-dashboard`);
-        } else if (userRole === "coorporate-student") {
+          console.log(`Redirecting to /dashboards/${roleLower}-dashboard`);
+          router.push(`/dashboards/${roleLower}-dashboard`);
+        } else if (roleLower === "coorporate-student") {
+          console.log("Redirecting to /dashboards/coorporate-employee-dashboard");
           router.push(`/dashboards/coorporate-employee-dashboard`);
         } else {
+          console.log("Role not recognized, redirecting to home page:", userRole);
           // Default case if the role doesn't match any predefined roles
           router.push("/");
         }
