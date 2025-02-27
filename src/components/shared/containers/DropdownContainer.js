@@ -13,7 +13,8 @@ const DropdownContainer = ({
   closeOnClickOutside = true,
   maxHeight = null,
   isOpen = null,
-  onToggle = null
+  onToggle = null,
+  isMobile = false
 }) => {
   // Path detection hooks
   const pathname = usePathname();
@@ -75,15 +76,17 @@ const DropdownContainer = ({
       isHome5 ||
       isHome5Dark
     ) {
-      return "w-fit";
+      return isMobile ? "w-full" : "w-fit";
     } else if (isHome2 || isHome2Dark) {
-      return "w-fit";
+      return isMobile ? "w-full" : "w-fit";
     }
-    return "w-fit";
+    return isMobile ? "w-full" : "w-fit";
   };
   
-  // Position classes
+  // Position classes - adjusted for mobile
   const getPositionClass = () => {
+    if (isMobile) return ""; // No positioning for mobile
+    
     switch (position) {
       case "left":
         return "left-0";
@@ -95,27 +98,31 @@ const DropdownContainer = ({
     }
   };
   
+  // Mobile-specific styling
+  const mobileClasses = isMobile ? 
+    "relative w-full bg-transparent border-0 shadow-none" : 
+    "absolute bg-white dark:bg-bodyBg-dark rounded-md shadow-lg border border-gray-200 dark:border-gray-700";
+  
   return (
     <div 
       ref={dropdownRef}
       className={`
         ${getWidthClass()} 
         ${getPositionClass()}
-        relative bg-white dark:bg-bodyBg-dark
-        rounded-md shadow-lg border border-gray-200 dark:border-gray-700
+        ${mobileClasses}
         overflow-hidden transition-all duration-300 ease-in-out
         ${animate ? 'transform' : ''}
-        ${dropdownIsOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}
-        ${maxHeight ? `max-h-[${maxHeight}] overflow-y-auto` : ''}
+        ${dropdownIsOpen || isMobile ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}
+        ${maxHeight && !isMobile ? `max-h-[${maxHeight}] overflow-y-auto` : ''}
         ${className}
       `}
       style={{
-        maxHeight: maxHeight,
+        maxHeight: isMobile ? 'none' : maxHeight,
         scrollbarWidth: 'thin',
         scrollbarColor: 'var(--primary-400) var(--gray-200)'
       }}
     >
-      <div className="p-2">
+      <div className={isMobile ? "py-1" : "p-2"}>
         {children}
       </div>
     </div>

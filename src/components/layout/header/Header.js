@@ -2,8 +2,6 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "./Navbar";
 import MobileMenu from "./MobileMenu";
-import HeaderTop from "./HeaderTop";
-import ThemeToggle from "@/components/shared/others/ThemeToggle";
 import useIsTrue from "@/hooks/useIsTrue";
 import Aos from "aos";
 import stickyHeader from "@/libs/stickyHeader";
@@ -35,20 +33,9 @@ const Header = () => {
       >
         Skip to content
       </a>
-      
       <div className="relative">
-        {/* Header top */}
-        {isHome2Dark || isHome2 ? null : <HeaderTop />}
-        
-
         {/* Navbar */}
         <Navbar onMobileMenuOpen={() => setIsMobileMenuOpen(true)} />
-
-        {/* Mobile menu */}
-        <MobileMenu 
-          isOpen={isMobileMenuOpen} 
-          onClose={() => setIsMobileMenuOpen(false)} 
-        />
       </div>
     </header>
   );

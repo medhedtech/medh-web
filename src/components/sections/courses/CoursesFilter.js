@@ -54,7 +54,7 @@ const extractWeeks = (duration) => {
   return value;
 };
 
-const CoursesFilter = ({ CustomButton, CustomText }) => {
+const CoursesFilter = ({ CustomButton, CustomText, scrollToTop }) => {
   const router = useRouter();
   const [allCourses, setAllCourses] = useState([]);
   const [filteredCourses, setFilteredCourses] = useState([]);
@@ -80,15 +80,16 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Scroll to top when filtered courses change
+  // Scroll to top ONLY when component initially mounts, not on filter changes
   useEffect(() => {
-    if (contentRef.current) {
-      contentRef.current.scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'start' 
-      });
+    // Only execute once when component first mounts
+    if (typeof window !== 'undefined' && scrollToTop) {
+      scrollToTop();
     }
-  }, [currentPage]);
+  }, []); // Empty dependency array ensures this only runs once on mount
+
+  // Remove the scroll-to-top effect on pagination/filter changes
+  // This allows the component to refresh without scrolling
 
   const toggleCategorySlider = () => {
     setCategorySliderOpen(!categorySliderOpen);
@@ -235,11 +236,9 @@ const CoursesFilter = ({ CustomButton, CustomText }) => {
     applyFilters();
   }, [allCourses, searchTerm, selectedCategory]);
 
+  // Simplify page change handler to just update state without scrolling
   const handlePageChange = (page) => {
-    // When page changes, we first set the state
     setCurrentPage(page);
-    
-    // The useEffect hook will handle scrolling when currentPage changes
   };
 
   const handleSearch = (e) => {
