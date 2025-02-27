@@ -7,6 +7,21 @@ export default function Navitem({ navItem, idx, children }) {
   const { name, path, dropdown, isRelative } = navItem;
   const [isOpen, setIsOpen] = useState(false);
   const navItemRef = useRef(null);
+  const [isMobile, setIsMobile] = useState(false);
+  
+  // Check if device is mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, []);
   
   // Handle outside clicks to close dropdown
   useEffect(() => {
@@ -32,6 +47,20 @@ export default function Navitem({ navItem, idx, children }) {
     }
   };
   
+  // Close dropdown when window is resized
+  useEffect(() => {
+    const handleResize = () => {
+      if (isOpen) {
+        setIsOpen(false);
+      }
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [isOpen]);
+  
   // Get the child element (dropdown) and inject the isOpen state into it
   const renderChildren = () => {
     if (!children) return null;
@@ -39,7 +68,8 @@ export default function Navitem({ navItem, idx, children }) {
     // Clone the child element and pass isOpen prop
     return React.cloneElement(children, { 
       isMenuOpen: isOpen,
-      onMenuToggle: setIsOpen
+      onMenuToggle: setIsOpen,
+      isMobile
     });
   };
   
@@ -53,7 +83,7 @@ export default function Navitem({ navItem, idx, children }) {
         <Link
           href={path || "#"}
           onClick={handleNavItemClick}
-          className="px-5 lg:px-10px 2xl:px-15px 3xl:px-5 py-10 lg:py-5 2xl:py-30px 3xl:py-5 leading-sm 2xl:leading-lg text-base lg:text-sm 2xl:text-base font-semibold flex items-center hover:text-primary-500 dark:text-whiteColor dark:hover:text-primary-400 transition-colors"
+          className="px-5 lg:px-3 xl:px-4 py-10 lg:py-5 2xl:py-6 leading-sm 2xl:leading-lg text-base lg:text-sm 2xl:text-base font-semibold flex items-center hover:text-primary-500 dark:text-gray-200 dark:hover:text-primary-400 transition-colors"
           aria-expanded={dropdown ? isOpen : undefined}
           aria-haspopup={dropdown ? "true" : undefined}
         >
@@ -70,6 +100,7 @@ export default function Navitem({ navItem, idx, children }) {
               strokeLinecap="round" 
               strokeLinejoin="round"
               className={`ml-1 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+              aria-hidden="true"
             >
               <polyline points="6 9 12 15 18 9"></polyline>
             </svg>
