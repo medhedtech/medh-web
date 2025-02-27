@@ -133,7 +133,7 @@ export default function ListOfCourse() {
     tags: []
   });
   const [analyticsData, setAnalyticsData] = useState({});
-  const [instructors, setInstructors] = useState([]);
+  const [instructors, setInstructors] = useState({}); // Store instructors in an object for quick lookup
   const [assignInstructorModal, setAssignInstructorModal] = useState({ open: false, courseId: null });
   const [activeActionMenu, setActiveActionMenu] = useState(null);
   const [scheduleModal, setScheduleModal] = useState({ open: false, courseId: null, courseTitle: "" });
@@ -141,6 +141,7 @@ export default function ListOfCourse() {
   const [exportFormat, setExportFormat] = useState('csv');
   const [exportScope, setExportScope] = useState('filtered');
   const [exportLoading, setExportLoading] = useState(false);
+  const [coursesData, setCoursesData] = useState([]); // Initialize as an empty array
 
   // Add new status management functionality
   const statusTransitions = {
@@ -440,38 +441,62 @@ export default function ListOfCourse() {
         url: apiUrls?.courses?.getAllCourses,
         onSuccess: async (data) => {
           console.log('Courses fetched:', data); // Check the status values
-          setCourses(data || []);
-          await fetchInstructors(data);
+          // Ensure data is an array before setting it
+          const coursesArray = Array.isArray(data) ? data : [];
+          setCourses(coursesArray);
+          
+          // Only fetch instructors if we have courses
+          if (coursesArray.length > 0) {
+            await fetchInstructors(coursesArray);
+          }
           
           // Extract unique categories for filtering
-          const uniqueCategories = [...new Set(coursesData.map(course => course.course_category))].filter(Boolean);
+          const uniqueCategories = [...new Set(coursesArray.map(course => course.course_category))].filter(Boolean);
           setCategories(uniqueCategories);
         },
         onFail: (err) => {
           console.error("Failed to fetch courses:", err);
           toast.error("Failed to load courses. Please try again.");
+          // Initialize with empty array on failure
+          setCourses([]);
         },
       });
     };
 
     const fetchInstructors = async (courses) => {
+      // Guard clause to prevent mapping over undefined
+      if (!Array.isArray(courses)) {
+        console.error("Courses data is not an array:", courses);
+        return;
+      }
+
       const instructorsMap = {};
-      await Promise.all(
-        courses.map(async (course) => {
-          if (course.assigned_instructor) {
-            await getQuery({
-              url: `${apiUrls?.assignedInstructors?.getAssignedInstructorById}/${course.assigned_instructor}`,
-              onSuccess: (data) => {
-                instructorsMap[course.assigned_instructor] = data?.assignment?.full_name || "Instructor not available";
-              },
-              onFail: () => {
-                instructorsMap[course.assigned_instructor] = "-";
-              },
-            });
-          }
-        })
-      );
-      setInstructorNames(instructorsMap);
+      try {
+        await Promise.all(
+          courses.map(async (course) => {
+            if (course?.assigned_instructor) { // Add null check with optional chaining
+              try {
+                const response = await getQuery({
+                  url: `${apiUrls?.assignedInstructors?.getAssignedInstructorById}/${course.assigned_instructor}`,
+                  onSuccess: (data) => {
+                    instructorsMap[course.assigned_instructor] = data?.assignment?.full_name || "Instructor not available";
+                  },
+                  onFail: () => {
+                    instructorsMap[course.assigned_instructor] = "Not available";
+                  },
+                });
+              } catch (error) {
+                console.error(`Error fetching instructor for course ${course._id}:`, error);
+                instructorsMap[course.assigned_instructor] = "Error loading instructor";
+              }
+            }
+          })
+        );
+        setInstructorNames(instructorsMap);
+      } catch (error) {
+        console.error("Error in fetchInstructors:", error);
+        setInstructorNames({});
+      }
     };
 
     fetchCourses();
@@ -2133,6 +2158,64 @@ export default function ListOfCourse() {
     } catch (error) {
       console.error("Error in fallback status update:", error);
     }
+  };
+
+  // Centralized error handling function
+  const handleApiError = (error, toastId) => {
+    console.error("API Error:", error);
+    toast.update(toastId, {
+      render: "An error occurred. Please try again.",
+      type: "error",
+      isLoading: false,
+      autoClose: 3000,
+    });
+  };
+
+  // Example integration in an API call
+  const fetchCourses = async () => {
+    const toastId = toast.loading("Loading courses...");
+    try {
+      const response = await getQuery("/api/courses");
+      if (!response.ok) throw new Error("Failed to fetch courses");
+      const data = await response.json();
+      setCoursesData(data); // Set the state with fetched data
+      toast.update(toastId, {
+        render: "Courses loaded successfully.",
+        type: "success",
+        isLoading: false,
+        autoClose: 3000,
+      });
+    } catch (error) {
+      handleApiError(error, toastId);
+    }
+  };
+
+  // Example integration in another API call
+  const deleteCourse = async (courseId) => {
+    const toastId = toast.loading("Deleting course...");
+    try {
+      const response = await deleteQuery(`/api/courses/${courseId}`);
+      if (!response.ok) throw new Error("Failed to delete course");
+      setCourses((prevCourses) => prevCourses.filter(course => course.id !== courseId));
+      toast.update(toastId, {
+        render: "Course deleted successfully.",
+        type: "success",
+        isLoading: false,
+        autoClose: 3000,
+      });
+    } catch (error) {
+      handleApiError(error, toastId);
+    }
+  };
+
+  useEffect(() => {
+    fetchCourses();
+    fetchInstructors();
+  }, []);
+
+  const onSuccess = (data) => {
+    console.log("Success", data, coursesData);
+    // Use coursesData here if needed
   };
 
   if (loading || postLoading) return <Preloader />;
