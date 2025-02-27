@@ -1,4 +1,6 @@
-import { ArrowLeftIcon, SlidersVertical } from "lucide-react";
+"use client";
+
+import { ArrowLeft, SlidersHorizontal } from "lucide-react";
 import React from "react";
 import CategoryFilter from "../courses/CategoryFilter";
 
@@ -7,7 +9,7 @@ const GradeSlider = ({toggleGradeSlider, gradeSliderOpen, searchTerm, setSearchT
     <div className="md:hidden w-full">
       <div className="flex md:hidden justify-end w-full gap-6 items-center">
         Select Grade:
-        <SlidersVertical
+        <SlidersHorizontal
           className="text-green-500 font-bold "
           onClick={toggleGradeSlider}
         />
@@ -20,7 +22,7 @@ const GradeSlider = ({toggleGradeSlider, gradeSliderOpen, searchTerm, setSearchT
       >
         <div className="flex items-center p-4 gap-4">
           <button onClick={toggleGradeSlider} className="text-xl font-bold">
-            <ArrowLeftIcon />
+            <ArrowLeft />
           </button>
 
           <h1 className="w-full text-center text-xl leading-none font-semibold -ps-2 ">

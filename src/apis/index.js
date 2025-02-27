@@ -34,12 +34,16 @@ export const apiUrls = {
       limit = 10,
       status,
       course_tag,
-      serach,
+      search,
       user_id,
+      course_grade
     }) => {
       let url = `/courses/getNewLimitedCourses?page=${page}&limit=${limit}&status=${status}&course_tag=${course_tag}&user_id=${user_id}`;
-      if (serach) {
-        url += `&search=${serach}`;
+      if (search) {
+        url += `&search=${search}`;
+      }
+      if (course_grade) {
+        url += `&course_grade=${course_grade}`;
       }
       return url;
     },

@@ -41,6 +41,7 @@ const AssignInstructor = () => {
   // State Management
   const [instructors, setInstructors] = useState([]);
   const [courses, setCourses] = useState([]);
+  const [coursesData, setCoursesData] = useState([]);
   const [assignedInstructors, setAssignedInstructors] = useState([]);
   const [selectedInstructor, setSelectedInstructor] = useState(null);
   const [instructorDetails, setInstructorDetails] = useState(null);
@@ -282,7 +283,19 @@ const AssignInstructor = () => {
           } else if (response?.data && Array.isArray(response.data)) {
             data = response.data;
           }
-          setCourses(data);
+          const validatedCourses = data.map(course => ({
+            ...course,
+            course_title: course.course_title || 'Untitled Course',
+            course_duration: course.course_duration || 'Not specified',
+            status: course.status || 'draft',
+            created_at: course.created_at || course.createdAt || new Date().toISOString(),
+            _id: course._id || course.id
+          }));
+          setCoursesData(validatedCourses);
+          setCourses(validatedCourses);
+          
+          const uniqueCategories = [...new Set(validatedCourses.map(course => course.course_category))].filter(Boolean);
+          setCategories(uniqueCategories);
           
           toast.update(loadingToastId, {
             render: `${data.length} courses loaded successfully`,
