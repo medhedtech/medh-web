@@ -5,14 +5,16 @@ import { useRouter } from "next/navigation";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
 import { motion, AnimatePresence } from "framer-motion";
-import { BookOpen, ChevronRight, Loader } from "lucide-react";
+import { BookOpen, ChevronRight, Loader, Search } from "lucide-react";
 
 const EnrollCourses = () => {
   const router = useRouter();
   const [enrollCourses, setEnrollCourses] = useState([]);
   const [studentId, setStudentId] = useState(null);
-  const { getQuery, loading } = useGetQuery();
+  const [searchTerm, setSearchTerm] = useState("");
   const [isHovered, setIsHovered] = useState(null);
+  const [error, setError] = useState(null);
+  const { getQuery, loading } = useGetQuery();
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -44,27 +46,63 @@ const EnrollCourses = () => {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedUserId = localStorage.getItem("userId");
+      if (!storedUserId) {
+        setError("User not authenticated. Please log in.");
+        return;
+      }
       setStudentId(storedUserId);
     }
   }, []);
 
-  useEffect(() => {
-    if (studentId) {
-      getQuery({
-        url: `${apiUrls?.EnrollCourse?.getEnrolledCoursesByStudentId}/${studentId}`,
+  const fetchEnrolledCourses = async (id) => {
+    try {
+      await getQuery({
+        url: `${apiUrls?.EnrollCourse?.getEnrolledCoursesByStudentId}/${id}`,
         onSuccess: (data) => {
+          if (!Array.isArray(data)) {
+            throw new Error("Invalid data format received from server");
+          }
+
           const courses = data
-            .map((enrollment) => enrollment.course_id)
-            .filter((course) => course)
+            .map((enrollment) => {
+              const course = enrollment.course_id;
+              if (!course) return null;
+
+              return {
+                ...course,
+                progress: enrollment.progress || 0,
+                last_accessed: enrollment.last_accessed || null,
+                completion_status: enrollment.completion_status || "in_progress"
+              };
+            })
+            .filter(Boolean)
             .slice(0, 4);
+
           setEnrollCourses(courses);
+          setError(null);
         },
         onFail: (error) => {
           console.error("Failed to fetch enrolled courses:", error);
+          setError("Failed to fetch your enrolled courses. Please try again.");
+          setEnrollCourses([]);
         },
       });
+    } catch (error) {
+      console.error("Error in fetchEnrolledCourses:", error);
+      setError("An unexpected error occurred. Please try again later.");
+      setEnrollCourses([]);
+    }
+  };
+
+  useEffect(() => {
+    if (studentId) {
+      fetchEnrolledCourses(studentId);
     }
   }, [studentId]);
+
+  const filteredCourses = enrollCourses.filter(course => 
+    course.course_title?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <motion.div 
@@ -87,18 +125,45 @@ const EnrollCourses = () => {
           </h2>
         </motion.div>
 
-        <motion.a
-          href="/dashboards/enrolled-courses"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          whileHover={{ scale: 1.05, x: 5 }}
-          whileTap={{ scale: 0.95 }}
-          className="flex items-center gap-2 text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 font-medium transition-colors"
-        >
-          View All
-          <ChevronRight className="w-4 h-4" />
-        </motion.a>
+        <div className="flex items-center gap-4">
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="relative"
+          >
+            <input
+              type="text"
+              placeholder="Search courses..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          </motion.div>
+
+          <motion.a
+            href="/dashboards/enrolled-courses"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            whileHover={{ scale: 1.05, x: 5 }}
+            whileTap={{ scale: 0.95 }}
+            className="flex items-center gap-2 text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 font-medium transition-colors"
+          >
+            View All
+            <ChevronRight className="w-4 h-4" />
+          </motion.a>
+        </div>
       </div>
+
+      {error && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400"
+        >
+          {error}
+        </motion.div>
+      )}
 
       {loading ? (
         <div className="min-h-[300px] flex items-center justify-center">
@@ -111,7 +176,7 @@ const EnrollCourses = () => {
             <span className="text-gray-600 dark:text-gray-400">Loading your courses...</span>
           </motion.div>
         </div>
-      ) : enrollCourses.length === 0 ? (
+      ) : filteredCourses.length === 0 ? (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -121,10 +186,12 @@ const EnrollCourses = () => {
             <BookOpen className="w-8 h-8 text-primary-500 dark:text-primary-400" />
           </div>
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-            No Enrolled Courses Yet
+            {searchTerm ? "No matching courses found" : "No Enrolled Courses Yet"}
           </h3>
           <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md">
-            Start your learning journey by enrolling in our courses. We have a wide range of options to choose from.
+            {searchTerm 
+              ? "Try adjusting your search terms or view all courses"
+              : "Start your learning journey by enrolling in our courses. We have a wide range of options to choose from."}
           </p>
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -141,7 +208,7 @@ const EnrollCourses = () => {
           className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
         >
           <AnimatePresence>
-            {enrollCourses.map((course, index) => (
+            {filteredCourses.map((course) => (
               <motion.div
                 key={course._id}
                 variants={cardVariants}
@@ -153,7 +220,9 @@ const EnrollCourses = () => {
                   title={course.course_title}
                   image={course.course_image}
                   isLive={course.course_tag === "Live"}
-                  progress={40}
+                  progress={course.progress}
+                  lastAccessed={course.last_accessed}
+                  status={course.completion_status}
                   onClick={() => handleCardClick(course._id)}
                   isHovered={isHovered === course._id}
                 />
