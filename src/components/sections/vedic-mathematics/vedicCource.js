@@ -1,12 +1,24 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import CategoryFilter from "../courses/CategoryFilter";
-import CourseCard from "../courses/CourseCard";
-import Pagination from "@/components/shared/others/Pagination";
+import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
 import GradeSliderVC from "./GradeSliderVC";
+
+// Dynamically import components with SSR disabled
+const CategoryFilter = dynamic(() => import("../courses/CategoryFilter"), {
+  ssr: false,
+});
+
+const CourseCard = dynamic(() => import("../courses/CourseCard"), {
+  ssr: false,
+});
+
+const Pagination = dynamic(() => import("@/components/shared/others/Pagination"), {
+  ssr: false,
+});
 
 function VedicCource() {
   const [selectedGrade, setSelectedGrade] = useState(null);
