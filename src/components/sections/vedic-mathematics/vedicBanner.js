@@ -1,12 +1,24 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import CourseBanner from '@/components/shared/banners/CourseBanner';
 import { Calculator, Brain, Gauge, Star, Users, BookOpen } from 'lucide-react';
+import { motion } from 'framer-motion';
 import Banner from '@/assets/Header-Images/Vedic-Maths/vedic-maths.png';
 import Cource from '@/assets/Header-Images/Vedic-Maths/vedic-banner.jpeg';
 
 function VedicBanner() {
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    setIsLoaded(true);
+  }, []);
+
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
+
   const bannerProps = {
     badge: "All Ages Welcome",
     title: "Comprehensive Course in",
@@ -14,34 +26,34 @@ function VedicBanner() {
     description: "Ancient Wisdom, Modern Techniques. Eliminate Math Phobia and Transform It into a Joyful and Engaging Experience.",
     stats: [
       {
-        icon: <Users className="w-5 h-5 text-orange-500" />,
+        icon: <Users className="w-5 h-5 text-amber-700 animate-pulse" />,
         value: "2000+",
         label: "Students Learning"
       },
       {
-        icon: <Star className="w-5 h-5 text-yellow-500" />,
+        icon: <Star className="w-5 h-5 text-yellow-600 animate-bounce" />,
         value: "4.9/5",
         label: "Course Rating"
       },
       {
-        icon: <BookOpen className="w-5 h-5 text-orange-500" />,
+        icon: <BookOpen className="w-5 h-5 text-amber-700 animate-pulse" />,
         value: "16+",
         label: "Vedic Sutras"
       }
     ],
     features: [
       {
-        icon: <Gauge className="w-6 h-6 text-orange-500" />,
+        icon: <Gauge className="w-6 h-6 text-amber-700 transform hover:rotate-180 transition-transform duration-500" />,
         title: "Quick Calculations",
         description: "Master rapid mental math"
       },
       {
-        icon: <Brain className="w-6 h-6 text-orange-500" />,
+        icon: <Brain className="w-6 h-6 text-amber-700 hover:scale-110 transition-transform duration-300" />,
         title: "Vedic Techniques",
         description: "Ancient proven methods"
       },
       {
-        icon: <Calculator className="w-6 h-6 text-orange-500" />,
+        icon: <Calculator className="w-6 h-6 text-amber-700 hover:scale-110 transition-transform duration-300" />,
         title: "Problem Solving",
         description: "Simplified approaches"
       }
@@ -49,20 +61,41 @@ function VedicBanner() {
     mainImage: Banner,
     studentImage: Cource,
     themeClasses: {
-      badge: "bg-orange-500",
-      badgeContainer: "bg-orange-500/10",
-      title: "text-orange-500",
-      button: "bg-orange-500 hover:bg-orange-600 shadow-orange-500/25",
-      secondaryButton: "text-orange-500 border-orange-500 hover:bg-orange-50",
-      gradientFrom: "from-orange-500/20",
-      gradientVia: "via-yellow-500/10",
+      badge: "bg-amber-700",
+      badgeContainer: "bg-amber-700/10 backdrop-blur-sm",
+      title: "text-amber-700",
+      button: "bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-800 hover:to-amber-700 text-white shadow-amber-700/25 transform hover:-translate-y-1 transition-all duration-300",
+      secondaryButton: "text-amber-700 border-amber-700 hover:bg-amber-50 transform hover:-translate-y-1 transition-all duration-300",
+      gradientFrom: "from-amber-700/20",
+      gradientVia: "via-amber-500/10",
       gradientTo: "to-transparent",
-      backgroundPrimary: "bg-orange-500/10",
-      backgroundSecondary: "bg-yellow-500/10"
+      backgroundPrimary: "bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-amber-900/10 dark:via-orange-900/10 dark:to-yellow-900/10 backdrop-blur-sm",
+      backgroundSecondary: "bg-gradient-to-tr from-amber-100/20 via-orange-100/20 to-yellow-100/20 dark:from-amber-800/10 dark:via-orange-800/10 dark:to-yellow-800/10 backdrop-blur-sm"
     }
   };
 
-  return <CourseBanner {...bannerProps} />;
+  return (
+    <motion.div
+      initial="hidden"
+      animate={isLoaded ? "visible" : "hidden"}
+      variants={fadeInUp}
+      transition={{ duration: 0.5 }}
+      className="bg-gradient-to-b from-amber-50/50 to-orange-50/50 dark:from-amber-950/50 dark:to-orange-950/50"
+    >
+      <CourseBanner {...bannerProps} />
+      <motion.div
+        initial="hidden"
+        animate={isLoaded ? "visible" : "hidden"}
+        variants={fadeInUp}
+        transition={{ duration: 0.5, delay: 0.7 }}
+        className="mt-8 text-center pb-8"
+      >
+        <p className="text-2xl text-amber-700 dark:text-amber-500 font-medium italic animate-pulse">
+          Discover the Magic of Vedic Math!
+        </p>
+      </motion.div>
+    </motion.div>
+  );
 }
 
 export default VedicBanner;
