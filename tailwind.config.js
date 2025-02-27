@@ -845,6 +845,20 @@ module.exports = {
             zIndex: -1,
           },
         },
+        shimmer: {
+          '0%, 100%': { 'background-position': '-200% 0' },
+          '100%': { 'background-position': '200% 0' },
+        },
+        'neon-pulse': {
+          '0%, 100%': { 
+            filter: 'drop-shadow(0 0 2px rgba(56,178,172,0.5))',
+            opacity: 1,
+          },
+          '50%': { 
+            filter: 'drop-shadow(0 0 8px rgba(56,178,172,0.8))',
+            opacity: 0.8,
+          },
+        }
       },
       animation: {
         "spin-slow": "spin-slow 6s linear 0s infinite alternate",
@@ -859,6 +873,9 @@ module.exports = {
         buble2: "buble 3.25s linear .75s infinite",
         marquee: "marquee 25s linear 0s infinite normal",
         preloader: "preloader 1.5s linear 0s",
+        'bounce-slow': 'bounce 3s infinite',
+        'shimmer': 'shimmer 3s infinite',
+        'neon-pulse': 'neon-pulse 4s ease-in-out infinite',
       },
     },
   },
