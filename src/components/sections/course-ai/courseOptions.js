@@ -43,10 +43,6 @@ function CourseOptions() {
       }
       // Force filter to only show AI courses
       fixedCategory="AI and Data Science"
-      // Hide the category selection since we're only showing one category
-      hideCategoryFilter={true}
-      // Only show relevant grade levels
-      availableCategories={grades}
       categoryTitle="Grade Level"
       // Add scroll to top functionality
       scrollToTop={handleScrollToTop}
