@@ -981,7 +981,8 @@ const AddCourse = () => {
                   <option value="Grade 7-8">Grade 7-8</option>
                   <option value="Grade 9-10">Grade 9-10</option>
                   <option value="Grade 11-12">Grade 11-12</option>
-                  <option value="UG - Graduate - Professionals">UG - Graduate - Professionals</option>
+                  <option value="Executive Diploma">Executive Diploma</option>
+                  <option value="Professional Edge Diploma">Professional Edge Diploma</option>
                 </select>
                 {errors.course_grade && (
                   <p className="text-red-500 text-xs mt-1">{errors.course_grade.message}</p>
