@@ -16,7 +16,8 @@ export const metadata = {
 const Courses = async () => {
   return (
     <PageWrapper>
-      <main>
+      <main className="w-full overflow-x-hidden">
+        {/* Hero Section */}
         <div className="relative w-full h-[700px] md:h-[500px]">
           {/* Background Image */}
           <Image
@@ -38,10 +39,10 @@ const Courses = async () => {
           </div>
 
           {/* Features Grid */}
-          <div className="absolute top-[20%]  md:top-[60%] left-1/2 transform -translate-x-1/2 w-full flex items-center justify-center z-10">
+          <div className="absolute top-[20%] md:top-[60%] left-1/2 transform -translate-x-1/2 w-full flex items-center justify-center z-10">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-7xl px-6 md:px-16">
               {/* Feature 1 */}
-              <div className="bg-white dark:bg-screen-dark  p-6 shadow-lg text-center rounded-lg border-2 ">
+              <div className="bg-white dark:bg-screen-dark p-6 shadow-lg text-center rounded-lg border-2">
                 <div className="flex justify-center">
                   <RelevantIcon stroke="#F6B335" fill="#F6B335" />
                 </div>
@@ -71,7 +72,7 @@ const Courses = async () => {
               </div>
 
               {/* Feature 3 */}
-              <div className="bg-white p-6 dark:bg-screen-dark  shadow-lg text-center rounded-lg border-2">
+              <div className="bg-white p-6 dark:bg-screen-dark shadow-lg text-center rounded-lg border-2">
                 <div className="flex justify-center">
                   <NetworkingIcon stroke="#7ECA9D" fill="#7ECA9D" />
                 </div>
@@ -89,7 +90,7 @@ const Courses = async () => {
         </div>
 
         {/* Footer Text */}
-        <div className="lg:mt-44 mt-[31rem] md:mt-64 px-4">
+        <div className="w-full lg:mt-44 mt-[31rem] md:mt-64 px-4">
           <h1 className="text-2xl md:text-3xl dark:text-gray-50 leading-8 md:leading-10 text-center font-bold py-6">
             Experience the transformative impact of MEDH&#39;s skill development
             courses.
@@ -104,10 +105,30 @@ const Courses = async () => {
             and value, giving you an edge in today&#39;s changing world.
           </p>
         </div>
-        <CoursesFilter />
-        <JoinMedh />
+
+        {/* Courses Filter Section - Full Width */}
+        <section className="w-full">
+          <CoursesFilter 
+            CustomText="Skill Development Courses"
+            CustomButton={
+              <div className="inline-flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm hover:shadow-md">
+                Explore All Courses
+              </div>
+            }
+            description="Explore our comprehensive range of skill development courses designed to enhance your personal and professional capabilities."
+          />
+        </section>
+
+        {/* Join Medh Section - Full Width */}
+        <section className="w-full">
+          <JoinMedh />
+        </section>
       </main>
-      <ThemeController />
+
+      {/* Theme Controller */}
+      <div className="fixed bottom-4 left-4 z-50">
+        <ThemeController />
+      </div>
     </PageWrapper>
   );
 };

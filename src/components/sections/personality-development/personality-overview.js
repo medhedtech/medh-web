@@ -1,6 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback, memo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { BookOpen, Brain, Briefcase, ArrowUp } from "lucide-react";
 
 const data = {
   tabs: [
@@ -49,7 +51,7 @@ const data = {
               {
                 title: "Enhanced Confidence",
                 description:
-                  "Build a strong sense of self-assurance to tackle life’s challenges.",
+                  "Build a strong sense of self-assurance to tackle life's challenges.",
               },
               {
                 title: "Improved Communication Skills",
@@ -263,52 +265,126 @@ const data = {
 
 const PersonalityOverview = () => {
   const [activeTab, setActiveTab] = useState(1);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  const handleTabChange = useCallback((tabId) => {
+    setActiveTab(tabId);
+  }, []);
+
+  // Handle scroll to top visibility
+  React.useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 400);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const activeContent = data.tabs.find((tab) => tab.id === activeTab);
 
+  const tabIcons = {
+    1: <BookOpen className="w-5 h-5" />,
+    2: <Brain className="w-5 h-5" />,
+    3: <Briefcase className="w-5 h-5" />
+  };
+
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
+
   return (
-    <div className="bg-white dark:bg-screen-dark h-auto py-10  w-full flex justify-center items-center">
-      <div className="w-full md:w-[80%]">
-        <div className="flex items-center flex-col w-80% md:mb-20 mb-10 px-4">
-          <h1 className="text-[24px] leading-7 md:text-4xl font-bold md:mb-3 mb-2 text-[#41454F] dark:text-gray-50">
+    <div className="relative bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 min-h-[50vh]">
+      {/* Background gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-red-500/10" />
+      
+      <div className="relative container mx-auto px-4 py-16">
+        <motion.div 
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={fadeInUp}
+          transition={{ duration: 0.5 }}
+          className="flex items-center flex-col w-full md:w-[80%] mx-auto mb-16"
+        >
+          <h1 className="text-[24px] text-center leading-7 md:text-4xl font-bold md:mb-3 mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primaryColor to-blue-600">
             Welcome to Medh&#39;s Transformative Personality Development Course
           </h1>
           <p className="text-center md:text-[15px] text-[14px] leading-6 md:leading-7 md:w-[70%] text-[#727695] dark:text-gray-300">
-            Our course is designed to foster crucial life skills and character
-            traits, offering inclusivity for individuals at every stage of life.
-            Whether you&#39;re a student, professional, or homemaker, this
-            program empowers you with essential life skills, confidence, and
-            interpersonal abilities.
+            Our course is designed to foster crucial life skills and character traits, offering inclusivity for individuals at every stage of life.
+            Whether you&#39;re a student, professional, or homemaker, this program empowers you with essential life skills, confidence, and interpersonal abilities.
           </p>
-        </div>
+        </motion.div>
 
         {/* Tabs */}
-        <div className="flex md:mx-0 mx-4 space-x-2 flex-wrap">
+        <motion.div 
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={fadeInUp}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="flex md:mx-0 mx-4 space-x-2 flex-wrap justify-center" 
+          role="tablist"
+        >
           {data.tabs.map((tab) => (
-            <button
+            <motion.button
               key={tab.id}
-              className={`px-1 md:px-6 md:py-2 py-1  transition sm:mb-0 mb-1 ${
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className={`px-4 md:px-6 py-2 transition rounded-md flex items-center gap-2 ${
                 activeTab === tab.id
-                  ? "bg-primaryColor text-white font-semibold"
-                  : "bg-white text-primaryColor border border-primaryColor"
-              } hover:bg-primaryColor hover:text-white`}
-              onClick={() => setActiveTab(tab.id)}
+                  ? "bg-primaryColor text-white font-semibold shadow-lg"
+                  : "bg-white text-primaryColor border border-primaryColor hover:bg-primaryColor/10"
+              }`}
+              onClick={() => handleTabChange(tab.id)}
+              role="tab"
+              aria-selected={activeTab === tab.id}
+              aria-controls={`panel-${tab.id}`}
             >
+              {tabIcons[tab.id]}
               {tab.name}
-            </button>
+            </motion.button>
           ))}
-        </div>
+        </motion.div>
 
         {/* Content Rendering */}
-        <section className=" bg-white mx-4 md:mx-0 dark:bg-screen-dark px-2 md:px-6 py-8 border-2 border-gray-200 text-lightGrey14">
-          <h1 className="text-[23px] font-bold text-primaryColor dark:text-gray50">
-            {activeContent.name}
-          </h1>
-          <div className="mt-4">{activeContent.content}</div>
-        </section>
+        <AnimatePresence mode="wait">
+          <motion.section
+            key={activeTab}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeInUp}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="bg-white/80 backdrop-blur-sm mx-4 md:mx-auto mt-8 dark:bg-gray-800/80 px-6 py-8 border border-gray-200 dark:border-gray-700 text-lightGrey14 rounded-2xl shadow-xl"
+            role="tabpanel"
+            id={`panel-${activeTab}`}
+            aria-labelledby={`tab-${activeTab}`}
+          >
+            <h2 className="text-[23px] font-bold bg-clip-text text-transparent bg-gradient-to-r from-primaryColor to-blue-600">
+              {activeContent.name}
+            </h2>
+            <div className="mt-4">{activeContent.content}</div>
+          </motion.section>
+        </AnimatePresence>
+
+        {/* Scroll to Top Button */}
+        <AnimatePresence>
+          {showScrollTop && (
+            <motion.button
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="fixed bottom-4 right-4 bg-primaryColor text-white p-3 rounded-full shadow-lg hover:bg-primaryColor/90 transition-all z-50"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            >
+              <ArrowUp className="h-6 w-6" />
+            </motion.button>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
 };
 
-export default PersonalityOverview;
+export default memo(PersonalityOverview);

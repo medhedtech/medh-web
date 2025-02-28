@@ -54,7 +54,16 @@ const extractWeeks = (duration) => {
   return value;
 };
 
-const CoursesFilter = ({ CustomButton, CustomText, scrollToTop }) => {
+const CoursesFilter = ({ 
+  CustomButton, 
+  CustomText, 
+  scrollToTop,
+  fixedCategory,
+  hideCategoryFilter,
+  availableCategories,
+  categoryTitle,
+  description
+}) => {
   const router = useRouter();
   const [allCourses, setAllCourses] = useState([]);
   const [filteredCourses, setFilteredCourses] = useState([]);
@@ -221,12 +230,22 @@ const CoursesFilter = ({ CustomButton, CustomText, scrollToTop }) => {
       filters.push({ type: 'sort', value: sortLabel });
     }
 
-    selectedCategory.forEach(cat => {
-      filters.push({ type: 'category', value: cat });
-    });
+    if (!hideCategoryFilter) {
+      selectedCategory.forEach(cat => {
+        filters.push({ type: 'category', value: cat });
+      });
+    }
     
     setActiveFilters(filters);
-  }, [searchTerm, selectedCategory, sortOrder, selectedGrade]);
+  }, [searchTerm, selectedCategory, sortOrder, selectedGrade, hideCategoryFilter]);
+
+  useEffect(() => {
+    if (fixedCategory) {
+      setSelectedCategory([fixedCategory]);
+    } else {
+      setSelectedCategory([]);
+    }
+  }, [fixedCategory]);
 
   useEffect(() => {
     fetchCourses();
@@ -276,10 +295,10 @@ const CoursesFilter = ({ CustomButton, CustomText, scrollToTop }) => {
   };
 
   return (
-    <section className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+    <section className="min-h-screen w-full bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
       {/* Header Section */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
-        <div className="container mx-auto px-4 py-8">
+      <div className="w-full bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+        <div className="max-w-[2100px] mx-auto w-full px-4 md:px-6 lg:px-8 py-8">
           <div className={`transition-all duration-1000 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
               <div className="flex-1">
@@ -388,35 +407,41 @@ const CoursesFilter = ({ CustomButton, CustomText, scrollToTop }) => {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
+      <div className="max-w-[2100px] mx-auto w-full px-4 md:px-6 lg:px-8 py-8">
         <div className={`transition-all duration-1000 ease-out delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-          <div className="flex flex-col md:flex-row gap-8">
+          {description && (
+            <p className="text-lg text-gray-600 dark:text-gray-400 mb-8 max-w-4xl">{description}</p>
+          )}
+          
+          <div className="flex flex-col md:flex-row gap-8 w-full">
             {/* Desktop Categories */}
-            <div className="hidden md:block w-1/4">
-              <div className="sticky top-24 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                  Categories
-                </h3>
-                <CategoryFilter
-                  categories={categories}
-                  selectedCategory={selectedCategory}
-                  setSelectedCategory={(categories) => {
-                    setSelectedCategory(categories);
-                    setCurrentPage(1);
-                  }}
-                />
+            {!hideCategoryFilter && (
+              <div className="hidden md:block w-full md:w-1/4 max-w-xs">
+                <div className="sticky top-24 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                    {categoryTitle || "Categories"}
+                  </h3>
+                  <CategoryFilter
+                    categories={availableCategories || categories}
+                    selectedCategory={selectedCategory}
+                    setSelectedCategory={(categories) => {
+                      setSelectedCategory(categories);
+                      setCurrentPage(1);
+                    }}
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Course Grid */}
-            <div className="flex-1">
+            <div className="flex-1 w-full">
               {loading ? (
-                <div className="flex justify-center items-center min-h-[50vh]">
+                <div className="flex justify-center items-center min-h-[50vh] w-full">
                   <Preloader2 />
                 </div>
               ) : filteredCourses.length > 0 ? (
                 <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 w-full">
                     {filteredCourses.map((course, index) => (
                       <div 
                         key={course._id || index}
@@ -443,7 +468,7 @@ const CoursesFilter = ({ CustomButton, CustomText, scrollToTop }) => {
                   )}
                 </>
               ) : (
-                <div className="flex flex-col items-center justify-center min-h-[50vh] text-center p-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                <div className="flex flex-col items-center justify-center min-h-[50vh] text-center p-6 md:p-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 max-w-4xl mx-auto">
                   <div className="w-16 h-16 flex items-center justify-center rounded-full bg-primary-50 dark:bg-primary-900/20 mb-4">
                     <Search size={24} className="text-primary-500 dark:text-primary-400" />
                   </div>
@@ -467,7 +492,7 @@ const CoursesFilter = ({ CustomButton, CustomText, scrollToTop }) => {
       </div>
 
       {/* Mobile Category Slider */}
-      {categorySliderOpen && (
+      {!hideCategoryFilter && categorySliderOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div 
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
