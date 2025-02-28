@@ -34,10 +34,6 @@ function DigiMarketingCource() {
       // Force filter to only show Digital Marketing courses
       fixedCategory="Digital Marketing with Data Analytics"
       // Hide the category selection since we're only showing one category
-      hideCategoryFilter={true}
-      // Show specialization-based filtering
-      availableCategories={specializations}
-      categoryTitle="Specialization"
       scrollToTop={handleScrollToTop}
       // Add a description for the courses section
       description="Master the art of digital marketing with our comprehensive courses combining modern marketing techniques with data analytics."
