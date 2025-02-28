@@ -33,11 +33,6 @@ function VedicCource() {
       }
       // Force filter to only show Vedic Mathematics courses
       fixedCategory="Vedic Mathematics"
-      // Hide the category selection since we're only showing one category
-      hideCategoryFilter={true}
-      // Only show grade-based filtering
-      availableCategories={grades}
-      categoryTitle="Grade Level"
       scrollToTop={handleScrollToTop}
       // Add a description for the courses section
       description="Discover the ancient wisdom of Vedic Mathematics through our comprehensive courses designed for all age groups and skill levels."
