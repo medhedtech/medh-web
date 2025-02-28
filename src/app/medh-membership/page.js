@@ -1,28 +1,39 @@
-
 import React, { Suspense } from "react";
 import dynamic from "next/dynamic";
-import { Metadata } from "next";
 
-// Dynamic imports for better performance
+// Dynamic imports with loading priority
 const MembershipBanner = dynamic(() => import("@/components/sections/membership/membershipBanner"), {
+  loading: () => <SectionLoader text="Loading banner..." />,
   ssr: true,
 });
+
 const MembershipOverview = dynamic(() => import("@/components/sections/membership/membershipOverview"), {
+  loading: () => <SectionLoader text="Loading overview..." />,
   ssr: true,
 });
+
 const MembershipFaq = dynamic(() => import("@/components/sections/membership/membershipFaq"), {
+  loading: () => <SectionLoader text="Loading FAQ..." />,
   ssr: true,
 });
+
 const MembershipCourceBanner = dynamic(() => import("@/components/sections/membership/membershipCourseBanner"), {
+  loading: () => <SectionLoader text="Loading courses..." />,
   ssr: true,
 });
+
 const PrimeMembership = dynamic(() => import("@/components/sections/membership/primeMembership"), {
+  loading: () => <SectionLoader text="Loading prime benefits..." />,
   ssr: true,
 });
+
 const MembershipFeatures = dynamic(() => import("@/components/sections/membership/membershipFeatures"), {
+  loading: () => <SectionLoader text="Loading features..." />,
   ssr: true,
 });
+
 const Certified = dynamic(() => import("@/components/sections/why-medh/Certified"), {
+  loading: () => <SectionLoader text="Loading certifications..." />,
   ssr: true,
 });
 
@@ -30,59 +41,42 @@ const Certified = dynamic(() => import("@/components/sections/why-medh/Certified
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import ThemeController from "@/components/shared/others/ThemeController";
 
-// Loading fallback component
-const LoadingFallback = () => (
-  <div className="w-full h-32 flex items-center justify-center">
-    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary-500"></div>
+// Enhanced loading component with skeleton animation
+const SectionLoader = ({ text }) => (
+  <div className="w-full min-h-[300px] flex flex-col items-center justify-center space-y-4 bg-gray-50 dark:bg-gray-800 rounded-lg animate-pulse">
+    <div className="w-12 h-12 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+    <p className="text-sm text-gray-500 dark:text-gray-400">{text}</p>
   </div>
 );
 
-export const metadata = {
-  title: 'Medh Membership - Join Our Learning Community',
-  description: 'Explore Medh membership plans and unlock premium learning resources, expert-led courses, and exclusive benefits.',
-};
-
-export default function Membership() {
+export default function MembershipPage() {
   return (
     <PageWrapper>
-      <main className="min-h-screen bg-white dark:bg-gray-900">
-        <Suspense fallback={<LoadingFallback />}>
-          <div className="space-y-12 md:space-y-16">
-            <MembershipBanner />
-            
-            <section className="container mx-auto px-4">
-              <MembershipOverview />
-            </section>
-            
-            <section className="bg-gray-50 dark:bg-gray-800 py-12">
-              <div className="container mx-auto px-4">
-                <PrimeMembership />
-              </div>
-            </section>
-            
-            <section className="container mx-auto px-4">
-              <MembershipFeatures />
-            </section>
-            
-            <section className="bg-gray-50 dark:bg-gray-800 py-12">
-              <div className="container mx-auto px-4">
-                <MembershipFaq />
-              </div>
-            </section>
-            
-            <section className="container mx-auto px-4">
-              <MembershipCourceBanner />
-            </section>
-            
-            <section className="pb-16 container mx-auto px-4">
-              <Certified />
-            </section>
-          </div>
+      <main className="min-h-screen">
+        <Suspense fallback={<SectionLoader text="Loading banner..." />}>
+          <MembershipBanner />
         </Suspense>
-        
-        <div className="fixed bottom-4 right-4 z-50">
-          <ThemeController />
+        <Suspense fallback={<SectionLoader text="Loading overview..." />}>
+          <MembershipOverview />
+        </Suspense>
+        <Suspense fallback={<SectionLoader text="Loading features..." />}>
+          <MembershipFeatures />
+        </Suspense>
+        <Suspense fallback={<SectionLoader text="Loading prime benefits..." />}>
+          <PrimeMembership />
+        </Suspense>
+        <Suspense fallback={<SectionLoader text="Loading FAQ..." />}>
+          <MembershipFaq />
+        </Suspense>
+        <Suspense fallback={<SectionLoader text="Loading courses..." />}>
+          <MembershipCourceBanner />
+        </Suspense>
+        <div className="bg-white dark:bg-screen-dark pb-16">
+          <Suspense fallback={<SectionLoader text="Loading certifications..." />}>
+            <Certified />
+          </Suspense>
         </div>
+        <ThemeController />
       </main>
     </PageWrapper>
   );

@@ -32,7 +32,7 @@ function DigiMarketingCource() {
         </div>
       }
       // Force filter to only show Digital Marketing courses
-      fixedCategory="Digital Marketing"
+      fixedCategory="Digital Marketing with Data Analytics"
       // Hide the category selection since we're only showing one category
       hideCategoryFilter={true}
       // Show specialization-based filtering
