@@ -1,147 +1,8 @@
-// "use client";
-
-// import React, { useState } from "react";
-
-// const data = {
-//   tabs: [
-//     {
-//       id: 1,
-//       name: "Overview",
-//       content:
-//         "Combining the essential disciplines of Digital Marketing with Data Analytics, this course is instrumental in driving business success in today’s digital age. Here are several compelling reasons that underscore the exceptional value of this course:",
-//     },
-//     {
-//       id: 2,
-//       name: "Benefits",
-//       content:
-//         "Benefits of Vedic Mathematics include improved speed in calculations, better mental agility, and stronger problem-solving skills. It's highly beneficial for students preparing for competitive exams.",
-//     },
-//     {
-//       id: 3,
-//       name: "Career Prospects",
-//       content:
-//         "Vedic Mathematics provides excellent career prospects for those aiming to excel in mathematics, teaching, tutoring, and competitive exams.",
-//     },
-//   ],
-//   overview: {
-//     keyFeatures: [
-//       {
-//         title: "Data Empowerment",
-//         description:
-//           "In the data-driven landscape, data analytics enables digital marketers to extract valuable insights from vast data pools, facilitating informed decision-making and campaign optimization for maximum ROI.",
-//       },
-//       {
-//         title: "Speed",
-//         description:
-//           "Methods are designed to expedite calculations, making them helpful for mental math and quick problem-solving.",
-//       },
-//       {
-//         title: "Competitive Edge ",
-//         description:
-//           "Competitive Edge: Staying current with evolving digital marketing trends is crucial. Data analytics equips marketers to identify emerging trends, consumer behavior patterns, and market opportunities, providing a competitive advantage in the fast-paced digital arena.",
-//       },
-//       {
-//         title: "Personalized Marketing",
-//         description:
-//           "Personalized Marketing: By segmenting audiences based on preferences, behaviors, and demographics, data analytics facilitates the delivery of personalized and targeted marketing messages, enhancing campaign effectiveness and customer experiences.",
-//       },
-//       {
-//         title: "Performance Measurement",
-//         description:
-//           " Data analytics enables precise measurement of campaign impact, tracking key performance indicators (KPIs), identifying success metrics, and optimizing resource allocation for enhanced marketing strategies.",
-//       },
-//       {
-//         title: "Customer Journey Insight",
-//         description:
-//           " Marketers gain insights into the entire customer journey, from initial contact to conversion and beyond, allowing for the creation of seamless and engaging customer experiences.",
-//       },
-//       {
-//         title: "Career Opportunities",
-//         description:
-//           " Professionals skilled in digital marketing and data analytics are highly sought after. This course offers diverse career prospects in marketing, advertising, market research, and business analytics.",
-//         description1:
-//           " Equipping marketers with a comprehensive skill set, this course empowers individuals to thrive in the digital landscape, make data-driven decisions, and deliver impactful results for businesses and organizations. It serves as a transformative learning journey, setting individuals on a path of continuous success in the digital age.",
-//       },
-//     ],
-//   },
-// };
-
-// function DigiMarketingOverview() {
-//   const [activeTab, setActiveTab] = useState(1);
-
-//   const activeContent = data.tabs.find((tab) => tab.id === activeTab);
-
-//   return (
-//     <div className="bg-white dark:bg-screen-dark  h-auto pt-10 pb-6 w-full flex justify-center items-center px-1 md:px-0">
-//       <div className="w-full md:w-[80%] ">
-//         {/* Title */}
-//         <div className="flex items-center flex-col w-80% md:mb-20 mb-10 px-4 ">
-//           <h1 className="text-[24px] leading-7 md:text-4xl font-bold md:mb-3 mb-2 text-[#41454F] dark:text-gray50">
-//             Your Path to Achieving Success in the Digital Age.
-//           </h1>
-//           <p className="text-center md:text-[15px] text-[14px] leading-6 md:leading-7 md:w-[70%] dark:text-gray300 text-[#727695]">
-//             Gain expertise in using data analytics to improve digital marketing
-//             strategies. The Digital Marketing with Data Science course brings
-//             together two essential components of modern marketing—digital
-//             marketing and data analytics—allowing businesses to make informed,
-//             data-driven decisions and implement highly effective, targeted
-//             marketing campaigns.
-//           </p>
-//         </div>
-
-//         {/* Tabs */}
-//         <div className="flex md:mx-0 mx-4 space-x-2 flex-wrap">
-//           {data.tabs.map((tab) => (
-//             <button
-//               key={tab.id}
-//               className={`px-2 md:px-6 md:py-2 py-1 transition  sm:mb-0 mb-1   ${
-//                 activeTab === tab.id
-//                   ? "bg-primaryColor text-white font-semibold"
-//                   : "bg-white text-primaryColor border border-primaryColor"
-//               } hover:bg-primaryColor hover:text-white`}
-//               onClick={() => setActiveTab(tab.id)}
-//             >
-//               {tab.name}
-//             </button>
-//           ))}
-//         </div>
-
-//         {/* Content Rendering */}
-//         <section className="bg-white mx-4 md:mx-0 dark:bg-screen-dark dark:text-gray-300 px-2 md:px-6 py-8 border-2 border-gray-300 dark:border-gray-600 text-lightGrey14">
-//           <h1 className="text-[23px] font-bold text-primaryColor ">
-//             {activeContent.name}
-//           </h1>
-//           <p className="mb-2 md:text-[15px] text-[14px]">
-//             {activeContent.content}
-//           </p>
-
-//           {activeTab === 1 && (
-//             <>
-//               <ul className="list-none list-inside space-y-2 pb-2 dark:text-gray300">
-//                 {data.overview.keyFeatures.map((feature, index) => (
-//                   <li key={index}>
-//                     <strong className="text-[1rem] font-bold tracking-wide dark:text-gray50">
-//                       {feature.title}:
-//                     </strong>{" "}
-//                     {feature.description}
-//                     <br />
-//                     {feature.description1}
-//                   </li>
-//                 ))}
-//               </ul>
-//             </>
-//           )}
-//         </section>
-//       </div>
-//     </div>
-//   );
-// }
-
-// export default DigiMarketingOverview;
-
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback, memo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { LineChart, Lightbulb, GraduationCap, ArrowUp } from "lucide-react";
 
 const data = {
   tabs: [
@@ -396,53 +257,125 @@ const data = {
 
 const DigiMarketingOverview = () => {
   const [activeTab, setActiveTab] = useState(1);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  const handleTabChange = useCallback((tabId) => {
+    setActiveTab(tabId);
+  }, []);
+
+  // Handle scroll to top visibility
+  React.useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 400);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const activeContent = data.tabs.find((tab) => tab.id === activeTab);
 
+  const tabIcons = {
+    1: <LineChart className="w-5 h-5" />,
+    2: <Lightbulb className="w-5 h-5" />,
+    3: <GraduationCap className="w-5 h-5" />
+  };
+
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
+
   return (
-    <div className="bg-white dark:bg-screen-dark h-auto pt-10 pb-4  w-full flex justify-center items-center">
-      <div className="w-full md:w-[80%]">
-        <div className="flex items-center flex-col w-80% md:mb-20 mb-10 px-4">
-          <h1 className="text-[24px] leading-7 md:text-4xl font-bold md:mb-3 mb-2 text-[#41454F] dark:text-gray-50">
-            Your Path to Achieving Success in the Digital Age.
+    <div className="relative bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 min-h-[50vh]">
+      {/* Background gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-purple-500/10" />
+      
+      <div className="relative container mx-auto px-4 py-16">
+        <motion.div 
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={fadeInUp}
+          transition={{ duration: 0.5 }}
+          className="flex items-center flex-col w-full md:w-[80%] mx-auto mb-16"
+        >
+          <h1 className="text-[24px] text-center leading-7 md:text-4xl font-bold md:mb-3 mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primaryColor to-blue-600">
+            Your Path to Achieving Success in the Digital Age
           </h1>
           <p className="text-center md:text-[15px] text-[14px] leading-6 md:leading-7 md:w-[90%] text-[#727695] dark:text-gray-300">
-            Gain expertise in using data analytics to improve digital marketing
-            strategies. The Digital Marketing with Data Science course brings
-            together two essential components of modern marketing—digital
-            marketing and data analytics—allowing businesses to make informed,
-            data-driven decisions and implement highly effective, targeted
-            marketing campaigns.
+            Gain expertise in using data analytics to improve digital marketing strategies. The Digital Marketing with Data Science course brings together two essential components of modern marketing—digital marketing and data analytics—allowing businesses to make informed, data-driven decisions and implement highly effective, targeted marketing campaigns.
           </p>
-        </div>
+        </motion.div>
 
         {/* Tabs */}
-        <div className="flex md:mx-0 mx-4 space-x-2 flex-wrap">
+        <motion.div 
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={fadeInUp}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="flex md:mx-0 mx-4 space-x-2 flex-wrap justify-center" 
+          role="tablist"
+        >
           {data.tabs.map((tab) => (
-            <button
+            <motion.button
               key={tab.id}
-              className={`px-1 md:px-6 md:py-2 py-1  transition sm:mb-0 mb-1 ${
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className={`px-4 md:px-6 py-2 transition rounded-md flex items-center gap-2 ${
                 activeTab === tab.id
-                  ? "bg-primaryColor text-white font-semibold"
-                  : "bg-white text-primaryColor border border-primaryColor"
-              } hover:bg-primaryColor hover:text-white`}
-              onClick={() => setActiveTab(tab.id)}
+                  ? "bg-primaryColor text-white font-semibold shadow-lg"
+                  : "bg-white text-primaryColor border border-primaryColor hover:bg-primaryColor/10"
+              }`}
+              onClick={() => handleTabChange(tab.id)}
+              role="tab"
+              aria-selected={activeTab === tab.id}
+              aria-controls={`panel-${tab.id}`}
             >
+              {tabIcons[tab.id]}
               {tab.name}
-            </button>
+            </motion.button>
           ))}
-        </div>
+        </motion.div>
 
         {/* Content Rendering */}
-        <section className=" bg-white mx-4 md:mx-0 dark:bg-screen-dark px-2 md:px-6 py-8 border-2 border-gray-200 text-lightGrey14">
-          <h1 className="text-[23px] font-bold text-primaryColor dark:text-gray50">
-            {activeContent.name}
-          </h1>
-          <div className="mt-4">{activeContent.content}</div>
-        </section>
+        <AnimatePresence mode="wait">
+          <motion.section
+            key={activeTab}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeInUp}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="bg-white/80 backdrop-blur-sm mx-4 md:mx-auto mt-8 dark:bg-gray-800/80 px-6 py-8 border border-gray-200 dark:border-gray-700 text-lightGrey14 rounded-2xl shadow-xl"
+            role="tabpanel"
+            id={`panel-${activeTab}`}
+            aria-labelledby={`tab-${activeTab}`}
+          >
+            <h2 className="text-[23px] font-bold bg-clip-text text-transparent bg-gradient-to-r from-primaryColor to-blue-600">
+              {activeContent.name}
+            </h2>
+            <div className="mt-4">{activeContent.content}</div>
+          </motion.section>
+        </AnimatePresence>
+
+        {/* Scroll to Top Button */}
+        <AnimatePresence>
+          {showScrollTop && (
+            <motion.button
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="fixed bottom-4 right-4 bg-primaryColor text-white p-3 rounded-full shadow-lg hover:bg-primaryColor/90 transition-all z-50"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            >
+              <ArrowUp className="h-6 w-6" />
+            </motion.button>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
 };
 
-export default DigiMarketingOverview;
+export default memo(DigiMarketingOverview);
