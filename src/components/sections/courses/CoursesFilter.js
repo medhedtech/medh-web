@@ -112,7 +112,7 @@ const CoursesFilter = ({
     getQuery({
       url: apiUrls?.courses?.getAllCoursesWithLimits(
         currentPage,
-        6,
+        8,
         "",
         "",
         "",
@@ -416,7 +416,7 @@ const CoursesFilter = ({
           <div className="flex flex-col md:flex-row gap-8 w-full">
             {/* Desktop Categories */}
             {!hideCategoryFilter && (
-              <div className="hidden md:block w-full md:w-1/4 max-w-xs">
+              <div className="hidden md:block w-full md:w-1/5 lg:w-[18%] max-w-[280px]">
                 <div className="sticky top-24 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                   <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                     {categoryTitle || "Categories"}
@@ -434,20 +434,20 @@ const CoursesFilter = ({
             )}
 
             {/* Course Grid */}
-            <div className="flex-1 w-full">
+            <div className="flex-1 w-full min-w-0">
               {loading ? (
                 <div className="flex justify-center items-center min-h-[50vh] w-full">
                   <Preloader2 />
                 </div>
               ) : filteredCourses.length > 0 ? (
                 <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 w-full">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 w-full">
                     {filteredCourses.map((course, index) => (
                       <div 
                         key={course._id || index}
-                        className="transition-all duration-500"
+                        className="transition-all duration-500 h-full"
                         style={{ 
-                          transitionDelay: `${index * 100}ms`,
+                          transitionDelay: `${index * 50}ms`,
                           opacity: isVisible ? 1 : 0,
                           transform: isVisible ? 'translateY(0)' : 'translateY(20px)'
                         }}
@@ -458,7 +458,7 @@ const CoursesFilter = ({
                   </div>
                   
                   {totalPages > 1 && (
-                    <div className="mt-12">
+                    <div className="mt-16">
                       <Pagination
                         totalPages={totalPages}
                         currentPage={currentPage}
@@ -468,7 +468,7 @@ const CoursesFilter = ({
                   )}
                 </>
               ) : (
-                <div className="flex flex-col items-center justify-center min-h-[50vh] text-center p-6 md:p-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 max-w-4xl mx-auto">
+                <div className="flex flex-col items-center justify-center min-h-[50vh] text-center p-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 max-w-4xl mx-auto">
                   <div className="w-16 h-16 flex items-center justify-center rounded-full bg-primary-50 dark:bg-primary-900/20 mb-4">
                     <Search size={24} className="text-primary-500 dark:text-primary-400" />
                   </div>
