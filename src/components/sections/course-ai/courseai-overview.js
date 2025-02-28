@@ -1,10 +1,17 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback, memo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { BookOpen, ChevronRight, Briefcase, Brain, ArrowUp } from "lucide-react";
 
-const Section = ({ title, data }) => (
-  <section className="mt-8">
-    <div className="px-0 pl-6 flex flex-col md:flex-row border border-gray300 rounded-md shadow bg-white dark:bg-gray800 dark:border-gray700">
+const Section = memo(({ title, data }) => (
+  <motion.section 
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.3 }}
+    className="mt-8"
+  >
+    <div className="px-0 pl-6 flex flex-col md:flex-row border border-gray300 rounded-md shadow-lg hover:shadow-xl transition-shadow duration-300 bg-white dark:bg-gray800 dark:border-gray700">
       {/* Left Section */}
       <div className="w-full md:w-[30%] pr-4 flex justify-start items-center text-center border-r border-gray300 dark:border-gray700">
         <h2 className="text-[1rem] font-bold tracking-wide dark:text-gray50">
@@ -15,18 +22,26 @@ const Section = ({ title, data }) => (
       <div className="w-full md:w-[70%] flex flex-col justify-center py-4 pl-0">
         <div className="flex flex-col divide-y divide-gray300 dark:divide-gray700">
           {data.map((item, index) => (
-            <p key={index} className="mb-0 py-2 pl-6">
+            <motion.p 
+              key={index}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: index * 0.1 }}
+              className="mb-0 py-2 pl-6"
+            >
               <strong className="text-[1rem] font-bold tracking-wide dark:text-gray50">
                 {item.label}:
               </strong>{" "}
               {item.content}
-            </p>
+            </motion.p>
           ))}
         </div>
       </div>
     </div>
-  </section>
-);
+  </motion.section>
+));
+
+Section.displayName = "Section";
 
 const sections = [
   {
@@ -155,7 +170,7 @@ const data = {
               {
                 title: "Efficiency and Time-saving",
                 description:
-                  "Offering both subjects in a single course can save time for students who are interested in both AI and Data Science. They don’t have to take separate courses for each, reducing the overall duration of their learning.",
+                  "Offering both subjects in a single course can save time for students who are interested in both AI and Data Science. They don't have to take separate courses for each, reducing the overall duration of their learning.",
               },
               {
                 title: "Interdisciplinary Perspective",
@@ -185,7 +200,7 @@ const data = {
               {
                 title: "Hands-on Projects",
                 description:
-                  "Theory alone won’t suffice in this ever-evolving domain. That’s why we emphasize hands-on projects that allow you to apply your knowledge to real-world scenarios. Through these projects, you’ll gain the confidence to tackle AI and Data Science challenges head-on.",
+                  "Theory alone won't suffice in this ever-evolving domain. That's why we emphasize hands-on projects that allow you to apply your knowledge to real-world scenarios. Through these projects, you'll gain the confidence to tackle AI and Data Science challenges head-on.",
               },
               {
                 title: "Interactive Learning Environment",
@@ -234,7 +249,7 @@ const data = {
               {
                 title: "Hands-on Projects and Practical Experience",
                 description:
-                  "Emphasizing hands-on learning, we focus on projects and real-world applications. Working with practical assignments and real datasets, you’ll gain invaluable experience in AI algorithm implementation, data pattern exploration, and insightful analysis. This experiential approach equips you to excel in data science roles that demand both theoretical knowledge and practical expertise.",
+                  "Emphasizing hands-on learning, we focus on projects and real-world applications. Working with practical assignments and real datasets, you'll gain invaluable experience in AI algorithm implementation, data pattern exploration, and insightful analysis. This experiential approach equips you to excel in data science roles that demand both theoretical knowledge and practical expertise.",
               },
               {
                 title: "Expert Instruction and Mentorship",
@@ -274,7 +289,7 @@ const data = {
             Science Course
           </h1>
           <p className="text-lightGrey14 mb-6 md:text-[15px] text-[14px] dark:text-gray300 ">
-            In today&#39;s rapidly evolving technological landscape, the demand
+            In today's rapidly evolving technological landscape, the demand
             for professionals with expertise in Data Science and AI is
             skyrocketing. As computational power and data volumes continue to
             expand, the need for skilled individuals in these fields will only
@@ -302,12 +317,12 @@ const data = {
               {
                 title: "Aspiring Data Scientists",
                 description:
-                  "If you are fascinated by data and aspire to become a Data Scientist, this course provides the ideal launching pad for your career. You’ll gain the foundational and advanced skills needed to analyze data, build models, and generate insights that drive business decisions.",
+                  "If you are fascinated by data and aspire to become a Data Scientist, this course provides the ideal launching pad for your career. You'll gain the foundational and advanced skills needed to analyze data, build models, and generate insights that drive business decisions.",
               },
               {
                 title: "AI Enthusiasts",
                 description:
-                  "Whether you're an AI hobbyist or an enthusiast seeking to delve deeper into AI and its applications, this course will nurture your passion and enhance your expertise. You’ll explore cutting-edge AI technologies and learn how to apply them to solve real-world problems.",
+                  "Whether you're an AI hobbyist or an enthusiast seeking to delve deeper into AI and its applications, this course will nurture your passion and enhance your expertise. You'll explore cutting-edge AI technologies and learn how to apply them to solve real-world problems.",
               },
               {
                 title: "Professionals Seeking to Upskill",
@@ -331,53 +346,128 @@ const data = {
 
 const CourseAiOverview = () => {
   const [activeTab, setActiveTab] = useState(1);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  const handleTabChange = useCallback((tabId) => {
+    setActiveTab(tabId);
+  }, []);
+
+  // Handle scroll to top visibility
+  React.useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 400);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const activeContent = data.tabs.find((tab) => tab.id === activeTab);
 
+  const tabIcons = {
+    1: <BookOpen className="w-5 h-5" />,
+    2: <Brain className="w-5 h-5" />,
+    3: <Briefcase className="w-5 h-5" />
+  };
+
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
+
   return (
-    <div className="bg-white dark:bg-screen-dark h-auto py-6  w-full flex justify-center items-center">
-      <div className="w-full md:w-[80%]">
-        <div className="flex items-center flex-col w-80% md:mb-20 mb-10 px-4">
-          <h1 className="text-[24px] text-center leading-7 md:text-4xl font-bold md:mb-3 mb-2 text-[#41454F] dark:text-gray-50">
-            Empower Your Journey to Success in the Modern Era of AI and Data
-            Science with MEDH.
+    <div className="relative bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 min-h-[50vh]">
+      {/* Background gradient overlay - AI/Data Science theme */}
+      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-violet-500/10" />
+      
+      <div className="relative container mx-auto px-4 py-16">
+        <motion.div 
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={fadeInUp}
+          transition={{ duration: 0.5 }}
+          className="flex items-center flex-col w-full md:w-[80%] mx-auto mb-16"
+        >
+          <h1 className="text-[24px] text-center leading-7 md:text-4xl font-bold md:mb-3 mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primaryColor to-blue-600">
+            Empower Your Journey to Success in the Modern Era of AI and Data Science with MEDH.
           </h1>
           <p className="text-center md:text-[15px] text-[14px] leading-6 md:leading-7 md:w-[80%] text-[#727695] dark:text-gray-300">
-            Medh&#39;s Artificial Intelligence and Data Science course combines
-            advanced AI techniques and technologies with the principles of Data
-            Science. This fusion leverages AI algorithms, models, and tools to
-            efficiently analyze data, extract valuable insights, automate
-            processes, and support data-driven decision-making.
+            Medh's Artificial Intelligence and Data Science course combines advanced AI techniques and technologies with the principles of Data Science. This fusion leverages AI algorithms, models, and tools to efficiently analyze data, extract valuable insights, automate processes, and support data-driven decision-making.
           </p>
-        </div>
+        </motion.div>
 
         {/* Tabs */}
-        <div className="flex md:mx-0 mx-4 space-x-2 flex-wrap">
+        <motion.div 
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={fadeInUp}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="flex md:mx-0 mx-4 space-x-2 flex-wrap justify-center" 
+          role="tablist"
+        >
           {data.tabs.map((tab) => (
-            <button
+            <motion.button
               key={tab.id}
-              className={`px-1 md:px-6 md:py-2 py-1  transition sm:mb-0 mb-1 ${
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className={`px-4 md:px-6 py-2 transition rounded-md flex items-center gap-2 ${
                 activeTab === tab.id
-                  ? "bg-primaryColor text-white font-semibold"
-                  : "bg-white text-primaryColor border border-primaryColor"
-              } hover:bg-primaryColor hover:text-white`}
-              onClick={() => setActiveTab(tab.id)}
+                  ? "bg-primaryColor text-white font-semibold shadow-lg"
+                  : "bg-white text-primaryColor border border-primaryColor hover:bg-primaryColor/10"
+              }`}
+              onClick={() => handleTabChange(tab.id)}
+              role="tab"
+              aria-selected={activeTab === tab.id}
+              aria-controls={`panel-${tab.id}`}
             >
+              {tabIcons[tab.id]}
               {tab.name}
-            </button>
+              {activeTab === tab.id && (
+                <ChevronRight className="w-4 h-4 animate-bounce" />
+              )}
+            </motion.button>
           ))}
-        </div>
+        </motion.div>
 
         {/* Content Rendering */}
-        <section className=" bg-white mx-4 md:mx-0 dark:bg-screen-dark px-2 md:px-6 py-8 border-2 border-gray-200 text-lightGrey14">
-          <h1 className="text-[23px] font-bold text-primaryColor dark:text-gray50">
-            {activeContent.name}
-          </h1>
-          <div className="mt-4">{activeContent.content}</div>
-        </section>
+        <AnimatePresence mode="wait">
+          <motion.section
+            key={activeTab}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeInUp}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="bg-white/80 backdrop-blur-sm mx-4 md:mx-auto mt-8 dark:bg-gray-800/80 px-6 py-8 border border-gray-200 dark:border-gray-700 text-lightGrey14 rounded-2xl shadow-xl"
+            role="tabpanel"
+            id={`panel-${activeTab}`}
+            aria-labelledby={`tab-${activeTab}`}
+          >
+            <h2 className="text-[23px] font-bold bg-clip-text text-transparent bg-gradient-to-r from-primaryColor to-blue-600">
+              {activeContent.name}
+            </h2>
+            <div className="mt-4">{activeContent.content}</div>
+          </motion.section>
+        </AnimatePresence>
+
+        {/* Scroll to Top Button */}
+        <AnimatePresence>
+          {showScrollTop && (
+            <motion.button
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="fixed bottom-4 right-4 bg-primaryColor text-white p-3 rounded-full shadow-lg hover:bg-primaryColor/90 transition-all z-50"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            >
+              <ArrowUp className="h-6 w-6" />
+            </motion.button>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
 };
 
-export default CourseAiOverview;
+export default memo(CourseAiOverview);
