@@ -34,10 +34,6 @@ function PersonalityDevelopmentCourses() {
       // Force filter to only show Personality Development courses
       fixedCategory="Personality Development"
       // Hide the category selection since we're only showing one category
-      hideCategoryFilter={true}
-      // Only show grade-based filtering
-      availableCategories={grades}
-      categoryTitle="Grade Level"
       scrollToTop={handleScrollToTop}
       // Add a description for the courses section
       description="Enhance your personal growth with our comprehensive personality development programs tailored for all age groups."
