@@ -6,7 +6,7 @@ import Pagination from "@/components/shared/pagination/Pagination";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
 import { useRouter } from "next/navigation";
-import { X, Filter, Search, ChevronDown, Zap } from "lucide-react";
+import { X, Filter, Search, ChevronDown, Zap, GraduationCap } from "lucide-react";
 import Preloader2 from "@/components/shared/others/Preloader2";
 import CategoryToggle from "@/components/shared/courses/CategoryToggle";
 
@@ -276,191 +276,164 @@ const CoursesFilter = ({ CustomButton, CustomText, scrollToTop }) => {
   };
 
   return (
-    <section className="bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 py-12" ref={contentRef}>
-      <div className="container mx-auto px-4">
-        {/* Header with animation */}
-        <div className={`transition-all duration-1000 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10">
-            <h1 className="text-3xl md:text-4xl font-bold text-primary-600 dark:text-primary-400 mb-4 md:mb-0">
-              {CustomText || "Skill Development Courses"}
-            </h1>
-            <div>{CustomButton}</div>
-          </div>
-          
-          {/* Search and filter controls */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            {/* Search field */}
-            <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search size={18} className="text-gray-400 group-focus-within:text-primary-500 transition-colors" />
+    <section className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+      {/* Header Section */}
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+        <div className="container mx-auto px-4 py-8">
+          <div className={`transition-all duration-1000 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+              <div className="flex-1">
+                <h1 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-primary-400 mb-2">
+                  {CustomText || "Skill Development Courses"}
+                </h1>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Discover courses tailored to your learning journey
+                </p>
               </div>
-              <input
-                type="text"
-                placeholder="Search courses..."
-                value={searchTerm}
-                onChange={handleSearch}
-                className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all"
-              />
+              <div className="mt-4 md:mt-0">{CustomButton}</div>
             </div>
 
-            {/* Grade filter */}
-            <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Zap size={18} className="text-gray-400 group-focus-within:text-primary-500 transition-colors" />
-              </div>
-              <select
-                id="gradeFilter"
-                className="w-full pl-10 pr-10 py-3 rounded-lg appearance-none border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all"
-                value={selectedGrade || ""}
-                onChange={(e) => {
-                  setSelectedGrade(e.target.value);
-                  setCurrentPage(1); // Reset to page 1 when changing grade
-                }}
-              >
-                <option value="">All Grade Levels</option>
-                {grades.map((grade, index) => (
-                  <option key={index} value={grade}>
-                    {grade}
-                  </option>
-                ))}
-              </select>
-              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                <ChevronDown size={18} className="text-gray-400 group-focus-within:text-primary-500 transition-colors" />
-              </div>
-            </div>
-
-            {/* Sort order */}
-            <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Filter size={18} className="text-gray-400 group-focus-within:text-primary-500 transition-colors" />
-              </div>
-              <select
-                className="w-full pl-10 pr-10 py-3 rounded-lg appearance-none border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all"
-                value={sortOrder}
-                onChange={handleSortChange}
-              >
-                <option value="newest-first">Newest First</option>
-                <option value="oldest-first">Oldest First</option>
-                <option value="A-Z">Title (A-Z)</option>
-                <option value="Z-A">Title (Z-A)</option>
-                <option value="duration-asc">Duration (Short to Long)</option>
-                <option value="duration-desc">Duration (Long to Short)</option>
-              </select>
-              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                <ChevronDown size={18} className="text-gray-400 group-focus-within:text-primary-500 transition-colors" />
-              </div>
-            </div>
-          </div>
-          
-          {/* Active filters display */}
-          {activeFilters.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-6">
-              {activeFilters.map((filter, index) => (
-                <div 
-                  key={index} 
-                  className="flex items-center bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 rounded-full pl-3 pr-2 py-1.5 text-sm"
-                >
-                  <span className="mr-1 capitalize">{filter.type === 'category' ? '' : `${filter.type}:`}</span>
-                  <span className="font-medium truncate max-w-[200px]">{filter.value}</span>
-                  <button 
-                    onClick={() => removeFilter(filter.type, filter.value)}
-                    className="ml-1 p-1 rounded-full hover:bg-primary-100 dark:hover:bg-primary-800/30 transition-colors"
-                    aria-label={`Remove ${filter.type} filter: ${filter.value}`}
-                  >
-                    <X size={14} />
-                  </button>
+            {/* Search and Filter Controls */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-6">
+              {/* Search Field */}
+              <div className="md:col-span-5 relative group">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search size={18} className="text-gray-400 group-focus-within:text-primary-500 transition-colors" />
                 </div>
-              ))}
-              
-              <button 
-                onClick={handleClearFilters}
-                className="flex items-center text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium pl-2 pr-3 py-1.5 border border-primary-200 dark:border-primary-800/30 rounded-full transition-colors"
-                aria-label="Clear all filters"
-              >
-                <X size={14} className="mr-1" />
-                Clear All
-              </button>
+                <input
+                  type="text"
+                  placeholder="Search courses by title, category, or duration..."
+                  value={searchTerm}
+                  onChange={handleSearch}
+                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all"
+                />
+              </div>
+
+              {/* Grade Filter */}
+              <div className="md:col-span-3 relative group">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <GraduationCap size={18} className="text-gray-400 group-focus-within:text-primary-500 transition-colors" />
+                </div>
+                <select
+                  value={selectedGrade || ""}
+                  onChange={(e) => {
+                    setSelectedGrade(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="w-full pl-10 pr-10 py-3 rounded-xl appearance-none border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all"
+                >
+                  <option value="">All Grade Levels</option>
+                  {grades.map((grade) => (
+                    <option key={grade} value={grade}>{grade}</option>
+                  ))}
+                </select>
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                  <ChevronDown size={18} className="text-gray-400 group-focus-within:text-primary-500 transition-colors" />
+                </div>
+              </div>
+
+              {/* Sort Order */}
+              <div className="md:col-span-4 relative group">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Filter size={18} className="text-gray-400 group-focus-within:text-primary-500 transition-colors" />
+                </div>
+                <select
+                  value={sortOrder}
+                  onChange={handleSortChange}
+                  className="w-full pl-10 pr-10 py-3 rounded-xl appearance-none border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all"
+                >
+                  <option value="newest-first">Newest First</option>
+                  <option value="oldest-first">Oldest First</option>
+                  <option value="A-Z">Title (A-Z)</option>
+                  <option value="Z-A">Title (Z-A)</option>
+                  <option value="duration-asc">Duration (Short to Long)</option>
+                  <option value="duration-desc">Duration (Long to Short)</option>
+                </select>
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                  <ChevronDown size={18} className="text-gray-400 group-focus-within:text-primary-500 transition-colors" />
+                </div>
+              </div>
             </div>
-          )}
-          
-          {/* Mobile category toggle */}
-          <div className="block md:hidden mb-6">
-            <button
-              onClick={toggleCategorySlider}
-              className="w-full flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm hover:shadow transition-all"
-              aria-expanded={categorySliderOpen}
-              aria-label="Toggle category filter"
-            >
-              <span className="flex items-center text-gray-700 dark:text-gray-200">
-                <Filter size={18} className="mr-2 text-primary-500 dark:text-primary-400" />
-                Categories
-              </span>
-              <ChevronDown 
-                size={18} 
-                className={`text-gray-500 transition-transform duration-300 ${categorySliderOpen ? 'rotate-180' : ''}`} 
-              />
-            </button>
+
+            {/* Active Filters */}
+            {activeFilters.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-6">
+                {activeFilters.map((filter, index) => (
+                  <div 
+                    key={index} 
+                    className="flex items-center bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 rounded-full pl-3 pr-2 py-1.5 text-sm"
+                  >
+                    <span className="mr-1 capitalize">{filter.type === 'category' ? '' : `${filter.type}:`}</span>
+                    <span className="font-medium truncate max-w-[200px]">{filter.value}</span>
+                    <button 
+                      onClick={() => removeFilter(filter.type, filter.value)}
+                      className="ml-1 p-1 rounded-full hover:bg-primary-100 dark:hover:bg-primary-800/30 transition-colors"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ))}
+                
+                <button 
+                  onClick={handleClearFilters}
+                  className="flex items-center text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium pl-2 pr-3 py-1.5 border border-primary-200 dark:border-primary-800/30 rounded-full transition-colors"
+                >
+                  <X size={14} className="mr-1" />
+                  Clear All
+                </button>
+              </div>
+            )}
           </div>
         </div>
+      </div>
 
-        {/* Filter and content area */}
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-8">
         <div className={`transition-all duration-1000 ease-out delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-          <CategoryToggle
-            categorySliderOpen={categorySliderOpen}
-            toggleCategorySlider={toggleCategorySlider}
-            categories={categories}
-            selectedCategory={selectedCategory}
-            setSelectedCategory={(categories) => {
-              setSelectedCategory(categories);
-              setCurrentPage(1); // Reset to page 1 when changing categories
-            }}
-            handleClearFilters={handleClearFilters}
-            searchTerm={searchTerm}
-            handleSearch={handleSearch}
-          />
-          
           <div className="flex flex-col md:flex-row gap-8">
-            {/* Desktop Categories Section */}
-            <div className="hidden md:block w-1/4 transition-all">
-              <div className="sticky top-24 bg-white dark:bg-gray-800 p-5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-                <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
+            {/* Desktop Categories */}
+            <div className="hidden md:block w-1/4">
+              <div className="sticky top-24 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                   Categories
                 </h3>
-                
                 <CategoryFilter
                   categories={categories}
                   selectedCategory={selectedCategory}
                   setSelectedCategory={(categories) => {
                     setSelectedCategory(categories);
-                    setCurrentPage(1); // Reset to page 1 when changing categories
+                    setCurrentPage(1);
                   }}
                 />
               </div>
             </div>
-            
-            {/* Courses grid */}
-            <div className="w-full md:w-3/4">
+
+            {/* Course Grid */}
+            <div className="flex-1">
               {loading ? (
                 <div className="flex justify-center items-center min-h-[50vh]">
                   <Preloader2 />
                 </div>
               ) : filteredCourses.length > 0 ? (
                 <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     {filteredCourses.map((course, index) => (
                       <div 
                         key={course._id || index}
                         className="transition-all duration-500"
-                        style={{ transitionDelay: `${index * 100}ms` }}
+                        style={{ 
+                          transitionDelay: `${index * 100}ms`,
+                          opacity: isVisible ? 1 : 0,
+                          transform: isVisible ? 'translateY(0)' : 'translateY(20px)'
+                        }}
                       >
                         <CourseCard course={course} />
                       </div>
                     ))}
                   </div>
                   
-                  {/* Pagination */}
                   {totalPages > 1 && (
-                    <div className="mt-12 flex justify-center">
+                    <div className="mt-12">
                       <Pagination
                         totalPages={totalPages}
                         currentPage={currentPage}
@@ -470,17 +443,19 @@ const CoursesFilter = ({ CustomButton, CustomText, scrollToTop }) => {
                   )}
                 </>
               ) : (
-                <div className="flex flex-col items-center justify-center min-h-[50vh] text-center p-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+                <div className="flex flex-col items-center justify-center min-h-[50vh] text-center p-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
                   <div className="w-16 h-16 flex items-center justify-center rounded-full bg-primary-50 dark:bg-primary-900/20 mb-4">
                     <Search size={24} className="text-primary-500 dark:text-primary-400" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">No courses found</h3>
-                  <p className="text-gray-600 dark:text-gray-400 mb-6">
-                    We couldn't find any courses matching your search criteria.
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                    No courses found
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md">
+                    We couldn't find any courses matching your criteria. Try adjusting your filters or search terms.
                   </p>
                   <button
                     onClick={handleClearFilters}
-                    className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-lg transition-colors"
+                    className="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors"
                   >
                     Clear All Filters
                   </button>
@@ -489,18 +464,41 @@ const CoursesFilter = ({ CustomButton, CustomText, scrollToTop }) => {
             </div>
           </div>
         </div>
-        
-        {/* Backdrop for mobile category slider */}
-        {categorySliderOpen && (
-          <div
-            className="md:hidden backdrop-blur-sm bg-black bg-opacity-50 fixed top-0 left-0 w-full h-[100vh] z-[1000001]"
-            onClick={() => {
-              setCategorySliderOpen(false);
-            }}
-            aria-hidden="true"
-          ></div>
-        )}
       </div>
+
+      {/* Mobile Category Slider */}
+      {categorySliderOpen && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <div 
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setCategorySliderOpen(false)}
+          />
+          <div className="absolute inset-y-0 right-0 w-80 bg-white dark:bg-gray-800 shadow-xl">
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Categories
+                </h3>
+                <button 
+                  onClick={() => setCategorySliderOpen(false)}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              <CategoryFilter
+                categories={categories}
+                selectedCategory={selectedCategory}
+                setSelectedCategory={(categories) => {
+                  setSelectedCategory(categories);
+                  setCurrentPage(1);
+                  setCategorySliderOpen(false);
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };

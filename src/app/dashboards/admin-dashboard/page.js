@@ -3,7 +3,6 @@ import AdminDashboardMain from "@/components/layout/main/dashboards/AdminDashboa
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
 import ThemeController from "@/components/shared/others/ThemeController";
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
-
 export const metadata = {
   title: "Admin Dashboard | Medh",
   description: "Comprehensive admin dashboard for managing courses, students, instructors, and more.",

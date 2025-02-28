@@ -13,6 +13,23 @@ import usePostQuery from "@/hooks/postQuery.hook";
 import useDeleteQuery from "@/hooks/deleteQuery.hook";
 import { apiUrls } from "@/apis";
 import MyTable from "@/components/shared/common-table/page";
+import { 
+  Plus, 
+  Trash2, 
+  Search, 
+  Filter,
+  Eye,
+  Edit2,
+  Users,
+  Calendar,
+  Download,
+  RefreshCw,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Check,
+  MoreVertical
+} from "lucide-react";
 
 // StatusToggleButton Component
 const StatusToggleButton = ({ status, onToggle, courseId }) => {
@@ -653,6 +670,77 @@ const ExportModal = () => {
             {exportLoading ? 'Exporting...' : 'Export'}
           </button>
         </div>
+      </div>
+    </div>
+  );
+};
+
+// Add new ActionButtons component for better organization
+const ActionButtons = ({ course, onEdit, onView, onDelete, onAssignInstructor, onSchedulePublish }) => {
+  const [showTooltip, setShowTooltip] = useState(null);
+
+  const ActionButton = ({ onClick, icon, label, color = "gray", className = "" }) => (
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
+      onMouseEnter={() => setShowTooltip(label)}
+      onMouseLeave={() => setShowTooltip(null)}
+      className={`inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
+        color === "blue" ? "text-blue-700 bg-blue-50 hover:bg-blue-100" :
+        color === "indigo" ? "text-indigo-700 bg-indigo-50 hover:bg-indigo-100" :
+        color === "purple" ? "text-purple-700 bg-purple-50 hover:bg-purple-100" :
+        color === "emerald" ? "text-emerald-700 bg-emerald-50 hover:bg-emerald-100" :
+        color === "red" ? "text-red-700 bg-red-50 hover:bg-red-100" :
+        "text-gray-700 bg-gray-50 hover:bg-gray-100"
+      } ${className}`}
+    >
+      {icon}
+      <span className="ml-1.5">{label}</span>
+    </button>
+  );
+
+  return (
+    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+      <ActionButton
+        onClick={() => onAssignInstructor(course._id)}
+        icon={<Users className="w-4 h-4" />}
+        label="Assign Instructor"
+        color="purple"
+      />
+      
+      <ActionButton
+        onClick={() => onSchedulePublish(course._id, course.course_title)}
+        icon={<Calendar className="w-4 h-4" />}
+        label="Schedule Publish"
+        color="emerald"
+      />
+      
+      <div className="flex items-center gap-1">
+        <ActionButton
+          onClick={() => onView(course._id)}
+          icon={<Eye className="w-4 h-4" />}
+          label="View"
+          color="blue"
+          className="!px-2"
+        />
+        
+        <ActionButton
+          onClick={() => onEdit(course._id)}
+          icon={<Edit2 className="w-4 h-4" />}
+          label="Edit"
+          color="indigo"
+          className="!px-2"
+        />
+        
+        <ActionButton
+          onClick={() => onDelete(course._id)}
+          icon={<Trash2 className="w-4 h-4" />}
+          label="Delete"
+          color="red"
+          className="!px-2"
+        />
       </div>
     </div>
   );
@@ -1819,71 +1907,22 @@ const ListOfCourse = () => {
   // Define the columns configuration using useMemo
   const columns = useMemo(() => [
     {
-      Header: (
-        <CustomCheckbox
-          checked={paginatedData.length > 0 && paginatedData.every(course => selectedCourses.includes(course._id))}
-          onChange={handleSelectAll}
-        />
-      ),
       accessor: 'checkbox',
       render: (row) => (
-        <div className="custom-checkbox">
-          <CustomCheckbox
-            checked={selectedCourses.includes(row._id)}
-            onChange={(isChecked) => handleSelectCourse(isChecked, row._id)}
-          />
-        </div>
-      ),
-      disableSorting: true
+        <CustomCheckbox
+          checked={selectedCourses.includes(row._id)}
+          onChange={(checked) => handleSelectCourse(checked, row._id)}
+        />
+      )
     },
+    { accessor: 'no' },
     {
-      Header: (
-        <div 
-          className="cursor-pointer flex items-center" 
-          onClick={() => handleSort('no')}
-        >
-          <span>No.</span>
-          {sortField === 'no' && (
-            <span className="ml-1">
-              {sortDirection === 'asc' ? '↑' : '↓'}
-            </span>
-          )}
-        </div>
-      ),
-      accessor: 'no',
-      render: (row) => <span className="text-gray-500">{row.no}</span>
-    },
-    {
-      Header: (
-        <div 
-          className="cursor-pointer flex items-center" 
-          onClick={() => handleSort('course_title')}
-        >
-          <span>Title & Category</span>
-          {sortField === 'course_title' && (
-            <span className="ml-1">
-              {sortDirection === 'asc' ? '↑' : '↓'}
-            </span>
-          )}
-        </div>
-      ),
       accessor: 'course_title',
       render: (row) => (
-        <Tooltip content={`${row.course_title} - ${row.course_category || "Uncategorized"}`} position="bottom">
-          <div className="flex flex-col w-[220px]">
-            <div className="flex items-center gap-2">
-              <div className="font-medium text-gray-900 dark:text-white truncate">
-                {row.course_title}
-              </div>
-              {row.important && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300">
-                  Important
-                </span>
-              )}
-            </div>
-            <div className="text-xs text-gray-500 truncate">{row.course_category || "Uncategorized"}</div>
-          </div>
-        </Tooltip>
+        <div className="flex flex-col">
+          <span className="font-medium text-gray-900 dark:text-white">{row.course_title}</span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">{row.course_category || 'No Category'}</span>
+        </div>
       )
     },
     {
@@ -1910,235 +1949,37 @@ const ListOfCourse = () => {
       )
     },
     {
-      Header: (
-        <div 
-          className="cursor-pointer flex items-center" 
-          onClick={() => handleSort('course_fee')}
-        >
-          <span>Price</span>
-          {sortField === 'course_fee' && (
-            <span className="ml-1">
-              {sortDirection === 'asc' ? '↑' : '↓'}
-            </span>
-          )}
-        </div>
-      ),
       accessor: 'course_fee',
       render: (row) => (
-        <div className="flex flex-col">
-          {row.isFree || row.category_type === "Free" ? (
-            <span className="font-medium text-green-600">Free</span>
-          ) : (
-            <span className="font-medium text-gray-900 dark:text-white">
-              ${row.course_fee ? parseFloat(row.course_fee).toFixed(2) : "0.00"}
-            </span>
-          )}
-        </div>
-      )
-    },
-    {
-      Header: (
-        <div 
-          className="cursor-pointer flex items-center" 
-          onClick={() => handleSort('assigned_instructor')}
-        >
-          <span>Instructor</span>
-          {sortField === 'assigned_instructor' && (
-            <span className="ml-1">
-              {sortDirection === 'asc' ? '↑' : '↓'}
-            </span>
-          )}
-        </div>
-      ),
-      accessor: 'assigned_instructor',
-      render: (row) => (
-        <div className="flex items-center gap-2">
-          <div className="flex flex-col">
-            <span className="text-gray-800 dark:text-gray-200 font-medium">
-              {row.instructor || "Unassigned"}
-            </span>
-            {row.instructor_email && (
-              <span className="text-xs text-gray-500 dark:text-gray-400">
-                {row.instructor_email}
-              </span>
-            )}
-          </div>
-          <Tooltip content="Assign Instructor">
-          <button 
-              className="ml-2 p-1.5 rounded-full text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
-            onClick={(e) => {
-              e.stopPropagation();
-                setAssignInstructorModal({ open: true, assignmentId: row._id });
-            }}
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-            </svg>
-          </button>
-          </Tooltip>
-        </div>
-      )
-    },
-    {
-      Header: (
-        <div 
-          className="cursor-pointer flex items-center" 
-          onClick={() => handleSort('no_of_Sessions')}
-        >
-          <span>Sessions</span>
-          {sortField === 'no_of_Sessions' && (
-            <span className="ml-1">
-              {sortDirection === 'asc' ? '↑' : '↓'}
-            </span>
-          )}
-        </div>
-      ),
-      accessor: 'no_of_Sessions',
-      render: (row) => (
-        <span className="text-gray-800 dark:text-gray-200">{row.no_of_Sessions || 0}</span>
-      )
-    },
-    {
-      Header: (
-        <div 
-          className="cursor-pointer flex items-center" 
-          onClick={() => handleSort('createdAt')}
-        >
-          <span>Created</span>
-          {sortField === 'createdAt' && (
-            <span className="ml-1">
-              {sortDirection === 'asc' ? '↑' : '↓'}
-            </span>
-          )}
-        </div>
-      ),
-      accessor: 'createdAt',
-      render: (row) => (
-        <span className="text-gray-800 dark:text-gray-200">
-          {row.createdAt ? new Date(row.createdAt).toLocaleDateString() : "-"}
+        <span className="font-medium text-gray-900 dark:text-white">
+          {typeof row.course_fee === 'number' ? `$${row.course_fee.toFixed(2)}` : row.course_fee || 'Free'}
         </span>
       )
     },
+    { accessor: 'instructor' },
+    { accessor: 'no_of_Sessions' },
     {
-      Header: (
-        <div 
-          className="cursor-pointer flex items-center" 
-          onClick={() => handleSort('course_grade')}
-        >
-          <span>Grade Level</span>
-          {sortField === 'course_grade' && (
-            <span className="ml-1">
-              {sortDirection === 'asc' ? '↑' : '↓'}
-            </span>
-          )}
-        </div>
-      ),
-      accessor: 'course_grade',
+      accessor: 'createdAt',
       render: (row) => (
-        <div className="flex items-center">
-          <span className={`px-2.5 py-1 rounded-full text-sm font-medium ${
-            row.course_grade ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
-          }`}>
-            {row.course_grade || 'Not Set'}
-          </span>
-        </div>
+        <span className="text-gray-500 dark:text-gray-400">
+          {new Date(row.createdAt).toLocaleDateString()}
+        </span>
       )
     },
+    { accessor: 'course_grade' },
+    { accessor: 'course_duration' },
     {
-      Header: (
-        <div 
-          className="cursor-pointer flex items-center" 
-          onClick={() => handleSort('course_duration')}
-        >
-          <span>Duration</span>
-          {sortField === 'course_duration' && (
-            <span className="ml-1">
-              {sortDirection === 'asc' ? '↑' : '↓'}
-            </span>
-          )}
-        </div>
-      ),
-      accessor: 'course_duration',
-      render: (row) => (
-        <div className="flex items-center">
-          <span className="px-2.5 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300">
-            {row.course_duration || 'Not Set'}
-          </span>
-        </div>
-      )
-    },
-    {
-      Header: 'Actions',
       accessor: 'actions',
       render: (row) => (
-        <div className="flex items-center justify-end gap-2">
-          {/* Primary Actions Group */}
-          <div className="flex items-center bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg shadow-sm">
-            <Tooltip content="View Course Details">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                viewCourse(row._id);
-              }}
-                className="p-2 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 hover:text-blue-700 rounded-l-lg border-r border-gray-100 dark:border-gray-700 transition-colors"
-            >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                </svg>
-            </button>
-          </Tooltip>
-          <Tooltip content="Edit Course">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                editCourse(row._id);
-              }}
-                className="p-2 hover:bg-green-50 dark:hover:bg-green-900/20 text-green-600 hover:text-green-700 border-r border-gray-100 dark:border-gray-700 transition-colors"
-            >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-            </button>
-          </Tooltip>
-            <Tooltip content="Schedule Publish">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                  setScheduleModal({ 
-                    open: true, 
-                    courseId: row._id,
-                    courseTitle: row.course_title 
-                  });
-                }}
-                className="p-2 hover:bg-purple-50 dark:hover:bg-purple-900/20 text-purple-600 hover:text-purple-700 rounded-r-lg transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-            </button>
-          </Tooltip>
-        </div>
-
-          {/* Secondary Actions Group */}
-          <div className="flex items-center gap-1">
-            <Tooltip content="Delete Course">
-            <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDelete(row._id);
-                }}
-                className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 hover:text-red-700 rounded-lg border border-red-100 dark:border-red-800/30 transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-            </button>
-            </Tooltip>
-          </div>
-        </div>
-      ),
-      disableSorting: true
+        <ActionButtons
+          course={row}
+          onEdit={editCourse}
+          onView={viewCourse}
+          onDelete={handleDelete}
+          onAssignInstructor={(id) => setAssignInstructorModal({ open: true, courseId: id })}
+          onSchedulePublish={(id, title) => setScheduleModal({ open: true, courseId: id, courseTitle: title })}
+        />
+      )
     }
   ], [paginatedData, selectedCourses, sortField, sortDirection, handleSort, handleSelectCourse, instructorNames, setAssignInstructorModal]);
 
@@ -2358,9 +2199,7 @@ const ListOfCourse = () => {
                 onClick={() => router.push("/dashboards/admin-addcourse")}
                 className="bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-lg flex items-center justify-center transition-all shadow-sm hover:shadow"
               >
-                <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
+                <Plus className="w-5 h-5 mr-2" />
                 Add Course
               </button>
             </div>
@@ -2370,7 +2209,7 @@ const ListOfCourse = () => {
             <div className="flex flex-col md:flex-row gap-4">
               <div className="relative flex-grow">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FaSearch className="text-gray-400" />
+                  <Search className="w-4 h-4 text-gray-400" />
                 </div>
                 <input
                   type="text"
@@ -2383,7 +2222,7 @@ const ListOfCourse = () => {
               
               <div className="relative min-w-[200px]">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FaFilter className="text-gray-400" />
+                  <Filter className="w-4 h-4 text-gray-400" />
                 </div>
                 <select
                   className="block w-full pl-10 pr-10 py-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent shadow-sm appearance-none"
@@ -2398,9 +2237,7 @@ const ListOfCourse = () => {
                   ))}
                 </select>
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
+                  <ChevronDown className="w-4 h-4 text-gray-400" />
                 </div>
               </div>
             </div>
@@ -2418,18 +2255,14 @@ const ListOfCourse = () => {
                 onClick={() => fetchCourseAnalytics()}
                 className="flex items-center text-sm px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
               >
-                <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
+                <RefreshCw className="w-4 h-4 mr-2" />
                 Refresh
               </button>
               <button 
                 onClick={() => setExportModal(true)}
                 className="flex items-center text-sm px-4 py-2 bg-green-50 hover:bg-green-100 text-green-700 rounded-lg transition-colors"
               >
-                <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
+                <Download className="w-4 h-4 mr-2" />
                 Export
               </button>
             </div>
@@ -2614,9 +2447,7 @@ const ListOfCourse = () => {
                       : 'text-green-600 hover:bg-green-100 dark:hover:bg-green-900/20'
                   }`}
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
+                  <ChevronLeft className="w-5 h-5" />
                 </button>
                 
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded">
@@ -2632,9 +2463,7 @@ const ListOfCourse = () => {
                       : 'text-green-600 hover:bg-green-100 dark:hover:bg-green-900/20'
                   }`}
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
+                  <ChevronRight className="w-5 h-5" />
                 </button>
               </div>
             </div>
@@ -2644,9 +2473,7 @@ const ListOfCourse = () => {
         {filteredData.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 px-4 text-center bg-white dark:bg-gray-800 rounded-b-xl border border-t-0 border-gray-100 dark:border-gray-700">
             <div className="bg-gray-50 dark:bg-gray-700 rounded-full p-6 mb-6">
-              <svg className="w-20 h-20 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
+              <MoreVertical className="w-20 h-20 text-gray-400" />
             </div>
             <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">No courses found</h3>
             <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md">
@@ -2659,7 +2486,7 @@ const ListOfCourse = () => {
                 onClick={() => router.push("/dashboards/admin-addcourse")}
                 className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg flex items-center transition-colors shadow-sm"
               >
-                <FaPlus className="mr-2" /> Add Your First Course
+                <Plus className="w-5 h-5 mr-2" /> Add Your First Course
               </button>
             )}
           </div>

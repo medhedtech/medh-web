@@ -88,7 +88,7 @@ const SidebarDashboard = () => {
             </svg>
           ),
         },
-        role === "super-admin" && {
+        role === "admin" && {
           name: "User Management",
           path: null,
           icon: (
@@ -358,6 +358,24 @@ const SidebarDashboard = () => {
             >
               <path
                 d="M13 21L15 20L17 21V14H13M17 9V7L15 8L13 7V9L11 10L13 11V13L15 12L17 13V11L19 10M20 3H4C3.46957 3 2.96086 3.21071 2.58579 3.58579C2.21071 3.96086 2 4.46957 2 5V15C2 15.5304 2.21071 16.0391 2.58579 16.4142C2.96086 16.7893 3.46957 17 4 17H11V15H4V5H20V15H19V17H20C20.5304 17 21.0391 16.7893 21.4142 16.4142C21.7893 16.0391 22 15.5304 22 15V5C22 4.46957 21.7893 3.96086 21.4142 3.58579C21.0391 3.21071 20.5304 3 20 3ZM11 8H5V6H11M9 11H5V9H9M11 14H5V12H11V14Z"
+                fill="#808080"
+              />
+            </svg>
+          ),
+        },
+        (role === "admin" || permissions.includes("faq_management")) && {
+          name: "FAQ Management",
+          path: "/dashboards/admin-faq-management",
+          icon: (
+            <svg
+              width="16"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"
                 fill="#808080"
               />
             </svg>
