@@ -21,15 +21,15 @@ function AnimatedContent({ components, exploreJourneyProps }) {
   };
 
   return (
-    <>
+    <div className="w-full overflow-x-hidden">
       {/* Hero Section */}
-      <section className="relative">
+      <section className="relative w-full">
         <DigiMarketingBanner />
         <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-gray-50 dark:from-gray-900 to-transparent" />
       </section>
 
       {/* Main Content */}
-      <main className="relative bg-gray-50 dark:bg-gray-900">
+      <main className="relative w-full bg-gray-50 dark:bg-gray-900">
         {/* Overview Section with Animation */}
         <motion.section
           initial="hidden"
@@ -37,9 +37,11 @@ function AnimatedContent({ components, exploreJourneyProps }) {
           viewport={{ once: true }}
           variants={fadeInUp}
           transition={{ duration: 0.5 }}
-          className="container mx-auto px-4 py-16 relative z-10"
+          className="w-full py-16 relative z-10"
         >
-          <DigiMarketingOverview />
+          <div className="w-full">
+            <DigiMarketingOverview />
+          </div>
         </motion.section>
 
         {/* Course Content Section */}
@@ -49,13 +51,15 @@ function AnimatedContent({ components, exploreJourneyProps }) {
           viewport={{ once: true }}
           variants={fadeInUp}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="container mx-auto px-4 py-16 relative"
+          className="w-full py-16 relative"
         >
-          <DigiMarketingCource />
+          <div className="w-full">
+            <DigiMarketingCource />
+          </div>
         </motion.section>
 
         {/* Enrollment CTA Section with Gradient Background */}
-        <section className="relative py-20 overflow-hidden">
+        <section className="relative w-full py-20 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-purple-500/10" />
           <motion.div
             initial="hidden"
@@ -63,27 +67,33 @@ function AnimatedContent({ components, exploreJourneyProps }) {
             viewport={{ once: true }}
             variants={fadeInUp}
             transition={{ duration: 0.5 }}
-            className="container mx-auto px-4 relative z-10"
+            className="w-full relative z-10"
           >
             <ExploreJourney {...exploreJourneyProps} />
           </motion.div>
         </section>
 
         {/* FAQ Section with Card Design */}
-        <motion.section
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeInUp}
-          transition={{ duration: 0.5 }}
-          className="container mx-auto px-4 py-16 bg-white dark:bg-gray-800 rounded-3xl mx-4 lg:mx-8 shadow-lg"
-        >
-          <DigiMarketingFaq />
-        </motion.section>
+        <section className="w-full py-16">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeInUp}
+            transition={{ duration: 0.5 }}
+            className="w-full bg-white dark:bg-gray-800 shadow-lg overflow-hidden"
+          >
+            <div className="py-8">
+              <DigiMarketingFaq />
+            </div>
+          </motion.div>
+        </section>
 
         {/* Course Banner Section */}
-        <section className="py-16">
-          <DigiMarketingCourceBanner />
+        <section className="w-full py-16">
+          <div className="w-full">
+            <DigiMarketingCourceBanner />
+          </div>
         </section>
 
         {/* Related Courses Section with Grid Layout */}
@@ -93,9 +103,11 @@ function AnimatedContent({ components, exploreJourneyProps }) {
           viewport={{ once: true }}
           variants={fadeInUp}
           transition={{ duration: 0.5 }}
-          className="container mx-auto px-4 py-16"
+          className="w-full py-16"
         >
-          <DigiMarketingRalatedCource />
+          <div className="w-full">
+            <DigiMarketingRalatedCource />
+          </div>
         </motion.section>
       </main>
 
@@ -115,7 +127,7 @@ function AnimatedContent({ components, exploreJourneyProps }) {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
         </svg>
       </motion.button>
-    </>
+    </div>
   );
 }
 
