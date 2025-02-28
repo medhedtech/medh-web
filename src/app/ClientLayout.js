@@ -65,8 +65,10 @@ export default function ClientLayout({ children }) {
       // Apply smooth scrolling to html element
       document.documentElement.style.scrollBehavior = prefersReducedMotion ? 'auto' : 'smooth';
       
-      // Add CSS class for smooth scrolling
-      document.documentElement.classList.add('scroll-smooth');
+      // Prevent double scrollbars
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overflow = 'auto';
+      document.body.style.height = '100vh';
     };
 
     initSmoothScroll();
@@ -81,41 +83,46 @@ export default function ClientLayout({ children }) {
 
     return () => {
       mediaQuery.removeEventListener('change', handleMotionPreference);
+      // Reset overflow styles
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+      document.body.style.height = '';
     };
   }, []);
 
   return (
-    <html lang="en" className={`${hind.variable} ${inter.variable} h-full scroll-smooth`}>
-      <body className="relative bg-bodyBg dark:bg-bodyBg-dark text-gray-700 dark:text-gray-200 min-h-screen font-sans flex flex-col antialiased scroll-smooth">
-          <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-            {/* Preloader */}
-            <PreloaderPrimary />
-            
-            {/* Main Content */}
-            <div className="flex-grow flex flex-col relative z-10 scroll-smooth">
-              {children}
-            </div>
+    <html lang="en" className={`${hind.variable} ${inter.variable} h-full`}>
+      <body className="relative bg-bodyBg dark:bg-bodyBg-dark text-gray-700 dark:text-gray-200 min-h-screen font-sans antialiased">
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+          {/* Preloader */}
+          <PreloaderPrimary />
+          
+          {/* Main Content */}
+          <div className="relative flex flex-col min-h-screen z-10">
+            {children}
+          </div>
 
-            {/* Background Elements */}
-            <div className="fixed inset-0 -z-10 pointer-events-none">
-              <FixedShadow />
-              <FixedShadow align={"right"} />
-            </div>
-            
-            {/* Toast Notifications */}
-            <ToastContainer 
-              position="top-right"
-              autoClose={5000}
-              hideProgressBar={false}
-              newestOnTop
-              closeOnClick
-              rtl={false}
-              pauseOnFocusLoss
-              draggable
-              pauseOnHover
-              theme="colored"
-            />
-          </ThemeProvider>
+          {/* Background Elements */}
+          <div className="fixed inset-0 -z-10 pointer-events-none">
+            <FixedShadow />
+            <FixedShadow align={"right"} />
+          </div>
+          
+          {/* Toast Notifications */}
+          <ToastContainer 
+            position="top-right"
+            autoClose={5000}
+            hideProgressBar={false}
+            newestOnTop
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="colored"
+            className="z-[100]"
+          />
+        </ThemeProvider>
       </body>
     </html>
   );
