@@ -2,6 +2,14 @@ export const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL; //live instance URL
 // export const apiBaseUrl = "http://localhost:8080/api/v1"; // local URL
 
 export const apiUrls = {
+  faqs: {
+    getAllFaqs: "/faqs/getAll",
+    getFaqsByCategory: "/faqs/category",
+    getAllCategories: "/faqs/categories",
+    createFaq: "/faqs/create",
+    updateFaq: "/faqs/update",
+    deleteFaq: "/faqs/delete",
+  },
   user: {
     register: "/auth/register",
     login: "/auth/login",
