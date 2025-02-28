@@ -38,7 +38,6 @@ const schema = yup.object({
     .integer("Must be whole number"),
   course_duration: yup
     .string()
-    .required("Course duration is required")
     .matches(/^\d+ months \d+ weeks$/, "Invalid duration format"),
   session_duration: yup
     .string()
@@ -63,7 +62,7 @@ const schema = yup.object({
         .required("Course fee is required")
         .min(0, "Course fee cannot be negative"),
   }),
-  course_grade: yup.string().required("Course grade is required"),
+  course_grade: yup.string(),
   is_Certification: yup
     .string()
     .oneOf(["Yes", "No"])
@@ -143,7 +142,6 @@ const AddCourse = () => {
   const [curriculumWeeks, setCurriculumWeeks] = useState([]);
   const [toolsTechnologies, setToolsTechnologies] = useState([]);
   const [bonusModules, setBonusModules] = useState([]);
-  const [faqs, setFaqs] = useState([]);
   const [classType, setClassType] = useState("");
   const [selectedType, setSelectedType] = useState("");
 
@@ -203,7 +201,6 @@ const AddCourse = () => {
       setCurriculumWeeks(parsedData.curriculumWeeks || []);
       setToolsTechnologies(parsedData.toolsTechnologies || []);
       setBonusModules(parsedData.bonusModules || []);
-      setFaqs(parsedData.faqs || []);
       setClassType(parsedData.classType || "");
       setCourseGrade(parsedData.courseGrade || "");
       setCertification(parsedData.certification || "");
@@ -245,7 +242,6 @@ const AddCourse = () => {
         curriculumWeeks,
         toolsTechnologies,
         bonusModules,
-        faqs,
         classType,
         courseGrade,
         certification,
@@ -280,7 +276,6 @@ const AddCourse = () => {
     curriculumWeeks,
     toolsTechnologies,
     bonusModules,
-    faqs,
     classType,
     courseGrade,
     certification,
@@ -483,14 +478,6 @@ const AddCourse = () => {
         resources: [] // Initialize empty resources array
       }));
 
-      // Format FAQs to ensure they match the schema structure
-      const formattedFaqs = faqs.map(faq => ({
-        question: faq.question.trim(),
-        answer: faq.answer.trim()
-      }));
-
-      // Note: toolsTechnologies and bonusModules are already formatted in their respective handlers
-
       const postData = {
         ...data,
         efforts_per_Week: formattedEffortsPerWeek,
@@ -503,7 +490,6 @@ const AddCourse = () => {
         related_courses: selectedCourses || [],
         tools_technologies: toolsTechnologies,
         bonus_modules: bonusModules,
-        faqs: formattedFaqs,
         prices: formattedPrices,
         createdAt: new Date().toISOString(),
         category_type: data.category_type,
@@ -900,9 +886,7 @@ const AddCourse = () => {
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">
-                  Course Duration <span className="text-red-500">*</span>
-                </label>
+                <label className="block text-sm font-medium mb-2">Course Duration</label>
                 <div className="grid grid-cols-2 gap-2">
                   <input
                     type="number"
@@ -1598,69 +1582,6 @@ const AddCourse = () => {
                 </p>
               </div>
             </div>
-          </div>
-          {/* FAQs Section */}
-          <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl shadow-sm mt-6">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold">Frequently Asked Questions</h3>
-              <button
-                type="button"
-                onClick={() => setFaqs([...faqs, { question: "", answer: "" }])}
-                className="flex items-center gap-2 text-customGreen hover:text-green-700"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-                Add FAQ
-              </button>
-            </div>
-            <div className="space-y-4">
-              {faqs.map((faq, index) => (
-                <div key={index} className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow-sm">
-                  <div className="flex justify-between items-start">
-                    <div className="w-full space-y-2">
-                      <input
-                        type="text"
-                        placeholder="Question..."
-                        className="w-full p-2 border rounded-lg"
-                        value={faq.question}
-                        onChange={(e) => {
-                          const updated = [...faqs];
-                          updated[index].question = e.target.value;
-                          setFaqs(updated);
-                        }}
-                      />
-                      <textarea
-                        placeholder="Answer..."
-                        rows="3"
-                        className="w-full p-2 border rounded-lg"
-                        value={faq.answer}
-                        onChange={(e) => {
-                          const updated = [...faqs];
-                          updated[index].answer = e.target.value;
-                          setFaqs(updated);
-                        }}
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const updated = faqs.filter((_, i) => i !== index);
-                        setFaqs(updated);
-                      }}
-                      className="ml-4 text-red-500 hover:text-red-700"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <p className="text-sm text-gray-500 mt-4">
-              Note: For additional queries, please contact our support team.
-            </p>
           </div>
           {/* Submit Button */}
           <div className="flex justify-end mt-8">
