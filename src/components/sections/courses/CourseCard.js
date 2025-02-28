@@ -4,9 +4,21 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import DownloadBrochureModal from "@/components/shared/download-broucher";
 import image6 from "@/assets/images/courses/image6.png";
-import { Clock, Calendar, Award, BookOpen, Check, ArrowRight, Download, ExternalLink, Star } from "lucide-react";
-
-// API imports if needed
+import { 
+  Clock, 
+  Calendar, 
+  Award, 
+  BookOpen, 
+  Check, 
+  ArrowRight, 
+  Download, 
+  Users,
+  Star,
+  GraduationCap,
+  Timer,
+  Tag,
+  Sparkles
+} from "lucide-react";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 
@@ -15,159 +27,226 @@ const CourseCard = ({ course }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [isImageError, setIsImageError] = useState(false);
-  const [courseDetails, setCourseDetails] = useState(null);
   const router = useRouter();
-  
-  // Optional: If you have a getQuery hook
-  const { getQuery } = useGetQuery ? useGetQuery() : { getQuery: null };
 
-  // Image loading handlers
-  const handleImageLoad = () => {
-    setIsImageLoaded(true);
-  };
-
-  const handleImageError = () => {
-    setIsImageError(true);
-  };
-
-  // Fetch course details when the component mounts
-  useEffect(() => {
-    if (course?._id && getQuery) {
-      fetchCourseDetails(course._id);
-    }
-  }, [course?._id]);
-
-  const fetchCourseDetails = async (id) => {
-    try {
-      if (getQuery) {
-        await getQuery({
-          url: `${apiUrls?.courses?.getCourseById}/${id}`,
-          onSuccess: (data) => setCourseDetails(data),
-          onFail: (err) => console.error("Error fetching course details:", err),
-        });
-      }
-    } catch (error) {
-      console.error("Error in fetching course details:", error);
-    }
-  };
-
+  const handleImageLoad = () => setIsImageLoaded(true);
+  const handleImageError = () => setIsImageError(true);
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
-  // Format course duration for display
+  // Format price for display
+  const formatPrice = (price) => {
+    if (!price) return "Free";
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'usd',
+      maximumFractionDigits: 0
+    }).format(price);
+  };
+
+  // Format duration for display
   const formatDuration = (duration) => {
     if (!duration) return "Self-paced";
+    const durationLower = duration.toLowerCase();
     
-    if (duration.toLowerCase().includes("week")) {
-      return `${duration} (Course)`;
-    } else if (duration.toLowerCase().includes("month")) {
-      return `${duration} (Program)`;
+    if (durationLower.includes("week")) {
+      const weeks = parseInt(duration);
+      return `${weeks} ${weeks === 1 ? 'Week' : 'Weeks'}`;
+    } else if (durationLower.includes("month")) {
+      const months = parseInt(duration);
+      return `${months} ${months === 1 ? 'Month' : 'Months'}`;
     }
     
     return duration;
   };
 
-  // Handle click to navigate to course details
   const navigateToCourse = () => {
     if (course?._id) {
-      router.push(`/course-detailed/${course?._id}`);
+      router.push(`/course-details/${course._id}`);
     }
   };
 
   return (
     <div 
-      className="group h-full bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md hover:shadow-xl border border-gray-200 dark:border-gray-700 transition-all duration-300"
+      className="group relative flex flex-col h-full bg-white dark:bg-gray-900 rounded-2xl overflow-hidden border border-transparent hover:border-primary-300/50 dark:hover:border-primary-600/50 transition-all duration-500 ease-out transform hover:-translate-y-2"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      style={{
+        boxShadow: isHovered 
+          ? '0 20px 30px -12px rgba(59, 130, 246, 0.15), 0 10px 20px -8px rgba(59, 130, 246, 0.1)' 
+          : '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)'
+      }}
     >
-      {/* Course Image Section */}
-      <div className="relative w-full aspect-video overflow-hidden">
-        {/* Image skeleton loader */}
-        <div className={`absolute inset-0 bg-gray-200 dark:bg-gray-700 animate-pulse ${isImageLoaded ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}></div>
+      {/* Course Image with Enhanced Gradient Overlay */}
+      <div className="relative w-full aspect-[16/9] overflow-hidden">
+        {/* Skeleton loader with shimmer effect */}
+        <div 
+          className={`absolute inset-0 bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 dark:from-gray-800 dark:via-gray-700 dark:to-gray-800 animate-shimmer bg-[length:200%_100%] ${
+            isImageLoaded ? 'opacity-0' : 'opacity-100'
+          } transition-opacity duration-300`}
+        />
         
-        {/* Main image with loading optimization */}
         <Image
           src={!isImageError ? (course?.course_image || image6) : image6}
           alt={course?.course_title || "Course image"}
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          className={`object-cover transition-transform duration-700 ${isHovered ? 'scale-105' : 'scale-100'} ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
+          className={`object-cover transition-all duration-700 ease-out ${
+            isHovered ? 'scale-110 blur-[1px]' : 'scale-100'
+          } ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
           onLoad={handleImageLoad}
           onError={handleImageError}
           priority={false}
           loading="lazy"
         />
+
+        {/* Enhanced Gradient Overlay */}
+        <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-40 transition-opacity duration-500 ${
+          isHovered ? 'opacity-70' : ''
+        }`} />
         
-        {/* Category tag */}
-        {course?.course_category && (
-          <div className="absolute top-3 left-3 bg-primary-500/80 text-white text-xs font-medium px-2 py-1 rounded-md backdrop-blur-sm">
-            {course.course_category}
-          </div>
-        )}
-        
-        {/* Duration tag */}
-        {course?.course_duration && (
-          <div className="absolute bottom-3 left-3 bg-black/60 text-white text-xs px-2 py-1 rounded-md backdrop-blur-sm flex items-center">
-            <Clock size={12} className="mr-1" />
-            {formatDuration(course.course_duration)}
-          </div>
-        )}
-      </div>
-      
-      {/* Course Content */}
-      <div className="p-5">
-        <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-2 line-clamp-2">
-          {course?.course_title || "Course Title"}
-        </h3>
-        
-        {course?.rating && (
-          <div className="flex items-center space-x-1 mb-2">
-            <Star className="w-4 h-4 text-yellow-500" />
-            <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
-              {course.rating}
+        {/* Category Badge with Enhanced Styling */}
+        <div className="absolute top-3 left-3 flex flex-wrap gap-2">
+          {course?.course_category && (
+            <span className="bg-gradient-to-r from-primary-500 to-indigo-500 text-white text-xs font-medium px-4 py-2 rounded-full backdrop-blur-sm flex items-center shadow-lg transform transition-transform duration-300 hover:scale-105">
+              <Tag size={12} className="mr-2 animate-pulse" />
+              {course.course_category}
+            </span>
+          )}
+        </div>
+
+        {/* Enhanced Hot Badge */}
+        {course?.is_popular && (
+          <div className="absolute top-3 right-3">
+            <span className="bg-gradient-to-r from-rose-500 to-orange-500 text-white text-xs font-medium px-3 py-1.5 rounded-full backdrop-blur-sm flex items-center shadow-lg">
+              <Sparkles size={12} className="mr-1.5 animate-twinkle" />
+              Trending
             </span>
           </div>
         )}
-        
-        <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-2 min-h-[2.5rem]">
-          {course?.course_short_desc || "Master in-demand skills with our expert-led professional course."}
-        </p>
-        
-        {/* Course highlights */}
-        <div className="space-y-2 mb-4">
-          {[1, 2, 3].map((_, index) => (
-            <div key={index} className="flex items-start">
-              <Check size={16} className="text-primary-500 mt-0.5 mr-2 flex-shrink-0" />
-              <span className="text-xs text-gray-600 dark:text-gray-400 line-clamp-1">
-                {index === 0 && "Expert-led live sessions"}
-                {index === 1 && "Hands-on projects & assignments"}
-                {index === 2 && "Industry-recognized certification"}
+      </div>
+
+      {/* Course Content with Enhanced Visual Hierarchy */}
+      <div className="flex flex-col flex-grow p-5">
+        {/* Title and Rating with Enhanced Interaction */}
+        <div className="mb-4">
+          <h3 
+            className="text-xl font-bold text-gray-900 dark:text-white mb-2.5 line-clamp-2 cursor-pointer transition-all duration-300 ease-out"
+            onClick={navigateToCourse}
+            style={{
+              background: isHovered ? 'linear-gradient(to right, #3B82F6, #6366F1)' : '',
+              WebkitBackgroundClip: isHovered ? 'text' : '',
+              WebkitTextFillColor: isHovered ? 'transparent' : ''
+            }}
+          >
+            {course?.course_title || "Course Title"}
+          </h3>
+          
+          <div className="flex items-center justify-between">
+            {course?.rating && (
+              <div className="flex items-center group/rating">
+                <div className="flex items-center gap-0.5">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      size={16}
+                      className={`${
+                        i < Math.floor(course.rating) 
+                          ? "text-yellow-400 fill-yellow-400" 
+                          : "text-gray-300"
+                      } transition-all duration-300 ${
+                        isHovered ? 'animate-starPulse' : ''
+                      }`}
+                    />
+                  ))}
+                </div>
+                <span className="ml-2 text-sm font-medium text-gray-600 dark:text-gray-400 transition-all duration-300 group-hover/rating:text-yellow-500">
+                  {course.rating} ({course.reviews || 0} reviews)
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Enhanced Course Brief Info */}
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className="flex flex-col items-center justify-center p-3 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl transition-transform duration-300 hover:scale-105">
+            <Timer size={18} className="text-primary-500 mb-1.5 transition-all duration-300 group-hover:rotate-12" />
+            <span className="text-xs text-gray-500 dark:text-gray-400">Duration</span>
+            <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">{formatDuration(course?.course_duration)}</span>
+          </div>
+          
+          <div className="flex flex-col items-center justify-center p-3 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-emerald-900/20 dark:via-teal-900/20 dark:to-cyan-900/20 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-md">
+            <BookOpen 
+              size={18} 
+              className="text-emerald-500 dark:text-emerald-400 mb-1.5 transition-all duration-300 group-hover:rotate-12" 
+            />
+            <span className="text-xs text-emerald-600/70 dark:text-emerald-400/70">Sessions</span>
+            <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">
+              {course?.no_of_Sessions || 0}
+            </span>
+          </div>
+        </div>
+
+        {/* Enhanced Grade and Price Section */}
+        <div className="flex justify-between items-center mb-4">
+          {course?.course_grade && (
+            <div className="flex items-center gap-2 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 py-2 px-4 rounded-full transition-transform duration-300 hover:scale-105">
+              <GraduationCap size={16} className="text-violet-500" />
+              <span className="text-sm font-medium text-violet-700 dark:text-violet-300">
+                {course.course_grade}
               </span>
+            </div>
+          )}
+          
+          {course?.course_fee !== undefined && (
+            <div className="flex items-center">
+              <span className="text-xl font-bold bg-gradient-to-r from-primary-600 via-indigo-600 to-primary-600 bg-clip-text text-transparent animate-gradient bg-[length:200%_auto]">
+                {formatPrice(course.course_fee)}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Enhanced Key Features */}
+        <div className="space-y-2.5 mb-4">
+          {[
+            { icon: Users, text: "Expert-led sessions", color: "text-emerald-500", bgColor: "bg-emerald-50 dark:bg-emerald-900/20" },
+            { icon: Award, text: "Industry certification", color: "text-orange-500", bgColor: "bg-orange-50 dark:bg-orange-900/20" },
+            { icon: Calendar, text: "Flexible schedule", color: "text-purple-500", bgColor: "bg-purple-50 dark:bg-purple-900/20" }
+          ].map(({ icon: Icon, text, color, bgColor }, index) => (
+            <div key={index} className="flex items-center gap-2.5 text-sm group/feature">
+              <div className={`flex items-center justify-center w-7 h-7 rounded-lg ${bgColor} transition-all duration-300 group-hover/feature:scale-110`}>
+                <Icon size={14} className={`${color} transition-transform duration-300 group-hover/feature:rotate-12`} />
+              </div>
+              <span className="text-gray-700 dark:text-gray-300 font-medium">{text}</span>
             </div>
           ))}
         </div>
       </div>
-      
-      {/* Action Buttons */}
-      <div className="p-4 border-t border-gray-100 dark:border-gray-700 flex space-x-2 mt-auto">
-        <button
-          onClick={openModal}
-          className="flex items-center justify-center w-1/2 px-3 py-2 text-sm font-medium text-primary-700 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors dark:bg-primary-900/20 dark:text-primary-300 dark:hover:bg-primary-900/30"
-        >
-          <Download size={16} className="mr-1" />
-          Brochure
-        </button>
-        
-        <button
-          onClick={navigateToCourse}
-          className="flex items-center justify-center w-1/2 px-3 py-2 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg transition-colors"
-        >
-          View Details
-          <ArrowRight size={16} className="ml-1" />
-        </button>
+
+      {/* Enhanced Action Buttons */}
+      <div className="p-5 pt-0 mt-auto">
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={openModal}
+            className="group/brochure relative overflow-hidden flex items-center justify-center px-4 py-2.5 text-sm font-medium text-primary-700 hover:text-white bg-primary-50 hover:bg-primary-600 rounded-xl transition-all duration-300 dark:bg-primary-900/20 dark:text-primary-300 dark:hover:text-white dark:hover:bg-primary-700"
+          >
+            <Download size={16} className="mr-2 transition-transform duration-300 group-hover/brochure:-translate-y-1" />
+            Brochure
+          </button>
+          
+          <button
+            onClick={navigateToCourse}
+            className="relative overflow-hidden flex items-center justify-center px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-primary-500 via-indigo-500 to-primary-500 bg-[length:200%_auto] hover:bg-right rounded-xl transition-all duration-500 transform hover:scale-[1.02] hover:shadow-lg"
+          >
+            View Course
+            <ArrowRight size={16} className="ml-2 transition-transform duration-300 group-hover:translate-x-1" />
+          </button>
+        </div>
       </div>
-      
-      {/* Modal for downloading brochure */}
+
+      {/* Download Brochure Modal */}
       <DownloadBrochureModal
         isOpen={isModalOpen}
         onClose={closeModal}
