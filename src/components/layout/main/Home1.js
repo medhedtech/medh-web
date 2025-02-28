@@ -34,20 +34,6 @@ const Home1 = () => {
       });
     }
   }, []); // Empty dependency array ensures this only runs once on mount
-
-  const CustomButton = (
-    <button
-      onClick={() => {
-        router.push("/skill-development-courses");
-      }}
-      className="cursor-pointer bg-[#7ECA9D] text-white px-4 py-2 mt-2 md:mt-0 flex gap-2"
-    >
-      <span>
-        <ArrowIcon />
-      </span>{" "}
-      Explore More Courses
-    </button>
-  );
   
   // Function that only scrolls to top on initial load, not on CoursesFilter changes
   const initialScrollToTop = () => {
@@ -62,7 +48,6 @@ const Home1 = () => {
       {/* <About1 /> */}
       {/* <PopularSubjects /> */}
       <CoursesFilter
-        CustomButton={CustomButton}
         CustomText="Skill Development Courses"
         scrollToTop={initialScrollToTop}
       />
