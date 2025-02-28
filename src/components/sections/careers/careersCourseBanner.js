@@ -1,42 +1,56 @@
 "use client";
-import React from 'react'
-import CourseBanner from "@/components/course-banner/courseBanner"; // Ensure this path is correct
-import CourseBannerImg from "../../../assets/images/personality/coursebannerimg.png";
-
+import React from 'react';
+import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
+import CourseBanner from "@/components/course-banner/courseBanner";
+import CourseBannerImg from "@/assets/images/personality/coursebannerimg.png";
 import VerticalIcon from "@/assets/images/news-media/vertical-white.svg";
 
-function CareerCourceBanner() {
-  const courses = [
-    {
-      heading: "Ready to join our innovative team?",
-      description: "Explore our current job openings and apply today.",
-      buttonText: "Apply Now",
-      imageUrl: CourseBannerImg, 
-      buttonBgColor: "#F6B335", 
-      icon: VerticalIcon, 
-    },
-  ];
+const courses = [
+  {
+    heading: "Ready to join our innovative team?",
+    description: "Explore our current job openings and apply today.",
+    buttonText: "Apply Now",
+    imageUrl: CourseBannerImg,
+    buttonBgColor: "#F6B335",
+    icon: VerticalIcon,
+  },
+];
 
-  const handleEnrollClick = (course) => {
-    alert(`You clicked to enroll in: ${course.heading}`);
+function CareerCourseBanner() {
+  const router = useRouter();
+
+  const handleEnrollClick = () => {
+    // Smooth scroll to job openings section
+    const jobSection = document.getElementById('enroll-section');
+    if (jobSection) {
+      jobSection.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
-return (
-<div>
-  {courses.map((course, index) => (
-    <CourseBanner
-      key={index}
-      heading={course.heading}
-      description={course.description}
-      buttonText={course.buttonText}
-      imageUrl={course.imageUrl}
-      onButtonClick={() => handleEnrollClick(course)}
-      buttonBgColor={course.buttonBgColor} 
-      icon={course.icon} 
-    />
-  ))}
-</div>
-);
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+      className="w-full"
+    >
+      {courses.map((course, index) => (
+        <CourseBanner
+          key={index}
+          heading={course.heading}
+          description={course.description}
+          buttonText={course.buttonText}
+          imageUrl={course.imageUrl}
+          onButtonClick={handleEnrollClick}
+          buttonBgColor={course.buttonBgColor}
+          icon={course.icon}
+          priority={true}
+          className="transition-transform duration-300 hover:scale-105"
+        />
+      ))}
+    </motion.div>
+  );
 }
 
-export default CareerCourceBanner
+export default CareerCourseBanner;

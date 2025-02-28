@@ -68,7 +68,7 @@ const CourseCard = ({ course }) => {
 
   return (
     <div 
-      className="group relative flex flex-col h-full bg-white dark:bg-gray-900 rounded-2xl overflow-hidden border border-transparent hover:border-primary-300/50 dark:hover:border-primary-600/50 transition-all duration-500 ease-out transform hover:-translate-y-2"
+      className="group relative flex flex-col h-full min-h-[580px] w-full bg-white dark:bg-gray-900 rounded-2xl overflow-hidden border border-transparent hover:border-primary-300/50 dark:hover:border-primary-600/50 transition-all duration-500 ease-out transform hover:-translate-y-2"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       style={{
@@ -78,7 +78,7 @@ const CourseCard = ({ course }) => {
       }}
     >
       {/* Course Image with Enhanced Gradient Overlay */}
-      <div className="relative w-full aspect-[16/9] overflow-hidden">
+      <div className="relative w-full aspect-[16/10] overflow-hidden">
         {/* Skeleton loader with shimmer effect */}
         <div 
           className={`absolute inset-0 bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 dark:from-gray-800 dark:via-gray-700 dark:to-gray-800 animate-shimmer bg-[length:200%_100%] ${
@@ -90,7 +90,7 @@ const CourseCard = ({ course }) => {
           src={!isImageError ? (course?.course_image || image6) : image6}
           alt={course?.course_title || "Course image"}
           fill
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
           className={`object-cover transition-all duration-700 ease-out ${
             isHovered ? 'scale-110 blur-[1px]' : 'scale-100'
           } ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
@@ -100,26 +100,21 @@ const CourseCard = ({ course }) => {
           loading="lazy"
         />
 
-        {/* Enhanced Gradient Overlay */}
-        <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-40 transition-opacity duration-500 ${
-          isHovered ? 'opacity-70' : ''
-        }`} />
-        
         {/* Category Badge with Enhanced Styling */}
-        <div className="absolute top-3 left-3 flex flex-wrap gap-2">
+        <div className="absolute top-4 left-4 flex flex-wrap gap-2 max-w-[80%]">
           {course?.course_category && (
-            <span className="bg-gradient-to-r from-primary-500 to-indigo-500 text-white text-xs font-medium px-4 py-2 rounded-full backdrop-blur-sm flex items-center shadow-lg transform transition-transform duration-300 hover:scale-105">
-              <Tag size={12} className="mr-2 animate-pulse" />
-              {course.course_category}
+            <span className="bg-gradient-to-r from-primary-500 to-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-full backdrop-blur-sm flex items-center shadow-lg transform transition-transform duration-300 hover:scale-105">
+              <Tag size={14} className="mr-2 animate-pulse shrink-0" />
+              <span className="truncate">{course.course_category}</span>
             </span>
           )}
         </div>
 
         {/* Enhanced Hot Badge */}
         {course?.is_popular && (
-          <div className="absolute top-3 right-3">
-            <span className="bg-gradient-to-r from-rose-500 to-orange-500 text-white text-xs font-medium px-3 py-1.5 rounded-full backdrop-blur-sm flex items-center shadow-lg">
-              <Sparkles size={12} className="mr-1.5 animate-twinkle" />
+          <div className="absolute top-4 right-4">
+            <span className="bg-gradient-to-r from-rose-500 to-orange-500 text-white text-sm font-medium px-4 py-2 rounded-full backdrop-blur-sm flex items-center shadow-lg">
+              <Sparkles size={14} className="mr-2 animate-twinkle" />
               Trending
             </span>
           </div>
@@ -127,11 +122,11 @@ const CourseCard = ({ course }) => {
       </div>
 
       {/* Course Content with Enhanced Visual Hierarchy */}
-      <div className="flex flex-col flex-grow p-5">
+      <div className="flex flex-col flex-grow p-6 space-y-6">
         {/* Title and Rating with Enhanced Interaction */}
-        <div className="mb-4">
+        <div>
           <h3 
-            className="text-xl font-bold text-gray-900 dark:text-white mb-2.5 line-clamp-2 cursor-pointer transition-all duration-300 ease-out"
+            className="text-xl font-bold text-gray-900 dark:text-white mb-3 line-clamp-2 min-h-[3.5rem] cursor-pointer transition-all duration-300 ease-out hover:text-primary-600 dark:hover:text-primary-400"
             onClick={navigateToCourse}
             style={{
               background: isHovered ? 'linear-gradient(to right, #3B82F6, #6366F1)' : '',
@@ -145,7 +140,7 @@ const CourseCard = ({ course }) => {
           <div className="flex items-center justify-between">
             {course?.rating && (
               <div className="flex items-center group/rating">
-                <div className="flex items-center gap-0.5">
+                <div className="flex items-center gap-1">
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
@@ -169,11 +164,11 @@ const CourseCard = ({ course }) => {
         </div>
 
         {/* Enhanced Course Brief Info */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="grid grid-cols-3 gap-3">
           <div className="flex flex-col items-center justify-center p-3 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl transition-transform duration-300 hover:scale-105">
             <Timer size={18} className="text-primary-500 mb-1.5 transition-all duration-300 group-hover:rotate-12" />
             <span className="text-xs text-gray-500 dark:text-gray-400">Duration</span>
-            <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">{formatDuration(course?.course_duration)}</span>
+            <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 text-center">{formatDuration(course?.course_duration)}</span>
           </div>
           
           <div className="flex flex-col items-center justify-center p-3 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-emerald-900/20 dark:via-teal-900/20 dark:to-cyan-900/20 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-md">
@@ -182,26 +177,28 @@ const CourseCard = ({ course }) => {
               className="text-emerald-500 dark:text-emerald-400 mb-1.5 transition-all duration-300 group-hover:rotate-12" 
             />
             <span className="text-xs text-emerald-600/70 dark:text-emerald-400/70">Sessions</span>
-            <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">
+            <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-300 text-center">
               {course?.no_of_Sessions || 0}
+            </span>
+          </div>
+
+          <div className="flex flex-col items-center justify-center p-3 bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 rounded-xl transition-all duration-300 hover:scale-105">
+            <GraduationCap 
+              size={18} 
+              className="text-violet-500 dark:text-violet-400 mb-1.5 transition-all duration-300 group-hover:rotate-12" 
+            />
+            <span className="text-xs text-violet-600/70 dark:text-violet-400/70">Grade</span>
+            <span className="text-sm font-semibold text-violet-700 dark:text-violet-300 text-center line-clamp-1">
+              {course?.course_grade || "All Levels"}
             </span>
           </div>
         </div>
 
-        {/* Enhanced Grade and Price Section */}
-        <div className="flex justify-between items-center mb-4">
-          {course?.course_grade && (
-            <div className="flex items-center gap-2 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 py-2 px-4 rounded-full transition-transform duration-300 hover:scale-105">
-              <GraduationCap size={16} className="text-violet-500" />
-              <span className="text-sm font-medium text-violet-700 dark:text-violet-300">
-                {course.course_grade}
-              </span>
-            </div>
-          )}
-          
+        {/* Enhanced Price Section */}
+        <div className="flex justify-end items-center">
           {course?.course_fee !== undefined && (
             <div className="flex items-center">
-              <span className="text-xl font-bold bg-gradient-to-r from-primary-600 via-indigo-600 to-primary-600 bg-clip-text text-transparent animate-gradient bg-[length:200%_auto]">
+              <span className="text-2xl font-bold bg-gradient-to-r from-primary-600 via-indigo-600 to-primary-600 bg-clip-text text-transparent animate-gradient bg-[length:200%_auto]">
                 {formatPrice(course.course_fee)}
               </span>
             </div>
@@ -209,7 +206,7 @@ const CourseCard = ({ course }) => {
         </div>
 
         {/* Enhanced Key Features */}
-        <div className="space-y-2.5 mb-4">
+        <div className="space-y-2.5">
           {[
             { icon: Users, text: "Expert-led sessions", color: "text-emerald-500", bgColor: "bg-emerald-50 dark:bg-emerald-900/20" },
             { icon: Award, text: "Industry certification", color: "text-orange-500", bgColor: "bg-orange-50 dark:bg-orange-900/20" },
@@ -226,7 +223,7 @@ const CourseCard = ({ course }) => {
       </div>
 
       {/* Enhanced Action Buttons */}
-      <div className="p-5 pt-0 mt-auto">
+      <div className="p-6 pt-0">
         <div className="grid grid-cols-2 gap-3">
           <button
             onClick={openModal}
