@@ -1,170 +1,8 @@
-// "use client";
-
-// import React, { useState } from "react";
-
-// const data = {
-//   tabs: [
-//     {
-//       id: 1,
-//       name: "Overview",
-//       content:
-//         "Vedic Mathematics Course offers a wide array of benefits, from simplifying complex calculations to enhancing mental agility and boosting confidence. The system&#39;s versatility and applicability across various branches of mathematics make it a valuable tool for individuals preparing for competitive exams or seeking to improve their mathematical skills. ",
-//       contents:
-//         "With its emphasis on simplicity, speed, and universality, Vedic Mathematics has the potential to transform the way individuals perceive and engage with mathematics, making it an essential skill for personal and professional growth.",
-//     },
-//     {
-//       id: 2,
-//       name: "Benefits",
-//       content:
-//         "Benefits of Vedic Mathematics include improved speed in calculations, better mental agility, and stronger problem-solving skills. It's highly beneficial for students preparing for competitive exams.",
-//     },
-//     {
-//       id: 3,
-//       name: "Career Prospects",
-//       content:
-//         "Vedic Mathematics provides excellent career prospects for those aiming to excel in mathematics, teaching, tutoring, and competitive exams.",
-//     },
-//     {
-//       id: 4,
-//       name: "Sutras and Sub sutras",
-//       content:
-//         "This section covers the fundamental principles (sutras) and detailed applications (sub-sutras) for effective problem-solving in mathematics.",
-//     },
-//   ],
-//   overview: {
-//     keyFeatures: [
-//       {
-//         title: "Simplicity",
-//         description:
-//           "Aims to simplify complex mathematical calculations through its unique techniques.",
-//       },
-//       {
-//         title: "Speed",
-//         description:
-//           "Methods are designed to expedite calculations, making them helpful for mental math and quick problem-solving.",
-//       },
-//       {
-//         title: "Versatility",
-//         description:
-//           "Offers multiple approaches to solve a single problem, allowing users to choose the method that suits them best.",
-//       },
-//       {
-//         title: "Universality",
-//         description:
-//           "Applicable to various branches of mathematics, such as arithmetic, algebra, trigonometry, calculus, and more.",
-//       },
-//     ],
-//   },
-// };
-
-// const PersonalityOverview = () => {
-//   const [activeTab, setActiveTab] = useState(1);
-
-//   const activeContent = data.tabs.find((tab) => tab.id === activeTab);
-
-//   return (
-//     <div className="bg-white dark:bg-screen-dark h-auto py-10 w-full flex justify-center items-center">
-//       <div className="w-full md:w-[80%]">
-//         {/* Title */}
-//         <div className="flex items-center flex-col w-80% md:mb-20 mb-10 px-4">
-//           <h1 className="text-[24px] leading-7 md:text-4xl font-bold md:mb-3 mb-2 dark:text-gray50 text-[#41454F]">
-//             Welcome to Medh&#39;s Vedic Mathematics Course
-//           </h1>
-//           <p className="text-center md:text-[15px] text-[14px] leading-6 md:leading-7 md:w-[70%] text-[#727695] dark:text-gray300">
-//             Our course is designed to simplify mathematical problems through
-//             ancient techniques that can be applied to a variety of real-world
-//             applications.
-//           </p>
-//         </div>
-
-//         {/* Tabs */}
-//         <div className="flex md:mx-0 mx-4  flex-wrap">
-//           {data.tabs.map((tab) => (
-//             <button
-//               key={tab.id}
-//               className={`px-2 md:px-6 mr-2 md:py-2 py-1 transition md:mb-0 mb-1 ${
-//                 activeTab === tab.id
-//                   ? "bg-primaryColor text-white font-semibold"
-//                   : "bg-white text-primaryColor border border-primaryColor"
-//               } hover:bg-primaryColor hover:text-white`}
-//               onClick={() => setActiveTab(tab.id)}
-//             >
-//               {tab.name}
-//             </button>
-//           ))}
-//         </div>
-
-//         {/* Content Rendering */}
-//         <section className="bg-white dark:text-gray300 dark:bg-screen-dark px-5 mx-4 sm:mx-0 md:px-6 py-8 border-2 border-gray300 dark:border-gray600 text-lightGrey14">
-//           <h1 className="text-[23px] font-bold text-primaryColor dark:text-gray50">
-//             {activeContent.name}
-//           </h1>
-//           <p className="mb-2 md:text-[15px] text-[14px] ">
-//             {activeContent.content}
-//           </p>
-//           <p className="mb-2 md:text-[15px] text-[14px]">
-//             {activeContent.contents}
-//           </p>
-
-//           {activeTab === 1 && (
-//             <>
-//               {/* Transformative Learning Experience */}
-//               <h2 className="text-[1.3rem] font-bold mb-3 tracking-wide dark:text-gray50">
-//                 Transformative Learning Experience
-//               </h2>
-//               <p className="mb-2 text-[14px]">
-//                 In today&#39;s competitive world, the ability to solve problems
-//                 quickly is crucial, and that&#39;s where Vedic Mathematics comes
-//                 to your rescue. Through interactive and easy-to-follow lessons
-//                 and practice exercises, you will learn powerful techniques that
-//                 make math easy and enjoyable, including:
-//               </p>
-//               <ul className=" list-none mb-4 ">
-//                 <li className="text-[14px] ml-8">
-//                   <strong className="dark:text-gray50">
-//                     Easy Tricks to Solve:
-//                   </strong>{" "}
-//                   Addition, Subtraction, Multiplication, and Division
-//                 </li>
-//                 <li className="text-[14px] ml-8 ">
-//                   <strong className="dark:text-gray50">
-//                     Fast & Accurate Calculations of:
-//                   </strong>{" "}
-//                   Square Root, Cube, Cube Root, HCF, LCM, and Algebra
-//                 </li>
-//               </ul>
-//               <p className="text-[14px] mb-6">
-//                 And lots of other lessons that help you fall in love with
-//                 Mathematics.
-//               </p>
-
-//               {/* Key Features */}
-//               <h2 className="text-[1.3rem] font-bold mb-4 tracking-wide dark:text-gray50">
-//                 Key Features of Vedic Mathematics:
-//               </h2>
-//               <ul className="list-none list-inside space-y-2 pb-2">
-//                 {data.overview.keyFeatures.map((feature, index) => (
-//                   <li key={index}>
-//                     <strong className="text-[1rem] font-bold tracking-wide dark:text-gray50">
-//                       {feature.title}:
-//                     </strong>{" "}
-//                     {feature.description}
-//                   </li>
-//                 ))}
-//               </ul>
-//             </>
-//           )}
-//         </section>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default PersonalityOverview;
-
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback, memo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Calculator, Star, GraduationCap, BookOpen, ArrowUp } from "lucide-react";
 
 const data = {
   tabs: [
@@ -507,20 +345,6 @@ const data = {
                   </div>
                 </td>
               </tr>
-              <tr>
-                <td className="border border-gray-300 px-4 py-2">
-                  <div className="font-bold">Sankalana-vyavakalana.</div>
-                  <div className=" text-[#727695] dark:text-gray300">
-                    By addition and by subtraction.
-                  </div>
-                </td>
-                <td className="border border-gray-300 px-4 py-2">
-                  <div className="font-bold">Gunitasamuchyah.</div>
-                  <div className=" text-[#727695] dark:text-gray300">
-                    The product of the sum.
-                  </div>
-                </td>
-              </tr>
 
               <tr>
                 <td className="border border-gray-300 px-4 py-2">
@@ -643,59 +467,131 @@ const data = {
   ],
 };
 
-const PersonalityOverview = () => {
+const VedicOverview = () => {
   const [activeTab, setActiveTab] = useState(1);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  const handleTabChange = useCallback((tabId) => {
+    setActiveTab(tabId);
+  }, []);
+
+  // Handle scroll to top visibility
+  React.useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 400);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const activeContent = data.tabs.find((tab) => tab.id === activeTab);
 
+  const tabIcons = {
+    1: <Calculator className="w-5 h-5" />,
+    2: <Star className="w-5 h-5" />,
+    3: <GraduationCap className="w-5 h-5" />,
+    4: <BookOpen className="w-5 h-5" />
+  };
+
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
+
   return (
-    <div className="bg-white dark:bg-screen-dark h-auto py-10  w-full flex justify-center items-center">
-      <div className="w-full md:w-[80%]">
-        <div className="flex items-center flex-col w-80% md:mb-6 mb-10 px-4">
-          <h1 className="text-[24px] text-center leading-7 md:text-4xl font-bold md:mb-3 mb-2 dark:text-gray50 text-[#41454F]">
-            Unlock the Potential of Vedic Mathematics with Medh and Experience
-            its Transformative Magic!
+    <div className="relative bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 min-h-[50vh]">
+      {/* Background gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 via-amber-500/10 to-yellow-500/10" />
+      
+      <div className="relative container mx-auto px-4 py-16">
+        <motion.div 
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={fadeInUp}
+          transition={{ duration: 0.5 }}
+          className="flex items-center flex-col w-full md:w-[80%] mx-auto mb-16"
+        >
+          <h1 className="text-[24px] text-center leading-7 md:text-4xl font-bold md:mb-3 mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primaryColor to-blue-600">
+            Unlock the Potential of Vedic Mathematics with Medh and Experience its Transformative Magic!
           </h1>
-          <p className="text-center md:text-[18px] text-[14px] leading-6 md:leading-8 md:w-[90%] text-[#727695] dark:text-gray300">
-            An ancient system deeply rooted in the sacred texts of India known
-            as the Vedas. The term “Veda,” meaning knowledge, reflects the
-            endless pursuit of learning and discovery.
+          <p className="text-center md:text-[18px] text-[14px] leading-6 md:leading-8 md:w-[90%] text-[#727695] dark:text-gray-300">
+            An ancient system deeply rooted in the sacred texts of India known as the Vedas. The term "Veda," meaning knowledge, reflects the endless pursuit of learning and discovery.
           </p>
-          <p className="text-center py-4 md:text-[18px] text-[14px] leading-6 md:leading-8 md:w-[80%] text-[#727695] dark:text-gray300">
-            At MEDH, the Vedic Mathematics course is tailored to revolutionize
-            math problem-solving, aiming to unleash your inner mathematician. It
-            offers a holistic approach to conquer math anxiety and embrace the
-            beauty of mathematics.
+          <p className="text-center py-4 md:text-[18px] text-[14px] leading-6 md:leading-8 md:w-[80%] text-[#727695] dark:text-gray-300">
+            At MEDH, the Vedic Mathematics course is tailored to revolutionize math problem-solving, aiming to unleash your inner mathematician. It offers a holistic approach to conquer math anxiety and embrace the beauty of mathematics.
           </p>
-        </div>
+        </motion.div>
 
         {/* Tabs */}
-        <div className="flex md:mx-0 mx-4 space-x-2 flex-wrap">
+        <motion.div 
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={fadeInUp}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="flex md:mx-0 mx-4 space-x-2 flex-wrap justify-center" 
+          role="tablist"
+        >
           {data.tabs.map((tab) => (
-            <button
+            <motion.button
               key={tab.id}
-              className={`px-1 md:px-6 md:py-2 py-1  transition sm:mb-0 mb-1 ${
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className={`px-4 md:px-6 py-2 transition rounded-md flex items-center gap-2 ${
                 activeTab === tab.id
-                  ? "bg-primaryColor text-white font-semibold"
-                  : "bg-white text-primaryColor border border-primaryColor"
-              } hover:bg-primaryColor hover:text-white`}
-              onClick={() => setActiveTab(tab.id)}
+                  ? "bg-primaryColor text-white font-semibold shadow-lg"
+                  : "bg-white text-primaryColor border border-primaryColor hover:bg-primaryColor/10"
+              }`}
+              onClick={() => handleTabChange(tab.id)}
+              role="tab"
+              aria-selected={activeTab === tab.id}
+              aria-controls={`panel-${tab.id}`}
             >
+              {tabIcons[tab.id]}
               {tab.name}
-            </button>
+            </motion.button>
           ))}
-        </div>
+        </motion.div>
 
         {/* Content Rendering */}
-        <section className=" bg-white mx-4 md:mx-0 dark:bg-screen-dark px-2 md:px-6 py-8 border-2 border-gray-200 text-lightGrey14">
-          <h1 className="text-[23px] font-bold text-primaryColor dark:text-gray50">
-            {activeContent.name}
-          </h1>
-          <div className="mt-4">{activeContent.content}</div>
-        </section>
+        <AnimatePresence mode="wait">
+          <motion.section
+            key={activeTab}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeInUp}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="bg-white/80 backdrop-blur-sm mx-4 md:mx-auto mt-8 dark:bg-gray-800/80 px-6 py-8 border border-gray-200 dark:border-gray-700 text-lightGrey14 rounded-2xl shadow-xl"
+            role="tabpanel"
+            id={`panel-${activeTab}`}
+            aria-labelledby={`tab-${activeTab}`}
+          >
+            <h2 className="text-[23px] font-bold bg-clip-text text-transparent bg-gradient-to-r from-primaryColor to-blue-600">
+              {activeContent.name}
+            </h2>
+            <div className="mt-4">{activeContent.content}</div>
+          </motion.section>
+        </AnimatePresence>
+
+        {/* Scroll to Top Button */}
+        <AnimatePresence>
+          {showScrollTop && (
+            <motion.button
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="fixed bottom-4 right-4 bg-primaryColor text-white p-3 rounded-full shadow-lg hover:bg-primaryColor/90 transition-all z-50"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            >
+              <ArrowUp className="h-6 w-6" />
+            </motion.button>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
 };
 
-export default PersonalityOverview;
+export default memo(VedicOverview);
