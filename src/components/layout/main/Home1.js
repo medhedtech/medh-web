@@ -52,7 +52,7 @@ const Home1 = () => {
         scrollToTop={initialScrollToTop}
       />
       <WhyMedh />
-      <Registration pageTitle="home_page" />
+      {/* <Registration pageTitle="home_page" /> */}
       <BrowseCategories />
       {/* <PricingPlans /> */}
       {/* <Instructors /> */}
