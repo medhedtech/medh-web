@@ -10,7 +10,7 @@ import EducatorCourceBanner from "@/components/sections/join-educator/educatorCo
 import TechEducator from "@/components/sections/join-educator/techEducator";
 import MedhOffering from "@/components/sections/join-educator/medhOffering";
 import EducatorFaq from "@/components/sections/join-educator/educatorFaq";
-import ThemeController from "@/components/shared/others/ThemeController";
+
 import Certified from "@/components/sections/why-medh/Certified";
 
 function JoinEducator() {
@@ -28,7 +28,7 @@ function JoinEducator() {
         <div className="pb-16">
           <EducatorCourceBanner />
         </div>
-        <ThemeController />
+        
       </div>
     </PageWrapper>
   );

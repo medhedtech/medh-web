@@ -59,7 +59,7 @@ const CourseCard = ({ course }) => {
 
   const navigateToCourse = () => {
     if (course?._id) {
-      router.push(`/course-details/${course._id}`);
+      window.open(`/course-details/${course._id}`, '_blank');
     }
   };
 

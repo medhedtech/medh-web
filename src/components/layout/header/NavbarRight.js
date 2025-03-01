@@ -28,21 +28,78 @@ const NavbarRight = ({ isScrolled }) => {
         <li className="hidden lg:block">
           <Link
             href="/courses"
-            className={`inline-flex items-center justify-center gap-2 px-4 py-2 
-              ${isScrolled ? 'text-sm' : 'text-sm md:text-base'} 
-              font-medium text-white bg-gradient-to-r from-primary-500 to-primary-600 
-              hover:from-primary-600 hover:to-primary-700 rounded-full shadow-sm hover:shadow-md 
-              transform hover:-translate-y-0.5 transition-all duration-200
-              dark:from-primary-600 dark:to-primary-700 dark:hover:from-primary-500 dark:hover:to-primary-600`}
+            className={`group relative inline-flex items-center justify-center gap-2 px-6 py-2.5
+              ${isScrolled ? 'text-sm' : 'text-base'} 
+              font-medium text-white bg-gradient-to-r from-primary-500 via-purple-500 to-primary-600 
+              bg-size-200 bg-pos-0 hover:bg-pos-100
+              rounded-xl shadow-lg hover:shadow-xl shadow-primary-500/20 hover:shadow-primary-500/30
+              transform hover:-translate-y-0.5 transition-all duration-300 overflow-hidden`}
           >
-            {isHome2Dark ? (
-              <>Get Started Free<ExternalLink size={16} className="ml-1" /></>
-            ) : isHome4 || isHome4Dark || isHome5 || isHome5Dark ? (
-              <>Get Started Here<ExternalLink size={16} className="ml-1" /></>
-            ) : (
-              <>Get Started<ExternalLink size={16} className="ml-1" /></>
-            )}
+            {/* Animated background effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 
+              translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
+            
+            {/* Animated text container */}
+            <div className="relative flex items-center">
+              <span className="relative z-10 inline-flex items-center font-semibold tracking-wide">
+                {isHome2Dark ? (
+                  <>
+                    <span className="animate-shimmer bg-clip-text text-transparent bg-[linear-gradient(110deg,#fff,45%,#7ECA9D,55%,#fff)] bg-[length:250%_100%]">
+                      Get Started Free
+                    </span>
+                    <span className="ml-1 transform transition-transform group-hover:translate-x-1">
+                      <ExternalLink size={16} className="transform transition-transform group-hover:rotate-45" />
+                    </span>
+                  </>
+                ) : isHome4 || isHome4Dark || isHome5 || isHome5Dark ? (
+                  <>
+                    <span className="animate-shimmer bg-clip-text text-transparent bg-[linear-gradient(110deg,#fff,45%,#7ECA9D,55%,#fff)] bg-[length:250%_100%]">
+                      Get Started Here
+                    </span>
+                    <span className="ml-1 transform transition-transform group-hover:translate-x-1">
+                      <ExternalLink size={16} className="transform transition-transform group-hover:rotate-45" />
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="animate-shimmer bg-clip-text text-transparent bg-[linear-gradient(110deg,#fff,45%,#7ECA9D,55%,#fff)] bg-[length:250%_100%]">
+                      Get Started
+                    </span>
+                    <span className="ml-1 transform transition-transform group-hover:translate-x-1">
+                      <ExternalLink size={16} className="transform transition-transform group-hover:rotate-45" />
+                    </span>
+                  </>
+                )}
+              </span>
+            </div>
+
+            {/* Enhanced hover effect */}
+            <div className="absolute -inset-1 rounded-xl blur-xl bg-gradient-to-r from-primary-500/30 via-purple-500/30 to-primary-600/30 
+              opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10"></div>
           </Link>
+
+          <style jsx global>{`
+            @keyframes shimmer {
+              from {
+                background-position: 100% 100%;
+              }
+              to {
+                background-position: 0% 0%;
+              }
+            }
+            .animate-shimmer {
+              animation: shimmer 2.5s linear infinite;
+            }
+            .bg-size-200 {
+              background-size: 200% 100%;
+            }
+            .bg-pos-0 {
+              background-position: 0% 0%;
+            }
+            .bg-pos-100 {
+              background-position: 100% 100%;
+            }
+          `}</style>
         </li>
         
         {/* Mobile Menu Button (showing in mobile view only) */}

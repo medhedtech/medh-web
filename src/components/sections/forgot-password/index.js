@@ -14,7 +14,7 @@ import LogIn from "@/assets/images/log-sign/logIn.png";
 import logo1 from "@/assets/images/logo/medh_logo-1.png";
 import Email from "@/assets/images/log-sign/Email.svg";
 import lock from "@/assets/images/log-sign/lock.svg";
-import ReCAPTCHA from "react-google-recaptcha";
+import CustomReCaptcha from '../../shared/ReCaptcha';
 
 const schema = yup
   .object({
@@ -47,7 +47,6 @@ const ForgotPassword = () => {
   const { postQuery, loading } = usePostQuery();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [recaptchaValue, setRecaptchaValue] = useState(null);
   const [recaptchaError, setRecaptchaError] = useState(false);
   const {
     register,
@@ -58,15 +57,10 @@ const ForgotPassword = () => {
   });
 
   const handleRecaptchaChange = (value) => {
-    setRecaptchaValue(value);
     setRecaptchaError(false);
   };
 
   const onSubmit = async (data) => {
-    if (!recaptchaValue) {
-      setRecaptchaError(true);
-      return;
-    }
     if (!emailSent) {
       // Step 1: Send temporary password email
       try {
@@ -79,7 +73,6 @@ const ForgotPassword = () => {
             toast.success("Temporary password sent to your email.");
             setEmailSent(true);
             setRecaptchaError(false);
-            setRecaptchaValue(null);
           },
           onFail: () => toast.error("Failed to send temporary password."),
         });
@@ -184,16 +177,10 @@ const ForgotPassword = () => {
             </div>
 
             <div className="my-4">
-              <ReCAPTCHA
-                sitekey="6LdHwxUqAAAAANjZ5-6I5-UYrL8owEGEi_QyJBX9"
+              <CustomReCaptcha
                 onChange={handleRecaptchaChange}
+                error={recaptchaError}
               />
-              {/* ReCAPTCHA Error Message */}
-              {recaptchaError && (
-                <span className="text-red-500 text-[12px]">
-                  Please complete the ReCAPTCHA verification.
-                </span>
-              )}
             </div>
             {/* Temporary Password Field */}
             {emailSent && !tempPasswordVerified && (
