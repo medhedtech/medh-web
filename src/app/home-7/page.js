@@ -1,6 +1,6 @@
 import Home6 from "@/components/layout/main/Home6";
 import Home7 from "@/components/layout/main/Home7";
-import ThemeController from "@/components/shared/others/ThemeController";
+
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 
 export const metadata = {
@@ -12,7 +12,7 @@ const Home_7 = () => {
     <PageWrapper>
       <main>
         <Home7 />
-        <ThemeController />
+        
       </main>
     </PageWrapper>
   );

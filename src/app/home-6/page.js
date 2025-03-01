@@ -1,5 +1,5 @@
 import Home6 from "@/components/layout/main/Home6";
-import ThemeController from "@/components/shared/others/ThemeController";
+
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 
 export const metadata = {
@@ -11,7 +11,7 @@ const Home_6 = () => {
     <PageWrapper>
       <main>
         <Home6 />
-        <ThemeController />
+        
       </main>
     </PageWrapper>
   );

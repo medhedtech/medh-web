@@ -1,7 +1,7 @@
 
 import AdvisoryBoard from "@/components/sections/team/advisoryBoard";
 import DynamicTeam from "@/components/sections/team/dynamicTeam";
-import ThemeController from "@/components/shared/others/ThemeController";
+
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 
 export const metadata = {
@@ -16,7 +16,7 @@ export default function TeamPage() {
       <PageWrapper>
         <DynamicTeam />
         <AdvisoryBoard />
-        <ThemeController />
+        
       </PageWrapper>
     </main>
   );
