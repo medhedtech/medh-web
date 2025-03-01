@@ -13,6 +13,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { ThemeProvider } from "next-themes";
 import { useEffect } from "react";
+import ThemeController from "@/components/shared/others/ThemeController";
 
 // Font configuration
 const inter = Inter({
@@ -138,6 +139,7 @@ export default function ClientLayout({ children }) {
             className="z-[100]"
           />
         </ThemeProvider>
+        <ThemeController />
       </body>
     </html>
   );

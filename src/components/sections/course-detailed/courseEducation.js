@@ -23,6 +23,8 @@ import SignInModal from "@/components/shared/signin-modal";
 import usePostQuery from "@/hooks/postQuery.hook";
 import { toast } from "react-toastify";
 import { HelpCircle, DollarSign, Award, BookOpen, Check, Star, Zap } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Calculator, GraduationCap, Info } from "lucide-react";
 
 function CourseEducation({ courseId }) {
   const { getQuery, loading } = useGetQuery();
@@ -30,6 +32,30 @@ function CourseEducation({ courseId }) {
   const [courseDetails1, setCourseDetails1] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
+  const [formattedContent, setFormattedContent] = useState({ overview: '', benefits: [] });
+  const [activeTab, setActiveTab] = useState(1);
+
+  const parseDescription = (description) => {
+    if (!description) return { overview: '', benefits: [] };
+
+    const parts = description.split('Benefits');
+    let overview = '';
+    let benefits = [];
+
+    if (parts.length > 0) {
+      const overviewPart = parts[0].replace('Program Overview', '').trim();
+      overview = overviewPart;
+
+      if (parts.length > 1) {
+        benefits = parts[1]
+          .split('-')
+          .map(benefit => benefit.trim())
+          .filter(benefit => benefit.length > 0);
+      }
+    }
+
+    return { overview, benefits };
+  };
 
   useEffect(() => {
     if (courseId) {
@@ -38,6 +64,13 @@ function CourseEducation({ courseId }) {
       notFound();
     }
   }, []);
+
+  useEffect(() => {
+    if (courseDetails1?.course_description) {
+      const parsed = parseDescription(courseDetails1.course_description);
+      setFormattedContent(parsed);
+    }
+  }, [courseDetails1?.course_description]);
 
   const fetchCourseDetails = async (id) => {
     try {
@@ -183,6 +216,53 @@ function CourseEducation({ courseId }) {
     }
   };
 
+  const tabData = [
+    {
+      id: 1,
+      name: "Overview",
+      icon: Info,
+      content: (
+        <div className="relative">
+          <p className={`text-gray-600 dark:text-gray-300 ${!showFullDescription && 'line-clamp-3'}`}>
+            {formattedContent.overview}
+          </p>
+          {formattedContent.overview.length > 150 && (
+            <button 
+              onClick={() => setShowFullDescription(!showFullDescription)}
+              className="text-green-600 dark:text-green-400 font-medium text-sm mt-1 hover:underline focus:outline-none"
+            >
+              {showFullDescription ? 'Show less' : 'Read more'}
+            </button>
+          )}
+        </div>
+      ),
+    },
+    {
+      id: 2,
+      name: "Benefits",
+      icon: Star,
+      content: (
+        <div>
+          <ul className="list-none space-y-2">
+            {formattedContent.benefits.map((benefit, index) => (
+              <li key={index} className="flex items-start gap-2">
+                <div className="p-1 rounded-full mt-1 bg-green-100 dark:bg-green-900/50">
+                  <Award size={12} className="text-green-600 dark:text-green-400" />
+                </div>
+                <span className="text-gray-600 dark:text-gray-300">{benefit}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ),
+    },
+  ];
+
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
+
   if (loading) {
     return <Preloader />;
   }
@@ -215,20 +295,55 @@ function CourseEducation({ courseId }) {
               {/* Course Description */}
               {courseDetails1?.course_description && (
                 <div className="mb-4">
-                  <h2 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-100">About This Course</h2>
-                  <div className="relative">
-                    <p className={`text-gray-600 dark:text-gray-300 ${!showFullDescription && 'line-clamp-3'}`}>
-                      {courseDetails1.course_description}
-                    </p>
-                    {courseDetails1.course_description.length > 150 && (
-                      <button 
-                        onClick={() => setShowFullDescription(!showFullDescription)}
-                        className="text-green-600 dark:text-green-400 font-medium text-sm mt-1 hover:underline focus:outline-none"
+                  <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-100">About This Course</h2>
+                  
+                  {/* Tabs */}
+                  <motion.div 
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true }}
+                    variants={fadeInUp}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                    className="flex space-x-2 mb-6" 
+                    role="tablist"
+                  >
+                    {tabData.map((tab) => (
+                      <motion.button
+                        key={tab.id}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className={`px-4 py-2 transition rounded-md flex items-center gap-2 ${
+                          activeTab === tab.id
+                            ? "bg-primaryColor text-white font-semibold shadow-lg"
+                            : "bg-white text-primaryColor border border-primaryColor hover:bg-primaryColor/10"
+                        }`}
+                        onClick={() => setActiveTab(tab.id)}
+                        role="tab"
+                        aria-selected={activeTab === tab.id}
+                        aria-controls={`panel-${tab.id}`}
                       >
-                        {showFullDescription ? 'Show less' : 'Read more'}
-                      </button>
-                    )}
-                  </div>
+                        {<tab.icon className="w-4 h-4" />}
+                        {tab.name}
+                      </motion.button>
+                    ))}
+                  </motion.div>
+
+                  {/* Content */}
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={activeTab}
+                      initial="hidden"
+                      animate="visible"
+                      variants={fadeInUp}
+                      transition={{ duration: 0.5 }}
+                      className="bg-white/80 backdrop-blur-sm dark:bg-gray-800/80 p-4 border border-gray-200 dark:border-gray-700 rounded-lg"
+                      role="tabpanel"
+                      id={`panel-${activeTab}`}
+                      aria-labelledby={`tab-${activeTab}`}
+                    >
+                      {tabData.find(tab => tab.id === activeTab)?.content}
+                    </motion.div>
+                  </AnimatePresence>
                 </div>
               )}
             </div>

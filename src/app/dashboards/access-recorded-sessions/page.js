@@ -1,5 +1,5 @@
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
-import ThemeController from "@/components/shared/others/ThemeController";
+
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 import StudentRecordedSessions from "@/components/layout/main/dashboards/Access-Recorded-Sessions";
 import ProtectedPage from "@/app/protectedRoutes";
@@ -17,7 +17,7 @@ const Access_Recorded_Sessions = () => {
           <HeadingDashboard />
           <StudentRecordedSessions />
         </DashboardContainer>
-        <ThemeController />
+        
       </main>
     </ProtectedPage>
   );
