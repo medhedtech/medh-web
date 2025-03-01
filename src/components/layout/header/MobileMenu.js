@@ -76,6 +76,7 @@ const MobileMenu = () => {
       {/* Mobile Menu Button - Hamburger Icon */}
       <button
         type="button"
+        suppressHydrationWarning
         className="lg:hidden inline-flex items-center justify-center p-2 rounded-full text-gray-700 hover:text-gray-900 hover:bg-gray-100/80 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800/80 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-all duration-200 transform hover:scale-105"
         onClick={openMenu}
         aria-expanded={isOpen}
@@ -99,11 +100,13 @@ const MobileMenu = () => {
         <div className="absolute top-4 right-4">
           <button
             type="button"
-            className="flex items-center justify-center p-2 rounded-full text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 transition-all duration-200"
+            suppressHydrationWarning
+            className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200"
             onClick={closeMenu}
-            aria-label="Close mobile menu"
+            aria-label="Close menu"
           >
-            <X size={24} aria-hidden="true" />
+            <span className="sr-only">Close menu</span>
+            <X className="h-6 w-6" aria-hidden="true" />
           </button>
         </div>
 

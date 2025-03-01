@@ -2,6 +2,7 @@
 import React from "react";
 import CoursesFilter from "../courses/CoursesFilter";
 import { Zap } from "lucide-react";
+import Link from "next/link";
 
 function CourseOptions() {
   // Add scroll to top functionality
@@ -35,17 +36,21 @@ function CourseOptions() {
 
   return (
     <CoursesFilter
+      key="ai-and-data-science"
       CustomText="AI and Data Science Courses"
       CustomButton={
-        <div className="inline-flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm hover:shadow-md">
-          Explore All AI Courses
-        </div>
+        <Link href="/courses">
+          <div className="inline-flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm hover:shadow-md">
+            Explore All AI Courses
+          </div>
+        </Link>
       }
       // Force filter to only show AI courses
       fixedCategory="AI and Data Science"
       categoryTitle="Grade Level"
       // Add scroll to top functionality
       scrollToTop={handleScrollToTop}
+      hideCategoryFilter={true}
       // Add a description for the courses section
       description="Master the future of technology with our comprehensive AI and Data Science courses. From machine learning to data analytics, our programs are designed to help you excel in the digital age."
       // Custom empty state
