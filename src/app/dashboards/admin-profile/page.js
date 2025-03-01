@@ -3,7 +3,7 @@ import AdminProfileMain from "@/components/layout/main/dashboards/AdminProfileMa
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
 import HeadingDashboardOnly from "@/components/shared/headings/HeadingDashbordsOnly";
 
-import ThemeController from "@/components/shared/others/ThemeController";
+
 export const metadata = {
   title: "Admin Profile | Medh - Education LMS Template",
   description: "Admin Profile | Medh - Education LMS Template",
@@ -18,7 +18,7 @@ const Admin_Profile = () => {
           </div>
           <AdminProfileMain />
         </DashboardContainer>
-        <ThemeController />
+        
       </main>
     </ProtectedPage>
   );

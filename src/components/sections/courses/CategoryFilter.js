@@ -9,27 +9,43 @@ const CategoryFilter = ({
   heading,
 }) => {
   const handleCategoryChange = (category) => {
+    const categoryValue = typeof category === 'object' ? category.category_name : category;
+    
     if (Array.isArray(selectedCategory)) {
-      if (selectedCategory.includes(category)) {
-        setSelectedCategory(selectedCategory.filter((c) => c !== category));
+      if (selectedCategory.includes(categoryValue)) {
+        setSelectedCategory(selectedCategory.filter((c) => c !== categoryValue));
       } else {
-        setSelectedCategory([...selectedCategory, category]);
+        setSelectedCategory([...selectedCategory, categoryValue]);
       }
     } else {
-      if (selectedCategory === category) {
-        setSelectedCategory(null);
+      // If selectedCategory is not an array, convert it to one
+      if (selectedCategory === categoryValue) {
+        setSelectedCategory([]);
       } else {
-        setSelectedCategory(category);
+        setSelectedCategory([categoryValue]);
       }
     }
   };
 
   // Check if a category is selected
   const isChecked = (category) => {
+    const categoryValue = typeof category === 'object' ? category.category_name : category;
+    
     if (Array.isArray(selectedCategory)) {
-      return selectedCategory.includes(category);
+      return selectedCategory.includes(categoryValue);
     }
-    return selectedCategory === category;
+    return selectedCategory === categoryValue;
+  };
+
+  // Get category display value
+  const getCategoryDisplayValue = (category) => {
+    return typeof category === 'object' ? category.category_name : category;
+  };
+
+  // Get category ID for HTML attributes
+  const getCategoryId = (category) => {
+    const value = getCategoryDisplayValue(category);
+    return `category-${value.replace(/\s+/g, '-').toLowerCase()}`;
   };
 
   return (
@@ -40,14 +56,14 @@ const CategoryFilter = ({
         </h2>
       )}
       <div className="flex flex-col space-y-2">
-        {categories.map((category) => (
+        {categories?.map((category) => (
           <div 
-            key={category} 
+            key={typeof category === 'object' ? category._id || category.category_name : category} 
             className="group"
           >
             <label 
               className="flex items-start cursor-pointer group select-none"
-              htmlFor={`category-${category.replace(/\s+/g, '-').toLowerCase()}`}
+              htmlFor={getCategoryId(category)}
             >
               <div className="flex-shrink-0 mt-0.5">
                 {isChecked(category) ? (
@@ -63,15 +79,15 @@ const CategoryFilter = ({
                 )}
                 <input
                   type="checkbox"
-                  id={`category-${category.replace(/\s+/g, '-').toLowerCase()}`}
-                  className="sr-only" // Visually hidden but accessible
+                  id={getCategoryId(category)}
+                  className="sr-only"
                   checked={isChecked(category)}
                   onChange={() => handleCategoryChange(category)}
-                  aria-label={`Filter by ${category}`}
+                  aria-label={`Filter by ${getCategoryDisplayValue(category)}`}
                 />
               </div>
               <span className="ml-2 text-gray-700 dark:text-gray-300 text-sm group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors line-clamp-2">
-                {category}
+                {getCategoryDisplayValue(category)}
               </span>
             </label>
           </div>

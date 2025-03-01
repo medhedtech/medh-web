@@ -1,5 +1,5 @@
 import LessonAssignmentMain from "@/components/layout/main/LessonAssignmentMain";
-import ThemeController from "@/components/shared/others/ThemeController";
+
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 
 export const metadata = {
@@ -11,7 +11,7 @@ const Lesson_Assignment = () => {
     <PageWrapper>
       <main>
         <LessonAssignmentMain />
-        <ThemeController />
+        
       </main>
     </PageWrapper>
   );

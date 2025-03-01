@@ -1811,12 +1811,12 @@ const ListOfCourse = () => {
   };
 
   const editCourse = (id) => {
-    router.push(`admin-updateCourse/${id}`);
+    window.open(`admin-updateCourse/${id}`);
   };
 
   const viewCourse = (id) => {
     // Navigate to course details page
-    router.push(`/course-details/${id}`);
+    window.open(`/course-details/${id}`);
   };
 
   const handleSort = (field) => {
