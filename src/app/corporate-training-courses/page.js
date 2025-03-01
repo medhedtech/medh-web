@@ -13,10 +13,10 @@ function CorporateTraining() {
     <PageWrapper>
       <CorporateBanner />
       <CorporateOverview />
-      <CorporateJourneyForm
+      {/* <CorporateJourneyForm
         mainText="Transform Your Workforce Today: Drive Change, Unlock Growth!"
         subText="Let’s Connect"
-      />
+      /> */}
       <Certified />
       <CorporateFaq />
       <CourceBanner />

@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { X, Filter, Search, ChevronDown, Zap, GraduationCap } from "lucide-react";
 import Preloader2 from "@/components/shared/others/Preloader2";
 import CategoryToggle from "@/components/shared/courses/CategoryToggle";
+import GradeFilter from "@/components/shared/courses/GradeFilter";
 
 const categories = [
   "AI and Data Science",
@@ -61,9 +62,14 @@ const CoursesFilter = ({
   scrollToTop,
   fixedCategory,
   hideCategoryFilter,
+  hideGradeFilter = false,
   availableCategories,
   categoryTitle,
-  description
+  description,
+  gradeTitle = "Grade Levels",
+  availableGrades = grades,
+  autoRefreshInterval = 30000, // 30 seconds default refresh interval
+  enableAutoRefresh = true,
 }) => {
   const router = useRouter();
   const [allCourses, setAllCourses] = useState([]);
@@ -73,12 +79,16 @@ const CoursesFilter = ({
   const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("newest-first");
-  const { getQuery, loading, error } = useGetQuery();
+  const { getQuery, error } = useGetQuery();
   const [selectedGrade, setSelectedGrade] = useState(null);
   const [categorySliderOpen, setCategorySliderOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [activeFilters, setActiveFilters] = useState([]);
   const [queryError, setQueryError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [lastRefreshTime, setLastRefreshTime] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const refreshTimeoutRef = useRef(null);
   
   const contentRef = useRef(null);
 
@@ -89,8 +99,11 @@ const CoursesFilter = ({
     scrollToTop: () => {},
     fixedCategory: null,
     hideCategoryFilter: false,
+    hideGradeFilter: false,
     availableCategories: categories,
+    availableGrades: grades,
     categoryTitle: "Categories",
+    gradeTitle: "Grade Levels",
     description: null
   };
 
@@ -129,94 +142,68 @@ const CoursesFilter = ({
     }
   }, []); 
 
-  const fetchCourses = () => {
+  const fetchCourses = async () => {
     const categoryQuery = selectedCategory ? selectedCategory : [];
     const gradeQuery = selectedGrade || "";
 
-    // Debug log the API URL and parameters
-    const apiUrl = apiUrls?.courses?.getAllCoursesWithLimits(
-      currentPage,
-      8,
-      "",
-      "",
-      "",
-      "Published",
-      searchTerm,
-      gradeQuery,
-      categoryQuery
-    );
-
-    console.debug('API Request:', {
-      url: apiUrl,
-      parameters: {
-        page: currentPage,
-        limit: 8,
-        status: "Published",
+    try {
+      const apiUrl = apiUrls?.courses?.getAllCoursesWithLimits(
+        currentPage,
+        8,
+        "",
+        "",
+        "",
+        "Published",
         searchTerm,
         gradeQuery,
         categoryQuery
+      );
+
+      if (!apiUrl) {
+        console.error('Invalid API URL configuration');
+        setQueryError('System configuration error. Please try again later.');
+        return;
       }
-    });
 
-    if (!apiUrl) {
-      console.error('Invalid API URL configuration');
-      setQueryError('System configuration error. Please try again later.');
-      return;
-    }
-
-    getQuery({
-      url: apiUrl,
-      onSuccess: (data) => {
-        console.debug('API Response:', {
-          success: true,
-          data: data,
-          coursesCount: data?.courses?.length || 0,
-          totalPages: data?.totalPages || 0
-        });
-
-        if (data?.courses && Array.isArray(data.courses)) {
-          if (data.courses.length === 0) {
-            console.debug('No courses returned from API');
+      const response = await getQuery({
+        url: apiUrl,
+        onSuccess: (data) => {
+          if (data?.courses && Array.isArray(data.courses)) {
+            if (data.courses.length === 0) {
+              setAllCourses([]);
+              setFilteredCourses([]);
+              setTotalPages(1);
+              setQueryError("No courses available for the selected filters");
+            } else {
+              setAllCourses(data.courses);
+              setTotalPages(data.totalPages || 1);
+              setQueryError(null);
+              applyFilters(data.courses);
+            }
+          } else {
             setAllCourses([]);
             setFilteredCourses([]);
             setTotalPages(1);
-            setQueryError("No courses available for the selected filters");
-          } else {
-            console.debug('Courses found:', {
-              count: data.courses.length,
-              firstCourse: data.courses[0],
-              categories: data.courses.map(c => c.category || c.course_category).filter(Boolean)
-            });
-            setAllCourses(data.courses);
-            setTotalPages(data.totalPages || 1);
-            setQueryError(null);
-            applyFilters(data.courses);
+            setQueryError("Unexpected data format received");
           }
-        } else {
-          console.warn("Unexpected API response structure:", data);
+        },
+        onFail: (error) => {
+          console.error("API Error:", error);
+          setQueryError(error.message || "Failed to fetch courses. Please try again.");
           setAllCourses([]);
           setFilteredCourses([]);
           setTotalPages(1);
-          setQueryError("Unexpected data format received");
-        }
-      },
-      onFail: (error) => {
-        console.error("API Error:", {
-          error,
-          url: apiUrl,
-          parameters: {
-            page: currentPage,
-            searchTerm,
-            gradeQuery,
-            categoryQuery
-          }
-        });
-        setQueryError(error.message || "Failed to fetch courses. Please try again.");
-        setAllCourses([]);
-        setFilteredCourses([]);
-        setTotalPages(1);
-      },
-    });
+        },
+      });
+
+      return response;
+    } catch (error) {
+      console.error("Error fetching courses:", error);
+      setQueryError("Failed to fetch courses. Please try again.");
+      setAllCourses([]);
+      setFilteredCourses([]);
+      setTotalPages(1);
+    }
   };
 
   const applyFilters = (coursesToFilter = allCourses) => {
@@ -420,6 +407,82 @@ const CoursesFilter = ({
     return filteredCourses;
   }, [filteredCourses]);
 
+  // Function to handle refresh
+  const handleRefresh = async (showLoading = true) => {
+    if (isRefreshing) return;
+    
+    try {
+      setIsRefreshing(true);
+      if (showLoading) setIsLoading(true);
+      
+      await fetchCourses();
+      setLastRefreshTime(new Date());
+      
+      // Show a subtle notification that data was refreshed
+      const event = new CustomEvent('courseDataRefreshed', { 
+        detail: { timestamp: new Date() } 
+      });
+      window.dispatchEvent(event);
+    } catch (error) {
+      console.error('Error refreshing courses:', error);
+      setQueryError('Failed to refresh courses. Will try again.');
+    } finally {
+      setIsRefreshing(false);
+      if (showLoading) setIsLoading(false);
+    }
+  };
+
+  // Initial load and auto-refresh setup
+  useEffect(() => {
+    // Initial load
+    handleRefresh(true);
+
+    // Setup auto-refresh if enabled
+    if (enableAutoRefresh) {
+      const setupAutoRefresh = () => {
+        refreshTimeoutRef.current = setTimeout(() => {
+          handleRefresh(false); // Don't show loading state for auto-refresh
+          setupAutoRefresh(); // Setup next refresh
+        }, autoRefreshInterval);
+      };
+
+      setupAutoRefresh();
+
+      // Cleanup
+      return () => {
+        if (refreshTimeoutRef.current) {
+          clearTimeout(refreshTimeoutRef.current);
+        }
+      };
+    }
+  }, [enableAutoRefresh, autoRefreshInterval]);
+
+  // Reset refresh timer when filters change
+  useEffect(() => {
+    if (refreshTimeoutRef.current) {
+      clearTimeout(refreshTimeoutRef.current);
+    }
+    if (enableAutoRefresh) {
+      refreshTimeoutRef.current = setTimeout(() => {
+        handleRefresh(false);
+      }, autoRefreshInterval);
+    }
+  }, [searchTerm, selectedCategory, sortOrder, selectedGrade, currentPage]);
+
+  // Add visibility change handler to refresh when tab becomes visible
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && enableAutoRefresh) {
+        handleRefresh(false);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
   // Render only on client to prevent hydration mismatches
   if (!isClient) {
     return null;
@@ -436,9 +499,37 @@ const CoursesFilter = ({
                 <h1 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-primary-400 mb-2">
                   {CustomText || "Skill Development Courses"}
                 </h1>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Discover courses tailored to your learning journey
-                </p>
+                <div className="flex items-center space-x-2">
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Discover courses tailored to your learning journey
+                  </p>
+                  {lastRefreshTime && (
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      • Last updated {new Date(lastRefreshTime).toLocaleTimeString()}
+                    </span>
+                  )}
+                  <button
+                    onClick={() => handleRefresh(true)}
+                    disabled={isRefreshing}
+                    className={`p-1.5 rounded-full text-gray-500 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all duration-200 ${isRefreshing ? 'animate-spin' : ''}`}
+                    title="Refresh courses"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                      />
+                    </svg>
+                  </button>
+                </div>
               </div>
               <div className="mt-4 md:mt-0">{CustomButton}</div>
             </div>
@@ -565,28 +656,50 @@ const CoursesFilter = ({
           )}
           
           <div className="flex flex-col md:flex-row gap-8 w-full">
-            {/* Desktop Categories */}
-            {!hideCategoryFilter && (
+            {/* Desktop Filters */}
+            {(!hideCategoryFilter || !hideGradeFilter) && (
               <div className="hidden md:block w-full md:w-1/5 lg:w-[18%] max-w-[280px]">
-                <div className="sticky top-24 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                    {categoryTitle || "Categories"}
-                  </h3>
-                  <CategoryFilter
-                    categories={availableCategories || categories}
-                    selectedCategory={selectedCategory}
-                    setSelectedCategory={(categories) => {
-                      setSelectedCategory(categories);
-                      setCurrentPage(1);
-                    }}
-                  />
+                <div className="sticky top-24 space-y-6">
+                  {/* Categories Filter */}
+                  {!hideCategoryFilter && (
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                        {categoryTitle || "Categories"}
+                      </h3>
+                      <CategoryFilter
+                        categories={availableCategories || categories}
+                        selectedCategory={selectedCategory}
+                        setSelectedCategory={(categories) => {
+                          setSelectedCategory(categories);
+                          setCurrentPage(1);
+                        }}
+                      />
+                    </div>
+                  )}
+
+                  {/* Grade Filter */}
+                  {!hideGradeFilter && (
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                        {gradeTitle}
+                      </h3>
+                      <GradeFilter
+                        grades={availableGrades}
+                        selectedGrade={selectedGrade}
+                        setSelectedGrade={(grade) => {
+                          setSelectedGrade(grade);
+                          setCurrentPage(1);
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             )}
 
             {/* Course Grid */}
             <div className="flex-1 w-full min-w-0">
-              {loading ? (
+              {isLoading ? (
                 <div className="flex justify-center items-center min-h-[50vh] w-full">
                   <Preloader2 />
                 </div>
@@ -627,7 +740,7 @@ const CoursesFilter = ({
                     {queryError || "No courses found"}
                   </h3>
                   <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md">
-                    {loading ? "Loading courses..." : 
+                    {isLoading ? "Loading courses..." : 
                      error ? "There was an error loading the courses. Please try again." :
                      "We couldn't find any courses matching your criteria. Try adjusting your filters or search terms."}
                   </p>
@@ -660,7 +773,7 @@ const CoursesFilter = ({
       </div>
 
       {/* Mobile Category Slider */}
-      {!hideCategoryFilter && categorySliderOpen && (
+      {(!hideCategoryFilter || !hideGradeFilter) && categorySliderOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div 
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
@@ -670,7 +783,7 @@ const CoursesFilter = ({
             <div className="p-4">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Categories
+                  Filters
                 </h3>
                 <button 
                   onClick={() => setCategorySliderOpen(false)}
@@ -679,15 +792,55 @@ const CoursesFilter = ({
                   <X size={20} />
                 </button>
               </div>
-              <CategoryFilter
-                categories={categories}
-                selectedCategory={selectedCategory}
-                setSelectedCategory={(categories) => {
-                  setSelectedCategory(categories);
-                  setCurrentPage(1);
-                  setCategorySliderOpen(false);
-                }}
-              />
+
+              <div className="space-y-6">
+                {/* Mobile Category Filter */}
+                {!hideCategoryFilter && (
+                  <div>
+                    <h4 className="text-base font-semibold text-gray-900 dark:text-white mb-3">
+                      {categoryTitle || "Categories"}
+                    </h4>
+                    <CategoryFilter
+                      categories={availableCategories || categories}
+                      selectedCategory={selectedCategory}
+                      setSelectedCategory={(categories) => {
+                        setSelectedCategory(categories);
+                        setCurrentPage(1);
+                      }}
+                    />
+                  </div>
+                )}
+
+                {/* Mobile Grade Filter */}
+                {!hideGradeFilter && (
+                  <div>
+                    <h4 className="text-base font-semibold text-gray-900 dark:text-white mb-3">
+                      {gradeTitle}
+                    </h4>
+                    <GradeFilter
+                      grades={availableGrades}
+                      selectedGrade={selectedGrade}
+                      setSelectedGrade={(grade) => {
+                        setSelectedGrade(grade);
+                        setCurrentPage(1);
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Clear filters button */}
+              {(selectedCategory.length > 0 || selectedGrade || searchTerm) && (
+                <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-4">
+                  <button
+                    onClick={handleClearFilters}
+                    className="flex items-center justify-center w-full px-4 py-3 bg-primary-50 hover:bg-primary-100 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 dark:hover:bg-primary-900/30 font-medium rounded-lg transition-colors"
+                  >
+                    <X size={18} className="mr-2" />
+                    Clear All Filters
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -708,9 +861,14 @@ CoursesFilter.propTypes = {
   scrollToTop: PropTypes.func,
   fixedCategory: PropTypes.string,
   hideCategoryFilter: PropTypes.bool,
+  hideGradeFilter: PropTypes.bool,
   availableCategories: PropTypes.arrayOf(PropTypes.string),
+  availableGrades: PropTypes.arrayOf(PropTypes.string),
   categoryTitle: PropTypes.string,
-  description: PropTypes.string
+  gradeTitle: PropTypes.string,
+  description: PropTypes.string,
+  autoRefreshInterval: PropTypes.number,
+  enableAutoRefresh: PropTypes.bool,
 };
 
 export default CoursesFilter;

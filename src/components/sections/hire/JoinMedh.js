@@ -65,54 +65,55 @@ const JoinMedh = ({
     : "";
   
   return (
-    <div className={`flex flex-col gap-8 transition-opacity duration-700 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
+    <div className={`flex flex-col gap-12 transition-all duration-1000 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
       {/* Educator Section */}
-      <section className="relative overflow-hidden bg-white dark:bg-gray-900 rounded-3xl">
-        {/* Modern decorative elements */}
-        <div className="absolute top-0 right-0 w-2/3 h-2/3 bg-gradient-to-br from-primary-300/30 via-purple-300/20 to-pink-300/30 dark:from-primary-500/20 dark:via-purple-500/15 dark:to-pink-500/20 rounded-full blur-3xl opacity-60 transform translate-x-1/3 -translate-y-1/4 animate-pulse"></div>
-        <div className="absolute bottom-0 left-0 w-2/3 h-2/3 bg-gradient-to-tr from-blue-300/30 via-teal-300/20 to-primary-300/30 dark:from-blue-500/20 dark:via-teal-500/15 dark:to-primary-500/20 rounded-full blur-3xl opacity-60 transform -translate-x-1/3 translate-y-1/4 animate-pulse"></div>
+      <section className="relative overflow-hidden bg-white dark:bg-gray-900 rounded-[2rem] shadow-2xl">
+        {/* Enhanced 3D decorative elements */}
+        <div className="absolute top-0 right-0 w-2/3 h-2/3 bg-gradient-conic from-primary-300/40 via-purple-300/30 to-pink-300/40 dark:from-primary-500/30 dark:via-purple-500/20 dark:to-pink-500/30 rounded-full blur-[6rem] opacity-70 transform translate-x-1/3 -translate-y-1/4 animate-pulse-slow"></div>
+        <div className="absolute bottom-0 left-0 w-2/3 h-2/3 bg-gradient-conic from-blue-300/40 via-teal-300/30 to-primary-300/40 dark:from-blue-500/30 dark:via-teal-500/20 dark:to-primary-500/30 rounded-full blur-[6rem] opacity-70 transform -translate-x-1/3 translate-y-1/4 animate-pulse-slow animation-delay-2000"></div>
         
-        <div className="max-w-7xl mx-auto p-6 lg:p-8">
-          <div className="flex flex-col md:flex-row items-center gap-12">
-            {/* Image container with modern effects */}
-            <div className="w-full md:w-1/2 relative group">
-              <div className="absolute inset-0 bg-gradient-to-r from-primary-400/40 to-purple-400/40 dark:from-primary-500/40 dark:to-purple-500/40 rounded-3xl transform rotate-3 scale-95 opacity-0 group-hover:opacity-100 transition-all duration-500 md:-ml-6"></div>
-              <div className="relative overflow-hidden rounded-3xl shadow-2xl">
+        <div className="max-w-7xl mx-auto p-8 lg:p-12">
+          <div className="flex flex-col md:flex-row items-center gap-16">
+            {/* Enhanced image container with 3D effects */}
+            <div className="w-full md:w-1/2 relative group perspective-1000">
+              <div className="absolute inset-0 bg-gradient-to-r from-primary-400/40 to-purple-400/40 dark:from-primary-500/40 dark:to-purple-500/40 rounded-[2rem] transform rotate-6 scale-95 opacity-0 group-hover:opacity-100 transition-all duration-500 md:-ml-8 blur-xl"></div>
+              <div className="relative overflow-hidden rounded-[2rem] shadow-2xl transform transition-all duration-500 group-hover:rotate-1 group-hover:scale-[1.02] will-change-transform">
                 <Image
                   src={educatorImage}
                   width={720}
                   height={450}
                   alt={educatorTitle}
-                  className="w-full object-cover transform transition-all duration-500 group-hover:scale-105 group-hover:rotate-1"
+                  className="w-full object-cover transform transition-all duration-700 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                {/* Modern overlay effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-primary-500/10 to-purple-500/10 mix-blend-overlay opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                {/* Enhanced 3D overlay effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-primary-500/20 to-purple-500/20 mix-blend-overlay opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               </div>
             </div>
             
-            {/* Content container with modern styling */}
-            <div className="w-full md:w-1/2 p-6 md:p-12">
-              <div className="max-w-lg">
-                <span className="inline-flex items-center px-5 py-2 bg-gradient-to-r from-primary-100 to-purple-100 dark:from-primary-900/50 dark:to-purple-900/50 text-primary-700 dark:text-primary-300 text-sm font-medium rounded-full mb-6 group-hover:shadow-lg transition-all duration-300">
-                  <span className="mr-2">🎓</span>
+            {/* Enhanced content container with 3D effects */}
+            <div className="w-full md:w-1/2 p-8 md:p-12">
+              <div className="max-w-lg space-y-8">
+                <span className="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-primary-100 to-purple-100 dark:from-primary-900/50 dark:to-purple-900/50 text-primary-700 dark:text-primary-300 text-sm font-medium rounded-full group-hover:shadow-lg transition-all duration-300 transform hover:scale-105">
+                  <span className="mr-2 text-xl">🎓</span>
                   Become an Educator
                 </span>
                 
-                <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent mb-6">
+                <h2 className="text-4xl md:text-5xl xl:text-6xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-700 dark:from-white dark:via-gray-200 dark:to-gray-300 bg-clip-text text-transparent">
                   {educatorTitle}
                 </h2>
                 
-                <p className="text-gray-600 dark:text-gray-300 text-lg leading-relaxed mb-8">
+                <p className="text-gray-600 dark:text-gray-300 text-lg xl:text-xl leading-relaxed">
                   {educatorText}
                 </p>
                 
                 <button
                   onClick={() => router.push("/join-us-as-educator")}
-                  className="group inline-flex items-center px-8 py-4 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-medium rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                  className="group relative inline-flex items-center px-8 py-4 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-xl shadow-xl transition-all duration-300 transform hover:translate-y-[-2px] hover:shadow-2xl hover:shadow-primary-500/25 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 overflow-hidden"
                 >
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
                   <PlusCircle className="mr-3 h-5 w-5 transform transition-transform duration-300 group-hover:rotate-180" />
-                  <span className="text-lg">{educatorButtonText}</span>
+                  <span className="text-lg relative z-10">{educatorButtonText}</span>
                 </button>
               </div>
             </div>
@@ -120,59 +121,83 @@ const JoinMedh = ({
         </div>
       </section>
 
-      {/* School Partnership Section with modern styling */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#FF8C42] to-[#F6B335] dark:from-[#FF8C42] dark:to-[#F6B335]">
-        {/* Modern decorative elements */}
-        <div className="absolute top-0 left-0 w-2/3 h-2/3 bg-white/20 rounded-full blur-3xl opacity-50 transform -translate-x-1/3 -translate-y-1/4 animate-pulse"></div>
-        <div className="absolute bottom-0 right-0 w-2/3 h-2/3 bg-white/20 rounded-full blur-3xl opacity-50 transform translate-x-1/3 translate-y-1/4 animate-pulse"></div>
+      {/* School Partnership Section with enhanced 3D styling */}
+      <section className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#FF8C42] to-[#F6B335] dark:from-[#FF8C42] dark:to-[#F6B335] shadow-2xl">
+        {/* Enhanced 3D decorative elements */}
+        <div className="absolute top-0 left-0 w-2/3 h-2/3 bg-gradient-conic from-white/30 via-white/20 to-transparent rounded-full blur-[6rem] opacity-60 transform -translate-x-1/3 -translate-y-1/4 animate-pulse-slow"></div>
+        <div className="absolute bottom-0 right-0 w-2/3 h-2/3 bg-gradient-conic from-white/30 via-white/20 to-transparent rounded-full blur-[6rem] opacity-60 transform translate-x-1/3 translate-y-1/4 animate-pulse-slow animation-delay-4000"></div>
         
-        <div className="max-w-7xl mx-auto p-6 lg:p-8">
-          <div className="flex flex-col-reverse md:flex-row items-center gap-12">
-            {/* Content container with modern styling */}
-            <div className="w-full md:w-1/2 p-6 md:p-12">
-              <div className="max-w-lg">
-                <span className="inline-flex items-center px-5 py-2 bg-white/20 backdrop-blur-sm text-white text-sm font-medium rounded-full mb-6 group-hover:shadow-lg transition-all duration-300">
-                  <span className="mr-2">🤝</span>
+        <div className="max-w-7xl mx-auto p-8 lg:p-12">
+          <div className="flex flex-col-reverse md:flex-row items-center gap-16">
+            {/* Enhanced content container with 3D effects */}
+            <div className="w-full md:w-1/2 p-8 md:p-12">
+              <div className="max-w-lg space-y-8">
+                <span className="inline-flex items-center px-6 py-2.5 bg-white/20 backdrop-blur-sm text-white text-sm font-medium rounded-full group-hover:shadow-lg transition-all duration-300 transform hover:scale-105">
+                  <span className="mr-2 text-xl">🤝</span>
                   Institutional Partnership
                 </span>
                 
-                <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+                <h2 className="text-4xl md:text-5xl xl:text-6xl font-bold text-white">
                   {partnerTitle}
                 </h2>
                 
-                <p className="text-white/90 text-lg leading-relaxed mb-8">
+                <p className="text-white/90 text-lg xl:text-xl leading-relaxed">
                   {partnerText}
                 </p>
                 
                 <button
                   onClick={() => router.push("/join-us-as-school-institute")}
-                  className="group inline-flex items-center px-8 py-4 bg-white text-[#FF8C42] font-medium rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#FF8C42]"
+                  className="group relative inline-flex items-center px-8 py-4 bg-white text-[#FF8C42] font-medium rounded-xl shadow-xl transition-all duration-300 transform hover:translate-y-[-2px] hover:shadow-2xl hover:shadow-white/25 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#FF8C42] overflow-hidden"
                 >
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#FF8C42]/0 via-[#FF8C42]/10 to-[#FF8C42]/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
                   <PlusCircle className="mr-3 h-5 w-5 transform transition-transform duration-300 group-hover:rotate-180" />
-                  <span className="text-lg">{partnerButtonText}</span>
+                  <span className="text-lg relative z-10">{partnerButtonText}</span>
                 </button>
               </div>
             </div>
             
-            {/* Image container with modern effects */}
-            <div className="w-full md:w-1/2 relative group">
-              <div className="absolute inset-0 bg-white/30 rounded-3xl transform -rotate-3 scale-95 opacity-0 group-hover:opacity-100 transition-all duration-500 md:-mr-6"></div>
-              <div className="relative overflow-hidden rounded-3xl shadow-2xl">
+            {/* Enhanced image container with 3D effects */}
+            <div className="w-full md:w-1/2 relative group perspective-1000">
+              <div className="absolute inset-0 bg-white/30 rounded-[2rem] transform -rotate-6 scale-95 opacity-0 group-hover:opacity-100 transition-all duration-500 md:-mr-8 blur-xl"></div>
+              <div className="relative overflow-hidden rounded-[2rem] shadow-2xl transform transition-all duration-500 group-hover:rotate-[-1deg] group-hover:scale-[1.02] will-change-transform">
                 <Image
                   src={partnerImage}
                   width={720}
                   height={450}
                   alt={partnerTitle}
-                  className="w-full object-cover transform transition-all duration-500 group-hover:scale-105 group-hover:-rotate-1"
+                  className="w-full object-cover transform transition-all duration-700 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                {/* Modern overlay effect */}
+                {/* Enhanced 3D overlay effect */}
                 <div className="absolute inset-0 bg-gradient-to-r from-[#FF8C42]/20 to-[#F6B335]/20 mix-blend-overlay opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               </div>
             </div>
           </div>
         </div>
       </section>
+
+      <style jsx global>{`
+        .perspective-1000 {
+          perspective: 1000px;
+        }
+
+        .animate-pulse-slow {
+          animation: pulse-slow 6s ease-in-out infinite;
+        }
+
+        @keyframes pulse-slow {
+          0%, 100% { opacity: 0.3; transform: scale(1); }
+          50% { opacity: 0.6; transform: scale(1.1); }
+        }
+
+        .animation-delay-2000 {
+          animation-delay: 2000ms;
+        }
+
+        .animation-delay-4000 {
+          animation-delay: 4000ms;
+        }
+      `}</style>
     </div>
   );
 };
