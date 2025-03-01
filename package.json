@@ -31,6 +31,7 @@
     "edurock": "file:.",
     "framer-motion": "^12.4.7",
     "indexof": "^0.0.1",
+    "isomorphic-dompurify": "^2.22.0",
     "isotope-layout": "^3.0.6",
     "js-cookie": "^3.0.5",
     "jwt-decode": "^4.0.0",

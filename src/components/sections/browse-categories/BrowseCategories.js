@@ -97,25 +97,37 @@ const BrowseCategories = () => {
               key={category.id}
               className="group block"
             >
-              <div className="relative overflow-hidden bg-white dark:bg-gray-800 rounded-2xl shadow-lg transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+              <div className="relative overflow-hidden bg-white dark:bg-gray-800 rounded-2xl shadow-lg transform transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
                 {/* Gradient background */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${category.color} opacity-10 group-hover:opacity-20 transition-opacity`}></div>
+                <div className={`absolute inset-0 bg-gradient-to-br ${category.color} opacity-5 group-hover:opacity-10 transition-opacity duration-300`}></div>
+                
+                {/* Decorative elements */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/5 dark:bg-primary-500/10 rounded-full transform translate-x-16 -translate-y-16 group-hover:translate-x-8 group-hover:-translate-y-8 transition-transform duration-500"></div>
+                <div className="absolute bottom-0 left-0 w-32 h-32 bg-secondary-500/5 dark:bg-secondary-500/10 rounded-full transform -translate-x-16 translate-y-16 group-hover:-translate-x-8 group-hover:translate-y-8 transition-transform duration-500"></div>
                 
                 {/* Card content */}
-                <div className="relative z-10 flex flex-col items-center p-6">
-                  <div className="relative w-48 h-48 mb-6 transform transition-transform group-hover:scale-105">
-                    <Image
-                      src={category.image}
-                      alt={category.title}
-                      className="object-contain"
-                      fill
-                      sizes="(max-width: 768px) 100vw, 192px"
-                    />
+                <div className="relative z-10 flex flex-col items-center p-8">
+                  <div className="relative w-48 h-48 mb-8">
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary-100 to-primary-50 dark:from-primary-900/20 dark:to-primary-800/10 rounded-2xl transform rotate-6 transition-transform duration-300 group-hover:rotate-12"></div>
+                    <div className="relative w-full h-full transform transition-transform duration-300 group-hover:scale-110">
+                      <Image
+                        src={category.image}
+                        alt={category.title}
+                        className="object-contain drop-shadow-xl"
+                        fill
+                        sizes="(max-width: 768px) 100vw, 192px"
+                      />
+                    </div>
                   </div>
                   
-                  <div className="w-full bg-gradient-to-r from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700 text-white p-4 rounded-lg flex items-center justify-between group-hover:from-primary-600 group-hover:to-primary-700 transition-colors">
+                  <div className="w-full bg-gradient-to-r from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700 text-white p-5 rounded-xl flex items-center justify-between transform transition-all duration-300 group-hover:from-primary-600 group-hover:to-primary-700 group-hover:scale-105 shadow-lg group-hover:shadow-xl">
                     <h3 className="text-xl font-bold">{category.title}</h3>
-                    <ArrowRight className="h-5 w-5 transform transition-transform group-hover:translate-x-1" />
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 -translate-x-4 group-hover:translate-x-0 transform">
+                        Explore
+                      </span>
+                      <ArrowRight className="h-5 w-5 transform transition-all duration-300 group-hover:translate-x-1" />
+                    </div>
                   </div>
                 </div>
               </div>
