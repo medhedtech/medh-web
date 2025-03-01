@@ -441,6 +441,10 @@ const SchedulePublishModal = ({ courseId, courseTitle, onClose }) => {
   const [scheduledTime, setScheduledTime] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [notifyUsers, setNotifyUsers] = useState(true);
+  const [validationError, setValidationError] = useState(null);
+
+  // Determine if courseId is an array (batch scheduling) or single course
+  const isBatchSchedule = Array.isArray(courseId);
 
   // Set default time to current time + 1 hour
   useEffect(() => {
@@ -457,10 +461,14 @@ const SchedulePublishModal = ({ courseId, courseTitle, onClose }) => {
     setScheduledTime(`${hours}:${minutes}`);
   }, []);
 
-  const handleSchedule = async () => {
+  const validateSchedule = () => {
+    // Reset previous validation errors
+    setValidationError(null);
+
+    // Validate date and time
     if (!scheduledDate || !scheduledTime) {
-      toast.error("Please select both date and time");
-      return;
+      setValidationError("Please select both date and time");
+      return false;
     }
 
     // Combine date and time into ISO string
@@ -468,46 +476,90 @@ const SchedulePublishModal = ({ courseId, courseTitle, onClose }) => {
 
     // Validate that the scheduled time is in the future
     if (scheduledDateTime <= new Date()) {
-      toast.error("Please select a future date and time");
+      setValidationError("Please select a future date and time");
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSchedule = async () => {
+    // Validate schedule first
+    if (!validateSchedule()) {
       return;
     }
 
+    // Combine date and time into ISO string
+    const scheduledDateTime = new Date(`${scheduledDate}T${scheduledTime}`);
+
     setIsLoading(true);
-    const loadingToastId = toast.loading("Scheduling course publish...");
+    const loadingToastId = toast.loading(
+      isBatchSchedule 
+        ? `Scheduling ${courseId.length} courses for publish...` 
+        : "Scheduling course publish..."
+    );
 
     try {
-      await postQuery({
-        url: apiUrls?.courses?.schedulePublish,
-        postData: {
-          courseId,
-          scheduledTime: scheduledDateTime.toISOString(),
-          notifyUsers
-        },
-        onSuccess: () => {
-          toast.update(loadingToastId, {
-            render: "Course scheduled for publishing",
-            type: "success",
-            isLoading: false,
-            autoClose: 3000,
-          });
-          setScheduledCourses(prev => ({
-            ...prev,
-            [courseId]: scheduledDateTime.toISOString()
-          }));
-          onClose();
-        },
-        onFail: (error) => {
-          toast.update(loadingToastId, {
-            render: `Failed to schedule: ${error?.message || "Unknown error"}`,
-            type: "error",
-            isLoading: false,
-            autoClose: 3000,
-          });
-        }
+      // Determine the courses to schedule
+      const coursesToSchedule = isBatchSchedule ? courseId : [courseId];
+
+      // Batch schedule courses
+      const schedulePromises = coursesToSchedule.map(async (id) => {
+        return postQuery({
+          url: apiUrls?.courses?.schedulePublish,
+          postData: {
+            courseId: id,
+            scheduledTime: scheduledDateTime.toISOString(),
+            notifyUsers
+          }
+        });
       });
+
+      const results = await Promise.allSettled(schedulePromises);
+
+      // Process results
+      const successCount = results.filter(result => result.status === 'fulfilled').length;
+      const failedCount = results.filter(result => result.status === 'rejected').length;
+
+      if (successCount > 0) {
+        toast.update(loadingToastId, {
+          render: isBatchSchedule 
+            ? `Scheduled ${successCount} out of ${coursesToSchedule.length} courses` 
+            : "Course scheduled for publishing",
+          type: "success",
+          isLoading: false,
+          autoClose: 3000,
+        });
+
+        // Update scheduled courses state
+        results.forEach((result, index) => {
+          if (result.status === 'fulfilled') {
+            setScheduledCourses(prev => ({
+              ...prev,
+              [coursesToSchedule[index]]: scheduledDateTime.toISOString()
+            }));
+          }
+        });
+
+        onClose();
+      }
+
+      // Handle any failures
+      if (failedCount > 0) {
+        const errorMessages = results
+          .filter(result => result.status === 'rejected')
+          .map(result => result.reason?.message || "Unknown error");
+
+        toast.update(loadingToastId, {
+          render: `Failed to schedule ${failedCount} courses: ${errorMessages.join(', ')}`,
+          type: "error",
+          isLoading: false,
+          autoClose: 5000,
+        });
+      }
     } catch (error) {
       toast.update(loadingToastId, {
-        render: "An error occurred while scheduling",
+        render: "An unexpected error occurred while scheduling",
         type: "error",
         isLoading: false,
         autoClose: 3000,
@@ -522,7 +574,7 @@ const SchedulePublishModal = ({ courseId, courseTitle, onClose }) => {
       <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md shadow-xl" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-            Schedule Course Publish
+            {isBatchSchedule ? "Schedule Multiple Courses" : "Schedule Course Publish"}
           </h3>
           <button
             onClick={onClose}
@@ -534,11 +586,24 @@ const SchedulePublishModal = ({ courseId, courseTitle, onClose }) => {
           </button>
         </div>
 
+        {/* Course Title or Count Display */}
         <div className="mb-4">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Schedule publishing for: <span className="font-medium text-gray-900 dark:text-white">{courseTitle}</span>
+            {isBatchSchedule 
+              ? `Scheduling ${courseId.length} selected courses` 
+              : `Schedule publishing for: ${courseTitle}`}
           </p>
         </div>
+
+        {/* Validation Error Display */}
+        {validationError && (
+          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-2 rounded-lg mb-4 flex items-center">
+            <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {validationError}
+          </div>
+        )}
 
         <div className="space-y-4">
           <div>
@@ -609,7 +674,7 @@ const SchedulePublishModal = ({ courseId, courseTitle, onClose }) => {
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                Schedule Publish
+                {isBatchSchedule ? "Schedule Selected" : "Schedule Publish"}
               </>
             )}
           </button>
@@ -701,6 +766,9 @@ const ActionButtons = ({ course, onEdit, onView, onDelete, onAssignInstructor, o
     </button>
   );
 
+  // Define statuses that allow scheduling
+  const schedulableStatuses = ["Draft", "Inactive", "Upcoming"];
+
   return (
     <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
       <ActionButton
@@ -710,12 +778,15 @@ const ActionButtons = ({ course, onEdit, onView, onDelete, onAssignInstructor, o
         color="purple"
       />
       
-      <ActionButton
-        onClick={() => onSchedulePublish(course._id, course.course_title)}
-        icon={<Calendar className="w-4 h-4" />}
-        label="Schedule Publish"
-        color="emerald"
-      />
+      {/* Conditionally render schedule publish button */}
+      {schedulableStatuses.includes(course.status) && (
+        <ActionButton
+          onClick={() => onSchedulePublish(course._id, course.course_title)}
+          icon={<Calendar className="w-4 h-4" />}
+          label="Schedule Publish"
+          color="emerald"
+        />
+      )}
       
       <div className="flex items-center gap-1">
         <ActionButton
@@ -741,6 +812,200 @@ const ActionButtons = ({ course, onEdit, onView, onDelete, onAssignInstructor, o
           color="red"
           className="!px-2"
         />
+      </div>
+    </div>
+  );
+};
+
+// Modify the BulkEditModal to use getQuery for fetching categories
+const BulkEditModal = ({ 
+  selectedCourses, 
+  courses, 
+  onClose, 
+  onBulkUpdate 
+}) => {
+  const { getQuery } = useGetQuery();
+  const [categories, setCategories] = useState([]);
+  const [bulkEditFields, setBulkEditFields] = useState({
+    course_category: "",
+    category_type: "",
+    course_grade: "",
+    is_Certification: "",
+    is_Assignments: "",
+    is_Projects: "",
+    is_Quizes: "",
+    class_type: "",
+  });
+
+  // Fetch categories when the modal opens
+  useEffect(() => {
+    const fetchAllCategories = async () => {
+      try {
+        await getQuery({
+          url: apiUrls?.categories?.getAllCategories,
+          onSuccess: (data) => {
+            const fetchedCategories = data.data;
+            if (Array.isArray(fetchedCategories)) {
+              const normalizedData = fetchedCategories.map((item) => ({
+                id: item._id,
+                name: item.name || item.category_name || "Unnamed Category",
+                image: item.category_image || null,
+                createdAt: item.createdAt,
+                updatedAt: item.updatedAt,
+              }));
+              setCategories(normalizedData);
+            } else {
+              setCategories([]);
+              toast.error("Failed to load categories");
+            }
+          },
+          onFail: (error) => {
+            console.error("Failed to fetch categories:", error);
+            // Fallback to existing course categories if API fetch fails
+            const existingCategories = [...new Set(courses.map(c => c.course_category))].filter(Boolean);
+            const fallbackCategories = existingCategories.map(name => ({
+              id: name,
+              name: name,
+              image: null
+            }));
+            setCategories(fallbackCategories);
+            toast.error("Could not fetch categories");
+          },
+        });
+      } catch (error) {
+        console.error("Error in category fetching:", error);
+        toast.error("An unexpected error occurred while fetching categories");
+      }
+    };
+
+    fetchAllCategories();
+  }, []);
+
+  const handleFieldChange = (field, value) => {
+    setBulkEditFields(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleBulkUpdate = () => {
+    // Remove empty fields
+    const updatePayload = Object.fromEntries(
+      Object.entries(bulkEditFields).filter(([_, v]) => v !== "")
+    );
+
+    onBulkUpdate(selectedCourses, updatePayload);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onClose}>
+      <div 
+        className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-2xl shadow-xl" 
+        onClick={e => e.stopPropagation()}
+      >
+        <h3 className="text-xl font-semibold mb-6">Bulk Edit Courses</h3>
+        
+        <div className="grid grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium mb-2">Course Category</label>
+            <select
+              className="w-full p-3 border rounded-lg"
+              value={bulkEditFields.course_category}
+              onChange={(e) => handleFieldChange('course_category', e.target.value)}
+            >
+              <option value="">Select Category</option>
+              {categories.map((category) => (
+                <option 
+                  key={category.id} 
+                  value={category.name}
+                >
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Category Type</label>
+            <select
+              className="w-full p-3 border rounded-lg"
+              value={bulkEditFields.category_type}
+              onChange={(e) => handleFieldChange('category_type', e.target.value)}
+            >
+              <option value="">Select Type</option>
+              <option value="Live">Live</option>
+              <option value="Hybrid">Hybrid</option>
+              <option value="Pre-Recorded">Pre-Recorded</option>
+              <option value="Free">Free</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Course Grade</label>
+            <select
+              className="w-full p-3 border rounded-lg"
+              value={bulkEditFields.course_grade}
+              onChange={(e) => handleFieldChange('course_grade', e.target.value)}
+            >
+              <option value="">Select Grade</option>
+              <option value="All Grade">All Grade</option>
+              <option value="Preschool">Preschool</option>
+              <option value="Grade 1-2">Grade 1-2</option>
+              <option value="Grade 3-4">Grade 3-4</option>
+              <option value="Grade 5-6">Grade 5-6</option>
+              <option value="Grade 7-8">Grade 7-8</option>
+              <option value="Grade 9-10">Grade 9-10</option>
+              <option value="Grade 11-12">Grade 11-12</option>
+              <option value="UG - Graduate - Professionals">UG - Graduate - Professionals</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Class Type</label>
+            <select
+              className="w-full p-3 border rounded-lg"
+              value={bulkEditFields.class_type}
+              onChange={(e) => handleFieldChange('class_type', e.target.value)}
+            >
+              <option value="">Select Class Type</option>
+              <option value="Live Courses">Live Courses</option>
+              <option value="Blended Courses">Blended Courses</option>
+              <option value="Corporate Training Courses">Corporate Training Courses</option>
+            </select>
+          </div>
+
+          {["is_Certification", "is_Assignments", "is_Projects", "is_Quizes"].map(field => (
+            <div key={field}>
+              <label className="block text-sm font-medium mb-2">
+                {field.replace('is_', '').replace('_', ' ')}
+              </label>
+              <select
+                className="w-full p-3 border rounded-lg"
+                value={bulkEditFields[field]}
+                onChange={(e) => handleFieldChange(field, e.target.value)}
+              >
+                <option value="">Select Option</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+              </select>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex justify-end gap-3 mt-6">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleBulkUpdate}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+          >
+            Update Selected Courses
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -796,6 +1061,7 @@ const ListOfCourse = () => {
   const [exportLoading, setExportLoading] = useState(false);
   const [coursesData, setCoursesData] = useState([]); // Initialize as an empty array
   const [pageLoading, setPageLoading] = useState(false);
+  const [bulkEditModal, setBulkEditModal] = useState(false);
 
   // Add new status management functionality
   const statusTransitions = {
@@ -1105,7 +1371,6 @@ const ListOfCourse = () => {
 
   useEffect(() => {
     const fetchCourses = async (retryCount = 0) => {
-      const loadingToastId = toast.loading("Loading courses...");
       setPageLoading(true);
 
       try {
@@ -1144,13 +1409,6 @@ const ListOfCourse = () => {
             const analytics = generateAnalyticsData(validatedCourses);
             setAnalyticsData(analytics);
 
-            toast.update(loadingToastId, {
-              render: `${validatedCourses.length} courses loaded successfully`,
-              type: "success",
-              isLoading: false,
-              autoClose: 2000,
-            });
-
             // Fetch instructors for the loaded courses
             fetchInstructors(validatedCourses);
           },
@@ -1159,12 +1417,6 @@ const ListOfCourse = () => {
 
             // Implement retry logic
             if (retryCount < 2) {
-              toast.update(loadingToastId, {
-                render: `Retrying... (Attempt ${retryCount + 1}/2)`,
-                type: "info",
-                isLoading: true,
-              });
-
               // Exponential backoff
               await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));
               return fetchCourses(retryCount + 1);
@@ -1179,13 +1431,6 @@ const ListOfCourse = () => {
                   const courses = Array.isArray(fallbackData) ? fallbackData : fallbackData?.data || [];
                   setCoursesData(courses);
                   setCourses(courses); // Update both states
-                  
-                  toast.update(loadingToastId, {
-                    render: `${courses.length} courses loaded using fallback`,
-                    type: "success",
-                    isLoading: false,
-                    autoClose: 3000,
-                  });
                 },
                 onFail: (fallbackError) => {
                   throw fallbackError;
@@ -1246,7 +1491,6 @@ const ListOfCourse = () => {
 
   // Enhanced instructor loading that works across all components
   const loadInstructorsWithFallbacks = async () => {
-    const loadingToastId = toast.loading("Loading instructors...");
     
     // Log API endpoints for debugging
     logApiEndpoints();
@@ -1758,70 +2002,45 @@ const ListOfCourse = () => {
         setAssignInstructorModal({ open: true, assignmentId: selectedCourses });
         break;
       case "schedule_publish":
-        // For batch scheduling, we'll show modal for first course as reference
-        const firstCourse = courses.find(course => course._id === selectedCourses[0]);
+        // Filter courses that are in schedulable status
+        const schedulableCourses = courses
+          .filter(course => 
+            selectedCourses.includes(course._id) && 
+            ["Draft", "Inactive","Upcoming"].includes(course.status)
+          )
+          .map(course => course._id);
+
+        // Check if any courses are schedulable
+        if (schedulableCourses.length === 0) {
+          toast.error("No selected courses are eligible for scheduling. Only Draft or Inactive courses can be scheduled.");
+          return;
+        }
+
+        // If some courses are not schedulable, show a warning
+        if (schedulableCourses.length < selectedCourses.length) {
+          toast.warning(
+            `Only ${schedulableCourses.length} out of ${selectedCourses.length} selected courses are eligible for scheduling.`,
+            { autoClose: 5000 }
+          );
+        }
+
+        // Open schedule modal with schedulable courses
         setScheduleModal({ 
           open: true, 
-          courseId: selectedCourses,
-          courseTitle: `${selectedCourses.length} selected courses`
+          courseId: schedulableCourses,
+          courseTitle: `${schedulableCourses.length} selected courses`
         });
         break;
       case "export":
         setExportModal(true);
         break;
-      default:
-        // Handle status changes
-        const confirmAction = window.confirm(`Are you sure you want to mark ${selectedCourses.length} selected courses as "${batchAction}"?`);
-        if (!confirmAction) return;
-        
-        const loadingToastId = toast.loading(`Updating ${selectedCourses.length} courses...`);
-        
-        let successCount = 0;
-        let failCount = 0;
-        
-        const updatePromises = selectedCourses.map(id => 
-          new Promise(resolve => {
-            postQuery({
-              url: `${apiUrls?.courses?.updateCourseStatus}/${id}`,
-              postData: { status: batchAction },
-              onSuccess: () => {
-                successCount++;
-                resolve();
-              },
-              onFail: (error) => {
-                failCount++;
-                // Try fallback if available
-                tryFallbackStatusUpdate(id, batchAction, getCourseStatus(courses.find(c => c._id === id)), loadingToastId)
-                  .then(() => {
-                    successCount++;
-                    resolve();
-                  })
-                  .catch(() => resolve());
-              },
-            });
-          })
-        );
-        
-        Promise.all(updatePromises).then(() => {
-          if (successCount > 0) {
-            toast.update(loadingToastId, {
-              render: `Successfully updated ${successCount} courses${failCount > 0 ? `, failed to update ${failCount} courses` : ''}`,
-              type: failCount > 0 ? "warning" : "success",
-              isLoading: false,
-              autoClose: 3000,
-            });
-          } else {
-            toast.update(loadingToastId, {
-              render: "Failed to update courses",
-              type: "error",
-              isLoading: false,
-              autoClose: 3000,
-            });
-          }
-          
-          setBatchAction("");
-          setUpdateStatus(Date.now());
-        });
+      case "bulk_edit":
+        if (selectedCourses.length === 0) {
+          toast.info("Please select courses to edit");
+          return;
+        }
+        setBulkEditModal(true);
+        break;
     }
   };
 
@@ -2035,6 +2254,57 @@ const ListOfCourse = () => {
     // Use coursesData here if needed
   };
 
+  // Add a new method for bulk updating courses
+  const handleBulkUpdate = async (courseIds, updateData) => {
+    const loadingToastId = toast.loading(`Updating ${courseIds.length} courses...`);
+    
+    try {
+      const updatePromises = courseIds.map(courseId => 
+        postQuery({
+          url: `${apiUrls?.courses?.updateCourse}/${courseId}`,
+          postData: updateData,
+          onFail: (error) => {
+            console.error(`Failed to update course ${courseId}:`, error);
+            return null;
+          }
+        })
+      );
+
+      const results = await Promise.allSettled(updatePromises);
+
+      const successCount = results.filter(result => result.status === 'fulfilled').length;
+      const failedCount = results.filter(result => result.status === 'rejected').length;
+
+      if (successCount > 0) {
+        toast.update(loadingToastId, {
+          render: `Successfully updated ${successCount} courses${failedCount > 0 ? ` (${failedCount} failed)` : ''}`,
+          type: "success",
+          isLoading: false,
+          autoClose: 3000,
+        });
+
+        // Refresh courses list
+        setUpdateStatus(Date.now());
+        setBulkEditModal(false);
+      } else {
+        toast.update(loadingToastId, {
+          render: "Failed to update any courses",
+          type: "error",
+          isLoading: false,
+          autoClose: 3000,
+        });
+      }
+    } catch (error) {
+      console.error("Bulk update error:", error);
+      toast.update(loadingToastId, {
+        render: "An unexpected error occurred during bulk update",
+        type: "error",
+        isLoading: false,
+        autoClose: 3000,
+      });
+    }
+  };
+
   if (loading || postLoading || pageLoading) return <Preloader />;
 
   return (
@@ -2145,6 +2415,9 @@ const ListOfCourse = () => {
                       <option value="export">Export Selected</option>
                       <option value="delete">Delete Selected</option>
                     </optgroup>
+                    <optgroup label="Edit Actions">
+                      <option value="bulk_edit">Bulk Edit Courses</option>
+                    </optgroup>
                   </select>
                   
                   <button
@@ -2183,6 +2456,13 @@ const ListOfCourse = () => {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                         </svg>
                         Export Selected
+                      </>
+                    ) : batchAction === "bulk_edit" ? (
+                      <>
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm0 0h3m-3 3v-3m0 0h-3m3 3l3 3 3-3" />
+                        </svg>
+                        Bulk Edit Selected
                       </>
                     ) : (
                       <>
@@ -2514,6 +2794,14 @@ const ListOfCourse = () => {
         />
       )}
       {exportModal && <ExportModal />}
+      {bulkEditModal && (
+        <BulkEditModal
+          selectedCourses={selectedCourses}
+          courses={courses}
+          onClose={() => setBulkEditModal(false)}
+          onBulkUpdate={handleBulkUpdate}
+        />
+      )}
     </div>
   );
 }

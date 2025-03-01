@@ -36,9 +36,11 @@ const FooterAbout = () => {
         <Image 
           src={logoImage} 
           alt="MEDH" 
+          priority
           width={150} 
           height={50} 
-          className="h-10 w-auto object-contain" 
+          className="h-10 w-auto object-contain aspect-[3/1]"
+          sizes="(max-width: 768px) 120px, 150px"
         />
       </div>
       
