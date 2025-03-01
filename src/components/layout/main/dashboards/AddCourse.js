@@ -507,18 +507,12 @@ const AddCourse = () => {
         prices: formattedPrices,
         createdAt: new Date().toISOString(),
         category_type: data.category_type,
-        course_category: data.class_type,
+        course_category: data.course_category, // Fix: Use the correct category from form data
         class_type: data.class_type,
         course_mode: data.category_type,
         online_sessions: derivedOnlineSessions,
         isFree: data.category_type === "Free"
       };
-
-      const validCategories = ["Live Courses", "Blended Courses", "Corporate Training Courses"];
-      if (!validCategories.includes(postData.course_category)) {
-        toast.error("Please select a valid course category");
-        return;
-      }
 
       const loadingToastId = toast.loading("Submitting course...");
       try {
@@ -974,6 +968,7 @@ const AddCourse = () => {
                   value={courseGrade}
                 >
                   <option value="">Select Grade</option>
+                  <option value={'All Grades'}>All Grades</option>
                   <option value="Preschool">Preschool</option>
                   <option value="Grade 1-2">Grade 1-2</option>
                   <option value="Grade 3-4">Grade 3-4</option>
