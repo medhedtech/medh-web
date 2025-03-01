@@ -1,26 +1,25 @@
 "use client";
 import Image from "next/image";
-import React, { useState, useEffect } from "react";
-import registrationImage1 from "@/assets/images/register/register__1.png";
-import registrationImage2 from "@/assets/images/register/register__2.png";
-import registrationImage3 from "@/assets/images/register/register__3.png";
-import PopupVideo from "@/components/shared/popup/PopupVideo";
+import React, { useState, useEffect, useCallback } from "react";
 import usePostQuery from "@/hooks/postQuery.hook";
 import { apiUrls } from "@/apis";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { FileText, CheckCircle, X, ArrowRight, Info, Loader2 } from "lucide-react";
+import { FileText, CheckCircle, X, ArrowRight, Info, Loader2, Phone, Mail, User, Upload, Globe, MessageSquare } from "lucide-react";
 import Link from "next/link";
 import { toast } from "react-toastify";
 import ReCAPTCHA from "react-google-recaptcha";
 import countriesData from "@/utils/countrycode.json";
 import { useTheme } from "next-themes";
+import DOMPurify from 'isomorphic-dompurify';
+import { debounce } from 'lodash';
+
 // Validation schema using yup
 const schema = yup.object({
-  // full_name: yup.string().required("Name is required."),
   full_name: yup
     .string()
+    .trim()
     .matches(
       /^[a-zA-Z\s'-]+$/,
       "Name can only contain alphabets, spaces, hyphens, and apostrophes."
@@ -28,34 +27,44 @@ const schema = yup.object({
     .required("Name is required."),
   email: yup
     .string()
-    .matches(
-      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-      "Please enter a valid email address."
-    )
+    .trim()
+    .email("Please enter a valid email address.")
     .required("Email is required."),
-  country: yup.string().nullable(),
+  country: yup
+    .string()
+    .required("Please select your country."),
   phone_number: yup
     .string()
     .required("Please enter your mobile number")
+    .matches(/^\d+$/, "Phone number can only contain digits")
     .test("is-valid-phone", "Invalid phone number.", function (value) {
       const { country } = this.parent;
-
       if (!value || !country) return false;
 
+      // Remove any non-digit characters
+      const cleanNumber = value.replace(/\D/g, '');
+      
       // Ensure the phone number has exactly 10 digits
-      const isValidLength = /^\d{10}$/.test(value);
-      if (!isValidLength) return false;
+      if (cleanNumber.length !== 10) {
+        return this.createError({
+          message: "Phone number must be exactly 10 digits"
+        });
+      }
 
       // Validate full phone number with country code
       const selectedCountry = countriesData.find((c) => c.name === country);
       if (!selectedCountry) return false;
 
-      const phoneWithCountryCode = selectedCountry.dial_code + value;
+      const phoneWithCountryCode = selectedCountry.dial_code + cleanNumber;
       const phoneRegex = /^\+[1-9]\d{1,14}$/;
 
       return phoneRegex.test(phoneWithCountryCode);
     }),
-  message: yup.string().required("Please enter the message"),
+  message: yup
+    .string()
+    .trim()
+    .min(10, "Message must be at least 10 characters")
+    .required("Please enter the message"),
   accept: yup
     .boolean()
     .oneOf([true], "You must accept the terms and privacy policy")
@@ -71,38 +80,22 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
   const [recaptchaValue, setRecaptchaValue] = useState(null);
   const [recaptchaError, setRecaptchaError] = useState(false);
   const [formVisible, setFormVisible] = useState(false);
-  const { theme, isDarkMode } = useTheme();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const isDarkMode = theme === "dark";
 
-  useEffect(() => {
-    // Set mounted state to true when component mounts
-    setMounted(true);
-    // Add entrance animation effect
-    const timer = setTimeout(() => setFormVisible(true), 300);
-    return () => clearTimeout(timer);
-  }, []);
+  // Debounced file upload handler
+  const debouncedUpload = useCallback(
+    debounce(async (file) => {
+      if (!file) return;
+      
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast.error("File size should be less than 5MB");
+        setFileName("No file chosen");
+        return;
+      }
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-  } = useForm({
-    resolver: yupResolver(schema),
-    defaultValues: {
-      showUploadField,
-    },
-  });
-
-  const handleRecaptchaChange = (value) => {
-    setRecaptchaValue(value);
-    setRecaptchaError(false);
-  };
-
-  const handlePdfUpload = async (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFileName(file.name);
       try {
         const reader = new FileReader();
         reader.readAsDataURL(file);
@@ -114,20 +107,102 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
             url: apiUrls?.upload?.uploadDocument,
             postData,
             onSuccess: (data) => {
-              console.log("PDF uploaded successfully!");
+              toast.success("File uploaded successfully!");
               setPdfBrochure(data?.data);
             },
-            onError: () => {
-              console.log("PDF upload failed. Please try again.");
+            onError: (error) => {
+              toast.error(error?.message || "Error uploading file");
+              setFileName("No file chosen");
             },
           });
         };
       } catch (error) {
-        console.log("Error uploading PDF. Please try again.");
+        toast.error("Error processing file");
+        setFileName("No file chosen");
       }
+    }, 500),
+    [postQuery]
+  );
+
+  useEffect(() => {
+    setMounted(true);
+    const timer = setTimeout(() => setFormVisible(true), 300);
+    
+    // Cleanup function
+    return () => {
+      clearTimeout(timer);
+      debouncedUpload.cancel();
+    };
+  }, [debouncedUpload]);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isDirty, isValid },
+    reset,
+    watch,
+    setValue,
+    trigger,
+  } = useForm({
+    resolver: yupResolver(schema),
+    defaultValues: {
+      full_name: '',
+      email: '',
+      country: 'India', // Set default country
+      phone_number: '',
+      message: '',
+      accept: false,
+      showUploadField,
+    },
+    mode: 'onChange',
+  });
+
+  // Watch form values for validation
+  const watchedFields = watch();
+
+  // Handle country change
+  const handleCountryChange = async (e) => {
+    const country = e.target.value;
+    setValue('country', country, { shouldValidate: true });
+    // Trigger phone validation when country changes
+    if (watchedFields.phone_number) {
+      await trigger('phone_number');
+    }
+  };
+
+  // Handle phone number input
+  const handlePhoneInput = (e) => {
+    let value = e.target.value;
+    // Remove any non-digit characters
+    value = value.replace(/\D/g, '');
+    // Limit to 10 digits
+    value = value.slice(0, 10);
+    setValue('phone_number', value, { shouldValidate: true });
+  };
+
+  const handleRecaptchaChange = (value) => {
+    setRecaptchaValue(value);
+    setRecaptchaError(false);
+  };
+
+  const handlePdfUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFileName(file.name);
+      debouncedUpload(file);
     } else {
       setFileName("No file chosen");
     }
+  };
+
+  // Sanitize form data
+  const sanitizeData = (data) => {
+    return {
+      ...data,
+      full_name: DOMPurify.sanitize(data.full_name),
+      email: DOMPurify.sanitize(data.email),
+      message: DOMPurify.sanitize(data.message),
+    };
   };
 
   // Handle form submission
@@ -136,25 +211,24 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
       setRecaptchaError(true);
       return;
     }
-    try {
-      const selectedCountry = countriesData.find(
-        (country) => country.name === data.country
-      );
-      // Prepare the postData to send
-      const postData = {
-        full_name: data.full_name,
-        country: data.country,
-        email: data.email,
-        phone_number: selectedCountry.dial_code + data.phone_number,
-        message: data.message,
-        accept: data.accept,
-        page_title: pageTitle,
-      };
 
-      // Add resume_image if pdfBrochure is available
-      if (pdfBrochure) {
-        postData.resume_image = pdfBrochure;
-      }
+    try {
+      setIsSubmitting(true);
+      const sanitizedData = sanitizeData(data);
+      const selectedCountry = countriesData.find(
+        (country) => country.name === sanitizedData.country
+      );
+
+      const postData = {
+        full_name: sanitizedData.full_name,
+        country: sanitizedData.country,
+        email: sanitizedData.email,
+        phone_number: selectedCountry.dial_code + sanitizedData.phone_number,
+        message: sanitizedData.message,
+        accept: sanitizedData.accept,
+        page_title: pageTitle,
+        ...(pdfBrochure && { resume_image: pdfBrochure }),
+      };
 
       await postQuery({
         url: apiUrls?.Contacts?.createContact,
@@ -165,33 +239,27 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
           setRecaptchaValue(null);
           setPdfBrochure(null);
           setFileName("No file chosen");
-
           reset();
+          toast.success("Form submitted successfully!");
         },
-        onFail: () => {
-          toast.error("Error submitting form.");
+        onError: (error) => {
+          toast.error(error?.message || "Error submitting form");
         },
       });
     } catch (error) {
-      console.log("An unexpected error occurred. Please try again.");
+      toast.error("An unexpected error occurred");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   // If not mounted yet, prevent theme-specific UI flash
   if (!mounted) {
     return (
-      <section className="bg-register bg-cover bg-center bg-no-repeat">
-        <div className="overlay bg-gradient-to-br from-gray-800 to-gray-900 py-8 lg:py-16 relative z-0 overflow-hidden">
-          <div className="container mx-auto px-4 relative">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-              {/* Placeholder content while component mounts */}
-              <div className="lg:col-span-6 lg:pr-8">
-                <div className="relative lg:my-12 h-40"></div>
-              </div>
-              <div className="lg:col-span-6 relative z-10">
-                <div className="bg-gray-200 rounded-2xl h-96 animate-pulse"></div>
-              </div>
-            </div>
+      <section className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="container mx-auto px-4 py-12 h-full">
+          <div className="flex justify-center items-center">
+            <div className="w-full max-w-6xl bg-gray-200 dark:bg-gray-800 h-96 rounded-2xl animate-pulse"></div>
           </div>
         </div>
       </section>
@@ -200,71 +268,53 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
 
   return (
     <>
-      <section
-        id="courses-section"
-        className="bg-register bg-cover bg-center bg-no-repeat"
-      >
-        <div className="overlay bg-gradient-to-br from-gray-800 to-gray-900 dark:from-gray-900 dark:to-gray-950 py-8 lg:py-16 relative z-0 overflow-hidden">
-          {/* Decorative elements */}
-          <div className="absolute inset-0 bg-pattern opacity-5"></div>
-          <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-primary-500/10 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/4"></div>
-          <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-secondary-500/10 rounded-full blur-3xl transform -translate-x-1/2 translate-y-1/4"></div>
-          
-          <div>
-            <Image
-              className="absolute top-40 left-0 lg:left-[8%] 2xl:top-20 animate-move-hor block z-0 opacity-70"
-              src={registrationImage1}
-              alt="Decorative element"
-            />
-            <Image
-              className="absolute top-1/2 left-3/4 md:left-2/3 lg:left-1/2 2xl:left-[8%] md:top animate-spin-slow block z-0 opacity-70"
-              src={registrationImage2}
-              alt="Decorative element"
-            />
-            <Image
-              className="absolute top-20 lg:top-3/4 md:top-14 right-20 md:right-20 lg:right-[90%] animate-move-var block z-0 opacity-70"
-              src={registrationImage3}
-              alt="Decorative element"
-            />
+      <section className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-950">
+        <div className="container mx-auto px-4 py-12 relative">
+          {/* Floating background elements */}
+          <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+            <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary-400/10 dark:bg-primary-600/10 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-1/3 right-1/5 w-96 h-96 bg-secondary-400/10 dark:bg-secondary-600/10 rounded-full blur-3xl"></div>
           </div>
-          
-          <div className="container mx-auto px-4 relative">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-              <div
-                className="lg:col-span-6 lg:pr-8"
-                data-aos="fade-up"
-              >
-                <div className="relative lg:my-12">
-                  <span className="inline-block px-4 py-1.5 mb-4 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-sm font-medium rounded-full">
-                    Transform Your Future
+
+          <div className="max-w-6xl mx-auto bg-white dark:bg-gray-800 shadow-xl rounded-2xl overflow-hidden backdrop-blur-sm transition-all relative z-10">
+            <div className="grid md:grid-cols-2 h-full">
+              {/* Left side - Feature Section */}
+              <div className="relative bg-gradient-to-br from-primary-600 to-primary-800 p-8 lg:p-12 flex flex-col justify-center">
+                {/* Decorative elements */}
+                <div className="absolute inset-0 opacity-10">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full transform translate-x-1/2 -translate-y-1/2"></div>
+                  <div className="absolute bottom-0 left-0 w-40 h-40 bg-white rounded-full transform -translate-x-1/2 translate-y-1/2"></div>
+                </div>
+                
+                <div className="relative z-10">
+                  <span className="inline-block px-4 py-1.5 mb-6 bg-white/20 text-white text-sm font-medium rounded-full">
+                    Welcome to our community
                   </span>
                   
-                  <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">
-                    Ready to transform your skills and build a <span className="text-primary-400 dark:text-primary-300">successful future</span>?
+                  <h2 className="text-3xl lg:text-4xl font-bold text-white mb-6">
+                    Transform your career with our expert-led courses
                   </h2>
                   
-                  <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center mb-8">
-                    <div className="relative transform hover:scale-105 transition-transform">
-                      <div className="absolute inset-0 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full blur opacity-30"></div>
-                      <PopupVideo />
-                    </div>
-                    <div>
-                      <p className="text-lg md:text-xl font-medium text-gray-200">
-                        Learn something new & build your career from anywhere in the world
-                      </p>
-                      <div className="flex items-center mt-3 text-gray-300 text-sm">
-                        <CheckCircle size={16} className="text-primary-400 mr-2" />
-                        <span>Industry-recognized certifications</span>
-                      </div>
-                    </div>
-                  </div>
+                  <ul className="space-y-4 mb-8">
+                    {[
+                      "Industry-recognized certifications",
+                      "Expert instructors with real-world experience",
+                      "Flexible learning schedules",
+                      "Job placement assistance"
+                    ].map((feature, index) => (
+                      <li key={index} className="flex items-start text-white">
+                        <CheckCircle className="mt-0.5 mr-3 flex-shrink-0 text-white" size={18} />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
                   
-                  <div className="flex flex-wrap gap-3 mt-8">
-                    <Link href="/courses" className="inline-flex items-center px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-lg transition-all shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50">
+                  <div className="flex flex-wrap gap-4 mt-8">
+                    <Link href="/courses" className="inline-flex items-center px-6 py-3 bg-white text-primary-700 font-medium rounded-lg transition-all shadow-lg hover:shadow-xl hover:bg-gray-50 transform hover:-translate-y-1">
                       Explore Courses
                       <ArrowRight size={18} className="ml-2" />
                     </Link>
-                    <Link href="/about-us" className="inline-flex items-center px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-lg transition-all backdrop-blur-sm">
+                    <Link href="/about-us" className="inline-flex items-center px-6 py-3 bg-primary-700/30 hover:bg-primary-700/50 text-white font-medium rounded-lg transition-all backdrop-blur-sm">
                       <Info size={18} className="mr-2" />
                       Learn More
                     </Link>
@@ -272,219 +322,271 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
                 </div>
               </div>
               
-              {/* Form Section */}
-              <div className={`lg:col-span-6 relative z-10 transition-all duration-700 transform ${formVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
-                <div className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-2xl">
-                  <div className="bg-gradient-to-r from-primary-500 to-secondary-500 p-4">
-                    <h3 className="text-2xl text-white text-center font-semibold font-inter">
-                      Get In Touch
-                    </h3>
-                  </div>
-                  
-                  <form
-                    onSubmit={handleSubmit(onSubmit)}
-                    className="p-6 md:p-8 space-y-4"
-                    data-aos="fade-up"
-                  >
-                    <div>
-                      <label htmlFor="full_name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Your Name</label>
+              {/* Right side - Form Section */}
+              <div className={`bg-white dark:bg-gray-800 p-8 lg:p-12 transition-all duration-700 transform ${formVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
+                <div className="mb-10">
+                  <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-3 bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">
+                    Get in Touch
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-300 text-lg">
+                    Fill out the form below and our team will get back to you shortly.
+                  </p>
+                </div>
+                
+                <form
+                  onSubmit={handleSubmit(onSubmit)}
+                  className="space-y-7"
+                  data-aos="fade-up"
+                  aria-label="Contact form"
+                  noValidate
+                >
+                  <div>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                        <User className={`${errors.full_name ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'}`} size={18} />
+                      </div>
                       <input
                         {...register("full_name")}
                         id="full_name"
                         type="text"
-                        placeholder="Enter your full name"
-                        className="w-full px-4 py-3 rounded-lg bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                        placeholder="Your Full Name"
+                        className={`w-full pl-12 pr-4 py-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 border-2 ${
+                          errors.full_name 
+                            ? 'border-red-500 focus:ring-red-500 dark:border-red-500' 
+                            : 'border-gray-200 dark:border-gray-700 hover:border-primary-400 dark:hover:border-primary-500 focus:ring-primary-500 focus:border-primary-500'
+                        } text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-opacity-50 focus:border-transparent transition-all duration-200 shadow-sm hover:bg-white dark:hover:bg-gray-700/70`}
                       />
-                      {errors.full_name && (
-                        <span className="text-red-500 text-sm mt-1 flex items-center">
-                          <Info size={14} className="mr-1" />
-                          {errors.full_name.message}
-                        </span>
-                      )}
                     </div>
+                    {errors.full_name && (
+                      <span className="text-red-500 text-sm mt-1.5 flex items-center pl-1" role="alert">
+                        <Info size={14} className="mr-1.5" />
+                        {errors.full_name.message}
+                      </span>
+                    )}
+                  </div>
 
-                    <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email Address</label>
+                  <div>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                        <Mail className={`${errors.email ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'}`} size={18} />
+                      </div>
                       <input
                         {...register("email")}
                         id="email"
                         type="email"
-                        placeholder="Enter your email address"
-                        className="w-full px-4 py-3 rounded-lg bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                        placeholder="Email Address"
+                        className={`w-full pl-12 pr-4 py-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 border-2 ${
+                          errors.email 
+                            ? 'border-red-500 focus:ring-red-500 dark:border-red-500' 
+                            : 'border-gray-200 dark:border-gray-700 hover:border-primary-400 dark:hover:border-primary-500 focus:ring-primary-500 focus:border-primary-500'
+                        } text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-opacity-50 focus:border-transparent transition-all duration-200 shadow-sm hover:bg-white dark:hover:bg-gray-700/70`}
                       />
-                      {errors.email && (
-                        <span className="text-red-500 text-sm mt-1 flex items-center">
-                          <Info size={14} className="mr-1" />
-                          {errors.email.message}
+                    </div>
+                    {errors.email && (
+                      <span className="text-red-500 text-sm mt-1.5 flex items-center pl-1" role="alert">
+                        <Info size={14} className="mr-1.5" />
+                        {errors.email.message}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-7">
+                    <div>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                          <Globe className={`${errors.country ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'}`} size={18} />
+                        </div>
+                        <select
+                          id="country"
+                          onChange={handleCountryChange}
+                          value={watchedFields.country}
+                          className={`w-full pl-12 pr-10 py-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 border-2 ${
+                            errors.country 
+                              ? 'border-red-500 focus:ring-red-500 dark:border-red-500' 
+                              : 'border-gray-200 dark:border-gray-700 hover:border-primary-400 dark:hover:border-primary-500 focus:ring-primary-500 focus:border-primary-500'
+                          } text-gray-900 dark:text-white focus:ring-2 focus:ring-opacity-50 focus:border-transparent transition-all duration-200 shadow-sm appearance-none cursor-pointer hover:bg-white dark:hover:bg-gray-700/70`}
+                          aria-invalid={errors.country ? "true" : "false"}
+                        >
+                          <option value="">Select Your Country</option>
+                          {countriesData.map((country) => (
+                            <option key={country.code} value={country.name}>
+                              {country.name}
+                            </option>
+                          ))}
+                        </select>
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                          <ArrowRight className="transform rotate-90 text-gray-400" size={16} />
+                        </div>
+                      </div>
+                      {errors.country && (
+                        <span className="text-red-500 text-sm mt-1.5 flex items-center pl-1" role="alert">
+                          <Info size={14} className="mr-1.5" />
+                          {errors.country.message}
                         </span>
                       )}
                     </div>
 
-                    {/* Phone Number Input with Country Dropdown */}
-                    <div className="space-y-4 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-4">
-                      <div>
-                        <label htmlFor="country" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Country</label>
-                        <select
-                          {...register("country")}
-                          id="country"
-                          className="w-full px-4 py-3 rounded-lg bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-                        >
-                          {countriesData.map((country) => {
-                            const countryName =
-                              country.name.length > 20
-                                ? country.name.slice(0, 20) + "..."
-                                : country.name;
-                            return (
-                              <option key={country.code} value={country.name} className="bg-white dark:bg-gray-700">
-                                {countryName} ({country.dial_code})
-                              </option>
-                            );
-                          })}
-                        </select>
-                      </div>
-
-                      <div>
-                        <label htmlFor="phone_number" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number</label>
+                    <div>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                          <Phone className={`${errors.phone_number ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'}`} size={18} />
+                        </div>
                         <input
-                          {...register("phone_number")}
                           id="phone_number"
                           type="tel"
-                          placeholder="10-digit number"
-                          className="w-full px-4 py-3 rounded-lg bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                          inputMode="numeric"
+                          onChange={handlePhoneInput}
+                          value={watchedFields.phone_number}
+                          placeholder="10-digit phone number"
+                          className={`w-full pl-12 pr-4 py-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 border-2 ${
+                            errors.phone_number 
+                              ? 'border-red-500 focus:ring-red-500 dark:border-red-500' 
+                              : 'border-gray-200 dark:border-gray-700 hover:border-primary-400 dark:hover:border-primary-500 focus:ring-primary-500 focus:border-primary-500'
+                          } text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-opacity-50 focus:border-transparent transition-all duration-200 shadow-sm hover:bg-white dark:hover:bg-gray-700/70`}
                         />
+                        {watchedFields.country && (
+                          <span className="absolute left-11 top-1/2 -translate-y-1/2 text-gray-600 dark:text-gray-400 text-sm">
+                            {countriesData.find(c => c.name === watchedFields.country)?.dial_code}
+                          </span>
+                        )}
                       </div>
+                      {errors.phone_number && (
+                        <span className="text-red-500 text-sm mt-1.5 flex items-center pl-1" role="alert">
+                          <Info size={14} className="mr-1.5" />
+                          {errors.phone_number.message}
+                        </span>
+                      )}
                     </div>
+                  </div>
 
-                    {/* Error Message */}
-                    {(errors.country || errors.phone_number) && (
-                      <div className="text-red-500 text-sm flex items-center">
-                        <Info size={14} className="mr-1" />
-                        {errors.country?.message || errors.phone_number?.message}
+                  <div>
+                    <div className="relative">
+                      <div className="absolute top-4 left-4 pointer-events-none">
+                        <MessageSquare className={`${errors.message ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'}`} size={18} />
                       </div>
-                    )}
-
-                    <div>
-                      <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Your Message</label>
                       <textarea
                         {...register("message")}
                         id="message"
-                        placeholder="How can we help you?"
-                        className="w-full px-4 py-3 rounded-lg bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors h-32"
+                        placeholder="How can we help you? Tell us about your requirements..."
+                        className={`w-full pl-12 pr-4 py-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 border-2 ${
+                          errors.message 
+                            ? 'border-red-500 focus:ring-red-500 dark:border-red-500' 
+                            : 'border-gray-200 dark:border-gray-700 hover:border-primary-400 dark:hover:border-primary-500 focus:ring-primary-500 focus:border-primary-500'
+                        } text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-opacity-50 focus:border-transparent transition-all duration-200 shadow-sm h-32 resize-none hover:bg-white dark:hover:bg-gray-700/70`}
                       />
-                      {errors.message && (
-                        <span className="text-red-500 text-sm mt-1 flex items-center">
-                          <Info size={14} className="mr-1" />
-                          {errors.message.message}
-                        </span>
-                      )}
                     </div>
-
-                    {showUploadField && (
-                      <div className="p-4 bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-gray-100 dark:border-gray-700">
-                        <h2 className="text-base font-semibold text-gray-800 dark:text-white mb-2 flex items-center">
-                          <FileText size={18} className="mr-2 text-primary-500" />
-                          Upload Job Description
-                        </h2>
-                        <div className="w-full">
-                          <label
-                            htmlFor="fileInput"
-                            className={`flex items-center justify-center gap-2 border-2 border-dashed ${
-                              isDarkMode 
-                                ? "border-gray-600 text-gray-300 hover:border-primary-500" 
-                                : "border-gray-300 text-gray-700 hover:border-primary-500"
-                            } rounded-lg p-3 cursor-pointer w-full transition-colors`}
-                          >
-                            <FileText className={isDarkMode ? "text-gray-400" : "text-gray-500"} size={20} />
-                            <span className="text-sm font-medium truncate">{fileName}</span>
-                          </label>
-                          <input
-                            {...register("resume_image")}
-                            id="fileInput"
-                            type="file"
-                            accept=".pdf"
-                            className="hidden"
-                            onChange={handlePdfUpload}
-                          />
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                            Accepts PDF files only. Max size: 5MB
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="flex justify-center">
-                      {mounted && (
-                        <ReCAPTCHA
-                          sitekey="6LdHwxUqAAAAANjZ5-6I5-UYrL8owEGEi_QyJBX9"
-                          onChange={handleRecaptchaChange}
-                          theme={isDarkMode ? "dark" : "light"}
-                          key={isDarkMode ? "dark" : "light"}
-                        />
-                      )}
-                    </div>
-                    
-                    {/* ReCAPTCHA Error Message */}
-                    {recaptchaError && (
-                      <div className="text-center">
-                        <span className="text-red-500 text-sm flex items-center justify-center">
-                          <Info size={14} className="mr-1" />
-                          Please complete the ReCAPTCHA verification.
-                        </span>
-                      </div>
-                    )}
-
-                    <div className="flex items-start space-x-3">
-                      <div className="flex items-center h-5">
-                        <input
-                          {...register("accept")}
-                          type="checkbox"
-                          id="accept"
-                          className="h-4 w-4 text-primary-600 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors cursor-pointer"
-                        />
-                      </div>
-                      <label
-                        htmlFor="accept"
-                        className="text-sm text-gray-900 dark:text-gray-100 cursor-pointer select-none"
-                      >
-                        By submitting this form, I accept
-                        <Link href="/terms-and-services">
-                          <span className="text-primary-600 dark:text-primary-400 hover:underline ml-1 font-medium">
-                            Terms of Service
-                          </span>
-                        </Link>{" "}
-                        &{" "}
-                        <Link href="/privacy-policy">
-                          <span className="text-primary-600 dark:text-primary-400 hover:underline font-medium">
-                            Privacy Policy
-                          </span>
-                        </Link>
-                      </label>
-                    </div>
-                    {errors.accept && (
-                      <span className="text-red-500 text-sm block mt-1 flex items-center">
-                        <Info size={14} className="mr-1 flex-shrink-0" />
-                        {errors.accept.message}
+                    {errors.message && (
+                      <span className="text-red-500 text-sm mt-1.5 flex items-center pl-1" role="alert">
+                        <Info size={14} className="mr-1.5" />
+                        {errors.message.message}
                       </span>
                     )}
+                  </div>
 
-                    <div className="pt-3">
-                      <button
-                        type="submit"
-                        className="w-full flex items-center justify-center px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-semibold rounded-lg shadow-lg shadow-primary-500/20 transition-all transform hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed"
-                        disabled={loading}
-                      >
-                        {loading ? (
-                          <>
-                            <Loader2 size={20} className="mr-2 animate-spin" />
-                            Processing...
-                          </>
-                        ) : (
-                          "Submit"
-                        )}
-                      </button>
+                  {showUploadField && (
+                    <div className="p-6 bg-gray-50 dark:bg-gray-700/30 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 transition-all duration-200 hover:border-primary-400 dark:hover:border-primary-500 group">
+                      <div className="flex flex-col items-center justify-center space-y-3">
+                        <div className="p-3 bg-primary-100 dark:bg-primary-900/30 rounded-full">
+                          <Upload className="text-primary-600 dark:text-primary-400" size={24} />
+                        </div>
+                        <div className="text-center">
+                          <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                            {fileName === "No file chosen" ? "Upload your document" : fileName}
+                          </h4>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            PDF files only (max 5MB)
+                          </p>
+                        </div>
+                        <label
+                          htmlFor="fileInput"
+                          className="cursor-pointer py-2 px-4 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:border-primary-500 hover:text-primary-500 dark:hover:text-primary-400 transition-colors"
+                        >
+                          Select File
+                        </label>
+                        <input
+                          {...register("resume_image")}
+                          id="fileInput"
+                          type="file"
+                          accept=".pdf"
+                          className="hidden"
+                          onChange={handlePdfUpload}
+                        />
+                      </div>
                     </div>
-                  </form>
-                </div>
+                  )}
+
+                  <div className="flex justify-center mt-8">
+                    <ReCAPTCHA
+                      sitekey="6LdHwxUqAAAAANjZ5-6I5-UYrL8owEGEi_QyJBX9"
+                      onChange={handleRecaptchaChange}
+                      theme={isDarkMode ? "dark" : "light"}
+                      key={isDarkMode ? "dark" : "light"}
+                    />
+                  </div>
+                  
+                  {recaptchaError && (
+                    <div className="text-center -mt-4">
+                      <span className="text-red-500 text-sm flex items-center justify-center">
+                        <Info size={14} className="mr-1.5" />
+                        Please complete the ReCAPTCHA verification.
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="flex items-start mt-6">
+                    <div className="flex items-center h-5">
+                      <input
+                        {...register("accept")}
+                        type="checkbox"
+                        id="accept"
+                        className="h-5 w-5 text-primary-600 bg-gray-50 dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors cursor-pointer hover:border-primary-400 dark:hover:border-primary-500"
+                      />
+                    </div>
+                    <label
+                      htmlFor="accept"
+                      className="ml-3 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none"
+                    >
+                      I agree to the 
+                      <Link href="/terms-and-services">
+                        <span className="text-primary-600 dark:text-primary-400 hover:underline ml-1 font-medium">
+                          Terms of Service
+                        </span>
+                      </Link>{" "}
+                      and{" "}
+                      <Link href="/privacy-policy">
+                        <span className="text-primary-600 dark:text-primary-400 hover:underline font-medium">
+                          Privacy Policy
+                        </span>
+                      </Link>
+                    </label>
+                  </div>
+                  {errors.accept && (
+                    <div className="ml-8">
+                      <span className="text-red-500 text-sm flex items-center">
+                        <Info size={14} className="mr-1.5 flex-shrink-0" />
+                        {errors.accept.message}
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="pt-4">
+                    <button
+                      type="submit"
+                      className="w-full flex items-center justify-center px-8 py-4 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold rounded-xl shadow-lg shadow-primary-500/20 transition-all duration-300 transform hover:-translate-y-0.5 hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-lg"
+                      disabled={loading || isSubmitting || (!isDirty || !isValid)}
+                      aria-busy={loading || isSubmitting}
+                    >
+                      {(loading || isSubmitting) ? (
+                        <>
+                          <Loader2 size={20} className="mr-2 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        "Submit Request"
+                      )}
+                    </button>
+                  </div>
+                </form>
               </div>
             </div>
           </div>
@@ -493,51 +595,49 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
       
       {/* Success Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity animation-fade-in">
-          <div className={`max-w-md w-full ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-2xl p-6 md:p-8 relative transform transition-all animation-scale-in`}>
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity animation-fade-in"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="success-modal-title"
+        >
+          <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 relative transform transition-all animation-scale-in">
             {/* Close Icon */}
             <button
               onClick={() => setShowModal(false)}
-              className={`absolute top-4 right-4 ${
-                isDarkMode 
-                  ? 'text-gray-400 hover:text-gray-200' 
-                  : 'text-gray-500 hover:text-gray-700'
-              } focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-full p-1`}
+              className="absolute top-4 right-4 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-full p-1"
               aria-label="Close modal"
             >
               <X size={20} />
             </button>
 
             {/* Modal Content */}
-            <div className="text-center py-4">
-              <div className={`w-16 h-16 ${
-                isDarkMode 
-                  ? 'bg-green-900/30' 
-                  : 'bg-green-100'
-              } rounded-full flex items-center justify-center mx-auto mb-4`}>
-                <CheckCircle className={`${
-                  isDarkMode ? 'text-green-400' : 'text-green-500'
-                }`} size={32} />
+            <div className="text-center py-6">
+              <div className="w-20 h-20 mx-auto mb-6 flex items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900/30">
+                <CheckCircle className="text-primary-600 dark:text-primary-400" size={40} />
               </div>
               
-              <h2 className={`text-2xl md:text-3xl font-bold ${
-                isDarkMode ? 'text-white' : 'text-gray-900'
-              } mb-2`}>
-                Success!
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-3" id="success-modal-title">
+                Request Submitted!
               </h2>
               
-              <p className={`${
-                isDarkMode ? 'text-gray-300' : 'text-gray-600'
-              } mb-6`}>
-                Your form has been submitted successfully! We'll get back to you shortly.
+              <p className="text-gray-600 dark:text-gray-300 mb-8">
+                Thank you for reaching out to us. Our team will review your request and contact you shortly.
               </p>
               
-              <button
-                onClick={() => setShowModal(false)}
-                className="inline-flex items-center justify-center px-5 py-3 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-lg transition-colors shadow-lg shadow-primary-500/20"
-              >
-                Continue
-              </button>
+              <div className="flex gap-4 justify-center">
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="py-3 px-6 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors shadow-lg shadow-primary-500/20"
+                >
+                  Close
+                </button>
+                <Link href="/courses">
+                  <button className="py-3 px-6 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+                    Explore Courses
+                  </button>
+                </Link>
+              </div>
             </div>
           </div>
         </div>
