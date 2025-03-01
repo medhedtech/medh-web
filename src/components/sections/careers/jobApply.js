@@ -9,6 +9,7 @@ import { FaCamera } from "react-icons/fa";
 import { FaTimes } from "react-icons/fa";
 import ReCAPTCHA from "react-google-recaptcha";
 import countriesData from "@/utils/countrycode.json";
+import CustomReCaptcha from '../../shared/ReCaptcha';
 
 // Validation schema using yup
 const schema = yup.object({
@@ -252,16 +253,11 @@ function JobApply({ activeJob }) {
             />
           </div>
 
-          <ReCAPTCHA
-            sitekey="6LdHwxUqAAAAANjZ5-6I5-UYrL8owEGEi_QyJBX9"
+          <CustomReCaptcha
             onChange={handleRecaptchaChange}
+            error={recaptchaError}
+            className="my-4"
           />
-          {/* ReCAPTCHA Error Message */}
-          {recaptchaError && (
-            <span className="text-red-500 text-[12px]">
-              Please complete the ReCAPTCHA verification.
-            </span>
-          )}
 
           {/* Terms and Conditions */}
           <div className="flex items-start space-x-2 mb-12">

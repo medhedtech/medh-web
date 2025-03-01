@@ -6,7 +6,7 @@ import coursesBg from "@/assets/images/courses/coursesBg.png";
 import Image from "next/image";
 import CoursesFilter from "@/components/sections/courses/CoursesFilter";
 import JoinMedh from "@/components/sections/hire/JoinMedh";
-import ThemeController from "@/components/shared/others/ThemeController";
+
 
 export const metadata = {
   title: "Courses | Medh - Education LMS Template",
@@ -127,7 +127,7 @@ const Courses = async () => {
 
       {/* Theme Controller */}
       <div className="fixed bottom-4 left-4 z-50">
-        <ThemeController />
+        
       </div>
     </PageWrapper>
   );

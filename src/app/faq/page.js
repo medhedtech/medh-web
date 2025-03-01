@@ -1,5 +1,5 @@
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
-import ThemeController from "@/components/shared/others/ThemeController";
+
 import FaqContent from "./FaqContent";
 
 export const metadata = {
@@ -12,7 +12,7 @@ const FaqPage = () => {
     <PageWrapper>
       <main>
         <FaqContent />
-        <ThemeController />
+        
       </main>
     </PageWrapper>
   );

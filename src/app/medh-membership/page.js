@@ -39,7 +39,7 @@ const Certified = dynamic(() => import("@/components/sections/why-medh/Certified
 
 // Components that don't need to be dynamically imported
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
-import ThemeController from "@/components/shared/others/ThemeController";
+
 
 // Enhanced loading component with skeleton animation
 const SectionLoader = ({ text }) => (
@@ -76,7 +76,7 @@ export default function MembershipPage() {
             <Certified />
           </Suspense>
         </div>
-        <ThemeController />
+        
       </main>
     </PageWrapper>
   );

@@ -1,5 +1,5 @@
 import InstructorDetailsMain from "@/components/layout/main/InstructorDetailsMain";
-import ThemeController from "@/components/shared/others/ThemeController";
+
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import instructors from "@/../public/fakedata/instructors.json";
 import { notFound } from "next/navigation";
@@ -19,7 +19,7 @@ const Instructor_Details = ({ params }) => {
     <PageWrapper>
       <main>
         <InstructorDetailsMain id={id} />
-        <ThemeController />
+        
       </main>
     </PageWrapper>
   );
