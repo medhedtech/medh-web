@@ -73,13 +73,13 @@ const NavbarMenu = ({ menuOpen, toggleMenu }) => {
               onClick={toggleMenu}
             >
               <Image
-                priority={true}
                 src={logo1}
                 alt="Medh Logo"
-                width={120}
-                height={40}
-                className="w-auto h-8 sm:h-10 object-contain"
-                quality={90}
+                priority
+                width={150}
+                height={50}
+                className="h-12 w-auto object-contain aspect-[3/1]"
+                sizes="(max-width: 768px) 120px, 150px"
               />
             </Link>
           </div>

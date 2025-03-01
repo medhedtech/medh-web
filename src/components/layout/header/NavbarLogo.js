@@ -44,14 +44,13 @@ const NavbarLogo = ({ isScrolled }) => {
             `}
           >
             <Image
-              priority={true}
+              priority
               src={logo1}
               alt="Medh Logo"
               fill
-              sizes="(max-width: 640px) 120px, (max-width: 768px) 140px, 160px"
-              className="object-contain transition-all duration-300"
-              quality={95}
-              onLoadingComplete={() => setLogoLoaded(true)}
+              sizes="(max-width: 768px) 140px, 160px"
+              className="object-contain"
+              onLoad={() => setLogoLoaded(true)}
             />
           </div>
         </Link>
