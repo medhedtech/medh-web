@@ -1110,6 +1110,7 @@ export default function UpdateCourse() {
                   value={courseGrade}
                 >
                   <option value="">Select Grade</option>
+                  <option value={"All Grade"}>All Grade</option>
                   <option value="Preschool">Preschool</option>
                   <option value="Grade 1-2">Grade 1-2</option>
                   <option value="Grade 3-4">Grade 3-4</option>
