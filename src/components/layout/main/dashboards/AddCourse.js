@@ -46,8 +46,7 @@ const schema = yup.object({
     .matches(/^\d+ hours \d+ minutes$/, "Invalid duration format"),
   course_description: yup
     .string()
-    .required("Course description is required")
-    .max(500, "Description too long"),
+    .required("Course description is required"),
   course_fee: yup.number().when("category_type", {
     is: (val) => val === "Free",
     then: () =>
