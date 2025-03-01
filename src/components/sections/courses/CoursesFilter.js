@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo, useCallback } from "react";
+import PropTypes from 'prop-types';
 import CategoryFilter from "./CategoryFilter";
 import CourseCard from "./CourseCard";
 import Pagination from "@/components/shared/pagination/Pagination";
@@ -72,14 +73,47 @@ const CoursesFilter = ({
   const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("newest-first");
-  const { getQuery, loading } = useGetQuery();
+  const { getQuery, loading, error } = useGetQuery();
   const [selectedGrade, setSelectedGrade] = useState(null);
   const [categorySliderOpen, setCategorySliderOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [activeFilters, setActiveFilters] = useState([]);
+  const [queryError, setQueryError] = useState(null);
   
-  // Create ref for the main content area for scrolling
   const contentRef = useRef(null);
+
+  // Add default props to ensure consistent initial state
+  const defaultProps = {
+    CustomButton: null,
+    CustomText: "Skill Development Courses",
+    scrollToTop: () => {},
+    fixedCategory: null,
+    hideCategoryFilter: false,
+    availableCategories: categories,
+    categoryTitle: "Categories",
+    description: null
+  };
+
+  // Memoize expensive computations and event handlers
+  const memoizedHandleSearch = useCallback((e) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  }, []);
+
+  const memoizedHandleSortChange = useCallback((e) => {
+    setSortOrder(e.target.value);
+    setCurrentPage(1);
+  }, []);
+
+  const memoizedHandlePageChange = useCallback((page) => {
+    setCurrentPage(page);
+  }, []);
+
+  // Ensure initial state is consistent between server and client
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -89,119 +123,204 @@ const CoursesFilter = ({
     return () => clearTimeout(timer);
   }, []);
 
-  // Scroll to top ONLY when component initially mounts, not on filter changes
   useEffect(() => {
-    // Only execute once when component first mounts
     if (typeof window !== 'undefined' && scrollToTop) {
       scrollToTop();
     }
-  }, []); // Empty dependency array ensures this only runs once on mount
+  }, []); 
 
-  // Remove the scroll-to-top effect on pagination/filter changes
-  // This allows the component to refresh without scrolling
-
-  const toggleCategorySlider = () => {
-    setCategorySliderOpen(!categorySliderOpen);
-  };
-
-  // Fetch courses from API
   const fetchCourses = () => {
     const categoryQuery = selectedCategory ? selectedCategory : [];
     const gradeQuery = selectedGrade || "";
 
-    getQuery({
-      url: apiUrls?.courses?.getAllCoursesWithLimits(
-        currentPage,
-        8,
-        "",
-        "",
-        "",
-        "Published",
+    // Debug log the API URL and parameters
+    const apiUrl = apiUrls?.courses?.getAllCoursesWithLimits(
+      currentPage,
+      8,
+      "",
+      "",
+      "",
+      "Published",
+      searchTerm,
+      gradeQuery,
+      categoryQuery
+    );
+
+    console.debug('API Request:', {
+      url: apiUrl,
+      parameters: {
+        page: currentPage,
+        limit: 8,
+        status: "Published",
         searchTerm,
         gradeQuery,
         categoryQuery
-      ),
+      }
+    });
+
+    if (!apiUrl) {
+      console.error('Invalid API URL configuration');
+      setQueryError('System configuration error. Please try again later.');
+      return;
+    }
+
+    getQuery({
+      url: apiUrl,
       onSuccess: (data) => {
-        setAllCourses(data?.courses || []);
-        setTotalPages(data?.totalPages || 1);
+        console.debug('API Response:', {
+          success: true,
+          data: data,
+          coursesCount: data?.courses?.length || 0,
+          totalPages: data?.totalPages || 0
+        });
+
+        if (data?.courses && Array.isArray(data.courses)) {
+          if (data.courses.length === 0) {
+            console.debug('No courses returned from API');
+            setAllCourses([]);
+            setFilteredCourses([]);
+            setTotalPages(1);
+            setQueryError("No courses available for the selected filters");
+          } else {
+            console.debug('Courses found:', {
+              count: data.courses.length,
+              firstCourse: data.courses[0],
+              categories: data.courses.map(c => c.category || c.course_category).filter(Boolean)
+            });
+            setAllCourses(data.courses);
+            setTotalPages(data.totalPages || 1);
+            setQueryError(null);
+            applyFilters(data.courses);
+          }
+        } else {
+          console.warn("Unexpected API response structure:", data);
+          setAllCourses([]);
+          setFilteredCourses([]);
+          setTotalPages(1);
+          setQueryError("Unexpected data format received");
+        }
       },
       onFail: (error) => {
-        console.error("Error fetching courses:", error);
+        console.error("API Error:", {
+          error,
+          url: apiUrl,
+          parameters: {
+            page: currentPage,
+            searchTerm,
+            gradeQuery,
+            categoryQuery
+          }
+        });
+        setQueryError(error.message || "Failed to fetch courses. Please try again.");
+        setAllCourses([]);
+        setFilteredCourses([]);
+        setTotalPages(1);
       },
     });
   };
 
-  const applyFilters = () => {
-    let filtered = allCourses;
+  const applyFilters = (coursesToFilter = allCourses) => {
+    console.debug('Applying Filters with Courses:', coursesToFilter);
+    
+    let filtered = [...coursesToFilter];
 
+    // Search Term Filter - More flexible matching
     if (searchTerm) {
-      filtered = filtered.filter(
-        (course) =>
-          (course.course_title &&
-            course.course_title
-              .toLowerCase()
-              .includes(searchTerm.toLowerCase())) ||
-          (course.course_category &&
-            course.course_category
-              .toLowerCase()
-              .includes(searchTerm.toLowerCase())) ||
-          (course.course_duration &&
-            course.course_duration
-              .toLowerCase()
-              .includes(searchTerm.toLowerCase()))
-      );
+      const searchTerms = searchTerm.toLowerCase().split(' ').filter(term => term.length > 0);
+      filtered = filtered.filter(course => {
+        const searchableFields = [
+          course.course_title,
+          course.course_category,
+          course.course_duration,
+          course.course_description,
+          course.course_grade,
+          course.category,
+          course.instructor_name
+        ].filter(Boolean).map(field => field.toLowerCase());
+        
+        return searchTerms.every(term => 
+          searchableFields.some(field => field.includes(term))
+        );
+      });
     }
 
+    // Category Filter - Case insensitive and more flexible
     if (selectedCategory && selectedCategory.length) {
       filtered = filtered.filter((course) => {
-        const lowercase = selectedCategory.map((c) => c.toLowerCase());
+        const courseCategories = [
+          course.category,
+          course.course_category,
+          ...(course.additional_categories || [])
+        ].filter(Boolean).map(cat => cat.toLowerCase());
 
-        if (course.category) {
-          return lowercase.includes(course.category.toLowerCase());
-        } else {
-          return false;
-        }
+        const selectedCats = selectedCategory.map(c => c.toLowerCase());
+        
+        // Match if any of the course categories matches any selected category
+        return selectedCats.some(selected => 
+          courseCategories.some(courseCategory => 
+            courseCategory.includes(selected) || selected.includes(courseCategory)
+          )
+        );
       });
     }
 
-    // Sorting the filtered courses based on the selected sort order
-    if (sortOrder === "A-Z") {
-      filtered = filtered.sort((a, b) => {
-        if (a.course_title.toLowerCase() < b.course_title.toLowerCase())
-          return -1;
-        if (a.course_title.toLowerCase() > b.course_title.toLowerCase())
-          return 1;
-        return 0;
-      });
-    } else if (sortOrder === "Z-A") {
-      filtered = filtered.sort((a, b) => {
-        if (a.course_title.toLowerCase() < b.course_title.toLowerCase())
-          return 1;
-        if (a.course_title.toLowerCase() > b.course_title.toLowerCase())
-          return -1;
-        return 0;
-      });
-    } else if (sortOrder === "newest-first") {
-      filtered = filtered.sort(
-        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-      );
-    } else if (sortOrder === "oldest-first") {
-      filtered = filtered.sort(
-        (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
-      );
-    } else if (sortOrder === "duration-asc") {
-      filtered = filtered.sort((a, b) => {
-        const durationA = extractWeeks(a.course_duration);
-        const durationB = extractWeeks(b.course_duration);
-        return durationA - durationB;
-      });
-    } else if (sortOrder === "duration-desc") {
-      filtered = filtered.sort((a, b) => {
-        const durationA = extractWeeks(a.course_duration);
-        const durationB = extractWeeks(b.course_duration);
-        return durationB - durationA;
+    // Grade Filter - More flexible matching
+    if (selectedGrade) {
+      filtered = filtered.filter(course => {
+        const courseGrade = course.course_grade || course.grade || '';
+        return courseGrade.toLowerCase() === selectedGrade.toLowerCase() ||
+               courseGrade.toLowerCase().includes(selectedGrade.toLowerCase()) ||
+               selectedGrade.toLowerCase().includes(courseGrade.toLowerCase());
       });
     }
+
+    // Sorting Logic - More robust with error handling
+    try {
+      if (sortOrder === "A-Z") {
+        filtered.sort((a, b) => 
+          (a.course_title || '').toLowerCase().localeCompare((b.course_title || '').toLowerCase())
+        );
+      } else if (sortOrder === "Z-A") {
+        filtered.sort((a, b) => 
+          (b.course_title || '').toLowerCase().localeCompare((a.course_title || '').toLowerCase())
+        );
+      } else if (sortOrder === "newest-first") {
+        filtered.sort((a, b) => {
+          const dateA = new Date(a.createdAt || 0);
+          const dateB = new Date(b.createdAt || 0);
+          return dateB - dateA;
+        });
+      } else if (sortOrder === "oldest-first") {
+        filtered.sort((a, b) => {
+          const dateA = new Date(a.createdAt || 0);
+          const dateB = new Date(b.createdAt || 0);
+          return dateA - dateB;
+        });
+      } else if (sortOrder === "duration-asc") {
+        filtered.sort((a, b) => {
+          const durationA = extractWeeks(a.course_duration);
+          const durationB = extractWeeks(b.course_duration);
+          return durationA - durationB;
+        });
+      } else if (sortOrder === "duration-desc") {
+        filtered.sort((a, b) => {
+          const durationA = extractWeeks(a.course_duration);
+          const durationB = extractWeeks(b.course_duration);
+          return durationB - durationA;
+        });
+      }
+    } catch (error) {
+      console.error('Error during sorting:', error);
+    }
+
+    console.debug('Filtered Courses:', {
+      total: filtered.length,
+      searchTerm: searchTerm || 'none',
+      categories: selectedCategory,
+      grade: selectedGrade || 'none',
+      sortOrder
+    });
+
     setFilteredCourses(filtered);
   };
 
@@ -252,8 +371,10 @@ const CoursesFilter = ({
   }, [currentPage, searchTerm, selectedCategory, sortOrder, selectedGrade]);
 
   useEffect(() => {
-    applyFilters();
-  }, [allCourses, searchTerm, selectedCategory]);
+    if (allCourses.length > 0) {
+      applyFilters(allCourses);
+    }
+  }, [allCourses, searchTerm, selectedCategory, selectedGrade, sortOrder]);
 
   // Simplify page change handler to just update state without scrolling
   const handlePageChange = (page) => {
@@ -294,6 +415,16 @@ const CoursesFilter = ({
     setCurrentPage(1);
   };
 
+  // Prevent unnecessary re-renders
+  const memoizedFilteredAndSortedCourses = useMemo(() => {
+    return filteredCourses;
+  }, [filteredCourses]);
+
+  // Render only on client to prevent hydration mismatches
+  if (!isClient) {
+    return null;
+  }
+
   return (
     <section className="min-h-screen w-full bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
       {/* Header Section */}
@@ -321,11 +452,29 @@ const CoursesFilter = ({
                 </div>
                 <input
                   type="text"
-                  placeholder="Search courses by title, category, or duration..."
+                  placeholder="Search by title, category, instructor, or description..."
                   value={searchTerm}
-                  onChange={handleSearch}
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all"
+                  onChange={memoizedHandleSearch}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') {
+                      setSearchTerm('');
+                      setCurrentPage(1);
+                    }
+                  }}
+                  suppressHydrationWarning={true}
+                  className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all"
                 />
+                {searchTerm && (
+                  <button
+                    onClick={() => {
+                      setSearchTerm('');
+                      setCurrentPage(1);
+                    }}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                  >
+                    <X size={18} />
+                  </button>
+                )}
               </div>
 
               {/* Grade Filter */}
@@ -339,6 +488,7 @@ const CoursesFilter = ({
                     setSelectedGrade(e.target.value);
                     setCurrentPage(1);
                   }}
+                  suppressHydrationWarning={true}
                   className="w-full pl-10 pr-10 py-3 rounded-xl appearance-none border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all"
                 >
                   <option value="">All Grade Levels</option>
@@ -358,7 +508,8 @@ const CoursesFilter = ({
                 </div>
                 <select
                   value={sortOrder}
-                  onChange={handleSortChange}
+                  onChange={memoizedHandleSortChange}
+                  suppressHydrationWarning={true}
                   className="w-full pl-10 pr-10 py-3 rounded-xl appearance-none border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all"
                 >
                   <option value="newest-first">Newest First</option>
@@ -462,7 +613,7 @@ const CoursesFilter = ({
                       <Pagination
                         totalPages={totalPages}
                         currentPage={currentPage}
-                        onPageChange={handlePageChange}
+                        onPageChange={memoizedHandlePageChange}
                       />
                     </div>
                   )}
@@ -473,17 +624,34 @@ const CoursesFilter = ({
                     <Search size={24} className="text-primary-500 dark:text-primary-400" />
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                    No courses found
+                    {queryError || "No courses found"}
                   </h3>
                   <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md">
-                    We couldn't find any courses matching your criteria. Try adjusting your filters or search terms.
+                    {loading ? "Loading courses..." : 
+                     error ? "There was an error loading the courses. Please try again." :
+                     "We couldn't find any courses matching your criteria. Try adjusting your filters or search terms."}
                   </p>
-                  <button
-                    onClick={handleClearFilters}
-                    className="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors"
-                  >
-                    Clear All Filters
-                  </button>
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <button
+                      onClick={handleClearFilters}
+                      className="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors"
+                    >
+                      Clear All Filters
+                    </button>
+                    <button
+                      onClick={() => fetchCourses()}
+                      className="px-6 py-2.5 border border-primary-600 text-primary-600 hover:bg-primary-50 font-medium rounded-lg transition-colors"
+                    >
+                      Retry Loading
+                    </button>
+                  </div>
+                  {process.env.NODE_ENV === 'development' && queryError && (
+                    <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg text-left w-full">
+                      <p className="text-red-600 dark:text-red-400 text-sm font-mono break-all">
+                        Error: {queryError}
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -524,8 +692,25 @@ const CoursesFilter = ({
           </div>
         </div>
       )}
+
+      {queryError && (
+        <div className="text-red-500 p-4 text-center">
+          {queryError}
+        </div>
+      )}
     </section>
   );
+};
+
+CoursesFilter.propTypes = {
+  CustomButton: PropTypes.node,
+  CustomText: PropTypes.string,
+  scrollToTop: PropTypes.func,
+  fixedCategory: PropTypes.string,
+  hideCategoryFilter: PropTypes.bool,
+  availableCategories: PropTypes.arrayOf(PropTypes.string),
+  categoryTitle: PropTypes.string,
+  description: PropTypes.string
 };
 
 export default CoursesFilter;

@@ -111,7 +111,7 @@ function CourseDetailedPage({ params }) {
   if (error) {
     return (
       <PageWrapper>
-        <div className="max-w-6xl mx-auto px-4 py-16 text-center">
+        <div className="max-w-6xl mx-auto px-4 py-16">
           <div className="bg-red-50 dark:bg-red-900/20 p-8 rounded-xl border border-red-100 dark:border-red-800/30 shadow-lg">
             <h2 className="text-2xl font-bold text-red-700 dark:text-red-400 mb-4">
               Unable to Load Course
@@ -146,46 +146,48 @@ function CourseDetailedPage({ params }) {
 
   return (
     <PageWrapper>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        {/* Header Section with proper spacing */}
-        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+      <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        {/* Header */}
+        <header className="w-full bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           </div>
-        {/* Main Content with proper spacing */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="space-y-8">
-            {courseDetails && (
-              <>
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                  <CourseEducation courseId={courseId} courseDetails={courseDetails} />
-                </div>
+        </header>
 
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                  <AboutProgram courseId={courseId} />
-                </div>
+        {/* Content */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+          {courseDetails && (
+            <>
+              <section className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <CourseEducation courseId={courseId} courseDetails={courseDetails} />
+              </section>
 
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                  <CourseFaq courseId={courseId} />
-                </div>
+              <section className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <AboutProgram courseId={courseId} />
+              </section>
 
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                  <CourseRelated 
-                    categoryName={categoryName} 
-                    courseId={courseId} 
-                    relatedCourses={courseDetails?.related_courses || []} 
-                  />
-                </div>
+              <section className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <CourseFaq courseId={courseId} />
+              </section>
 
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                  <CourseCertificate />
-                </div>
-              </>
-            )}
-            <div className="fixed bottom-6 right-6">
-              <ThemeController />
-            </div>
-          </div>
-        </main>
-      </div>
+              <section className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <CourseRelated 
+                  categoryName={categoryName} 
+                  courseId={courseId} 
+                  relatedCourses={courseDetails?.related_courses || []} 
+                />
+              </section>
+
+              <section className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <CourseCertificate />
+              </section>
+            </>
+          )}
+        </div>
+
+        <div className="fixed bottom-6 right-6 z-50">
+          <ThemeController />
+        </div>
+      </main>
     </PageWrapper>
   );
 }

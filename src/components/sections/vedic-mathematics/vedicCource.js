@@ -2,6 +2,7 @@
 
 import React from "react";
 import CoursesFilter from "../courses/CoursesFilter";
+import Link from "next/link";
 
 function VedicCource() {
   const handleScrollToTop = () => {
@@ -25,15 +26,19 @@ function VedicCource() {
 
   return (
     <CoursesFilter
+      key="vedic-mathematics"
       CustomText="Vedic Mathematics Courses"
       CustomButton={
-        <div className="inline-flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm hover:shadow-md">
-          Explore All Courses
-        </div>
+        <Link href="/courses">
+          <div className="inline-flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm hover:shadow-md">
+            Explore All Courses
+          </div>
+        </Link>
       }
       // Force filter to only show Vedic Mathematics courses
       fixedCategory="Vedic Mathematics"
       scrollToTop={handleScrollToTop}
+      hideCategoryFilter={true}
       // Add a description for the courses section
       description="Discover the ancient wisdom of Vedic Mathematics through our comprehensive courses designed for all age groups and skill levels."
     />
