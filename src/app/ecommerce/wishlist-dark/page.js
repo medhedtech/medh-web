@@ -1,5 +1,5 @@
 import WishlistMain from "@/components/layout/main/ecommerce/WishlistMain";
-import ThemeController from "@/components/shared/others/ThemeController";
+
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 
 export const metadata = {
@@ -12,7 +12,7 @@ const Wishlist_Dark = async () => {
     <PageWrapper>
       <main className="is-dark">
         <WishlistMain />
-        <ThemeController />
+        
       </main>
     </PageWrapper>
   );

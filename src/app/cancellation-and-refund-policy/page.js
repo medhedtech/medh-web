@@ -1,5 +1,5 @@
 import CancellationPolicy from "@/components/layout/main/CancellationPolicy";
-import ThemeController from "@/components/shared/others/ThemeController";
+
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import React from "react";
 
@@ -13,7 +13,7 @@ const Privacy_Cancellation = () => {
     <PageWrapper>
       <main>
         <CancellationPolicy/>
-        <ThemeController />
+        
       </main>
     </PageWrapper>
   );

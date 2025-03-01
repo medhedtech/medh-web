@@ -3,7 +3,7 @@ import CoorporateStudentProfile_Main from "@/components/layout/main/dashboards/C
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
 import HeadingDashboardOnly from "@/components/shared/headings/HeadingDashbordsOnly";
 
-import ThemeController from "@/components/shared/others/ThemeController";
+
 export const metadata = {
   title: "Corporate Student Profile | Medh",
   description: "Corporate Profile | Medh - Education",
@@ -18,7 +18,7 @@ const Coorporate_Student_Profile = () => {
           </div>
           <CoorporateStudentProfile_Main />
         </DashboardContainer>
-        <ThemeController />
+        
       </main>
     </ProtectedPage>
   );

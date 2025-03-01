@@ -12,7 +12,7 @@ import WhyMedh from "@/components/sections/why-medh/WhyMedh";
 import React, { useEffect, useRef } from "react";
 import ArrowIcon from "@/assets/images/icon/ArrowIcon";
 import { useRouter } from "next/navigation";
-import ThemeController from "@/components/shared/others/ThemeController";
+
 
 const Home1 = () => {
   const router = useRouter();
@@ -59,7 +59,7 @@ const Home1 = () => {
       <JoinMedh />
       <Blogs />
       <Hire />
-      <ThemeController />
+      
     </div>
   );
 };

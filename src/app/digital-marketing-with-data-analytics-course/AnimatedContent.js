@@ -113,7 +113,7 @@ function AnimatedContent({ components, exploreJourneyProps }) {
 
       {/* Fixed Theme Controller */}
       <div className="fixed bottom-4 left-4 z-50">
-        <ThemeController />
+        
       </div>
 
       {/* Scroll to Top Button */}

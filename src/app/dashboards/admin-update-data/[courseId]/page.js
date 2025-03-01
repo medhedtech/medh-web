@@ -1,6 +1,6 @@
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
-import ThemeController from "@/components/shared/others/ThemeController";
+
 import PreviewUpdateDetail from "@/components/layout/main/dashboards/PreviewUpdateDetail";
 import ProtectedPage from "@/app/protectedRoutes";
 export const metadata = {
@@ -15,7 +15,7 @@ const Update_data = () => {
           <HeadingDashboard />
           <PreviewUpdateDetail />
         </DashboardContainer>
-        <ThemeController />
+        
       </main>
     </ProtectedPage>
   );

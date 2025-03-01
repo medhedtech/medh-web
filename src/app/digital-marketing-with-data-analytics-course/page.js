@@ -6,7 +6,7 @@ import DigiMarketingCource from '@/components/sections/digital-marketing/digiMar
 import DigiMarketingFaq from '@/components/sections/digital-marketing/digiMarketingFaq';
 import DigiMarketingCourceBanner from '@/components/sections/digital-marketing/digiMarketingCourceBanner';
 import DigiMarketingRalatedCource from '@/components/sections/digital-marketing/digiMarketingRalatedCource';
-import ThemeController from "@/components/shared/others/ThemeController";
+
 import ExploreJourney from "@/components/sections/explore-journey/Enroll-Form";
 import AnimatedContent from './AnimatedContent';
 

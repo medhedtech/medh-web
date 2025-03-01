@@ -3,7 +3,7 @@ import PersonalityOvereveiw from "@/components/sections/personality-development/
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import PersonalityCourse from "@/components/sections/personality-development/personalityCourse";
 import RelatedCourses from "@/components/sections/personality-development/relatedCourses";
-import ThemeController from "@/components/shared/others/ThemeController";
+
 import PersonalityCourseBanner from "@/components/sections/personality-development/personalityCourseBanner";
 import ExploreJourney from "@/components/sections/explore-journey/Enroll-Form";
 import CourseBanner from "@/components/shared/banners/CourseBanner";
@@ -71,7 +71,7 @@ function PersonalityDevelopment() {
       <PersonalityFaq />
       <PersonalityCourseBanner />
       <RelatedCourses />
-      <ThemeController />
+      
     </PageWrapper>
   );
 }

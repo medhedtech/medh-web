@@ -1,5 +1,5 @@
 import BlogDetailsMain from "@/components/layout/main/BlogDetailsMain";
-import ThemeController from "@/components/shared/others/ThemeController";
+
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import blogs from "@/../public/fakedata/blogs.json";
 import { notFound } from "next/navigation";
@@ -18,7 +18,7 @@ const Blog_details = async ({ params }) => {
     <PageWrapper>
       <main>
         <BlogDetailsMain />
-        <ThemeController />
+        
       </main>
     </PageWrapper>
   );

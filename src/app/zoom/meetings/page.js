@@ -1,5 +1,5 @@
 import ZoomMeetingsMain from "@/components/layout/main/ZoomMeetingsMain";
-import ThemeController from "@/components/shared/others/ThemeController";
+
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 
 export const metadata = {
@@ -11,7 +11,7 @@ const Zoom_Meetings = () => {
     <PageWrapper>
       <main>
         <ZoomMeetingsMain />
-        <ThemeController />
+        
       </main>
     </PageWrapper>
   );

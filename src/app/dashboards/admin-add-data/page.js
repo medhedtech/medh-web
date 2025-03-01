@@ -1,7 +1,7 @@
 import AddCourse from "@/components/layout/main/dashboards/AddCourse";
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
-import ThemeController from "@/components/shared/others/ThemeController";
+
 import DsahboardWrapper from "@/components/shared/wrappers/DsahboardWrapper";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import Previewdetail from "@/components/layout/main/dashboards/Previewdetail";
@@ -21,7 +21,7 @@ const Add_data = () => {
           <Previewdetail />
         </DashboardContainer>
         {/* </DsahboardWrapper> */}
-        <ThemeController />
+        
       </main>
     </ProtectedPage>
   );

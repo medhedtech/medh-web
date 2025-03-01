@@ -1,5 +1,5 @@
 import EventDetailsMain from "@/components/layout/main/EventDetailsMain";
-import ThemeController from "@/components/shared/others/ThemeController";
+
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import events from "@/../public/fakedata/events.json";
 import { notFound } from "next/navigation";
@@ -18,7 +18,7 @@ const Event_details = async ({ params }) => {
     <PageWrapper>
       <main>
         <EventDetailsMain />
-        <ThemeController />
+        
       </main>
     </PageWrapper>
   );

@@ -1,5 +1,5 @@
 import ReschedulePolicy from "@/components/layout/main/ReschedulePolicy";
-import ThemeController from "@/components/shared/others/ThemeController";
+
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import React from "react";
 
@@ -13,7 +13,7 @@ const Reschedule_Policy = () => {
     <PageWrapper>
       <main>
         <ReschedulePolicy />
-        <ThemeController />
+        
       </main>
     </PageWrapper>
   );

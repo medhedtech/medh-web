@@ -1,4 +1,4 @@
-import ThemeController from "@/components/shared/others/ThemeController";
+
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import lessons from "@/../public/fakedata/lessons.json";
 import LessonMain from "@/components/layout/main/LessonMain";
@@ -24,7 +24,7 @@ const Lesson = ({ params }) => {
     <PageWrapper>
       <main>
         <LessonMain id={params?.id} />
-        <ThemeController />
+        
       </main>
     </PageWrapper>
   );

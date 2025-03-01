@@ -1,4 +1,4 @@
-import ThemeController from "@/components/shared/others/ThemeController";
+
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import React from "react";
 import PrivacyPolicy from "@/components/layout/main/PrivacyPolicy";
@@ -13,7 +13,7 @@ const Privacy_Privacy = () => {
     <PageWrapper>
       <main>
         <PrivacyPolicy/>
-        <ThemeController />
+        
       </main>
     </PageWrapper>
   );

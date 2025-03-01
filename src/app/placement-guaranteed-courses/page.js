@@ -3,7 +3,7 @@
 import PlacementGauranteedBanner from "@/components/sections/placement-guaranteed/placement-banner";
 import Registration from "@/components/sections/registrations/Registration";
 import Certified from "@/components/sections/why-medh/Certified";
-import ThemeController from "@/components/shared/others/ThemeController";
+
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import React from "react";
 import HireSectionPlacement from "@/components/sections/placement-guaranteed/HireSection";
@@ -32,7 +32,7 @@ function PlacementGauranty() {
       </div>
     //   <HireFromMedhFaq />
       <HireFromMedhCourseBanner /> */}
-      <ThemeController />
+      
     </PageWrapper>
   );
 }

@@ -1,5 +1,5 @@
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
-import ThemeController from "@/components/shared/others/ThemeController";
+
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 import ProtectedPage from "@/app/protectedRoutes";
 import CoorporateRecordedSessions_Access from "@/components/layout/main/dashboards/Coorporate-Access-Recorded-Sessions";
@@ -17,7 +17,7 @@ const Coorporate_Access_Recorded_Sessions = () => {
           <HeadingDashboard />
           <CoorporateRecordedSessions_Access />
         </DashboardContainer>
-        <ThemeController />
+        
       </main>
     </ProtectedPage>
   );

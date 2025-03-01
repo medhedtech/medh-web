@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import ProtectedPage from "@/app/protectedRoutes";
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
-import ThemeController from "@/components/shared/others/ThemeController";
+
 import axios from "axios";
 import { apiBaseUrl, apiUrls } from "@/apis";
 import { toast } from "react-toastify";
@@ -593,7 +593,7 @@ const AdminFaqManagement = () => {
             </div>
           </div>
         </DashboardContainer>
-        <ThemeController />
+        
       </div>
     </ProtectedPage>
   );

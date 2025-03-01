@@ -7,9 +7,8 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import ReCAPTCHA from "react-google-recaptcha";
-import { toast } from "react-toastify";
 import Link from "next/link";
+import CustomReCaptcha from '../../shared/ReCaptcha';
 
 // Icons
 import { 
@@ -407,25 +406,13 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
                     {/* ReCAPTCHA */}
                     <div className="flex justify-center">
                       {mounted && (
-                        <ReCAPTCHA
-                          sitekey="6LdHwxUqAAAAANjZ5-6I5-UYrL8owEGEi_QyJBX9"
+                        <CustomReCaptcha
                           onChange={handleRecaptchaChange}
-                          theme={isDarkMode ? "dark" : "light"}
-                          key={isDarkMode ? "dark" : "light"}
+                          error={recaptchaError}
                         />
                       )}
                     </div>
                     
-                    {/* ReCAPTCHA Error Message */}
-                    {recaptchaError && (
-                      <div className="text-center">
-                        <span className="text-red-500 text-sm flex items-center justify-center">
-                          <Info size={14} className="mr-1" />
-                          Please complete the ReCAPTCHA verification.
-                        </span>
-                      </div>
-                    )}
-
                     {/* Terms and Conditions */}
                     <div className="flex items-start space-x-3">
                       <div className="flex items-center h-5">

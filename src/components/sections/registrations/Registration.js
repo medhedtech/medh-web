@@ -9,7 +9,7 @@ import * as yup from "yup";
 import { FileText, CheckCircle, X, ArrowRight, Info, Loader2, Phone, Mail, User, Upload, Globe, MessageSquare } from "lucide-react";
 import Link from "next/link";
 import { toast } from "react-toastify";
-import ReCAPTCHA from "react-google-recaptcha";
+import CustomReCaptcha from '../../shared/ReCaptcha';
 import countriesData from "@/utils/countrycode.json";
 import { useTheme } from "next-themes";
 import DOMPurify from 'isomorphic-dompurify';
@@ -516,23 +516,12 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
                   )}
 
                   <div className="flex justify-center mt-8">
-                    <ReCAPTCHA
-                      sitekey="6LdHwxUqAAAAANjZ5-6I5-UYrL8owEGEi_QyJBX9"
+                    <CustomReCaptcha
                       onChange={handleRecaptchaChange}
-                      theme={isDarkMode ? "dark" : "light"}
-                      key={isDarkMode ? "dark" : "light"}
+                      error={recaptchaError}
                     />
                   </div>
                   
-                  {recaptchaError && (
-                    <div className="text-center -mt-4">
-                      <span className="text-red-500 text-sm flex items-center justify-center">
-                        <Info size={14} className="mr-1.5" />
-                        Please complete the ReCAPTCHA verification.
-                      </span>
-                    </div>
-                  )}
-
                   <div className="flex items-start mt-6">
                     <div className="flex items-center h-5">
                       <input

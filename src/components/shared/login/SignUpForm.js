@@ -10,31 +10,34 @@ import { apiUrls } from "@/apis";
 import logo1 from "@/assets/images/logo/medh_logo-1.png";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, User, Mail, Phone, Lock, AlertCircle, Loader2, Moon, Sun } from "lucide-react";
-import ReCAPTCHA from "react-google-recaptcha";
+import { Eye, EyeOff, User, Mail, Phone, Lock, AlertCircle, Loader2, Moon, Sun, UserCircle } from "lucide-react";
+import CustomReCaptcha from '../ReCaptcha';
 import FixedShadow from "../others/FixedShadow";
 
-// Helper function to clean and normalize phone number
+// Enhanced phone number validation functions
 const cleanPhoneNumber = (value) => {
   if (!value) return '';
+  
   // Remove all non-digit characters
   let cleaned = value.replace(/\D/g, '');
-  // Remove leading zero if present
-  if (cleaned.startsWith('0')) {
-    cleaned = cleaned.substring(1);
-  }
-  // Remove country code '91' if present and the number is longer than 10 digits
+  
+  // Handle different formats of Indian phone numbers
   if (cleaned.startsWith('91') && cleaned.length > 10) {
     cleaned = cleaned.substring(2);
+  } else if (cleaned.startsWith('0')) {
+    cleaned = cleaned.substring(1);
   }
+  
   return cleaned;
 };
 
-// Improved phone number validation function using cleanPhoneNumber
 const validatePhoneNumber = (value) => {
-  const number = cleanPhoneNumber(value);
+  if (!value) return false;
+  
+  const cleaned = cleanPhoneNumber(value);
+  
   // Check if it's exactly 10 digits and starts with 6-9
-  return /^[6-9]\d{9}$/.test(number);
+  return /^[6-9]\d{9}$/.test(cleaned);
 };
 
 const schema = yup
@@ -51,7 +54,8 @@ const schema = yup
     phone_number: yup
       .string()
       .required("Phone number is required")
-      .test("phone", "Phone number must be exactly 10 digits and start with 6-9", validatePhoneNumber),
+      .transform((value) => cleanPhoneNumber(value))
+      .test("phone", "Please enter a valid 10-digit Indian mobile number starting with 6-9", validatePhoneNumber),
     password: yup
       .string()
       .required("Password is required")
@@ -67,6 +71,15 @@ const schema = yup
     agree_terms: yup
       .boolean()
       .oneOf([true], "You must accept the terms to proceed"),
+    role_description: yup.string().nullable(),
+    assign_department: yup.string().nullable(),
+    permissions: yup.array().nullable(),
+    age: yup.number().nullable().positive("Age must be a positive number"),
+    facebook_link: yup.string().url("Please enter a valid Facebook URL").nullable(),
+    instagram_link: yup.string().url("Please enter a valid Instagram URL").nullable(),
+    linkedin_link: yup.string().url("Please enter a valid LinkedIn URL").nullable(),
+    user_image: yup.string().nullable(),
+    meta: yup.object().nullable()
   })
   .required();
 
@@ -80,13 +93,16 @@ const SignUpForm = () => {
   const [recaptchaError, setRecaptchaError] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
   
   const {
     register,
     handleSubmit,
     formState: { errors },
+    reset,
+    watch
   } = useForm({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(schema)
   });
 
   // Add entrance animation effect
@@ -141,6 +157,7 @@ const SignUpForm = () => {
       return;
     }
     setApiError(null);
+
     try {
       // Clean and format phone number
       const cleanedNumber = cleanPhoneNumber(data.phone_number);
@@ -157,7 +174,7 @@ const SignUpForm = () => {
         password: data.password,
         phone_number: formattedPhoneNumber,
         agree_terms: data.agree_terms,
-        recaptcha_token: recaptchaValue
+        role: ['student']
       };
 
       // Make the API call
@@ -167,21 +184,21 @@ const SignUpForm = () => {
         onSuccess: (response) => {
           setRecaptchaError(false);
           setRecaptchaValue(null);
+          setRegistrationSuccess(true);
           
-          // Store any necessary data from response
-          if (response?.data?.token) {
-            localStorage.setItem('auth_token', response.data.token);
-          }
+          toast.success("Registration successful! Please check your email for login credentials.");
           
-          toast.success("Registration successful! Redirecting to login...");
+          // Reset form
+          reset();
           
           // Delay redirect slightly to show success message
           setTimeout(() => {
             router.push("/login");
-          }, 1500);
+          }, 2000);
         },
         onFail: (error) => {
           console.error("Registration Error:", error);
+          setRegistrationSuccess(false);
 
           // Handle specific error cases
           const errorResponse = error?.response?.data;
@@ -206,7 +223,6 @@ const SignUpForm = () => {
 
           setApiError(errorMessage || "Registration failed. Please try again.");
           
-          // Reset reCAPTCHA if it's expired or invalid
           if (errorMessage?.toLowerCase().includes('recaptcha')) {
             setRecaptchaValue(null);
           }
@@ -216,6 +232,7 @@ const SignUpForm = () => {
       console.error("Registration Error:", error);
       setApiError("Network error. Please check your connection and try again.");
       toast.error("Network error. Please check your connection and try again.");
+      setRegistrationSuccess(false);
     }
   };
 
@@ -392,7 +409,8 @@ const SignUpForm = () => {
                       {...register("phone_number")}
                       type="tel"
                       id="phone_number"
-                      placeholder="Phone Number"
+                      placeholder="Phone Number (10 digits)"
+                      maxLength="15"
                       className="w-full h-12 pl-12 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent transition-all duration-200 outline-none font-body placeholder-gray-500 dark:placeholder-gray-400"
                       aria-invalid={errors.phone_number ? "true" : "false"}
                     />
@@ -403,6 +421,9 @@ const SignUpForm = () => {
                       <span>{errors.phone_number?.message}</span>
                     </p>
                   )}
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Enter a valid Indian mobile number (e.g., 9876543210)
+                  </p>
                 </div>
 
                 {/* Password Field */}
@@ -470,19 +491,10 @@ const SignUpForm = () => {
                 </div>
 
                 {/* ReCAPTCHA */}
-                <div className="flex justify-center">
-                  <ReCAPTCHA
-                    sitekey="6LdHwxUqAAAAANjZ5-6I5-UYrL8owEGEi_QyJBX9"
-                    onChange={handleRecaptchaChange}
-                    theme={isDarkMode ? 'dark' : 'light'}
-                  />
-                </div>
-                {recaptchaError && (
-                  <p className="text-sm text-red-500 dark:text-red-400 text-center flex items-center justify-center font-body" role="alert">
-                    <AlertCircle className="h-4 w-4 mr-1.5 flex-shrink-0" />
-                    <span>Please complete the ReCAPTCHA verification.</span>
-                  </p>
-                )}
+                <CustomReCaptcha
+                  onChange={handleRecaptchaChange}
+                  error={recaptchaError}
+                />
 
                 {/* Terms Checkbox */}
                 <div>
@@ -548,6 +560,25 @@ const SignUpForm = () => {
           </div>
         </div>
       </div>
+      
+      {registrationSuccess && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-xl max-w-md w-full mx-4">
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Registration Successful!</h3>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
+              Please check your email for your login credentials. You will be redirected to the login page shortly.
+            </p>
+            <div className="flex justify-center">
+              <button
+                onClick={() => router.push('/login')}
+                className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+              >
+                Go to Login
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

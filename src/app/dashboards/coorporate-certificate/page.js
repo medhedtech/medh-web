@@ -4,7 +4,7 @@ import CertificateCoursesEnroll from "@/components/layout/main/dashboards/Certif
 import ViewCertificate from "@/components/layout/main/dashboards/ViewCertificate";
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
-import ThemeController from "@/components/shared/others/ThemeController";
+
 import ProtectedPage from "@/app/protectedRoutes";
 
 const CorporateCertificate = () => {
@@ -32,7 +32,7 @@ const CorporateCertificate = () => {
               setCertificateUrl={setCertificateUrl}
             />
           )}
-          <ThemeController />
+          
         </DashboardContainer>
       </main>
     </ProtectedPage>

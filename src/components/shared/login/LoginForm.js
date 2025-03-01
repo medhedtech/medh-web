@@ -13,7 +13,7 @@ import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 import { Eye, EyeOff, Mail, Lock, Loader2, CheckCircle, AlertCircle } from "lucide-react";
-import ReCAPTCHA from "react-google-recaptcha";
+import CustomReCaptcha from '../ReCaptcha';
 import Cookies from "js-cookie";
 import CryptoJS from "crypto-js";
 import FixedShadow from "../others/FixedShadow";
@@ -353,19 +353,10 @@ const LoginForm = () => {
                 </div>
 
                 {/* ReCAPTCHA */}
-                <div className="flex justify-center">
-                  <ReCAPTCHA
-                    sitekey="6LdHwxUqAAAAANjZ5-6I5-UYrL8owEGEi_QyJBX9"
-                    onChange={handleRecaptchaChange}
-                    theme="light"
-                  />
-                </div>
-                {recaptchaError && (
-                  <p className="text-sm text-red-500 text-center flex items-center justify-center font-body" role="alert">
-                    <AlertCircle className="h-4 w-4 mr-1.5 flex-shrink-0" />
-                    <span>Please complete the ReCAPTCHA verification.</span>
-                  </p>
-                )}
+                <CustomReCaptcha
+                  onChange={handleRecaptchaChange}
+                  error={recaptchaError}
+                />
 
                 {/* Remember Me & Forgot Password */}
                 <div className="flex flex-wrap justify-between items-center gap-3">

@@ -1,5 +1,5 @@
 import CartMain from "@/components/layout/main/ecommerce/CartMain";
-import ThemeController from "@/components/shared/others/ThemeController";
+
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 
 export const metadata = {
@@ -12,7 +12,7 @@ const Cart_Dark = async () => {
     <PageWrapper>
       <main className="is-dark">
         <CartMain />
-        <ThemeController />
+        
       </main>
     </PageWrapper>
   );

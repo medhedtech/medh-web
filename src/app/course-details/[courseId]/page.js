@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import dynamic from 'next/dynamic';
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import Preloader from "@/components/shared/others/Preloader";
-import ThemeController from "@/components/shared/others/ThemeController";
+
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { RefreshCw, ArrowLeft } from 'lucide-react';
@@ -185,7 +185,7 @@ function CourseDetailedPage({ params }) {
         </div>
 
         <div className="fixed bottom-6 right-6 z-50">
-          <ThemeController />
+          
         </div>
       </main>
     </PageWrapper>

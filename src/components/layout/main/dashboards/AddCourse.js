@@ -44,9 +44,10 @@ const schema = yup.object({
     .string()
     .required("Session duration is required")
     .matches(/^\d+ hours \d+ minutes$/, "Invalid duration format"),
-  course_description: yup
-    .string()
-    .required("Course description is required"),
+  program_overview: yup
+    .string(),
+  benefits: yup
+    .string(),
   course_fee: yup.number().when("category_type", {
     is: (val) => val === "Free",
     then: () =>
@@ -488,10 +489,27 @@ const AddCourse = () => {
         answer: faq.answer.trim()
       }));
 
+      // Format benefits text to ensure proper bullet points
+      const formattedBenefits = data.benefits
+        .split('\n')
+        .map(benefit => benefit.trim())
+        .filter(benefit => benefit)
+        .map(benefit => benefit.startsWith('•') ? benefit : `• ${benefit}`)
+        .join('\n');
+
+      // Format program overview to ensure proper paragraphs
+      const formattedOverview = data.program_overview
+        .split('\n\n')
+        .map(para => para.trim())
+        .filter(para => para)
+        .join('\n\n');
+
       // Note: toolsTechnologies and bonusModules are already formatted in their respective handlers
 
       const postData = {
         ...data,
+        program_overview: formattedOverview,
+        benefits: formattedBenefits,
         efforts_per_Week: formattedEffortsPerWeek,
         course_videos: courseVideos || [],
         brochures: pdfBrochures || [],
@@ -1132,20 +1150,50 @@ const AddCourse = () => {
               </div>
             </div>
             <div className="mt-6">
-              <label className="block text-sm font-medium mb-2">
-                Course Description <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                placeholder="Write description..."
-                rows="4"
-                className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-customGreen ${
-                  errors.course_description ? "border-red-500" : "border-gray-300"
-                }`}
-                {...register("course_description")}
-              ></textarea>
-              {errors.course_description && (
-                <p className="text-red-500 text-xs mt-1">{errors.course_description.message}</p>
-              )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Program Overview <span className="text-red-500">*</span>
+                    <span className="text-xs text-gray-500 ml-1">(min. 50 characters)</span>
+                  </label>
+                  <textarea
+                    placeholder="Write a comprehensive overview of the program..."
+                    rows="6"
+                    className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-customGreen ${
+                      errors.program_overview ? "border-red-500" : "border-gray-300"
+                    }`}
+                    {...register("program_overview")}
+                  ></textarea>
+                  {errors.program_overview && (
+                    <p className="text-red-500 text-xs mt-1">{errors.program_overview.message}</p>
+                  )}
+                  <p className="text-xs text-gray-500 mt-2">
+                    Provide a detailed overview of the program, including its objectives, target audience, and key features.
+                    Use proper formatting with paragraphs for better readability.
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Benefits <span className="text-red-500">*</span>
+                    <span className="text-xs text-gray-500 ml-1">(min. 30 characters)</span>
+                  </label>
+                  <textarea
+                    placeholder="List the key benefits and outcomes..."
+                    rows="6"
+                    className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-customGreen ${
+                      errors.benefits ? "border-red-500" : "border-gray-300"
+                    }`}
+                    {...register("benefits")}
+                  ></textarea>
+                  {errors.benefits && (
+                    <p className="text-red-500 text-xs mt-1">{errors.benefits.message}</p>
+                  )}
+                  <p className="text-xs text-gray-500 mt-2">
+                    List the key benefits and outcomes students will achieve after completing the course.
+                    Use bullet points (•) at the start of each benefit for better formatting.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
           {/* Pricing Section */}

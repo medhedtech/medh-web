@@ -1,4 +1,4 @@
-import ThemeController from "@/components/shared/others/ThemeController";
+
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import React from "react";
 import TermsAndCOnsitions from "@/components/layout/main/Terms&COnsitions";
@@ -13,7 +13,7 @@ const TermsConditions = () => {
     <PageWrapper>
       <main>
         <TermsAndCOnsitions/>
-        <ThemeController />
+        
       </main>
     </PageWrapper>
   );

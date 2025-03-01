@@ -142,8 +142,15 @@ const CoursesFilter = ({
     }
   }, []); 
 
+  useEffect(() => {
+    if (fixedCategory) {
+      setSelectedCategory([fixedCategory]);
+    }
+  }, [fixedCategory]); // Only run when fixedCategory changes
+
   const fetchCourses = async () => {
-    const categoryQuery = selectedCategory ? selectedCategory : [];
+    setIsLoading(true);
+    const categoryQuery = fixedCategory ? [fixedCategory] : (selectedCategory?.length ? selectedCategory : []);
     const gradeQuery = selectedGrade || "";
 
     try {
@@ -162,25 +169,56 @@ const CoursesFilter = ({
       if (!apiUrl) {
         console.error('Invalid API URL configuration');
         setQueryError('System configuration error. Please try again later.');
+        setIsLoading(false);
         return;
       }
 
       const response = await getQuery({
         url: apiUrl,
         onSuccess: (data) => {
-          if (data?.courses && Array.isArray(data.courses)) {
+          console.log('API Response:', data); // Debug log
+          if (data && Array.isArray(data)) {
+            if (data.length === 0) {
+              setAllCourses([]);
+              setFilteredCourses([]);
+              setTotalPages(1);
+              setQueryError("No courses available for the selected filters");
+            } else {
+              const filteredData = fixedCategory 
+                ? data.filter(course => 
+                    course.category === fixedCategory || 
+                    course.course_category === fixedCategory ||
+                    (course.additional_categories || []).includes(fixedCategory)
+                  )
+                : data;
+              
+              setAllCourses(filteredData);
+              setFilteredCourses(filteredData);
+              setTotalPages(Math.ceil(filteredData.length / 8));
+              setQueryError(null);
+            }
+          } else if (data?.courses && Array.isArray(data.courses)) {
             if (data.courses.length === 0) {
               setAllCourses([]);
               setFilteredCourses([]);
               setTotalPages(1);
               setQueryError("No courses available for the selected filters");
             } else {
-              setAllCourses(data.courses);
-              setTotalPages(data.totalPages || 1);
+              const filteredData = fixedCategory 
+                ? data.courses.filter(course => 
+                    course.category === fixedCategory || 
+                    course.course_category === fixedCategory ||
+                    (course.additional_categories || []).includes(fixedCategory)
+                  )
+                : data.courses;
+              
+              setAllCourses(filteredData);
+              setFilteredCourses(filteredData);
+              setTotalPages(data.totalPages || Math.ceil(filteredData.length / 8));
               setQueryError(null);
-              applyFilters(data.courses);
             }
           } else {
+            console.error('Unexpected API response format:', data);
             setAllCourses([]);
             setFilteredCourses([]);
             setTotalPages(1);
@@ -203,113 +241,91 @@ const CoursesFilter = ({
       setAllCourses([]);
       setFilteredCourses([]);
       setTotalPages(1);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const applyFilters = (coursesToFilter = allCourses) => {
-    console.debug('Applying Filters with Courses:', coursesToFilter);
-    
-    let filtered = [...coursesToFilter];
+  // Update the effect for filter changes
+  useEffect(() => {
+    if (allCourses.length > 0) {
+      let filtered = [...allCourses];
 
-    // Search Term Filter - More flexible matching
-    if (searchTerm) {
-      const searchTerms = searchTerm.toLowerCase().split(' ').filter(term => term.length > 0);
-      filtered = filtered.filter(course => {
-        const searchableFields = [
-          course.course_title,
-          course.course_category,
-          course.course_duration,
-          course.course_description,
-          course.course_grade,
-          course.category,
-          course.instructor_name
-        ].filter(Boolean).map(field => field.toLowerCase());
-        
-        return searchTerms.every(term => 
-          searchableFields.some(field => field.includes(term))
-        );
-      });
-    }
-
-    // Category Filter - Case insensitive and more flexible
-    if (selectedCategory && selectedCategory.length) {
-      filtered = filtered.filter((course) => {
-        const courseCategories = [
-          course.category,
-          course.course_category,
-          ...(course.additional_categories || [])
-        ].filter(Boolean).map(cat => cat.toLowerCase());
-
-        const selectedCats = selectedCategory.map(c => c.toLowerCase());
-        
-        // Match if any of the course categories matches any selected category
-        return selectedCats.some(selected => 
-          courseCategories.some(courseCategory => 
-            courseCategory.includes(selected) || selected.includes(courseCategory)
-          )
-        );
-      });
-    }
-
-    // Grade Filter - More flexible matching
-    if (selectedGrade) {
-      filtered = filtered.filter(course => {
-        const courseGrade = course.course_grade || course.grade || '';
-        return courseGrade.toLowerCase() === selectedGrade.toLowerCase() ||
-               courseGrade.toLowerCase().includes(selectedGrade.toLowerCase()) ||
-               selectedGrade.toLowerCase().includes(courseGrade.toLowerCase());
-      });
-    }
-
-    // Sorting Logic - More robust with error handling
-    try {
-      if (sortOrder === "A-Z") {
-        filtered.sort((a, b) => 
-          (a.course_title || '').toLowerCase().localeCompare((b.course_title || '').toLowerCase())
-        );
-      } else if (sortOrder === "Z-A") {
-        filtered.sort((a, b) => 
-          (b.course_title || '').toLowerCase().localeCompare((a.course_title || '').toLowerCase())
-        );
-      } else if (sortOrder === "newest-first") {
-        filtered.sort((a, b) => {
-          const dateA = new Date(a.createdAt || 0);
-          const dateB = new Date(b.createdAt || 0);
-          return dateB - dateA;
-        });
-      } else if (sortOrder === "oldest-first") {
-        filtered.sort((a, b) => {
-          const dateA = new Date(a.createdAt || 0);
-          const dateB = new Date(b.createdAt || 0);
-          return dateA - dateB;
-        });
-      } else if (sortOrder === "duration-asc") {
-        filtered.sort((a, b) => {
-          const durationA = extractWeeks(a.course_duration);
-          const durationB = extractWeeks(b.course_duration);
-          return durationA - durationB;
-        });
-      } else if (sortOrder === "duration-desc") {
-        filtered.sort((a, b) => {
-          const durationA = extractWeeks(a.course_duration);
-          const durationB = extractWeeks(b.course_duration);
-          return durationB - durationA;
+      // Apply search filter
+      if (searchTerm) {
+        const searchTerms = searchTerm.toLowerCase().split(' ').filter(term => term.length > 0);
+        filtered = filtered.filter(course => {
+          const searchableFields = [
+            course.course_title,
+            course.course_category,
+            course.course_duration,
+            course.course_description,
+            course.course_grade,
+            course.category,
+            course.instructor_name
+          ].filter(Boolean).map(field => field.toLowerCase());
+          
+          return searchTerms.every(term => 
+            searchableFields.some(field => field.includes(term))
+          );
         });
       }
-    } catch (error) {
-      console.error('Error during sorting:', error);
+
+      // Apply category filter if not using fixedCategory
+      if (!fixedCategory && selectedCategory && selectedCategory.length) {
+        filtered = filtered.filter((course) => {
+          const courseCategories = [
+            course.category,
+            course.course_category,
+            ...(course.additional_categories || [])
+          ].filter(Boolean).map(cat => cat.toLowerCase());
+
+          const selectedCats = selectedCategory.map(c => c.toLowerCase());
+          
+          return selectedCats.some(selected => 
+            courseCategories.some(courseCategory => 
+              courseCategory.includes(selected) || selected.includes(courseCategory)
+            )
+          );
+        });
+      }
+
+      // Apply grade filter
+      if (selectedGrade) {
+        filtered = filtered.filter(course => {
+          const courseGrade = course.course_grade || course.grade || '';
+          return courseGrade.toLowerCase() === selectedGrade.toLowerCase() ||
+                 courseGrade.toLowerCase().includes(selectedGrade.toLowerCase()) ||
+                 selectedGrade.toLowerCase().includes(courseGrade.toLowerCase());
+        });
+      }
+
+      // Apply sorting
+      if (sortOrder === "A-Z") {
+        filtered.sort((a, b) => (a.course_title || '').localeCompare(b.course_title || ''));
+      } else if (sortOrder === "Z-A") {
+        filtered.sort((a, b) => (b.course_title || '').localeCompare(a.course_title || ''));
+      } else if (sortOrder === "newest-first") {
+        filtered.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+      } else if (sortOrder === "oldest-first") {
+        filtered.sort((a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0));
+      }
+
+      setFilteredCourses(filtered);
+      setTotalPages(Math.ceil(filtered.length / 8));
     }
+  }, [allCourses, searchTerm, selectedCategory, selectedGrade, sortOrder, fixedCategory]);
 
-    console.debug('Filtered Courses:', {
-      total: filtered.length,
-      searchTerm: searchTerm || 'none',
-      categories: selectedCategory,
-      grade: selectedGrade || 'none',
-      sortOrder
-    });
-
-    setFilteredCourses(filtered);
-  };
+  // Clear filters when fixedCategory changes
+  useEffect(() => {
+    if (fixedCategory) {
+      setSelectedCategory([fixedCategory]);
+      setSearchTerm("");
+      setSortOrder("newest-first");
+      setSelectedGrade(null);
+      setCurrentPage(1);
+    }
+  }, [fixedCategory]);
 
   // Update active filters
   useEffect(() => {
@@ -352,16 +368,6 @@ const CoursesFilter = ({
       setSelectedCategory([]);
     }
   }, [fixedCategory]);
-
-  useEffect(() => {
-    fetchCourses();
-  }, [currentPage, searchTerm, selectedCategory, sortOrder, selectedGrade]);
-
-  useEffect(() => {
-    if (allCourses.length > 0) {
-      applyFilters(allCourses);
-    }
-  }, [allCourses, searchTerm, selectedCategory, selectedGrade, sortOrder]);
 
   // Simplify page change handler to just update state without scrolling
   const handlePageChange = (page) => {
@@ -432,17 +438,20 @@ const CoursesFilter = ({
     }
   };
 
-  // Initial load and auto-refresh setup
+  // Update the useEffect for initial load and auto-refresh
   useEffect(() => {
-    // Initial load
-    handleRefresh(true);
+    const initializeData = async () => {
+      await handleRefresh(true);
+    };
+    
+    initializeData();  // Call immediately on mount
 
     // Setup auto-refresh if enabled
     if (enableAutoRefresh) {
       const setupAutoRefresh = () => {
         refreshTimeoutRef.current = setTimeout(() => {
-          handleRefresh(false); // Don't show loading state for auto-refresh
-          setupAutoRefresh(); // Setup next refresh
+          handleRefresh(false);
+          setupAutoRefresh();
         }, autoRefreshInterval);
       };
 
@@ -455,7 +464,7 @@ const CoursesFilter = ({
         }
       };
     }
-  }, [enableAutoRefresh, autoRefreshInterval]);
+  }, []);  // Empty dependency array for initial load only
 
   // Reset refresh timer when filters change
   useEffect(() => {

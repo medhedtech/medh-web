@@ -5,7 +5,7 @@ import ProtectedPage from "@/app/protectedRoutes";
 import ListOfCourse from "@/components/layout/main/dashboards/ListOfCourse";
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
-import ThemeController from "@/components/shared/others/ThemeController";
+
 import Link from "next/link";
 import useAuth from '@/hooks/useAuth';
 import { FaPlus, FaFileExport } from 'react-icons/fa';
@@ -64,7 +64,7 @@ const AdminCourseList = () => {
         <div className="fixed bottom-6 right-6 z-50">
           <div className="transform hover:scale-110 transition-transform duration-200
                         hover:rotate-12 active:rotate-0">
-            <ThemeController />
+            
           </div>
         </div>
       </div>

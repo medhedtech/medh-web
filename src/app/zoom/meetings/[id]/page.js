@@ -1,6 +1,6 @@
 import ZoomMeetingDetailsMain from "@/components/layout/main/ZoomMeetingDetailsMain";
 
-import ThemeController from "@/components/shared/others/ThemeController";
+
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import meetings from "@/../public/fakedata/meetings.json";
 import { notFound } from "next/navigation";
@@ -18,7 +18,7 @@ const Zoom_Meetings_Details = ({ params }) => {
     <PageWrapper>
       <main>
         <ZoomMeetingDetailsMain />
-        <ThemeController />
+        
       </main>
     </PageWrapper>
   );
