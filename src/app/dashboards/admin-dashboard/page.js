@@ -1,7 +1,7 @@
 import ProtectedPage from "@/app/protectedRoutes";
 import AdminDashboardMain from "@/components/layout/main/dashboards/AdminDashboardMain";
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
-import ThemeController from "@/components/shared/others/ThemeController";
+
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 export const metadata = {
   title: "Admin Dashboard | Medh",
@@ -24,7 +24,7 @@ const AdminDashboard = () => {
           </div>
           <AdminDashboardMain />
         </DashboardContainer>
-        <ThemeController />
+        
       </div>
     </ProtectedPage>
   );

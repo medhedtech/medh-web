@@ -4,7 +4,7 @@ import CourseAiFaq from "@/components/sections/course-ai/courseAiFaq";
 import CourseAiRelatedCourses from "@/components/sections/course-ai/courseAiRelatedCourse";
 import CourseOptions from "@/components/sections/course-ai/courseOptions";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
-import ThemeController from "@/components/shared/others/ThemeController";
+
 import ExploreJourney from "@/components/sections/explore-journey/Enroll-Form";
 import CourseBanner from "@/components/shared/banners/CourseBanner";
 import { Cpu, Database, Brain, Star, Users, BookOpen } from "lucide-react";
@@ -64,14 +64,9 @@ function CourseAi() {
       <CourseBanner {...bannerProps} />
       <CourseAiOverview />
       <CourseOptions />
-      <ExploreJourney 
-        mainText="Transform Your Career. Explore Your Journey in AI and Data Science."
-        subText="Enroll Now !"
-      />
       <CourseAiFaq />
       <CourseAiCourseBanner />
-      <CourseAiRelatedCourses />
-      <ThemeController />
+      {/* <CourseAiRelatedCourses /> */}
     </PageWrapper>
   );
 }

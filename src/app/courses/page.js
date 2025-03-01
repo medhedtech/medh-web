@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import CoursesFilter from "@/components/sections/courses/CoursesFilter";
-import ThemeController from "@/components/shared/others/ThemeController";
+
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import { BookOpen, Users, Star, ChevronRight, Sparkles, Clock, Award, ArrowRight } from 'lucide-react';
 
@@ -181,7 +181,7 @@ const Courses = async () => {
 
         {/* Theme Controller */}
         <div className="fixed bottom-6 right-6 z-50">
-          <ThemeController />
+          
         </div>
       </main>
     </PageWrapper>

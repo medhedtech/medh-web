@@ -1,5 +1,5 @@
 import ZoomMeetingDetailsMain from "@/components/layout/main/ZoomMeetingDetailsMain";
-import ThemeController from "@/components/shared/others/ThemeController";
+
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import meetings from "@/../public/fakedata/meetings.json";
 import { notFound } from "next/navigation";
@@ -18,7 +18,7 @@ const Zoom_Meetings_Details_Dark = ({ params }) => {
     <PageWrapper>
       <main className="is-dark">
         <ZoomMeetingDetailsMain />
-        <ThemeController />
+        
       </main>
     </PageWrapper>
   );
