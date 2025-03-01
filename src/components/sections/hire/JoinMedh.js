@@ -67,36 +67,39 @@ const JoinMedh = ({
   return (
     <div className={`flex flex-col gap-8 transition-opacity duration-700 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
       {/* Educator Section */}
-      <section className="relative overflow-hidden bg-white dark:bg-gray-900">
-        {/* Decorative elements */}
-        <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-primary-100 dark:bg-primary-900/20 rounded-full blur-3xl opacity-50 transform translate-x-1/3 -translate-y-1/4"></div>
-        <div className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-primary-100 dark:bg-primary-900/20 rounded-full blur-3xl opacity-50 transform -translate-x-1/3 translate-y-1/4"></div>
+      <section className="relative overflow-hidden bg-white dark:bg-gray-900 rounded-3xl">
+        {/* Modern decorative elements */}
+        <div className="absolute top-0 right-0 w-2/3 h-2/3 bg-gradient-to-br from-primary-300/30 via-purple-300/20 to-pink-300/30 dark:from-primary-500/20 dark:via-purple-500/15 dark:to-pink-500/20 rounded-full blur-3xl opacity-60 transform translate-x-1/3 -translate-y-1/4 animate-pulse"></div>
+        <div className="absolute bottom-0 left-0 w-2/3 h-2/3 bg-gradient-to-tr from-blue-300/30 via-teal-300/20 to-primary-300/30 dark:from-blue-500/20 dark:via-teal-500/15 dark:to-primary-500/20 rounded-full blur-3xl opacity-60 transform -translate-x-1/3 translate-y-1/4 animate-pulse"></div>
         
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center">
-            {/* Image container with animated effect */}
+        <div className="max-w-7xl mx-auto p-6 lg:p-8">
+          <div className="flex flex-col md:flex-row items-center gap-12">
+            {/* Image container with modern effects */}
             <div className="w-full md:w-1/2 relative group">
-              <div className="absolute inset-0 bg-primary-500/10 dark:bg-primary-500/20 rounded-3xl transform rotate-3 scale-95 opacity-0 group-hover:opacity-100 transition-all duration-500 md:-ml-6"></div>
-              <div className="relative overflow-hidden rounded-2xl md:rounded-3xl shadow-xl">
+              <div className="absolute inset-0 bg-gradient-to-r from-primary-400/40 to-purple-400/40 dark:from-primary-500/40 dark:to-purple-500/40 rounded-3xl transform rotate-3 scale-95 opacity-0 group-hover:opacity-100 transition-all duration-500 md:-ml-6"></div>
+              <div className="relative overflow-hidden rounded-3xl shadow-2xl">
                 <Image
                   src={educatorImage}
                   width={720}
                   height={450}
                   alt={educatorTitle}
-                  className="w-full object-cover transform transition-transform duration-500 group-hover:scale-105"
+                  className="w-full object-cover transform transition-all duration-500 group-hover:scale-105 group-hover:rotate-1"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                {/* Modern overlay effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-primary-500/10 to-purple-500/10 mix-blend-overlay opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               </div>
             </div>
             
-            {/* Content container */}
-            <div className="w-full md:w-1/2 p-6 md:p-12 lg:p-16">
+            {/* Content container with modern styling */}
+            <div className="w-full md:w-1/2 p-6 md:p-12">
               <div className="max-w-lg">
-                <span className="inline-block px-4 py-1.5 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-sm font-medium rounded-full mb-4">
+                <span className="inline-flex items-center px-5 py-2 bg-gradient-to-r from-primary-100 to-purple-100 dark:from-primary-900/50 dark:to-purple-900/50 text-primary-700 dark:text-primary-300 text-sm font-medium rounded-full mb-6 group-hover:shadow-lg transition-all duration-300">
+                  <span className="mr-2">🎓</span>
                   Become an Educator
                 </span>
                 
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">
+                <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent mb-6">
                   {educatorTitle}
                 </h2>
                 
@@ -106,12 +109,10 @@ const JoinMedh = ({
                 
                 <button
                   onClick={() => router.push("/join-us-as-educator")}
-                  className={`inline-flex items-center px-6 py-3 ${educatorBtnClass} rounded-full shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2`}
-                  style={!isPrimaryEducatorBtn ? { backgroundColor: educatorButtonColor, color: 'white' } : {}}
-                  aria-label={`${educatorButtonText} as an educator`}
+                  className="group inline-flex items-center px-8 py-4 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-medium rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                 >
-                  <PlusCircle className="mr-2 h-5 w-5" />
-                  <span>{educatorButtonText}</span>
+                  <PlusCircle className="mr-3 h-5 w-5 transform transition-transform duration-300 group-hover:rotate-180" />
+                  <span className="text-lg">{educatorButtonText}</span>
                 </button>
               </div>
             </div>
@@ -119,63 +120,54 @@ const JoinMedh = ({
         </div>
       </section>
 
-      {/* School Partnership Section */}
-      <section className={`relative overflow-hidden ${partnerBgClass}`}
-        style={!isPrimaryPartnerBg ? { backgroundColor: partnerBackgroundColor } : {}}
-      >
-        {/* Decorative elements */}
-        <div className="absolute top-0 left-0 w-1/3 h-1/3 bg-white/10 rounded-full blur-3xl opacity-50 transform -translate-x-1/3 -translate-y-1/4"></div>
-        <div className="absolute bottom-0 right-0 w-1/3 h-1/3 bg-white/10 rounded-full blur-3xl opacity-50 transform translate-x-1/3 translate-y-1/4"></div>
+      {/* School Partnership Section with modern styling */}
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#FF8C42] to-[#F6B335] dark:from-[#FF8C42] dark:to-[#F6B335]">
+        {/* Modern decorative elements */}
+        <div className="absolute top-0 left-0 w-2/3 h-2/3 bg-white/20 rounded-full blur-3xl opacity-50 transform -translate-x-1/3 -translate-y-1/4 animate-pulse"></div>
+        <div className="absolute bottom-0 right-0 w-2/3 h-2/3 bg-white/20 rounded-full blur-3xl opacity-50 transform translate-x-1/3 translate-y-1/4 animate-pulse"></div>
         
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col-reverse md:flex-row items-center">
-            {/* Content container */}
-            <div className="w-full md:w-1/2 p-6 md:p-12 lg:p-16">
+        <div className="max-w-7xl mx-auto p-6 lg:p-8">
+          <div className="flex flex-col-reverse md:flex-row items-center gap-12">
+            {/* Content container with modern styling */}
+            <div className="w-full md:w-1/2 p-6 md:p-12">
               <div className="max-w-lg">
-                <span className="inline-block px-4 py-1.5 bg-white/20 text-white text-sm font-medium rounded-full mb-4">
+                <span className="inline-flex items-center px-5 py-2 bg-white/20 backdrop-blur-sm text-white text-sm font-medium rounded-full mb-6 group-hover:shadow-lg transition-all duration-300">
+                  <span className="mr-2">🤝</span>
                   Institutional Partnership
                 </span>
                 
-                <h2 className="text-3xl md:text-4xl font-bold mb-6" style={{ color: partnerTextColor }}>
+                <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
                   {partnerTitle}
                 </h2>
                 
-                <p className="text-lg leading-relaxed mb-8 opacity-90" style={{ color: partnerTextColor }}>
+                <p className="text-white/90 text-lg leading-relaxed mb-8">
                   {partnerText}
                 </p>
                 
                 <button
                   onClick={() => router.push("/join-us-as-school-institute")}
-                  className="inline-flex items-center px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2"
-                  style={{ 
-                    backgroundColor: partnerButtonColor, 
-                    color: partnerBtnColor,
-                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
-                  }}
-                  aria-label={`${partnerButtonText} as a school or institute`}
+                  className="group inline-flex items-center px-8 py-4 bg-white text-[#FF8C42] font-medium rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#FF8C42]"
                 >
-                  {partnerButtonColor === "white" ? (
-                    <PlusCircle className="mr-2 h-5 w-5" style={{ color: partnerBtnColor }} />
-                  ) : (
-                    <PlusCircle className="mr-2 h-5 w-5" style={{ color: 'white' }} />
-                  )}
-                  <span>{partnerButtonText}</span>
+                  <PlusCircle className="mr-3 h-5 w-5 transform transition-transform duration-300 group-hover:rotate-180" />
+                  <span className="text-lg">{partnerButtonText}</span>
                 </button>
               </div>
             </div>
             
-            {/* Image container with animated effect */}
+            {/* Image container with modern effects */}
             <div className="w-full md:w-1/2 relative group">
-              <div className="absolute inset-0 bg-white/20 rounded-3xl transform -rotate-3 scale-95 opacity-0 group-hover:opacity-100 transition-all duration-500 md:-mr-6"></div>
-              <div className="relative overflow-hidden rounded-2xl md:rounded-3xl shadow-xl">
+              <div className="absolute inset-0 bg-white/30 rounded-3xl transform -rotate-3 scale-95 opacity-0 group-hover:opacity-100 transition-all duration-500 md:-mr-6"></div>
+              <div className="relative overflow-hidden rounded-3xl shadow-2xl">
                 <Image
                   src={partnerImage}
                   width={720}
                   height={450}
                   alt={partnerTitle}
-                  className="w-full object-cover transform transition-transform duration-500 group-hover:scale-105"
+                  className="w-full object-cover transform transition-all duration-500 group-hover:scale-105 group-hover:-rotate-1"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                {/* Modern overlay effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-[#FF8C42]/20 to-[#F6B335]/20 mix-blend-overlay opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               </div>
             </div>
           </div>
