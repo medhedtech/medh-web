@@ -165,21 +165,21 @@ export default function AboutProgram({ courseId }) {
     const features = [
       {
         label: "Duration",
-        value: formatDuration(courseDetails),
+        value: formatDuration(courseDetails || courseDetails?.course_duration),
         icon: Calendar,
         color: "text-purple-500 dark:text-purple-400",
         bgColor: "bg-purple-50 dark:bg-purple-900/30",
       },
       {
         label: "Live Sessions",
-        value: formatLiveSessions(courseDetails),
+        value: formatLiveSessions(courseDetails || courseDetails?.sessions_count),
         icon: Users,
         color: "text-blue-500 dark:text-blue-400",
         bgColor: "bg-blue-50 dark:bg-blue-900/30",
       },
       {
         label: "Format",
-        value: courseDetails?.course_format || courseDetails?.format || "Personality Development",
+        value: courseDetails?.course_type || courseDetails?.course_category || "Personality Development",
         icon: Sparkles,
         color: "text-amber-500 dark:text-amber-400",
         bgColor: "bg-amber-50 dark:bg-amber-900/30",
@@ -256,9 +256,7 @@ export default function AboutProgram({ courseId }) {
     if (!details) return "72";
     
     // Get session count
-    const sessionCount = details.live_sessions_count || 
-                         details.live_sessions || 
-                         details.sessions_count || 
+    const sessionCount = details.no_of_Sessions || 
                          "72";
     
     // Get session duration
@@ -294,9 +292,9 @@ export default function AboutProgram({ courseId }) {
     
     // Try different possible field names
     return details.time_commitment || 
-           details.weekly_commitment || 
+           details.efforts_per_Week || 
            details.hours_per_week || 
-           "3 - 4 hours / week";
+           "3 - 4 hours / week"; 
   };
 
   if (loading) {

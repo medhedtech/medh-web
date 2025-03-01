@@ -57,7 +57,7 @@ const hind = localFont({
 
 export default function ClientLayout({ children }) {
   useEffect(() => {
-    // Function to initialize smooth scrolling behavior
+    // Initialize smooth scrolling behavior
     const initSmoothScroll = () => {
       // Check if the user prefers reduced motion
       const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -72,6 +72,11 @@ export default function ClientLayout({ children }) {
     };
 
     initSmoothScroll();
+
+    // Set initial theme to light if no preference is set
+    if (!localStorage.getItem('medh-theme')) {
+      document.documentElement.classList.add('light');
+    }
 
     // Listen for changes in reduced motion preference
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -91,9 +96,19 @@ export default function ClientLayout({ children }) {
   }, []);
 
   return (
-    <html lang="en" className={`${hind.variable} ${inter.variable} h-full`}>
+    <html 
+      lang="en" 
+      suppressHydrationWarning 
+      className={`${hind.variable} ${inter.variable} h-full`}
+    >
       <body className="relative bg-bodyBg dark:bg-bodyBg-dark text-gray-700 dark:text-gray-200 min-h-screen font-sans antialiased">
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+        <ThemeProvider 
+          attribute="class" 
+          defaultTheme="system" 
+          enableSystem
+          disableTransitionOnChange
+          storageKey="medh-theme"
+        >
           {/* Preloader */}
           <PreloaderPrimary />
           

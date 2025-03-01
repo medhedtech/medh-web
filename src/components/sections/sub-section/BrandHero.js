@@ -75,11 +75,11 @@ const BrandHero = () => {
                 <div className="absolute inset-0 w-full h-full">
                   <Image
                     src={card.bgImage}
-                    alt="Background"
-                    layout="fill"
-                    objectFit="cover"
-                    className="transform group-hover:scale-110 transition-transform duration-700 ease-out"
-                    quality={90}
+                    alt={`Background for ${card.title}`}
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    className="object-cover"
+                    priority={card.id === 2}
                   />
                   <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors duration-300"></div>
                 </div>

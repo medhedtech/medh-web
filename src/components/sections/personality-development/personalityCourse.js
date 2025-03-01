@@ -2,6 +2,7 @@
 
 import React from "react";
 import CoursesFilter from "../courses/CoursesFilter";
+import Link from "next/link";
 
 function PersonalityDevelopmentCourses() {
   const handleScrollToTop = () => {
@@ -25,17 +26,20 @@ function PersonalityDevelopmentCourses() {
 
   return (
     <CoursesFilter
+      key="personality-development"
       CustomText="Personality Development Courses"
       CustomButton={
-        <div className="inline-flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm hover:shadow-md">
-          Explore All Courses
-        </div>
+        <Link href="/courses">
+          <div className="inline-flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm hover:shadow-md">
+            Explore All Courses
+          </div>
+        </Link>
       }
       // Force filter to only show Personality Development courses
       fixedCategory="Personality Development"
       // Hide the category selection since we're only showing one category
       scrollToTop={handleScrollToTop}
-      // Add a description for the courses section
+      hideCategoryFilter={true}// Add a description for the courses section
       description="Enhance your personal growth with our comprehensive personality development programs tailored for all age groups."
     />
   );
