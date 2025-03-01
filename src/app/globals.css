@@ -174,6 +174,24 @@ img, video, canvas, svg, iframe {
   --accent: var(--accent-light);
   --border: var(--border-light);
   --card-bg: var(--card-bg-light);
+  
+  /* Input specific colors - Light Mode */
+  --input-bg-light: #ffffff;
+  --input-border-light: #e2e8f0;
+  --input-text-light: #1a202c;
+  --input-placeholder-light: #a0aec0;
+  --input-focus-ring-light: rgba(56, 178, 172, 0.2);
+  --input-focus-border-light: #38B2AC;
+  --input-hover-border-light: #cbd5e0;
+  
+  /* Input specific colors - Dark Mode */
+  --input-bg-dark: #2d3748;
+  --input-border-dark: #4a5568;
+  --input-text-dark: #f7fafc;
+  --input-placeholder-dark: #a0aec0;
+  --input-focus-ring-dark: rgba(56, 178, 172, 0.2);
+  --input-focus-border-dark: #38B2AC;
+  --input-hover-border-dark: #4a5568;
 }
 
 .dark {
@@ -1111,4 +1129,123 @@ body {
   background-image: linear-gradient(to right, rgba(128, 128, 128, 0.1) 1px, transparent 1px),
                     linear-gradient(to bottom, rgba(128, 128, 128, 0.1) 1px, transparent 1px);
   background-size: 24px 24px;
+}
+
+/* Input Styles */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="search"],
+input[type="tel"],
+input[type="url"],
+textarea,
+select {
+  background-color: var(--input-bg-light);
+  border: 1px solid var(--input-border-light);
+  color: var(--input-text-light);
+  transition: all 0.2s ease-in-out;
+  outline: none;
+}
+
+/* Placeholder styles */
+input::placeholder,
+textarea::placeholder {
+  color: var(--input-placeholder-light);
+}
+
+/* Focus states */
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--input-focus-border-light);
+  box-shadow: 0 0 0 3px var(--input-focus-ring-light);
+}
+
+/* Hover states */
+input:hover:not(:focus),
+textarea:hover:not(:focus),
+select:hover:not(:focus) {
+  border-color: var(--input-hover-border-light);
+}
+
+/* Dark mode overrides */
+.dark input[type="text"],
+.dark input[type="email"],
+.dark input[type="password"],
+.dark input[type="number"],
+.dark input[type="search"],
+.dark input[type="tel"],
+.dark input[type="url"],
+.dark textarea,
+.dark select {
+  background-color: var(--input-bg-dark);
+  border-color: var(--input-border-dark);
+  color: var(--input-text-dark);
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: var(--input-placeholder-dark);
+}
+
+.dark input:focus,
+.dark textarea:focus,
+.dark select:focus {
+  border-color: var(--input-focus-border-dark);
+  box-shadow: 0 0 0 3px var(--input-focus-ring-dark);
+}
+
+.dark input:hover:not(:focus),
+.dark textarea:hover:not(:focus),
+.dark select:hover:not(:focus) {
+  border-color: var(--input-hover-border-dark);
+}
+
+/* Disabled state */
+input:disabled,
+textarea:disabled,
+select:disabled {
+  background-color: #f7fafc;
+  border-color: #edf2f7;
+  color: #a0aec0;
+  cursor: not-allowed;
+}
+
+.dark input:disabled,
+.dark textarea:disabled,
+.dark select:disabled {
+  background-color: #2d3748;
+  border-color: #4a5568;
+  color: #718096;
+}
+
+/* Error state */
+input.error,
+textarea.error,
+select.error {
+  border-color: #fc8181;
+  background-color: #fff5f5;
+}
+
+.dark input.error,
+.dark textarea.error,
+.dark select.error {
+  border-color: #fc8181;
+  background-color: rgba(252, 129, 129, 0.1);
+}
+
+/* Success state */
+input.success,
+textarea.success,
+select.success {
+  border-color: #68d391;
+  background-color: #f0fff4;
+}
+
+.dark input.success,
+.dark textarea.success,
+.dark select.success {
+  border-color: #68d391;
+  background-color: rgba(104, 211, 145, 0.1);
 }

@@ -1,5 +1,5 @@
 import ShopMain from "@/components/layout/main/ecommerce/ShopMain";
-import ThemeController from "@/components/shared/others/ThemeController";
+
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 
 export const metadata = {
@@ -12,7 +12,7 @@ const Shop = async () => {
     <PageWrapper>
       <main>
         <ShopMain />
-        <ThemeController />
+        
       </main>
     </PageWrapper>
   );
