@@ -1,5 +1,5 @@
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
-import ThemeController from "@/components/shared/others/ThemeController";
+
 import CorporateMembership from "@/components/layout/main/dashboards/CorporateMembership";
 import ProtectedPage from "@/app/protectedRoutes";
 export const metadata = {
@@ -13,7 +13,7 @@ const Student_Membership = () => {
         <DashboardContainer>
           <CorporateMembership />
         </DashboardContainer>
-        <ThemeController />
+        
       </main>
     </ProtectedPage>
   );

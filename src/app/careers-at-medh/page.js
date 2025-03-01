@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import CareerBanner from "@/components/sections/careers/careersBanner";
 import Certified from "@/components/sections/why-medh/Certified";
-import ThemeController from "@/components/shared/others/ThemeController";
+
 
 // Dynamically import components for better performance
 const CareerCourceBanner = dynamic(() => import("@/components/sections/careers/careersCourseBanner"));
@@ -25,7 +25,7 @@ export default function CareersPage() {
         <div className="bg-white dark:bg-screen-dark pb-16">
           <Certified />
         </div>
-        <ThemeController />
+        
       </main>
     </PageWrapper>
   );
