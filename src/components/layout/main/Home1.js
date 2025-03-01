@@ -50,6 +50,7 @@ const Home1 = () => {
       <CoursesFilter
         CustomText="Skill Development Courses"
         scrollToTop={initialScrollToTop}
+        hideGradeFilter
       />
       <WhyMedh />
       {/* <Registration pageTitle="home_page" /> */}

@@ -22,7 +22,6 @@ function VedicMathematics() {
       <VedicFaq />
       <VedicCourceBanner />
       <VedicRalatedCource />
-      <ThemeController/>
     </PageWrapper>
   );
 }
