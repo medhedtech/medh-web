@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { FaPaperPlane, FaTimes } from "react-icons/fa";
-import { apiUrls } from "@/apis";
-import usePostQuery from "@/hooks/postQuery.hook";
-import { Download, X, Phone, User, Mail, Globe } from "lucide-react";
+import { apiBaseUrl, apiUrls } from "@/apis";
+import { Download, X, Phone, User, Mail, Globe, CheckCircle2 } from "lucide-react";
 
-const DownloadBrochureModal = ({ isOpen, onClose, courseTitle }) => {
-  const { postQuery, loading } = usePostQuery();
-  const [showModal, setShowModal] = useState(false);
+const DownloadBrochureModal = ({ isOpen, onClose, courseTitle, brochureId, courseId }) => {
+  const [loading, setLoading] = useState(false);
+  const [downloadSuccess, setDownloadSuccess] = useState(false);
   const [formData, setFormData] = useState({
     full_name: "",
     email: "",
@@ -63,37 +62,84 @@ const DownloadBrochureModal = ({ isOpen, onClose, courseTitle }) => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const downloadBrochure = async () => {
+    try {
+      setLoading(true);
+      
+      // Use the download endpoint from apiUrls with courseId (if provided) or brochureId
+      const idToUse = courseId || brochureId;
+      const downloadEndpoint = `${apiBaseUrl}${apiUrls.brouchers.downloadBroucher(idToUse)}`;
+      
+      // Prepare user data to send with the download request
+      const userData = {
+        full_name: formData.full_name,
+        email: formData.email,
+        phone_number: formData.phone_number,
+        country_code: formData.country_code,
+        course_id: courseId,
+        brochure_id: brochureId,
+      };
+
+      console.log("Sending download request to:", downloadEndpoint);
+      console.log("With user data:", userData);
+
+      const response = await fetch(downloadEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Download error response:", errorText);
+        throw new Error(`Failed to download brochure: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log("Received JSON response:", data);
+
+      // Check for various possible URL fields in the response
+      const downloadUrl = data.downloadUrl || data.url || data.file || data.fileUrl || data.brochureUrl;
+
+      if (!downloadUrl) {
+        console.error("Response data structure:", data);
+        throw new Error('Download URL not found in response. Please contact support.');
+      }
+
+      // Instead of fetching the file directly, open it in a new tab
+      window.open(downloadUrl, '_blank');
+      
+      // Show success message and reset form
+      setDownloadSuccess(true);
+      setTimeout(() => {
+        onClose();
+        setDownloadSuccess(false);
+        setFormData({
+          full_name: "",
+          email: "",
+          phone_number: "",
+          country_code: "IN",
+          accepted: false,
+        });
+      }, 2000);
+    } catch (error) {
+      console.error('Error downloading brochure:', error);
+      setErrors((prev) => ({
+        ...prev,
+        general: `Failed to download the brochure: ${error.message}. Please try again later.`,
+      }));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-
-    try {
-      await postQuery({
-        url: apiUrls?.brouchers?.addBroucher,
-        postData: {
-          full_name: formData.full_name,
-          email: formData.email,
-          phone_number: formData.phone_number,
-          country_code: formData.country_code,
-          course_title: courseTitle || "Default Course Title",
-        },
-        onSuccess: () => {
-          setShowModal(true);
-          onClose();
-        },
-        onFail: () => {
-          setErrors((prev) => ({
-            ...prev,
-            general: "An error occurred while sending the brochure.",
-          }));
-        },
-      });
-    } catch (error) {
-      setErrors((prev) => ({
-        ...prev,
-        general: "An unexpected error occurred. Please try again.",
-      }));
-    }
+    await downloadBrochure();
   };
 
   if (!isOpen) return null;
@@ -105,159 +151,179 @@ const DownloadBrochureModal = ({ isOpen, onClose, courseTitle }) => {
       
       {/* Modal */}
       <div className="relative w-[95%] sm:w-[450px] max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl transform transition-all">
-        {/* Header */}
-        <div className="relative p-6 pb-0">
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
-          >
-            <X size={20} />
-          </button>
-
-          <div className="flex items-center gap-3 mb-2">
-            <Download size={24} className="text-primary-500" />
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Download Brochure
-            </h2>
-          </div>
-
-          <div className="mt-2 mb-6">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Get detailed information about
-            </p>
-            <h3 className="text-lg font-semibold bg-gradient-to-r from-primary-600 to-indigo-600 bg-clip-text text-transparent">
-              {courseTitle || "Course Title"}
+        {downloadSuccess ? (
+          // Success State
+          <div className="p-8 text-center">
+            <div className="flex justify-center mb-4">
+              <CheckCircle2 size={48} className="text-green-500" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+              Thank You!
             </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-2">
+              Your brochure is being downloaded.
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              You can close this window.
+            </p>
           </div>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 pt-0 space-y-4">
-          {/* Name Input */}
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <User size={18} className="text-gray-400" />
-            </div>
-            <input
-              type="text"
-              name="full_name"
-              placeholder="Your Name*"
-              className={`w-full pl-10 pr-4 py-3 rounded-xl border ${
-                errors.full_name ? 'border-red-300 dark:border-red-500' : 'border-gray-200 dark:border-gray-600'
-              } bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all`}
-              value={formData.full_name}
-              onChange={handleChange}
-            />
-            {errors.full_name && (
-              <p className="mt-1 text-xs text-red-500">{errors.full_name}</p>
-            )}
-          </div>
-
-          {/* Email Input */}
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Mail size={18} className="text-gray-400" />
-            </div>
-            <input
-              type="email"
-              name="email"
-              placeholder="Your Email*"
-              className={`w-full pl-10 pr-4 py-3 rounded-xl border ${
-                errors.email ? 'border-red-300 dark:border-red-500' : 'border-gray-200 dark:border-gray-600'
-              } bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all`}
-              value={formData.email}
-              onChange={handleChange}
-            />
-            {errors.email && (
-              <p className="mt-1 text-xs text-red-500">{errors.email}</p>
-            )}
-          </div>
-
-          {/* Phone Input Group */}
-          <div className="relative flex gap-3">
-            <div className="relative w-1/3">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Globe size={18} className="text-gray-400" />
-              </div>
-              <select
-                name="country_code"
-                className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all appearance-none"
-                value={formData.country_code}
-                onChange={handleChange}
+        ) : (
+          <>
+            {/* Header */}
+            <div className="relative p-6 pb-0">
+              <button
+                onClick={onClose}
+                className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
               >
-                <option value="IN">IN +91</option>
-                <option value="AUS">AU +61</option>
-                <option value="CA">CA +1</option>
-                <option value="SGP">SG +65</option>
-                <option value="UAE">AE +971</option>
-                <option value="UK">UK +44</option>
-              </select>
-            </div>
+                <X size={20} />
+              </button>
 
-            <div className="relative flex-1">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Phone size={18} className="text-gray-400" />
+              <div className="flex items-center gap-3 mb-2">
+                <Download size={24} className="text-primary-500" />
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  Download Brochure
+                </h2>
               </div>
-              <input
-                type="tel"
-                name="phone_number"
-                placeholder="Phone Number*"
-                className={`w-full pl-10 pr-4 py-3 rounded-xl border ${
-                  errors.phone_number ? 'border-red-300 dark:border-red-500' : 'border-gray-200 dark:border-gray-600'
-                } bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all`}
-                value={formData.phone_number}
-                onChange={handleChange}
-              />
+
+              <div className="mt-2 mb-6">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Get detailed information about
+                </p>
+                <h3 className="text-lg font-semibold bg-gradient-to-r from-primary-600 to-indigo-600 bg-clip-text text-transparent">
+                  {courseTitle || "Course Title"}
+                </h3>
+              </div>
             </div>
-          </div>
-          {errors.phone_number && (
-            <p className="mt-1 text-xs text-red-500">{errors.phone_number}</p>
-          )}
 
-          {/* Terms Checkbox */}
-          <div className="flex items-start gap-3">
-            <input
-              type="checkbox"
-              id="accept"
-              checked={formData.accepted}
-              onChange={handleCheckboxChange}
-              className="mt-1 w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 transition-colors"
-            />
-            <label htmlFor="accept" className="text-sm text-gray-600 dark:text-gray-300">
-              By submitting this form, I accept the{" "}
-              <a href="/terms-and-services" className="text-primary-600 hover:text-primary-700 dark:text-primary-400">
-                Terms of Service
-              </a>{" "}
-              and{" "}
-              <a href="/privacy-policy" className="text-primary-600 hover:text-primary-700 dark:text-primary-400">
-                Privacy Policy
-              </a>
-            </label>
-          </div>
-          {errors.accepted && (
-            <p className="text-xs text-red-500">{errors.accepted}</p>
-          )}
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="p-6 pt-0 space-y-4">
+              {/* Name Input */}
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <User size={18} className="text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  name="full_name"
+                  placeholder="Your Name*"
+                  className={`w-full pl-10 pr-4 py-3 rounded-xl border ${
+                    errors.full_name ? 'border-red-300 dark:border-red-500' : 'border-gray-200 dark:border-gray-600'
+                  } bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all`}
+                  value={formData.full_name}
+                  onChange={handleChange}
+                />
+                {errors.full_name && (
+                  <p className="mt-1 text-xs text-red-500">{errors.full_name}</p>
+                )}
+              </div>
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-700 hover:to-indigo-700 text-white font-medium rounded-xl transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-          >
-            {loading ? (
-              <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
-              <>
-                <Download size={18} />
-                Download Now
-              </>
-            )}
-          </button>
+              {/* Email Input */}
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Mail size={18} className="text-gray-400" />
+                </div>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Your Email*"
+                  className={`w-full pl-10 pr-4 py-3 rounded-xl border ${
+                    errors.email ? 'border-red-300 dark:border-red-500' : 'border-gray-200 dark:border-gray-600'
+                  } bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all`}
+                  value={formData.email}
+                  onChange={handleChange}
+                />
+                {errors.email && (
+                  <p className="mt-1 text-xs text-red-500">{errors.email}</p>
+                )}
+              </div>
 
-          {errors.general && (
-            <p className="text-sm text-red-500 text-center">{errors.general}</p>
-          )}
-        </form>
+              {/* Phone Input Group */}
+              <div className="relative flex gap-3">
+                <div className="relative w-1/3">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Globe size={18} className="text-gray-400" />
+                  </div>
+                  <select
+                    name="country_code"
+                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all appearance-none"
+                    value={formData.country_code}
+                    onChange={handleChange}
+                  >
+                    <option value="IN">IN +91</option>
+                    <option value="AUS">AU +61</option>
+                    <option value="CA">CA +1</option>
+                    <option value="SGP">SG +65</option>
+                    <option value="UAE">AE +971</option>
+                    <option value="UK">UK +44</option>
+                  </select>
+                </div>
+
+                <div className="relative flex-1">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Phone size={18} className="text-gray-400" />
+                  </div>
+                  <input
+                    type="tel"
+                    name="phone_number"
+                    placeholder="Phone Number*"
+                    className={`w-full pl-10 pr-4 py-3 rounded-xl border ${
+                      errors.phone_number ? 'border-red-300 dark:border-red-500' : 'border-gray-200 dark:border-gray-600'
+                    } bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all`}
+                    value={formData.phone_number}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+              {errors.phone_number && (
+                <p className="mt-1 text-xs text-red-500">{errors.phone_number}</p>
+              )}
+
+              {/* Terms Checkbox */}
+              <div className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  id="accept"
+                  checked={formData.accepted}
+                  onChange={handleCheckboxChange}
+                  className="mt-1 w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 transition-colors"
+                />
+                <label htmlFor="accept" className="text-sm text-gray-600 dark:text-gray-300">
+                  By submitting this form, I accept the{" "}
+                  <a href="/terms-and-services" className="text-primary-600 hover:text-primary-700 dark:text-primary-400">
+                    Terms of Service
+                  </a>{" "}
+                  and{" "}
+                  <a href="/privacy-policy" className="text-primary-600 hover:text-primary-700 dark:text-primary-400">
+                    Privacy Policy
+                  </a>
+                </label>
+              </div>
+              {errors.accepted && (
+                <p className="text-xs text-red-500">{errors.accepted}</p>
+              )}
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-700 hover:to-indigo-700 text-white font-medium rounded-xl transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              >
+                {loading ? (
+                  <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <Download size={18} />
+                    Download Now
+                  </>
+                )}
+              </button>
+
+              {errors.general && (
+                <p className="text-sm text-red-500 text-center">{errors.general}</p>
+              )}
+            </form>
+          </>
+        )}
       </div>
     </div>
   );

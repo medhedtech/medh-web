@@ -269,6 +269,7 @@ const CourseCard = ({ course }) => {
         isOpen={isModalOpen}
         onClose={closeModal}
         courseTitle={course?.course_title}
+        courseId={course?._id}
       />
     </div>
   );
