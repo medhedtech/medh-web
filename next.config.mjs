@@ -27,6 +27,33 @@ const nextConfig = {
         punycode: false,
       };
     }
+    
+    // Add optimization for production builds
+    if (process.env.NODE_ENV === 'production') {
+      // Optimize CSS
+      const optimization = config.optimization || {};
+      config.optimization = {
+        ...optimization,
+        runtimeChunk: 'single',
+        splitChunks: {
+          chunks: 'all',
+          maxInitialRequests: Infinity,
+          minSize: 20000,
+          cacheGroups: {
+            vendor: {
+              test: /[\\/]node_modules[\\/]/,
+              name(module) {
+                // Get the name of the package
+                const packageName = module.context.match(/[\\/]node_modules[\\/](.*?)([\\/]|$)/)[1];
+                // Return a nice package name
+                return `npm.${packageName.replace('@', '')}`;
+              },
+            },
+          },
+        },
+      };
+    }
+    
     return config;
   },
 };
