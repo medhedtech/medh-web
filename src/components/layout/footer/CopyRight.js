@@ -41,6 +41,7 @@ const CopyRight = () => {
   const policyLinks = [
     { name: "Terms of Service", path: "/terms-and-services" },
     { name: "Privacy Policy", path: "/privacy-policy" },
+    { name: "Cookie Policy", path: "/cookie-policy" },
     { name: "Reschedule Policy", path: "/reschedule-policy" },
     { name: "Cancellation & Refund Policy", path: "/cancellation-and-refund-policy" }
   ];
