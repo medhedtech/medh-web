@@ -35,8 +35,73 @@ export const apiUrls = {
       course_grade,
       category,
       courseId = ""
-    ) =>
-      `/courses/getLimitedCourses?page=${page}&limit=${limit}&course_title=${course_title}&course_tag=${course_tag}&course_category=${course_category}&status=${status}&search=${search}&course_grade=${course_grade}&category=${category}&exclude=${courseId}`,
+    ) => {
+      // Helper function to safely encode URI components
+      const safeEncode = (value) => {
+        if (!value) return '';
+        return encodeURIComponent(String(value).trim());
+      };
+      
+      // Build the base URL with required parameters
+      let url = `/courses/getLimitedCourses?page=${page}&limit=${limit}&status=${status || 'Published'}`;
+      
+      // Add optional parameters only if they have values
+      if (course_title) url += `&course_title=${safeEncode(course_title)}`;
+      
+      // Handle course_tag parameter - could be string or array
+      if (course_tag) {
+        if (Array.isArray(course_tag)) {
+          url += `&course_tag=${course_tag.map(tag => safeEncode(tag)).join(',')}`;
+        } else {
+          url += `&course_tag=${safeEncode(course_tag)}`;
+        }
+      }
+      
+      // Handle course_category parameter - could be string, array, or comma-separated string
+      if (course_category) {
+        if (Array.isArray(course_category)) {
+          // If it's an array, join with commas
+          url += `&course_category=${course_category.map(cat => safeEncode(cat)).join(',')}`;
+        } else if (typeof course_category === 'string' && course_category.includes(',')) {
+          // If it's already a comma-separated string, split, encode each part, and rejoin
+          const categories = course_category.split(',');
+          url += `&course_category=${categories.map(cat => safeEncode(cat.trim())).join(',')}`;
+        } else {
+          // Single category
+          url += `&course_category=${safeEncode(course_category)}`;
+        }
+      }
+      
+      // Handle category parameter (legacy support) - similar to course_category
+      if (category) {
+        if (Array.isArray(category)) {
+          url += `&category=${category.map(cat => safeEncode(cat)).join(',')}`;
+        } else if (typeof category === 'string' && category.includes(',')) {
+          const categories = category.split(',');
+          url += `&category=${categories.map(cat => safeEncode(cat.trim())).join(',')}`;
+        } else {
+          url += `&category=${safeEncode(category)}`;
+        }
+      }
+      
+      // Add other optional parameters
+      if (search) url += `&search=${safeEncode(search)}`;
+      if (course_grade) url += `&course_grade=${safeEncode(course_grade)}`;
+      
+      // Only add exclude parameter if courseId is provided and not empty
+      if (courseId && courseId.trim() !== '') {
+        // Sanitize the courseId to prevent ObjectId casting errors
+        const sanitizedCourseId = typeof courseId === 'string' 
+          ? courseId.replace(/['"\\]/g, '') // Remove quotes and backslashes
+          : "";
+        
+        if (sanitizedCourseId) {
+          url += `&exclude=${sanitizedCourseId}`;
+        }
+      }
+      
+      return url;
+    },
     getNewCourses: ({
       page = 1,
       limit = 10,
@@ -44,15 +109,51 @@ export const apiUrls = {
       course_tag,
       search,
       user_id,
-      course_grade
+      course_grade,
+      course_category
     }) => {
-      let url = `/courses/getNewLimitedCourses?page=${page}&limit=${limit}&status=${status}&course_tag=${course_tag}&user_id=${user_id}`;
-      if (search) {
-        url += `&search=${search}`;
+      // Helper function to safely encode URI components
+      const safeEncode = (value) => {
+        if (!value) return '';
+        return encodeURIComponent(String(value).trim());
+      };
+      
+      // Build base URL with required parameters
+      let url = `/courses/getNewLimitedCourses?page=${page}&limit=${limit}`;
+      
+      // Add optional parameters only if they have values
+      if (status) url += `&status=${safeEncode(status)}`;
+      if (user_id) url += `&user_id=${safeEncode(user_id)}`;
+      
+      // Handle course_tag parameter - could be string or array
+      if (course_tag) {
+        if (Array.isArray(course_tag)) {
+          // If it's an array, join with commas or use appropriate format for API
+          url += `&course_tag=${course_tag.map(tag => safeEncode(tag)).join(',')}`;
+        } else {
+          url += `&course_tag=${safeEncode(course_tag)}`;
+        }
       }
-      if (course_grade) {
-        url += `&course_grade=${course_grade}`;
+      
+      // Handle course_category parameter - could be string, array, or comma-separated string
+      if (course_category) {
+        if (Array.isArray(course_category)) {
+          // If it's an array, join with commas
+          url += `&course_category=${course_category.map(cat => safeEncode(cat)).join(',')}`;
+        } else if (typeof course_category === 'string' && course_category.includes(',')) {
+          // If it's already a comma-separated string, split, encode each part, and rejoin
+          const categories = course_category.split(',');
+          url += `&course_category=${categories.map(cat => safeEncode(cat.trim())).join(',')}`;
+        } else {
+          // Single category
+          url += `&course_category=${safeEncode(course_category)}`;
+        }
       }
+      
+      // Add other optional parameters
+      if (search) url += `&search=${safeEncode(search)}`;
+      if (course_grade) url += `&course_grade=${safeEncode(course_grade)}`;
+      
       return url;
     },
 

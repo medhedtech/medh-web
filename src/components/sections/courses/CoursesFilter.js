@@ -5,11 +5,15 @@ import CategoryFilter from "./CategoryFilter";
 import CourseCard from "./CourseCard";
 import Pagination from "@/components/shared/pagination/Pagination";
 import useGetQuery from "@/hooks/getQuery.hook";
-import { apiUrls } from "@/apis";
-import { useRouter } from "next/navigation";
-import { X, Filter, Search, ChevronDown, Zap, GraduationCap } from "lucide-react";
+import { apiUrls, apiBaseUrl } from "@/apis";
+import { useRouter, useSearchParams } from "next/navigation";
+import { 
+  X, Filter, Search, ChevronDown, Zap, GraduationCap, 
+  LayoutGrid, List, Palette, BookOpen
+} from "lucide-react";
 import Preloader2 from "@/components/shared/others/Preloader2";
 import CategoryToggle from "@/components/shared/courses/CategoryToggle";
+import axios from "axios";
 
 const categories = [
   "AI and Data Science",
@@ -66,6 +70,7 @@ const CoursesFilter = ({
   description
 }) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [allCourses, setAllCourses] = useState([]);
   const [filteredCourses, setFilteredCourses] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState([]);
@@ -79,8 +84,15 @@ const CoursesFilter = ({
   const [isVisible, setIsVisible] = useState(false);
   const [activeFilters, setActiveFilters] = useState([]);
   const [queryError, setQueryError] = useState(null);
+  const [viewMode, setViewMode] = useState("netflix"); // Changed default to netflix view
+  const [relatedCourses, setRelatedCourses] = useState({});
+  const [showingRelated, setShowingRelated] = useState(false);
+  const [totalItems, setTotalItems] = useState(0);
+  const [filtersVisible, setFiltersVisible] = useState(false); // New state for filter drawer
+  const [hoveredCourse, setHoveredCourse] = useState(null); // Track hovered course for expanded view
   
   const contentRef = useRef(null);
+  const filterDrawerRef = useRef(null);
 
   // Add default props to ensure consistent initial state
   const defaultProps = {
@@ -129,94 +141,225 @@ const CoursesFilter = ({
     }
   }, []); 
 
-  const fetchCourses = () => {
-    const categoryQuery = selectedCategory ? selectedCategory : [];
-    const gradeQuery = selectedGrade || "";
+  // Calculate similar categories for a given category
+  const findSimilarCourses = (course, allCoursesData) => {
+    if (!course || !allCoursesData || allCoursesData.length === 0) {
+      return [];
+    }
+    
+    // Don't include the source course in results
+    const otherCourses = allCoursesData.filter(c => c._id !== course._id);
+    
+    // Extract key information from the source course
+    const courseCategories = [
+      course.category,
+      course.course_category,
+      course.category_type,
+      ...(course.additional_categories || [])
+    ].filter(Boolean).map(cat => typeof cat === 'string' ? cat.toLowerCase().trim() : '');
+    
+    const courseInstructor = course.instructor_name?.toLowerCase() || '';
+    const courseGrade = course.course_grade?.toLowerCase() || '';
+    const courseTitle = course.course_title?.toLowerCase() || '';
+    const courseTitleWords = courseTitle.split(/\s+/).filter(w => w.length > 2);
+    
+    // Score each course based on similarity
+    const scoredCourses = otherCourses.map(otherCourse => {
+      let score = 0;
+      
+      // Check category match - highest priority
+      const otherCourseCategories = [
+        otherCourse.category,
+        otherCourse.course_category,
+        otherCourse.category_type,
+        ...(otherCourse.additional_categories || [])
+      ].filter(Boolean).map(cat => typeof cat === 'string' ? cat.toLowerCase().trim() : '');
+      
+      // Direct category match gives highest score boost
+      if (courseCategories.some(cat => otherCourseCategories.includes(cat))) {
+        score += 5;
+      }
+      
+      // Word-by-word category match
+      const categoryOverlap = courseCategories.some(cat => 
+        otherCourseCategories.some(otherCat => 
+          cat.includes(otherCat) || otherCat.includes(cat)
+        )
+      );
+      if (categoryOverlap) score += 3;
+      
+      // Same instructor
+      const otherInstructor = otherCourse.instructor_name?.toLowerCase() || '';
+      if (courseInstructor && otherInstructor && courseInstructor === otherInstructor) {
+        score += 2;
+      }
+      
+      // Same grade level
+      const otherGrade = otherCourse.course_grade?.toLowerCase() || '';
+      if (courseGrade && otherGrade && courseGrade === otherGrade) {
+        score += 2;
+      }
+      
+      // Title word overlap
+      const otherTitle = otherCourse.course_title?.toLowerCase() || '';
+      const otherTitleWords = otherTitle.split(/\s+/).filter(w => w.length > 2);
+      
+      const titleWordMatch = courseTitleWords.filter(word => 
+        otherTitleWords.some(otherWord => 
+          word.includes(otherWord) || otherWord.includes(word)
+        )
+      ).length;
+      
+      if (titleWordMatch > 0) {
+        score += titleWordMatch * 1; 
+      }
+      
+      return { course: otherCourse, score };
+    });
+    
+    // Sort by score and take top matches
+    return scoredCourses
+      .filter(item => item.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 6)
+      .map(item => item.course);
+  };
 
-    // Debug log the API URL and parameters
-    const apiUrl = apiUrls?.courses?.getAllCoursesWithLimits(
-      currentPage,
-      8,
-      "",
-      "",
-      "",
-      "Published",
-      searchTerm,
-      gradeQuery,
-      categoryQuery
-    );
-
-    console.debug('API Request:', {
-      url: apiUrl,
-      parameters: {
-        page: currentPage,
-        limit: 8,
-        status: "Published",
-        searchTerm,
-        gradeQuery,
-        categoryQuery
+  // Find related courses for each course
+  const calculateRelatedCourses = useCallback(() => {
+    if (!allCourses || allCourses.length === 0) return {};
+    
+    const relatedCoursesMap = {};
+    
+    // For each course, find related courses
+    allCourses.forEach(course => {
+      if (course._id) {
+        relatedCoursesMap[course._id] = findSimilarCourses(course, allCourses);
       }
     });
+    
+    setRelatedCourses(relatedCoursesMap);
+  }, [allCourses]);
 
-    if (!apiUrl) {
-      console.error('Invalid API URL configuration');
-      setQueryError('System configuration error. Please try again later.');
-      return;
+  // Calculate related courses when all courses are loaded
+  useEffect(() => {
+    if (allCourses.length > 0) {
+      calculateRelatedCourses();
     }
+  }, [allCourses, calculateRelatedCourses]);
 
-    getQuery({
-      url: apiUrl,
-      onSuccess: (data) => {
-        console.debug('API Response:', {
-          success: true,
-          data: data,
-          coursesCount: data?.courses?.length || 0,
-          totalPages: data?.totalPages || 0
-        });
+  const fetchCourses = async () => {
+    // Use the fixed category if provided, otherwise use the selected category
+    const categoryQuery = fixedCategory ? [fixedCategory] : selectedCategory;
+    const gradeQuery = selectedGrade || "";
 
-        if (data?.courses && Array.isArray(data.courses)) {
-          if (data.courses.length === 0) {
-            console.debug('No courses returned from API');
-            setAllCourses([]);
-            setFilteredCourses([]);
-            setTotalPages(1);
-            setQueryError("No courses available for the selected filters");
-          } else {
-            console.debug('Courses found:', {
-              count: data.courses.length,
-              firstCourse: data.courses[0],
-              categories: data.courses.map(c => c.category || c.course_category).filter(Boolean)
-            });
-            setAllCourses(data.courses);
-            setTotalPages(data.totalPages || 1);
-            setQueryError(null);
-            applyFilters(data.courses);
-          }
-        } else {
-          console.warn("Unexpected API response structure:", data);
-          setAllCourses([]);
-          setFilteredCourses([]);
-          setTotalPages(1);
-          setQueryError("Unexpected data format received");
-        }
-      },
-      onFail: (error) => {
-        console.error("API Error:", {
-          error,
-          url: apiUrl,
-          parameters: {
-            page: currentPage,
+    // Clear any previous errors
+    setQueryError(null);
+
+    console.debug('Fetching courses with:', {
+      categoryQuery,
+      fixedCategory,
+      selectedCategory,
+      currentPage,
+      gradeQuery
+    });
+
+    // Case 1: Multiple categories selected
+    if (categoryQuery && categoryQuery.length > 1) {
+      console.debug('Fetching courses for multiple categories:', categoryQuery);
+      
+      try {
+        // Make separate API calls for each category
+        const apiPromises = categoryQuery.map(category => {
+          const apiUrl = apiUrls?.courses?.getAllCoursesWithLimits(
+            currentPage,
+            8,
+            "",
+            "",
+            category, // Use each category individually
+            "Published",
             searchTerm,
             gradeQuery,
-            categoryQuery
+            ""  // Don't use categoryParam for multi-category fetching
+          );
+          
+          return axios.get(`${apiBaseUrl}${apiUrl}`);
+        });
+        
+        // Wait for all API calls to complete
+        const responses = await Promise.all(apiPromises);
+        
+        // Combine and deduplicate results
+        const allCourses = [];
+        responses.forEach(response => {
+          if (response.data && response.data.courses) {
+            allCourses.push(...response.data.courses);
           }
         });
-        setQueryError(error.message || "Failed to fetch courses. Please try again.");
-        setAllCourses([]);
-        setFilteredCourses([]);
-        setTotalPages(1);
-      },
-    });
+        
+        // Deduplicate courses by ID
+        const uniqueCourses = Array.from(
+          new Map(allCourses.map(course => [course._id, course])).values()
+        );
+        
+        const totalItemsCount = uniqueCourses.length;
+        
+        console.debug(`Found ${uniqueCourses.length} unique courses across ${categoryQuery.length} categories`);
+        
+        // Set the fetched courses and pagination data
+        setAllCourses(uniqueCourses);
+        setFilteredCourses(uniqueCourses);
+        setTotalItems(totalItemsCount);
+        setTotalPages(Math.ceil(totalItemsCount / 8));
+      } catch (error) {
+        console.error('Error fetching multiple categories:', error);
+        setQueryError('Failed to fetch courses from multiple categories. Please try again later.');
+      }
+      
+      return;
+    } 
+    // Case 2: Single category or no category filter
+    else {
+      let courseCategoryParam = "";
+      
+      if (categoryQuery && categoryQuery.length === 1) {
+        courseCategoryParam = categoryQuery[0];
+      }
+      
+      console.debug('Using single category parameter:', courseCategoryParam);
+      
+      // Standard single API call for one or no category
+      const apiUrl = apiUrls?.courses?.getAllCoursesWithLimits(
+        currentPage,
+        8,
+        "",
+        "",
+        courseCategoryParam,
+        "Published",
+        searchTerm,
+        gradeQuery,
+        ""  // No categoryParam needed
+      );
+      
+      console.debug('API Request URL:', apiUrl);
+      
+      // Use the existing getQuery hook for API call
+      getQuery({
+        url: apiUrl,
+        onSuccess: (data) => {
+          if (data) {
+            setAllCourses(data.courses || []);
+            setFilteredCourses(data.courses || []);
+            setTotalPages(data.totalPages || 1);
+            setTotalItems(data.totalItems || 0);
+          }
+        },
+        onFail: (err) => {
+          console.error('Error fetching courses:', err);
+          setQueryError('Failed to fetch courses. Please try again later.');
+        }
+      });
+    }
   };
 
   const applyFilters = (coursesToFilter = allCourses) => {
@@ -244,23 +387,41 @@ const CoursesFilter = ({
       });
     }
 
-    // Category Filter - Case insensitive and more flexible
+    // Category Filter - Support multiple categories (OR logic between categories)
     if (selectedCategory && selectedCategory.length) {
       filtered = filtered.filter((course) => {
+        // Get all possible category values from the course
         const courseCategories = [
           course.category,
           course.course_category,
+          course.category_type,
           ...(course.additional_categories || [])
-        ].filter(Boolean).map(cat => cat.toLowerCase());
+        ].filter(Boolean).map(cat => typeof cat === 'string' ? cat.toLowerCase().trim() : '');
 
-        const selectedCats = selectedCategory.map(c => c.toLowerCase());
+        const selectedCats = selectedCategory.map(c => c.toLowerCase().trim());
         
-        // Match if any of the course categories matches any selected category
-        return selectedCats.some(selected => 
-          courseCategories.some(courseCategory => 
-            courseCategory.includes(selected) || selected.includes(courseCategory)
-          )
-        );
+        // Enhanced matching logic with multiple strategies
+        return selectedCats.some(selected => {
+          // Strategy 1: Direct match
+          if (courseCategories.includes(selected)) return true;
+          
+          // Strategy 2: Contains match (course category contains selected or vice versa)
+          if (courseCategories.some(cat => cat.includes(selected) || selected.includes(cat))) return true;
+          
+          // Strategy 3: Word-by-word matching (handle multi-word categories)
+          const selectedWords = selected.split(/\s+/).filter(word => word.length > 2);
+          if (selectedWords.length > 1) {
+            // If the selected category has multiple words, check if most words are found in the course categories
+            const matchCount = selectedWords.filter(word => 
+              courseCategories.some(cat => cat.includes(word))
+            ).length;
+            
+            // Match if at least 70% of words match
+            if (matchCount / selectedWords.length >= 0.7) return true;
+          }
+          
+          return false;
+        });
       });
     }
 
@@ -322,6 +483,7 @@ const CoursesFilter = ({
     });
 
     setFilteredCourses(filtered);
+    setShowingRelated(false); // Reset when filters change
   };
 
   // Update active filters
@@ -359,16 +521,18 @@ const CoursesFilter = ({
   }, [searchTerm, selectedCategory, sortOrder, selectedGrade, hideCategoryFilter]);
 
   useEffect(() => {
-    if (fixedCategory) {
-      setSelectedCategory([fixedCategory]);
-    } else {
-      setSelectedCategory([]);
+    if (isClient) {
+      fetchCourses();
     }
-  }, [fixedCategory]);
+  }, [currentPage, searchTerm, selectedCategory, selectedGrade]);
 
+  // Handle fixed category changes
   useEffect(() => {
-    fetchCourses();
-  }, [currentPage, searchTerm, selectedCategory, sortOrder, selectedGrade]);
+    if (fixedCategory && isClient) {
+      setSelectedCategory(fixedCategory ? [fixedCategory] : []);
+      setCurrentPage(1);
+    }
+  }, [fixedCategory, isClient]);
 
   useEffect(() => {
     if (allCourses.length > 0) {
@@ -394,25 +558,79 @@ const CoursesFilter = ({
   };
 
   const handleClearFilters = () => {
-    setSelectedCategory([]);
+    if (fixedCategory) {
+      // Only clear non-fixed filters
+      const updatedFilters = activeFilters.filter(
+        filter => filter.type === 'category' && filter.value === fixedCategory
+      );
+      setActiveFilters(updatedFilters);
+    } else {
+      setActiveFilters([]);
+    }
+    
+    setSelectedCategory(fixedCategory ? [fixedCategory] : []);
+    setSelectedGrade(null);
     setSearchTerm("");
     setSortOrder("newest-first");
-    setSelectedGrade(null);
     setCurrentPage(1);
+    
+    // Fix router issue - use a different approach to update URL that works with Next.js 14
+    try {
+      // For Next.js 14, just build the URL directly instead of using router.pathname
+      const baseUrl = window.location.pathname;
+      const newUrl = fixedCategory 
+        ? `${baseUrl}?category=${encodeURIComponent(fixedCategory)}` 
+        : baseUrl;
+      
+      router.push(newUrl);
+    } catch (error) {
+      console.error("Error updating URL:", error);
+      // Fallback: continue without URL update if router fails
+    }
   };
 
   const removeFilter = (filterType, value) => {
+    // Update activeFilters
+    setActiveFilters(prev => prev.filter(f => !(f.type === filterType && f.value === value)));
+    
+    // Update specific state variables based on filter type
     if (filterType === 'search') {
       setSearchTerm('');
+    } else if (filterType === 'category') {
+      setSelectedCategory(prev => prev.filter(cat => cat !== value));
     } else if (filterType === 'grade') {
       setSelectedGrade(null);
     } else if (filterType === 'sort') {
       setSortOrder('newest-first');
-    } else if (filterType === 'category') {
-      setSelectedCategory(prev => prev.filter(cat => cat !== value));
     }
-    // Reset to page 1 when removing a filter
+    
     setCurrentPage(1);
+    
+    // Update URL with the new state - compatible with Next.js 14
+    try {
+      const baseUrl = window.location.pathname;
+      const updatedCategories = selectedCategory.filter(cat => cat !== value);
+      
+      // Build URL query parameters
+      const queryParams = new URLSearchParams();
+      if (fixedCategory) {
+        queryParams.set('category', fixedCategory);
+      } else if (updatedCategories.length > 0) {
+        queryParams.set('category', updatedCategories.join(','));
+      }
+      
+      if (filterType !== 'grade' && selectedGrade) {
+        queryParams.set('grade', selectedGrade);
+      }
+      
+      // Navigate to the new URL
+      const queryString = queryParams.toString();
+      const newUrl = queryString ? `${baseUrl}?${queryString}` : baseUrl;
+      router.push(newUrl);
+    } catch (error) {
+      console.error("Error updating URL:", error);
+      // Continue without URL update if router fails
+    }
   };
 
   // Prevent unnecessary re-renders
@@ -420,18 +638,81 @@ const CoursesFilter = ({
     return filteredCourses;
   }, [filteredCourses]);
 
+  // Toggle view between standard grid and Netflix-like view
+  const toggleViewMode = () => {
+    setViewMode(prev => prev === "grid" ? "netflix" : "grid");
+  };
+
+  // Close filters when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (filterDrawerRef.current && !filterDrawerRef.current.contains(event.target)) {
+        setFiltersVisible(false);
+      }
+    }
+    
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [filterDrawerRef]);
+
+  // Add this function to properly initialize the active filters based on URL params and fixed category
+  useEffect(() => {
+    const initialFilters = [];
+    if (fixedCategory) {
+      initialFilters.push({ type: 'category', value: fixedCategory });
+    }
+    
+    // Only initialize with URL params if they were explicitly set
+    if (searchParams) {
+      const categoryParam = searchParams.get('category');
+      if (categoryParam && !fixedCategory) {
+        // Split by comma if there are multiple categories
+        const categories = categoryParam.includes(',') 
+          ? categoryParam.split(',') 
+          : [categoryParam];
+        
+        categories.forEach(category => {
+          if (category) {
+            initialFilters.push({ type: 'category', value: category });
+          }
+        });
+      }
+      
+      const gradeParam = searchParams.get('grade');
+      if (gradeParam) {
+        initialFilters.push({ type: 'grade', value: gradeParam });
+      }
+    }
+    
+    setActiveFilters(initialFilters);
+  }, [fixedCategory, searchParams]);
+
   // Render only on client to prevent hydration mismatches
   if (!isClient) {
     return null;
   }
 
   return (
-    <section className="min-h-screen w-full bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
-      {/* Header Section */}
-      <div className="w-full bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
-        <div className="max-w-[2100px] mx-auto w-full px-4 md:px-6 lg:px-8 py-8">
-          <div className={`transition-all duration-1000 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+    <div className="container max-w-[1440px] mx-auto px-4 pt-6 pb-16">
+      {queryError && (
+        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded shadow-md">
+          <p>{queryError}</p>
+        </div>
+      )}
+      
+      {!error ? (
+        <div ref={contentRef}>
+          {description && (
+            <div className="mb-8 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-900 p-6 rounded-xl shadow-sm">
+              <p className="text-lg text-gray-700 dark:text-gray-300">{description}</p>
+            </div>
+          )}
+          
+          {/* Hero Header with Netflix-style treatment */}
+          <div className="mb-10">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center">
               <div className="flex-1">
                 <h1 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-primary-400 mb-2">
                   {CustomText || "Skill Development Courses"}
@@ -442,17 +723,19 @@ const CoursesFilter = ({
               </div>
               <div className="mt-4 md:mt-0">{CustomButton}</div>
             </div>
-
-            {/* Search and Filter Controls */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-6">
-              {/* Search Field */}
-              <div className="md:col-span-5 relative group">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          </div>
+          
+          {/* Sticky Navbar with Search and Filter Toggle - Netflix Style */}
+          <div className="sticky top-0 z-30 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md py-4 mb-6 rounded-b-xl shadow-md px-4 -mx-4 transition-all duration-300">
+            <div className="flex flex-col md:flex-row items-center gap-3">
+              {/* Search Field - Simplified */}
+              <div className="w-full md:w-1/3 relative group">
+                <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
                   <Search size={18} className="text-gray-400 group-focus-within:text-primary-500 transition-colors" />
                 </div>
                 <input
                   type="text"
-                  placeholder="Search by title, category, instructor, or description..."
+                  placeholder="Search courses..."
                   value={searchTerm}
                   onChange={memoizedHandleSearch}
                   onKeyDown={(e) => {
@@ -462,7 +745,7 @@ const CoursesFilter = ({
                     }
                   }}
                   suppressHydrationWarning={true}
-                  className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all"
+                  className="w-full pl-10 pr-10 py-2.5 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all"
                 />
                 {searchTerm && (
                   <button
@@ -470,103 +753,187 @@ const CoursesFilter = ({
                       setSearchTerm('');
                       setCurrentPage(1);
                     }}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                    className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                   >
                     <X size={18} />
                   </button>
                 )}
               </div>
-
-              {/* Grade Filter */}
-              <div className="md:col-span-3 relative group">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <GraduationCap size={18} className="text-gray-400 group-focus-within:text-primary-500 transition-colors" />
-                </div>
-                <select
-                  value={selectedGrade || ""}
-                  onChange={(e) => {
-                    setSelectedGrade(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  suppressHydrationWarning={true}
-                  className="w-full pl-10 pr-10 py-3 rounded-xl appearance-none border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all"
+              
+              {/* Filter Button */}
+              <button
+                onClick={() => setFiltersVisible(!filtersVisible)}
+                className="w-full md:w-auto flex items-center justify-center gap-2 py-2.5 px-4 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full font-medium transition-colors"
+              >
+                <Filter size={18} />
+                <span>Filters{activeFilters.length > 0 && activeFilters.some(f => !(f.type === 'category' && f.value === fixedCategory)) ? ` (${activeFilters.filter(f => !(f.type === 'category' && f.value === fixedCategory)).length})` : ''}</span>
+              </button>
+              
+              {/* View Mode Toggle */}
+              <div className="flex items-center gap-2 ml-auto">
+                <button 
+                  onClick={toggleViewMode}
+                  className={`p-2 rounded-full ${viewMode === 'grid' 
+                    ? 'bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400' 
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'}`}
+                  aria-label="Grid view"
                 >
-                  <option value="">All Grade Levels</option>
-                  {grades.map((grade) => (
-                    <option key={grade} value={grade}>{grade}</option>
-                  ))}
-                </select>
-                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <ChevronDown size={18} className="text-gray-400 group-focus-within:text-primary-500 transition-colors" />
-                </div>
-              </div>
-
-              {/* Sort Order */}
-              <div className="md:col-span-4 relative group">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Filter size={18} className="text-gray-400 group-focus-within:text-primary-500 transition-colors" />
-                </div>
-                <select
-                  value={sortOrder}
-                  onChange={memoizedHandleSortChange}
-                  suppressHydrationWarning={true}
-                  className="w-full pl-10 pr-10 py-3 rounded-xl appearance-none border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all"
+                  <LayoutGrid size={18} />
+                </button>
+                <button 
+                  onClick={toggleViewMode}
+                  className={`p-2 rounded-full ${viewMode === 'netflix' 
+                    ? 'bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400' 
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'}`}
+                  aria-label="Netflix view"
                 >
-                  <option value="newest-first">Newest First</option>
-                  <option value="oldest-first">Oldest First</option>
-                  <option value="A-Z">Title (A-Z)</option>
-                  <option value="Z-A">Title (Z-A)</option>
-                  <option value="duration-asc">Duration (Short to Long)</option>
-                  <option value="duration-desc">Duration (Long to Short)</option>
-                </select>
-                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <ChevronDown size={18} className="text-gray-400 group-focus-within:text-primary-500 transition-colors" />
-                </div>
+                  <List size={18} />
+                </button>
               </div>
             </div>
-
-            {/* Active Filters */}
-            {activeFilters.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-6">
-                {activeFilters.map((filter, index) => (
-                  <div 
-                    key={index} 
-                    className="flex items-center bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 rounded-full pl-3 pr-2 py-1.5 text-sm"
-                  >
-                    <span className="mr-1 capitalize">{filter.type === 'category' ? '' : `${filter.type}:`}</span>
-                    <span className="font-medium truncate max-w-[200px]">{filter.value}</span>
-                    <button 
-                      onClick={() => removeFilter(filter.type, filter.value)}
-                      className="ml-1 p-1 rounded-full hover:bg-primary-100 dark:hover:bg-primary-800/30 transition-colors"
+            
+            {/* Active Filters - Only show when there are explicitly applied filters (not just fixed category) */}
+            {activeFilters.length > 0 && activeFilters.some(f => !(f.type === 'category' && f.value === fixedCategory)) && (
+              <div className="mt-3 flex flex-wrap gap-2 items-center">
+                <span className="text-sm text-gray-500 dark:text-gray-400">Active filters:</span>
+                {activeFilters
+                  .filter(filter => !(filter.type === 'category' && filter.value === fixedCategory))
+                  .map((filter, index) => (
+                    <span 
+                      key={index} 
+                      className="inline-flex items-center gap-1 px-3 py-1 bg-primary-50 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 rounded-full text-sm"
                     >
-                      <X size={14} />
-                    </button>
-                  </div>
-                ))}
-                
-                <button 
-                  onClick={handleClearFilters}
-                  className="flex items-center text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium pl-2 pr-3 py-1.5 border border-primary-200 dark:border-primary-800/30 rounded-full transition-colors"
-                >
-                  <X size={14} className="mr-1" />
-                  Clear All
-                </button>
+                      {filter.type}: {filter.value}
+                      <button
+                        onClick={() => removeFilter(filter.type, filter.value)}
+                        className="ml-1 hover:text-primary-900 dark:hover:text-primary-100"
+                      >
+                        <X size={14} />
+                      </button>
+                    </span>
+                  ))}
+                {/* Only show clear all if there are filters that can be cleared */}
+                {activeFilters.some(f => !(f.type === 'category' && f.value === fixedCategory)) && (
+                  <button
+                    onClick={handleClearFilters}
+                    className="text-sm text-primary-600 dark:text-primary-400 hover:underline ml-auto"
+                  >
+                    Clear all
+                  </button>
+                )}
               </div>
             )}
           </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="max-w-[2100px] mx-auto w-full px-4 md:px-6 lg:px-8 py-8">
-        <div className={`transition-all duration-1000 ease-out delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-          {description && (
-            <p className="text-lg text-gray-600 dark:text-gray-400 mb-8 max-w-4xl">{description}</p>
-          )}
           
-          <div className="flex flex-col md:flex-row gap-8 w-full">
-            {/* Desktop Categories */}
-            {!hideCategoryFilter && (
+          {/* Advanced Filters Drawer - Netflix Style */}
+          <div 
+            ref={filterDrawerRef}
+            className={`fixed inset-y-0 right-0 z-40 w-full sm:max-w-md bg-white dark:bg-gray-900 shadow-2xl transform transition-transform duration-300 ease-in-out ${
+              filtersVisible ? 'translate-x-0' : 'translate-x-full'
+            } overflow-y-auto`}
+          >
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">Filters</h3>
+                <button 
+                  onClick={() => setFiltersVisible(false)}
+                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              
+              {/* Category Filter */}
+              {!hideCategoryFilter && !fixedCategory && (
+                <div className="mb-8">
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                    {categoryTitle || "Categories"}
+                  </h4>
+                  <CategoryFilter
+                    categories={availableCategories || categories}
+                    selectedCategory={selectedCategory}
+                    setSelectedCategory={(categories) => {
+                      setSelectedCategory(categories);
+                      setCurrentPage(1);
+                    }}
+                  />
+                </div>
+              )}
+              
+              {/* Grade Level Filter */}
+              <div className="mb-8">
+                <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                  Grade Level
+                </h4>
+                <div className="space-y-2">
+                  {grades.map((grade) => (
+                    <label key={grade} className="flex items-center cursor-pointer">
+                      <input
+                        type="radio"
+                        name="grade"
+                        className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                        checked={selectedGrade === grade}
+                        onChange={() => {
+                          setSelectedGrade(selectedGrade === grade ? null : grade);
+                          setCurrentPage(1);
+                        }}
+                      />
+                      <span className="ml-2 text-gray-700 dark:text-gray-300">{grade}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Sort Order */}
+              <div className="mb-8">
+                <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                  Sort By
+                </h4>
+                <select
+                  value={sortOrder}
+                  onChange={handleSortChange}
+                  className="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all"
+                >
+                  <option value="newest-first">Newest First</option>
+                  <option value="oldest-first">Oldest First</option>
+                  <option value="price-low-high">Price: Low to High</option>
+                  <option value="price-high-low">Price: High to Low</option>
+                  <option value="duration-short-long">Duration: Short to Long</option>
+                  <option value="duration-long-short">Duration: Long to Short</option>
+                  <option value="popularity">Popularity</option>
+                </select>
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <button 
+                  onClick={handleClearFilters} 
+                  className="flex-1 py-3 px-4 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                >
+                  Clear All
+                </button>
+                <button 
+                  onClick={() => setFiltersVisible(false)} 
+                  className="flex-1 py-3 px-4 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-medium transition-colors"
+                >
+                  Apply Filters
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          {/* Backdrop for filter drawer */}
+          {filtersVisible && (
+            <div 
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-30"
+              onClick={() => setFiltersVisible(false)}
+            />
+          )}
+
+          {/* Main Content with Sidebar (conditionally rendered) */}
+          <div className="flex flex-col md:flex-row gap-6">
+            {/* Sidebar - Only show on standard view, not on Netflix view */}
+            {!hideCategoryFilter && !fixedCategory && viewMode !== "netflix" && (
               <div className="hidden md:block w-full md:w-1/5 lg:w-[18%] max-w-[280px]">
                 <div className="sticky top-24 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                   <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
@@ -584,7 +951,7 @@ const CoursesFilter = ({
               </div>
             )}
 
-            {/* Course Grid */}
+            {/* Course Display Area */}
             <div className="flex-1 w-full min-w-0">
               {loading ? (
                 <div className="flex justify-center items-center min-h-[50vh] w-full">
@@ -592,113 +959,284 @@ const CoursesFilter = ({
                 </div>
               ) : filteredCourses.length > 0 ? (
                 <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 w-full">
-                    {filteredCourses.map((course, index) => (
-                      <div 
-                        key={course._id || index}
-                        className="transition-all duration-500 h-full"
-                        style={{ 
-                          transitionDelay: `${index * 50}ms`,
-                          opacity: isVisible ? 1 : 0,
-                          transform: isVisible ? 'translateY(0)' : 'translateY(20px)'
-                        }}
-                      >
-                        <CourseCard course={course} />
-                      </div>
-                    ))}
-                  </div>
+                  {/* Standard Grid View */}
+                  {viewMode === "grid" && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 w-full">
+                      {filteredCourses.map((course, index) => (
+                        <div 
+                          key={course._id || index}
+                          className="transition-all duration-500 h-full"
+                          style={{ 
+                            transitionDelay: `${index * 50}ms`,
+                            opacity: isVisible ? 1 : 0,
+                            transform: isVisible ? 'translateY(0)' : 'translateY(20px)'
+                          }}
+                        >
+                          <CourseCard course={course} />
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   
+                  {/* Netflix-like View */}
+                  {viewMode === "netflix" && (
+                    <div className="space-y-14">
+                      {/* Main featured courses section */}
+                      <div>
+                        <div className="flex items-center justify-between mb-4">
+                          <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
+                            {showingRelated ? (
+                              <>
+                                <span>Courses Related To</span>
+                                <span className="ml-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200">
+                                  {filteredCourses.find(c => c._id === showingRelated)?.course_title?.substring(0, 20) || "Selected Course"}
+                                  {filteredCourses.find(c => c._id === showingRelated)?.course_title?.length > 20 ? "..." : ""}
+                                </span>
+                              </>
+                            ) : (
+                              fixedCategory || selectedCategory.length > 0 
+                                ? `${fixedCategory || selectedCategory[0]} Courses` 
+                                : "Featured Courses"
+                            )}
+                          </h2>
+                          {showingRelated && (
+                            <button 
+                              onClick={() => setShowingRelated(false)}
+                              className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium"
+                            >
+                              Back to all courses
+                            </button>
+                          )}
+                        </div>
+                        
+                        {/* Netflix horizontal scrollable row with hover expand effect */}
+                        <div className="relative -mx-4 px-4">
+                          <div className="overflow-x-auto pb-4 pt-1 hide-scrollbar">
+                            <div className="flex space-x-4" style={{ minWidth: 'max-content' }}>
+                              {(showingRelated ? 
+                                relatedCourses[showingRelated] || [] : 
+                                filteredCourses.slice(0, Math.min(12, filteredCourses.length))
+                              ).map((course, index) => (
+                                <div 
+                                  key={course._id || index}
+                                  className={`transition-all duration-300 flex-shrink-0 ${
+                                    hoveredCourse === course._id ? 'w-[340px]' : 'w-[260px]'
+                                  }`}
+                                  onMouseEnter={() => setHoveredCourse(course._id)}
+                                  onMouseLeave={() => setHoveredCourse(null)}
+                                >
+                                  <div 
+                                    className={`transition-all duration-300 ${
+                                      hoveredCourse === course._id ? 'transform scale-105 shadow-xl' : 'transform scale-100 shadow-md'
+                                    }`}
+                                  >
+                                    <CourseCard 
+                                      course={course} 
+                                      onShowRelated={() => {
+                                        if (course._id && relatedCourses[course._id]?.length > 0) {
+                                          setShowingRelated(course._id);
+                                        }
+                                      }}
+                                      showRelatedButton={!showingRelated && relatedCourses[course._id]?.length > 0}
+                                    />
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Additional course categories sections - Only show if we have enough courses and not showing related */}
+                      {!showingRelated && selectedCategory.length <= 1 && filteredCourses.length > 12 && (
+                        <>
+                          {/* Trending Courses Row */}
+                          <div>
+                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                              Trending Courses
+                            </h2>
+                            <div className="relative -mx-4 px-4">
+                              <div className="overflow-x-auto pb-4 pt-1 hide-scrollbar">
+                                <div className="flex space-x-4" style={{ minWidth: 'max-content' }}>
+                                  {filteredCourses
+                                    .filter(course => course.is_popular)
+                                    .slice(0, Math.min(10, filteredCourses.length))
+                                    .map((course, index) => (
+                                      <div 
+                                        key={course._id || index}
+                                        className={`transition-all duration-300 flex-shrink-0 ${
+                                          hoveredCourse === course._id ? 'w-[340px]' : 'w-[260px]'
+                                        }`}
+                                        onMouseEnter={() => setHoveredCourse(course._id)}
+                                        onMouseLeave={() => setHoveredCourse(null)}
+                                      >
+                                        <div 
+                                          className={`transition-all duration-300 ${
+                                            hoveredCourse === course._id ? 'transform scale-105 shadow-xl' : 'transform scale-100 shadow-md'
+                                          }`}
+                                        >
+                                          <CourseCard course={course} />
+                                        </div>
+                                      </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Recently Added Courses Row */}
+                          <div>
+                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                              Recently Added
+                            </h2>
+                            <div className="relative -mx-4 px-4">
+                              <div className="overflow-x-auto pb-4 pt-1 hide-scrollbar">
+                                <div className="flex space-x-4" style={{ minWidth: 'max-content' }}>
+                                  {filteredCourses
+                                    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                                    .slice(0, Math.min(10, filteredCourses.length))
+                                    .map((course, index) => (
+                                      <div 
+                                        key={course._id || index}
+                                        className={`transition-all duration-300 flex-shrink-0 ${
+                                          hoveredCourse === course._id ? 'w-[340px]' : 'w-[260px]'
+                                        }`}
+                                        onMouseEnter={() => setHoveredCourse(course._id)}
+                                        onMouseLeave={() => setHoveredCourse(null)}
+                                      >
+                                        <div 
+                                          className={`transition-all duration-300 ${
+                                            hoveredCourse === course._id ? 'transform scale-105 shadow-xl' : 'transform scale-100 shadow-md'
+                                          }`}
+                                        >
+                                          <CourseCard course={course} />
+                                        </div>
+                                      </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      
+                      {/* All courses grid - If there are more courses */}
+                      {!showingRelated && filteredCourses.length > 12 && (
+                        <div>
+                          <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                              All Courses
+                            </h2>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
+                            {filteredCourses
+                              .slice((currentPage - 1) * 12, currentPage * 12)
+                              .map((course, index) => (
+                                <div 
+                                  key={course._id || index}
+                                  className="transition-all duration-500"
+                                  style={{ 
+                                    transitionDelay: `${index * 50}ms`,
+                                    opacity: isVisible ? 1 : 0,
+                                    transform: isVisible ? 'translateY(0)' : 'translateY(20px)'
+                                  }}
+                                >
+                                  <CourseCard course={course} />
+                                </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Pagination - More visually appealing and smooth */}
                   {totalPages > 1 && (
-                    <div className="mt-16">
-                      <Pagination
-                        totalPages={totalPages}
-                        currentPage={currentPage}
-                        onPageChange={memoizedHandlePageChange}
-                      />
+                    <div className="mt-12 flex justify-center">
+                      <div className="bg-white dark:bg-gray-800 shadow-md rounded-xl p-2 inline-flex">
+                        <Pagination
+                          currentPage={currentPage}
+                          totalPages={totalPages}
+                          onPageChange={(page) => {
+                            handlePageChange(page);
+                            scrollToTop();
+                          }}
+                          className="pagination-netflix" // Custom class for Netflix-style pagination
+                        />
+                      </div>
                     </div>
                   )}
                 </>
               ) : (
-                <div className="flex flex-col items-center justify-center min-h-[50vh] text-center p-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 max-w-4xl mx-auto">
-                  <div className="w-16 h-16 flex items-center justify-center rounded-full bg-primary-50 dark:bg-primary-900/20 mb-4">
-                    <Search size={24} className="text-primary-500 dark:text-primary-400" />
+                <div className="min-h-[50vh] flex flex-col items-center justify-center text-center p-8 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-200 dark:border-gray-700">
+                  <div className="w-20 h-20 mb-6 text-gray-300 dark:text-gray-600">
+                    <BookOpen size={80} />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                    {queryError || "No courses found"}
+                  <h3 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                    No courses found
                   </h3>
-                  <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md">
-                    {loading ? "Loading courses..." : 
-                     error ? "There was an error loading the courses. Please try again." :
-                     "We couldn't find any courses matching your criteria. Try adjusting your filters or search terms."}
+                  <p className="text-gray-600 dark:text-gray-400 max-w-md mb-6">
+                    We couldn't find any courses matching your criteria. Try adjusting your filters or check back later.
                   </p>
-                  <div className="flex flex-col sm:flex-row gap-4">
-                    <button
-                      onClick={handleClearFilters}
-                      className="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors"
-                    >
-                      Clear All Filters
-                    </button>
-                    <button
-                      onClick={() => fetchCourses()}
-                      className="px-6 py-2.5 border border-primary-600 text-primary-600 hover:bg-primary-50 font-medium rounded-lg transition-colors"
-                    >
-                      Retry Loading
-                    </button>
-                  </div>
-                  {process.env.NODE_ENV === 'development' && queryError && (
-                    <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg text-left w-full">
-                      <p className="text-red-600 dark:text-red-400 text-sm font-mono break-all">
-                        Error: {queryError}
-                      </p>
-                    </div>
-                  )}
+                  <button
+                    onClick={handleClearFilters}
+                    className="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-full shadow-sm transition-colors"
+                  >
+                    Clear Filters
+                  </button>
                 </div>
               )}
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Mobile Category Slider */}
-      {!hideCategoryFilter && categorySliderOpen && (
-        <div className="fixed inset-0 z-50 md:hidden">
-          <div 
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={() => setCategorySliderOpen(false)}
-          />
-          <div className="absolute inset-y-0 right-0 w-80 bg-white dark:bg-gray-800 shadow-xl">
-            <div className="p-4">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Categories
-                </h3>
-                <button 
-                  onClick={() => setCategorySliderOpen(false)}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-              <CategoryFilter
-                categories={categories}
-                selectedCategory={selectedCategory}
-                setSelectedCategory={(categories) => {
-                  setSelectedCategory(categories);
-                  setCurrentPage(1);
-                  setCategorySliderOpen(false);
-                }}
-              />
-            </div>
+      ) : (
+        <div className="min-h-[60vh] flex flex-col items-center justify-center">
+          <div className="w-20 h-20 mb-6 text-red-500">
+            <X size={80} />
           </div>
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            Error Loading Courses
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 max-w-md text-center mb-6">
+            There was a problem loading the courses. Please try again later.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-full shadow-sm transition-colors"
+          >
+            Refresh Page
+          </button>
         </div>
       )}
-
-      {queryError && (
-        <div className="text-red-500 p-4 text-center">
-          {queryError}
-        </div>
-      )}
-    </section>
+      
+      {/* Add custom styles for Netflix-style UI */}
+      <style jsx global>{`
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .hide-scrollbar {
+          -ms-overflow-style: none;  /* IE and Edge */
+          scrollbar-width: none;  /* Firefox */
+        }
+        
+        /* Custom pagination styling */
+        .pagination-netflix button {
+          transition: all 0.3s ease;
+        }
+        
+        .pagination-netflix button:hover:not([disabled]) {
+          transform: translateY(-2px);
+        }
+        
+        /* Smooth page transitions */
+        .page-transition {
+          transition: all 0.5s ease-in-out;
+        }
+      `}</style>
+    </div>
   );
 };
 
