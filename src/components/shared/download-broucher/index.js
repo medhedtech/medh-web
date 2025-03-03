@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaPaperPlane, FaTimes } from "react-icons/fa";
 import { apiBaseUrl, apiUrls } from "@/apis";
 import { Download, X, Phone, User, Mail, Globe, CheckCircle2 } from "lucide-react";
@@ -15,6 +15,13 @@ const DownloadBrochureModal = ({ isOpen, onClose, courseTitle, brochureId, cours
   });
 
   const [errors, setErrors] = useState({});
+
+  // Warn if neither courseId nor brochureId is provided
+  useEffect(() => {
+    if (isOpen && !courseId && !brochureId) {
+      console.error("DownloadBrochureModal: Neither courseId nor brochureId was provided");
+    }
+  }, [isOpen, courseId, brochureId]);
 
   // Regular expressions for validation
   const nameRegex = /^[a-zA-Z\s]+$/;
@@ -66,9 +73,19 @@ const DownloadBrochureModal = ({ isOpen, onClose, courseTitle, brochureId, cours
     try {
       setLoading(true);
       
-      // Use the download endpoint from apiUrls with courseId (if provided) or brochureId
+      // Check if we have a valid ID to use
       const idToUse = courseId || brochureId;
-      const downloadEndpoint = `${apiBaseUrl}${apiUrls.brouchers.downloadBroucher(idToUse)}`;
+      
+      if (!idToUse) {
+        setErrors((prev) => ({
+          ...prev,
+          general: "Unable to download brochure: Missing course or brochure information. Please try again or contact support.",
+        }));
+        return; // Stop execution here
+      }
+      
+      // Using the broucher/download endpoint with the ID
+      const downloadEndpoint = `${apiBaseUrl}/broucher/download/${idToUse}`;
       
       // Prepare user data to send with the download request
       const userData = {
@@ -197,6 +214,13 @@ const DownloadBrochureModal = ({ isOpen, onClose, courseTitle, brochureId, cours
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="p-6 pt-0 space-y-4">
+              {/* General Error Message */}
+              {errors.general && (
+                <div className="p-3 mb-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                  <p className="text-sm text-red-600 dark:text-red-400">{errors.general}</p>
+                </div>
+              )}
+              
               {/* Name Input */}
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -317,10 +341,6 @@ const DownloadBrochureModal = ({ isOpen, onClose, courseTitle, brochureId, cours
                   </>
                 )}
               </button>
-
-              {errors.general && (
-                <p className="text-sm text-red-500 text-center">{errors.general}</p>
-              )}
             </form>
           </>
         )}
