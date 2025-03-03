@@ -1,14 +1,139 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import Left from "@/assets/images/personality/left.svg";
-import Down from "@/assets/images/personality/down.svg";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { ChevronDown, ChevronRight, UserPlus, Target, Sparkles, Users, Award, MessageCircle, Heart, Bookmark, Brain } from "lucide-react";
+import DOMPurify from "dompurify";
 
 function PersonalityFaq() {
   const [openIndex, setOpenIndex] = useState(null);
+  const [hoveredIndex, setHoveredIndex] = useState(null);
+  const prefersReducedMotion = useReducedMotion();
+  const containerRef = useRef(null);
+  
+  // Theme colors - centralized for consistency
+  const themeColors = {
+    primary: {
+      light: '#9333ea', // Purple 600
+      medium: '#7e22ce', // Purple 700
+      dark: '#6b21a8', // Purple 800
+    },
+    secondary: {
+      light: '#ec4899', // Pink 500
+      medium: '#db2777', // Pink 600
+      dark: '#be185d', // Pink 700
+    },
+    accent: {
+      light: '#8b5cf6', // Violet 500
+      medium: '#7c3aed', // Violet 600
+      dark: '#6d28d9', // Violet 700
+    },
+    neutral: {
+      light: '#f3f4f6', // Gray 100
+      medium: '#9ca3af', // Gray 400
+      dark: '#4b5563', // Gray 600
+    }
+  };
+  
+  // Enhanced heading gradients for different themes
+  const titleGradients = {
+    light: {
+      gradient: "from-purple-600 via-fuchsia-500 to-pink-500",
+      underlineGradient: "from-purple-600 to-pink-500"
+    },
+    dark: {
+      gradient: "from-purple-400 via-fuchsia-300 to-pink-300",
+      underlineGradient: "from-purple-400 to-pink-300"
+    },
+    system: {
+      gradient: "from-indigo-600 via-violet-500 to-purple-500",
+      underlineGradient: "from-indigo-500 to-purple-500"
+    },
+    modern: {
+      gradient: "from-blue-600 via-indigo-500 to-violet-500",
+      underlineGradient: "from-blue-500 to-violet-500"
+    },
+    classic: {
+      gradient: "from-amber-500 via-orange-500 to-pink-500",
+      underlineGradient: "from-amber-500 to-pink-500"
+    },
+    nature: {
+      gradient: "from-emerald-500 via-teal-500 to-cyan-500",
+      underlineGradient: "from-emerald-500 to-cyan-500"
+    },
+    elegant: {
+      gradient: "from-slate-700 via-slate-600 to-slate-500",
+      underlineGradient: "from-slate-600 to-slate-500"
+    }
+  };
+  
+  // Optimize animations based on device capability
+  useEffect(() => {
+    // Check if IntersectionObserver is available
+    if ('IntersectionObserver' in window) {
+      const lazyLoadObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && containerRef.current) {
+            containerRef.current.dataset.visible = 'true';
+            lazyLoadObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1 });
+      
+      if (containerRef.current) {
+        lazyLoadObserver.observe(containerRef.current);
+      }
+      
+      return () => {
+        if (containerRef.current) {
+          lazyLoadObserver.unobserve(containerRef.current);
+        }
+      };
+    }
+  }, []);
 
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
+  };
+
+  // Get color for category based on question content
+  const getCategoryColor = (question) => {
+    if (question.includes("What is the Personality") || question.includes("topics")) 
+      return themeColors.primary.light;
+    if (question.includes("duration") || question.includes("long is"))
+      return themeColors.secondary.light;
+    if (question.includes("suitable") || question.includes("homemakers") || question.includes("housewives")) 
+      return themeColors.accent.light;
+    if (question.includes("career") || question.includes("certificate")) 
+      return '#f59e0b'; // Amber 500
+    if (question.includes("enroll") || question.includes("payment"))
+      return '#10b981'; // Emerald 500
+    if (question.includes("interact") || question.includes("questions") || question.includes("support"))
+      return '#3b82f6'; // Blue 500
+    return themeColors.primary.medium; // Default
+  };
+
+  // Custom icon mapping for different FAQ categories
+  const getIconForQuestion = (question) => {
+    const color = getCategoryColor(question);
+    
+    if (question.includes("What is the Personality")) 
+      return <UserPlus className={`w-6 h-6`} style={{ color }} />;
+    if (question.includes("duration") || question.includes("long is")) 
+      return <Target className={`w-6 h-6`} style={{ color }} />;
+    if (question.includes("suitable")) 
+      return <Users className={`w-6 h-6`} style={{ color }} />;
+    if (question.includes("career") || question.includes("certificate")) 
+      return <Award className={`w-6 h-6`} style={{ color }} />;
+    if (question.includes("topics") || question.includes("course cover")) 
+      return <Bookmark className={`w-6 h-6`} style={{ color }} />;
+    if (question.includes("interact") || question.includes("questions") || question.includes("support")) 
+      return <MessageCircle className={`w-6 h-6`} style={{ color }} />;
+    if (question.includes("housewives") || question.includes("homemakers")) 
+      return <Heart className={`w-6 h-6`} style={{ color }} />;
+    if (question.includes("prerequisites")) 
+      return <Brain className={`w-6 h-6`} style={{ color }} />;
+    return <Sparkles className={`w-6 h-6`} style={{ color }} />;
   };
 
   const faqs = [
@@ -84,58 +209,279 @@ function PersonalityFaq() {
     }
   ];
 
+  // Animation variants - optimized for performance
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: {
+        staggerChildren: prefersReducedMotion ? 0 : 0.07,
+        delayChildren: 0.1
+      }
+    }
+  };
+  
+  const itemVariants = {
+    hidden: { opacity: 0, y: prefersReducedMotion ? 0 : 15 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { 
+        type: "spring", 
+        stiffness: 500, 
+        damping: 30, 
+        mass: 1
+      }
+    }
+  };
+  
+  const contentVariants = {
+    hidden: { opacity: 0, height: 0, scale: 0.98 },
+    visible: { 
+      opacity: 1, 
+      height: "auto",
+      scale: 1,
+      transition: { 
+        type: "spring",
+        stiffness: 400,
+        damping: 30,
+        mass: 0.8,
+        opacity: { duration: 0.2 }
+      }
+    }
+  };
+
+  // Function to get gradient background colors based on index
+  const getGradientColors = (index) => {
+    const palettes = [
+      ['#9333ea', '#7c3aed'], // Purple to Violet
+      ['#ec4899', '#d946ef'], // Pink to Fuchsia
+      ['#8b5cf6', '#6366f1'], // Violet to Indigo
+      ['#c026d3', '#9333ea'], // Fuchsia to Purple
+    ];
+    return palettes[index % palettes.length];
+  };
+
+  // Function to get theme-adaptive title gradients
+  const getThemeAdaptiveTitle = () => {
+    // We can enhance this further to detect the actual theme being used
+    // For now, we'll create different class variants and use CSS to handle them
+    return {
+      title: `bg-gradient-to-r ${titleGradients.light.gradient} dark:${titleGradients.dark.gradient} bg-clip-text text-transparent`,
+      underline: `bg-gradient-to-r ${titleGradients.light.underlineGradient} dark:${titleGradients.dark.underlineGradient}`
+    };
+  };
+
+  const titleClasses = getThemeAdaptiveTitle();
+
   return (
-    <div className="bg-white pt-4 sm:pt-12 dark:bg-screen-dark text-lightGrey14 dark:text-gray300 flex justify-center items-center flex-col py-4">
-      <div className="md:w-[80%] w-[90%]">
-        <h2 className="md:text-3xl text-[22px] font-bold mb-4 text-center text-[#5C6574] dark:text-gray50">
-          Frequently Asked Questions (FAQs)
-        </h2>
-        <p className="text-center md:text-[15px] text-[14px] mb-8 md:px-35 px-3">
-          Find answers to common questions about MEDH&#39;s Personality Development
-          Course. Learn about course structure, prerequisites, career prospects,
-          and more.
-        </p>
-        <div className="space-y-4">
-          {faqs.map((faq, index) => (
-            <div key={index} className="border dark:border-gray-600 shadow-sm">
-              <div
-                className="flex justify-between items-center py-4 cursor-pointer px-2 sm:px-4 "
-                onClick={() => toggleFAQ(index)}
-              >
-                <h3 className="md:text-[15px] text-[14px] font-semibold">
-                  {faq.question}
-                </h3>
-                <span className="md:text-[15px] text-[14px]">
-                  {openIndex === index ? (
-                    <i class="icofont-caret-down" style={{ fontSize: '20px'  }}></i>
-                   
-                  ) : (
-                    <i class="icofont-caret-right" style={{ fontSize: '20px' }}></i>
-                  )}
-                </span>
-              </div>
-              {openIndex === index && (
-                <p className="text-lightGrey14 pb-4 px-2 md:pr-12 sm:px-4 md:text-[15px] text-[14px] ">
-                  {faq.answer}
-                </p>
-              )}
-            </div>
-          ))}
+    <div className="w-full px-4 py-10 bg-gradient-to-br from-purple-50 via-white to-fuchsia-50 dark:from-gray-900 dark:via-gray-800 dark:to-purple-900/20 rounded-xl will-change-auto">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ 
+          duration: 0.5,
+          type: "spring",
+          stiffness: 100, 
+          damping: 20
+        }}
+        className="max-w-5xl mx-auto"
+        style={{ 
+          willChange: "transform, opacity",
+          backfaceVisibility: "hidden"
+        }}
+        ref={containerRef}
+      >
+        <div className="text-center mb-10">
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ 
+              duration: 0.5,
+              type: "spring",
+              stiffness: 200
+            }}
+            style={{ 
+              willChange: "transform, opacity",
+              transformOrigin: "center" 
+            }}
+          >
+            <h2 className={`text-4xl font-bold inline-block mb-4 text-black dark:text-white`}>
+              Explore FAQs
+            </h2>
+            <div className={`w-16 h-1 mx-auto rounded-full ${titleClasses.underline}`}></div>
+          </motion.div>
+          <p className="text-gray-600 dark:text-gray-300 text-lg max-w-2xl mx-auto mt-4">
+            Discover everything you need to know about our transformative Personality Development course!
+          </p>
         </div>
-      </div>
-      <div className="text-center mt-12 px-4">
-        <p>
-          Note: If you have any other questions or concerns not covered in the
-          FAQs, please feel free to contact our
-        </p>
-        <p>
-          support team{" "}
-          <a href="" className="text-[#0000FF] font-semibold">
-            care@medh.co
+
+        <motion.div 
+          className="space-y-4"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          style={{ 
+            willChange: "transform",
+            perspective: 1000
+          }}
+        >
+          {faqs.map((faq, index) => {
+            const [color1, color2] = getGradientColors(index);
+            const categoryColor = getCategoryColor(faq.question);
+            
+            return (
+              <motion.div 
+                key={index} 
+                variants={itemVariants}
+                onMouseEnter={() => setHoveredIndex(index)}
+                onMouseLeave={() => setHoveredIndex(null)}
+                className={`
+                  relative overflow-hidden rounded-xl transform-gpu transition-all duration-300
+                  ${openIndex === index ? 'shadow-lg' : 'shadow-md'} 
+                  ${hoveredIndex === index && openIndex !== index ? 'scale-[1.01]' : 'scale-100'}
+                  bg-white dark:bg-gray-800/90 border-0
+                `}
+                style={{ 
+                  willChange: hoveredIndex === index ? "transform, box-shadow" : "auto",
+                  translateZ: 0,
+                  boxShadow: openIndex === index ? `0 4px 20px -2px ${categoryColor}25` : ''
+                }}
+                layout="position"
+                layoutDependency={openIndex}
+                layoutId={`faq-${index}`}
+              >
+                {/* Background gradient effect */}
+                <motion.div
+                  className="absolute top-0 right-0 w-20 h-20 -mr-10 -mt-10 rounded-full opacity-10"
+                  style={{
+                    background: `radial-gradient(circle, ${categoryColor} 0%, transparent 70%)`,
+                    willChange: openIndex === index ? "transform" : "auto",
+                    backfaceVisibility: "hidden"
+                  }}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: openIndex === index ? 5 : 1 }}
+                  transition={{ 
+                    duration: 0.5,
+                    ease: [0.25, 0.1, 0.25, 1.0]
+                  }}
+                />
+                
+                {/* Question header */}
+                <div
+                  className={`
+                    flex justify-between items-center p-5 cursor-pointer
+                    ${openIndex === index ? 'bg-opacity-5' : 'hover:bg-opacity-5'} 
+                    rounded-t-xl relative z-10
+                  `}
+                  onClick={() => toggleFAQ(index)}
+                  style={{
+                    borderLeft: openIndex === index ? `3px solid ${categoryColor}` : ''
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <div 
+                      className="hidden sm:flex items-center justify-center w-10 h-10 rounded-full"
+                      style={{
+                        background: `linear-gradient(135deg, ${color1}20, ${color2}30)`,
+                        boxShadow: `0 2px 10px ${categoryColor}25`
+                      }}
+                    >
+                      {getIconForQuestion(faq.question)}
+                    </div>
+                    <h3 className="font-bold text-gray-800 dark:text-gray-100 text-lg">
+                      {faq.question}
+                    </h3>
+                  </div>
+                  <motion.div
+                    animate={{ rotate: openIndex === index ? 90 : 0 }}
+                    transition={{ 
+                      duration: 0.2,
+                      type: "spring",
+                      stiffness: 500
+                    }}
+                    style={{ 
+                      transformOrigin: "center",
+                      willChange: "transform",
+                      color: categoryColor
+                    }}
+                  >
+                    {openIndex === index ? (
+                      <ChevronDown className="w-6 h-6" />
+                    ) : (
+                      <ChevronRight className="w-6 h-6 text-gray-400 dark:text-gray-500" />
+                    )}
+                  </motion.div>
+                </div>
+                
+                {/* Answer content */}
+                <AnimatePresence>
+                  {openIndex === index && (
+                    <motion.div
+                      variants={contentVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit="hidden"
+                      className="px-5 pb-5 pt-1 relative z-10"
+                      style={{ 
+                        willChange: "height, opacity, transform",
+                        transformOrigin: "top",
+                        overflow: "hidden"
+                      }}
+                    >
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ 
+                          duration: 0.3, 
+                          delay: 0.1,
+                          ease: "easeOut"
+                        }}
+                        className="text-gray-600 dark:text-gray-300 prose prose-sm sm:prose-base max-w-none dark:prose-invert"
+                        style={{ 
+                          transformOrigin: "top center",
+                          paddingLeft: '20px',
+                          borderLeft: `1px solid ${categoryColor}40`
+                        }}
+                      >
+                        {faq.answer}
+                      </motion.div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            );
+          })}
+        </motion.div>
+
+        <motion.div 
+          className="mt-12 text-center bg-white dark:bg-gray-800/90 p-6 rounded-xl shadow-md transform-gpu"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ 
+            duration: 0.5, 
+            delay: 0.3,
+            type: "spring",
+            stiffness: 100,
+            damping: 20
+          }}
+          style={{ 
+            willChange: "transform, opacity",
+            backfaceVisibility: "hidden"
+          }}
+        >
+          <p className="text-gray-700 dark:text-gray-300 mb-3">
+            Still have questions? We're here to help! 
+          </p>
+          <a 
+            href="mailto:care@medh.co" 
+            className={`inline-flex items-center px-6 py-3 font-semibold rounded-full shadow-md transition-all duration-300 transform-gpu hover:scale-105 bg-gradient-to-r ${titleGradients.light.gradient} dark:${titleGradients.dark.gradient} text-white hover:shadow-lg`}
+          >
+            <span className="mr-2">Contact Support</span>
+            <span className="text-xl">✨</span>
           </a>
-          , and we&#39;ll be happy to assist you!
-        </p>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }
