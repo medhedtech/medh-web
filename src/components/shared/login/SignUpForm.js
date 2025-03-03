@@ -13,6 +13,8 @@ import { useRouter } from "next/navigation";
 import { Eye, EyeOff, User, Mail, Phone, Lock, AlertCircle, Loader2, Moon, Sun, UserCircle } from "lucide-react";
 import CustomReCaptcha from '../ReCaptcha';
 import FixedShadow from "../others/FixedShadow";
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
 
 // Enhanced phone number validation functions
 const cleanPhoneNumber = (value) => {
@@ -94,16 +96,25 @@ const SignUpForm = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState("");
   
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
-    watch
+    watch,
+    setValue,
+    trigger
   } = useForm({
     resolver: yupResolver(schema)
   });
+
+  // Initialize form values
+  useEffect(() => {
+    // Set default values
+    setValue('phone_number', phoneNumber);
+  }, [setValue, phoneNumber]);
 
   // Add entrance animation effect
   useEffect(() => {
@@ -161,11 +172,13 @@ const SignUpForm = () => {
     try {
       // Clean and format phone number
       const cleanedNumber = cleanPhoneNumber(data.phone_number);
-      if (cleanedNumber.length !== 10) {
-        toast.error("Phone number must be exactly 10 digits");
+      if (!validatePhoneNumber(cleanedNumber)) {
+        toast.error("Please enter a valid phone number");
         return;
       }
-      const formattedPhoneNumber = `+91${cleanedNumber}`;
+      
+      // Phone number is already in international format from the PhoneInput component
+      const formattedPhoneNumber = cleanedNumber;
 
       // Prepare the request data
       const requestData = {
@@ -269,6 +282,133 @@ const SignUpForm = () => {
           font-family: var(--font-body);
           letter-spacing: 0;
         }
+
+        /* Disable scrolling completely */
+        html, body {
+          overflow: hidden;
+          height: 100%;
+          position: fixed;
+          width: 100%;
+        }
+        
+        /* Custom styles for phone input */
+        .phone-field-container {
+          position: relative;
+        }
+        
+        .phone-input-container {
+          position: relative;
+        }
+        
+        .phone-input-container .react-tel-input {
+          width: 100%;
+        }
+        
+        .phone-input-container .react-tel-input .form-control {
+          width: 100%;
+          height: 48px;
+          padding-left: 70px !important; /* Increased padding to accommodate both icon and flag */
+          border-radius: 0.75rem;
+          font-family: var(--font-body);
+          background-color: #f9fafb;
+          border: 1px solid #d1d5db;
+          color: #111827;
+        }
+        
+        .dark .phone-input-container .react-tel-input .form-control {
+          background-color: #1f2937;
+          border-color: #374151;
+          color: #f9fafb;
+        }
+        
+        /* Move the flag dropdown to the right of the phone icon */
+        .phone-input-container .react-tel-input .flag-dropdown {
+          background-color: transparent;
+          border: none;
+          border-radius: 0.75rem 0 0 0.75rem;
+          left: 40px !important; /* Positioned to the right of the phone icon */
+          z-index: 2;
+        }
+        
+        .dark .phone-input-container .react-tel-input .flag-dropdown {
+          background-color: transparent;
+          border: none;
+        }
+        
+        .phone-input-container .react-tel-input .selected-flag {
+          background-color: transparent !important;
+          border-radius: 0.75rem 0 0 0.75rem;
+          padding: 0 0 0 8px;
+          width: 30px;
+        }
+        
+        .phone-input-container .react-tel-input .selected-flag .flag {
+          transform: scale(1.2);
+          margin-left: 0;
+        }
+        
+        .phone-input-container .react-tel-input .selected-flag .arrow {
+          display: none;
+        }
+        
+        .phone-input-container .react-tel-input .selected-flag:hover,
+        .phone-input-container .react-tel-input .selected-flag:focus {
+          background-color: transparent !important;
+        }
+        
+        .phone-input-container .react-tel-input .country-list {
+          margin: 8px 0 0;
+          border-radius: 0.5rem;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+          max-height: 200px;
+          overflow-y: auto;
+        }
+        
+        .dark .phone-input-container .react-tel-input .country-list {
+          background-color: #1f2937;
+          border-color: #374151;
+        }
+        
+        .phone-input-container .react-tel-input .country-list .country {
+          padding: 8px 10px;
+        }
+        
+        .dark .phone-input-container .react-tel-input .country-list .country {
+          color: #f9fafb;
+        }
+        
+        .phone-input-container .react-tel-input .country-list .country.highlight,
+        .phone-input-container .react-tel-input .country-list .country:hover {
+          background-color: #f3f4f6;
+        }
+        
+        .dark .phone-input-container .react-tel-input .country-list .country.highlight,
+        .dark .phone-input-container .react-tel-input .country-list .country:hover {
+          background-color: #374151;
+        }
+        
+        .phone-input-container .react-tel-input .country-list .search {
+          padding: 10px;
+          background-color: #f9fafb;
+        }
+        
+        .dark .phone-input-container .react-tel-input .country-list .search {
+          background-color: #1f2937;
+        }
+        
+        .phone-input-container .react-tel-input .country-list .search-box {
+          width: 100%;
+          padding: 8px;
+          border-radius: 0.375rem;
+          border: 1px solid #d1d5db;
+          font-family: var(--font-body);
+        }
+        
+        .dark .phone-input-container .react-tel-input .search-box {
+          background-color: #374151;
+          border-color: #4b5563;
+          color: #f9fafb;
+        }
       `}</style>
       
       <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-950 px-4 py-16">
@@ -292,7 +432,7 @@ const SignUpForm = () => {
         </div>
         
         <div className={`w-full max-w-[1100px] transition-all duration-1000 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-          <div className="relative mx-auto flex flex-col md:flex-row shadow-2xl rounded-2xl border border-gray-100 dark:border-gray-800 overflow-hidden">
+          <div className="relative mx-auto flex flex-col md:flex-row shadow-2xl rounded-2xl border-0 overflow-hidden">
             <FixedShadow align="left" color="primary" opacity={0.07} size="xl" />
             <FixedShadow align="right" color="secondary" opacity={0.05} size="lg" />
             
@@ -400,20 +540,36 @@ const SignUpForm = () => {
 
                 {/* Phone Number Field */}
                 <div>
-                  <div className="relative">
+                  <div className="relative phone-field-container">
                     <Phone 
-                      className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400" 
+                      className="absolute top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 z-10" 
                       size={18} 
+                      style={{ left: '12px' }}
                     />
-                    <input
-                      {...register("phone_number")}
-                      type="tel"
-                      id="phone_number"
-                      placeholder="Phone Number (10 digits)"
-                      maxLength="15"
-                      className="w-full h-12 pl-12 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent transition-all duration-200 outline-none font-body placeholder-gray-500 dark:placeholder-gray-400"
-                      aria-invalid={errors.phone_number ? "true" : "false"}
-                    />
+                    <div className="phone-input-container">
+                      <PhoneInput
+                        country={'in'}
+                        value={phoneNumber}
+                        onChange={(value) => {
+                          setPhoneNumber(value);
+                          setValue('phone_number', value);
+                          trigger('phone_number');
+                        }}
+                        inputProps={{
+                          name: 'phone_number',
+                          required: true,
+                          className: "w-full h-12 pl-12 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent transition-all duration-200 outline-none font-body placeholder-gray-500 dark:placeholder-gray-400"
+                        }}
+                        containerClass="w-full"
+                        dropdownClass="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700"
+                        buttonClass="border-r border-gray-300 dark:border-gray-700"
+                        searchClass="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                        enableSearch={true}
+                        disableSearchIcon={false}
+                        searchPlaceholder="Search country..."
+                        inputStyle={{ paddingLeft: '70px' }}
+                      />
+                    </div>
                   </div>
                   {errors.phone_number && (
                     <p className="mt-1.5 text-sm text-red-500 dark:text-red-400 flex items-start font-body" role="alert">
@@ -422,7 +578,7 @@ const SignUpForm = () => {
                     </p>
                   )}
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    Enter a valid Indian mobile number (e.g., 9876543210)
+                    Enter your phone number with country code
                   </p>
                 </div>
 
@@ -503,16 +659,24 @@ const SignUpForm = () => {
                       type="checkbox"
                       id="terms"
                       {...register("agree_terms")}
-                      className="w-4 h-4 mt-0.5 rounded-md text-primary-500 border-gray-300 dark:border-gray-600 focus:ring-primary-500 dark:focus:ring-primary-400 transition-colors"
+                      className="w-4 h-4 mt-0.5 rounded-md text-primary-500 border-gray-300 focus:ring-primary-500 transition-colors"
                     />
                     <span className="text-sm text-gray-700 dark:text-gray-300 font-body">
                       I accept the{" "}
                       <a
-                        href="/terms-and-conditions"
+                        href="/terms-and-services"
                         className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 underline hover:no-underline transition-colors"
                       >
-                        terms and conditions
+                        terms of use
+                      </a>{" "}
+                      and{" "}
+                      <a
+                        href="/privacy-policy"
+                        className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 underline hover:no-underline transition-colors"
+                      >
+                        privacy policy
                       </a>
+                      .
                     </span>
                   </label>
                   {errors.agree_terms && (
@@ -525,7 +689,7 @@ const SignUpForm = () => {
 
                 {/* API Error Display */}
                 {apiError && (
-                  <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                  <div className="p-4 bg-red-50 dark:bg-red-900/20 border-0 rounded-lg">
                     <p className="text-sm text-red-600 dark:text-red-400 flex items-center font-body" role="alert">
                       <AlertCircle className="h-4 w-4 mr-1.5 flex-shrink-0" />
                       <span>{apiError}</span>

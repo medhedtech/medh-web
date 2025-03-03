@@ -89,11 +89,9 @@ export const apiUrls = {
       if (course_grade) url += `&course_grade=${safeEncode(course_grade)}`;
       
       // Only add exclude parameter if courseId is provided and not empty
-      if (courseId && courseId.trim() !== '') {
+      if (courseId && typeof courseId === 'string' && courseId.trim() !== '') {
         // Sanitize the courseId to prevent ObjectId casting errors
-        const sanitizedCourseId = typeof courseId === 'string' 
-          ? courseId.replace(/['"\\]/g, '') // Remove quotes and backslashes
-          : "";
+        const sanitizedCourseId = courseId.replace(/['"\\]/g, ''); // Remove quotes and backslashes
         
         if (sanitizedCourseId) {
           url += `&exclude=${sanitizedCourseId}`;
