@@ -14,6 +14,8 @@ import "react-toastify/dist/ReactToastify.css";
 import { ThemeProvider } from "next-themes";
 import { useEffect } from "react";
 import ThemeController from "@/components/shared/others/ThemeController";
+import { CookieConsentProvider } from "@/contexts/CookieConsentContext";
+import CookieConsent from "@/components/shared/gdpr/CookieConsent";
 
 // Font configuration
 const inter = Inter({
@@ -110,34 +112,39 @@ export default function ClientLayout({ children }) {
           disableTransitionOnChange
           storageKey="medh-theme"
         >
-          {/* Preloader */}
-          <PreloaderPrimary />
-          
-          {/* Main Content */}
-          <div className="relative flex flex-col min-h-screen z-10">
-            {children}
-          </div>
+          <CookieConsentProvider>
+            {/* Preloader */}
+            <PreloaderPrimary />
+            
+            {/* Main Content */}
+            <div className="relative flex flex-col min-h-screen z-10">
+              {children}
+            </div>
 
-          {/* Background Elements */}
-          <div className="fixed inset-0 -z-10 pointer-events-none">
-            <FixedShadow />
-            <FixedShadow align={"right"} />
-          </div>
-          
-          {/* Toast Notifications */}
-          <ToastContainer 
-            position="top-right"
-            autoClose={5000}
-            hideProgressBar={false}
-            newestOnTop
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-            theme="colored"
-            className="z-[100]"
-          />
+            {/* Background Elements */}
+            <div className="fixed inset-0 -z-10 pointer-events-none">
+              <FixedShadow />
+              <FixedShadow align={"right"} />
+            </div>
+            
+            {/* Cookie Consent Banner */}
+            <CookieConsent />
+            
+            {/* Toast Notifications */}
+            <ToastContainer 
+              position="top-right"
+              autoClose={5000}
+              hideProgressBar={false}
+              newestOnTop
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+              theme="colored"
+              className="z-[100]"
+            />
+          </CookieConsentProvider>
         </ThemeProvider>
         <ThemeController />
       </body>

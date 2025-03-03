@@ -1,7 +1,7 @@
 
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import React from "react";
-import TermsAndCOnsitions from "@/components/layout/main/Terms&COnsitions";
+import TermsAndCOnsitions from "@/components/layout/main/TermsAndConditions";
 
 export const metadata = {
   title: "Terms & Conditions",
