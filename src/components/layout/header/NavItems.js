@@ -24,13 +24,6 @@ const NavItems = () => {
       isRelative: false,
     },
     {
-      id: 4,
-      name: "More",
-      path: "",
-      dropdown: <DropdownMore />,
-      isRelative: true,
-    },
-    {
       id: 3,
       name: "Hire From Medh",
       path: "/hire-from-medh",
@@ -38,12 +31,19 @@ const NavItems = () => {
       isRelative: true,
     },
     {
-      id: 5,
-      name: "Blogs",
+      id: 4,
+      name: "Blog",
       path: "/blogs",
       dropdown: null,
       isRelative: true,
     },
+    {
+      id: 5,
+      name: "More",
+      path: "",
+      dropdown: <DropdownMore />,
+      isRelative: true,
+    }
   ];
 
   return (

@@ -80,11 +80,11 @@ const CoursesFilter = ({
   const [sortOrder, setSortOrder] = useState("newest-first");
   const { getQuery, loading, error } = useGetQuery();
   const [selectedGrade, setSelectedGrade] = useState(null);
-  const [categorySliderOpen, setCategorySliderOpen] = useState(false);
+  const [categorySliderOpen, setCategorySliderOpen] = useState(false); 
   const [isVisible, setIsVisible] = useState(false);
   const [activeFilters, setActiveFilters] = useState([]);
   const [queryError, setQueryError] = useState(null);
-  const [viewMode, setViewMode] = useState("netflix"); // Changed default to netflix view
+  const [viewMode, setViewMode] = useState("grid"); // Changed default to netflix view
   const [relatedCourses, setRelatedCourses] = useState({});
   const [showingRelated, setShowingRelated] = useState(false);
   const [totalItems, setTotalItems] = useState(0);
@@ -728,6 +728,7 @@ const CoursesFilter = ({
     setViewMode(prev => prev === "grid" ? "netflix" : "grid");
   };
 
+  
   // Close filters when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {

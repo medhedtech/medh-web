@@ -27,7 +27,7 @@ const NavbarRight = ({ isScrolled }) => {
         {/* Get Started Button */}
         <li className="hidden lg:block">
           <Link
-            href="/courses"
+            href="/signup"
             className={`group relative inline-flex items-center justify-center gap-2 px-6 py-2.5
               ${isScrolled ? 'text-sm' : 'text-base'} 
               font-medium text-white bg-gradient-to-r from-primary-500 via-purple-500 to-primary-600 
@@ -45,7 +45,7 @@ const NavbarRight = ({ isScrolled }) => {
                 {isHome2Dark ? (
                   <>
                     <span className="animate-shimmer bg-clip-text text-transparent bg-[linear-gradient(110deg,#fff,45%,#7ECA9D,55%,#fff)] bg-[length:250%_100%]">
-                      Get Started Free
+                      Start Learning
                     </span>
                     <span className="ml-1 transform transition-transform group-hover:translate-x-1">
                       <ExternalLink size={16} className="transform transition-transform group-hover:rotate-45" />
@@ -63,7 +63,7 @@ const NavbarRight = ({ isScrolled }) => {
                 ) : (
                   <>
                     <span className="animate-shimmer bg-clip-text text-transparent bg-[linear-gradient(110deg,#fff,45%,#7ECA9D,55%,#fff)] bg-[length:250%_100%]">
-                      Get Started
+                      Start Learning
                     </span>
                     <span className="ml-1 transform transition-transform group-hover:translate-x-1">
                       <ExternalLink size={16} className="transform transition-transform group-hover:rotate-45" />
