@@ -1,15 +1,53 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import Left from "@/assets/images/personality/left.svg";
-import Down from "@/assets/images/personality/down.svg";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { ChevronDown, ChevronRight, Lightbulb, Brain, Award, Zap, Sparkles } from "lucide-react";
 import DOMPurify from "dompurify";
 
 function CourseAiFaq() {
   const [openIndex, setOpenIndex] = useState(null);
+  const [hoveredIndex, setHoveredIndex] = useState(null);
+  const prefersReducedMotion = useReducedMotion();
+  const containerRef = useRef(null);
+  
+  // Optimize animations based on device capability
+  useEffect(() => {
+    // Check if IntersectionObserver is available
+    if ('IntersectionObserver' in window) {
+      const lazyLoadObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && containerRef.current) {
+            containerRef.current.dataset.visible = 'true';
+            lazyLoadObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1 });
+      
+      if (containerRef.current) {
+        lazyLoadObserver.observe(containerRef.current);
+      }
+      
+      return () => {
+        if (containerRef.current) {
+          lazyLoadObserver.unobserve(containerRef.current);
+        }
+      };
+    }
+  }, []);
 
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
+  };
+
+  // Custom emoji and icon mapping for different FAQ categories
+  const getIconForQuestion = (question) => {
+    if (question.includes("designed for")) return <Brain className="w-6 h-6 text-violet-500" />;
+    if (question.includes("Data Science")) return <Zap className="w-6 h-6 text-blue-500" />;
+    if (question.includes("Artificial Intelligence")) return <Sparkles className="w-6 h-6 text-amber-500" />;
+    if (question.includes("programming language")) return <Lightbulb className="w-6 h-6 text-green-500" />;
+    if (question.includes("MEDH")) return <Award className="w-6 h-6 text-pink-500" />;
+    return <Lightbulb className="w-6 h-6 text-indigo-500" />;
   };
 
   const faqs = [
@@ -91,66 +129,239 @@ function CourseAiFaq() {
     },
   ];
 
+  // Animation variants - optimized for performance
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: {
+        staggerChildren: prefersReducedMotion ? 0 : 0.07,
+        delayChildren: 0.1
+      }
+    }
+  };
+  
+  const itemVariants = {
+    hidden: { opacity: 0, y: prefersReducedMotion ? 0 : 15 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { 
+        type: "spring", 
+        stiffness: 500, 
+        damping: 30, 
+        mass: 1
+      }
+    }
+  };
+  
+  const contentVariants = {
+    hidden: { opacity: 0, height: 0, scale: 0.98 },
+    visible: { 
+      opacity: 1, 
+      height: "auto",
+      scale: 1,
+      transition: { 
+        type: "spring",
+        stiffness: 400,
+        damping: 30,
+        mass: 0.8,
+        opacity: { duration: 0.2 }
+      }
+    }
+  };
+
   return (
-    <div className="bg-white pt-4 sm:pt-12 dark:bg-screen-dark text-lightGrey14 dark:text-gray300 flex justify-center items-center flex-col py-4">
-      <div className="md:w-[80%] w-[90%]">
-        <h2 className="md:text-3xl text-[22px] font-bold mb-4 text-center text-[#5C6574] dark:text-gray-100">
-          Frequently Asked Questions (FAQs)
-        </h2>
-        <p className="text-center md:text-[15px] text-[14px] mb-8 md:px-14 px-3">
-          Find answers to common questions about MEDH’s AI and Data Science
-          Course. Learn about course structure, prerequisites, career prospects,
-          and more.
-        </p>
-        <div className="space-y-4">
+    <div className="w-full px-4 py-10 bg-gradient-to-br from-indigo-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 rounded-xl will-change-auto">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ 
+          duration: 0.5,
+          type: "spring",
+          stiffness: 100, 
+          damping: 20
+        }}
+        className="max-w-5xl mx-auto"
+        style={{ 
+          willChange: "transform, opacity",
+          backfaceVisibility: "hidden"
+        }}
+        ref={containerRef}
+      >
+        <div className="text-center mb-10">
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ 
+              duration: 0.5,
+              type: "spring",
+              stiffness: 200
+            }}
+            style={{ 
+              willChange: "transform, opacity",
+              transformOrigin: "center" 
+            }}
+          >
+            <h2 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-600 to-blue-500 dark:from-violet-400 dark:to-blue-300 inline-block mb-4">
+              Explore FAQs
+            </h2>
+          </motion.div>
+          <p className="text-gray-600 dark:text-gray-300 text-lg max-w-2xl mx-auto">
+            Discover everything you need to know about our amazing AI and Data Science course!
+          </p>
+        </div>
+
+        <motion.div 
+          className="space-y-4"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          style={{ 
+            willChange: "transform",
+            perspective: 1000
+          }}
+        >
           {faqs.map((faq, index) => (
-            <div key={index} className="border dark:border-gray600 shadow-sm">
+            <motion.div 
+              key={index} 
+              variants={itemVariants}
+              onMouseEnter={() => setHoveredIndex(index)}
+              onMouseLeave={() => setHoveredIndex(null)}
+              className={`
+                relative overflow-hidden rounded-xl transform-gpu transition-all duration-300
+                ${openIndex === index ? 'shadow-lg' : 'shadow-md'} 
+                ${hoveredIndex === index && openIndex !== index ? 'scale-[1.01]' : 'scale-100'}
+                bg-white dark:bg-gray-800 border-0
+              `}
+              style={{ 
+                willChange: hoveredIndex === index ? "transform, box-shadow" : "auto",
+                translateZ: 0
+              }}
+              layout="position"
+              layoutDependency={openIndex}
+              layoutId={`faq-${index}`}
+            >
+              <motion.div
+                className="absolute top-0 right-0 w-20 h-20 -mr-10 -mt-10 rounded-full opacity-10"
+                style={{
+                  background: `radial-gradient(circle, 
+                    ${index % 3 === 0 ? '#8b5cf6' : index % 3 === 1 ? '#3b82f6' : '#ec4899'} 0%, 
+                    transparent 70%)`,
+                  willChange: openIndex === index ? "transform" : "auto",
+                  backfaceVisibility: "hidden"
+                }}
+                initial={{ scale: 0 }}
+                animate={{ scale: openIndex === index ? 5 : 1 }}
+                transition={{ 
+                  duration: 0.5,
+                  ease: [0.25, 0.1, 0.25, 1.0]
+                }}
+              />
+              
               <div
-                className="flex justify-between items-center py-4 cursor-pointer px-2 sm:px-4"
+                className={`
+                  flex justify-between items-center p-5 cursor-pointer
+                  ${openIndex === index ? 'bg-opacity-5' : 'hover:bg-opacity-5'} 
+                  rounded-t-xl relative z-10
+                `}
                 onClick={() => toggleFAQ(index)}
               >
-                <h3 className="md:text-[15px] text-[14px] font-semibold">
-                  {faq.question}
-                </h3>
-                <span className="md:text-[15px] text-[14px]">
-                  {openIndex === index ? (
-                    <i
-                      class="icofont-caret-down"
-                      style={{ fontSize: "20px" }}
-                    ></i>
-                  ) : (
-                    <i
-                      class="icofont-caret-right"
-                      style={{ fontSize: "20px" }}
-                    ></i>
-                  )}
-                </span>
-              </div>
-              {openIndex === index && (
-                <div
-                  className="text-lightGrey14 pb-4 px-2 md:pr-12 sm:px-4 md:text-[15px] text-[14px] dark:text-gray-300"
-                  dangerouslySetInnerHTML={{
-                    __html: DOMPurify.sanitize(faq.answer),
+                <div className="flex items-center gap-3">
+                  <div className="hidden sm:flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-indigo-100 to-blue-100 dark:from-gray-700 dark:to-gray-700">
+                    {getIconForQuestion(faq.question)}
+                  </div>
+                  <h3 className="font-bold text-gray-800 dark:text-gray-100 text-lg">
+                    {faq.question}
+                  </h3>
+                </div>
+                <motion.div
+                  animate={{ rotate: openIndex === index ? 90 : 0 }}
+                  transition={{ 
+                    duration: 0.2,
+                    type: "spring",
+                    stiffness: 500
                   }}
-                ></div>
-              )}
-            </div>
+                  style={{ 
+                    transformOrigin: "center",
+                    willChange: "transform"
+                  }}
+                >
+                  {openIndex === index ? (
+                    <ChevronDown className="w-6 h-6 text-indigo-500 dark:text-indigo-400" />
+                  ) : (
+                    <ChevronRight className="w-6 h-6 text-gray-400 dark:text-gray-500" />
+                  )}
+                </motion.div>
+              </div>
+              
+              <AnimatePresence>
+                {openIndex === index && (
+                  <motion.div
+                    variants={contentVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="hidden"
+                    className="px-5 pb-5 pt-1 relative z-10"
+                    style={{ 
+                      willChange: "height, opacity, transform",
+                      transformOrigin: "top",
+                      overflow: "hidden"
+                    }}
+                  >
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ 
+                        duration: 0.3, 
+                        delay: 0.1,
+                        ease: "easeOut"
+                      }}
+                      className="text-gray-600 dark:text-gray-300 prose prose-sm sm:prose-base max-w-none dark:prose-invert"
+                      style={{ transformOrigin: "top center" }}
+                      dangerouslySetInnerHTML={{
+                        __html: DOMPurify.sanitize(faq.answer),
+                      }}
+                    ></motion.div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
           ))}
-        </div>
-      </div>
-      <div className="text-center mt-12 px-4">
-        <p>
-          Note: If you have any other questions or concerns not covered in the
-          FAQs, please feel free to contact our
-        </p>
-        <p>
-          support team{" "}
-          <a href="" className="text-[#0000FF] font-semibold">
-            care@medh.co
+        </motion.div>
+
+        <motion.div 
+          className="mt-12 text-center bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md transform-gpu"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ 
+            duration: 0.5, 
+            delay: 0.3,
+            type: "spring",
+            stiffness: 100,
+            damping: 20
+          }}
+          style={{ 
+            willChange: "transform, opacity",
+            backfaceVisibility: "hidden"
+          }}
+        >
+          <p className="text-gray-700 dark:text-gray-300 mb-2">
+            Still have questions? We're here to help! 
+          </p>
+          <a 
+            href="mailto:care@medh.co" 
+            className="inline-flex items-center px-6 py-3 font-semibold rounded-full bg-gradient-to-r from-violet-500 to-blue-500 text-white hover:from-violet-600 hover:to-blue-600 transition-all duration-300 transform-gpu hover:scale-105"
+            style={{ 
+              willChange: "transform",
+              backfaceVisibility: "hidden"
+            }}
+          >
+            <span className="mr-2">Contact Support</span>
+            <span className="text-xl">✨</span>
           </a>
-          , and we’ll be happy to assist you!
-        </p>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }
