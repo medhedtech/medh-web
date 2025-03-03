@@ -19,7 +19,11 @@ import {
   ArrowUpRight
 } from "lucide-react";
 
-const CourseCard = ({ course }) => {
+const CourseCard = ({ 
+  course, 
+  onShowRelated,
+  showRelatedButton 
+}) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
@@ -140,7 +144,7 @@ const CourseCard = ({ course }) => {
         {/* Title and rating */}
         <div className="mb-4">
           <h3 
-            className="text-lg font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2 cursor-pointer hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+            className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2 min-h-[2.5rem] sm:min-h-[3rem] cursor-pointer hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
             onClick={navigateToCourse}
           >
             {course?.course_title || "Course Title"}
@@ -153,8 +157,8 @@ const CourseCard = ({ course }) => {
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
-                      size={14}
-                      className={`${
+                      size={12}
+                      className={`sm:w-3.5 sm:h-3.5 ${
                         i < Math.floor(course.rating) 
                           ? "text-yellow-400 fill-yellow-400" 
                           : "text-gray-300"
@@ -162,7 +166,7 @@ const CourseCard = ({ course }) => {
                     />
                   ))}
                 </div>
-                <span className="ml-2 text-xs text-gray-600 dark:text-gray-400">
+                <span className="ml-1.5 sm:ml-2 text-[10px] sm:text-xs text-gray-600 dark:text-gray-400">
                   {course.rating} ({course.reviews || 0})
                 </span>
               </div>
@@ -170,7 +174,7 @@ const CourseCard = ({ course }) => {
             
             {/* Enrollment status */}
             {enrollmentStatus && (
-              <span className="text-xs text-gray-600 dark:text-gray-400">
+              <span className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 truncate max-w-[100px] sm:max-w-[150px]">
                 {enrollmentStatus}
               </span>
             )}
@@ -178,55 +182,55 @@ const CourseCard = ({ course }) => {
         </div>
 
         {/* Course details */}
-        <div className="grid grid-cols-3 gap-2 mb-4">
-          <div className="flex flex-col items-center p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-            <Timer size={16} className="text-primary-500 mb-1" />
-            <span className="text-xs text-gray-500 dark:text-gray-400">Duration</span>
-            <span className="text-xs font-medium text-gray-800 dark:text-gray-300">{formatDuration(course?.course_duration)}</span>
+        <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mb-4">
+          <div className="flex flex-col items-center p-1.5 sm:p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+            <Timer size={14} className="text-primary-500 mb-0.5 sm:mb-1" />
+            <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Duration</span>
+            <span className="text-[10px] sm:text-xs font-medium text-gray-800 dark:text-gray-300 truncate w-full text-center px-1">{formatDuration(course?.course_duration)}</span>
           </div>
           
-          <div className="flex flex-col items-center p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-            <BookOpen size={16} className="text-emerald-500 mb-1" />
-            <span className="text-xs text-gray-500 dark:text-gray-400">Sessions</span>
-            <span className="text-xs font-medium text-gray-800 dark:text-gray-300">
+          <div className="flex flex-col items-center p-1.5 sm:p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+            <BookOpen size={14} className="text-emerald-500 mb-0.5 sm:mb-1" />
+            <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Sessions</span>
+            <span className="text-[10px] sm:text-xs font-medium text-gray-800 dark:text-gray-300 truncate w-full text-center px-1">
               {course?.no_of_Sessions || "N/A"}
             </span>
           </div>
 
-          <div className="flex flex-col items-center p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-            <GraduationCap size={16} className="text-violet-500 mb-1" />
-            <span className="text-xs text-gray-500 dark:text-gray-400">Level</span>
-            <span className="text-xs font-medium text-gray-800 dark:text-gray-300 truncate max-w-full">
+          <div className="flex flex-col items-center p-1.5 sm:p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+            <GraduationCap size={14} className="text-violet-500 mb-0.5 sm:mb-1" />
+            <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Level</span>
+            <span className="text-[10px] sm:text-xs font-medium text-gray-800 dark:text-gray-300 truncate w-full text-center px-1">
               {course?.course_grade || "All Levels"}
             </span>
           </div>
         </div>
 
         {/* Course features */}
-        <div className="space-y-2 mb-5">
+        <div className="space-y-1.5 sm:space-y-2 mb-4 sm:mb-5">
           {[
             { icon: Users, text: "Expert-led instruction", color: "text-blue-500" },
             { icon: Award, text: "Industry certification", color: "text-amber-500" },
             { icon: Calendar, text: "Flexible scheduling", color: "text-emerald-500" }
           ].map(({ icon: Icon, text, color }, index) => (
-            <div key={index} className="flex items-center gap-2 text-sm">
-              <div className={`flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-800 ${color}`}>
-                <Icon size={14} />
+            <div key={index} className="flex items-center gap-1.5 sm:gap-2">
+              <div className={`flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gray-100 dark:bg-gray-800 ${color}`}>
+                <Icon size={12} className="sm:w-3.5 sm:h-3.5" />
               </div>
-              <span className="text-gray-700 dark:text-gray-300 text-xs">{text}</span>
+              <span className="text-[11px] sm:text-xs text-gray-700 dark:text-gray-300">{text}</span>
             </div>
           ))}
         </div>
 
-        {/* Price for desktop - also visible in normal state */}
-        <div className="mt-auto flex items-center justify-between mb-4">
+        {/* Price section */}
+        <div className="mt-auto flex items-center justify-between mb-3 sm:mb-4">
           {course?.course_fee !== undefined && (
-            <div className="flex items-baseline gap-2">
-              <span className="text-xl font-bold text-gray-900 dark:text-white">
+            <div className="flex items-baseline gap-1.5 sm:gap-2">
+              <span className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
                 {formatPrice(course.course_fee)}
               </span>
               {course?.original_fee && course.original_fee > course.course_fee && (
-                <span className="text-sm text-gray-500 line-through">
+                <span className="text-xs sm:text-sm text-gray-500 line-through">
                   {formatPrice(course.original_fee)}
                 </span>
               )}
@@ -235,8 +239,8 @@ const CourseCard = ({ course }) => {
           
           {/* Show student count if available */}
           {course?.enrolled_students && (
-            <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
-              <Users size={14} className="mr-1" />
+            <div className="flex items-center text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
+              <Users size={12} className="mr-1 sm:mr-1.5" />
               {course.enrolled_students}+ enrolled
             </div>
           )}
@@ -245,27 +249,39 @@ const CourseCard = ({ course }) => {
 
       {/* Action buttons */}
       <div className="px-5 pb-5 mt-auto">
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            onClick={openModal}
-            className="flex items-center justify-center px-4 py-2 text-sm font-medium text-primary-700 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 hover:bg-primary-100 dark:hover:bg-primary-900/40 rounded-lg transition-colors"
-          >
-            <Download size={16} className="mr-2" />
-            Brochure
-          </button>
-          
-          <button
-            onClick={navigateToCourse}
-            className="flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors"
-          >
-            View Course
-            <ArrowUpRight size={16} className="ml-2" />
-          </button>
+        <div className={`grid ${showRelatedButton ? 'grid-cols-1' : 'grid-cols-2'} gap-2`}>
+          {showRelatedButton ? (
+            <button
+              onClick={onShowRelated}
+              className="w-full px-5 py-2.5 bg-primary-50 text-primary-600 hover:bg-primary-100 font-medium rounded-lg flex items-center justify-center gap-2 transition-colors"
+            >
+              <Sparkles size={16} />
+              Show Related Courses
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={openModal}
+                className="px-5 py-2.5 border border-primary-200 dark:border-primary-800 text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30 font-medium rounded-lg flex items-center justify-center gap-2 transition-colors"
+              >
+                <Download size={16} />
+                Brochure
+              </button>
+              <button
+                onClick={navigateToCourse}
+                className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg flex items-center justify-center gap-2 transition-colors"
+              >
+                Details
+                <ArrowUpRight size={16} />
+              </button>
+            </>
+          )}
         </div>
       </div>
 
-      {/* Download Brochure Modal */}
+      {/* Download brochure modal */}
       <DownloadBrochureModal
+        title={course?.course_title || "Course Brochure"}
         isOpen={isModalOpen}
         onClose={closeModal}
         courseTitle={course?.course_title}
@@ -273,6 +289,11 @@ const CourseCard = ({ course }) => {
       />
     </div>
   );
+};
+
+CourseCard.defaultProps = {
+  onShowRelated: () => {},
+  showRelatedButton: false
 };
 
 export default CourseCard;
