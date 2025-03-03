@@ -2,10 +2,13 @@ import Image from "next/image";
 import React, { useState, useEffect } from "react";
 import logo1 from "@/assets/images/logo/medh_logo-1.png";
 import Link from "next/link";
+import logo0 from "@/assets/images/logo/logo_2.png";
+import { useTheme } from "next-themes";
 
 /**
  * NavbarLogo Component
  * Renders the logo in the navbar with responsive sizing based on scroll state
+ * Displays different logos for light and dark themes
  * 
  * @param {Object} props - Component props
  * @param {boolean} props.isScrolled - Whether the navbar is scrolled
@@ -13,6 +16,11 @@ import Link from "next/link";
 const NavbarLogo = ({ isScrolled }) => {
   const [logoLoaded, setLogoLoaded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const { theme, systemTheme } = useTheme();
+
+  // Determine current theme
+  const currentTheme = theme === 'system' ? systemTheme : theme;
+  const isDarkMode = currentTheme === 'dark';
 
   // Define logo size classes based on scroll state
   const logoSizeClass = isScrolled 
@@ -45,7 +53,7 @@ const NavbarLogo = ({ isScrolled }) => {
           >
             <Image
               priority
-              src={logo1}
+              src={isDarkMode ? logo1 : logo0}
               alt="Medh Logo"
               fill
               sizes="(max-width: 768px) 140px, 160px"
