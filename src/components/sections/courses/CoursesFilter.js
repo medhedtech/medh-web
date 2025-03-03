@@ -125,7 +125,27 @@ const CoursesFilter = ({
   const [isClient, setIsClient] = useState(false);
   useEffect(() => {
     setIsClient(true);
-  }, []);
+    
+    // Instead of setting a default category, we'll ensure it works with empty category
+    // This ensures all courses are loaded on initial render
+    if (fixedCategory) {
+      // If there's a fixed category, use it
+      setSelectedCategory([fixedCategory]);
+    } else {
+      // Get category from URL if present
+      const urlCategory = searchParams?.get('category');
+      if (urlCategory) {
+        // Split by comma if there are multiple categories
+        const categories = urlCategory.includes(',') 
+          ? urlCategory.split(',') 
+          : [urlCategory];
+        setSelectedCategory(categories);
+      } else {
+        // Otherwise, leave it empty to fetch all courses
+        setSelectedCategory([]);
+      }
+    }
+  }, [fixedCategory, searchParams, availableCategories]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -264,8 +284,56 @@ const CoursesFilter = ({
       gradeQuery
     });
 
-    // Case 1: Multiple categories selected
-    if (categoryQuery && categoryQuery.length > 1) {
+    // Default case: No category selected or empty array - fetch all courses
+    if (!categoryQuery || categoryQuery.length === 0) {
+      console.debug('Fetching all courses - default behavior');
+      
+      try {
+        const apiUrl = apiUrls?.courses?.getAllCoursesWithLimits(
+          currentPage,
+          8,
+          "",
+          "",
+          "",  // Empty category to fetch all
+          "Published",
+          searchTerm,
+          gradeQuery,
+          ""
+        );
+        
+        console.debug('API URL for all courses:', apiUrl);
+        
+        getQuery({
+          url: apiUrl,
+          onSuccess: (data) => {
+            if (data) {
+              console.debug(`Fetched ${data.courses?.length || 0} courses successfully`);
+              setAllCourses(data.courses || []);
+              setFilteredCourses(data.courses || []);
+              setTotalPages(data.totalPages || 1);
+              setTotalItems(data.totalItems || 0);
+            } else {
+              console.warn('Data response empty or invalid');
+              setAllCourses([]);
+              setFilteredCourses([]);
+            }
+          },
+          onFail: (err) => {
+            console.error('Error fetching all courses:', err);
+            setQueryError('Failed to fetch courses. Please try again later.');
+          }
+        });
+        
+        return;
+      } catch (error) {
+        console.error('Error in fetching all courses:', error);
+        setQueryError('Failed to fetch all courses. Please try again later.');
+        return;
+      }
+    }
+
+    // Case: Multiple categories selected
+    if (categoryQuery.length > 1) {
       console.debug('Fetching courses for multiple categories:', categoryQuery);
       
       try {
@@ -318,17 +386,13 @@ const CoursesFilter = ({
       
       return;
     } 
-    // Case 2: Single category or no category filter
+    // Case: Single category selected
     else {
-      let courseCategoryParam = "";
-      
-      if (categoryQuery && categoryQuery.length === 1) {
-        courseCategoryParam = categoryQuery[0];
-      }
+      const courseCategoryParam = categoryQuery[0];
       
       console.debug('Using single category parameter:', courseCategoryParam);
       
-      // Standard single API call for one or no category
+      // Standard single API call for a specific category
       const apiUrl = apiUrls?.courses?.getAllCoursesWithLimits(
         currentPage,
         8,
@@ -341,21 +405,26 @@ const CoursesFilter = ({
         ""  // No categoryParam needed
       );
       
-      console.debug('API Request URL:', apiUrl);
+      console.debug('API Request URL for single category:', apiUrl);
       
       // Use the existing getQuery hook for API call
       getQuery({
         url: apiUrl,
         onSuccess: (data) => {
           if (data) {
+            console.debug(`Fetched ${data.courses?.length || 0} courses for category: ${courseCategoryParam}`);
             setAllCourses(data.courses || []);
             setFilteredCourses(data.courses || []);
             setTotalPages(data.totalPages || 1);
             setTotalItems(data.totalItems || 0);
+          } else {
+            console.warn('Data response empty or invalid for category search');
+            setAllCourses([]);
+            setFilteredCourses([]);
           }
         },
         onFail: (err) => {
-          console.error('Error fetching courses:', err);
+          console.error('Error fetching courses for category:', err);
           setQueryError('Failed to fetch courses. Please try again later.');
         }
       });
@@ -364,6 +433,14 @@ const CoursesFilter = ({
 
   const applyFilters = (coursesToFilter = allCourses) => {
     console.debug('Applying Filters with Courses:', coursesToFilter);
+    
+    // Guard against undefined or empty coursesToFilter
+    if (!coursesToFilter || !Array.isArray(coursesToFilter) || coursesToFilter.length === 0) {
+      console.debug('No courses to filter, returning empty array');
+      setFilteredCourses([]);
+      setShowingRelated(false);
+      return;
+    }
     
     let filtered = [...coursesToFilter];
 
@@ -520,11 +597,19 @@ const CoursesFilter = ({
     setActiveFilters(filters);
   }, [searchTerm, selectedCategory, sortOrder, selectedGrade, hideCategoryFilter]);
 
+  // Update the useEffect that calls fetchCourses
   useEffect(() => {
+    // Only fetch courses when the client is ready and component is initialized
     if (isClient) {
+      console.debug('Fetching courses after state change:', {
+        currentPage,
+        searchTerm,
+        selectedCategory,
+        selectedGrade
+      });
       fetchCourses();
     }
-  }, [currentPage, searchTerm, selectedCategory, selectedGrade]);
+  }, [currentPage, searchTerm, selectedCategory, selectedGrade, isClient]);
 
   // Handle fixed category changes
   useEffect(() => {
@@ -984,21 +1069,7 @@ const CoursesFilter = ({
                       {/* Main featured courses section */}
                       <div>
                         <div className="flex items-center justify-between mb-4">
-                          <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
-                            {showingRelated ? (
-                              <>
-                                <span>Courses Related To</span>
-                                <span className="ml-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200">
-                                  {filteredCourses.find(c => c._id === showingRelated)?.course_title?.substring(0, 20) || "Selected Course"}
-                                  {filteredCourses.find(c => c._id === showingRelated)?.course_title?.length > 20 ? "..." : ""}
-                                </span>
-                              </>
-                            ) : (
-                              fixedCategory || selectedCategory.length > 0 
-                                ? `${fixedCategory || selectedCategory[0]} Courses` 
-                                : "Featured Courses"
-                            )}
-                          </h2>
+
                           {showingRelated && (
                             <button 
                               onClick={() => setShowingRelated(false)}
@@ -1031,13 +1102,7 @@ const CoursesFilter = ({
                                     }`}
                                   >
                                     <CourseCard 
-                                      course={course} 
-                                      onShowRelated={() => {
-                                        if (course._id && relatedCourses[course._id]?.length > 0) {
-                                          setShowingRelated(course._id);
-                                        }
-                                      }}
-                                      showRelatedButton={!showingRelated && relatedCourses[course._id]?.length > 0}
+                                      course={course}
                                     />
                                   </div>
                                 </div>

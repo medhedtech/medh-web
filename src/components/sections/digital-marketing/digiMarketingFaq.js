@@ -1,14 +1,128 @@
 "use client";
-import React, { useState } from "react";
-import Image from "next/image";
-import Left from "@/assets/images/personality/left.svg";
-import Down from "@/assets/images/personality/down.svg";
+import React, { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { ChevronDown, ChevronRight, PieChart, Clock, Users, Award, BookOpen, Mail, Lightbulb, Database, DollarSign, HelpCircle, BarChart, Laptop, Briefcase, PenTool, Headphones } from "lucide-react";
+import DOMPurify from "dompurify";
 
 function DigiMarketingFaq() {
   const [openIndex, setOpenIndex] = useState(null);
+  const [hoveredIndex, setHoveredIndex] = useState(null);
+  const prefersReducedMotion = useReducedMotion();
+  const containerRef = useRef(null);
+  
+  // Theme colors - centralized for consistency
+  const themeColors = {
+    primary: {
+      light: '#3b82f6', // Blue 500 - Digital primary
+      medium: '#2563eb', // Blue 600
+      dark: '#1d4ed8', // Blue 700
+    },
+    secondary: {
+      light: '#8b5cf6', // Violet 500 - Analytics accent
+      medium: '#7c3aed', // Violet 600
+      dark: '#6d28d9', // Violet 700
+    },
+    accent: {
+      light: '#ec4899', // Pink 500 - Marketing accent
+      medium: '#db2777', // Pink 600
+      dark: '#be185d', // Pink 700
+    },
+    neutral: {
+      light: '#f3f4f6', // Gray 100
+      medium: '#9ca3af', // Gray 400
+      dark: '#4b5563', // Gray 600
+    }
+  };
+
+  // Enhanced heading gradients for different themes
+  const titleGradients = {
+    light: {
+      gradient: "from-blue-500 via-blue-600 to-blue-700",
+      underlineGradient: "from-blue-500 to-blue-700"
+    },
+    dark: {
+      gradient: "from-blue-400 via-blue-500 to-blue-600",
+      underlineGradient: "from-blue-400 to-blue-600"
+    },
+  };
+  
+  // Optimize animations based on device capability
+  useEffect(() => {
+    // Check if IntersectionObserver is available
+    if ('IntersectionObserver' in window) {
+      const lazyLoadObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && containerRef.current) {
+            containerRef.current.dataset.visible = 'true';
+            lazyLoadObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1 });
+      
+      if (containerRef.current) {
+        lazyLoadObserver.observe(containerRef.current);
+      }
+      
+      return () => {
+        if (containerRef.current) {
+          lazyLoadObserver.unobserve(containerRef.current);
+        }
+      };
+    }
+  }, []);
 
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
+  };
+
+  // Get color for category based on question content
+  const getCategoryColor = (question) => {
+    if (question.includes("What is Digital Marketing") || question.includes("meant by Data Analytics")) 
+      return themeColors.primary.light;
+    if (question.includes("duration") || question.includes("long is") || question.includes("how long")) 
+      return themeColors.secondary.light;
+    if (question.includes("suitable") || question.includes("beginners") || question.includes("Who can")) 
+      return themeColors.accent.light;
+    if (question.includes("career") || question.includes("certificate") || question.includes("job")) 
+      return '#f59e0b'; // Amber 500
+    if (question.includes("enroll") || question.includes("payment") || question.includes("financial"))
+      return '#10b981'; // Emerald 500
+    if (question.includes("interact") || question.includes("combine") || question.includes("support") || question.includes("technical"))
+      return '#0ea5e9'; // Sky 500
+    if (question.includes("online") || question.includes("delivered"))
+      return '#64748b'; // Slate 500
+    return themeColors.primary.medium; // Default
+  };
+
+  // Custom icon mapping for different FAQ categories
+  const getIconForQuestion = (question) => {
+    const color = getCategoryColor(question);
+    
+    if (question.includes("What is Digital Marketing")) 
+      return <Laptop className={`w-6 h-6`} style={{ color }} />;
+    if (question.includes("What is meant by Data Analytics")) 
+      return <Database className={`w-6 h-6`} style={{ color }} />;
+    if (question.includes("combine")) 
+      return <PieChart className={`w-6 h-6`} style={{ color }} />;
+    if (question.includes("duration") || question.includes("long")) 
+      return <Clock className={`w-6 h-6`} style={{ color }} />;
+    if (question.includes("suitable") || question.includes("beginners") || question.includes("Who can")) 
+      return <Users className={`w-6 h-6`} style={{ color }} />;
+    if (question.includes("prerequisites")) 
+      return <BookOpen className={`w-6 h-6`} style={{ color }} />;
+    if (question.includes("career")) 
+      return <Briefcase className={`w-6 h-6`} style={{ color }} />;
+    if (question.includes("certificate")) 
+      return <Award className={`w-6 h-6`} style={{ color }} />;
+    if (question.includes("financial") || question.includes("payment")) 
+      return <DollarSign className={`w-6 h-6`} style={{ color }} />;
+    if (question.includes("interact") || question.includes("support") || question.includes("technical")) 
+      return <Headphones className={`w-6 h-6`} style={{ color }} />;
+    if (question.includes("enroll")) 
+      return <PenTool className={`w-6 h-6`} style={{ color }} />;
+    if (question.includes("online") || question.includes("delivered")) 
+      return <Laptop className={`w-6 h-6`} style={{ color }} />;
+    return <HelpCircle className={`w-6 h-6`} style={{ color }} />;
   };
 
   const faqs = [
@@ -26,7 +140,7 @@ function DigiMarketingFaq() {
       question:
         "Why combine Digital Marketing and Data Analytics in one course?",
       answer:
-        "Combining Digital Marketing and Data Analytics in one course offers a holistic approach to understanding and leveraging the symbiotic relationship between the two disciplines. Digital marketing relies on data-driven insights to optimize strategies, target the right audience, and maximize campaign performance. By integrating data analytics into the curriculum, learners gain a comprehensive skill set that is highly relevant in today’s digital landscape. This combination equips individuals with the proficiency to create data-informed marketing strategies, enhance customer engagement, and drive impactful business outcomes.",
+        "Combining Digital Marketing and Data Analytics in one course offers a holistic approach to understanding and leveraging the symbiotic relationship between the two disciplines. Digital marketing relies on data-driven insights to optimize strategies, target the right audience, and maximize campaign performance. By integrating data analytics into the curriculum, learners gain a comprehensive skill set that is highly relevant in today's digital landscape. This combination equips individuals with the proficiency to create data-informed marketing strategies, enhance customer engagement, and drive impactful business outcomes.",
     },
     {
       question:
@@ -97,55 +211,169 @@ function DigiMarketingFaq() {
     {
       question: "Is financial assistance available for the course?",
       answer:
-        "Yes, we strive to make our courses accessible to everyone. Financial assistance and/or scholarships may be available based on eligibility. Please reach out to our support team for more information on financial assistance option. Note: If you have any other questions or concerns not covered in the FAQs, please feel free to contact our support team care@medh.co, and we’ll be happy to assist you!",
+        "Yes, we strive to make our courses accessible to everyone. Financial assistance and/or scholarships may be available based on eligibility. Please reach out to our support team for more information on financial assistance option. Note: If you have any other questions or concerns not covered in the FAQs, please feel free to contact our support team care@medh.co, and we'll be happy to assist you!",
     },
   ];
 
+  // Animation variants - optimized for performance
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: {
+        staggerChildren: prefersReducedMotion ? 0 : 0.07,
+        delayChildren: 0.1
+      }
+    }
+  };
+  
+  const itemVariants = {
+    hidden: { opacity: 0, y: prefersReducedMotion ? 0 : 15 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { 
+        type: "spring", 
+        stiffness: 500, 
+        damping: 30, 
+        mass: 1
+      }
+    }
+  };
+  
+  const contentVariants = {
+    hidden: { opacity: 0, height: 0, scale: 0.98 },
+    visible: { 
+      opacity: 1, 
+      height: "auto",
+      scale: 1,
+      transition: { 
+        type: "spring",
+        stiffness: 400,
+        damping: 30,
+        mass: 0.8,
+        opacity: { duration: 0.2 }
+      }
+    }
+  };
+
+  // Function to get gradient background colors based on index
+  const getGradientColors = (index) => {
+    const palettes = [
+      ['#3b82f6', '#2563eb'], // Blue to Blue
+      ['#8b5cf6', '#7c3aed'], // Violet to Violet
+      ['#ec4899', '#db2777'], // Pink to Pink
+      ['#f59e0b', '#d97706'], // Amber to Amber
+      ['#10b981', '#059669'], // Emerald to Emerald
+      ['#0ea5e9', '#0284c7'], // Sky to Sky
+    ];
+    
+    return palettes[index % palettes.length];
+  };
+
   return (
-    <div className="bg-white dark:bg-screen-dark text-lightGrey14 flex justify-center py-10">
-      <div className="md:w-[80%] w-[90%] dark:text-gray-200">
-        <h2 className="md:text-3xl text-[22px] font-bold mb-4 text-center text-[#5C6574] dark:text-gray50">
-          Frequently Asked Questions (FAQs)
-        </h2>
-        <p className="text-center md:text-[15px] text-[14px] mb-8 md:px-14 px-3">
-          Find answers to common questions about MEDH&#39;s Digital Marketing
-          with Data Analytics Course. Learn about course structure,
-          prerequisites, career prospects, and more.
-        </p>
-        <div className="space-y-4">
-          {faqs.map((faq, index) => (
-            <div key={index} className="border dark:border-gray600 shadow-md">
-              <div
-                className="flex justify-between items-center py-4 cursor-pointer px-2 sm:px-4"
-                onClick={() => toggleFAQ(index)}
-              >
-                <h3 className="md:text-[15px] text-[14px] font-semibold">
-                  {faq.question}
-                </h3>
-                <span className="md:text-[15px] text-[14px]">
-                  {openIndex === index ? (
-                    <i
-                      class="icofont-caret-down"
-                      style={{ fontSize: "20px" }}
-                    ></i>
-                  ) : (
-                    <i
-                      class="icofont-caret-right"
-                      style={{ fontSize: "20px" }}
-                    ></i>
-                  )}
-                </span>
-              </div>
-              {openIndex === index && (
-                <p className="text-lightGrey14 pb-4 px-2 md:pr-12 sm:px-4 md:text-[15px] text-[14px] ">
-                  {faq.answer}
-                </p>
-              )}
-            </div>
-          ))}
+    <section className="w-full py-12 bg-gray-50 dark:bg-gray-900 overflow-hidden">
+      <div className="container mx-auto px-4 md:px-6">
+        <div className="flex flex-col items-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-violet-600 dark:from-blue-400 dark:to-violet-400 mb-4">
+            Frequently Asked Questions
+          </h2>
+          <div className="w-24 h-1 bg-gradient-to-r from-blue-500 to-violet-500 rounded-full mb-6"></div>
+          <p className="text-center text-gray-700 dark:text-gray-300 max-w-3xl mx-auto">
+            Find answers to common questions about MEDH&#39;s Digital Marketing
+            with Data Analytics Course. Learn about course structure,
+            prerequisites, career prospects, and more.
+          </p>
         </div>
+
+        <motion.div 
+          ref={containerRef}
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="max-w-4xl mx-auto space-y-4"
+          style={{ 
+            willChange: 'opacity, transform', 
+            transformStyle: 'preserve-3d'
+          }}
+        >
+          {faqs.map((faq, index) => {
+            const [startColor, endColor] = getGradientColors(index);
+            return (
+              <motion.div 
+                key={index}
+                variants={itemVariants}
+                className="overflow-hidden"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ 
+                  duration: 0.5, 
+                  delay: index * 0.05, 
+                  ease: [0.43, 0.13, 0.23, 0.96]
+                }}
+              >
+                <div 
+                  className={`
+                    rounded-lg shadow-sm bg-white dark:bg-gray-800 
+                    border border-gray-200 dark:border-gray-700
+                    transition-all duration-200 ease-in-out
+                    ${hoveredIndex === index ? 'shadow-md translate-y-[-2px]' : 'shadow-sm'}
+                  `}
+                  onMouseEnter={() => setHoveredIndex(index)}
+                  onMouseLeave={() => setHoveredIndex(null)}
+                >
+                  <button
+                    onClick={() => toggleFAQ(index)}
+                    className="flex justify-between items-center w-full p-5 text-left focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-opacity-50 rounded-lg"
+                    aria-expanded={openIndex === index}
+                    aria-controls={`faq-content-${index}`}
+                  >
+                    <div className="flex items-center">
+                      <div className="mr-4 flex-shrink-0">
+                        {getIconForQuestion(faq.question)}
+                      </div>
+                      <h3 className="font-semibold text-gray-800 dark:text-gray-200 pr-8">
+                        {faq.question}
+                      </h3>
+                    </div>
+                    <div className={`flex-shrink-0 ml-2 transition-transform duration-300 transform ${openIndex === index ? 'rotate-180' : 'rotate-0'}`}>
+                      <ChevronDown size={20} className="text-gray-500 dark:text-gray-400" />
+                    </div>
+                  </button>
+                  
+                  <AnimatePresence>
+                    {openIndex === index && (
+                      <motion.div
+                        key={`content-${index}`}
+                        variants={contentVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="hidden"
+                        id={`faq-content-${index}`}
+                        className="overflow-hidden"
+                      >
+                        <div 
+                          className="px-5 pb-5 pt-0 text-gray-600 dark:text-gray-300" 
+                          style={{ 
+                            borderLeft: `3px solid ${getCategoryColor(faq.question)}`,
+                            marginLeft: '2rem',
+                            paddingLeft: '1.5rem'
+                          }}
+                          dangerouslySetInnerHTML={{ 
+                            __html: DOMPurify.sanitize(faq.answer.replace(/\n/g, '<br/>'))
+                          }}
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </motion.div>
+            );
+          })}
+        </motion.div>
       </div>
-    </div>
+    </section>
   );
 }
 
