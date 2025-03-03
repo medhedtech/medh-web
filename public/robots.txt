@@ -14,4 +14,4 @@ Disallow: /error-dark/
 Disallow: /maintenance/
 
 # Sitemap location
-Sitemap: https://www.medhupskill.com/sitemap.xml 
+Sitemap: https://https://www.medh.co/sitemap.xml 
