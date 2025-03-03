@@ -1,45 +1,100 @@
 // middleware.js
 import jwtDecode from "jwt-decode";
 import { NextResponse } from "next/server";
+import { protectedRoutes } from "./protectedRoutes";
 
-export function middleware(req) {
-  const url = req.nextUrl.clone();
-  
-  // Middleware only for cookie-based handling
-  // const token = req.cookies.get("token");
-  const token = localStorage.getItem("token");
-  if (!token) {
-    console.log("No token found in cookies. Redirecting to login.");
-    url.pathname = "/login";
-    return NextResponse.redirect(url);
-  }
-
-  try {
-    const decoded = jwtDecode(token);
-    console.log("Decoded token:", decoded);
-
-    const currentTime = Math.floor(Date.now() / 1000);
-    if (decoded.exp < currentTime) {
-      console.log("Token expired. Redirecting to login.");
-      url.pathname = "/login";
-      return NextResponse.redirect(url);
-    }
-
-    // Role-based access control check for specific routes
-    const userRole = decoded.user.role[0];
-    if (
-      url.pathname.startsWith("/dashboards/admin-dashboard") &&
-      userRole !== "admin"
-    ) {
-      console.log("Unauthorized access. Redirecting to /unauthorized.");
-      url.pathname = "/unauthorized";
-      return NextResponse.redirect(url);
-    }
-  } catch (error) {
-    console.error("Error decoding token:", error);
-    url.pathname = "/login";
-    return NextResponse.redirect(url);
-  }
-
-  return NextResponse.next();
+// Helper to check if the user is authenticated
+function isAuthenticated(req) {
+  const token = req.cookies.get("token")?.value;
+  return !!token;
 }
+
+// Security headers for better performance and security
+const securityHeaders = {
+  'X-DNS-Prefetch-Control': 'on',
+  'X-XSS-Protection': '1; mode=block',
+  'X-Frame-Options': 'SAMEORIGIN',
+  'X-Content-Type-Options': 'nosniff',
+  'Referrer-Policy': 'origin-when-cross-origin',
+  // Content Security Policy
+  'Content-Security-Policy': `
+    default-src 'self';
+    script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+    img-src 'self' data: https: blob:;
+    font-src 'self' https://fonts.gstatic.com;
+    connect-src 'self' https://www.google-analytics.com;
+    media-src 'self';
+    frame-src 'self';
+  `.replace(/\s{2,}/g, ' ').trim(),
+  // Cache control for static assets
+  'Cache-Control': 'public, max-age=31536000, immutable',
+  // Permissions Policy
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=(self), interest-cohort=()'
+};
+
+export function middleware(request) {
+  const path = request.nextUrl.pathname;
+  const isLoginPage = path === "/login" || path === "/signup" || path === "/forgot-password";
+  const isPublicPage = !protectedRoutes.some((route) => path.startsWith(route));
+  const isAuthenticated_ = isAuthenticated(request);
+
+  // Handle authentication redirects
+  if (isLoginPage && isAuthenticated_) {
+    return NextResponse.redirect(new URL('/', request.url));
+  }
+
+  if (!isPublicPage && !isAuthenticated_) {
+    const loginUrl = new URL('/login', request.url);
+    loginUrl.searchParams.set('from', path);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  // Apply security headers and performance optimizations
+  const response = NextResponse.next();
+  
+  // Apply security headers to all responses
+  Object.entries(securityHeaders).forEach(([key, value]) => {
+    response.headers.set(key, value);
+  });
+  
+  // Add special caching for static assets
+  if (
+    path.includes('/_next/static') || 
+    path.includes('/images/') || 
+    path.endsWith('.jpg') || 
+    path.endsWith('.png') || 
+    path.endsWith('.svg') || 
+    path.endsWith('.webp') || 
+    path.endsWith('.css') || 
+    path.endsWith('.js')
+  ) {
+    response.headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+  }
+  
+  // Enable early hints for faster loading
+  response.headers.set('Link', '</fonts/inter.woff2>; rel=preload; as=font; crossorigin=anonymous');
+  
+  return response;
+}
+
+export const config = {
+  matcher: [
+    /*
+     * Match all request paths except:
+     * 1. /api routes
+     * 2. /_next/static (static files)
+     * 3. /_next/image (image optimization files)
+     * 4. /favicon.ico (favicon file)
+     * 5. /robots.txt (SEO file)
+     * 6. /sitemap.xml (SEO file)
+     */
+    {
+      source: '/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)',
+      missing: [
+        { type: 'header', key: 'next-router-prefetch' },
+        { type: 'header', key: 'purpose', value: 'prefetch' },
+      ],
+    },
+  ],
+};
