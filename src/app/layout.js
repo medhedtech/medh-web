@@ -53,10 +53,6 @@ export const metadata = {
       'max-snippet': -1,
     },
   },
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-    { media: '(prefers-color-scheme: dark)', color: '#121212' },
-  ],
   icons: {
     icon: '/favicon.ico',
     shortcut: '/favicon.ico',
@@ -71,6 +67,17 @@ export const metadata = {
     google: 'google-site-verification-code', // Replace with your verification code
     yandex: 'yandex-verification-code', // Replace with your verification code if needed
   },
+};
+
+// Add viewport export with themeColor
+export const viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#121212' },
+  ],
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 export default function RootLayout({ children }) {
