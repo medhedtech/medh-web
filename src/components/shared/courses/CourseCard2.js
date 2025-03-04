@@ -5,7 +5,7 @@ import Link from "next/link";
 import React from "react";
 let insId = 0;
 const CourseCard2 = ({ course, card, isList, isNotSidebar }) => {
-  const { addProductToWishlist } = useWishlistContext();
+  const { addProductToWishlist } = useWishlistContext() || {};
   const {
     id,
     title,
@@ -121,6 +121,7 @@ const CourseCard2 = ({ course, card, isList, isNotSidebar }) => {
               <button
                 className="text-white bg-black bg-opacity-15 rounded hover:bg-primaryColor"
                 onClick={() =>
+                  addProductToWishlist &&
                   addProductToWishlist({
                     ...course,
                     isCourse: true,
