@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 
 // Text adaptation hook for responsive text
-const useResponsiveText = (text, maxLength = {xs: 50, sm: 70, md: 100, lg: 150}) => {
+const useResponsiveText = (text, maxLength = {xs: 60, sm: 80, md: 120, lg: 180}) => {
   const [windowWidth, setWindowWidth] = useState(0);
   
   useEffect(() => {
@@ -56,6 +56,72 @@ const useResponsiveText = (text, maxLength = {xs: 50, sm: 70, md: 100, lg: 150})
   if (text.length <= limit) return text;
   return text.substring(0, limit) + "...";
 };
+
+// Add enhanced CSS keyframes for animations and text transitions
+const animationStyles = `
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes textFocus {
+  from { letter-spacing: -0.5px; opacity: 0.8; }
+  to { letter-spacing: normal; opacity: 1; }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease forwards;
+}
+
+.animate-slideUp {
+  animation: slideUp 0.5s ease forwards;
+}
+
+.animate-textFocus {
+  animation: textFocus 0.3s ease forwards;
+}
+
+.delay-100 {
+  animation-delay: 100ms;
+}
+
+.delay-200 {
+  animation-delay: 200ms;
+}
+
+/* Responsive text classes */
+@media (max-width: 640px) {
+  .responsive-text-xs {
+    font-size: 0.75rem;
+  }
+  .responsive-text-sm {
+    font-size: 0.875rem;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 768px) {
+  .responsive-text-xs {
+    font-size: 0.8125rem;
+  }
+  .responsive-text-sm {
+    font-size: 0.9375rem;
+  }
+}
+
+@media (min-width: 769px) {
+  .responsive-text-xs {
+    font-size: 0.875rem;
+  }
+  .responsive-text-sm {
+    font-size: 1rem;
+  }
+}
+`;
 
 const CourseCard = ({ 
   course, 
@@ -471,7 +537,7 @@ const CourseCard = ({
             <div className="flex flex-col mb-1">
               <div className="flex justify-between items-start">
                 <h3 
-                  className="text-sm font-bold text-gray-900 dark:text-white line-clamp-2 cursor-pointer hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                  className="text-sm md:text-base font-extrabold text-gray-900 dark:text-white line-clamp-2 cursor-pointer hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
                   onClick={navigateToCourse}
                 >
                   {adaptedTitle || "Course Title"}
@@ -487,9 +553,9 @@ const CourseCard = ({
               </div>
               
               {/* Duration displayed right after title */}
-              <div className="flex items-center mt-0.5 text-xs text-gray-600 dark:text-gray-400">
+              <div className="flex items-center mt-0.5 text-xs text-gray-700 dark:text-gray-300">
                 <Timer size={10} className="text-primary-500 mr-1" />
-                <span className="font-medium text-[10px]">{formatDuration(course?.course_duration)}</span>
+                <span className="font-medium text-[11px]">{formatDuration(course?.course_duration)}</span>
               </div>
             </div>
             
@@ -671,17 +737,17 @@ const CourseCard = ({
               )}
             </div>
             
-            <h3 className="text-base sm:text-lg font-bold text-white mb-1 animate-slideUp line-clamp-2">{adaptedTitle || "Course Title"}</h3>
+            <h3 className="text-base sm:text-lg font-extrabold text-white mb-1 animate-slideUp line-clamp-2">{adaptedTitle || "Course Title"}</h3>
             
             <div className="flex items-center mb-3 animate-slideUp delay-100">
               <div className="flex items-center mr-3">
                 <Timer size={14} className="text-primary-300 mr-1 flex-shrink-0" />
-                <span className="text-xs text-white/90 truncate">{formatDuration(course?.course_duration)}</span>
+                <span className="text-xs text-white font-bold truncate">{formatDuration(course?.course_duration)}</span>
               </div>
               {course?.course_grade && (
                 <div className="flex items-center">
                   <GraduationCap size={14} className="text-primary-300 mr-1 flex-shrink-0" />
-                  <span className="text-xs text-white/90 truncate">{course?.course_grade}</span>
+                  <span className="text-xs text-white font-bold truncate">{course?.course_grade}</span>
                 </div>
               )}
             </div>
@@ -750,7 +816,7 @@ const CourseCard = ({
         </div>
         
         {/* Tab content */}
-        <div className="p-4 flex-grow flex flex-col overflow-auto relative">
+        <div className="p-4 flex-grow flex flex-col relative">
           {/* Animated background pattern */}
           <div className="absolute inset-0 opacity-5">
             <div className="absolute top-0 right-0 w-16 h-16 rounded-full bg-primary-500 blur-2xl"></div>
@@ -758,12 +824,12 @@ const CourseCard = ({
           </div>
 
           {/* Overview Tab */}
-          <div className={`transition-all duration-300 ${activeTab === 'overview' ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8 absolute inset-0 pointer-events-none'}`}>
+          <div className={`transition-all duration-300 h-full ${activeTab === 'overview' ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8 absolute inset-0 pointer-events-none'}`}>
             {/* Course description */}
             {course?.course_description && (
               <div className="mb-3 relative z-10">
                 <h5 className="text-xs uppercase tracking-wider text-primary-500 dark:text-primary-400 font-semibold mb-1">About this course</h5>
-                <p className="text-xs text-gray-700 dark:text-gray-300 line-clamp-4">{adaptedDescription}</p>
+                <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 font-medium">{adaptedDescription}</p>
               </div>
             )}
             
@@ -775,15 +841,15 @@ const CourseCard = ({
               </h5>
               <ul className="space-y-1">
                 {courseHighlights.slice(0, 2).map((highlight, idx) => (
-                  <li key={idx} className="flex items-start text-xs text-gray-700 dark:text-gray-300">
+                  <li key={idx} className="flex items-start text-xs md:text-sm text-gray-700 dark:text-gray-300 font-medium">
                     <CheckCircle size={12} className="text-green-500 dark:text-green-400 mr-1.5 mt-0.5 flex-shrink-0" />
-                    <span className="line-clamp-1">{highlight}</span>
+                    <span>{highlight}</span>
                   </li>
                 ))}
                 {courseHighlights.length > 2 && (
                   <button 
                     onClick={() => setActiveTab('highlights')}
-                    className="text-xs text-primary-600 dark:text-primary-400 hover:underline"
+                    className="text-xs font-bold text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     + See more highlights
                   </button>
@@ -793,7 +859,7 @@ const CourseCard = ({
           </div>
           
           {/* Highlights Tab */}
-          <div className={`transition-all duration-300 ${activeTab === 'highlights' ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8 absolute inset-0 pointer-events-none'}`}>
+          <div className={`transition-all duration-300 h-full ${activeTab === 'highlights' ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8 absolute inset-0 pointer-events-none'}`}>
             {/* What you'll learn - full list */}
             <div className="mb-4 relative z-10">
               <h5 className="text-xs uppercase tracking-wider text-primary-500 dark:text-primary-400 font-semibold mb-2 flex items-center">
@@ -802,7 +868,7 @@ const CourseCard = ({
               </h5>
               <ul className="space-y-2">
                 {courseHighlights.map((highlight, idx) => (
-                  <li key={idx} className="flex items-start text-xs text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800/50 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                  <li key={idx} className="flex items-start text-xs md:text-sm text-gray-700 dark:text-gray-300 font-medium bg-gray-50 dark:bg-gray-800/50 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
                     <CheckCircle size={14} className="text-green-500 dark:text-green-400 mr-2 mt-0.5 flex-shrink-0" />
                     <span>{highlight}</span>
                   </li>
@@ -819,7 +885,7 @@ const CourseCard = ({
                 </h5>
                 <div className="flex flex-wrap gap-1.5">
                   {course.course_topics.map((topic, idx) => (
-                    <span key={idx} className="text-[10px] bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full border border-gray-200 dark:border-gray-700 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:border-primary-200 dark:hover:border-primary-800 transition-colors truncate max-w-[100px]">
+                    <span key={idx} className="text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full border border-gray-200 dark:border-gray-700 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:border-primary-200 dark:hover:border-primary-800 transition-colors truncate max-w-[120px]">
                       {topic}
                     </span>
                   ))}
@@ -829,7 +895,7 @@ const CourseCard = ({
           </div>
           
           {/* Stats Tab */}
-          <div className={`transition-all duration-300 ${activeTab === 'stats' ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8 absolute inset-0 pointer-events-none'}`}>
+          <div className={`transition-all duration-300 h-full ${activeTab === 'stats' ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8 absolute inset-0 pointer-events-none'}`}>
             {/* Course stats in cards */}
             <div className="grid grid-cols-2 gap-3 mb-4 relative z-10">
               <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-3 flex flex-col items-center border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors hover:scale-105 transition-transform">
@@ -949,82 +1015,36 @@ const CourseCard = ({
   );
 };
 
-// Add enhanced CSS keyframes for animations and text transitions
-const animationStyles = `
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slideUp {
-  from { transform: translateY(10px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-
-@keyframes textFocus {
-  from { letter-spacing: -0.5px; opacity: 0.8; }
-  to { letter-spacing: normal; opacity: 1; }
-}
-
-.animate-fadeIn {
-  animation: fadeIn 0.5s ease forwards;
-}
-
-.animate-slideUp {
-  animation: slideUp 0.5s ease forwards;
-}
-
-.animate-textFocus {
-  animation: textFocus 0.3s ease forwards;
-}
-
-.delay-100 {
-  animation-delay: 100ms;
-}
-
-.delay-200 {
-  animation-delay: 200ms;
-}
-
-/* Responsive text classes */
-@media (max-width: 640px) {
-  .responsive-text-xs {
-    font-size: 0.75rem;
-  }
-  .responsive-text-sm {
-    font-size: 0.875rem;
-  }
-}
-
-@media (min-width: 641px) and (max-width: 768px) {
-  .responsive-text-xs {
-    font-size: 0.8125rem;
-  }
-  .responsive-text-sm {
-    font-size: 0.9375rem;
-  }
-}
-
-@media (min-width: 769px) {
-  .responsive-text-xs {
-    font-size: 0.875rem;
-  }
-  .responsive-text-sm {
-    font-size: 1rem;
-  }
-}
-`;
-
-// Add animation styles to document
-if (typeof document !== 'undefined') {
-  const style = document.createElement('style');
-  style.textContent = animationStyles;
-  document.head.appendChild(style);
-}
-
 CourseCard.defaultProps = {
   onShowRelated: () => {},
   showRelatedButton: false
 };
+
+// Add animation styles to document
+if (typeof document !== 'undefined') {
+  const style = document.createElement('style');
+  style.textContent = animationStyles + `
+    /* Additional text importance styles */
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    /* Enhanced text importance */
+    h3 {
+      text-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      letter-spacing: -0.01em;
+    }
+    
+    /* Improved contrast for important text */
+    .font-extrabold {
+      letter-spacing: -0.02em;
+    }
+  `;
+  document.head.appendChild(style);
+}
 
 export default CourseCard;
