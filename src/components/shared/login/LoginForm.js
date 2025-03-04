@@ -108,10 +108,10 @@ const LoginForm = () => {
   };
 
   const onSubmit = async (data) => {
-    // if (!recaptchaValue) {
-    //   setRecaptchaError(true);
-    //   return;
-    // }
+    if (!recaptchaValue) {
+      setRecaptchaError(true);
+      return;
+    }
     await postQuery({
       url: apiUrls?.user?.login,
       postData: {
@@ -403,6 +403,11 @@ const LoginForm = () => {
                       <span>{errors.agree_terms.message}</span>
                     </p>
                   )}
+                </div>
+                
+                {/* Custom ReCAPTCHA */}
+                <div>
+                  <CustomReCaptcha onChange={handleRecaptchaChange} error={!!recaptchaError} />
                 </div>
                 
                 {/* Submit Button */}

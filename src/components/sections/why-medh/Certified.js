@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Slider from "react-slick";
@@ -14,127 +14,136 @@ import isoSTEM from "@/assets/images/iso/iso-STEM.jpg";
 import isoUAEA from "@/assets/images/iso/iso-UAEA.jpg";
 
 const Certified = () => {
+  const [isHovered, setIsHovered] = useState(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
+
   var settings = {
-    dots: true,
+    dots: false,
     infinite: true,
-    speed: 500,
+    speed: 1000,
     arrows: false,
-    slidesToShow: 5, // Show 5 slides
+    slidesToShow: 5,
     slidesToScroll: 1,
-    centerMode: true, // Center the cards
+    autoplay: true,
+    autoplaySpeed: 3000,
+    pauseOnHover: true,
+    centerMode: true,
     centerPadding: "0",
-    // Remove extra padding around the center slide
+    cssEase: "cubic-bezier(0.87, 0, 0.13, 1)",
     responsive: [
       {
-        breakpoint: 1024, // Tablets
+        breakpoint: 1024,
         settings: {
           slidesToShow: 3,
           slidesToScroll: 1,
-          centerMode: true, // Keep the cards centered on tablets
+          centerMode: true,
         },
       },
       {
-        breakpoint: 768, // Mobile devices
+        breakpoint: 768,
         settings: {
           slidesToShow: 2,
           slidesToScroll: 1,
-          centerMode: true, // Center the cards on mobile
+          centerMode: true,
         },
       },
       {
-        breakpoint: 480, // Smaller mobile devices
+        breakpoint: 480,
         settings: {
           slidesToShow: 1,
           slidesToScroll: 1,
-          centerMode: true, // Center the card on small screens
+          centerMode: true,
         },
       },
     ],
   };
 
+  const certifications = [
+    { image: iso10002, alt: "ISO 10002 Certification", title: "ISO 10002" },
+    { image: iso27001, alt: "ISO 27001 Certification", title: "ISO 27001" },
+    { image: iso20000, alt: "ISO 20000 Certification", title: "ISO 20000" },
+    { image: iso22301, alt: "ISO 22301 Certification", title: "ISO 22301" },
+    { image: iso9001, alt: "ISO 9001 Certification", title: "ISO 9001" },
+    { image: iso270001, alt: "ISO 270001 Certification", title: "ISO 270001" },
+    { image: isoSTEM, alt: "STEM Certification", title: "STEM Certified" },
+    { image: isoUAEA, alt: "UAEA Certification", title: "UAEA Certified" },
+  ];
+
   return (
     <div
       id="certified-section"
-      className="py-12 w-full dark:bg-screen-dark flex justify-center items-center"
+      className={`py-16 w-full dark:bg-screen-dark bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 transition-all duration-700 ${
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+      }`}
     >
-      <div id="courses-section" className="w-[80%] ">
-        <h3 className="text-center text-[#5C6574] dark:text-gray-200 text-size-32 leading-34px font-bold mb-8">
-          Certified & Recognized By
-        </h3>
-        <Slider {...settings}>
-          <div className="pb-5 text-center  ">
-            <Image
-              src={iso10002}
-              width={100}
-              height={162}
-              alt="ISO 10002 Certification"
-              className="mx-auto"
-            />
+      <div className="w-[90%] max-w-7xl mx-auto">
+        <div className="text-center mb-12 space-y-2">
+          <h3 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary-600 to-indigo-600 bg-clip-text text-transparent">
+            Our Awesome Certifications! 🏆
+          </h3>
+          <p className="text-gray-600 dark:text-gray-300 text-lg">
+            Swipe to explore our achievements ✨
+          </p>
+        </div>
+
+        <div className="relative">
+          <Slider {...settings}>
+            {certifications.map((cert, index) => (
+              <div
+                key={index}
+                className="p-4"
+                onMouseEnter={() => setIsHovered(index)}
+                onMouseLeave={() => setIsHovered(null)}
+              >
+                <div
+                  className={`relative group transition-all duration-300 transform 
+                    ${isHovered === index ? 'scale-110' : 'scale-100'}
+                    hover:shadow-xl hover:shadow-primary-500/20 rounded-2xl
+                    bg-white dark:bg-gray-800 p-6 cursor-pointer`}
+                >
+                  <div className="relative h-[160px] w-[120px] mx-auto">
+                    <Image
+                      src={cert.image}
+                      alt={cert.alt}
+                      layout="fill"
+                      objectFit="contain"
+                      className={`transition-all duration-500 ${
+                        isHovered === index ? 'transform rotate-[5deg]' : ''
+                      }`}
+                    />
+                  </div>
+                  <div className={`
+                    absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100
+                    bg-gradient-to-b from-primary-500/80 to-indigo-600/80
+                    transition-opacity duration-300 flex items-center justify-center
+                  `}>
+                    <p className="text-white font-medium text-lg transform -translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                      {cert.title}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </Slider>
+
+          {/* Decorative elements */}
+          <div className="absolute -top-10 -left-10 w-20 h-20 bg-primary-300/30 dark:bg-primary-600/20 rounded-full blur-xl"></div>
+          <div className="absolute -bottom-10 -right-10 w-20 h-20 bg-indigo-300/30 dark:bg-indigo-600/20 rounded-full blur-xl"></div>
+        </div>
+
+        {/* Scroll indicator */}
+        <div className="mt-8 text-center">
+          <div className="inline-flex items-center space-x-2 text-gray-500 dark:text-gray-400 animate-bounce">
+            <span className="text-sm">Scroll</span>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
           </div>
-          <div className="text-center">
-            <Image
-              src={iso27001}
-              width={100}
-              height={162}
-              alt="ISO 27001 Certification"
-              className="mx-auto"
-            />
-          </div>
-          <div className="text-center">
-            <Image
-              src={iso20000}
-              width={100}
-              height={162}
-              alt="ISO 20000 Certification"
-              className="mx-auto"
-            />
-          </div>
-          <div className="text-center">
-            <Image
-              src={iso22301}
-              width={100}
-              height={162}
-              alt="ISO 22301 Certification"
-              className="mx-auto"
-            />
-          </div>
-          <div className="text-center">
-            <Image
-              src={iso9001}
-              width={100}
-              height={162}
-              alt="ISO 9001 Certification"
-              className="mx-auto"
-            />
-          </div>
-          <div className="text-center">
-            <Image
-              src={iso270001}
-              width={100}
-              height={162}
-              alt="ISO 9001 Certification"
-              className="mx-auto"
-            />
-          </div>
-          <div className="text-center">
-            <Image
-              src={isoSTEM}
-              width={100}
-              height={162}
-              alt="ISO 9001 Certification"
-              className="mx-auto"
-            />
-          </div>
-          <div className="text-center">
-            <Image
-              src={isoUAEA}
-              width={100}
-              height={162}
-              alt="ISO 9001 Certification"
-              className="mx-auto"
-            />
-          </div>
-        </Slider>
+        </div>
       </div>
     </div>
   );
