@@ -6,8 +6,8 @@ import Link from "next/link";
 import React from "react";
 
 const WishlistPrimary = () => {
-  const { wishlistProducts, deleteProductFromWishlist } = useWishlistContext();
-  const { addProductToCart } = useCartContext();
+  const { wishlistProducts, deleteProductFromWishlist } = useWishlistContext() || {};
+  const { addProductToCart } = useCartContext() || {};
   const iswishlistProducts = wishlistProducts?.length ? true : false;
   return (
     <div>
@@ -87,6 +87,7 @@ const WishlistPrimary = () => {
                         <div className="mx-1">
                           <button
                             onClick={() =>
+                              addProductToCart &&
                               addProductToCart({
                                 id,
                                 title,
@@ -126,7 +127,10 @@ const WishlistPrimary = () => {
                           </svg>
                         </button>
                         <button
-                          onClick={() => deleteProductFromWishlist(id, title)}
+                          onClick={() => 
+                            deleteProductFromWishlist &&
+                            deleteProductFromWishlist(id, title)
+                          }
                           className="hover:text-primaryColor"
                         >
                           <svg
