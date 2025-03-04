@@ -8,6 +8,7 @@ import useIsTrue from "@/hooks/useIsTrue";
 import NavbarTop from "./NavbarTop";
 import { useState, useEffect, useRef, useCallback } from "react";
 import MobileMenu from "./MobileMenu";
+import NavbarSearch from "@/components/shared/search/NavbarSearch";
 
 /**
  * Main navigation component for the application
@@ -121,6 +122,9 @@ const Navbar = () => {
   // Height class based on scroll state
   const navbarHeightClass = isScrolled ? 'h-16 md:h-14' : 'h-18';
 
+  // Check if the current page is the search page
+  const isSearchPage = pathname?.startsWith('/search');
+
   return (
     <div 
       ref={navbarRef}
@@ -141,16 +145,30 @@ const Navbar = () => {
               <NavbarLogo isScrolled={isScrolled} />
             </div>
 
-            {/* Center section with navigation items */}
-            <div className="hidden lg:block flex-1 px-8">
-              <div className="transition-all duration-300 transform">
+            {/* Center section with navigation items or search bar */}
+            <div className="hidden lg:flex flex-1 px-8 items-center justify-between">
+              {/* Navigation items */}
+              <div className="transition-all duration-300 transform flex-grow">
                 {isHome2Dark ? <NavItems2 /> : <NavItems />}
+              </div>
+              
+              {/* Search bar - Visible on desktop */}
+              <div className="ml-6 flex-grow-0 max-w-xs">
+                <NavbarSearch isScrolled={isScrolled} />
               </div>
             </div>
 
             {/* Right section with actions and mobile menu */}
-            <div className="flex items-center">
+            <div className="flex items-center space-x-2">
+              {/* Mobile Search */}
+              <div className="lg:hidden mr-1">
+                <NavbarSearch isScrolled={isScrolled} smallScreen={true} />
+              </div>
+              
+              {/* User actions */}
               <NavbarRight isScrolled={isScrolled} />
+              
+              {/* Mobile menu button */}
               <MobileMenu />
             </div>
           </div>
