@@ -11,7 +11,7 @@ import getAllProducts from "@/libs/getAllProducts";
 
 const ProductDetails = ({ product, isModal }) => {
   const products = getAllProducts();
-  const { addProductToCart } = useCartContext();
+  const { addProductToCart } = useCartContext() || {};
   const [quantity, setQuantity] = useState(1);
   const [color, setColor] = useState("violet");
   const [size, setSize] = useState("x");
@@ -146,6 +146,7 @@ const ProductDetails = ({ product, isModal }) => {
               <div className="border-2 border-blackColor dark:border-blackColor-dark rounded-full">
                 <button
                   onClick={() => {
+                    addProductToCart &&
                     addProductToCart({
                       id,
                       title,
