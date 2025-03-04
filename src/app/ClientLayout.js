@@ -11,11 +11,10 @@ import FixedShadow from "@/components/shared/others/FixedShadow";
 import PreloaderPrimary from "@/components/shared/others/PreloaderPrimary";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { ThemeProvider } from "next-themes";
 import { useEffect } from "react";
 import ThemeController from "@/components/shared/others/ThemeController";
-import { CookieConsentProvider } from "@/contexts/CookieConsentContext";
 import CookieConsent from "@/components/shared/gdpr/CookieConsent";
+import Providers from "./Providers";
 
 // Font configuration
 const inter = Inter({
@@ -105,47 +104,39 @@ export default function ClientLayout({ children }) {
       className={`${hind.variable} ${inter.variable} h-full`}
     >
       <body className="relative bg-bodyBg dark:bg-bodyBg-dark text-gray-700 dark:text-gray-200 min-h-screen font-sans antialiased">
-        <ThemeProvider 
-          attribute="class" 
-          defaultTheme="system" 
-          enableSystem
-          disableTransitionOnChange
-          storageKey="medh-theme"
-        >
-          <CookieConsentProvider>
-            {/* Preloader */}
-            <PreloaderPrimary />
-            
-            {/* Main Content */}
-            <div className="relative flex flex-col min-h-screen z-10">
-              {children}
-            </div>
+        <Providers>
+          {/* Preloader */}
+          <PreloaderPrimary />
+          
+          {/* Main Content */}
+          <div className="relative flex flex-col min-h-screen z-10">
+            {children}
+          </div>
 
-            {/* Background Elements */}
-            <div className="fixed inset-0 -z-10 pointer-events-none">
-              <FixedShadow />
-              <FixedShadow align={"right"} />
-            </div>
-            
-            {/* Cookie Consent Banner */}
-            <CookieConsent />
-            
-            {/* Toast Notifications */}
-            <ToastContainer 
-              position="top-right"
-              autoClose={5000}
-              hideProgressBar={false}
-              newestOnTop
-              closeOnClick
-              rtl={false}
-              pauseOnFocusLoss
-              draggable
-              pauseOnHover
-              theme="colored"
-              className="z-[100]"
-            />
-          </CookieConsentProvider>
-        </ThemeProvider>
+          {/* Background Elements */}
+          <div className="fixed inset-0 -z-10 pointer-events-none">
+            <FixedShadow />
+            <FixedShadow align={"right"} />
+          </div>
+          
+          {/* Cookie Consent Banner */}
+          <CookieConsent />
+          
+          {/* Toast Notifications */}
+          <ToastContainer 
+            position="top-right"
+            autoClose={5000}
+            hideProgressBar={false}
+            newestOnTop
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="colored"
+            className="z-[100]"
+          />
+        </Providers>
         <ThemeController />
       </body>
     </html>
