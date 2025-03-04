@@ -217,7 +217,7 @@ const NavbarRight = ({ isScrolled }) => {
                   {isHome2Dark ? (
                     <>
                       <span className="animate-shimmer bg-clip-text text-transparent bg-[linear-gradient(110deg,#fff,45%,#7ECA9D,55%,#fff)] bg-[length:250%_100%]">
-                        Start Learning
+                        Signup For Free
                       </span>
                       <span className="ml-1 transform transition-transform group-hover:translate-x-1">
                         <ExternalLink size={16} className="transform transition-transform group-hover:rotate-45" />
@@ -226,7 +226,7 @@ const NavbarRight = ({ isScrolled }) => {
                   ) : isHome4 || isHome4Dark || isHome5 || isHome5Dark ? (
                     <>
                       <span className="animate-shimmer bg-clip-text text-transparent bg-[linear-gradient(110deg,#fff,45%,#7ECA9D,55%,#fff)] bg-[length:250%_100%]">
-                        Get Started Here
+                       Signup For Free
                       </span>
                       <span className="ml-1 transform transition-transform group-hover:translate-x-1">
                         <ExternalLink size={16} className="transform transition-transform group-hover:rotate-45" />
@@ -235,7 +235,7 @@ const NavbarRight = ({ isScrolled }) => {
                   ) : (
                     <>
                       <span className="animate-shimmer bg-clip-text text-transparent bg-[linear-gradient(110deg,#fff,45%,#7ECA9D,55%,#fff)] bg-[length:250%_100%]">
-                        Start Learning
+                        Signup For Free
                       </span>
                       <span className="ml-1 transform transition-transform group-hover:translate-x-1">
                         <ExternalLink size={16} className="transform transition-transform group-hover:rotate-45" />

@@ -13,55 +13,126 @@ import React, { useEffect, useRef } from "react";
 import ArrowIcon from "@/assets/images/icon/ArrowIcon";
 import { useRouter } from "next/navigation";
 
-
 const Home1 = () => {
   const router = useRouter();
   const homeRef = useRef(null);
 
   // Scroll to top ONLY when component mounts (page first loads)
   useEffect(() => {
-    // Scroll to top of page
-    window.scrollTo({
-      top: 0,
-      behavior: "auto" // Changed to "auto" for instant scrolling on initial page load
-    });
+    // Smooth scroll to top with fallback
+    const smoothScrollToTop = () => {
+      try {
+        window.scrollTo({
+          top: 0,
+          behavior: "instant" // Use instant for initial load
+        });
+      } catch (error) {
+        // Fallback for older browsers
+        window.scrollTo(0, 0);
+      }
+    };
 
-    // Alternative approach using ref if window.scrollTo doesn't work consistently
+    smoothScrollToTop();
+
+    // Alternative approach using ref if window.scrollTo doesn't work
     if (homeRef.current) {
       homeRef.current.scrollIntoView({ 
-        behavior: 'auto', 
+        behavior: 'instant', 
         block: 'start' 
       });
     }
-  }, []); // Empty dependency array ensures this only runs once on mount
+  }, []); // Empty dependency array for mount-only execution
   
-  // Function that only scrolls to top on initial load, not on CoursesFilter changes
+  // Function that only scrolls to top on initial load
   const initialScrollToTop = () => {
-    // Only run this function when the component first mounts
-    // CoursesFilter will call this once, but we don't want it to scroll on filter changes
+    // Only runs on component mount, not on filter changes
   };
   
   return (
-    <div ref={homeRef}>
-      <Hero1 />
-      <BrandHero />
-      {/* <About1 /> */}
-      {/* <PopularSubjects /> */}
-      <CoursesFilter
-        CustomText="Skill Development Courses"
-        scrollToTop={initialScrollToTop}
-        hideGradeFilter
-      />
-      <WhyMedh />
-      {/* <Registration pageTitle="home_page" /> */}
-      <BrowseCategories />
-      {/* <PricingPlans /> */}
-      {/* <Instructors /> */}
-      <JoinMedh />
-      <Blogs />
-      <Hire />
-      
-    </div>
+    <main 
+      ref={homeRef}
+      className="min-h-screen flex flex-col relative bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900"
+    >
+      {/* Hero Section with full-width container */}
+      <section className="w-full">
+        <Hero1 />
+      </section>
+
+      {/* Brand Hero Section with proper spacing */}
+      <section className="w-full bg-gradient-to-r from-gray-50 via-white to-gray-50 
+        dark:from-gray-900 dark:via-gray-950 dark:to-gray-900">
+        <BrandHero />
+      </section>
+
+      {/* Main Content Sections with consistent spacing */}
+      <div className="flex flex-col gap-y-24 md:gap-y-32">
+        {/* Courses Section */}
+        <section className="w-full px-4 sm:px-6 lg:px-8">
+          <div className="max-w-[1920px] mx-auto">
+            <CoursesFilter
+              CustomText="Skill Development Courses"
+              scrollToTop={initialScrollToTop}
+              hideGradeFilter
+            />
+          </div>
+        </section>
+
+        {/* Why Medh Section */}
+        <section className="w-full bg-gradient-to-r from-gray-50 via-white to-gray-50 
+          dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 py-16">
+          <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8">
+            <WhyMedh />
+          </div>
+        </section>
+
+        {/* Browse Categories Section */}
+        <section className="w-full px-4 sm:px-6 lg:px-8">
+          <div className="max-w-[1920px] mx-auto">
+            <BrowseCategories />
+          </div>
+        </section>
+
+        {/* Join Medh Section with enhanced background */}
+        <section className="w-full bg-gradient-to-r from-primary-50 via-white to-primary-50 
+          dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 py-16">
+          <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8">
+            <JoinMedh />
+          </div>
+        </section>
+
+        {/* Blog Section */}
+        <section className="w-full px-4 sm:px-6 lg:px-8">
+          <div className="max-w-[1920px] mx-auto">
+            <Blogs />
+          </div>
+        </section>
+
+        {/* Hire Section with gradient background */}
+        <section className="w-full bg-gradient-to-r from-gray-50 via-white to-gray-50 
+          dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 py-16">
+          <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8">
+            <Hire />
+          </div>
+        </section>
+      </div>
+      {/* Add custom styles for animations */}
+      <style jsx>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .animate-fade-in-up {
+          animation: fadeInUp 0.5s ease-out forwards;
+        }
+      `}</style>
+    </main>
   );
 };
 
