@@ -3,7 +3,7 @@ import HeadingLg from "@/components/shared/headings/HeadingLg";
 import HreoName from "@/components/shared/section-names/HreoName";
 import Image from "next/image";
 import React, { useState, useEffect } from "react";
-import stemImg from "@/assets/images/herobanner/Background.png";
+import stemImg from "@/assets/images/iso/stem.jpg";
 import Group from "@/assets/Header-Images/Home/cheerful-arab.jpg";
 import bgImage from "@/assets/Header-Images/Home/Home_Banner_2_e7389bb905.jpg";
 import "@/assets/css/ovalAnimation.css";
@@ -13,6 +13,9 @@ import Link from "next/link";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
 import Preloader2 from "@/components/shared/others/Preloader2";
+import dynamic from 'next/dynamic';
+import { Suspense } from 'react';
+import medhLogo from "@/assets/images/logo/medh.png";
 
 const Hero1 = () => {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -48,7 +51,7 @@ const Hero1 = () => {
 
   return (
     <>
-      <section className="relative min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 dark:from-gray-950 dark:via-gray-900 dark:to-gray-800 overflow-hidden">
+      <section style={{ paddingTop: "var(--header-height, 80px)", paddingBottom: "var(--footer-height, 80px)" }} className="relative min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 dark:from-gray-950 dark:via-gray-900 dark:to-gray-800 overflow-hidden">
         {/* Enhanced Animated Background */}
         <div className="absolute inset-0 overflow-hidden">
           {/* Geometric Patterns */}
@@ -62,52 +65,100 @@ const Hero1 = () => {
 
         <div className="max-w-[1920px] w-[92%] xl:w-[90%] mx-auto relative z-10">
           {/* Hero Content */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center min-h-[85vh] py-20">
-            <div className={`space-y-8 transition-all duration-1000 transform ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-              {/* Enhanced Badge with Animation */}
-              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-primary-500/20 to-primary-500/5 rounded-full p-1.5 pl-3 pr-5 backdrop-blur-sm border border-primary-500/20 shadow-lg shadow-primary-500/5 hover:shadow-xl hover:shadow-primary-500/10 transition-all duration-300 group">
-                <span className="bg-gradient-to-r from-primary-500 to-primary-600 text-white text-xs font-semibold px-3 py-1 rounded-full group-hover:scale-105 transition-transform">New</span>
-                <span className="text-primary-300 text-sm font-medium">ISO / STEM Certified Courses</span>
-                <Sparkles className="w-4 h-4 text-primary-400 animate-pulse" />
-              </div>
-
-              {/* Enhanced Main Heading with Advanced Animation */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center min-h-[85vh] py-20">
+            {/* Mobile Hero Content */}
+            <div className={`space-y-6 md:space-y-8 transition-all duration-1000 transform text-center md:text-left px-4 md:px-0 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+              {/* Mobile-optimized Main Heading */}
               <div className="space-y-4">
-                <h1 className="font-bold leading-tight">
-                  <span className="block text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-200 to-gray-400 text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl whitespace-nowrap">
-                    UNLOCK YOUR POTENTIAL
+                <h1 className="font-bold leading-tight transform transition-all duration-500 hover:scale-105 w-full">
+                  <span 
+                    style={{ 
+                      fontSize: 'min(max(1.5rem, 3.5vw), 1.5rem)',
+                      lineHeight: '1.1',
+                      letterSpacing: 'min(max(0.5px, 0.15vw), 1.5px)'
+                    }} 
+                    className="block text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-200 to-gray-400 
+                      transform transition-all duration-500 hover:from-white hover:to-gray-300
+                      sm:max-w-[90%] md:max-w-[85%] lg:max-w-[80%] xl:max-w-[75%]">
+                    UNLOCK YOUR POTENTIAL WITH
                   </span>
-                  <span className="block mt-2 text-transparent bg-clip-text bg-gradient-to-r from-primary-400 via-purple-400 to-pink-400 animate-gradient relative text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl">
-                    WITH MEDH
-                    <span className="absolute -inset-1 bg-gradient-to-r from-primary-500/20 via-purple-500/20 to-pink-500/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                  <span 
+                    className="block mt-4 relative group-hover:tracking-wider transition-all duration-500
+                      sm:max-w-[85%] md:max-w-[80%] lg:max-w-[75%] xl:max-w-[70%] flex items-center gap-3">
+                    <div className="relative h-[min(max(2rem,_5vw),_4rem)] aspect-[3/1]">
+                      <Image
+                        src={medhLogo}
+                        alt="Medh Logo"
+                        fill
+                        className="object-contain filter brightness-200 hover:brightness-150 transition-all duration-300"
+                        priority
+                      />
+                    </div>
+                    <span className="absolute -inset-1 bg-gradient-to-r from-primary-500/20 via-purple-500/20 to-pink-500/20 
+                      blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></span>
                   </span>
                 </h1>
                 
-                {/* STEM.org Accreditation Badge with white container */}
-                <div className="flex justify-start mt-4 mb-6">
-                  <div className="relative w-[200px] h-[100px] bg-white rounded-lg p-2 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-                    <Image 
-                      src="/images/certifications/stem-accredited.png"
-                      alt="STEM.org Accredited Educational Experience"
-                      fill
-                      className="object-contain p-2"
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <p className="text-base sm:text-lg md:text-xl text-gray-300 max-w-xl leading-relaxed">
+                <div className="space-y-4 transform transition-all duration-500 hover:scale-[1.02]
+                  sm:max-w-[90%] md:max-w-[85%] lg:max-w-[80%] xl:max-w-[75%]">
+                  <p style={{ 
+                      fontSize: 'min(max(1.1rem, 2.5vw), 1.5rem)',
+                      lineHeight: '1.4'
+                    }} 
+                    className="text-gray-300 leading-relaxed flex items-center gap-2">
+                    <GraduationCap className="w-6 h-6 text-primary-400" />
                     Skill Development Courses led by Seasoned Experts
                   </p>
-                  <div className="py-3 px-4 bg-white/5 rounded-lg backdrop-blur-sm border border-white/10">
-                    <p className="text-lg text-gray-300 leading-relaxed">
-                      Transforming lives at every stage: from curious children and ambitious teens to career professionals and innovative homemakers.
-                    </p>
+                  <div className="py-4 px-5 bg-gradient-to-br from-white/5 via-white/[0.02] to-transparent 
+                    rounded-xl backdrop-blur-sm border border-white/10 
+                    hover:border-white/20 transition-all duration-500 transform hover:scale-[1.01]
+                    hover:shadow-lg hover:shadow-primary-500/10">
+                    <h3 className="text-white/90 font-semibold mb-3 flex items-center gap-2"
+                      style={{ 
+                        fontSize: 'min(max(1rem, 1.8vw), 1.25rem)',
+                      }}>
+                      <Target className="w-5 h-5 text-primary-400" />
+                      Transforming Lives at Every Stage
+                    </h3>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="flex items-center gap-2 group p-2 rounded-lg hover:bg-white/5 transition-all duration-300">
+                        <div className="p-2 rounded-lg bg-primary-500/10 group-hover:bg-primary-500/20 transition-colors">
+                          <BookOpen className="w-4 h-4 text-primary-400 group-hover:scale-110 transition-transform" />
+                        </div>
+                        <h4 className="text-white/90 font-semibold text-base group-hover:text-primary-400 transition-colors">
+                          Children & Teens
+                        </h4>
+                      </div>
+                      <div className="flex items-center gap-2 group p-2 rounded-lg hover:bg-white/5 transition-all duration-300">
+                        <div className="p-2 rounded-lg bg-secondary-500/10 group-hover:bg-secondary-500/20 transition-colors">
+                          <Users className="w-4 h-4 text-secondary-400 group-hover:scale-110 transition-transform" />
+                        </div>
+                        <h4 className="text-white/90 font-semibold text-base group-hover:text-secondary-400 transition-colors">
+                          Professionals
+                        </h4>
+                      </div>
+                      <div className="flex items-center gap-2 group p-2 rounded-lg hover:bg-white/5 transition-all duration-300">
+                        <div className="p-2 rounded-lg bg-purple-500/10 group-hover:bg-purple-500/20 transition-colors">
+                          <Star className="w-4 h-4 text-purple-400 group-hover:scale-110 transition-transform" />
+                        </div>
+                        <h4 className="text-white/90 font-semibold text-base group-hover:text-purple-400 transition-colors">
+                          Homemakers
+                        </h4>
+                      </div>
+                      <div className="flex items-center gap-2 group p-2 rounded-lg hover:bg-white/5 transition-all duration-300">
+                        <div className="p-2 rounded-lg bg-pink-500/10 group-hover:bg-pink-500/20 transition-colors">
+                          <TrendingUp className="w-4 h-4 text-pink-400 group-hover:scale-110 transition-transform" />
+                        </div>
+                        <h4 className="text-white/90 font-semibold text-base group-hover:text-pink-400 transition-colors">
+                          Lifelong Learners
+                        </h4>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 
                 {/* Tagline with special highlighting */}
-                <div className="relative mt-6 inline-block group overflow-hidden">
+                <div className="relative mt-6 inline-flex items-center gap-6 group">
                   {/* Advanced background effect */}
                   <div className="absolute -inset-1 bg-gradient-to-r from-primary-500/40 via-secondary-500/40 to-primary-500/40 
                     blur-lg opacity-70 animate-pulse-slow rounded-lg 
@@ -115,21 +166,16 @@ const Hero1 = () => {
                     light:from-primary-400/30 light:via-secondary-400/30 light:to-primary-400/30">
                   </div>
                   
-                  {/* Particle effect overlay */}
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(120,119,198,0.3),transparent)] opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-                  
-                  {/* Main tagline with multilingual effect */}
+                  {/* Main tagline container */}
                   <div className="relative py-3 px-6 rounded-xl backdrop-blur-sm border border-white/10 
-                    bg-gradient-to-br from-white/10 to-white/5 
-                    dark:from-white/10 dark:to-white/5
-                    light:from-primary-900/10 light:to-primary-900/5
-                    hover:border-primary-400/30 transition-all duration-500
-                    hover:shadow-lg hover:shadow-primary-500/20 transform hover:-translate-y-1">
+                    bg-gradient-to-br from-[#1E3C72]/10 to-[#2A5298]/5
+                    hover:border-[#E94E1B]/30 transition-all duration-500
+                    hover:shadow-lg hover:shadow-[#E94E1B]/20 transform hover:-translate-y-1">
                     
                     {/* Primary tagline with advanced animation */}
                     <p className="text-xl md:text-2xl font-bold tracking-wide relative text-center">
                       {/* Enhanced glow effect - now automatic instead of hover */}
-                      <span className="absolute -inset-1 bg-primary-500/10 filter blur-md rounded-lg animate-pulse-glow"></span>
+                      <span className="absolute -inset-1 bg-[#E94E1B]/10 filter blur-md rounded-lg animate-pulse-glow"></span>
                       <span className="inline-block transition-transform duration-300
                         font-hinglish relative animate-text-glow animate-text-pop animate-text-color" 
                         style={{
@@ -137,98 +183,61 @@ const Hero1 = () => {
                           letterSpacing: "1px",
                           fontWeight: "1000",
                           fontSize: "calc(1.2rem + 0.8vw)",
-                          textShadow: "0 0 30px rgba(120, 119, 198, 0.3)",
-                          color: ""
+                          textShadow: "0 0 30px rgba(233, 78, 27, 0.3)",
+                          background: "linear-gradient(to right, #E94E1B, #1E3C72)",
+                          WebkitBackgroundClip: "text",
+                          WebkitTextFillColor: "transparent"
                         }}>
                         Medh Hain Toh Mumkin Hain!
                       </span>
                     </p>
                     
-                    {/* Psychological impact indicators - now always visible with fade animation */}
-                    <div className="mt-2 flex items-center justify-center gap-2 animate-fade-in-out">
-                      <span className="text-xs md:text-sm font-bold text-primary-400 light:text-primary-600 flex items-center">
-                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary-500 mr-1 animate-ping"></span>
-                        Learn
-                      </span>
-                      <span className="text-xs md:text-sm font-bold text-secondary-400 light:text-secondary-600 flex items-center">
-                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-secondary-500 mr-1 animate-ping-delayed"></span>
-                        Upskill
-                      </span>
-                      <span className="text-xs md:text-sm font-bold text-pink-400 light:text-pink-600 flex items-center">
-                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-pink-500 mr-1 animate-ping-delayed-2"></span>
-                        Elevate
-                      </span>
+                    {/* Psychological impact indicators */}
+                    <div className="mt-2 flex items-center justify-center gap-4 animate-fade-in-out">
+                      <div className="flex items-center group">
+                        <span className="inline-block w-2 h-2 rounded-full bg-gradient-to-r from-[#E94E1B] to-[#FF6B6B] mr-2 
+                          animate-ping group-hover:animate-none group-hover:scale-150 transition-transform duration-500"></span>
+                        <span className="text-sm md:text-base font-bold bg-gradient-to-r from-[#E94E1B] to-[#FF6B6B] 
+                          bg-clip-text text-transparent group-hover:tracking-wider transition-all duration-300">
+                          Learn
+                        </span>
+                      </div>
+                      <div className="flex items-center group">
+                        <span className="inline-block w-2 h-2 rounded-full bg-gradient-to-r from-[#1E3C72] to-[#4776E6] mr-2 
+                          animate-ping-delayed group-hover:animate-none group-hover:scale-150 transition-transform duration-500"></span>
+                        <span className="text-sm md:text-base font-bold bg-gradient-to-r from-[#1E3C72] to-[#4776E6] 
+                          bg-clip-text text-transparent group-hover:tracking-wider transition-all duration-300">
+                          Upskill
+                        </span>
+                      </div>
+                      <div className="flex items-center group">
+                        <span className="inline-block w-2 h-2 rounded-full bg-gradient-to-r from-[#2A5298] to-[#00C6FF] mr-2 
+                          animate-ping-delayed-2 group-hover:animate-none group-hover:scale-150 transition-transform duration-500"></span>
+                        <span className="text-sm md:text-base font-bold bg-gradient-to-r from-[#2A5298] to-[#00C6FF] 
+                          bg-clip-text text-transparent group-hover:tracking-wider transition-all duration-300">
+                          Elevate
+                        </span>
+                      </div>
                     </div>
                   </div>
-                  
-                  {/* Certification Logos - Positioned to the right of the tagline */}
-                  <div className="absolute -right-[280px] top-1/2 -translate-y-1/2 flex flex-row gap-3 items-center z-10">
-                    {/* ISO Certification */}
-                    <div className="certification-badge flex flex-col items-center group transform hover:scale-110 transition-transform duration-300">
-                      <div className="w-16 h-16 md:w-20 md:h-20 relative">
-                        <div className="absolute inset-0 bg-white/10 rounded-full blur-md group-hover:bg-white/20 transition-all duration-300"></div>
-                        <div className="absolute inset-0 rounded-full border-2 border-white/30 flex items-center justify-center backdrop-blur-sm bg-white/5 overflow-hidden">
-                          {/* Inner ring with subtle texture */}
-                          <div className="absolute inset-2 rounded-full border border-white/40 bg-gray-900/40 opacity-30"></div>
-                          <div className="w-full h-full relative flex items-center justify-center">
-                            <div className="absolute inset-0.5 rounded-full border border-white/20 flex items-center justify-center bg-gradient-to-br from-gray-800/50 to-gray-900/50">
-                              <div className="text-sm font-bold text-white text-center leading-tight">
-                                <span className="block">ISO</span>
-                                <span className="block text-xs">9001:2015</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        {/* Small decorative dot */}
-                        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/3 w-2 h-2 rounded-full bg-primary-400 animate-ping-delayed opacity-70"></div>
-                      </div>
-                      <span className="mt-1 text-xs text-gray-300 group-hover:text-primary-300 transition-colors duration-300">Certified</span>
+
+                  {/* STEM Logo - Now positioned to the right */}
+                  <div className="relative group">
+                    <div className="absolute -inset-2 bg-gradient-to-r from-[#E94E1B]/20 to-[#1E3C72]/20 rounded-lg blur-lg opacity-75 group-hover:opacity-100 transition duration-500"></div>
+                    <div className="relative w-auto h-full rounded-lg overflow-hidden transform group-hover:scale-105 transition duration-500">
+                      <Image
+                        src={stemImg}
+                        alt="STEM Accredited"
+                        className="w-auto h-[calc(2.5rem+1.6vw)] object-contain"
+                        style={{
+                          minHeight: '3rem',
+                          maxHeight: '4.5rem'
+                        }}
+                        priority
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-tr from-[#1E3C72]/10 via-transparent to-[#E94E1B]/10 group-hover:opacity-0 transition duration-500"></div>
                     </div>
-                    
-                    {/* STEM Certification */}
-                    <div className="certification-badge flex flex-col items-center group transform hover:scale-110 transition-transform duration-300">
-                      <div className="w-16 h-16 md:w-20 md:h-20 relative">
-                        <div className="absolute inset-0 bg-white/10 rounded-full blur-md group-hover:bg-white/20 transition-all duration-300"></div>
-                        <div className="absolute inset-0 rounded-full border-2 border-primary-300/30 flex items-center justify-center backdrop-blur-sm bg-white/5 overflow-hidden">
-                          {/* Inner ring with subtle texture */}
-                          <div className="absolute inset-2 rounded-full border border-primary-400/20 bg-gray-900/40 opacity-30"></div>
-                          <div className="w-full h-full relative flex items-center justify-center">
-                            <div className="absolute inset-0.5 rounded-full border border-white/20 flex items-center justify-center bg-gradient-to-br from-gray-800/50 to-gray-900/50">
-                              <div className="text-sm font-bold text-white text-center leading-tight">
-                                <span className="block text-primary-300">STEM</span>
-                                <span className="block text-xs">EDUCATION</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        {/* Small decorative dot */}
-                        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/3 w-2 h-2 rounded-full bg-secondary-400 animate-ping-delayed-2 opacity-70"></div>
-                      </div>
-                      <span className="mt-1 text-xs text-gray-300 group-hover:text-primary-300 transition-colors duration-300">Accredited</span>
-                    </div>
-                    
-                    {/* CERTIFIED Badge */}
-                    <div className="certification-badge flex flex-col items-center group transform hover:scale-110 transition-transform duration-300">
-                      <div className="w-16 h-16 md:w-20 md:h-20 relative">
-                        <div className="absolute inset-0 bg-primary-500/20 rounded-full blur-md group-hover:bg-primary-500/30 transition-all duration-300 animate-pulse-slow"></div>
-                        <div className="absolute inset-0 rounded-full border-2 border-primary-400/50 flex items-center justify-center backdrop-blur-sm bg-white/5 overflow-hidden">
-                          {/* Inner ring with subtle texture */}
-                          <div className="absolute inset-2 rounded-full border border-secondary-400/20 bg-gray-900/40 opacity-30"></div>
-                          <div className="w-full h-full relative flex items-center justify-center">
-                            <div className="absolute inset-0.5 rounded-full border border-white/20 flex items-center justify-center bg-gradient-to-br from-gray-800/50 to-gray-900/50">
-                              <div className="text-sm font-bold text-white text-center leading-tight">
-                                <span className="block text-secondary-300">CERTIFIED</span>
-                                <span className="block text-xs">QUALITY</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        {/* Small decorative dots */}
-                        <div className="absolute left-0 top-1/2 -translate-x-1/3 -translate-y-1/2 w-2 h-2 rounded-full bg-green-400 animate-ping opacity-70"></div>
-                        <div className="absolute right-0 top-1/2 translate-x-1/3 -translate-y-1/2 w-2 h-2 rounded-full bg-primary-400 animate-ping-delayed opacity-70"></div>
-                      </div>
-                      <span className="mt-1 text-xs text-gray-300 group-hover:text-secondary-300 transition-colors duration-300">Excellence</span>
-                    </div>
+                    <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-12 h-1 bg-gradient-to-r from-[#E94E1B] to-[#1E3C72] rounded-full opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
                   </div>
                 </div>
               </div>
@@ -295,76 +304,66 @@ const Hero1 = () => {
 
             {/* Enhanced 3D Interactive Element - Modified to align with "UNLOCK YOUR POTENTIAL WITH MEDH" */}
             <div className={`relative transition-all duration-1000 delay-300 transform ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-              <div className="relative w-full aspect-square perspective-1500">
+              <div className="relative w-full max-w-[600px] mx-auto aspect-[4/3] perspective-1500">
                 {/* Enhanced Animated Background with glow effect */}
                 <div className="absolute inset-0">
                   <div className="absolute inset-0 bg-gradient-conic from-primary-500 via-purple-500 to-secondary-500 rounded-full blur-3xl opacity-30 animate-spin-slow"></div>
                   <div className="absolute inset-0 bg-gradient-conic from-secondary-500 via-pink-500 to-primary-500 rounded-full blur-3xl opacity-20 animate-spin-slow-reverse"></div>
                 </div>
                 
-                {/* 3D Text Element that aligns with main heading */}
-                {/* <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary-400/20 via-secondary-400/20 to-primary-400/20 animate-pulse-slow transform-gpu rotate3d-slow select-none">
-                    MEDH
-                  </div>
-                </div> */}
-                
-                {/* Enhanced Interactive 3D Cards - modified to be parallel to text */}
+                {/* Enhanced Interactive 3D Cards - modified to be more compact */}
                 <div className="absolute inset-0 flex flex-col justify-center">
                   <div className="relative transform-gpu rotate3d-subtle">
-                    {/* Cards arranged in a vertical order to parallel the text flow */}
-                    <div className="space-y-4">
+                    {/* Cards arranged in a vertical order with improved responsiveness */}
+                    <div className="space-y-2 sm:space-y-3 md:space-y-4 scale-[0.85] sm:scale-90 md:scale-100">
                       {/* Row 1 */}
-                      <div className="flex gap-4">
+                      <div className="flex gap-2 sm:gap-3 md:gap-4">
                         {/* Course Card 1 */}
-                        <div className="group relative w-1/2 bg-gradient-to-br from-primary-500/10 to-purple-500/10 backdrop-blur-xl rounded-2xl p-6 border border-white/10 transform transition-all duration-500 hover:scale-105 hover:-translate-y-2 hover:z-10">
-                          <div className="absolute inset-0 bg-gradient-to-r from-primary-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl"></div>
-                          <BookOpen className="text-primary-400 mb-3 transform transition-transform group-hover:scale-110 group-hover:rotate-6" size={28} />
-                          <h3 className="text-white font-semibold mb-1">For Children</h3>
-                          <p className="text-gray-400 text-xs">Building foundations for the future</p>
+                        <div className="group relative w-1/2 bg-gradient-to-br from-primary-500/10 to-purple-500/10 backdrop-blur-xl rounded-xl p-3 sm:p-4 md:p-5 border border-white/10 transform transition-all duration-500 hover:scale-105 hover:-translate-y-2 hover:z-10">
+                          <div className="absolute inset-0 bg-gradient-to-r from-primary-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+                          <BookOpen className="text-primary-400 mb-2 transform transition-transform group-hover:scale-110 group-hover:rotate-6 w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" />
+                          <h3 className="text-white font-semibold mb-1 text-sm sm:text-base md:text-lg relative z-10 transition-all duration-300 group-hover:text-primary-300">Future Tech Skills</h3>
+                          <p className="text-gray-400 text-[10px] sm:text-xs md:text-sm relative z-10 transition-all duration-300 group-hover:text-white/90">AI, ML & Data Science Excellence</p>
                         </div>
                         
                         {/* Course Card 2 */}
-                        <div className="group relative w-1/2 bg-gradient-to-br from-secondary-500/10 to-pink-500/10 backdrop-blur-xl rounded-2xl p-6 border border-white/10 transform transition-all duration-500 hover:scale-105 hover:-translate-y-2 hover:z-10">
-                          <div className="absolute inset-0 bg-gradient-to-r from-secondary-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl"></div>
-                          <Target className="text-secondary-400 mb-3 transform transition-transform group-hover:scale-110 group-hover:rotate-6" size={28} />
-                          <h3 className="text-white font-semibold mb-1">For Teens</h3>
-                          <p className="text-gray-400 text-xs">Igniting passion for learning</p>
+                        <div className="group relative w-1/2 bg-gradient-to-br from-secondary-500/10 to-pink-500/10 backdrop-blur-xl rounded-xl p-3 sm:p-4 md:p-5 border border-white/10 transform transition-all duration-500 hover:scale-105 hover:-translate-y-2 hover:z-10">
+                          <div className="absolute inset-0 bg-gradient-to-r from-secondary-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+                          <Target className="text-secondary-400 mb-2 transform transition-transform group-hover:scale-110 group-hover:rotate-6 w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" />
+                          <h3 className="text-white font-semibold mb-1 text-sm sm:text-base md:text-lg relative z-10 transition-all duration-300 group-hover:text-secondary-300">Personal Growth</h3>
+                          <p className="text-gray-400 text-[10px] sm:text-xs md:text-sm relative z-10 transition-all duration-300 group-hover:text-white/90">Transform Your Inner Potential</p>
                         </div>
                       </div>
                       
                       {/* Row 2 */}
-                      <div className="flex gap-4">
+                      <div className="flex gap-2 sm:gap-3 md:gap-4">
                         {/* Course Card 3 */}
-                        <div className="group relative w-1/2 bg-gradient-to-br from-purple-500/10 to-blue-500/10 backdrop-blur-xl rounded-2xl p-6 border border-white/10 transform transition-all duration-500 hover:scale-105 hover:-translate-y-2 hover:z-10">
-                          <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl"></div>
-                          <Users className="text-purple-400 mb-3 transform transition-transform group-hover:scale-110 group-hover:rotate-6" size={28} />
-                          <h3 className="text-white font-semibold mb-1">For Professionals</h3>
-                          <p className="text-gray-400 text-xs">Advancing career opportunities</p>
+                        <div className="group relative w-1/2 bg-gradient-to-br from-purple-500/10 to-blue-500/10 backdrop-blur-xl rounded-xl p-3 sm:p-4 md:p-5 border border-white/10 transform transition-all duration-500 hover:scale-105 hover:-translate-y-2 hover:z-10">
+                          <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+                          <Users className="text-purple-400 mb-2 transform transition-transform group-hover:scale-110 group-hover:rotate-6 w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" />
+                          <h3 className="text-white font-semibold mb-1 text-sm sm:text-base md:text-lg relative z-10 transition-all duration-300 group-hover:text-purple-300">Ancient Wisdom</h3>
+                          <p className="text-gray-400 text-[10px] sm:text-xs md:text-sm relative z-10 transition-all duration-300 group-hover:text-white/90">Vedic Math Mastery</p>
                         </div>
                         
                         {/* Course Card 4 */}
-                        <div className="group relative w-1/2 bg-gradient-to-br from-blue-500/10 to-teal-500/10 backdrop-blur-xl rounded-2xl p-6 border border-white/10 transform transition-all duration-500 hover:scale-105 hover:-translate-y-2 hover:z-10">
-                          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-teal-500/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl"></div>
-                          <TrendingUp className="text-blue-400 mb-3 transform transition-transform group-hover:scale-110 group-hover:rotate-6" size={28} />
-                          <h3 className="text-white font-semibold mb-1">For Homemakers</h3>
-                          <p className="text-gray-400 text-xs">Empowering with new skills</p>
+                        <div className="group relative w-1/2 bg-gradient-to-br from-blue-500/10 to-teal-500/10 backdrop-blur-xl rounded-xl p-3 sm:p-4 md:p-5 border border-white/10 transform transition-all duration-500 hover:scale-105 hover:-translate-y-2 hover:z-10">
+                          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-teal-500/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+                          <TrendingUp className="text-blue-400 mb-2 transform transition-transform group-hover:scale-110 group-hover:rotate-6 w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" />
+                          <h3 className="text-white font-semibold mb-1 text-sm sm:text-base md:text-lg relative z-10 transition-all duration-300 group-hover:text-blue-300">Digital Success</h3>
+                          <p className="text-gray-400 text-[10px] sm:text-xs md:text-sm relative z-10 transition-all duration-300 group-hover:text-white/90">Data-Driven Marketing Mastery</p>
                         </div>
                       </div>
                       
-                      {/* Optional Connecting Line */}
+                      {/* Optional Connecting Line - made responsive */}
                       <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary-500/0 via-primary-500/30 to-primary-500/0 transform -translate-x-1/2"></div>
                     </div>
                   </div>
                 </div>
 
-                {/* Certification Logos - repositioned to bottom right */}
-                {/* Removing this section as we've moved the certification logos next to the tagline */}
-                
-                {/* Enhanced Floating Elements */}
-                <div className="absolute top-0 left-0 w-20 h-20 bg-primary-500/20 rounded-full blur-xl animate-float"></div>
-                <div className="absolute bottom-0 right-0 w-32 h-32 bg-secondary-500/20 rounded-full blur-xl animate-float animation-delay-2000"></div>
-                <div className="absolute top-1/2 left-1/2 w-24 h-24 bg-purple-500/20 rounded-full blur-xl animate-float animation-delay-4000"></div>
+                {/* Enhanced Floating Elements - made more compact */}
+                <div className="absolute top-0 left-0 w-16 h-16 sm:w-20 sm:h-20 bg-primary-500/20 rounded-full blur-xl animate-float"></div>
+                <div className="absolute bottom-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-secondary-500/20 rounded-full blur-xl animate-float animation-delay-2000"></div>
+                <div className="absolute top-1/2 left-1/2 w-20 h-20 sm:w-24 sm:h-24 bg-purple-500/20 rounded-full blur-xl animate-float animation-delay-4000"></div>
               </div>
             </div>
           </div>
@@ -481,7 +480,19 @@ const Hero1 = () => {
           }
           
           .perspective-1500 {
-            perspective: 1500px;
+            perspective: clamp(1000px, 150vw, 1500px);
+          }
+
+          @media (max-width: 640px) {
+            .perspective-1500 {
+              perspective: 800px;
+            }
+          }
+
+          @media (min-width: 1536px) {
+            .perspective-1500 {
+              perspective: 2000px;
+            }
           }
 
           .animate-gradient {
@@ -511,10 +522,10 @@ const Hero1 = () => {
           }
           
           @keyframes rotate3d-subtle {
-            0%, 100% { transform: rotate3d(1, 1, 1, 0deg); }
-            25% { transform: rotate3d(1, 0, 0, 2deg); }
-            50% { transform: rotate3d(0, 1, 0, 2deg); }
-            75% { transform: rotate3d(0, 0, 1, 2deg); }
+            0%, 100% { transform: rotate3d(1, 1, 1, 0deg) scale(0.95); }
+            25% { transform: rotate3d(1, 0, 0, 2deg) scale(1); }
+            50% { transform: rotate3d(0, 1, 0, 2deg) scale(0.98); }
+            75% { transform: rotate3d(0, 0, 1, 2deg) scale(0.95); }
           }
           
           /* Multilanguage translation animations */
