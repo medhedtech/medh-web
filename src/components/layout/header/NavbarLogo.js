@@ -1,6 +1,6 @@
 import Image from "next/image";
 import React, { useState, useEffect } from "react";
-import logo1 from "@/assets/images/logo/medh_logo-1.png";
+import logo1 from "@/assets/images/logo/medh.png";
 import Link from "next/link";
 import logo0 from "@/assets/images/logo/logo_2.png";
 import { useTheme } from "next-themes";

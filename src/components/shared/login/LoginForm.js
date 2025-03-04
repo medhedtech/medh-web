@@ -1,8 +1,10 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import LogIn from "@/assets/images/log-sign/logIn.png";
-import logo1 from "@/assets/images/logo/medh_logo-1.png";
+import logo1 from "@/assets/images/logo/medh.png";
+import logo2 from "@/assets/images/logo/logo_2.png";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
@@ -264,9 +266,16 @@ const LoginForm = () => {
             
             {/* Header area */}
             <div className="px-6 sm:px-8 pt-6 sm:pt-8 pb-3 sm:pb-4 text-center">
-              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-tr from-primary-500 to-indigo-500 rounded-2xl mx-auto flex items-center justify-center mb-3 sm:mb-4 shadow-lg shadow-primary-500/20">
-                <Sparkles className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
-              </div>
+              <Link href="/" className="inline-block mb-4">
+                <Image 
+                  src={logo1} 
+                  alt="Medh Logo" 
+                  width={120} 
+                  height={40} 
+                  className="mx-auto"
+                  priority
+                />
+              </Link>
               <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary-600 to-indigo-600 bg-clip-text text-transparent">
                 Welcome Back!
               </h2>
