@@ -14,33 +14,59 @@ import { Eye, EyeOff, User, Mail, Phone, Lock, AlertCircle, Loader2, Moon, Sun, 
 import CustomReCaptcha from '../ReCaptcha';
 import FixedShadow from "../others/FixedShadow";
 import PhoneInput from 'react-phone-input-2';
-import 'react-phone-input-2/lib/style.css';
+import 'react-phone-input-2/lib/high-res.css';
 import Link from "next/link";
+import { parsePhoneNumber, isValidPhoneNumber, formatPhoneNumber as formatPhoneNumberIntl } from 'libphonenumber-js';
 
-// Enhanced phone number validation functions
-const cleanPhoneNumber = (value) => {
-  if (!value) return '';
+// Enhanced phone number validation using libphonenumber-js
+const validatePhoneNumber = (phoneNumber, countryCode) => {
+  if (!phoneNumber) return false;
   
-  // Remove all non-digit characters
-  let cleaned = value.replace(/\D/g, '');
-  
-  // Handle different formats of Indian phone numbers
-  if (cleaned.startsWith('91') && cleaned.length > 10) {
-    cleaned = cleaned.substring(2);
-  } else if (cleaned.startsWith('0')) {
-    cleaned = cleaned.substring(1);
+  try {
+    // Add + to the phone number if it doesn't have one
+    const phoneNumberWithPlus = phoneNumber.startsWith('+') ? phoneNumber : `+${phoneNumber}`;
+    
+    // Parse the phone number
+    const parsedNumber = parsePhoneNumber(phoneNumberWithPlus);
+    
+    if (!parsedNumber) return false;
+
+    // Check if the number is valid for the given country
+    return parsedNumber.isValid() && 
+           (!countryCode || parsedNumber.country === countryCode.toUpperCase());
+  } catch (error) {
+    console.error('Phone validation error:', error);
+    return false;
   }
-  
-  return cleaned;
 };
 
-const validatePhoneNumber = (value) => {
-  if (!value) return false;
+// Format phone number for display and storage
+const formatPhoneNumber = (phoneNumber, countryCode) => {
+  if (!phoneNumber) return '';
   
-  const cleaned = cleanPhoneNumber(value);
-  
-  // Check if it's exactly 10 digits and starts with 6-9
-  return /^[6-9]\d{9}$/.test(cleaned);
+  try {
+    // Add + to the phone number if it doesn't have one
+    const phoneNumberWithPlus = phoneNumber.startsWith('+') ? phoneNumber : `+${phoneNumber}`;
+    
+    // Parse and format the phone number
+    const parsedNumber = parsePhoneNumber(phoneNumberWithPlus);
+    
+    if (!parsedNumber) return phoneNumber;
+
+    return {
+      international: parsedNumber.formatInternational(),
+      national: parsedNumber.formatNational(),
+      e164: parsedNumber.format('E.164'),
+      rfc3966: parsedNumber.format('RFC3966'),
+      significant: parsedNumber.formatNational().replace(/[^0-9]/g, ''),
+      countryCode: parsedNumber.countryCallingCode,
+      country: parsedNumber.country,
+      type: parsedNumber.getType()
+    };
+  } catch (error) {
+    console.error('Phone formatting error:', error);
+    return phoneNumber;
+  }
 };
 
 const schema = yup
@@ -54,37 +80,87 @@ const schema = yup
       .required("Email is required")
       .lowercase()
       .trim(),
-    phone_number: yup
-      .string()
-      .required("Phone number is required")
-      .transform((value) => cleanPhoneNumber(value))
-      .test("phone", "Please enter a valid 10-digit Indian mobile number starting with 6-9", validatePhoneNumber),
-    password: yup
-      .string()
+    password: yup.string()
       .required("Password is required")
-      .min(8, "Password must be at least 8 characters")
-      .matches(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-        "Password must contain at least one uppercase letter, one lowercase letter, one number and one special character"
-      ),
-    confirm_password: yup
-      .string()
-      .oneOf([yup.ref("password"), null], "Passwords must match")
-      .required("Confirm password is required"),
-    agree_terms: yup
-      .boolean()
-      .oneOf([true], "You must accept the terms to proceed"),
+      .min(8, "Password must be at least 8 characters"),
+    agree_terms: yup.boolean()
+      .oneOf([true], "You must accept the terms to proceed")
+      .required(),
+    role: yup.array()
+      .of(yup.string()
+        .oneOf([
+          "admin",
+          "student",
+          "instructor",
+          "coorporate",
+          "coorporate-student"
+        ])
+      )
+      .default(["student"]),
     role_description: yup.string().nullable(),
-    assign_department: yup.string().nullable(),
-    permissions: yup.array().nullable(),
-    age: yup.number().nullable().positive("Age must be a positive number"),
-    facebook_link: yup.string().url("Please enter a valid Facebook URL").nullable(),
-    instagram_link: yup.string().url("Please enter a valid Instagram URL").nullable(),
-    linkedin_link: yup.string().url("Please enter a valid LinkedIn URL").nullable(),
+    assign_department: yup.array()
+      .of(yup.string())
+      .default([]),
+    permissions: yup.array()
+      .of(yup.string()
+        .oneOf([
+          "course_management",
+          "student_management",
+          "instructor_management",
+          "corporate_management",
+          "generate_certificate",
+          "get_in_touch",
+          "enquiry_form",
+          "post_job",
+          "feedback_and_complaints",
+          "placement_requests",
+          "blogs"
+        ])
+      )
+      .default([]),
+    age: yup.string().nullable(),
+    status: yup.string()
+      .oneOf(["Active", "Inactive"])
+      .default("Active"),
+    facebook_link: yup.string().nullable(),
+    instagram_link: yup.string().nullable(),
+    linkedin_link: yup.string().nullable(),
     user_image: yup.string().nullable(),
-    meta: yup.object().nullable(),
-    recaptcha: yup
-      .string()
+    meta: yup.object({
+      course_name: yup.string().nullable(),
+      age: yup.string().nullable(),
+      category: yup.string().nullable(),
+      gender: yup.string()
+        .oneOf(["Male", "Female", "Others"])
+        .default("Male"),
+      upload_resume: yup.array()
+        .of(yup.string())
+        .default([])
+    }).default(() => ({
+      gender: "Male",
+      upload_resume: []
+    })),
+    admin_role: yup.string()
+      .oneOf(["super-admin", "admin", "coorporate-admin"])
+      .default("admin"),
+    company_type: yup.string()
+      .oneOf(["Institute", "University"])
+      .nullable(),
+    phone_numbers: yup.array()
+      .of(yup.object({
+        country: yup.string().required("Country code is required"),
+        number: yup.string()
+          .required("Phone number is required")
+          .matches(
+            /^\+?[1-9]\d{1,14}$/,
+            "Phone number must be in international E.164 format"
+          )
+      }))
+      .min(1, "At least one phone number is required")
+      .required(),
+    company_website: yup.string().nullable(),
+    corporate_id: yup.string().nullable(),
+    recaptcha: yup.string()
       .required("Please verify that you are human")
   })
   .required();
@@ -100,7 +176,16 @@ const SignUpForm = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [phoneData, setPhoneData] = useState({
+    number: '',
+    country: 'IN',
+    countryCode: '91',
+    formattedNumber: '',
+    isValid: false,
+    type: null,
+    nationalFormat: '',
+    internationalFormat: ''
+  });
   
   const {
     register,
@@ -117,8 +202,11 @@ const SignUpForm = () => {
   // Initialize form values
   useEffect(() => {
     // Set default values
-    setValue('phone_number', phoneNumber);
-  }, [setValue, phoneNumber]);
+    setValue('phone_numbers', [{
+      country: phoneData.country,
+      number: phoneData.number
+    }]);
+  }, [setValue, phoneData.number, phoneData.country]);
 
   // Add entrance animation effect
   useEffect(() => {
@@ -168,6 +256,46 @@ const SignUpForm = () => {
     setIsDarkMode(!isDarkMode);
   };
 
+  // Enhanced phone number change handler
+  const handlePhoneChange = (value, country) => {
+    try {
+      // Remove any spaces or special characters from the phone number
+      const cleanNumber = value.replace(/\s+/g, '');
+      const phoneNumberWithPlus = cleanNumber.startsWith('+') ? cleanNumber : `+${cleanNumber}`;
+      const parsedNumber = parsePhoneNumber(phoneNumberWithPlus);
+      
+      if (parsedNumber) {
+        const formattedData = formatPhoneNumber(phoneNumberWithPlus);
+        const e164Number = parsedNumber.format('E.164');
+        
+        setPhoneData({
+          number: e164Number, // Store the E.164 format directly
+          country: parsedNumber.country,
+          countryCode: parsedNumber.countryCallingCode,
+          formattedNumber: e164Number, // Store E.164 format here too
+          isValid: parsedNumber.isValid(),
+          type: parsedNumber.getType(),
+          nationalFormat: formattedData.national,
+          internationalFormat: formattedData.international
+        });
+
+        // Update form values with the new phone_numbers array format
+        setValue('phone_numbers', [{
+          country: parsedNumber.country,
+          number: e164Number // Use E.164 format
+        }]);
+        trigger(['phone_numbers']);
+      }
+    } catch (error) {
+      console.error('Phone parsing error:', error);
+      setPhoneData(prev => ({
+        ...prev,
+        number: value,
+        isValid: false
+      }));
+    }
+  };
+
   const onSubmit = async (data) => {
     if (!recaptchaValue) {
       setRecaptchaError(true);
@@ -176,31 +304,93 @@ const SignUpForm = () => {
     setApiError(null);
 
     try {
-      // Clean and format phone number
-      const cleanedNumber = cleanPhoneNumber(data.phone_number);
-      if (!validatePhoneNumber(cleanedNumber)) {
+      // Validate phone number
+      if (!phoneData.number || !phoneData.isValid) {
         toast.error("Please enter a valid phone number");
         return;
       }
-      
-      // Phone number is already in international format from the PhoneInput component
-      const formattedPhoneNumber = cleanedNumber;
 
-      // Prepare the request data
+      // Format phone number for API using E.164 format
+      const formattedPhoneNumber = {
+        country: phoneData.country,
+        number: phoneData.number // Already in E.164 format from handlePhoneChange
+      };
+
+      // Prepare the request data with all required fields and their defaults
       const requestData = {
         full_name: data.full_name.trim(),
         email: data.email.toLowerCase().trim(),
         password: data.password,
-        phone_number: formattedPhoneNumber,
+        phone_numbers: [formattedPhoneNumber], // Ensure this is an array with at least one number
         agree_terms: data.agree_terms,
-        role: ['student']
+        role: ['student'],
+        assign_department: [],
+        permissions: [],
+        status: "Active",
+        meta: {
+          gender: "Male",
+          upload_resume: []
+        },
+        admin_role: "admin"
       };
+
+      // Add optional fields only if they have values
+      if (data.role_description?.trim()) {
+        requestData.role_description = data.role_description.trim();
+      }
+      
+      if (data.age?.trim()) {
+        requestData.age = data.age.trim();
+      }
+
+      if (data.facebook_link?.trim()) {
+        requestData.facebook_link = data.facebook_link.trim();
+      }
+
+      if (data.instagram_link?.trim()) {
+        requestData.instagram_link = data.instagram_link.trim();
+      }
+
+      if (data.linkedin_link?.trim()) {
+        requestData.linkedin_link = data.linkedin_link.trim();
+      }
+
+      if (data.user_image?.trim()) {
+        requestData.user_image = data.user_image.trim();
+      }
+
+      if (data.company_type) {
+        requestData.company_type = data.company_type;
+      }
+
+      if (data.company_website?.trim()) {
+        requestData.company_website = data.company_website.trim();
+      }
+
+      if (data.corporate_id?.trim()) {
+        requestData.corporate_id = data.corporate_id.trim();
+      }
+
+      // Handle meta object
+      if (data.meta) {
+        requestData.meta = {
+          gender: data.meta.gender || "Male",
+          upload_resume: data.meta.upload_resume || [],
+          ...(data.meta.course_name?.trim() && { course_name: data.meta.course_name.trim() }),
+          ...(data.meta.age?.trim() && { age: data.meta.age.trim() }),
+          ...(data.meta.category?.trim() && { category: data.meta.category.trim() })
+        };
+      }
+
+      // Log the request data for debugging
+      console.log('Request Data:', JSON.stringify(requestData, null, 2));
 
       // Make the API call
       const response = await postQuery({
         url: apiUrls?.user?.register,
         postData: requestData,
         onSuccess: (response) => {
+          console.log('Registration Success:', response); // Add success logging
           setRecaptchaError(false);
           setRecaptchaValue(null);
           setRegistrationSuccess(true);
@@ -217,6 +407,7 @@ const SignUpForm = () => {
         },
         onFail: (error) => {
           console.error("Registration Error:", error);
+          console.log('Error Response:', error?.response?.data); // Detailed error logging
           setRegistrationSuccess(false);
 
           // Handle specific error cases
@@ -229,7 +420,7 @@ const SignUpForm = () => {
             } else if (errorMessage.toLowerCase().includes('validation')) {
               toast.error("Please check your input and try again.");
             } else if (errorMessage.toLowerCase().includes('phone')) {
-              toast.error("Please enter a valid 10-digit phone number.");
+              toast.error("Please enter a valid phone number in international format (E.164).");
             } else if (errorMessage.toLowerCase().includes('recaptcha')) {
               toast.error("ReCAPTCHA verification failed. Please try again.");
               setRecaptchaError(true);
@@ -311,14 +502,9 @@ const SignUpForm = () => {
         }
         
         .phone-input-container .react-tel-input .form-control {
-          width: 100%;
-          height: 42px;
-          padding-left: 70px !important;
-          border-radius: 0.75rem;
-          font-family: var(--font-body);
-          background-color: rgba(249, 250, 251, 0.5);
-          border: 1px solid rgba(209, 213, 219, 0.5);
-          color: #111827;
+          @apply w-full px-4 py-2.5 bg-gray-50/50 dark:bg-gray-700/30 rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-16;
+          font-size: 14px;
+          letter-spacing: 0.025em;
         }
         
         .dark .phone-input-container .react-tel-input .form-control {
@@ -328,10 +514,8 @@ const SignUpForm = () => {
         }
         
         .phone-input-container .react-tel-input .flag-dropdown {
-          background-color: transparent;
-          border: none;
-          border-radius: 0.75rem 0 0 0.75rem;
-          left: 40px !important;
+          @apply bg-transparent border-0 rounded-l-xl hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors;
+          min-width: 52px;
         }
         
         .dark .phone-input-container .react-tel-input .flag-dropdown {
@@ -340,10 +524,95 @@ const SignUpForm = () => {
         }
         
         .phone-input-container .react-tel-input .selected-flag {
+          @apply bg-transparent rounded-l-xl pl-3 hover:bg-transparent;
+          width: 52px;
+        }
+
+        .phone-input-container .react-tel-input .country-list {
+          @apply bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg mt-1;
+          max-height: 260px;
+          width: 300px;
+        }
+
+        .phone-input-container .react-tel-input .country-list .search {
+          @apply bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-t-lg;
+          padding: 10px;
+          margin: 0;
+        }
+
+        .phone-input-container .react-tel-input .country-list .search-box {
+          @apply w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 text-sm;
+          padding-left: 30px;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236B7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'%3E%3C/path%3E%3C/svg%3E");
+          background-repeat: no-repeat;
+          background-position: 8px center;
+          background-size: 16px;
+        }
+
+        .phone-input-container .react-tel-input .country-list .country {
+          @apply px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .phone-input-container .react-tel-input .country-list .country.highlight {
+          @apply bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400;
+        }
+
+        .phone-input-container .react-tel-input .country-list .country-name {
+          @apply text-sm text-gray-900 dark:text-gray-100;
+          margin-right: 6px;
+        }
+
+        .phone-input-container .react-tel-input .country-list .dial-code {
+          @apply text-sm text-gray-500 dark:text-gray-400;
+        }
+
+        .phone-input-container .react-tel-input .special-label {
+          @apply bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 text-xs font-medium px-2 py-0.5 rounded absolute -top-2 left-2 z-10;
+          display: none;
+        }
+
+        /* Phone input custom styles */
+        .react-tel-input .selected-flag:hover,
+        .react-tel-input .selected-flag:focus {
           background-color: transparent !important;
-          border-radius: 0.75rem 0 0 0.75rem;
-          padding: 0 0 0 8px;
-          width: 30px;
+        }
+
+        .react-tel-input .country-list {
+          margin: 0;
+          padding: 0;
+          border-radius: 0.5rem;
+        }
+
+        .react-tel-input .country-list .country {
+          padding: 0.5rem 0.75rem;
+        }
+
+        .react-tel-input .country-list .country:hover {
+          background-color: rgba(var(--primary-500), 0.1);
+        }
+
+        .react-tel-input .country-list .country.highlight {
+          background-color: rgba(var(--primary-500), 0.1);
+        }
+
+        .dark .react-tel-input .country-list {
+          background-color: #1f2937;
+          border-color: #374151;
+        }
+
+        .dark .react-tel-input .country-list .country.highlight {
+          background-color: rgba(var(--primary-500), 0.2);
+        }
+
+        .dark .react-tel-input .country-list .country:hover {
+          background-color: rgba(var(--primary-500), 0.2);
+        }
+
+        .dark .react-tel-input .country-list .country {
+          color: #e5e7eb;
         }
       `}</style>
 
@@ -436,33 +705,76 @@ const SignUpForm = () => {
 
                 {/* Phone Number Field */}
                 <div className="phone-field-container">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Phone Number
+                  </label>
                   <div className="relative">
-                    <Phone 
-                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 z-10" 
-                      size={16}
+                    <PhoneInput
+                      country={'in'}
+                      value={phoneData.number}
+                      onChange={(value, country) => handlePhoneChange(value, country)}
+                      enableSearch={true}
+                      searchPlaceholder="Search countries..."
+                      searchNotFound="No country found"
+                      inputProps={{
+                        name: 'phone_numbers',
+                        required: true,
+                        className: `
+                          w-full pl-[4.5rem] pr-4 py-2.5 
+                          bg-gray-50/50 dark:bg-gray-700/30 
+                          border border-gray-200 dark:border-gray-600 
+                          rounded-xl text-gray-900 dark:text-gray-100
+                          focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500
+                          disabled:bg-gray-100 disabled:cursor-not-allowed
+                          transition duration-150 ease-in-out
+                          text-sm
+                        `
+                      }}
+                      containerClass="phone-input-container"
+                      buttonClass={`
+                        absolute left-0 top-0 bottom-0 px-3
+                        flex items-center justify-center
+                        border-r border-gray-200 dark:border-gray-600
+                        bg-transparent
+                        rounded-l-xl
+                        transition duration-150 ease-in-out
+                        hover:bg-gray-50 dark:hover:bg-gray-700/30
+                      `}
+                      dropdownClass={`
+                        country-dropdown
+                        absolute z-50 mt-1
+                        bg-white dark:bg-gray-800
+                        border border-gray-200 dark:border-gray-700
+                        rounded-lg shadow-lg
+                        overflow-hidden
+                      `}
+                      searchClass={`
+                        search-box
+                        w-full px-3 py-2
+                        bg-gray-50 dark:bg-gray-700
+                        border-b border-gray-200 dark:border-gray-600
+                        text-gray-900 dark:text-gray-100
+                        focus:outline-none
+                      `}
                     />
-                    <div className="phone-input-container">
-                      <PhoneInput
-                        country={'in'}
-                        value={phoneNumber}
-                        onChange={(value) => {
-                          setPhoneNumber(value);
-                          setValue('phone_number', value);
-                          trigger('phone_number');
-                        }}
-                        inputProps={{
-                          name: 'phone_number',
-                          required: true,
-                        }}
-                      />
-                    </div>
+
+                    {/* Formatted number display */}
+                    {phoneData.isValid && (
+                      <div className="mt-1 space-y-0.5">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {phoneData.nationalFormat}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Error message */}
+                    {errors.phone_numbers && (
+                      <p className="mt-1 text-xs text-red-500 flex items-start">
+                        <AlertCircle className="h-3 w-3 mt-0.5 mr-1.5" />
+                        <span>{errors.phone_numbers?.message}</span>
+                      </p>
+                    )}
                   </div>
-                  {errors.phone_number && (
-                    <p className="mt-1 text-xs text-red-500 flex items-start">
-                      <AlertCircle className="h-3 w-3 mt-0.5 mr-1.5 flex-shrink-0" />
-                      <span>{errors.phone_number?.message}</span>
-                    </p>
-                  )}
                 </div>
 
                 {/* Password Fields Row */}
