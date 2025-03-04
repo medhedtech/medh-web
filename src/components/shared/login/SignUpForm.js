@@ -10,11 +10,12 @@ import { apiUrls } from "@/apis";
 import logo1 from "@/assets/images/logo/medh_logo-1.png";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, User, Mail, Phone, Lock, AlertCircle, Loader2, Moon, Sun, UserCircle } from "lucide-react";
+import { Eye, EyeOff, User, Mail, Phone, Lock, AlertCircle, Loader2, Moon, Sun, UserCircle, ArrowRight, CheckCircle } from "lucide-react";
 import CustomReCaptcha from '../ReCaptcha';
 import FixedShadow from "../others/FixedShadow";
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
+import Link from "next/link";
 
 // Enhanced phone number validation functions
 const cleanPhoneNumber = (value) => {
@@ -81,7 +82,10 @@ const schema = yup
     instagram_link: yup.string().url("Please enter a valid Instagram URL").nullable(),
     linkedin_link: yup.string().url("Please enter a valid LinkedIn URL").nullable(),
     user_image: yup.string().nullable(),
-    meta: yup.object().nullable()
+    meta: yup.object().nullable(),
+    recaptcha: yup
+      .string()
+      .required("Please verify that you are human")
   })
   .required();
 
@@ -144,6 +148,8 @@ const SignUpForm = () => {
   const handleRecaptchaChange = (value) => {
     setRecaptchaValue(value);
     setRecaptchaError(false);
+    setValue('recaptcha', value);
+    trigger('recaptcha');
   };
 
   const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
@@ -290,7 +296,7 @@ const SignUpForm = () => {
           position: fixed;
           width: 100%;
         }
-        
+
         /* Custom styles for phone input */
         .phone-field-container {
           position: relative;
@@ -306,28 +312,26 @@ const SignUpForm = () => {
         
         .phone-input-container .react-tel-input .form-control {
           width: 100%;
-          height: 48px;
-          padding-left: 70px !important; /* Increased padding to accommodate both icon and flag */
+          height: 42px;
+          padding-left: 70px !important;
           border-radius: 0.75rem;
           font-family: var(--font-body);
-          background-color: #f9fafb;
-          border: 1px solid #d1d5db;
+          background-color: rgba(249, 250, 251, 0.5);
+          border: 1px solid rgba(209, 213, 219, 0.5);
           color: #111827;
         }
         
         .dark .phone-input-container .react-tel-input .form-control {
-          background-color: #1f2937;
-          border-color: #374151;
+          background-color: rgba(31, 41, 55, 0.3);
+          border-color: rgba(55, 65, 81, 0.5);
           color: #f9fafb;
         }
         
-        /* Move the flag dropdown to the right of the phone icon */
         .phone-input-container .react-tel-input .flag-dropdown {
           background-color: transparent;
           border: none;
           border-radius: 0.75rem 0 0 0.75rem;
-          left: 40px !important; /* Positioned to the right of the phone icon */
-          z-index: 2;
+          left: 40px !important;
         }
         
         .dark .phone-input-container .react-tel-input .flag-dropdown {
@@ -341,174 +345,69 @@ const SignUpForm = () => {
           padding: 0 0 0 8px;
           width: 30px;
         }
-        
-        .phone-input-container .react-tel-input .selected-flag .flag {
-          transform: scale(1.2);
-          margin-left: 0;
-        }
-        
-        .phone-input-container .react-tel-input .selected-flag .arrow {
-          display: none;
-        }
-        
-        .phone-input-container .react-tel-input .selected-flag:hover,
-        .phone-input-container .react-tel-input .selected-flag:focus {
-          background-color: transparent !important;
-        }
-        
-        .phone-input-container .react-tel-input .country-list {
-          margin: 8px 0 0;
-          border-radius: 0.5rem;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-          max-height: 200px;
-          overflow-y: auto;
-        }
-        
-        .dark .phone-input-container .react-tel-input .country-list {
-          background-color: #1f2937;
-          border-color: #374151;
-        }
-        
-        .phone-input-container .react-tel-input .country-list .country {
-          padding: 8px 10px;
-        }
-        
-        .dark .phone-input-container .react-tel-input .country-list .country {
-          color: #f9fafb;
-        }
-        
-        .phone-input-container .react-tel-input .country-list .country.highlight,
-        .phone-input-container .react-tel-input .country-list .country:hover {
-          background-color: #f3f4f6;
-        }
-        
-        .dark .phone-input-container .react-tel-input .country-list .country.highlight,
-        .dark .phone-input-container .react-tel-input .country-list .country:hover {
-          background-color: #374151;
-        }
-        
-        .phone-input-container .react-tel-input .country-list .search {
-          padding: 10px;
-          background-color: #f9fafb;
-        }
-        
-        .dark .phone-input-container .react-tel-input .country-list .search {
-          background-color: #1f2937;
-        }
-        
-        .phone-input-container .react-tel-input .country-list .search-box {
-          width: 100%;
-          padding: 8px;
-          border-radius: 0.375rem;
-          border: 1px solid #d1d5db;
-          font-family: var(--font-body);
-        }
-        
-        .dark .phone-input-container .react-tel-input .search-box {
-          background-color: #374151;
-          border-color: #4b5563;
-          color: #f9fafb;
-        }
       `}</style>
-      
-      <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-950 px-4 py-16">
-        {/* Theme toggle button - fixed position */}
-        <button 
-          onClick={toggleTheme}
-          className="fixed top-4 right-4 z-50 p-2 rounded-full bg-white dark:bg-gray-800 shadow-md hover:shadow-lg transition-all duration-300 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400"
-          aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
-        >
-          {isDarkMode ? (
-            <Sun size={20} className="text-yellow-500" />
-          ) : (
-            <Moon size={20} className="text-indigo-600" />
-          )}
-        </button>
-        
-        {/* Decorative background elements */}
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-          <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-primary-500/5 dark:bg-primary-500/10 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/4 opacity-70"></div>
-          <div className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-secondary-500/5 dark:bg-secondary-500/10 rounded-full blur-3xl transform -translate-x-1/3 translate-y-1/4 opacity-70"></div>
-        </div>
-        
-        <div className={`w-full max-w-[1100px] transition-all duration-1000 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-          <div className="relative mx-auto flex flex-col md:flex-row shadow-2xl rounded-2xl border-0 overflow-hidden">
-            <FixedShadow align="left" color="primary" opacity={0.07} size="xl" />
-            <FixedShadow align="right" color="secondary" opacity={0.05} size="lg" />
-            
+
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-2 px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-4xl relative">
+          {/* Decorative elements */}
+          <div className="absolute -top-10 -left-10 w-20 h-20 bg-primary-300/30 dark:bg-primary-600/20 rounded-full blur-xl hidden sm:block"></div>
+          <div className="absolute -bottom-12 -right-12 w-24 h-24 bg-indigo-300/30 dark:bg-indigo-600/20 rounded-full blur-xl hidden sm:block"></div>
+
+          {/* Card container with glass morphism effect */}
+          <div className="signup-card bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-3xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 transition-all duration-300 flex flex-row">
             {/* Left side - Image */}
-            <div className="hidden md:block md:w-1/2 bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-gray-800 dark:to-gray-900">
-              <div className="h-full flex items-center justify-center p-8">
-                <div className="relative w-full max-w-lg transform transition-all duration-700 group hover:scale-105">
-                  <div className="absolute inset-0 bg-gradient-to-r from-primary-500/10 to-secondary-500/10 dark:from-primary-500/20 dark:to-secondary-500/20 rounded-xl blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-                  <Image
-                    src={SignIn}
-                    alt="Sign up illustration"
-                    className="w-full h-auto max-w-md object-contain relative z-10 dark:filter dark:brightness-90"
-                    priority
-                  />
-                </div>
+            <div className="hidden md:flex md:w-5/12 items-center justify-center p-8 bg-gradient-to-br from-primary-50/50 to-secondary-50/50 dark:from-gray-800/50 dark:to-gray-900/50 rounded-l-3xl">
+              <div className="relative w-full max-w-md transform transition-all duration-700 group hover:scale-105">
+                <div className="absolute inset-0 bg-gradient-to-r from-primary-500/10 to-secondary-500/10 dark:from-primary-500/20 dark:to-secondary-500/20 rounded-xl blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                <Image
+                  src={SignIn}
+                  alt="Sign up illustration"
+                  className="w-full h-auto object-contain relative z-10 dark:filter dark:brightness-90"
+                  priority
+                />
               </div>
             </div>
-            
+
             {/* Right side - Form */}
-            <div className="w-full md:w-1/2 p-6 md:p-10 bg-white dark:bg-gray-900 transition-all duration-300 font-body">
-              {/* Theme toggle button - mobile only (inside form) */}
-              <div className="md:hidden flex justify-end mb-4">
-                <button 
-                  onClick={toggleTheme}
-                  className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400"
-                  aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
-                >
-                  {isDarkMode ? (
-                    <Sun size={18} className="text-yellow-500" />
-                  ) : (
-                    <Moon size={18} className="text-indigo-600" />
-                  )}
-                </button>
-              </div>
-              
-              {/* Logo */}
-              <div className="w-[180px] mx-auto mb-6 transition-transform duration-300 hover:scale-105">
-                <a href="/" className="block">
+            <div className="w-full md:w-7/12 p-6 sm:p-8">
+              {/* Logo and Header */}
+              <div className="text-center mb-6">
+                <Link href="/" className="inline-block mb-4">
                   <Image 
                     src={logo1} 
                     alt="Medh Logo" 
-                    className="w-full h-auto dark:filter dark:brightness-110" 
+                    width={120} 
+                    height={40} 
+                    className="mx-auto"
                     priority
                   />
-                </a>
-              </div>
-              
-              {/* Heading */}
-              <div className="text-center mb-6">
-                <h1 className="font-heading font-bold text-3xl md:text-4xl text-gray-900 dark:text-white mb-2 tracking-tight">Getting Started!</h1>
-                <p className="text-gray-600 dark:text-gray-300 font-body">
-                  Create an account to join our learning community
+                </Link>
+                <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary-600 to-indigo-600 bg-clip-text text-transparent">
+                  Create Your Account
+                </h2>
+                <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                  Join our learning community today
                 </p>
               </div>
 
               {/* Form */}
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 {/* Full Name Field */}
                 <div>
                   <div className="relative">
-                    <User 
-                      className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400" 
-                      size={18} 
-                    />
                     <input
                       {...register("full_name")}
                       type="text"
-                      id="full_name"
                       placeholder="Full Name"
-                      className="w-full h-12 pl-12 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent transition-all duration-200 outline-none font-body placeholder-gray-500 dark:placeholder-gray-400"
-                      aria-invalid={errors.full_name ? "true" : "false"}
+                      className="w-full px-4 py-2.5 bg-gray-50/50 dark:bg-gray-700/30 rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-11"
                     />
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <User className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 dark:text-gray-500" />
+                    </div>
                   </div>
                   {errors.full_name && (
-                    <p className="mt-1.5 text-sm text-red-500 dark:text-red-400 flex items-start font-body" role="alert">
-                      <AlertCircle className="h-4 w-4 mt-0.5 mr-1.5 flex-shrink-0" />
+                    <p className="mt-1 text-xs text-red-500 flex items-start">
+                      <AlertCircle className="h-3 w-3 mt-0.5 mr-1.5 flex-shrink-0" />
                       <span>{errors.full_name?.message}</span>
                     </p>
                   )}
@@ -517,34 +416,30 @@ const SignUpForm = () => {
                 {/* Email Field */}
                 <div>
                   <div className="relative">
-                    <Mail 
-                      className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400" 
-                      size={18} 
-                    />
                     <input
                       {...register("email")}
                       type="email"
-                      id="email"
                       placeholder="Email Address"
-                      className="w-full h-12 pl-12 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent transition-all duration-200 outline-none font-body placeholder-gray-500 dark:placeholder-gray-400"
-                      aria-invalid={errors.email ? "true" : "false"}
+                      className="w-full px-4 py-2.5 bg-gray-50/50 dark:bg-gray-700/30 rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-11"
                     />
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 dark:text-gray-500" />
+                    </div>
                   </div>
                   {errors.email && (
-                    <p className="mt-1.5 text-sm text-red-500 dark:text-red-400 flex items-start font-body" role="alert">
-                      <AlertCircle className="h-4 w-4 mt-0.5 mr-1.5 flex-shrink-0" />
+                    <p className="mt-1 text-xs text-red-500 flex items-start">
+                      <AlertCircle className="h-3 w-3 mt-0.5 mr-1.5 flex-shrink-0" />
                       <span>{errors.email?.message}</span>
                     </p>
                   )}
                 </div>
 
                 {/* Phone Number Field */}
-                <div>
-                  <div className="relative phone-field-container">
+                <div className="phone-field-container">
+                  <div className="relative">
                     <Phone 
-                      className="absolute top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 z-10" 
-                      size={18} 
-                      style={{ left: '12px' }}
+                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 z-10" 
+                      size={16}
                     />
                     <div className="phone-input-container">
                       <PhoneInput
@@ -558,181 +453,166 @@ const SignUpForm = () => {
                         inputProps={{
                           name: 'phone_number',
                           required: true,
-                          className: "w-full h-12 pl-12 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent transition-all duration-200 outline-none font-body placeholder-gray-500 dark:placeholder-gray-400"
                         }}
-                        containerClass="w-full"
-                        dropdownClass="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700"
-                        buttonClass="border-r border-gray-300 dark:border-gray-700"
-                        searchClass="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                        enableSearch={true}
-                        disableSearchIcon={false}
-                        searchPlaceholder="Search country..."
-                        inputStyle={{ paddingLeft: '70px' }}
                       />
                     </div>
                   </div>
                   {errors.phone_number && (
-                    <p className="mt-1.5 text-sm text-red-500 dark:text-red-400 flex items-start font-body" role="alert">
-                      <AlertCircle className="h-4 w-4 mt-0.5 mr-1.5 flex-shrink-0" />
+                    <p className="mt-1 text-xs text-red-500 flex items-start">
+                      <AlertCircle className="h-3 w-3 mt-0.5 mr-1.5 flex-shrink-0" />
                       <span>{errors.phone_number?.message}</span>
                     </p>
                   )}
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    Enter your phone number with country code
-                  </p>
                 </div>
 
-                {/* Password Field */}
-                <div>
-                  <div className="relative">
-                    <Lock 
-                      className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400" 
-                      size={18} 
-                    />
-                    <input
-                      {...register("password")}
-                      type={showPassword ? "text" : "password"}
-                      id="password"
-                      placeholder="Password"
-                      className="w-full h-12 pl-12 pr-12 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent transition-all duration-200 outline-none font-body placeholder-gray-500 dark:placeholder-gray-400"
-                      aria-invalid={errors.password ? "true" : "false"}
-                    />
-                    <button
-                      type="button"
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
-                      onClick={togglePasswordVisibility}
-                      aria-label={showPassword ? "Hide password" : "Show password"}
-                    >
-                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
+                {/* Password Fields Row */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Password Field */}
+                  <div>
+                    <div className="relative">
+                      <input
+                        {...register("password")}
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Password"
+                        className="w-full px-4 py-2.5 bg-gray-50/50 dark:bg-gray-700/30 rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-11 pr-11"
+                      />
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Lock className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 dark:text-gray-500" />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={togglePasswordVisibility}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                        )}
+                      </button>
+                    </div>
+                    {errors.password && (
+                      <p className="mt-1 text-xs text-red-500 flex items-start">
+                        <AlertCircle className="h-3 w-3 mt-0.5 mr-1.5 flex-shrink-0" />
+                        <span>{errors.password?.message}</span>
+                      </p>
+                    )}
                   </div>
-                  {errors.password && (
-                    <p className="mt-1.5 text-sm text-red-500 dark:text-red-400 flex items-start font-body" role="alert">
-                      <AlertCircle className="h-4 w-4 mt-0.5 mr-1.5 flex-shrink-0" />
-                      <span>{errors.password?.message}</span>
-                    </p>
-                  )}
-                </div>
 
-                {/* Confirm Password Field */}
-                <div>
-                  <div className="relative">
-                    <Lock 
-                      className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400" 
-                      size={18} 
-                    />
-                    <input
-                      {...register("confirm_password")}
-                      type={showConfirmPassword ? "text" : "password"}
-                      id="confirm_password"
-                      placeholder="Confirm Password"
-                      className="w-full h-12 pl-12 pr-12 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent transition-all duration-200 outline-none font-body placeholder-gray-500 dark:placeholder-gray-400"
-                      aria-invalid={errors.confirm_password ? "true" : "false"}
-                    />
-                    <button
-                      type="button"
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
-                      onClick={toggleConfirmPasswordVisibility}
-                      aria-label={showConfirmPassword ? "Hide password" : "Show password"}
-                    >
-                      {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
+                  {/* Confirm Password Field */}
+                  <div>
+                    <div className="relative">
+                      <input
+                        {...register("confirm_password")}
+                        type={showConfirmPassword ? "text" : "password"}
+                        placeholder="Confirm Password"
+                        className="w-full px-4 py-2.5 bg-gray-50/50 dark:bg-gray-700/30 rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-11 pr-11"
+                      />
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Lock className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 dark:text-gray-500" />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={toggleConfirmPasswordVisibility}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                        )}
+                      </button>
+                    </div>
+                    {errors.confirm_password && (
+                      <p className="mt-1 text-xs text-red-500 flex items-start">
+                        <AlertCircle className="h-3 w-3 mt-0.5 mr-1.5 flex-shrink-0" />
+                        <span>{errors.confirm_password?.message}</span>
+                      </p>
+                    )}
                   </div>
-                  {errors.confirm_password && (
-                    <p className="mt-1.5 text-sm text-red-500 dark:text-red-400 flex items-start font-body" role="alert">
-                      <AlertCircle className="h-4 w-4 mt-0.5 mr-1.5 flex-shrink-0" />
-                      <span>{errors.confirm_password?.message}</span>
-                    </p>
-                  )}
                 </div>
 
-                {/* ReCAPTCHA */}
-                <CustomReCaptcha
-                  onChange={handleRecaptchaChange}
-                  error={recaptchaError}
-                />
+                {/* Custom ReCAPTCHA */}
+                <div>
+                  <CustomReCaptcha
+                    onChange={handleRecaptchaChange}
+                    error={!!errors.recaptcha || recaptchaError}
+                  />
+                </div>
 
                 {/* Terms Checkbox */}
                 <div>
-                  <label className="flex items-start space-x-2 cursor-pointer">
+                  <label className="flex items-start space-x-2">
                     <input
                       type="checkbox"
-                      id="terms"
                       {...register("agree_terms")}
-                      className="w-4 h-4 mt-0.5 rounded-md text-primary-500 border-gray-300 focus:ring-primary-500 transition-colors"
+                      className="mt-1 h-4 w-4 rounded-md text-primary-600 focus:ring-primary-500 border-gray-300"
                     />
-                    <span className="text-sm text-gray-700 dark:text-gray-300 font-body">
+                    <span className="text-xs text-gray-600 dark:text-gray-400">
                       I accept the{" "}
-                      <a
-                        href="/terms-and-services"
-                        className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 underline hover:no-underline transition-colors"
-                      >
+                      <a href="/terms-and-services" className="text-primary-600 hover:text-primary-500">
                         terms of use
                       </a>{" "}
                       and{" "}
-                      <a
-                        href="/privacy-policy"
-                        className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 underline hover:no-underline transition-colors"
-                      >
+                      <a href="/privacy-policy" className="text-primary-600 hover:text-primary-500">
                         privacy policy
                       </a>
-                      .
                     </span>
                   </label>
                   {errors.agree_terms && (
-                    <p className="mt-1.5 text-sm text-red-500 dark:text-red-400 flex items-start font-body" role="alert">
-                      <AlertCircle className="h-4 w-4 mt-0.5 mr-1.5 flex-shrink-0" />
+                    <p className="mt-1 text-xs text-red-500 flex items-start">
+                      <AlertCircle className="h-3 w-3 mt-0.5 mr-1.5 flex-shrink-0" />
                       <span>{errors.agree_terms.message}</span>
                     </p>
                   )}
                 </div>
 
-                {/* API Error Display */}
-                {apiError && (
-                  <div className="p-4 bg-red-50 dark:bg-red-900/20 border-0 rounded-lg">
-                    <p className="text-sm text-red-600 dark:text-red-400 flex items-center font-body" role="alert">
-                      <AlertCircle className="h-4 w-4 mr-1.5 flex-shrink-0" />
-                      <span>{apiError}</span>
-                    </p>
-                  </div>
-                )}
-
                 {/* Submit Button */}
-                <div>
-                  <button
-                    type="submit"
-                    className="w-full py-3 px-4 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-medium rounded-xl shadow-lg shadow-primary-500/20 dark:shadow-primary-900/30 hover:shadow-primary-500/30 dark:hover:shadow-primary-800/40 transition-all duration-200 transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:ring-offset-2 dark:focus:ring-offset-gray-900 font-body"
-                  >
+                <button
+                  type="submit"
+                  className="w-full py-2.5 px-4 bg-gradient-to-r from-primary-500 to-indigo-600 text-white font-medium rounded-xl shadow-lg shadow-primary-500/30 hover:shadow-primary-500/40 transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 relative overflow-hidden group"
+                >
+                  <span className="relative z-10 flex items-center justify-center">
                     Sign Up
-                  </button>
-                </div>
+                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-primary-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                </button>
 
                 {/* Sign In Link */}
-                <div className="text-center mt-6">
-                  <p className="text-gray-600 dark:text-gray-300 font-body">
+                <div className="text-center mt-4">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     Already have an account?{" "}
-                    <a 
-                      href="/login" 
-                      className="font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 transition-colors"
+                    <Link
+                      href="/login"
+                      className="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300 transition-colors"
                     >
                       Sign In
-                    </a>
+                    </Link>
                   </p>
                 </div>
               </form>
             </div>
           </div>
+          
+          {/* Social proof */}
+          <div className="text-center mt-4 text-xs text-gray-500 dark:text-gray-400">
+            <p>Join thousands of students worldwide 🌎</p>
+          </div>
         </div>
       </div>
-      
+
       {registrationSuccess && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
           <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-xl max-w-md w-full mx-4">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Registration Successful!</h3>
-            <p className="text-gray-600 dark:text-gray-300 mb-6">
-              Please check your email for your login credentials. You will be redirected to the login page shortly.
-            </p>
-            <div className="flex justify-center">
+            <div className="text-center">
+              <CheckCircle className="mx-auto h-12 w-12 text-green-500 mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                Registration Successful!
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                Please check your email for your login credentials.
+              </p>
               <button
                 onClick={() => router.push('/login')}
                 className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
