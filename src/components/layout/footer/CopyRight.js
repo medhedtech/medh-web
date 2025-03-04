@@ -64,7 +64,7 @@ const CopyRight = () => {
           </div>
           <div className="flex items-center mt-4 text-gray-300">
             <QrCode size={14} className="mr-2 text-primary-400" />
-            <p className="text-sm font-medium tracking-wide">Scan to visit our mobile app</p>
+            <p className="text-sm font-medium tracking-wide">Follow Us On Social Media</p>
           </div>
         </div>
         
