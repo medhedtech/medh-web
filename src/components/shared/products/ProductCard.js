@@ -19,8 +19,8 @@ const ProductCard = ({ product, handleCurrentProduct }) => {
     reviews,
     color,
   } = product;
-  const { addProductToCart } = useCartContext();
-  const { addProductToWishlist } = useWishlistContext();
+  const { addProductToCart } = useCartContext() || {};
+  const { addProductToWishlist } = useWishlistContext() || {};
   const depBgs = [
     "bg-secondaryColor",
     "bg-blue",
@@ -64,6 +64,7 @@ const ProductCard = ({ product, handleCurrentProduct }) => {
 
               <button
                 onClick={() =>
+                  addProductToWishlist &&
                   addProductToWishlist({ ...product, quantity: 1 })
                 }
                 className="text-white bg-black bg-opacity-15 rounded hover:bg-primaryColor"
