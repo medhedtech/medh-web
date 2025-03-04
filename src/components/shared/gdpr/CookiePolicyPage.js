@@ -1,24 +1,35 @@
 "use client";
 
 import React from 'react';
-import BreadcrumbOne from '@/components/shared/breadcrumb/BreadcrumbOne';
-import FooterOne from '@/components/layout/footer/FooterOne';
+// import BreadcrumbOne from '@/components/shared/breadcrumb/BreadcrumbOne';
+// import FooterOne from '@/components/layout/footer/FooterOne';
 import CookieSettings from './CookieSettings';
-import HeaderOne from '@/components/layout/header/HeaderOne';
+// import HeaderOne from '@/components/layout/header/HeaderOne';
 import { CookieConsentProvider } from '@/contexts/CookieConsentContext';
+import Header from '@/components/layout/header/Header';
+import Footer from '@/components/layout/footer/Footer';
 
 const CookiePolicyPage = () => {
   return (
     <CookieConsentProvider>
       <div className="sticky-header">
         <div id="main-wrapper" className="main-wrapper">
-          <HeaderOne styles="header-style-1" />
-          <BreadcrumbOne
-            title="Cookie Policy"
-            page="Cookie Policy"
-            rootUrl="/"
-            parentUrl="Home"
-          />
+          <Header styles="header-style-1" />
+          {/* BreadcrumbOne component replaced with simple heading */}
+          <div className="edu-breadcrumb-area">
+            <div className="container">
+              <div className="breadcrumb-inner">
+                <div className="page-title">
+                  <h1 className="title">Cookie Policy</h1>
+                </div>
+                <ul className="edu-breadcrumb">
+                  <li className="breadcrumb-item"><a href="/">Home</a></li>
+                  <li className="separator"><i className="icon-angle-right"></i></li>
+                  <li className="breadcrumb-item active" aria-current="page">Cookie Policy</li>
+                </ul>
+              </div>
+            </div>
+          </div>
           
           <div className="edu-privacy-policy-area edu-section-gap bg-color-white">
             <div className="container">
@@ -109,7 +120,7 @@ const CookiePolicyPage = () => {
             </div>
           </div>
           
-          <FooterOne />
+          <Footer />
         </div>
       </div>
     </CookieConsentProvider>
