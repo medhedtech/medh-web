@@ -1,14 +1,14 @@
 import Image from "next/image";
 import React, { useState, useEffect } from "react";
-import logo1 from "@/assets/images/logo/medh.png";
+import logo1 from "@/assets/images/logo/medh_logo-1.png";
 import Link from "next/link";
-import logo0 from "@/assets/images/logo/logo_2.png";
+import logo0 from "@/assets/images/logo/medh_logo-2.png";
 import { useTheme } from "next-themes";
 
 /**
  * NavbarLogo Component
  * Renders the logo in the navbar with responsive sizing based on scroll state
- * Displays different logos for light and dark themes
+ * Displays different logos for light and dark themes with smooth transitions
  * 
  * @param {Object} props - Component props
  * @param {boolean} props.isScrolled - Whether the navbar is scrolled
@@ -16,11 +16,26 @@ import { useTheme } from "next-themes";
 const NavbarLogo = ({ isScrolled }) => {
   const [logoLoaded, setLogoLoaded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  const { theme, systemTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  const [currentTheme, setCurrentTheme] = useState('light');
+  const { theme, systemTheme, resolvedTheme } = useTheme();
 
-  // Determine current theme
-  const currentTheme = theme === 'system' ? systemTheme : theme;
-  const isDarkMode = currentTheme === 'dark';
+  // Mount effect for hydration and theme detection
+  useEffect(() => {
+    setMounted(true);
+    // Update theme on mount and theme changes
+    const updateTheme = () => {
+      const resolved = resolvedTheme || (theme === 'system' ? systemTheme : theme) || 'light';
+      setCurrentTheme(resolved);
+    };
+    updateTheme();
+  }, [theme, systemTheme, resolvedTheme]);
+
+  // Update theme when it changes
+  useEffect(() => {
+    const resolved = resolvedTheme || (theme === 'system' ? systemTheme : theme) || 'light';
+    setCurrentTheme(resolved);
+  }, [theme, systemTheme, resolvedTheme]);
 
   // Define logo size classes based on scroll state
   const logoSizeClass = isScrolled 
@@ -30,6 +45,13 @@ const NavbarLogo = ({ isScrolled }) => {
   // Handle logo hover state for interactive feedback
   const handleLogoHover = () => setIsHovered(true);
   const handleLogoLeave = () => setIsHovered(false);
+
+  // Don't render anything until mounted to prevent hydration mismatch
+  if (!mounted) {
+    return (
+      <div className={`relative ${logoSizeClass} opacity-0`} />
+    );
+  }
 
   return (
     <div className="relative">
@@ -51,13 +73,31 @@ const NavbarLogo = ({ isScrolled }) => {
               ${isHovered ? 'scale-105' : 'scale-100'}
             `}
           >
+            {/* Dark mode logo */}
             <Image
               priority
-              src={isDarkMode ? logo1 : logo0}
-              alt="Medh Logo"
+              src={logo1}
+              alt="Medh Logo Dark"
               fill
               sizes="(max-width: 768px) 140px, 160px"
-              className="object-contain"
+              className={`
+                object-contain transition-opacity duration-300
+                ${currentTheme === 'dark' ? 'opacity-100 visible' : 'opacity-0 invisible'}
+              `}
+              onLoad={() => setLogoLoaded(true)}
+            />
+            
+            {/* Light mode logo */}
+            <Image
+              priority
+              src={logo0}
+              alt="Medh Logo Light"
+              fill
+              sizes="(max-width: 768px) 140px, 160px"
+              className={`
+                object-contain transition-opacity duration-300 absolute top-0 left-0
+                ${currentTheme === 'light' ? 'opacity-100 visible' : 'opacity-0 invisible'}
+              `}
               onLoad={() => setLogoLoaded(true)}
             />
           </div>

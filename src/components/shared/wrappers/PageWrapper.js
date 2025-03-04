@@ -2,8 +2,6 @@
 import Footer from "@/components/layout/footer/Footer";
 import Header from "@/components/layout/header/Header";
 import Scrollup from "../others/Scrollup";
-import CartContextProvider from "@/contexts/CartContext";
-import WishlistContextProvider from "@/contexts/WshlistContext";
 import { useState, useEffect } from "react";
 
 const PageWrapper = ({ children }) => {
@@ -66,7 +64,6 @@ const PageWrapper = ({ children }) => {
 
   return (
     <div className="flex flex-col min-h-screen scroll-smooth">
-      <CartContextProvider>
         {/* header */}
         <Header />
 
@@ -77,13 +74,10 @@ const PageWrapper = ({ children }) => {
             ${pageLoaded ? 'opacity-100' : 'opacity-0'}
           `}
         >
-          <WishlistContextProvider>
             <div className="animate-fadeIn scroll-smooth">
               {children}
             </div>
-          </WishlistContextProvider>
         </main>
-      </CartContextProvider>
 
       {/* footer */}
       <Footer />
