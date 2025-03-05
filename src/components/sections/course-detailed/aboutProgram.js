@@ -353,7 +353,7 @@ export default function AboutProgram({ courseId }) {
       initial="hidden"
       animate="visible"
       variants={staggerContainer}
-      className="max-w-6xl mx-auto px-4 py-8 bg-white dark:bg-[#050622]"
+      className="max-w-6xl mx-auto px-4 py-8"
     >
       <motion.div 
         variants={fadeIn} 
