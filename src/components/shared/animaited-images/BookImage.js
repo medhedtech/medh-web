@@ -10,7 +10,7 @@ const BookImage = ({ type }) => {
           : "left-10 bottom-[233px] md:left-[248px] md:bottom-[143px] lg:left-10 lg:bottom-[112px] 3xl:bottom-[233px] opacity-35"
       } animate-move-var  z-10`}
       src={herobannerImage1}
-      alt=""
+      alt="Floating book illustration"
     />
   );
 };

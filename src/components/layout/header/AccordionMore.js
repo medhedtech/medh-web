@@ -52,7 +52,7 @@ const AccordionMore = () => {
         },
         {
           name: "Careers @medh",
-          path: "/careers-at-medh",
+          path: "/careers",
           badge: "Hiring",
         },
       ],
