@@ -7,14 +7,13 @@ import NavItems2 from "./NavItems2";
 import useIsTrue from "@/hooks/useIsTrue";
 import NavbarTop from "./NavbarTop";
 import { useState, useEffect, useRef, useCallback } from "react";
-import MobileMenu from "./MobileMenu";
 import NavbarSearch from "@/components/shared/search/NavbarSearch";
 
 /**
  * Main navigation component for the application
  * Handles responsive behavior, scroll effects, and layout
  */
-const Navbar = () => {
+const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => {
   // Path and page detection
   const pathname = usePathname();
   const isHome1 = useIsTrue("/");
@@ -36,20 +35,10 @@ const Navbar = () => {
   const lastScrollY = useRef(0);
   const navbarRef = useRef(null);
 
-  // Mobile detection using resize observer
+  // Mobile detection using both resize observer and props
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 1024);
-    };
-    
-    // Check initially and on resize
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    
-    return () => {
-      window.removeEventListener('resize', checkMobile);
-    };
-  }, []);
+    setIsMobile(viewportWidth > 0 ? viewportWidth < 1024 : window.innerWidth < 1024);
+  }, [viewportWidth]);
 
   // Scroll handler with debouncing for better performance
   const handleScroll = useCallback(() => {
@@ -72,9 +61,19 @@ const Navbar = () => {
     lastScrollY.current = currentScrollY;
   }, []);
 
-  // Register scroll event listener
+  // Use scrollProgress prop from parent Header component if available
   useEffect(() => {
-    window.addEventListener("scroll", handleScroll, { passive: true });
+    // Only update scrolled state if scrollProgress is coming from props
+    if (scrollProgress > 0) {
+      setIsScrolled(scrollProgress > 3);
+    }
+  }, [scrollProgress]);
+
+  // Register scroll event listener (only if scrollProgress not provided)
+  useEffect(() => {
+    if (scrollProgress === 0) {
+      window.addEventListener("scroll", handleScroll, { passive: true });
+    }
     
     // Entrance animation
     const timer = setTimeout(() => setIsVisible(true), 100);
@@ -83,7 +82,7 @@ const Navbar = () => {
       window.removeEventListener("scroll", handleScroll);
       clearTimeout(timer);
     };
-  }, [handleScroll]);
+  }, [handleScroll, scrollProgress]);
 
   // Determine container class based on page type
   const containerClass = (() => {
@@ -98,7 +97,7 @@ const Navbar = () => {
 
   // Determine navbar appearance based on state
   const navbarAppearanceClass = (() => {
-    let baseClasses = "fixed w-full transition-all duration-300 ease-in-out z-40";
+    let baseClasses = "fixed w-full transition-all duration-300 ease-in-out z-50";
     
     // Background & border based on scroll state
     if (isScrolled) {
@@ -154,22 +153,35 @@ const Navbar = () => {
               
               {/* Search bar - Visible on desktop */}
               <div className="ml-6 flex-grow-0 max-w-xs">
-                <NavbarSearch isScrolled={isScrolled} />
+                {!isSearchPage && <NavbarSearch isScrolled={isScrolled} />}
               </div>
             </div>
 
             {/* Right section with actions and mobile menu */}
             <div className="flex items-center space-x-2">
-              {/* Mobile Search */}
-              <div className="lg:hidden mr-1">
-                <NavbarSearch isScrolled={isScrolled} smallScreen={true} />
-              </div>
+              {/* Mobile Search - Removed and moved to mobile menu */}
               
               {/* User actions */}
               <NavbarRight isScrolled={isScrolled} />
               
-              {/* Mobile menu button */}
-              <MobileMenu />
+              {/* Mobile menu button - Only show when onMobileMenuOpen is provided */}
+              {typeof onMobileMenuOpen === 'function' && (
+                <button
+                  type="button"
+                  suppressHydrationWarning
+                  className="lg:hidden inline-flex items-center justify-center p-2 rounded-full text-gray-700 hover:text-gray-900 hover:bg-gray-100/80 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800/80 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-all duration-200 transform hover:scale-105"
+                  onClick={onMobileMenuOpen}
+                  aria-expanded="false"
+                  aria-label="Open main menu"
+                >
+                  <span className="sr-only">Open main menu</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6" aria-hidden="true">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                  </svg>
+                </button>
+              )}
             </div>
           </div>
         </div>

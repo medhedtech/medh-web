@@ -109,9 +109,9 @@ const Certified = () => {
                     <Image
                       src={cert.image}
                       alt={cert.alt}
-                      layout="fill"
-                      objectFit="contain"
-                      className={`transition-all duration-500 ${
+                      width={120}
+                      height={160}
+                      className={`w-full h-full object-contain transition-all duration-500 ${
                         isHovered === index ? 'transform rotate-[5deg]' : ''
                       }`}
                     />

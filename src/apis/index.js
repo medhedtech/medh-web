@@ -24,17 +24,18 @@ export const apiUrls = {
     resetPassword: "/auth/reset-password",
   },
   courses: {
+    getAllCourses: "/courses/get",
     getAllCoursesWithLimits: (
       page = 1,
       limit = 10,
-      course_title,
-      course_tag,
-      course_category,
-      status,
-      search,
-      course_grade,
-      category,
-      courseId = ""
+      course_title = "",
+      course_tag = "",
+      course_category = "",
+      status = "Published",
+      search = "",
+      course_grade = "",
+      category = [],
+      filters = {}
     ) => {
       // Helper function to safely encode URI components
       const safeEncode = (value) => {
@@ -43,130 +44,137 @@ export const apiUrls = {
       };
       
       // Build the base URL with required parameters
-      let url = `/courses/getLimitedCourses?page=${page}&limit=${limit}&status=${status || 'Published'}`;
+      let url = `/courses/search?page=${page}&limit=${limit}`;
       
-      // Add optional parameters only if they have values
-      if (course_title) url += `&course_title=${safeEncode(course_title)}`;
-      
-      // Handle course_tag parameter - could be string or array
-      if (course_tag) {
-        if (Array.isArray(course_tag)) {
-          url += `&course_tag=${course_tag.map(tag => safeEncode(tag)).join(',')}`;
-        } else {
-          url += `&course_tag=${safeEncode(course_tag)}`;
-        }
-      }
-      
-      // Handle course_category parameter - could be string, array, or comma-separated string
-      if (course_category) {
-        if (Array.isArray(course_category)) {
-          // If it's an array, join with commas
-          url += `&course_category=${course_category.map(cat => safeEncode(cat)).join(',')}`;
-        } else if (typeof course_category === 'string' && course_category.includes(',')) {
-          // If it's already a comma-separated string, split, encode each part, and rejoin
-          const categories = course_category.split(',');
-          url += `&course_category=${categories.map(cat => safeEncode(cat.trim())).join(',')}`;
-        } else {
-          // Single category
-          url += `&course_category=${safeEncode(course_category)}`;
-        }
-      }
-      
-      // Handle category parameter (legacy support) - similar to course_category
-      if (category) {
-        if (Array.isArray(category)) {
-          url += `&category=${category.map(cat => safeEncode(cat)).join(',')}`;
-        } else if (typeof category === 'string' && category.includes(',')) {
-          const categories = category.split(',');
-          url += `&category=${categories.map(cat => safeEncode(cat.trim())).join(',')}`;
-        } else {
-          url += `&category=${safeEncode(category)}`;
-        }
-      }
-      
-      // Add other optional parameters
-      if (search) url += `&search=${safeEncode(search)}`;
-      if (course_grade) url += `&course_grade=${safeEncode(course_grade)}`;
-      
-      // Only add exclude parameter if courseId is provided and not empty
-      if (courseId && typeof courseId === 'string' && courseId.trim() !== '') {
-        // Sanitize the courseId to prevent ObjectId casting errors
-        const sanitizedCourseId = courseId.replace(/['"\\]/g, ''); // Remove quotes and backslashes
-        
-        if (sanitizedCourseId) {
-          url += `&exclude=${sanitizedCourseId}`;
-        }
-      }
-      
-      return url;
-    },
-    getNewCourses: ({
-      page = 1,
-      limit = 10,
-      status,
-      course_tag,
-      search,
-      user_id,
-      course_grade,
-      course_category
-    }) => {
-      // Helper function to safely encode URI components
-      const safeEncode = (value) => {
-        if (!value) return '';
-        return encodeURIComponent(String(value).trim());
-      };
-      
-      // Build base URL with required parameters
-      let url = `/courses/getNewLimitedCourses?page=${page}&limit=${limit}`;
-      
-      // Add optional parameters only if they have values
+      // Add status if provided
       if (status) url += `&status=${safeEncode(status)}`;
-      if (user_id) url += `&user_id=${safeEncode(user_id)}`;
+      
+      // Handle search parameter first (highest priority)
+      if (search) {
+        url += `&search=${safeEncode(search)}`;
+      }
+      
+      // Add course title if provided and different from search
+      if (course_title && course_title !== search) {
+        url += `&course_title=${safeEncode(course_title)}`;
+      }
       
       // Handle course_tag parameter - could be string or array
       if (course_tag) {
         if (Array.isArray(course_tag)) {
-          // If it's an array, join with commas or use appropriate format for API
-          url += `&course_tag=${course_tag.map(tag => safeEncode(tag)).join(',')}`;
-        } else {
+          const tags = course_tag.filter(tag => tag).map(tag => safeEncode(tag));
+          if (tags.length > 0) {
+            url += `&course_tag=${tags.join(',')}`;
+          }
+        } else if (typeof course_tag === 'string' && course_tag.trim()) {
           url += `&course_tag=${safeEncode(course_tag)}`;
         }
       }
       
-      // Handle course_category parameter - could be string, array, or comma-separated string
+      // Handle course_category parameter
       if (course_category) {
         if (Array.isArray(course_category)) {
-          // If it's an array, join with commas
-          url += `&course_category=${course_category.map(cat => safeEncode(cat)).join(',')}`;
-        } else if (typeof course_category === 'string' && course_category.includes(',')) {
-          // If it's already a comma-separated string, split, encode each part, and rejoin
-          const categories = course_category.split(',');
-          url += `&course_category=${categories.map(cat => safeEncode(cat.trim())).join(',')}`;
-        } else {
-          // Single category
-          url += `&course_category=${safeEncode(course_category)}`;
+          const categories = course_category.filter(cat => cat).map(cat => safeEncode(cat));
+          if (categories.length > 0) {
+            url += `&course_category=${categories.join(',')}`;
+          }
+        } else if (typeof course_category === 'string') {
+          const categories = course_category.split(',').map(cat => cat.trim()).filter(cat => cat);
+          if (categories.length > 0) {
+            url += `&course_category=${categories.map(cat => safeEncode(cat)).join(',')}`;
+          }
         }
       }
       
-      // Add other optional parameters
-      if (search) url += `&search=${safeEncode(search)}`;
-      if (course_grade) url += `&course_grade=${safeEncode(course_grade)}`;
+      // Handle category parameter
+      if (category && category.length > 0) {
+        const categories = Array.isArray(category) ? category : [category];
+        const filteredCategories = categories.filter(cat => cat).map(cat => safeEncode(cat));
+        if (filteredCategories.length > 0) {
+          url += `&category=${filteredCategories.join(',')}`;
+        }
+      }
+      
+      // Add course grade if provided
+      if (course_grade) {
+        url += `&course_grade=${safeEncode(course_grade)}`;
+      }
+
+      // Handle additional filters
+      if (filters && typeof filters === 'object') {
+        // Handle skill level
+        if (filters.skillLevel) {
+          url += `&skill_level=${safeEncode(filters.skillLevel)}`;
+        }
+
+        // Handle course type
+        if (filters.courseType) {
+          url += `&course_type=${safeEncode(filters.courseType)}`;
+        }
+
+        // Handle language
+        if (filters.language) {
+          url += `&language=${safeEncode(filters.language)}`;
+        }
+
+        // Handle features
+        if (filters.features && Array.isArray(filters.features)) {
+          const features = filters.features.filter(f => f).map(f => safeEncode(f));
+          if (features.length > 0) {
+            url += `&features=${features.join(',')}`;
+          }
+        }
+
+        // Handle price range
+        if (filters.priceRange) {
+          if (filters.priceRange.min !== undefined) {
+            url += `&price_min=${filters.priceRange.min}`;
+          }
+          if (filters.priceRange.max !== undefined) {
+            url += `&price_max=${filters.priceRange.max}`;
+          }
+        }
+
+        // Handle duration range
+        if (filters.duration) {
+          if (filters.duration.min !== undefined) {
+            url += `&duration_min=${filters.duration.min}`;
+          }
+          if (filters.duration.max !== undefined) {
+            url += `&duration_max=${filters.duration.max}`;
+          }
+        }
+
+        // Handle sort options
+        if (filters.sortBy) {
+          url += `&sort=${safeEncode(filters.sortBy)}`;
+        }
+
+        // Handle date filters
+        if (filters.dateRange) {
+          if (filters.dateRange.start) {
+            url += `&date_start=${safeEncode(filters.dateRange.start)}`;
+          }
+          if (filters.dateRange.end) {
+            url += `&date_end=${safeEncode(filters.dateRange.end)}`;
+          }
+        }
+      }
       
       return url;
     },
-
-    getAllCourses: "/courses/get",
-    getCourseById: "/courses/get",
-    getCoorporateCourseByid: "/courses/get-coorporate",
-    createCourse: "/courses/create",
-    updateCourse: "/courses/update",
-    deleteCourse: "/courses/delete",
+    getNewCourses: "/courses/new",
     getCourseNames: "/courses/course-names",
-    getEnrolledCoursesByStudentId: "/enroll/student",
-    toggleCourseStatus: "/courses/toggle-status",
-    addRecordedVideos: "/courses/recorded-videos",
-    getRecorderVideosForUser: "/courses/recorded-videos",
-    getAllRelatedCources: "/courses/related-courses",
+    getAllRelatedCourses: "/courses/related-courses",
+    getCourseById: (id) => `/courses/get/${id}`,
+    getCoorporateCourseByid: (id) => `/courses/get-coorporate/${id}`,
+    getRecorderVideosForUser: (studentId) => `/courses/recorded-videos/${studentId}`,
+    createCourse: "/courses/create",
+    updateCourse: (id) => `/courses/update/${id}`,
+    toggleCourseStatus: (id) => `/courses/toggle-status/${id}`,
+    addRecordedVideos: (id) => `/courses/recorded-videos/${id}`,
+    deleteCourse: (id) => `/courses/delete/${id}`,
+    softDeleteCourse: (id) => `/courses/soft-delete/${id}`,
   },
   upload: {
     uploadImage: "/upload/uploadImage",
