@@ -1,130 +1,82 @@
-import accordions from "@/libs/accordions";
+"use client";
 import React from "react";
 import MobileAccordion from "./MobileAccordion";
 import Image from "next/image";
 import megamenu2 from "@/assets/images/mega/mega_menu_1.png";
+import Link from "next/link";
+
+/**
+ * AccordionCourses Component
+ * 
+ * Provides the mobile version of course navigation items,
+ * matching the structure and content of the desktop DropdownCourses component.
+ */
 const AccordionCourses = () => {
+  // Using the same course listings as in DropdownCourses.js
   const items = [
     {
-      name: "Get Started 1",
-      path: "#",
-      accordion: true,
-      items: [
-        {
-          name: "Grid",
-          status: "All Coures",
-          path: "/courses",
-        },
-        {
-          name: "Coures Grid (Dark)",
-
-          path: "/courses-dark",
-        },
-        {
-          name: "Coures Grid",
-
-          path: "/course-grid",
-        },
-        {
-          name: "Coures Grid (Dark)",
-
-          path: "/course-grid-dark",
-        },
-        {
-          name: "Coures List",
-
-          path: "/course-list",
-        },
-        {
-          name: "Coures List (Dark)",
-
-          path: "/course-list-dark",
-        },
-      ],
+      name: "AI and Data science",
+      path: "/ai-and-data-science-course",
     },
-
-    {
-      name: "Get Started 2",
-      path: "#",
-      accordion: true,
-      items: [
         {
-          name: "Course Details",
-
-          path: "/courses/1",
+          name: "Personality development",
+          path: "/personality-development-course",
         },
         {
-          name: "Course Details (Dark)",
-
-          path: "/courses-dark/1",
+          name: "Vedic Mathematics",
+          path: "/vedic-mathematics-course",
         },
         {
-          name: "Course Details 2",
-
-          path: "/course-details-2",
+          name: "Digital Marketing with Data Analytics",
+          path: "/digital-marketing-with-data-analytics-course",
         },
         {
-          name: "Details 2 (Dark)",
-
-          path: "/course-details-2-dark",
-        },
-        {
-          name: "Course Details 3",
-
-          path: "/course-details-3",
-        },
-        {
-          name: "Details 3 (Dark)",
-
-          path: "/course-details-3-dark",
-        },
-      ],
-    },
-
-    {
-      name: "Get Started 3",
-      path: "#",
-      accordion: true,
-      items: [
-        {
-          name: "Become An Instructor",
-
-          path: "/dashboards/become-an-instructor",
-        },
-        {
-          name: "Create Coure",
-          status: "Career",
-          path: "/dashboards/create-course",
-        },
-        {
-          name: "Instructor",
-
-          path: "/instructors",
-        },
-        {
-          name: "Instructor (Dark)",
-
-          path: "/instructors-dark",
-        },
-        {
-          name: "Instructor Details",
-
-          path: "/instructors/1",
-        },
-        {
-          name: "Course Lesson",
-          status: "New",
-          path: "/lessons/1",
-        },
-      ],
+          name: "View All Courses",
+      path: "/courses",
+      status: "new",
     },
   ];
+
   return (
-    <MobileAccordion items={items}>
-      <a href="#" className="pl-15px pt-3 pb-7px">
-        <Image className="w-full" src={megamenu2} alt="" placeholder="blur" />
-      </a>
-    </MobileAccordion>
+    <div className="space-y-2">
+      {/* Course navigation accordion */}
+      <MobileAccordion items={items}>
+        {/* Featured course/promo image */}
+        <div className="mt-4 rounded-lg overflow-hidden">
+          <Link href="/courses/featured" className="block">
+            <Image 
+              className="w-full h-auto rounded-lg transform transition-transform hover:scale-105 duration-300" 
+              src={megamenu2} 
+              alt="Featured Courses" 
+              placeholder="blur"
+            />
+          </Link>
+          <div className="mt-2 px-2">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Discover our most popular courses and start your learning journey today.
+            </p>
+          </div>
+        </div>
+      </MobileAccordion>
+      
+      {/* Quick links for mobile */}
+      <div className="mt-3 border-t border-gray-200 dark:border-gray-700 pt-3">
+        <div className="flex justify-between px-2">
+          <Link 
+            href="/courses/new" 
+            className="text-sm text-primary-600 dark:text-primary-400 hover:underline"
+          >
+            New Courses
+          </Link>
+          <Link 
+            href="/courses?sort=popular" 
+            className="text-sm text-primary-600 dark:text-primary-400 hover:underline"
+          >
+            Popular Courses
+          </Link>
+        </div>
+      </div>
+    </div>
   );
 };
 

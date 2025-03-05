@@ -65,240 +65,96 @@ const Hero1 = () => {
 
         <div className="max-w-[1920px] w-[92%] xl:w-[90%] mx-auto relative z-10">
           {/* Hero Content */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center min-h-[85vh] py-20">
-            {/* Mobile Hero Content */}
-            <div className={`space-y-6 md:space-y-8 transition-all duration-1000 transform text-center md:text-left px-4 md:px-0 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-              {/* Mobile-optimized Main Heading */}
-              <div className="space-y-4">
-                <h1 className="font-bold leading-tight transform transition-all duration-500 hover:scale-105 w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center min-h-[85vh] py-12 lg:py-20">
+            {/* Hero Content Left Side */}
+            <div className={`flex flex-col items-center lg:items-start justify-center transition-all duration-1000 transform text-center lg:text-left px-4 lg:px-0 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+              {/* Main Heading */}
+              <div className="w-full max-w-[500px] lg:max-w-[600px] mx-auto lg:mx-0 space-y-8">
+                <h1 className="font-bold leading-tight w-full">
                   <span 
                     style={{ 
-                      fontSize: 'min(max(1.5rem, 3.5vw), 1.5rem)',
-                      lineHeight: '1.1',
-                      letterSpacing: 'min(max(0.5px, 0.15vw), 1.5px)'
+                      fontSize: 'clamp(1.5rem, 3vw, 1.5rem)',
+                      lineHeight: '1',
+                      letterSpacing: '0.02em'
                     }} 
-                    className="block text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-200 to-gray-400 
-                      transform transition-all duration-500 hover:from-white hover:to-gray-300
-                      sm:max-w-[90%] md:max-w-[85%] lg:max-w-[80%] xl:max-w-[75%]">
+                    className="block text-white font-extrabold mb-4 lg:mb-6">
                     UNLOCK YOUR POTENTIAL WITH
                   </span>
-                  <span 
-                    className="block mt-4 relative group-hover:tracking-wider transition-all duration-500
-                      sm:max-w-[85%] md:max-w-[80%] lg:max-w-[75%] xl:max-w-[70%] flex items-center gap-3">
-                    <div className="relative h-[min(max(2rem,_5vw),_4rem)] aspect-[3/1]">
+                  <span className="block relative mx-auto lg:mx-0 mb-8">
+                    <div className="relative h-[clamp(3rem,_11vw,_5rem)] max-w-[280px] lg:max-w-[320px] mx-auto lg:mx-0">
                       <Image
                         src={medhLogo}
                         alt="Medh Logo"
                         fill
-                        className="object-contain filter brightness-200 hover:brightness-150 transition-all duration-300"
+                        className="object-contain brightness-200"
                         priority
+                        sizes="(max-width: 640px) 280px, (max-width: 1024px) 300px, 320px"
                       />
                     </div>
-                    <span className="absolute -inset-1 bg-gradient-to-r from-primary-500/20 via-purple-500/20 to-pink-500/20 
-                      blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></span>
                   </span>
                 </h1>
                 
-                <div className="space-y-4 transform transition-all duration-500 hover:scale-[1.02]
-                  sm:max-w-[90%] md:max-w-[85%] lg:max-w-[80%] xl:max-w-[75%]">
-                  <p style={{ 
-                      fontSize: 'min(max(1.1rem, 2.5vw), 1.5rem)',
+                <div className="space-y-8">
+                  <div className="flex items-center justify-center lg:justify-start gap-3 text-gray-300">
+                    <GraduationCap className="w-6 h-6 lg:w-7 lg:h-7 text-primary-400 flex-shrink-0" />
+                    <p style={{ 
+                      fontSize: 'clamp(1rem, 3vw, 1.35rem)',
                       lineHeight: '1.4'
                     }} 
-                    className="text-gray-300 leading-relaxed flex items-center gap-2">
-                    <GraduationCap className="w-6 h-6 text-primary-400" />
-                    Skill Development Courses led by Seasoned Experts
-                  </p>
-                  <div className="py-4 px-5 bg-gradient-to-br from-white/5 via-white/[0.02] to-transparent 
-                    rounded-xl backdrop-blur-sm border border-white/10 
-                    hover:border-white/20 transition-all duration-500 transform hover:scale-[1.01]
-                    hover:shadow-lg hover:shadow-primary-500/10">
-                    <h3 className="text-white/90 font-semibold mb-3 flex items-center gap-2"
-                      style={{ 
-                        fontSize: 'min(max(1rem, 1.8vw), 1.25rem)',
-                      }}>
-                      <Target className="w-5 h-5 text-primary-400" />
-                      Transforming Lives at Every Stage
-                    </h3>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="flex items-center gap-2 group p-2 rounded-lg hover:bg-white/5 transition-all duration-300">
-                        <div className="p-2 rounded-lg bg-primary-500/10 group-hover:bg-primary-500/20 transition-colors">
-                          <BookOpen className="w-4 h-4 text-primary-400 group-hover:scale-110 transition-transform" />
-                        </div>
-                        <h4 className="text-white/90 font-semibold text-base group-hover:text-primary-400 transition-colors">
-                          Children & Teens
-                        </h4>
-                      </div>
-                      <div className="flex items-center gap-2 group p-2 rounded-lg hover:bg-white/5 transition-all duration-300">
-                        <div className="p-2 rounded-lg bg-secondary-500/10 group-hover:bg-secondary-500/20 transition-colors">
-                          <Users className="w-4 h-4 text-secondary-400 group-hover:scale-110 transition-transform" />
-                        </div>
-                        <h4 className="text-white/90 font-semibold text-base group-hover:text-secondary-400 transition-colors">
-                          Professionals
-                        </h4>
-                      </div>
-                      <div className="flex items-center gap-2 group p-2 rounded-lg hover:bg-white/5 transition-all duration-300">
-                        <div className="p-2 rounded-lg bg-purple-500/10 group-hover:bg-purple-500/20 transition-colors">
-                          <Star className="w-4 h-4 text-purple-400 group-hover:scale-110 transition-transform" />
-                        </div>
-                        <h4 className="text-white/90 font-semibold text-base group-hover:text-purple-400 transition-colors">
-                          Homemakers
-                        </h4>
-                      </div>
-                      <div className="flex items-center gap-2 group p-2 rounded-lg hover:bg-white/5 transition-all duration-300">
-                        <div className="p-2 rounded-lg bg-pink-500/10 group-hover:bg-pink-500/20 transition-colors">
-                          <TrendingUp className="w-4 h-4 text-pink-400 group-hover:scale-110 transition-transform" />
-                        </div>
-                        <h4 className="text-white/90 font-semibold text-base group-hover:text-pink-400 transition-colors">
-                          Lifelong Learners
-                        </h4>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Tagline with special highlighting */}
-                <div className="relative mt-6 inline-flex items-center gap-6 group">
-                  {/* Advanced background effect */}
-                  <div className="absolute -inset-1 bg-gradient-to-r from-primary-500/40 via-secondary-500/40 to-primary-500/40 
-                    blur-lg opacity-70 animate-pulse-slow rounded-lg 
-                    dark:from-primary-500/40 dark:via-secondary-500/40 dark:to-primary-500/40
-                    light:from-primary-400/30 light:via-secondary-400/30 light:to-primary-400/30">
-                  </div>
-                  
-                  {/* Main tagline container */}
-                  <div className="relative py-3 px-6 rounded-xl backdrop-blur-sm border border-white/10 
-                    bg-gradient-to-br from-[#1E3C72]/10 to-[#2A5298]/5
-                    hover:border-[#E94E1B]/30 transition-all duration-500
-                    hover:shadow-lg hover:shadow-[#E94E1B]/20 transform hover:-translate-y-1">
-                    
-                    {/* Primary tagline with advanced animation */}
-                    <p className="text-xl md:text-2xl font-bold tracking-wide relative text-center">
-                      {/* Enhanced glow effect - now automatic instead of hover */}
-                      <span className="absolute -inset-1 bg-[#E94E1B]/10 filter blur-md rounded-lg animate-pulse-glow"></span>
-                      <span className="inline-block transition-transform duration-300
-                        font-hinglish relative animate-text-glow animate-text-pop animate-text-color" 
-                        style={{
-                          fontFamily: "'Bulgathi', 'Hind', Tahoma, Geneva, Verdana, sans-serif", 
-                          letterSpacing: "1px",
-                          fontWeight: "1000",
-                          fontSize: "calc(1.2rem + 0.8vw)",
-                          textShadow: "0 0 30px rgba(233, 78, 27, 0.3)",
-                          background: "linear-gradient(to right, #E94E1B, #1E3C72)",
-                          WebkitBackgroundClip: "text",
-                          WebkitTextFillColor: "transparent"
-                        }}>
-                        Medh Hain Toh Mumkin Hain!
-                      </span>
+                    className="font-medium">
+                      Skill Development Courses led by Seasoned Experts
                     </p>
-                    
-                    {/* Psychological impact indicators */}
-                    <div className="mt-2 flex items-center justify-center gap-4 animate-fade-in-out">
-                      <div className="flex items-center group">
-                        <span className="inline-block w-2 h-2 rounded-full bg-gradient-to-r from-[#E94E1B] to-[#FF6B6B] mr-2 
-                          animate-ping group-hover:animate-none group-hover:scale-150 transition-transform duration-500"></span>
-                        <span className="text-sm md:text-base font-bold bg-gradient-to-r from-[#E94E1B] to-[#FF6B6B] 
-                          bg-clip-text text-transparent group-hover:tracking-wider transition-all duration-300">
-                          Learn
-                        </span>
+                  </div>
+
+                  <div className="bg-[#0C1015]/60 backdrop-blur-sm rounded-xl p-5 lg:p-6 border border-white/5 hover:border-white/10 transition-colors">
+                    <h3 className="text-white/90 font-semibold mb-5 flex items-center justify-center lg:justify-start gap-2">
+                      <Target className="w-6 h-6 text-primary-400" />
+                      <span className="text-lg lg:text-xl">Transforming Lives at Every Stage</span>
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex items-center gap-3 group p-3 rounded-xl hover:bg-white/5 transition-all duration-300">
+                        <div className="p-2.5 rounded-lg bg-primary-500/10 group-hover:bg-primary-500/20 transition-colors">
+                          <BookOpen className="w-5 h-5 text-primary-400" />
+                        </div>
+                        <h4 className="text-white/90 font-medium text-base">Children & Teens</h4>
                       </div>
-                      <div className="flex items-center group">
-                        <span className="inline-block w-2 h-2 rounded-full bg-gradient-to-r from-[#1E3C72] to-[#4776E6] mr-2 
-                          animate-ping-delayed group-hover:animate-none group-hover:scale-150 transition-transform duration-500"></span>
-                        <span className="text-sm md:text-base font-bold bg-gradient-to-r from-[#1E3C72] to-[#4776E6] 
-                          bg-clip-text text-transparent group-hover:tracking-wider transition-all duration-300">
-                          Upskill
-                        </span>
+                      <div className="flex items-center gap-3 group p-3 rounded-xl hover:bg-white/5 transition-all duration-300">
+                        <div className="p-2.5 rounded-lg bg-secondary-500/10 group-hover:bg-secondary-500/20 transition-colors">
+                          <Users className="w-5 h-5 text-secondary-400" />
+                        </div>
+                        <h4 className="text-white/90 font-medium text-base">Professionals</h4>
                       </div>
-                      <div className="flex items-center group">
-                        <span className="inline-block w-2 h-2 rounded-full bg-gradient-to-r from-[#2A5298] to-[#00C6FF] mr-2 
-                          animate-ping-delayed-2 group-hover:animate-none group-hover:scale-150 transition-transform duration-500"></span>
-                        <span className="text-sm md:text-base font-bold bg-gradient-to-r from-[#2A5298] to-[#00C6FF] 
-                          bg-clip-text text-transparent group-hover:tracking-wider transition-all duration-300">
-                          Elevate
-                        </span>
+                      <div className="flex items-center gap-3 group p-3 rounded-xl hover:bg-white/5 transition-all duration-300">
+                        <div className="p-2.5 rounded-lg bg-purple-500/10 group-hover:bg-purple-500/20 transition-colors">
+                          <Star className="w-5 h-5 text-purple-400" />
+                        </div>
+                        <h4 className="text-white/90 font-medium text-base">Homemakers</h4>
+                      </div>
+                      <div className="flex items-center gap-3 group p-3 rounded-xl hover:bg-white/5 transition-all duration-300">
+                        <div className="p-2.5 rounded-lg bg-pink-500/10 group-hover:bg-pink-500/20 transition-colors">
+                          <TrendingUp className="w-5 h-5 text-pink-400" />
+                        </div>
+                        <h4 className="text-white/90 font-medium text-base">Lifelong Learners</h4>
                       </div>
                     </div>
                   </div>
 
-                  {/* STEM Logo - Now positioned to the right */}
-                  <div className="relative group">
-                    <div className="absolute -inset-2 bg-gradient-to-r from-[#E94E1B]/20 to-[#1E3C72]/20 rounded-lg blur-lg opacity-75 group-hover:opacity-100 transition duration-500"></div>
-                    <div className="relative w-auto h-full rounded-lg overflow-hidden transform group-hover:scale-105 transition duration-500">
-                      <Image
-                        src={stemImg}
-                        alt="STEM Accredited"
-                        className="w-auto h-[calc(2.5rem+1.6vw)] object-contain"
-                        style={{
-                          minHeight: '3rem',
-                          maxHeight: '4.5rem'
-                        }}
-                        priority
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-tr from-[#1E3C72]/10 via-transparent to-[#E94E1B]/10 group-hover:opacity-0 transition duration-500"></div>
-                    </div>
-                    <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-12 h-1 bg-gradient-to-r from-[#E94E1B] to-[#1E3C72] rounded-full opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
+                  {/* CTA Buttons */}
+                  <div className="flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-4 pt-2">
+                    <Link href="/courses" 
+                      className="w-full sm:w-auto group relative inline-flex items-center justify-center px-8 py-3.5 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-medium rounded-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl hover:shadow-primary-500/25 overflow-hidden">
+                      <span className="relative z-10 text-base">Let's Connect</span>
+                      <ArrowRight size={20} className="relative z-10 ml-2 transform transition-transform group-hover:translate-x-1" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
+                    </Link>
+                    <a href="#featured-courses" 
+                      className="w-full sm:w-auto group relative inline-flex items-center justify-center px-8 py-3.5 bg-white/10 hover:bg-white/15 text-white font-medium rounded-xl transition-all duration-300 backdrop-blur-sm border border-white/10 hover:border-white/20 transform hover:-translate-y-1 overflow-hidden">
+                      <span className="relative z-10 text-base">Explore Courses</span>
+                      <ChevronRight size={20} className="relative z-10 ml-2 transform transition-transform group-hover:translate-x-1" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/5 to-white/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
+                    </a>
                   </div>
                 </div>
-              </div>
-
-              {/* Enhanced Stats with Advanced Hover Effects
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-                <div className="group space-y-2 p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-all duration-300 backdrop-blur-sm border border-white/10 hover:border-white/20 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary-500/10">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-primary-500/20 group-hover:bg-primary-500/30 transition-colors">
-                      <BookOpen className="text-primary-400 group-hover:text-primary-300 transition-colors transform group-hover:scale-110 group-hover:rotate-6" size={24} />
-                    </div>
-                    <span className="text-2xl font-bold text-white group-hover:text-primary-400 transition-colors">30+</span>
-                  </div>
-                  <p className="text-gray-400 text-sm group-hover:text-gray-300 transition-colors">Expert Courses</p>
-                </div>
-                
-                <div className="group space-y-2 p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-all duration-300 backdrop-blur-sm border border-white/10 hover:border-white/20 hover:-translate-y-1 hover:shadow-xl hover:shadow-secondary-500/10">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-secondary-500/20 group-hover:bg-secondary-500/30 transition-colors">
-                      <Users className="text-secondary-400 group-hover:text-secondary-300 transition-colors transform group-hover:scale-110 group-hover:-rotate-6" size={24} />
-                    </div>
-                    <span className="text-2xl font-bold text-white group-hover:text-secondary-400 transition-colors">2000+</span>
-                  </div>
-                  <p className="text-gray-400 text-sm group-hover:text-gray-300 transition-colors">Active Learners</p>
-                </div>
-                
-                <div className="group space-y-2 p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-all duration-300 backdrop-blur-sm border border-white/10 hover:border-white/20 hover:-translate-y-1 hover:shadow-xl hover:shadow-purple-500/10">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-purple-500/20 group-hover:bg-purple-500/30 transition-colors">
-                      <Target className="text-purple-400 group-hover:text-purple-300 transition-colors transform group-hover:scale-110 group-hover:rotate-6" size={24} />
-                    </div>
-                    <span className="text-2xl font-bold text-white group-hover:text-purple-400 transition-colors">98%</span>
-                  </div>
-                  <p className="text-gray-400 text-sm group-hover:text-gray-300 transition-colors">Success Rate</p>
-                </div>
-                
-                <div className="group space-y-2 p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-all duration-300 backdrop-blur-sm border border-white/10 hover:border-white/20 hover:-translate-y-1 hover:shadow-xl hover:shadow-pink-500/10">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-pink-500/20 group-hover:bg-pink-500/30 transition-colors">
-                      <TrendingUp className="text-pink-400 group-hover:text-pink-300 transition-colors transform group-hover:scale-110 group-hover:-rotate-6" size={24} />
-                    </div>
-                    <span className="text-2xl font-bold text-white group-hover:text-pink-400 transition-colors">4.9</span>
-                  </div>
-                  <p className="text-gray-400 text-sm group-hover:text-gray-300 transition-colors">User Rating</p>
-                </div>
-              </div> */}
-
-              {/* Enhanced CTA Buttons with Advanced Hover Effects */}
-              <div className="flex flex-wrap gap-4">
-                <Link href="/courses" 
-                  className="group relative inline-flex items-center px-8 py-4 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-medium rounded-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl hover:shadow-primary-500/25 overflow-hidden">
-                  <span className="relative z-10">Let's Connect</span>
-                  <ArrowRight size={20} className="relative z-10 ml-2 transform transition-transform group-hover:translate-x-1" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
-                </Link>
-                <a href="#featured-courses" 
-                  className="group relative inline-flex items-center px-8 py-4 bg-white/10 hover:bg-white/15 text-white font-medium rounded-xl transition-all duration-300 backdrop-blur-sm border border-white/10 hover:border-white/20 transform hover:-translate-y-1 overflow-hidden">
-                  <span className="relative z-10">Explore Courses</span>
-                  <ChevronRight size={20} className="relative z-10 ml-2 transform transition-transform group-hover:translate-x-1" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/5 to-white/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
-                </a>
               </div>
             </div>
 

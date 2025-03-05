@@ -54,13 +54,25 @@ export const metadata = {
     },
   },
   icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.ico',
-    apple: '/apple-touch-icon.png',
-    other: {
-      rel: 'apple-touch-icon-precomposed',
-      url: '/apple-touch-icon-precomposed.png',
-    },
+    icon: [
+      { url: '/icons/icon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/icons/icon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/icons/icon-96x96.png', sizes: '96x96', type: 'image/png' },
+      { url: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icons/icon-384x384.png', sizes: '384x384', type: 'image/png' },
+      { url: '/icons/icon-512x512.png', sizes: '512x512', type: 'image/png' }
+    ],
+    shortcut: '/icons/icon-192x192.png',
+    apple: [
+      { url: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icons/icon-512x512.png', sizes: '512x512', type: 'image/png' }
+    ],
+    other: [
+      {
+        rel: 'apple-touch-icon-precomposed',
+        url: '/icons/icon-192x192.png'
+      }
+    ]
   },
   manifest: '/manifest.json',
   verification: {

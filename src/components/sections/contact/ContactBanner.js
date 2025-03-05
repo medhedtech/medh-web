@@ -109,9 +109,8 @@ const ContactBanner = () => {
                   <Image
                     src={family}
                     alt="Featured Image"
-                    layout="fill"
-                    objectFit="cover"
-                    className="w-full h-full"
+                    fill
+                    className="w-full h-full object-cover"
                     priority
                   />
                 </div>
