@@ -28,6 +28,7 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
   const { theme, resolvedTheme } = useTheme();
   
   // UI state
+  const [mounted, setMounted] = useState(false);
   const [isInternalOpen, setIsInternalOpen] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [activeSection, setActiveSection] = useState('main');
@@ -36,6 +37,11 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState('');
   const [userRole, setUserRole] = useState('');
+  
+  // Handle mounting state
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   // Determine actual open state based on props or internal state
   const isOpen = propIsOpen !== undefined ? propIsOpen : isInternalOpen;
@@ -310,183 +316,186 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
   
   return (
     <>
-      {/* Mobile Menu Button - Hamburger Icon (only show if we're self-managed) */}
-      {propOnClose === undefined && (
-        <button
-          type="button"
-          suppressHydrationWarning
-          className="lg:hidden inline-flex items-center justify-center p-2 rounded-full text-gray-700 hover:text-gray-900 hover:bg-gray-100/80 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800/80 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-all duration-200 transform hover:scale-105"
-          onClick={openMenu}
-          aria-expanded={isOpen}
-          aria-label="Open main menu"
-          aria-controls="mobile-menu"
-          ref={firstFocusableRef}
-        >
-          <span className="sr-only">Open main menu</span>
-          <Menu className="h-6 w-6" aria-hidden="true" />
-        </button>
-      )}
-
-      {/* Mobile Menu Panel */}
-      <div 
-        id="mobile-menu"
-        ref={menuRef}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Mobile navigation menu"
-        className={`fixed top-0 right-0 w-[280px] sm:w-[330px] h-full bg-white dark:bg-gray-900 shadow-2xl z-[999] will-change-transform transition-all duration-300 ease-out transform ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
-        } ${isAnimating ? 'transition-transform' : ''}`}
-        style={{ 
-          maxHeight: '100vh', 
-          overflowY: 'auto',
-          boxShadow: isOpen ? '-5px 0px 25px rgba(0, 0, 0, 0.15)' : 'none'
-        }}
-        onTransitionEnd={handleAnimationEnd}
-      >
-        {/* Menu Header with Back Button and Close Button */}
-        <div className="sticky top-0 flex items-center justify-between bg-white dark:bg-gray-900 px-4 py-3 border-b border-gray-200 dark:border-gray-700 z-10">
-          {/* Back button - Only show when in a submenu */}
-          {menuHistory.length > 0 ? (
+      {/* Only render client-side content after mounting */}
+      {mounted && (
+        <>
+          {/* Mobile Menu Button - Hamburger Icon (only show if we're self-managed) */}
+          {propOnClose === undefined && (
             <button
               type="button"
-              className="inline-flex items-center text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200"
-              onClick={goBack}
-              aria-label="Go back to previous menu"
+              className="lg:hidden inline-flex items-center justify-center p-2 rounded-full text-gray-700 hover:text-gray-900 hover:bg-gray-100/80 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800/80 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-all duration-200 transform hover:scale-105"
+              onClick={openMenu}
+              aria-expanded={isOpen}
+              aria-label="Open main menu"
+              aria-controls="mobile-menu"
+              ref={firstFocusableRef}
             >
-              <ChevronRight className="h-5 w-5 transform rotate-180 mr-1" />
-              <span>Back</span>
+              <span className="sr-only">Open main menu</span>
+              <Menu className="h-6 w-6" aria-hidden="true" />
             </button>
-          ) : (
-            <div className="text-lg font-semibold bg-gradient-to-r from-primary-500 to-purple-600 bg-clip-text text-transparent">
-              Menu
-            </div>
           )}
-          
-          {/* Close button */}
-          <button
-            type="button"
-            suppressHydrationWarning
-            className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
-            onClick={closeMenu}
-            aria-label="Close menu"
-            ref={closeButtonRef}
+
+          {/* Mobile Menu Panel */}
+          <div 
+            id="mobile-menu"
+            ref={menuRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Mobile navigation menu"
+            className={`fixed top-0 right-0 w-[280px] sm:w-[330px] h-full bg-white dark:bg-gray-900 shadow-2xl z-[999] will-change-transform transition-all duration-300 ease-out transform ${
+              isOpen ? 'translate-x-0' : 'translate-x-full'
+            } ${isAnimating ? 'transition-transform' : ''}`}
+            style={{ 
+              maxHeight: '100vh', 
+              overflowY: 'auto',
+              boxShadow: isOpen ? '-5px 0px 25px rgba(0, 0, 0, 0.15)' : 'none'
+            }}
+            onTransitionEnd={handleAnimationEnd}
           >
-            <span className="sr-only">Close menu</span>
-            <X className="h-5 w-5" aria-hidden="true" />
-          </button>
-        </div>
-
-        {/* Quick Search */}
-        <div className="px-4 pt-4 pb-2">
-          <form onSubmit={handleSearchSubmit} className="relative">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={handleSearchChange}
-              placeholder="Quick search..."
-              className="w-full py-2 pl-10 pr-4 text-sm text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-800 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 transition-all"
-              aria-label="Quick search"
-            />
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" />
-            <button type="submit" className="sr-only">Search</button>
-          </form>
-        </div>
-
-        {/* Mobile menu content - Main Menu */}
-        <div 
-          className={`px-4 sm:px-5 pb-28 transition-all duration-300 transform ${
-            isAnimating && activeSection !== 'main'
-              ? animationDirection === 'left' 
-                ? '-translate-x-full' 
-                : 'translate-x-full'
-              : 'translate-x-0'
-          } ${activeSection !== 'main' ? 'hidden' : ''}`}
-        >
-          {/* Main section */}
-          <div className="py-2">
-            {/* Primary Navigation */}
-            <nav aria-label="Primary navigation" className="mt-4 space-y-1">
-              {isHome2Dark ? <MobileItems2 /> : <MobileMenuItems />}
-            </nav>
-            
-            {/* User Account Section */}
-            <div className="mt-6">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3">
-                Your Account
-              </h3>
+            {/* Menu Header with Back Button and Close Button */}
+            <div className="sticky top-0 flex items-center justify-between bg-white dark:bg-gray-900 px-4 py-3 border-b border-gray-200 dark:border-gray-700 z-10">
+              {/* Back button - Only show when in a submenu */}
+              {menuHistory.length > 0 ? (
+                <button
+                  type="button"
+                  className="inline-flex items-center text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200"
+                  onClick={goBack}
+                  aria-label="Go back to previous menu"
+                >
+                  <ChevronRight className="h-5 w-5 transform rotate-180 mr-1" />
+                  <span>Back</span>
+                </button>
+              ) : (
+                <div className="text-lg font-semibold bg-gradient-to-r from-primary-500 to-purple-600 bg-clip-text text-transparent">
+                  Menu
+                </div>
+              )}
               
-              <MobileMyAccount onClose={closeMenu} />
-            </div>
-            
-            {/* Featured section */}
-            <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-              <h3 className="text-sm font-medium text-gray-900 dark:text-white flex items-center">
-                <span className="inline-block w-2 h-2 rounded-full bg-primary-500 mr-2"></span>
-                New Courses Available
-              </h3>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                Check out our latest professional certifications.
-              </p>
+              {/* Close button */}
               <button
-                className="mt-3 w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transform transition-transform hover:-translate-y-0.5"
-                onClick={() => {
-                  router.push('/courses');
-                  closeMenu();
-                }}
+                type="button"
+                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
+                onClick={closeMenu}
+                aria-label="Close menu"
+                ref={closeButtonRef}
               >
-                Browse Courses
+                <span className="sr-only">Close menu</span>
+                <X className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
-            
-            {/* Social links */}
-            <div className="mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
-              <MobileSocial />
+
+            {/* Quick Search */}
+            <div className="px-4 pt-4 pb-2">
+              <form onSubmit={handleSearchSubmit} className="relative">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  placeholder="Quick search..."
+                  className="w-full py-2 pl-10 pr-4 text-sm text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-800 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 transition-all"
+                  aria-label="Quick search"
+                />
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" />
+                <button type="submit" className="sr-only">Search</button>
+              </form>
             </div>
-          </div>
-        </div>
-        
-        {/* Settings Menu Section - Hidden by default */}
-        <div 
-          className={`px-4 sm:px-5 pb-20 transition-all duration-300 transform ${
-            isAnimating && activeSection !== 'settings'
-              ? animationDirection === 'left' 
-                ? '-translate-x-full' 
-                : 'translate-x-full'
-              : 'translate-x-0'
-          } ${activeSection !== 'settings' ? 'hidden' : ''}`}
-        >
-          <div className="py-4">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Settings</h3>
+
+            {/* Mobile menu content - Main Menu */}
+            <div 
+              className={`px-4 sm:px-5 pb-28 transition-all duration-300 transform ${
+                isAnimating && activeSection !== 'main'
+                  ? animationDirection === 'left' 
+                    ? '-translate-x-full' 
+                    : 'translate-x-full'
+                  : 'translate-x-0'
+              } ${activeSection !== 'main' ? 'hidden' : ''}`}
+            >
+              {/* Main section */}
+              <div className="py-2">
+                {/* Primary Navigation */}
+                <nav aria-label="Primary navigation" className="mt-4 space-y-1">
+                  {isHome2Dark ? <MobileItems2 /> : <MobileMenuItems />}
+                </nav>
+                
+                {/* User Account Section */}
+                <div className="mt-6">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3">
+                    Your Account
+                  </h3>
+                  
+                  <MobileMyAccount onClose={closeMenu} />
+                </div>
+                
+                {/* Featured section */}
+                <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <h3 className="text-sm font-medium text-gray-900 dark:text-white flex items-center">
+                    <span className="inline-block w-2 h-2 rounded-full bg-primary-500 mr-2"></span>
+                    New Courses Available
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    Check out our latest professional certifications.
+                  </p>
+                  <button
+                    className="mt-3 w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transform transition-transform hover:-translate-y-0.5"
+                    onClick={() => {
+                      router.push('/courses');
+                      closeMenu();
+                    }}
+                  >
+                    Browse Courses
+                  </button>
+                </div>
+                
+                {/* Social links */}
+                <div className="mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <MobileSocial />
+                </div>
+              </div>
+            </div>
             
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-700 dark:text-gray-300">Dark Mode</span>
-                <button 
-                  className="w-12 h-6 bg-gray-200 dark:bg-gray-700 rounded-full p-1 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  onClick={() => {
-                    const newTheme = resolvedTheme === 'dark' ? 'light' : 'dark';
-                    document.documentElement.classList.toggle('dark');
-                  }}
-                >
-                  <div className={`bg-white dark:bg-primary-500 w-4 h-4 rounded-full transform transition-transform duration-300 ${
-                    resolvedTheme === 'dark' ? 'translate-x-6' : 'translate-x-0'
-                  }`}></div>
-                </button>
+            {/* Settings Menu Section - Hidden by default */}
+            <div 
+              className={`px-4 sm:px-5 pb-20 transition-all duration-300 transform ${
+                isAnimating && activeSection !== 'settings'
+                  ? animationDirection === 'left' 
+                    ? '-translate-x-full' 
+                    : 'translate-x-full'
+                  : 'translate-x-0'
+              } ${activeSection !== 'settings' ? 'hidden' : ''}`}
+            >
+              <div className="py-4">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Settings</h3>
+                
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-700 dark:text-gray-300">Dark Mode</span>
+                    <button 
+                      className="w-12 h-6 bg-gray-200 dark:bg-gray-700 rounded-full p-1 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      onClick={() => {
+                        const newTheme = resolvedTheme === 'dark' ? 'light' : 'dark';
+                        document.documentElement.classList.toggle('dark');
+                      }}
+                    >
+                      <div className={`bg-white dark:bg-primary-500 w-4 h-4 rounded-full transform transition-transform duration-300 ${
+                        resolvedTheme === 'dark' ? 'translate-x-6' : 'translate-x-0'
+                      }`}></div>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
-      
-      {/* Backdrop - always present but conditionally visible */}
-      <div 
-        className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-[998] transition-opacity duration-300 ${
-          isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
-        onClick={closeMenu}
-        aria-hidden="true"
-      />
+          
+          {/* Backdrop - always present but conditionally visible */}
+          <div 
+            className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-[998] transition-opacity duration-300 ${
+              isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+            }`}
+            onClick={closeMenu}
+            aria-hidden="true"
+          />
+        </>
+      )}
     </>
   );
 };

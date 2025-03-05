@@ -153,13 +153,16 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => 
               
               {/* Search bar - Visible on desktop */}
               <div className="ml-6 flex-grow-0 max-w-xs">
-                {!isSearchPage && <NavbarSearch isScrolled={isScrolled} />}
+                <NavbarSearch isScrolled={isScrolled} />
               </div>
             </div>
 
             {/* Right section with actions and mobile menu */}
             <div className="flex items-center space-x-2">
-              {/* Mobile Search - Removed and moved to mobile menu */}
+              {/* Mobile Search */}
+              <div className="lg:hidden mr-1">
+                <NavbarSearch isScrolled={isScrolled} smallScreen={true} />
+              </div>
               
               {/* User actions */}
               <NavbarRight isScrolled={isScrolled} />

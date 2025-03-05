@@ -58,7 +58,7 @@ const FooterNavList = () => {
         },
         {
           name: "Careers at medh",
-          path: "/careers-at-medh",
+          path: "/careers",
         },
       ],
     },

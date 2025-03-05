@@ -6,7 +6,7 @@ const AiImage = () => {
     <Image
       className="absolute left-10 bottom-[10%] animate-move-var opacity-35 -z-1"
       src={aiImage}
-      alt=""
+      alt="AI technology illustration"
       placeholder="blur"
     />
   );

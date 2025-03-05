@@ -49,6 +49,22 @@ const Hero1 = () => {
     fetchFeaturedCourses();
   }, []);
 
+  const cacheManager = {
+    set: (data) => {
+      const cacheData = {
+        timestamp: Date.now(),
+        data: data
+      };
+      localStorage.setItem(JOBS_CACHE_KEY, JSON.stringify(cacheData));
+    },
+    get: () => {
+      const cache = localStorage.getItem(JOBS_CACHE_KEY);
+      if (!cache) return null;
+      const { timestamp, data } = JSON.parse(cache);
+      return Date.now() - timestamp > CACHE_DURATION ? null : data;
+    }
+  };
+
   return (
     <>
       <section style={{ paddingTop: "var(--header-height, 80px)", paddingBottom: "var(--footer-height, 80px)" }} className="relative min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 dark:from-gray-950 dark:via-gray-900 dark:to-gray-800 overflow-hidden">
@@ -81,14 +97,13 @@ const Hero1 = () => {
                     UNLOCK YOUR POTENTIAL WITH
                   </span>
                   <span className="block relative mx-auto lg:mx-0 mb-8">
-                    <div className="relative h-[clamp(3rem,_11vw,_5rem)] max-w-[280px] lg:max-w-[320px] mx-auto lg:mx-0">
+                    <div className="relative h-[clamp(3rem,_11vw,_5rem)] max-w-[150px] lg:max-w-[200px] mx-auto lg:mx-0">
                       <Image
                         src={medhLogo}
                         alt="Medh Logo"
-                        fill
-                        className="object-contain brightness-200"
+                        className=""
                         priority
-                        sizes="(max-width: 640px) 280px, (max-width: 1024px) 300px, 320px"
+                        sizes="(max-width: 630px) 280px, (max-width: 1024px) 200px, 280px"
                       />
                     </div>
                   </span>

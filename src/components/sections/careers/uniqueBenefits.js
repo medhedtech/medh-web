@@ -2,7 +2,7 @@
 import React from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-// import Arrow from "@/assets/images/join-educator/arrow1.png";
+import { Shield, Rocket, Users, Brain, Heart } from "lucide-react";
 import Logo1 from "@/assets/images/career/logo-3.svg";
 import Logo2 from "@/assets/images/career/logo-4.svg";
 import Logo3 from "@/assets/images/career/logo-5.svg";
@@ -13,122 +13,155 @@ import WelcomeCareers from "./welcomeCareers";
 // Animation variants
 const containerVariants = {
   hidden: { opacity: 0 },
-  show: {
+  visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.2
+      staggerChildren: 0.2,
+      duration: 0.5
     }
   }
 };
 
 const itemVariants = {
   hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0 }
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      duration: 0.5
+    }
+  }
 };
 
-// Benefits data
+// Benefits data with Lucide icons
 const advantagesData = [
   {
     id: 1,
-    icon: Logo1,
+    icon: <Shield className="w-8 h-8" />,
+    logo: Logo1,
     title: "Competitive Compensation",
     description:
       "We offer competitive remuneration packages and benefits to attract and retain top talent.",
+    color: "from-blue-500/20 to-blue-500/5"
   },
   {
     id: 2,
-    icon: Logo2,
+    icon: <Brain className="w-8 h-8" />,
+    logo: Logo2,
     title: "Professional Development",
     description:
       "Access to professional development programs, training sessions, and career growth opportunities.",
+    color: "from-purple-500/20 to-purple-500/5"
   },
   {
     id: 3,
-    icon: Logo3,
+    icon: <Users className="w-8 h-8" />,
+    logo: Logo3,
     title: "Collaborative Work Culture",
     description:
       "A supportive and inclusive work environment where teamwork and collaboration are encouraged.",
+    color: "from-green-500/20 to-green-500/5"
   },
 ];
 
-// Earning Potential Data
 const advantagesPotentialData = [
   {
     id: 1,
-    icon: Logo4,
+    icon: <Rocket className="w-8 h-8" />,
+    logo: Logo4,
     title: "Flexible Work Arrangements",
     description:
       "Options for remote work, work-from-home, flexible hours, and a healthy work-life balance.",
+    color: "from-orange-500/20 to-orange-500/5"
   },
   {
     id: 2,
-    icon: Logo5,
+    icon: <Heart className="w-8 h-8" />,
+    logo: Logo5,
     title: "Health and Wellness",
     description:
       "Comprehensive health and wellness programs to support your physical and mental well-being.",
+    color: "from-red-500/20 to-red-500/5"
   },
 ];
 
-const BenefitCard = ({ icon, title, description }) => (
+const BenefitCard = ({ icon, logo, title, description, color }) => (
   <motion.div
     variants={itemVariants}
-    className="px-2 pb-3 pt-1 text-center bg-white dark:bg-screen-dark dark:border-whitegrey rounded-3xl border border-[#0000004D] shadow-card-custom w-full transition-transform duration-300 ease-in-out hover:shadow-lg hover:scale-105"
+    className="relative overflow-hidden group"
   >
-    <Image
-      src={icon}
-      alt={title}
-      className="mx-auto h-16 mb-2"
-      width={64}
-      height={64}
-    />
-    <h3 className="text-[15px] leading-7 font-bold text-[#252525] dark:text-white font-Open">
-      {title}
-    </h3>
-    <p className="text-[#252525] dark:text-gray300 text-[15px] leading-7 font-normal font-Open">
-      {description}
-    </p>
+    <div className={`p-6 rounded-2xl bg-gradient-to-br ${color} backdrop-blur-sm border border-white/10 shadow-xl hover:shadow-2xl transition-all duration-300 dark:bg-gray-800/50`}>
+      <div className="flex items-start space-x-4">
+        <div className="flex-shrink-0">
+          <div className="p-3 bg-white/90 dark:bg-gray-700 rounded-xl shadow-inner">
+            <div className="text-primary-500 dark:text-primary-400">
+              {icon}
+            </div>
+          </div>
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-primary-500 transition-colors duration-300">
+            {title}
+          </h3>
+          <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+            {description}
+          </p>
+        </div>
+      </div>
+      <div className="absolute -right-8 -bottom-8 opacity-10 group-hover:opacity-20 transition-opacity duration-300">
+        <Image
+          src={logo}
+          alt={title}
+          className="w-24 h-24 transform rotate-12"
+          width={96}
+          height={96}
+        />
+      </div>
+    </div>
   </motion.div>
 );
 
 const UniqueBenefits = () => {
   return (
-    <section className="py-14 w-full dark:bg-screen-dark bg-white flex justify-center items-center">
-      <div className="w-[92%] lg:w-[80%]">
+    <section className="py-20 w-full bg-gradient-to-b from-gray-50/50 to-white dark:from-gray-900 dark:to-gray-800">
+      <div className="container mx-auto px-4 lg:px-8 max-w-7xl">
         <WelcomeCareers />
-        {/* Benefits Section */}
-        <div className="text-center px-3 lg:px-50 ">
-          <motion.h2
+        
+        <div className="text-center mb-16">
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-[#252525] text-3xl text-center font-bold pt-9 dark:text-white"
+            className="space-y-4"
           >
-            Unique Benefits and Perks
-          </motion.h2>
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white">
+              Unique Benefits and <span className="text-primary-500">Perks</span>
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+              Join our team and enjoy a comprehensive package of benefits designed to support your growth and well-being.
+            </p>
+          </motion.div>
         </div>
 
-        {/* Render the General Benefits */}
         <motion.div
           variants={containerVariants}
           initial="hidden"
-          animate="show"
-          className="mt-7 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-x-4 lg:gap-y-8 gap-y-5"
+          animate="visible"
+          className="space-y-12"
         >
-          {advantagesData.map((advantage) => (
-            <BenefitCard key={advantage.id} {...advantage} />
-          ))}
-        </motion.div>
+          {/* Primary Benefits */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {advantagesData.map((advantage) => (
+              <BenefitCard key={advantage.id} {...advantage} />
+            ))}
+          </div>
 
-        {/* Earning Potential Section */}
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="show"
-          className="mt-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 gap-5"
-        >
-          {advantagesPotentialData.map((advantage) => (
-            <BenefitCard key={advantage.id} {...advantage} />
-          ))}
+          {/* Additional Benefits */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {advantagesPotentialData.map((advantage) => (
+              <BenefitCard key={advantage.id} {...advantage} />
+            ))}
+          </div>
         </motion.div>
       </div>
     </section>
