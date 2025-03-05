@@ -67,8 +67,9 @@ const CertificationsCarousel = () => {
               <Image
                 src={cert.src}
                 alt={`Certification ${index + 1}`}
-                className="object-contain w-full h-auto max-w-[100px] max-h-[162px] mb-4" // Make the images responsive
-                layout="intrinsic" // Ensures the images maintain their aspect ratio
+                width={100}
+                height={162}
+                className="object-contain w-full h-auto max-w-[100px] max-h-[162px] mb-4"
               />
             </div>
           </SwiperSlide>
