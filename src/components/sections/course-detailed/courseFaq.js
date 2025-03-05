@@ -352,7 +352,7 @@ export default function CourseFaq({ courseId }) {
   const displayCategory = courseDetails?.category || courseDetails?.course_category || "";
 
   return (
-    <section className="w-full py-8 bg-white dark:bg-gray-900 overflow-hidden">
+    <section className="w-full py-8overflow-hidden">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
