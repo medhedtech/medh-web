@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Head from "next/head";
 import SearchResults from "@/components/sections/search/SearchResults";
+import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 
 /**
  * YouTube-style search page for the Medh platform
@@ -26,7 +27,7 @@ export default function SearchPage() {
   }, [query]);
 
   return (
-    <>
+    <PageWrapper>
       <Head>
         <title>{pageTitle}</title>
         <meta name="description" content={`Search results for ${query} on Medh platform`} />
@@ -37,6 +38,6 @@ export default function SearchPage() {
           <SearchResults initialQuery={query} />
         </div>
       </main>
-    </>
+    </PageWrapper>
   );
 } 

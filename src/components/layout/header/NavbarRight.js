@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import DropdownCart from "./DropdownCart";
 import Link from "next/link";
-import MobileMenuOpen from "@/components/shared/buttons/MobileMenuOpen";
 import useIsTrue from "@/hooks/useIsTrue";
 import LoginButton from "./LoginButton";
 import { ShoppingBag, ExternalLink, User, LogOut } from "lucide-react";
@@ -274,11 +273,6 @@ const NavbarRight = ({ isScrolled }) => {
             `}</style>
           </li>
         )}
-        
-        {/* Mobile Menu Button (showing in mobile view only) */}
-        <li className="block lg:hidden">
-          <MobileMenuOpen />
-        </li>
       </ul>
     </div>
   );
