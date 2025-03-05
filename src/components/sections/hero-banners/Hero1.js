@@ -153,6 +153,23 @@ const Hero1 = () => {
                       </div>
                     </div>
                   </div>
+                  <div className="motto-container relative mt-6 lg:mt-8">
+                    <div className="flex items-center justify-between gap-6 mb-4">
+                      <h2 className="mumkinMedh text-center lg:text-left text-transparent bg-clip-text bg-gradient-to-r from-primary-400 via-purple-400 to-secondary-400 animate-text-shimmer relative z-10 whitespace-nowrap">
+                        Medh Hain Toh Mumkin Hain!
+                      </h2>
+                      <div className="relative w-24 h-24 lg:w-28 lg:h-28 rounded-2xl transform hover:scale-105 transition-transform duration-300 flex-shrink-0 bg-gradient-to-br from-gray-900/50 to-gray-800/50 backdrop-blur-sm border border-white/5">
+                        <Image
+                          src={stemImg}
+                          alt="STEM Education"
+                          className="object-contain w-full h-full p-3"
+                          priority
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-br from-primary-500/5 to-secondary-500/5 mix-blend-overlay rounded-2xl" />
+                      </div>
+                    </div>
+                    <div className="absolute -inset-1 bg-gradient-to-r from-primary-500/20 via-purple-500/20 to-secondary-500/20 blur-lg -z-10 animate-pulse-slow"></div>
+                  </div>
 
                   {/* CTA Buttons */}
                   <div className="flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-4 pt-2">
