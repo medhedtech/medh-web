@@ -17,25 +17,12 @@ const NavbarLogo = ({ isScrolled }) => {
   const [logoLoaded, setLogoLoaded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [currentTheme, setCurrentTheme] = useState('light');
-  const { theme, systemTheme, resolvedTheme } = useTheme();
+  const { resolvedTheme } = useTheme();
 
-  // Mount effect for hydration and theme detection
+  // Mount effect for hydration
   useEffect(() => {
     setMounted(true);
-    // Update theme on mount and theme changes
-    const updateTheme = () => {
-      const resolved = resolvedTheme || (theme === 'system' ? systemTheme : theme) || 'light';
-      setCurrentTheme(resolved);
-    };
-    updateTheme();
-  }, [theme, systemTheme, resolvedTheme]);
-
-  // Update theme when it changes
-  useEffect(() => {
-    const resolved = resolvedTheme || (theme === 'system' ? systemTheme : theme) || 'light';
-    setCurrentTheme(resolved);
-  }, [theme, systemTheme, resolvedTheme]);
+  }, []);
 
   // Define logo size classes based on scroll state
   const logoSizeClass = isScrolled 
@@ -82,7 +69,7 @@ const NavbarLogo = ({ isScrolled }) => {
               sizes="(max-width: 768px) 140px, 160px"
               className={`
                 object-contain transition-opacity duration-300
-                ${currentTheme === 'dark' ? 'opacity-100 visible' : 'opacity-0 invisible'}
+                ${resolvedTheme === 'dark' ? 'opacity-100 visible' : 'opacity-0 invisible'}
               `}
               onLoad={() => setLogoLoaded(true)}
             />
@@ -96,7 +83,7 @@ const NavbarLogo = ({ isScrolled }) => {
               sizes="(max-width: 768px) 140px, 160px"
               className={`
                 object-contain transition-opacity duration-300 absolute top-0 left-0
-                ${currentTheme === 'light' ? 'opacity-100 visible' : 'opacity-0 invisible'}
+                ${resolvedTheme === 'light' ? 'opacity-100 visible' : 'opacity-0 invisible'}
               `}
               onLoad={() => setLogoLoaded(true)}
             />
