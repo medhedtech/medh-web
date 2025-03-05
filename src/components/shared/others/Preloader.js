@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import logoImage from "@/assets/images/logo/medh_logo.png";
+import logoImage from "@/assets/images/logo/medh_logo-1.png";
 import { BookOpen, Sparkles, Target, TrendingUp } from "lucide-react";
 
 const Preloader = () => {
