@@ -52,7 +52,7 @@ const DropdownMore = ({ isMenuOpen, onMenuToggle }) => {
         },
         {
           name: "Careers @medh",
-          path: "/careers-at-medh",
+          path: "/careers",
         },
         {
           name: "Contact Us",

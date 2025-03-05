@@ -447,7 +447,7 @@ const CourseCard = ({
         
         <Image
           src={!isImageError ? (course?.course_image || image6) : image6}
-          alt={course?.course_title || "Course image"}
+          alt={course?.course_title || "Course thumbnail"}
           fill
           sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
           className={`object-cover transition-transform duration-500 ${
@@ -713,7 +713,7 @@ const CourseCard = ({
         <div className="relative w-full aspect-[3/2]">
           <Image
             src={!isImageError ? (course?.course_image || image6) : image6}
-            alt={course?.course_title || "Course image"}
+            alt={course?.course_title || "Course thumbnail"}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
             className="object-cover"
@@ -1014,11 +1014,6 @@ const CourseCard = ({
       />
     </div>
   );
-};
-
-CourseCard.defaultProps = {
-  onShowRelated: () => {},
-  showRelatedButton: false
 };
 
 // Add animation styles to document

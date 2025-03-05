@@ -10,7 +10,7 @@ const BalbImage = ({ type }) => {
           : "md:left-[210px] md:top-[50px]"
       } animate-move-var2 hidden md:block  z-10`}
       src={herobannerImage3}
-      alt=""
+      alt="Light bulb illustration"
     />
   );
 };
