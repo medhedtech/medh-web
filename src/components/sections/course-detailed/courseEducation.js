@@ -389,7 +389,7 @@ function CourseEducation({ courseId, courseDetails }) {
       initial="hidden"
       animate="visible"
       variants={staggerContainer}
-      className="max-w-6xl mx-auto px-4 py-6 bg-white dark:bg-[#050622]"
+      className="max-w-6xl mx-auto px-4 py-6"
     >
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Course Image and Title */}
