@@ -16,7 +16,7 @@ const NavbarMenu = ({ menuOpen, toggleMenu }) => {
     { href: "/medh-team", label: "Medh Team" },
     { href: "/join-us-as-educator", label: "Join Us as an Educator" },
     { href: "/join-us-as-school-institute", label: "Join Us as a School / Institute" },
-    { href: "/careers-at-medh", label: "Careers @medh" },
+    { href: "/careers", label: "Careers @medh" },
     { href: "/contact-us", label: "Contact Us" },
     { href: "/blogs", label: "Blogs" },
   ];
