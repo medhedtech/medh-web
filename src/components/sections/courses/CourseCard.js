@@ -124,9 +124,10 @@ const animationStyles = `
 `;
 
 const CourseCard = ({ 
-  course, 
-  onShowRelated,
-  showRelatedButton 
+  course = {}, 
+  onShowRelated = () => {},
+  showRelatedButton = false,
+  variant = "standard"
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);

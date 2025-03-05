@@ -44,9 +44,8 @@ export default function AboutBanner({
         <Image
           src={bannerImage}
           alt="Banner Background"
-          layout="fill"
-          objectFit="cover"
-          className="opacity-40"
+          fill
+          className="opacity-40 object-cover"
           priority
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-black/40" />
@@ -144,9 +143,8 @@ export default function AboutBanner({
                   <Image
                     src={logoImage}
                     alt="Featured Image"
-                    layout="fill"
-                    objectFit="cover"
-                    className="w-full h-full"
+                    fill
+                    className="w-full h-full object-cover"
                     priority
                   />
                 </div>
