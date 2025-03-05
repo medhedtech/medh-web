@@ -241,7 +241,30 @@ h6 {
 .mumkinMedh {
   font-family: "Bulgathi", sans-serif;
   font-size: 50px !important;
-  line-height: 1.8rem !important;
+  line-height: 2.5rem !important;
+  padding: 0.5rem 0;
+  letter-spacing: 0.05em;
+  background-size: 200% auto;
+  animation: text-shimmer 3s linear infinite;
+}
+
+@keyframes text-shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@media (max-width: 768px) {
+  .mumkinMedh {
+    font-size: 40px !important;
+    line-height: 2.2rem !important;
+  }
 }
 
 @media (max-width: 1024px) {
