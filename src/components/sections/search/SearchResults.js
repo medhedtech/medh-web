@@ -15,6 +15,28 @@ import Preloader2 from "@/components/shared/others/Preloader2";
 import CourseCard from "@/components/sections/courses/CourseCard";
 // import RatingStars from "@/components/sections/courses/RatingStars";
 
+// Import the pre-defined categories list
+const categories = [
+  "AI and Data Science",
+  "AI For Professionals",
+  "Business And Management",
+  "Career Development",
+  "Communication And Soft Skills",
+  "Data And Analytics",
+  "Digital Marketing with Data Analytics",
+  "Environmental and Sustainability Skills",
+  "Finance And Accounts",
+  "Health And Wellness",
+  "Industry-Specific Skills",
+  "Language And Linguistic",
+  "Legal And Compliance Skills",
+  "Personal Well-Being",
+  "Personality Development",
+  "Sales And Marketing",
+  "Technical Skills",
+  "Vedic Mathematics",
+];
+
 /**
  * YouTube-style search results component
  * Shows filtered search results with advanced filtering options
@@ -34,12 +56,18 @@ const SearchResults = ({ initialQuery = "" }) => {
   const [sortBy, setSortBy] = useState("relevance");
   const [activeSection, setActiveSection] = useState('search');
   const [previewCourse, setPreviewCourse] = useState(null);
+  const [showingLatestFiltered, setShowingLatestFiltered] = useState(false);
 
   // Filter options
   const [selectedContentType, setSelectedContentType] = useState("all");
   const [selectedDuration, setSelectedDuration] = useState("");
   const [selectedCategory, setSelectedCategory] = useState([]);
   const [selectedDate, setSelectedDate] = useState("");
+  
+  // Available filter options from API
+  const [skillLevels, setSkillLevels] = useState([]);
+  const [languages, setLanguages] = useState([]);
+  const [features, setFeatures] = useState([]);
   
   // UI state
   const [viewMode, setViewMode] = useState("list"); // "list" or "grid"
@@ -70,28 +98,6 @@ const SearchResults = ({ initialQuery = "" }) => {
     { id: "week", label: "This week" },
     { id: "month", label: "This month" },
     { id: "year", label: "This year" }
-  ];
-  
-  // Categories (reusing from CoursesFilter)
-  const categories = [
-    "AI and Data Science",
-    "AI For Professionals",
-    "Business And Management",
-    "Career Development",
-    "Communication And Soft Skills",
-    "Data And Analytics",
-    "Digital Marketing with Data Analytics",
-    "Environmental and Sustainability Skills",
-    "Finance And Accounts",
-    "Health And Wellness",
-    "Industry-Specific Skills",
-    "Language And Linguistic",
-    "Legal And Compliance Skills",
-    "Personal Well-Being",
-    "Personality Development",
-    "Sales And Marketing",
-    "Technical Skills",
-    "Vedic Mathematics",
   ];
   
   // Sort options (similar to YouTube)
@@ -171,149 +177,458 @@ const SearchResults = ({ initialQuery = "" }) => {
     sections.forEach(section => {
       fetchSectionData(section.id, section.filter);
     });
-  }, [fetchSectionData]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Don't include fetchSectionData in dependencies
 
   // Then update the RatingStars component (temporary solution)
-  const RatingStars = ({ rating }) => (
-    <div className="flex items-center">
-      {[...Array(5)].map((_, i) => (
-        <Star
-          key={i}
-          size={16}
-          className={`${
-            i < Math.floor(rating) 
-              ? "text-yellow-400 fill-yellow-400" 
-              : "text-gray-300"
-          }`}
-        />
-      ))}
-    </div>
-  );
+  const RatingStars = ({ rating }) => {
+    // Ensure rating is a number
+    const numericRating = typeof rating === 'number' ? rating : 
+                         typeof rating === 'string' ? parseFloat(rating) || 0 : 0;
+    
+    return (
+      <div className="flex items-center">
+        {[...Array(5)].map((_, i) => (
+          <Star
+            key={i}
+            size={16}
+            className={`${
+              i < Math.floor(numericRating) 
+                ? "text-yellow-400 fill-yellow-400" 
+                : "text-gray-300"
+            }`}
+          />
+        ))}
+      </div>
+    );
+  };
 
-  // Search function
-  const performSearch = useCallback(async () => {
-    if (!query) {
-      setResults([]);
-      setTotalResults(0);
+  // Fetch latest courses based on applied filters
+  const fetchLatestFilteredCourses = useCallback(async () => {
+    // Only proceed if there are active filters but no search query
+    const hasActiveFilters = activeFilters.length > 0;
+    
+    if (!hasActiveFilters) {
       return;
     }
-
+    
     setLoading(true);
     setError(null);
-
+    setShowingLatestFiltered(true);
+    
     try {
-      // Transform filters for API
-      const contentTypeFilter = selectedContentType !== "all" ? selectedContentType : "";
+      // Build filter object that translates UI selections to API parameters
+      const filters = {
+        skillLevel: [],
+        courseType: '',
+        language: '',
+        features: [],
+        sortBy: 'newest', // Always sort by newest for latest courses
+        dateRange: {}
+      };
       
-      // Handle multiple categories
-      const categoryFilter = selectedCategory.length > 0 ? selectedCategory.join(",") : "";
-      
-      // Convert duration filter to weeks
-      let durationFilter = "";
-      if (selectedDuration === "short") durationFilter = "0-1";
-      else if (selectedDuration === "medium") durationFilter = "1-4";
-      else if (selectedDuration === "long") durationFilter = "4+";
-      
-      // Convert date filter to timestamp
-      let dateFilter = "";
-      const now = new Date();
-      if (selectedDate === "hour") {
-        const hourAgo = new Date(now.getTime() - 60 * 60 * 1000);
-        dateFilter = hourAgo.toISOString();
-      } else if (selectedDate === "today") {
-        const today = new Date(now.setHours(0, 0, 0, 0));
-        dateFilter = today.toISOString();
-      } else if (selectedDate === "week") {
-        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        dateFilter = weekAgo.toISOString();
-      } else if (selectedDate === "month") {
-        const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        dateFilter = monthAgo.toISOString();
-      } else if (selectedDate === "year") {
-        const yearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
-        dateFilter = yearAgo.toISOString();
+      // Add content type filter
+      if (selectedContentType !== 'all') {
+        filters.courseType = selectedContentType;
       }
-
-      // Map sort options to API parameters
-      let sortParam = "";
-      switch (sortBy) {
-        case "date":
-          sortParam = "newest";
-          break;
-        case "rating":
-          sortParam = "rating";
-          break;
-        case "popularity":
-          sortParam = "popular";
-          break;
-        default:
-          sortParam = "relevance";
+      
+      // Add duration filter
+      if (selectedDuration) {
+        const [min, max] = {
+          'short': [0, 1],
+          'medium': [1, 4],
+          'long': [4, 10],
+          'extended': [10, 100]
+        }[selectedDuration] || [0, 0];
+        
+        if (min > 0 || max > 0) {
+          filters.durationRange = { min, max };
+        }
       }
-
-      // Call search API with improved parameters
+      
+      // Add date filter
+      if (selectedDate) {
+        const now = new Date();
+        switch (selectedDate) {
+          case "today":
+            filters.dateRange.start = new Date(now.setHours(0, 0, 0, 0)).toISOString();
+            break;
+          case "week":
+            filters.dateRange.start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+            break;
+          case "month":
+            filters.dateRange.start = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+            break;
+          case "year":
+            filters.dateRange.start = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000).toISOString();
+            break;
+        }
+        filters.dateRange.end = now.toISOString();
+      }
+      
       const apiUrl = apiUrls?.courses?.getAllCoursesWithLimits(
-        currentPage,
-        12, // items per page
-        sortParam, // Use mapped sort parameter
-        contentTypeFilter, // course type
-        categoryFilter, // categories
+        1, // Always first page
+        5, // Limit to 5 latest courses
+        "", // No course_title filter
+        "", // course_tag
+        selectedCategory.join(','), // course_category
         "Published", // status
-        query.trim(), // search term (trimmed)
-        "", // grade (not used in search)
-        dateFilter, // upload date filter
-        durationFilter // duration filter
+        "", // No search term
+        "", // grade
+        [], // category
+        filters // filters object
       );
+      
+      console.log('Latest Filtered Courses URL:', `${apiBaseUrl}${apiUrl}`);
       
       const response = await axios.get(`${apiBaseUrl}${apiUrl}`);
       
       if (response.data) {
-        // Transform response data to match expected format
-        const transformedResults = response.data.courses.map(course => ({
-          ...course,
-          id: course._id, // Ensure id is available for key prop
-          thumbnail_url: course.thumbnail_url || course.thumbnail || "/assets/images/placeholder-course.jpg",
-          duration: course.course_duration || "Duration not specified",
-          rating: course.avg_rating || 0,
-          enrolled_count: course.enrolled_students?.length || 0,
-          category: course.course_category || course.category || "Uncategorized"
-        }));
+        // Transform and validate each course object
+        const transformedResults = (response.data.courses || []).map(course => {
+          if (!course) return null;
+          
+          try {
+            return {
+              ...course,
+              id: course._id || course.id,
+              title: course.title || course.course_title || 'Untitled Course',
+              thumbnail_url: course.thumbnail_url || course.course_image || course.thumbnail || "/assets/images/placeholder-course.jpg",
+              duration: formatDuration(course.course_duration),
+              rating: parseFloat(course.avg_rating || course.rating) || 0,
+              enrolled_count: Array.isArray(course.enrolled_students) ? course.enrolled_students.length : (course.enrolled_count || 0),
+              category: course.course_category || course.category || "Uncategorized",
+              completion_rate: calculateCompletionRate(course),
+              skill_level: course.skill_level || "All Levels",
+              last_updated: formatLastUpdated(course.updatedAt || course.updated_at),
+              instructor: formatInstructor(course.instructor),
+              preview_available: !!course.preview_video,
+              certification: !!course.certification,
+              language: course.language || "English",
+              description: course.description || course.course_description || '',
+              price: course.price || 0,
+              reviews_count: course.reviews_count || 0,
+              tags: Array.isArray(course.tags) ? course.tags : [],
+              status: course.status || "Published"
+            };
+          } catch (err) {
+            console.error('Error transforming course:', err);
+            return null;
+          }
+        }).filter(Boolean); // Remove any null results from failed transformations
 
         setResults(transformedResults);
-        setTotalResults(response.data.totalItems || 0);
-        setTotalPages(response.data.totalPages || 1);
+        setTotalResults(transformedResults.length);
+        setTotalPages(1); // Only one page for latest courses
       } else {
         setResults([]);
-        setTotalResults(0);
-        setTotalPages(1);
+        setError('Received invalid response from server');
       }
     } catch (err) {
-      console.error("Search error:", err);
-      setError("Failed to load search results. Please try again.");
+      console.error('Latest courses fetch error:', err);
       setResults([]);
-      setTotalResults(0);
+      setError(`Failed to fetch latest courses: ${err.response?.data?.message || err.message || 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
   }, [
-    query, 
-    currentPage, 
-    selectedContentType, 
-    selectedDuration, 
-    selectedCategory, 
+    activeFilters,
+    selectedContentType,
+    selectedDuration,
+    selectedCategory,
+    selectedDate
+  ]);
+
+  // Fetch search results
+  const fetchResults = useCallback(async () => {
+    if (!query.trim()) {
+      // If there are active filters but no search query, show latest filtered courses
+      if (activeFilters.length > 0) {
+        fetchLatestFilteredCourses();
+        return;
+      }
+      
+      // Otherwise, clear results
+      setResults([]);
+      setTotalResults(0);
+      setError(null);
+      setShowingLatestFiltered(false);
+      return;
+    }
+    
+    setLoading(true);
+    setError(null);
+    setShowingLatestFiltered(false);
+    
+    try {
+      // Build filter object that translates UI selections to API parameters
+      const filters = {
+        skillLevel: [],
+        courseType: '',
+        language: '',
+        features: [],
+        sortBy: 'relevance',
+        dateRange: {}
+      };
+      
+      // Add content type filter
+      if (selectedContentType !== 'all') {
+        filters.courseType = selectedContentType;
+      }
+      
+      // Add duration filter
+      if (selectedDuration) {
+        const [min, max] = {
+          'short': [0, 1],
+          'medium': [1, 4],
+          'long': [4, 10],
+          'extended': [10, 100]
+        }[selectedDuration] || [0, 0];
+        
+        if (min > 0 || max > 0) {
+          filters.durationRange = { min, max };
+        }
+      }
+      
+      // Add date filter
+      if (selectedDate) {
+        const now = new Date();
+        switch (selectedDate) {
+          case "today":
+            filters.dateRange.start = new Date(now.setHours(0, 0, 0, 0)).toISOString();
+            break;
+          case "week":
+            filters.dateRange.start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+            break;
+          case "month":
+            filters.dateRange.start = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+            break;
+          case "year":
+            filters.dateRange.start = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000).toISOString();
+            break;
+        }
+        filters.dateRange.end = now.toISOString();
+      }
+      
+      // Map sort options to API parameters
+      switch (sortBy) {
+        case "date":
+          filters.sortBy = "newest";
+          break;
+        case "rating":
+          filters.sortBy = "rating";
+          break;
+        case "popularity":
+          filters.sortBy = "popular";
+          break;
+        default:
+          filters.sortBy = "relevance";
+      }
+      
+      const apiUrl = apiUrls?.courses?.getAllCoursesWithLimits(
+        currentPage,
+        12, // items per page
+        query.trim(), // course_title
+        "", // course_tag
+        selectedCategory.join(','), // course_category
+        "Published", // status
+        query.trim(), // search term
+        "", // grade
+        [], // category
+        filters // filters object
+      );
+      
+      console.log('Search URL:', `${apiBaseUrl}${apiUrl}`);
+      console.log('Search Parameters:', {
+        query: query.trim(),
+        categoryFilter: selectedCategory,
+        currentPage,
+        selectedContentType,
+        selectedDuration,
+        selectedDate,
+        sortBy,
+        filters
+      });
+      
+      const response = await axios.get(`${apiBaseUrl}${apiUrl}`);
+      
+      console.log('Search Response:', response.data);
+      
+      if (response.data) {
+        // Transform and validate each course object
+        const transformedResults = (response.data.courses || []).map(course => {
+          if (!course) return null;
+          
+          try {
+            return {
+              ...course,
+              id: course._id || course.id,
+              title: course.title || course.course_title || 'Untitled Course',
+              thumbnail_url: course.thumbnail_url || course.course_image || course.thumbnail || "/assets/images/placeholder-course.jpg",
+              duration: formatDuration(course.course_duration),
+              rating: parseFloat(course.avg_rating || course.rating) || 0,
+              enrolled_count: Array.isArray(course.enrolled_students) ? course.enrolled_students.length : (course.enrolled_count || 0),
+              category: course.course_category || course.category || "Uncategorized",
+              completion_rate: calculateCompletionRate(course),
+              skill_level: course.skill_level || "All Levels",
+              last_updated: formatLastUpdated(course.updatedAt || course.updated_at),
+              instructor: formatInstructor(course.instructor),
+              preview_available: !!course.preview_video,
+              certification: !!course.certification,
+              language: course.language || "English",
+              description: course.description || course.course_description || '',
+              price: course.price || 0,
+              reviews_count: course.reviews_count || 0,
+              tags: Array.isArray(course.tags) ? course.tags : [],
+              status: course.status || "Published"
+            };
+          } catch (err) {
+            console.error('Error transforming course:', err);
+            return null;
+          }
+        }).filter(Boolean); // Remove any null results from failed transformations
+
+        console.log('Transformed Results:', transformedResults);
+        
+        // Additional debug logging
+        if (transformedResults.length === 0) {
+          console.log('No results after transformation. Original data:', response.data.courses);
+        } else {
+          console.log('First result sample:', transformedResults[0]);
+        }
+
+        setResults(transformedResults);
+        setTotalResults(response.data.pagination?.totalCourses || response.data.total || transformedResults.length);
+        setTotalPages(Math.max(1, Math.ceil((response.data.pagination?.totalCourses || response.data.total || transformedResults.length) / 12)));
+        
+        // Update available filters based on facets
+        if (response.data.facets) {
+          try {
+            updateAvailableFilters(response.data.facets);
+          } catch (err) {
+            console.error('Error updating filters:', err);
+            // Don't set an error state here as the search results are still valid
+          }
+        }
+        
+        // If no results found, set appropriate message
+        if (transformedResults.length === 0) {
+          setError(null); // Clear any previous errors
+        }
+      } else {
+        setResults([]);
+        setError('Received invalid response from server');
+      }
+    } catch (err) {
+      console.error('Search error:', err);
+      setResults([]);
+      setError(`Failed to fetch results: ${err.response?.data?.message || err.message || 'Unknown error'}`);
+    } finally {
+      setLoading(false);
+    }
+  }, [
+    query,
+    currentPage,
+    selectedContentType,
+    selectedDuration,
+    selectedCategory,
     selectedDate,
     sortBy
   ]);
+
+  // Helper functions for data formatting
+  const formatDuration = (duration) => {
+    if (!duration) return "Duration not specified";
+    
+    const matches = duration.match(/^(\d+)\s*(week|month|day|hour)s?$/i);
+    if (!matches) return duration;
+    
+    const value = parseInt(matches[1], 10);
+    const unit = matches[2].toLowerCase();
+    
+    switch (unit) {
+      case "week":
+        return value === 1 ? "1 week" : `${value} weeks`;
+      case "month":
+        return value === 1 ? "1 month" : `${value} months`;
+      case "day":
+        return value === 1 ? "1 day" : `${value} days`;
+      case "hour":
+        return value === 1 ? "1 hour" : `${value} hours`;
+      default:
+        return duration;
+    }
+  };
+
+  const calculateCompletionRate = (course) => {
+    if (!course.enrolled_students?.length) return 0;
+    const completedStudents = course.enrolled_students.filter(student => student.completed);
+    return Math.round((completedStudents.length / course.enrolled_students.length) * 100);
+  };
+
+  const formatLastUpdated = (date) => {
+    if (!date) return "";
+    const updatedDate = new Date(date);
+    const now = new Date();
+    const diffTime = Math.abs(now - updatedDate);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 1) return "Updated yesterday";
+    if (diffDays < 7) return `Updated ${diffDays} days ago`;
+    if (diffDays < 30) return `Updated ${Math.floor(diffDays / 7)} weeks ago`;
+    if (diffDays < 365) return `Updated ${Math.floor(diffDays / 30)} months ago`;
+    return `Updated ${Math.floor(diffDays / 365)} years ago`;
+  };
+
+  const formatInstructor = (instructor) => {
+    if (!instructor) return { name: "Unknown Instructor" };
+    return {
+      name: instructor.name || `${instructor.first_name} ${instructor.last_name}`.trim(),
+      avatar: instructor.avatar || instructor.profile_picture,
+      title: instructor.title || instructor.designation,
+      rating: instructor.rating || instructor.avg_rating || 0
+    };
+  };
+
+  // Update available filters based on facets
+  const updateAvailableFilters = (facets) => {
+    if (facets) {
+      // We're using predefined categories, so we don't need to update them from facets
+      
+      // Handle skill levels
+      if (facets.skillLevels) {
+        setSkillLevels(facets.skillLevels);
+      }
+      
+      // Handle languages
+      if (facets.languages) {
+        setLanguages(facets.languages);
+      }
+      
+      // Handle features
+      if (facets.features) {
+        setFeatures(facets.features);
+      }
+      
+      console.log('Updated available filters:', { 
+        skillLevels: facets.skillLevels,
+        languages: facets.languages,
+        features: facets.features
+      });
+    }
+  };
 
   // Update search when query changes with debounce
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
       if (query) {
-        performSearch();
+        fetchResults();
       }
     }, 300); // 300ms debounce
 
     return () => clearTimeout(debounceTimer);
-  }, [query, performSearch]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]); // Remove fetchResults from dependency array to prevent infinite loop
 
   // Search when filters change
   useEffect(() => {
@@ -356,30 +671,33 @@ const SearchResults = ({ initialQuery = "" }) => {
     // Reset to page 1 when filters change
     if (currentPage !== 1) {
       setCurrentPage(1);
+      // fetchResults will be called by the currentPage useEffect
     } else {
       // Only search if we're already on page 1
-      performSearch();
+      fetchResults();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     selectedContentType, 
     selectedDuration, 
     selectedCategory, 
     selectedDate,
-    sortBy,
-    performSearch
-  ]);
+    sortBy
+  ]); // Remove fetchResults from dependency array
   
   // Search when page changes
   useEffect(() => {
-    performSearch();
-  }, [currentPage, performSearch]);
+    fetchResults();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage]); // Remove fetchResults from dependency array
   
   // Initial search on load
   useEffect(() => {
     if (initialQuery) {
-      performSearch();
+      fetchResults();
     }
-  }, [initialQuery, performSearch]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialQuery]); // Remove fetchResults from dependency array
   
   // Update URL when query changes
   useEffect(() => {
@@ -407,7 +725,7 @@ const SearchResults = ({ initialQuery = "" }) => {
   // Handler functions
   const handleSearch = (e) => {
     e.preventDefault();
-    performSearch();
+    fetchResults();
   };
   
   const handleQueryChange = (e) => {
@@ -481,25 +799,6 @@ const SearchResults = ({ initialQuery = "" }) => {
     }
   };
   
-  // Format duration (weeks/months) for display
-  const formatDuration = (duration) => {
-    if (!duration) return "Duration not specified";
-    
-    const matches = duration.match(/^(\d+)\s*(week|month)s?$/i);
-    if (!matches) return duration;
-    
-    const value = parseInt(matches[1], 10);
-    const unit = matches[2].toLowerCase();
-    
-    if (unit === "week") {
-      return value === 1 ? "1 week" : `${value} weeks`;
-    } else if (unit === "month") {
-      return value === 1 ? "1 month" : `${value} months`;
-    }
-    
-    return duration;
-  };
-
   // Add preview handler
   const handlePreviewCourse = (course) => {
     setPreviewCourse(course);
@@ -513,19 +812,19 @@ const SearchResults = ({ initialQuery = "" }) => {
         <div className="grid grid-cols-2 gap-6">
           <div className="relative aspect-video">
             <Image
-              src={course.thumbnail}
-              alt={course.title}
+              src={course.thumbnail_url || course.thumbnail || "/assets/images/placeholder-course.jpg"}
+              alt={course.title || 'Course Preview'}
               fill
               className="rounded-lg object-cover"
             />
           </div>
           <div>
-            <h3 className="text-xl font-bold mb-4">{course.title}</h3>
+            <h3 className="text-xl font-bold mb-4">{course.title || 'Course Preview'}</h3>
             <div className="flex items-center gap-2 mb-4">
-              <RatingStars rating={course.rating} />
-              <span>({course.reviews} reviews)</span>
+              <RatingStars rating={course.rating || 0} />
+              <span>({course.reviews_count || 0} reviews)</span>
             </div>
-            <p className="text-gray-600 dark:text-gray-300 mb-4">{course.description}</p>
+            <p className="text-gray-600 dark:text-gray-300 mb-4">{typeof course.description === 'string' ? course.description : 'No description available'}</p>
             <button className="w-full bg-primary-600 text-white py-2 rounded-lg hover:bg-primary-700">
               Enroll Now
             </button>
@@ -537,39 +836,45 @@ const SearchResults = ({ initialQuery = "" }) => {
 
   return (
     <div className="container max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
-      {/* Search header with filters */}
-      <div className="mb-6 sticky top-16 z-30 bg-white dark:bg-gray-900 py-4 shadow-sm">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          {/* Search form */}
-          <form 
-            onSubmit={handleSearch}
-            className="relative flex-1 w-full sm:max-w-xl"
-          >
-            <div className="relative">
-              <input
-                type="text"
-                value={query}
-                onChange={handleQueryChange}
-                placeholder="Search for courses, lessons, instructors..."
-                className="w-full h-10 pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:text-white transition-all"
-              />
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search size={16} className="text-gray-500 dark:text-gray-400" />
-              </div>
-              {query && (
-                <button
-                  type="button"
-                  onClick={() => setQuery('')}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                >
-                  <X size={16} className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300" />
-                </button>
-              )}
+      {/* Main Search Bar - Always visible and prominent */}
+      <div className="my-8 flex flex-col items-center justify-center w-full">
+        <h1 className="text-3xl font-bold text-center mb-6 text-gray-900 dark:text-white">
+          Find Your Perfect Learning Experience
+        </h1>
+        <form 
+          onSubmit={handleSearch}
+          className="relative w-full max-w-2xl mx-auto"
+        >
+          <div className="relative">
+            <input
+              type="text"
+              value={query}
+              onChange={handleQueryChange}
+              placeholder="Search for courses, lessons, instructors..."
+              className="w-full h-14 pl-14 pr-4 py-2 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:text-white text-lg shadow-md transition-all"
+              autoFocus
+            />
+            <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+              <Search size={24} className="text-gray-500 dark:text-gray-400" />
             </div>
-          </form>
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery('')}
+                className="absolute inset-y-0 right-0 pr-5 flex items-center"
+              >
+                <X size={20} className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300" />
+              </button>
+            )}
+          </div>
+        </form>
+      </div>
 
+      {/* Filters Section */}
+      <div className="mb-6 sticky top-16 z-30 bg-white dark:bg-gray-900 py-4 shadow-sm rounded-xl">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           {/* View toggle and filter button */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 ml-auto">
             <button
               onClick={toggleViewMode}
               className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
@@ -815,6 +1120,18 @@ const SearchResults = ({ initialQuery = "" }) => {
         </div>
       )}
 
+      {/* Latest filtered courses heading */}
+      {!query && showingLatestFiltered && !loading && results.length > 0 && (
+        <div className="mb-6">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+            Latest Courses {activeFilters.length > 0 ? 'Matching Your Filters' : ''}
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400">
+            Showing the 5 most recent courses based on your selected filters.
+          </p>
+        </div>
+      )}
+
       {/* Error message */}
       {error && (
         <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg">
@@ -842,40 +1159,7 @@ const SearchResults = ({ initialQuery = "" }) => {
         </div>
       )}
 
-      {/* Preloaded sections */}
-      <div className="space-y-8 mb-12">
-        {sections.map((section) => (
-          <div key={section.id} className="relative group">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
-                {section.icon}
-                {section.label}
-              </h2>
-              <button className="text-primary-600 dark:text-primary-400 hover:underline text-sm">
-                See all →
-              </button>
-            </div>
-            
-            <div className="relative -mx-4 px-4">
-              <div className="overflow-x-auto pb-4 hide-scrollbar">
-                <div className="flex gap-4" style={{ minWidth: 'max-content' }}>
-                  {sectionData[section.id].map((course) => (
-                    <div key={course._id} className="w-72 flex-shrink-0">
-                      <CourseCard 
-                        course={course} 
-                        variant="horizontal"
-                        onHover={() => handlePreviewCourse(course)}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Results grid */}
+      {/* Results grid - show results only when a search query exists */}
       {!loading && results.length > 0 && (
         <div className={`
           ${viewMode === "list" 
@@ -884,7 +1168,7 @@ const SearchResults = ({ initialQuery = "" }) => {
         `}>
           {results.map((item) => (
             <div 
-              key={item.id} 
+              key={item.id || item._id} 
               className={`
                 group bg-white dark:bg-gray-800 rounded-xl overflow-hidden 
                 ${viewMode === "list" 
@@ -897,19 +1181,19 @@ const SearchResults = ({ initialQuery = "" }) => {
                 relative overflow-hidden
                 ${viewMode === "list" ? "w-48 h-36 flex-shrink-0" : "aspect-video w-full"}
               `}>
-                <Link href={`/course-details/${item.id}`}>
+                <Link href={`/course-details/${item.id || item._id}`}>
                   <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
                   <Image
-                    src={item.thumbnail_url || "/assets/images/placeholder-course.jpg"}
+                    src={item.thumbnail_url}
                     alt={item.title}
                     fill
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     className="object-cover transition-transform group-hover:scale-105 duration-300"
                     onLoad={(e) => e.target.previousSibling?.classList.add('hidden')}
                   />
-                  {item.course_duration && (
+                  {item.duration && (
                     <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/70 text-white text-xs rounded">
-                      {formatDuration(item.course_duration)}
+                      {item.duration}
                     </div>
                   )}
                 </Link>
@@ -917,7 +1201,7 @@ const SearchResults = ({ initialQuery = "" }) => {
               
               {/* Content */}
               <div className="flex-1 p-4">
-                <Link href={`/course-details/${item.id}`}>
+                <Link href={`/course-details/${item.id || item._id}`}>
                   <h3 className="text-base font-bold text-gray-900 dark:text-white line-clamp-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                     {item.title}
                   </h3>
@@ -931,36 +1215,36 @@ const SearchResults = ({ initialQuery = "" }) => {
                       {item.category}
                     </span>
                   )}
-                  {item.created_at && (
+                  {item.last_updated && (
                     <span className="inline-flex items-center">
                       <Calendar size={12} className="mr-1" />
-                      {new Date(item.created_at).toLocaleDateString()}
+                      {item.last_updated}
                     </span>
                   )}
                 </div>
                 
                 {/* Description */}
-                {viewMode === "list" && (
+                {viewMode === "list" && item.description && (
                   <p className="mt-2 text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
-                    {item.description || "No description available."}
+                    {item.description}
                   </p>
                 )}
                 
-                {/* Stats like views, ratings */}
+                {/* Stats */}
                 <div className="mt-3 flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
-                  {item.enrolled_count && (
+                  {typeof item.enrolled_count === 'number' && (
                     <span className="flex items-center">
                       <Users size={12} className="mr-1" />
                       {item.enrolled_count.toLocaleString()} enrolled
                     </span>
                   )}
-                  {item.avg_rating && (
+                  {item.rating > 0 && (
                     <span className="flex items-center">
                       <ThumbsUp size={12} className="mr-1" />
-                      {parseFloat(item.avg_rating).toFixed(1)}
+                      {item.rating.toFixed(1)}
                     </span>
                   )}
-                  {item.completion_rate && (
+                  {item.completion_rate > 0 && (
                     <span className="flex items-center">
                       <BarChart3 size={12} className="mr-1" />
                       {item.completion_rate}% completion
