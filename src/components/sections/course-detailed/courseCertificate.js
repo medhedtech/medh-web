@@ -5,7 +5,7 @@ import { Award } from 'lucide-react';
 
 const CertificateSection = () => {
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8 bg-white dark:bg-[#050622]">
+    <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden mb-8">
         <div className="p-6">
           <div className="flex items-center mb-6">
