@@ -159,10 +159,6 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => 
 
             {/* Right section with actions and mobile menu */}
             <div className="flex items-center space-x-2">
-              {/* Mobile Search */}
-              <div className="lg:hidden mr-1">
-                <NavbarSearch isScrolled={isScrolled} smallScreen={true} />
-              </div>
               
               {/* User actions */}
               <NavbarRight isScrolled={isScrolled} />

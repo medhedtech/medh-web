@@ -63,16 +63,17 @@ const PageWrapper = ({ children }) => {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen scroll-smooth">
+    <div className="flex flex-col min-h-screen scroll-smooth page-wrapper" role="main">
         {/* header */}
-        <Header />
+        <Header role="banner" />
 
         {/* main */}
         <main 
           className={`
-            flex-grow transition-opacity duration-500 
+            flex-grow transition-opacity duration-700 
             ${pageLoaded ? 'opacity-100' : 'opacity-0'}
           `}
+          role="main"
         >
             <div className="animate-fadeIn scroll-smooth">
               {children}
@@ -80,10 +81,10 @@ const PageWrapper = ({ children }) => {
         </main>
 
       {/* footer */}
-      <Footer />
+      <Footer role="contentinfo" className="mt-auto" />
 
       {/* scroll up */}
-      <Scrollup />
+      <Scrollup role="navigation" />
     </div>
   );
 };

@@ -32,7 +32,7 @@ const BillDetails = () => {
     // Fetch Course Details
     const fetchCourseDetailsById = () => {
       getQuery({
-        url: `${apiUrls?.courses?.getCourseById}/${courseId}`,
+        url: apiUrls.courses.getCourseById(courseId),
         onSuccess: (res) => {
           setCourseInfo(res);
           console.log("Course Info: ", res);
