@@ -1,8 +1,10 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import StarIcon from "@/assets/images/icon/StarIcon";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { isFreePrice } from "@/utils/priceUtils";
+import { Users, User } from "lucide-react";
 
 const CourseHeader = ({
   id,
@@ -15,21 +17,35 @@ const CourseHeader = ({
   hour,
   price,
   desc,
+  batchPrice,
+  minBatchSize = 2,
+  individualPrice,
 }) => {
   const router = useRouter();
   const courseId = id;
   const showEnroll =
     tag?.toLowerCase() !== "pre-recorded" && tag?.toLowerCase() !== "free";
     
-  // Use currency context for price conversion and formatting
+  const [selectedPricing, setSelectedPricing] = useState("individual");
+  
   const { convertPrice, formatPrice } = useCurrency();
   
-  // Convert price to user's selected currency
-  const convertedPrice = convertPrice(price);
-  const formattedPrice = formatPrice(convertedPrice);
+  const defaultIndividualPrice = individualPrice || price;
+  const defaultBatchPrice = batchPrice || (price ? price * 0.75 : 0);
+  
+  const convertedIndividualPrice = convertPrice(defaultIndividualPrice);
+  const convertedBatchPrice = convertPrice(defaultBatchPrice);
+  const formattedIndividualPrice = formatPrice(convertedIndividualPrice);
+  const formattedBatchPrice = formatPrice(convertedBatchPrice);
+  
+  const courseIsFree = isFreePrice(price) && isFreePrice(individualPrice) && isFreePrice(batchPrice);
+
+  const savingsPercentage = defaultIndividualPrice > 0 
+    ? Math.round(((defaultIndividualPrice - defaultBatchPrice) / defaultIndividualPrice) * 100) 
+    : 0;
 
   return (
-    <div className=" justify-between items-start md:items-center mt-6 w-[531px]">
+    <div className="justify-between items-start md:items-center mt-6 w-full max-w-[550px]">
       <div>
         <div className="">
           <div className="flex justify-between ">
@@ -149,36 +165,94 @@ const CourseHeader = ({
           </span>
         </div>
       </div>
-      {/* <button
-        onClick={() => {
-          if (!isEnrolled) {
-            router.push(`/dashboards/billing-details/${courseId}`);
-          }
-        }}
-        className="mt-4 md:mt-0 px-4 py-2 rounded-[150px] bg-primaryColor w-[530px] text-white font-semibold  hover:bg-green-600"
-      >
-        {isEnrolled ? "Enrolled" : `Enroll @${price}`}
-      </button> */}
+      
+      {showEnroll && !isEnrolled && !courseIsFree && (
+        <div className="mt-4 mb-6 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-semibold mb-3 text-gray-800 dark:text-white">Pricing Options</h3>
+          
+          <div className="flex border-b border-gray-200 dark:border-gray-700 mb-4">
+            <button
+              className={`flex items-center px-4 py-2 border-b-2 ${
+                selectedPricing === "individual" 
+                  ? "border-primaryColor text-primaryColor font-medium" 
+                  : "border-transparent text-gray-500 hover:text-gray-700"
+              }`}
+              onClick={() => setSelectedPricing("individual")}
+            >
+              <User size={16} className="mr-2" />
+              Individual
+            </button>
+            <button
+              className={`flex items-center px-4 py-2 border-b-2 ${
+                selectedPricing === "batch" 
+                  ? "border-primaryColor text-primaryColor font-medium" 
+                  : "border-transparent text-gray-500 hover:text-gray-700"
+              }`}
+              onClick={() => setSelectedPricing("batch")}
+            >
+              <Users size={16} className="mr-2" />
+              Batch ({minBatchSize}+ students)
+            </button>
+          </div>
+          
+          <div className={selectedPricing === "individual" ? "block" : "hidden"}>
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-base font-medium">Individual Enrollment</p>
+                <p className="text-sm text-gray-500">Enroll as a single student</p>
+              </div>
+              <div className="text-xl font-bold text-primaryColor">
+                {formattedIndividualPrice}
+              </div>
+            </div>
+          </div>
+          
+          <div className={selectedPricing === "batch" ? "block" : "hidden"}>
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-base font-medium">Batch Enrollment</p>
+                <p className="text-sm text-gray-500">Per student in a group of {minBatchSize}+</p>
+                {savingsPercentage > 0 && (
+                  <p className="text-sm text-green-600">Save {savingsPercentage}% per student</p>
+                )}
+              </div>
+              <div className="text-xl font-bold text-primaryColor">
+                {formattedBatchPrice}
+                <span className="block text-xs text-gray-500 text-right">per student</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {showEnroll && (
         <button
           className={`${
             isEnrolled
-              ? "mt-4 md:mt-0 px-4 py-2 rounded-[150px] bg-primaryColor w-1/2 md:w-[450px] lg:w-[530px] text-white font-semibold cursor-not-allowed opacity-50"
-              : "mt-4 md:mt-0 px-4 py-2 rounded-[150px] bg-primaryColor w-1/2 md:w-[450px] lg:w-[530px] text-white font-semibold hover:bg-green-600"
+              ? "mt-4 md:mt-0 px-4 py-2 rounded-[150px] bg-primaryColor w-full md:w-[450px] lg:w-[530px] text-white font-semibold cursor-not-allowed opacity-50"
+              : "mt-4 md:mt-0 px-4 py-2 rounded-[150px] bg-primaryColor w-full md:w-[450px] lg:w-[530px] text-white font-semibold hover:bg-green-600"
           }`}
           disabled={isEnrolled}
-          onClick={() =>
-            !isEnrolled &&
-            router.push(`/dashboards/billing-details/${courseId}`)
-          }
+          onClick={() => {
+            if (!isEnrolled) {
+              router.push(
+                `/dashboards/billing-details/${courseId}?pricingOption=${selectedPricing}`
+              );
+            }
+          }}
         >
-          {isEnrolled ? "Enrolled" : `Enroll @${formattedPrice}`}
+          {isEnrolled 
+            ? "Enrolled" 
+            : courseIsFree 
+              ? "Enroll for Free" 
+              : `Enroll Now for ${selectedPricing === "batch" ? formattedBatchPrice : formattedIndividualPrice}`
+          }
         </button>
       )}
 
       <div className="mt-6">
         <h2>About Course</h2>
-        <div className="border-t-4 text-[#565656] w-1/2 md:w-[450px] lg:w-[530px] text-size-11">
+        <div className="border-t-4 text-[#565656] w-full md:w-[450px] lg:w-[530px] text-size-11">
           <p>{desc}</p>
         </div>
       </div>

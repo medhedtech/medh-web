@@ -25,7 +25,8 @@ import {
   TrendingUp,
   Heart,
   Bookmark,
-  BarChart
+  BarChart,
+  User
 } from "lucide-react";
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { isFreePrice } from '@/utils/priceUtils';
@@ -145,6 +146,9 @@ const CourseCard = ({
   const router = useRouter();
   const { convertPrice, formatPrice: formatCurrencyPrice } = useCurrency();
 
+  // Add state for batch/individual price toggle if card supports interaction
+  const [selectedPricing, setSelectedPricing] = useState("individual");
+
   const handleImageLoad = () => setIsImageLoaded(true);
   const handleImageError = () => setIsImageError(true);
   const openModal = () => setIsModalOpen(true);
@@ -175,10 +179,27 @@ const CourseCard = ({
     });
   };
 
-  // Format price for display
-  const formatPrice = (price) => {
-    if (isFreePrice(price)) return "Free";
-    return formatCurrencyPrice(convertPrice(price));
+  // Update the formatPrice function to handle individual and batch prices
+  const formatPrice = (price, batchPrice) => {
+    if (isFreePrice(price) && (!batchPrice || isFreePrice(batchPrice))) return "Free";
+    
+    // If this is a simple price display with no batch option
+    if (!batchPrice || batchPrice === price) {
+      return formatCurrencyPrice(convertPrice(price));
+    }
+    
+    // Handle the case where we have both individual and batch pricing
+    const formattedMainPrice = formatCurrencyPrice(convertPrice(price));
+    const formattedBatchPrice = formatCurrencyPrice(convertPrice(batchPrice));
+    
+    // Return appropriate price based on selected pricing
+    return selectedPricing === "batch" ? formattedBatchPrice : formattedMainPrice;
+  };
+
+  // Calculate discount percentage for batch pricing
+  const calculateBatchDiscount = (individualPrice, batchPrice) => {
+    if (!individualPrice || !batchPrice || individualPrice <= 0 || batchPrice <= 0) return 0;
+    return Math.round(((individualPrice - batchPrice) / individualPrice) * 100);
   };
 
   // Format duration for display
@@ -646,15 +667,15 @@ const CourseCard = ({
           {course?.course_fee !== undefined && (
             <div className="flex items-baseline gap-1.5 sm:gap-2">
               <span className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
-                {formatPrice(course.course_fee)}
+                {formatPrice(course.course_fee, course.original_fee)}
               </span>
               {course?.original_fee && course.original_fee > course.course_fee && (
                   <div className="flex flex-col">
                     <span className="text-xs sm:text-sm text-gray-500 line-clamp-3">
-                  {formatPrice(course.original_fee)}
+                  {formatPrice(course.original_fee, course.original_fee)}
                 </span>
                     <span className="text-[10px] text-green-500 font-medium">
-                      {Math.round((1 - course.course_fee / course.original_fee) * 100)}% off
+                      {calculateBatchDiscount(course.course_fee, course.original_fee)}% off
                     </span>
                   </div>
               )}
@@ -936,10 +957,10 @@ const CourseCard = ({
                   <Tag size={18} className="text-green-500 mb-1" />
                   <span className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400">Price</span>
                   <div className="flex flex-col items-center">
-                    <span className="text-lg font-bold text-gray-800 dark:text-gray-200">{formatPrice(course.course_fee)}</span>
+                    <span className="text-lg font-bold text-gray-800 dark:text-gray-200">{formatPrice(course.course_fee, course.original_fee)}</span>
                     {course?.original_fee && course.original_fee > course.course_fee && (
                       <span className="text-xs text-green-500 font-medium">
-                        {Math.round((1 - course.course_fee / course.original_fee) * 100)}% off
+                        {calculateBatchDiscount(course.course_fee, course.original_fee)}% off
                       </span>
                     )}
                   </div>
