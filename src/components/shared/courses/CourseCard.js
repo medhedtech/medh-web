@@ -2,15 +2,16 @@
 import { useWishlistContext } from "@/contexts/WshlistContext";
 import Image from "next/image";
 import Link from "next/link";
-import React from "react";
+import React, { useState } from "react";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { calculateDiscountPercentage, isFreePrice } from "@/utils/priceUtils";
+import { User, Users } from "lucide-react";
 
 let insId = 0;
 const CourseCard = ({ course, type }) => {
-  // const { addProductToWishlist } = useWishlistContext();
   const { addProductToWishlist } = useWishlistContext() || {};
   const { convertPrice, formatPrice } = useCurrency();
+  const [selectedPricing, setSelectedPricing] = useState("individual");
 
   const {
     id,
@@ -19,6 +20,8 @@ const CourseCard = ({ course, type }) => {
     duration,
     image,
     price,
+    batchPrice,
+    minBatchSize = 2,
     isFree,
     insName,
     insImg,
@@ -29,10 +32,13 @@ const CourseCard = ({ course, type }) => {
     completedParchent,
   } = course;
   
-  // Convert prices to current currency
+  const defaultBatchPrice = batchPrice || (price ? price * 0.75 : 0);
   const currentPrice = price ? convertPrice(price) : convertPrice(32.00);
-  const originalPrice = price ? convertPrice(price * 2.1) : convertPrice(67.00); // Example: original price is 2.1x current price
+  const currentBatchPrice = defaultBatchPrice ? convertPrice(defaultBatchPrice) : convertPrice(24.00);
+  const originalPrice = price ? convertPrice(price * 2.1) : convertPrice(67.00);
+  
   const discountPercentage = calculateDiscountPercentage(originalPrice, currentPrice);
+  const batchDiscountPercentage = price ? Math.round(((price - defaultBatchPrice) / price) * 100) : 25;
   
   const depBgs = [
     {
@@ -183,21 +189,60 @@ const CourseCard = ({ course, type }) => {
                 {title}
               </Link>
             </h5>
-            {/* price */}
-            <div className="text-lg font-semibold text-primaryColor mb-4">
+            {/* price with batch/individual toggle */}
+            <div className="mb-4">
               {isFree ? (
-                <span className="text-greencolor">Free</span>
+                <span className="text-lg font-semibold text-green-600">Free</span>
               ) : (
                 <>
-                  {formatPrice(currentPrice)}
-                  <del className="text-sm text-lightGrey4 font-semibold ml-1">
-                    / {formatPrice(originalPrice)}
-                  </del>
-                  {discountPercentage > 0 && (
-                    <span className="ml-2 text-xs bg-secondaryColor3 text-white px-2 py-1 rounded-full">
-                      {discountPercentage}% OFF
-                    </span>
-                  )}
+                  {/* Pricing toggle */}
+                  <div className="flex space-x-2 mb-1 text-xs border-b border-gray-200 pb-1">
+                    <button
+                      onClick={() => setSelectedPricing("individual")}
+                      className={`flex items-center ${
+                        selectedPricing === "individual"
+                          ? "text-primaryColor font-medium"
+                          : "text-gray-500"
+                      }`}
+                    >
+                      <User size={12} className="mr-1" /> Individual
+                    </button>
+                    <button
+                      onClick={() => setSelectedPricing("batch")}
+                      className={`flex items-center ${
+                        selectedPricing === "batch"
+                          ? "text-primaryColor font-medium"
+                          : "text-gray-500"
+                      }`}
+                    >
+                      <Users size={12} className="mr-1" /> Batch ({minBatchSize}+)
+                    </button>
+                  </div>
+                  
+                  {/* Price display */}
+                  <div className="text-lg font-semibold text-primaryColor">
+                    {selectedPricing === "individual" ? (
+                      <>
+                        {formatPrice(currentPrice)}
+                        <del className="text-sm text-lightGrey4 font-semibold ml-1">
+                          / {formatPrice(originalPrice)}
+                        </del>
+                        {discountPercentage > 0 && (
+                          <span className="ml-2 text-xs bg-secondaryColor3 text-white px-2 py-1 rounded-full">
+                            {discountPercentage}% OFF
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        {formatPrice(currentBatchPrice)}
+                        <span className="text-xs text-gray-500 ml-1">/student</span>
+                        <span className="block text-xs text-green-600">
+                          Save {batchDiscountPercentage}% vs individual price
+                        </span>
+                      </>
+                    )}
+                  </div>
                 </>
               )}
             </div>
@@ -257,7 +302,14 @@ const CourseCard = ({ course, type }) => {
                     </Link>
                   </div>
                 ) : (
-                  ""
+                  <div>
+                    <Link
+                      href={`/dashboards/my-courses/${id}`}
+                      className="text-size-15 text-whiteColor w-full bg-secondaryColor px-25px py-10px border border-secondaryColor hover:text-secondaryColor hover:bg-whiteColor rounded inline-block text-center"
+                    >
+                      Continue Learning
+                    </Link>
+                  </div>
                 )}
               </div>
             ) : (
