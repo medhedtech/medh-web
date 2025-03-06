@@ -1371,107 +1371,43 @@ const ListOfCourse = () => {
 
   useEffect(() => {
     const fetchCourses = async (retryCount = 0) => {
-      setPageLoading(true);
-
       try {
-      await getQuery({
-        url: apiUrls?.courses?.getAllCourses,
-          onSuccess: (response) => {
-            // Handle different response formats
-            let coursesData = [];
-            if (Array.isArray(response)) {
-              coursesData = response;
-            } else if (response?.data && Array.isArray(response.data)) {
-              coursesData = response.data;
-            } else if (response?.courses && Array.isArray(response.courses)) {
-              coursesData = response.courses;
-            }
-
-            // Validate and transform course data
-            const validatedCourses = coursesData.map(course => ({
-              ...course,
-              course_title: course.course_title || 'Untitled Course',
-              course_duration: course.course_duration || 'Not specified',
-              status: course.status || 'draft',
-              created_at: course.created_at || course.createdAt || new Date().toISOString(),
-              _id: course._id || course.id // Handle different ID formats
-            }));
-
-            // Update both states to ensure compatibility
-            setCoursesData(validatedCourses);
-            setCourses(validatedCourses); // Add this line to update the courses state used by the table
-          
-          // Extract unique categories for filtering
-            const uniqueCategories = [...new Set(validatedCourses.map(course => course.course_category))].filter(Boolean);
-          setCategories(uniqueCategories);
-            
-            // Update analytics after loading courses
-            const analytics = generateAnalyticsData(validatedCourses);
-            setAnalyticsData(analytics);
-
-            // Fetch instructors for the loaded courses
-            fetchInstructors(validatedCourses);
+        await getQuery({
+          url: apiUrls.courses.getAllCourses,
+          onSuccess: (res) => {
+            setCourses(res.data);
           },
-          onFail: async (error) => {
-            console.error("Error fetching courses:", error);
-
-            // Implement retry logic
-            if (retryCount < 2) {
-              // Exponential backoff
-              await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));
-              return fetchCourses(retryCount + 1);
-            }
-
-            // Try fallback endpoint if all retries fail
-            try {
-              const fallbackUrl = `${apiUrls.baseUrl || ''}/api/courses/all`;
-              await getQuery({
-                url: fallbackUrl,
-                onSuccess: (fallbackData) => {
-                  const courses = Array.isArray(fallbackData) ? fallbackData : fallbackData?.data || [];
-                  setCoursesData(courses);
-                  setCourses(courses); // Update both states
-                },
-                onFail: (fallbackError) => {
-                  throw fallbackError;
-                }
-              });
-            } catch (fallbackError) {
-              handleApiError(error, loadingToastId, "Failed to load courses. Please try again later.");
-              // Initialize with empty arrays on complete failure
-              setCoursesData([]);
-              setCourses([]);
-            }
-          }
+          onFail: (err) => {
+            console.error("Failed to fetch courses:", err);
+            toast.error("Could not fetch courses");
+          },
         });
-      } catch (error) {
-        console.error("Unexpected error in fetchCourses:", error);
-        handleApiError(error, loadingToastId, "An unexpected error occurred while loading courses.");
-        // Initialize with empty arrays on error
-        setCoursesData([]);
-        setCourses([]);
-      } finally {
-        setPageLoading(false);
+      } catch (err) {
+        console.error("Error fetching courses:", err);
+        toast.error("Could not fetch courses");
       }
     };
 
     fetchCourses();
   }, []);
 
-    const fetchInstructors = async (retryCount = 0) => {
-      try {
-        console.log("Fetching instructors with improved method...");
-        await loadInstructorsWithFallbacks();
-      } catch (error) {
-        console.error("Instructor fetch failed completely:", error);
-        if (retryCount < 2) {
-          console.log(`Retrying instructor fetch (attempt ${retryCount + 1}/3)...`);
-          setTimeout(() => fetchInstructors(retryCount + 1), 2000);
-        } else {
-          toast.error("Failed to load instructors after multiple attempts");
-        }
-      }
-    };
+  const fetchInstructors = async (retryCount = 0) => {
+    try {
+      await getQuery({
+        url: apiUrls.Instructor.getAllInstructors,
+        onSuccess: (res) => {
+          setInstructors(res.data);
+        },
+        onFail: (err) => {
+          console.error("Failed to fetch instructors:", err);
+          toast.error("Could not fetch instructors");
+        },
+      });
+    } catch (err) {
+      console.error("Error fetching instructors:", err);
+      toast.error("Could not fetch instructors");
+    }
+  };
 
   // Special debugging function to log API URLs
   const logApiEndpoints = () => {

@@ -4,8 +4,6 @@ import AccordionController from "@/components/shared/accordion/AccordionControll
 import MobileLink from "./MobileLink";
 import Accordion from "@/components/shared/accordion/Accordion";
 import AccordionContent from "@/components/shared/accordion/AccordionContent";
-import { ChevronRight } from "lucide-react";
-
 /**
  * MobileMenuItem Component
  * 
@@ -37,7 +35,6 @@ const MobileMenuItem = ({ item }) => {
                 isRelative 
               }} 
             />
-            <ChevronRight className="w-4 h-4 transform transition-transform group-aria-expanded:rotate-90 text-gray-500 dark:text-gray-400" />
           </div>
         </AccordionController>
         <AccordionContent className="pl-3 border-l border-gray-200 dark:border-gray-700 ml-3 mt-1">

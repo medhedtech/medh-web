@@ -3,10 +3,14 @@ import { useWishlistContext } from "@/contexts/WshlistContext";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
+import { useCurrency } from "@/contexts/CurrencyContext";
+import { calculateDiscountPercentage, isFreePrice } from "@/utils/priceUtils";
+
 let insId = 0;
 const CourseCard = ({ course, type }) => {
   // const { addProductToWishlist } = useWishlistContext();
   const { addProductToWishlist } = useWishlistContext() || {};
+  const { convertPrice, formatPrice } = useCurrency();
 
   const {
     id,
@@ -24,6 +28,12 @@ const CourseCard = ({ course, type }) => {
     isCompleted,
     completedParchent,
   } = course;
+  
+  // Convert prices to current currency
+  const currentPrice = price ? convertPrice(price) : convertPrice(32.00);
+  const originalPrice = price ? convertPrice(price * 2.1) : convertPrice(67.00); // Example: original price is 2.1x current price
+  const discountPercentage = calculateDiscountPercentage(originalPrice, currentPrice);
+  
   const depBgs = [
     {
       category: "Art & Design",
@@ -125,13 +135,6 @@ const CourseCard = ({ course, type }) => {
                 </p>
               </div>
               <button
-                // onClick={() =>
-                //   addProductToWishlist({
-                //     ...course,
-                //     isCourse: true,
-                //     quantity: 1,
-                //   })
-                // }
                 onClick={() =>
                   addProductToWishlist &&
                   addProductToWishlist({
@@ -181,18 +184,22 @@ const CourseCard = ({ course, type }) => {
               </Link>
             </h5>
             {/* price */}
-            <div className="text-lg font-semibold text-primaryColor  mb-4">
-              ${price.toFixed(2)}
-              <del className="text-sm text-lightGrey4 font-semibold ml-1">
-                / $67.00
-              </del>
-              <span
-                className={`ml-6 text-base font-semibold ${
-                  isFree ? " text-greencolor" : " text-secondaryColor3"
-                }`}
-              >
-                {isFree ? "Free" : <del>Free</del>}
-              </span>
+            <div className="text-lg font-semibold text-primaryColor mb-4">
+              {isFree ? (
+                <span className="text-greencolor">Free</span>
+              ) : (
+                <>
+                  {formatPrice(currentPrice)}
+                  <del className="text-sm text-lightGrey4 font-semibold ml-1">
+                    / {formatPrice(originalPrice)}
+                  </del>
+                  {discountPercentage > 0 && (
+                    <span className="ml-2 text-xs bg-secondaryColor3 text-white px-2 py-1 rounded-full">
+                      {discountPercentage}% OFF
+                    </span>
+                  )}
+                </>
+              )}
             </div>
             {/* author and rating--> */}
             <div className="grid grid-cols-1 md:grid-cols-2 pt-15px border-t border-borderColor">

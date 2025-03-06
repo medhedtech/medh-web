@@ -175,7 +175,7 @@ export default function UpdateCourse() {
   const fetchAllCategories = async () => {
     try {
       await getQuery({
-        url: apiUrls?.categories?.getAllCategories,
+        url: apiUrls.categories.getAllCategories,
         onSuccess: (res) => {
           setCategories(res?.data || []);
         },
@@ -196,155 +196,38 @@ export default function UpdateCourse() {
   const fetchCourseDetails = async () => {
     try {
       await getQuery({
-        url: `${apiUrls?.courses?.getCourseById}/${courseId}`,
+        url: apiUrls.courses.getCourseById(courseId),
         onSuccess: (res) => {
-          const courseData = res;
+          const courseData = res.data;
           if (!courseData) return;
-          
-          // Debug log to see what's coming from the API
-          console.log('Course data from API:', courseData);
           
           // Set form values
           setValue("course_title", courseData.course_title || "");
           setValue("course_category", courseData.course_category || "");
-          
-          // Get category type from either category_type or course_mode fields. If not defined, map class_type to category_type.
-          let categoryTypeValue = courseData.category_type || courseData.course_mode || "";
-          if (!categoryTypeValue && courseData.class_type) {
-            if (courseData.class_type === "Live Courses") {
-              categoryTypeValue = "Live";
-            } else if (courseData.class_type === "Blended Courses") {
-              categoryTypeValue = "Hybrid";
-            } else if (courseData.class_type === "Corporate Training Courses") {
-              categoryTypeValue = "Pre-Recorded";
-            }
-          }
-          console.log('Setting category type to:', categoryTypeValue);
-          setValue("category_type", categoryTypeValue);
-          // Also set course_mode for consistency
-          setValue("course_mode", categoryTypeValue);
-          
+          setValue("category_type", courseData.category_type || "");
           setValue("no_of_Sessions", courseData.no_of_Sessions || 0);
+          setValue("course_duration", courseData.course_duration || "");
+          setValue("session_duration", courseData.session_duration || "");
+          setValue("course_description", courseData.course_description || "");
           setValue("course_fee", courseData.course_fee || 0);
           setValue("course_grade", courseData.course_grade || "");
-          setValue("course_description", courseData.course_description || "");
-          setValue("class_type", courseData.class_type || courseData.course_category || "");
           setValue("is_Certification", courseData.is_Certification || "No");
           setValue("is_Assignments", courseData.is_Assignments || "No");
           setValue("is_Projects", courseData.is_Projects || "No");
           setValue("is_Quizes", courseData.is_Quizes || "No");
+          setValue("min_hours_per_week", courseData.min_hours_per_week || 0);
+          setValue("max_hours_per_week", courseData.max_hours_per_week || 0);
+          setValue("related_courses", courseData.related_courses || []);
           
-          // Set efforts per week from string (e.g., "2 - 4 hours / week")
-          if (courseData.efforts_per_Week) {
-            const effortMatch = courseData.efforts_per_Week.match(/(\d+)\s*-\s*(\d+)/);
-            if (effortMatch) {
-              setValue("min_hours_per_week", parseInt(effortMatch[1]));
-              setValue("max_hours_per_week", parseInt(effortMatch[2]));
-            }
-          }
-          
-          // Set local states
+          // Update local states if needed
           setSelectedCategory(courseData.course_category || "");
           setCourseVideos(courseData.course_videos || []);
           setPdfBrochures(courseData.brochures || []);
           setThumbnailImage(courseData.course_image || null);
           setResourceVideos(courseData.resource_videos || []);
           setResourcePdfs(courseData.resource_pdfs || []);
-          
-          // Set course type and mode
-          const categoryType = categoryTypeValue;
-          setCourseTag(categoryType);
-          setCourseIsFree(categoryType === "Free" || courseData.isFree);
-          setSelectedType(categoryType);
-          
-          // Set class type
-          const classTypeValue = courseData.class_type || courseData.course_category || "";
-          setClassType(classTypeValue);
-          
-          // Set related courses
-          setSelectedCourses(courseData.related_courses || []);
-          setValue("related_courses", courseData.related_courses || []);
-          
-          // Set course attributes
-          setCourseGrade(courseData.course_grade || "");
-          setCertification(courseData.is_Certification || "No");
-          setAssignments(courseData.is_Assignments || "No");
-          setProjects(courseData.is_Projects || "No");
-          setQuizzes(courseData.is_Quizes || "No");
-          
-          // Parse duration values
-          if (courseData.course_duration) {
-            const durationParts = courseData.course_duration.split(" ");
-            if (durationParts.length >= 4) {
-              setCourseDurationValue({
-                months: durationParts[0] || "",
-                weeks: durationParts[2] || ""
-              });
-              setValue("course_duration", courseData.course_duration);
-            }
-          }
-          
-          if (courseData.session_duration) {
-            const durationParts = courseData.session_duration.split(" ");
-            if (durationParts.length >= 4) {
-              setSessionDurationValue({
-                hours: durationParts[0] || "",
-                minutes: durationParts[2] || ""
-              });
-              setValue("session_duration", courseData.session_duration);
-            }
-          }
-          
-          // Handle curriculum weeks (if available)
-          if (courseData.curriculum && Array.isArray(courseData.curriculum)) {
-            const weeks = courseData.curriculum.map(week => ({
-              weekTitle: week.weekTitle || "",
-              weekDescription: week.topics && week.topics.length > 0 ? week.topics[0] : week.weekDescription || ""
-            }));
-            setCurriculumWeeks(weeks);
-          }
-          
-          // Tools & Technologies
-          if (courseData.tools_technologies && Array.isArray(courseData.tools_technologies)) {
-            setToolsTechnologies(courseData.tools_technologies);
-          }
-          
-          // Bonus Modules
-          if (courseData.bonus_modules && Array.isArray(courseData.bonus_modules)) {
-            setBonusModules(courseData.bonus_modules);
-          }
-          
-          // FAQs
-          if (courseData.faqs && Array.isArray(courseData.faqs)) {
-            setFaqs(courseData.faqs);
-          }
-          
-          // Pricing
-          if (courseData.prices && Array.isArray(courseData.prices) && courseData.prices.length > 0) {
-            const pricesWithIds = courseData.prices.map((price, index) => ({
-              id: index + 1,
-              ...price,
-              individual: price.individual || "",
-              batch: price.batch || "",
-              min_batch_size: price.min_batch_size || 2,
-              max_batch_size: price.max_batch_size || 10,
-              early_bird_discount: price.early_bird_discount || 0,
-              group_discount: price.group_discount || 0
-            }));
-            setPrices(pricesWithIds);
-          } else if (courseData.course_fee !== undefined) {
-            // Use course_fee as default for both individual and batch price if prices array is not available
-            setPrices([{ 
-              id: 1, 
-              currency: "USD", 
-              individual: courseData.course_fee, 
-              batch: courseData.course_fee, 
-              min_batch_size: 2, 
-              max_batch_size: 10, 
-              early_bird_discount: 0, 
-              group_discount: 0
-            }]);
-          }
+          setCurriculumWeeks(courseData.curriculum || []);
+          setFaqs(courseData.faqs || []);
         },
         onFail: (err) => {
           console.error("Error Fetching Course details:", err);

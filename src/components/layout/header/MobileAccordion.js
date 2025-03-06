@@ -29,7 +29,6 @@ const MobileAccordion = ({ items, children }) => {
               <AccordionController type="primary">
                 <div className="flex items-center justify-between w-full py-2 group">
                   <MobileLinkPrimary item={{ name, path }} />
-                  <ChevronRight className="w-4 h-4 transform transition-transform duration-300 group-aria-expanded:rotate-90 text-gray-500 dark:text-gray-400" />
                 </div>
               </AccordionController>
               <AccordionContent className="pl-3 border-l border-gray-200 dark:border-gray-700 ml-2">

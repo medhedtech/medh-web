@@ -63,7 +63,7 @@ export default function AboutProgram({ courseId }) {
   const fetchCourseDetails = async (id) => {
     try {
       await getQuery({
-        url: `${apiUrls?.courses?.getCourseById}/${id}`,
+        url: apiUrls.courses.getCourseById(id),
         onSuccess: (data) => {
           console.log("Course details received:", data);
           setCourseDetails(data);
