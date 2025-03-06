@@ -145,9 +145,10 @@ export default function CourseFaq({ courseId }) {
   const fetchCourseDetails = async (id) => {
     try {
       await getQuery({
-        url: `${apiUrls?.courses?.getCourseById}/${id}`,
+        url: apiUrls.courses.getCourseById(id),
         onSuccess: (data) => {
-          console.log("Course details fetched:", data);
+          console.log("FAQ data received:", data?.course || data);
+          // Support different data structures we might receive
           setCourseDetails(data);
         },
         onFail: (err) => {

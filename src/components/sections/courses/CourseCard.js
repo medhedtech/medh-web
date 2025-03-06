@@ -27,6 +27,8 @@ import {
   Bookmark,
   BarChart
 } from "lucide-react";
+import { useCurrency } from '@/contexts/CurrencyContext';
+import { isFreePrice } from '@/utils/priceUtils';
 
 // Text adaptation hook for responsive text
 const useResponsiveText = (text, maxLength = {xs: 60, sm: 80, md: 120, lg: 180}) => {
@@ -141,6 +143,7 @@ const CourseCard = ({
   const [saveTooltipVisible, setSaveTooltipVisible] = useState(false);
   const cardRef = useRef(null);
   const router = useRouter();
+  const { convertPrice, formatPrice: formatCurrencyPrice } = useCurrency();
 
   const handleImageLoad = () => setIsImageLoaded(true);
   const handleImageError = () => setIsImageError(true);
@@ -174,12 +177,8 @@ const CourseCard = ({
 
   // Format price for display
   const formatPrice = (price) => {
-    if (!price) return "Free";
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'usd',
-      maximumFractionDigits: 0
-    }).format(price);
+    if (isFreePrice(price)) return "Free";
+    return formatCurrencyPrice(convertPrice(price));
   };
 
   // Format duration for display

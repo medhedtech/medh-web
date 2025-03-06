@@ -10,7 +10,7 @@ import { RefreshCw, ArrowLeft, BookOpen, Award, Users, Clock, ChevronDown, Share
 import Link from "next/link";
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
-import { debounce } from 'lodash';
+import { debounce, throttle } from 'lodash';
 import { Toaster } from 'react-hot-toast';
 import { ErrorBoundary } from 'react-error-boundary';
 
@@ -128,6 +128,12 @@ const LoadingSkeleton = () => (
 
 function CourseDetailedPage({ params }) {
   const { courseId } = params;
+  
+  // Prevent infinite API calls
+  const apiCallCount = useRef(0);
+  const lastFetchTime = useRef(0);
+  const isFetching = useRef(false);
+  
   const [categoryName, setCategoryName] = useState("");
   const [courseDetails, setCourseDetails] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -136,7 +142,7 @@ function CourseDetailedPage({ params }) {
   const [activeSection, setActiveSection] = useState("education");
   const [showScrollToTop, setShowScrollToTop] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
-  const { getQuery } = useGetQuery();
+  const { getQuery, postQuery } = useGetQuery();
   const router = useRouter();
   
   // Course progress tracking state
@@ -200,160 +206,345 @@ function CourseDetailedPage({ params }) {
     }
   }, []);
 
-  // SEO optimization
+  // SEO optimization - updated for safety and better handling
   const updateMetaTags = useCallback((data) => {
-    if (!data) return;
+    // Safety check for server-side rendering
+    if (typeof window === 'undefined' || typeof document === 'undefined' || !data) return;
     
-    document.title = `${data?.title || 'Course Details'} | MEDH Upskill`;
-    
-    // Update meta tags
-    const metaTags = {
-      description: data?.description || 'Course details on MEDH Upskill platform',
-      'og:title': `${data?.title} | MEDH Upskill`,
-      'og:description': data?.description,
-      'og:image': data?.thumbnail,
-      'twitter:title': `${data?.title} | MEDH Upskill`,
-      'twitter:description': data?.description,
-      'twitter:image': data?.thumbnail
-    };
-
-    Object.entries(metaTags).forEach(([name, content]) => {
-      if (!content) return;
-      const meta = document.querySelector(`meta[name="${name}"]`) || 
-                   document.querySelector(`meta[property="${name}"]`);
-      if (meta) {
-        meta.setAttribute('content', content);
-      } else {
-        const newMeta = document.createElement('meta');
-        newMeta.setAttribute(name.startsWith('og:') ? 'property' : 'name', name);
-        newMeta.setAttribute('content', content);
-        document.head.appendChild(newMeta);
-      }
-    });
+    try {
+      // Set page title
+      document.title = `${data?.title || 'Course Details'} | MEDH Upskill`;
+      
+      // Update meta tags
+      const metaTags = {
+        description: data?.description || 'Course details on MEDH Upskill platform',
+        'og:title': `${data?.title || 'Course'} | MEDH Upskill`,
+        'og:description': data?.description || 'Explore our professional courses',
+        'og:image': data?.thumbnail || '',
+        'twitter:title': `${data?.title || 'Course'} | MEDH Upskill`,
+        'twitter:description': data?.description || 'Explore our professional courses',
+        'twitter:image': data?.thumbnail || ''
+      };
+      
+      Object.entries(metaTags).forEach(([name, content]) => {
+        if (!content) return;
+        
+        try {
+          const meta = document.querySelector(`meta[name="${name}"]`) || 
+                     document.querySelector(`meta[property="${name}"]`);
+          
+          if (meta) {
+            meta.setAttribute('content', content);
+          } else {
+            const newMeta = document.createElement('meta');
+            newMeta.setAttribute(name.startsWith('og:') ? 'property' : 'name', name);
+            newMeta.setAttribute('content', content);
+            document.head.appendChild(newMeta);
+          }
+        } catch (e) {
+          console.error(`Error setting meta tag ${name}:`, e);
+        }
+      });
+    } catch (error) {
+      console.error('Error updating meta tags:', error);
+    }
   }, []);
 
-  // Optimized data fetching
-  const fetchCourseDetails = useCallback(async (attempt = 0) => {
+  // Basic throttle function to prevent too many API calls
+  const shouldAllowApiCall = useCallback(() => {
+    const now = Date.now();
+    
+    // Only allow 1 call every 2 seconds
+    if (now - lastFetchTime.current < 2000) {
+      console.log("API call throttled - too frequent");
+      return false;
+    }
+    
+    // Limit total calls to avoid browser crash
+    if (apiCallCount.current > 5) {
+      console.log("API call throttled - too many calls");
+      return false;
+    }
+    
+    // No concurrent calls
+    if (isFetching.current) {
+      console.log("API call throttled - already fetching");
+      return false;
+    }
+    
+    return true;
+  }, []);
+
+  // Simple fetch course details with safeguards
+  const fetchCourseDetails = useCallback(() => {
+    if (!shouldAllowApiCall()) {
+      console.log("API call skipped due to throttling");
+      return; 
+    }
+    
+    // Set fetch flags
+    isFetching.current = true;
+    lastFetchTime.current = Date.now();
+    apiCallCount.current++;
+    
+    console.log(`Fetching course details for ID: ${courseId}, attempt ${apiCallCount.current}`);
+    setLoading(true);
+    
     try {
-      setLoading(true);
-      setError(null);
-
-      const response = await getQuery({
-        url: courseApiUrl,
-        onSuccess: (data) => {
-          if (!data) throw new Error('No data received');
+      getQuery({
+        url: apiUrls.courses.getCourseById(courseId), 
+        onSuccess: (response) => {
+          console.log("API RESPONSE:", JSON.stringify(response).substring(0, 300) + "...");
+          isFetching.current = false;
           
-          setCategoryName(data?.category || "");
-          setCourseDetails(data);
+          // Handle multiple possible response formats
+          let courseData = null;
+          
+          // Format 1: { course: { ... } }
+          if (response && response.course) {
+            courseData = response.course;
+            console.log("Format 1 detected: response.course");
+          } 
+          // Format 2: { success: true, data: { ... } }
+          else if (response && response.success && response.data) {
+            courseData = response.data;
+            console.log("Format 2 detected: response.data");
+          }
+          // Format 3: Direct course object
+          else if (response && (response.title || response._id)) {
+            courseData = response;
+            console.log("Format 3 detected: direct course object");
+          }
+          
+          if (courseData) {
+            console.log("Course data extracted:", JSON.stringify({
+              id: courseData._id,
+              title: courseData.title,
+              category: courseData.category
+            }));
+            
+            setCourseDetails(courseData);
+            setCategoryName(courseData.category || "");
+            
+            // Update meta tags for SEO if on client side
+            if (typeof window !== 'undefined') {
+              updateMetaTags(courseData);
+            }
+            
+            // Success - stop more calls
+            apiCallCount.current = 10;
+          } else {
+            console.error("Failed to extract course data from response:", response);
+            setError('Course details not found in API response');
+          }
+          
           setLoading(false);
-          
-          // Update meta tags for SEO
-          updateMetaTags(data);
-
-          // Reset retry count on success
-          setRetryCount(0);
         },
         onFail: (err) => {
-          throw new Error(err?.message || "Failed to load course details");
-        },
+          console.error("Error fetching course details:", err);
+          isFetching.current = false;
+          setError(err?.message || 'Failed to load course details');
+          setLoading(false);
+        }
       });
-
-      return response;
-    } catch (error) {
-      console.error("Error in fetching course details:", error);
-      setError(error.message || "An unexpected error occurred");
+    } catch (err) {
+      console.error("Unexpected error in fetchCourseDetails:", err);
+      isFetching.current = false;
+      setError('An unexpected error occurred');
       setLoading(false);
-      throw error; // Propagate error to be handled by the retry mechanism
     }
-  }, [courseApiUrl, getQuery, updateMetaTags]);
+  }, [courseId, getQuery, shouldAllowApiCall, updateMetaTags]);
 
-  // Retry mechanism
-  const retryFetchWithBackoff = useCallback(async () => {
-    let attempt = retryCount;
-
-    try {
-      await fetchCourseDetails(attempt);
-    } catch (error) {
-      if (attempt < RETRY_MAX_ATTEMPTS) {
-        const nextAttempt = attempt + 1;
-        const delay = Math.min(RETRY_DELAY_BASE * Math.pow(2, attempt), 10000); // Max 10 second delay
-
-        console.log(`Retry attempt ${nextAttempt} after ${delay}ms`);
-        setRetryCount(nextAttempt);
-
-        // Schedule next retry
-        setTimeout(() => {
-          retryFetchWithBackoff();
-        }, delay);
-      } else {
-        console.error('Max retry attempts reached');
-        toast.error('Failed to load course details after multiple attempts');
-        setLoading(false);
-      }
-    }
-  }, [fetchCourseDetails, retryCount]);
-
-  // Initialize data with retry mechanism
+  // Single effect for initial data fetching - fresh implementation
   useEffect(() => {
-    if (courseId && !courseDetails) {
-      retryFetchWithBackoff();
+    // Fetch data once on mount
+    if (apiCallCount.current === 0) {
+      console.log(`Initial load for courseId: ${courseId}`);
+      fetchCourseDetails();
     }
-  }, [courseId, retryFetchWithBackoff, courseDetails]);
-
-  // Separate effect for progress and analytics
-  useEffect(() => {
-    if (courseDetails) {
-      Promise.all([
-        updateCourseProgress(),
-        trackAnalytics()
-      ]).catch((error) => {
-        console.error('Error updating course data:', error);
-        // Don't retry these operations, just log the error
-      });
-    }
-  }, [courseDetails, updateCourseProgress, trackAnalytics]);
-
-  // Smooth scroll handling
-  const executeScroll = useCallback((sectionKey) => {
-    try {
-      const ref = sectionRefs[sectionKey];
-      if (ref?.current) {
-        const elementPosition = ref.current.getBoundingClientRect().top;
-        const offsetPosition = elementPosition + window.pageYOffset - SCROLL_OFFSET;
-        
-        window.scrollTo({
-          top: offsetPosition,
-          behavior: "smooth"
-        });
-        setActiveSection(sectionKey);
-      }
-    } catch (error) {
-      console.error('Scroll error:', error);
-      // Fallback to instant scroll
-      window.scrollTo(0, sectionRefs[sectionKey]?.current?.offsetTop || 0);
-    }
-  }, [sectionRefs]);
-
-  // Scroll event handler
-  const handleScroll = useCallback(
-    debounce(() => {
-      setShowScrollToTop(window.scrollY > 400);
-    }, SCROLL_DEBOUNCE_DELAY),
-    []
-  );
-
-  // Scroll event listener
-  useEffect(() => {
+    
+    // Add scroll listener
+    const handleScroll = () => {
+      setShowScrollToTop(window.scrollY > 300);
+    };
+    
     window.addEventListener('scroll', handleScroll);
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      handleScroll.cancel();
     };
-  }, [handleScroll]);
+  }, [courseId, fetchCourseDetails]); // Only these two dependencies
 
-  // Use custom hooks
-  useKeyboardNavigation(sections, activeSection, executeScroll);
+  // Debug effect - Log when course details change
+  useEffect(() => {
+    if (courseDetails) {
+      console.log("Course details updated:", courseDetails.title);
+    }
+  }, [courseDetails]);
+
+  // Separate effect for course progress and analytics - only runs when course details are available
+  useEffect(() => {
+    if (courseDetails && courseDetails._id) {
+      updateCourseProgress();
+      trackAnalytics();
+    }
+  }, [courseDetails, updateCourseProgress, trackAnalytics]);
+
+  // Error handling for course loading
+  const renderError = () => {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] p-6 text-center">
+        <div className="bg-red-50 dark:bg-red-900/20 p-6 rounded-xl max-w-md mx-auto">
+          <h2 className="text-xl font-semibold text-red-700 dark:text-red-400 mb-3">
+            Failed to load course
+          </h2>
+          <p className="text-gray-700 dark:text-gray-300 mb-4">
+            {error || "We couldn't load the course details. Please try again."}
+          </p>
+          <button
+            onClick={handleRetry}
+            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  // Simple wishlist check 
+  const checkIfWishlisted = useCallback((id) => {
+    // Only check wishlist status if the course data is loaded
+    if (!id || !shouldAllowApiCall()) return;
+    
+    const user = localStorage.getItem('user');
+    if (!user) return;
+    
+    try {
+      const userData = JSON.parse(user);
+      
+      getQuery({
+        url: `${apiUrls.wishlist.getWishlist}/${userData._id}`,
+        onSuccess: (data) => {
+          if (data?.wishlist?.courses) {
+            setIsWishlisted(data.wishlist.courses.some(c => c._id === id));
+          }
+        },
+        onFail: () => {
+          setIsWishlisted(false);
+        }
+      });
+    } catch (e) {
+      console.error("Error parsing user data:", e);
+    }
+  }, [getQuery, shouldAllowApiCall]);
+  
+  // Only check wishlist when course details are available
+  useEffect(() => {
+    if (courseDetails?._id) {
+      checkIfWishlisted(courseDetails._id);
+    }
+  }, [courseDetails, checkIfWishlisted]);
+
+  // Handle manual retry
+  const handleRetry = useCallback(() => {
+    // Reset counters and allow retry
+    apiCallCount.current = 0;
+    lastFetchTime.current = 0;
+    isFetching.current = false;
+    
+    setRetryCount(prev => prev + 1);
+    fetchCourseDetails();
+  }, [fetchCourseDetails]);
+
+  // Handle adding/removing from wishlist
+  const toggleWishlist = useCallback(() => {
+    const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
+    
+    if (!user) {
+      toast.error('Please login to add courses to wishlist');
+      return;
+    }
+    
+    const apiEndpoint = isWishlisted 
+      ? `${apiUrls.wishlist.removeFromWishlist}/${user._id}/${courseId}`
+      : `${apiUrls.wishlist.addToWishlist}/${user._id}/${courseId}`;
+    
+    postQuery({
+      url: apiEndpoint,
+      body: {},
+      onSuccess: (data) => {
+        setIsWishlisted(!isWishlisted);
+        toast.success(isWishlisted 
+          ? 'Removed from wishlist' 
+          : 'Added to wishlist'
+        );
+      },
+      onFail: (err) => {
+        console.error("Error toggling wishlist:", err);
+        toast.error('Failed to update wishlist');
+      }
+    });
+  }, [courseId, isWishlisted, postQuery]);
+
+  // Scroll to top handler with throttling
+  const scrollToTop = useCallback(
+    throttle(() => {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }, 300),
+    []
+  );
+
+  // Execute scroll to section
+  const executeScroll = useCallback((section) => {
+    setActiveSection(section);
+    if (sectionRefs[section]?.current) {
+      const yOffset = -80; // Account for fixed header
+      const element = sectionRefs[section].current;
+      const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      
+      window.scrollTo({
+        top: y,
+        behavior: 'smooth'
+      });
+    }
+  }, [sectionRefs]);
+
+  // Set up keyboard navigation
+  useKeyboardNavigation(
+    ["education", "curriculum", "reviews", "instructors", "faq"],
+    activeSection,
+    executeScroll
+  );
+
+  // Set up intersection observer for active section highlighting
   useIntersectionObserver(sectionRefs, setActiveSection);
+
+  // Handle course enrollment
+  const handleEnrollment = useCallback(() => {
+    const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
+    
+    if (!user) {
+      toast.error('Please login to enroll in this course');
+      router.push('/login');
+      return;
+    }
+    
+    postQuery({
+      url: `${apiUrls.enrollment.enrollCourse}/${user._id}/${courseId}`,
+      body: {},
+      onSuccess: (data) => {
+        toast.success('Successfully enrolled in the course!');
+        router.push(`/dashboard/my-courses/${courseId}`);
+      },
+      onFail: (err) => {
+        console.error("Error enrolling in course:", err);
+        toast.error(err?.message || 'Failed to enroll in the course');
+      }
+    });
+  }, [courseId, postQuery, router]);
 
   // Theme colors with CSS variables for better maintainability
   const themeColors = {
@@ -451,28 +642,6 @@ function CourseDetailedPage({ params }) {
     }
   }, [courseDetails]);
 
-  // Wishlist functionality
-  const toggleWishlist = useCallback(async () => {
-    try {
-      setIsWishlisted(prev => !prev);
-      // Add your wishlist API integration here
-      toast.success(isWishlisted ? 'Removed from wishlist' : 'Added to wishlist');
-    } catch (error) {
-      console.error('Wishlist error:', error);
-      setIsWishlisted(prev => !prev); // Revert on error
-      toast.error('Failed to update wishlist');
-    }
-  }, [isWishlisted]);
-
-  // Loading state
-  if (loading) {
-    return (
-      <PageWrapper>
-        <LoadingSkeleton />
-      </PageWrapper>
-    );
-  }
-
   // Accessibility improvements for navigation
   const renderNavigationItems = () => (
     <motion.div 
@@ -517,6 +686,16 @@ function CourseDetailedPage({ params }) {
     </motion.section>
   );
 
+  // Error state - use ErrorFallback component
+  if (error) {
+    return renderError();
+  }
+
+  // Loading state - use LoadingSkeleton component
+  if (loading) {
+    return <LoadingSkeleton />;
+  }
+
   return (
     <PageWrapper>
       <ErrorBoundary
@@ -524,7 +703,7 @@ function CourseDetailedPage({ params }) {
         onReset={() => {
           setError(null);
           setRetryCount(0);
-          retryFetchWithBackoff();
+          fetchCourseDetails();
         }}
       >
         <Toaster position="bottom-center" />
@@ -643,7 +822,7 @@ function CourseDetailedPage({ params }) {
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   className="w-12 h-12 rounded-full bg-gray-700 hover:bg-gray-800 dark:bg-gray-600 dark:hover:bg-gray-700 text-white shadow-lg flex items-center justify-center"
-                  onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                  onClick={scrollToTop}
                   aria-label="Scroll to top"
                 >
                   <ChevronDown className="w-5 h-5 transform rotate-180" />

@@ -299,7 +299,7 @@ const AddCourse = () => {
   const fetchAllCategories = async () => {
     try {
       await getQuery({
-        url: apiUrls?.categories?.getAllCategories,
+        url: apiUrls.categories.getAllCategories,
         onSuccess: (data) => {
           const fetchedCategories = data.data;
           if (Array.isArray(fetchedCategories)) {
