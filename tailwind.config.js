@@ -160,9 +160,16 @@ module.exports = {
         },
         purple: {
           DEFAULT: "#805AD5",
-          light: "#E9D8FD",
-          medium: "#D6BCFA",
-          dark: "#553C9A",
+          50: "#F3E8FF",
+          100: "#E9D8FD",
+          200: "#D6BCFA",
+          300: "#B794F4",
+          400: "#9F7AEA",
+          500: "#805AD5",
+          600: "#6B46C1",
+          700: "#553C9A",
+          800: "#44337A",
+          900: "#322659",
         },
         pink: {
           DEFAULT: "#D53F8C",
@@ -238,7 +245,6 @@ module.exports = {
         placeholder: "#718096",
         customGreen: "#38A169",
         orange2: "#FEEBC8",
-        purple: "#E9D8FD",
         gh: "#718096",
 
         // Dark mode colors - modernized with rich dark tones
