@@ -96,62 +96,99 @@ function CourseRelated({ categoryName, courseId, relatedCourses, courseTitle }) 
     console.log("Directly fetching related courses for course ID:", courseId);
 
     try {
-      // Fix: Use a proper URL for related courses endpoint
-      // First try the dedicated endpoint
-      const relatedCoursesUrl = `${apiBaseUrl}/courses/related/${courseId}`;
-      console.log("Trying API endpoint:", relatedCoursesUrl);
+      // Use the getAllRelatedCourses endpoint with proper params
+      const relatedCoursesEndpoint = `${apiUrls.courses.getAllRelatedCourses}?courseId=${courseId}&limit=15`;
+      console.log("Trying API endpoint:", relatedCoursesEndpoint);
       
       try {
-        const response = await axios.get(relatedCoursesUrl);
-        console.log("Direct API response for related courses:", response.data);
-        
-        if (response.data && response.data.courses && response.data.courses.length > 0) {
-          setCourses(response.data.courses);
-          setLoading(false);
-          setError(null);
-          setTimeout(checkScrollPosition, 100);
-          return; // Exit if successful
-        }
+        // Use getQuery hook instead of axios directly for consistent error handling
+        getQuery({
+          url: relatedCoursesEndpoint,
+          onSuccess: (data) => {
+            console.log("Direct API response for related courses:", data);
+            
+            if (data && data.courses && data.courses.length > 0) {
+              setCourses(data.courses);
+              setLoading(false);
+              setError(null);
+              setTimeout(checkScrollPosition, 100);
+            } else {
+              // Try fallback if no courses returned
+              tryFallbackEndpoint();
+            }
+          },
+          onFail: (err) => {
+            console.log("First endpoint failed, trying fallback endpoint:", err);
+            tryFallbackEndpoint();
+          }
+        });
       } catch (firstErr) {
-        console.log("First endpoint failed, trying fallback endpoint");
-        // Continue to fallback endpoint
-      }
-      
-      // Fallback to alternative endpoint if the first one fails or returns no courses
-      const fallbackUrl = `${apiBaseUrl}/courses/get?related_to=${courseId}&limit=15`;
-      console.log("Trying fallback API endpoint:", fallbackUrl);
-      
-      const fallbackResponse = await axios.get(fallbackUrl);
-      console.log("Fallback API response:", fallbackResponse.data);
-      
-      if (fallbackResponse.data && fallbackResponse.data.courses && fallbackResponse.data.courses.length > 0) {
-        setCourses(fallbackResponse.data.courses);
-        setLoading(false);
-        setError(null);
-        setTimeout(checkScrollPosition, 100);
-      } else {
-        // If no courses returned from either endpoint, try the next method
-        console.log("No courses returned from direct APIs, trying next method");
-        if (relatedCourses && Array.isArray(relatedCourses) && relatedCourses.length > 0) {
-          console.log("Trying related IDs");
-          setFetchMethod('ids');
-          fetchCoursesByIds();
-        } else {
-          console.log("Trying category");
-          setFetchMethod('category');
-          fetchCoursesByCategory();
-        }
+        console.log("Error with primary endpoint:", firstErr);
+        tryFallbackEndpoint();
       }
     } catch (err) {
-      console.error("Error in direct API call for related courses:", err);
-      // Fall back to using related course IDs
-      if (relatedCourses && Array.isArray(relatedCourses) && relatedCourses.length > 0) {
-        setFetchMethod('ids');
-        fetchCoursesByIds();
-      } else {
-        setFetchMethod('category');
-        fetchCoursesByCategory();
-      }
+      console.error("Error in fetchRelatedCoursesDirect:", err);
+      // Fall back to other methods
+      fallbackToOtherMethods();
+    }
+  };
+
+  // Helper function for fallback endpoint
+  const tryFallbackEndpoint = () => {
+    try {
+      // Use the getAllCoursesWithLimits with proper params for related courses
+      const fallbackEndpoint = apiUrls.courses.getAllCoursesWithLimits(
+        1,                 // page
+        15,                // limit
+        "",                // course_title 
+        "",                // course_tag
+        categoryName,      // course_category - use the same category for related courses
+        "Published",       // status
+        "",                // search
+        "",                // course_grade
+        [],                // category
+        { exclude: courseId } // exclude current course
+      );
+      
+      console.log("Trying fallback API endpoint:", fallbackEndpoint);
+      
+      getQuery({
+        url: fallbackEndpoint,
+        onSuccess: (data) => {
+          console.log("Fallback API response:", data);
+          
+          if (data && data.courses && data.courses.length > 0) {
+            setCourses(data.courses);
+            setLoading(false);
+            setError(null);
+            setTimeout(checkScrollPosition, 100);
+          } else {
+            // If still no courses, try other methods
+            fallbackToOtherMethods();
+          }
+        },
+        onFail: (err) => {
+          console.error("Fallback API failed:", err);
+          fallbackToOtherMethods();
+        }
+      });
+    } catch (err) {
+      console.error("Error in fallback endpoint:", err);
+      fallbackToOtherMethods();
+    }
+  };
+
+  // Helper to fall back to other methods
+  const fallbackToOtherMethods = () => {
+    console.log("No courses returned from direct APIs, trying next method");
+    if (relatedCourses && Array.isArray(relatedCourses) && relatedCourses.length > 0) {
+      console.log("Trying related IDs");
+      setFetchMethod('ids');
+      fetchCoursesByIds();
+    } else {
+      console.log("Trying category");
+      setFetchMethod('category');
+      fetchCoursesByCategory();
     }
   };
 
@@ -216,7 +253,18 @@ function CourseRelated({ categoryName, courseId, relatedCourses, courseTitle }) 
     console.log("Fetching courses by category:", categoryName);
     
     getQuery({
-      url: `${apiUrls?.courses?.getAllCourses}?category=${encodeURIComponent(categoryName)}&limit=15&page=1&exclude=${courseId}`,
+      url: apiUrls.courses.getAllCoursesWithLimits(
+        1,                    // page
+        15,                   // limit
+        "",                   // course_title
+        "",                   // course_tag
+        categoryName,         // course_category
+        "Published",          // status
+        "",                   // search
+        "",                   // course_grade
+        [],                   // category
+        courseId ? { exclude: courseId } : {} // filters
+      ),
       onSuccess: (res) => {
         console.log("Related courses by category response:", res);
         const receivedCourses = res?.courses || [];
@@ -345,7 +393,18 @@ function CourseRelated({ categoryName, courseId, relatedCourses, courseTitle }) 
     console.log("Fetching courses by title keywords:", keywords);
     
     getQuery({
-      url: `${apiUrls?.courses?.getAllCourses}?keywords=${encodeURIComponent(keywords)}&limit=15&page=1&exclude=${courseId}`,
+      url: apiUrls.courses.getAllCoursesWithLimits(
+        1,                    // page
+        15,                   // limit
+        "",                   // course_title
+        "",                   // course_tag
+        "",                   // course_category
+        "Published",          // status
+        keywords,             // search - use keywords as search term
+        "",                   // course_grade
+        [],                   // category
+        courseId ? { exclude: courseId } : {} // filters
+      ),
       onSuccess: (res) => {
         console.log("Related courses by title response:", res);
         const receivedCourses = res?.courses || [];
@@ -378,8 +437,20 @@ function CourseRelated({ categoryName, courseId, relatedCourses, courseTitle }) 
     setSectionTitle("Explore Popular Courses");
     console.log("Fetching popular courses as last resort");
     
+    // Use the proper API endpoint from index.js with search parameters
     getQuery({
-      url: `${apiBaseUrl}/courses/getLimitedCourses?page=1&limit=15&status=Published${courseId ? `&exclude=${courseId}` : ''}`,
+      url: apiUrls.courses.getAllCoursesWithLimits(
+        1,                 // page
+        15,                // limit
+        "",                // course_title 
+        "",                // course_tag
+        "",                // course_category
+        "Published",       // status
+        "",                // search
+        "",                // course_grade
+        [],                // category
+        courseId ? { exclude: courseId } : {} // filters
+      ),
       onSuccess: (res) => {
         console.log("Popular courses response:", res);
         const receivedCourses = res?.courses || [];

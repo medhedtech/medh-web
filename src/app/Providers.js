@@ -2,6 +2,7 @@
 
 import CartContextProvider from "@/contexts/CartContext";
 import { CookieConsentProvider } from "@/contexts/CookieConsentContext";
+import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { ThemeProvider } from "next-themes";
 
 export default function Providers({ children }) {
@@ -14,9 +15,11 @@ export default function Providers({ children }) {
       storageKey="medh-theme"
     >
       <CookieConsentProvider>
-        <CartContextProvider>
-          {children}
-        </CartContextProvider>
+        <CurrencyProvider>
+          <CartContextProvider>
+            {children}
+          </CartContextProvider>
+        </CurrencyProvider>
       </CookieConsentProvider>
     </ThemeProvider>
   );

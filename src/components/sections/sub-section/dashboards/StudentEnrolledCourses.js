@@ -7,7 +7,7 @@ import img3 from "@/assets/images/resources/img3.png";
 import img5 from "@/assets/images/resources/img5.png";
 import PDFImage from "@/assets/images/dashbord/bxs_file-pdf.png";
 import { motion, AnimatePresence } from "framer-motion";
-import { Download, X, FileVideo, FilePdf, BookOpen, Video, File, Search } from "lucide-react";
+import { Download, X, FileVideo, FileText, BookOpen, Video, File, Search } from "lucide-react";
 import { toast } from "react-toastify";
 
 const TabButton = ({ active, onClick, children }) => (
@@ -332,7 +332,7 @@ const StudentEnrolledCourses = () => {
                   {selectedCourse?.resource_pdfs?.map((pdf, idx) => (
                     <ResourceDownloadButton
                       key={`pdf-${idx}`}
-                      icon={FilePdf}
+                      icon={FileText}
                       label={`PDF Resource ${idx + 1}`}
                       onClick={() => downloadFile(pdf, `document_${idx + 1}.pdf`)}
                     />

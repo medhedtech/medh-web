@@ -8,7 +8,7 @@ import Group from "@/assets/Header-Images/Home/cheerful-arab.jpg";
 import bgImage from "@/assets/Header-Images/Home/Home_Banner_2_e7389bb905.jpg";
 import "@/assets/css/ovalAnimation.css";
 import CourseCard from "@/components/sections/courses/CourseCard";
-import { ArrowRight, ChevronRight, GraduationCap, Users, Star, Clock, Sparkles, BookOpen, Target, TrendingUp } from "lucide-react";
+import { ArrowRight, ChevronRight, GraduationCap, Users, Star, Clock, Sparkles, BookOpen, Target, TrendingUp, Menu } from "lucide-react";
 import Link from "next/link";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
@@ -17,11 +17,149 @@ import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
 import medhLogo from "@/assets/images/logo/medh.png";
 
+// Mobile version of Hero component
+const HeroMobile = ({ isLoaded, featuredCourses, loading }) => {
+  return (
+    <div className="mobile-hero-wrapper grid grid-cols-1 gap-6 p-4">
+      {/* Mobile Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="h-10 w-28">
+          <Image 
+            src={medhLogo} 
+            alt="Medh Logo" 
+            className="object-contain" 
+            priority 
+          />
+        </div>
+        <Link 
+          href="#mobile-menu" 
+          className="p-2 rounded-lg bg-white/10 backdrop-blur-sm"
+        >
+          <Menu className="text-white" size={24} />
+        </Link>
+      </div>
+
+      {/* Main Content */}
+      <div className={`transition-all duration-700 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'}`}>
+        <div className="flex flex-col items-center justify-center">
+        <h1 className="text-white font-bold text-center mb-3">
+          <span className="block text-2xl mb-2">UNLOCK YOUR POTENTIAL WITH</span>
+          <div className="relative h-[clamp(3rem,_11vw,_5rem)] max-w-[200px] mx-auto mb-4">
+            <Image
+              src={medhLogo}
+              alt="Medh Logo"
+              className=""
+              priority
+              sizes="(max-width: 630px) 280px, (max-width: 1024px) 200px, 280px"
+            />
+          </div>
+        </h1>
+        </div>
+        <p className="text-base md:text-xl text-white/90 max-w-2xl mx-auto text-center leading-relaxed bg-gradient-to-r from-primary-500 to-secondary-500 bg-clip-text text-transparent py-1 px-4 rounded-md shadow-sm md:mt-3">
+          Join our expert-led professional courses and master the skills that drive industry innovation
+        </p>
+
+        {/* Grid Layout for Content */}
+        <div className="grid grid-cols-2 gap-3 mt-5">
+          {/* Children & Teens */}
+          <div className="bg-gradient-to-br from-primary-500/10 via-primary-400/5 to-purple-500/10 rounded-xl p-3 transition-all duration-300 hover:scale-105 border border-white/5 flex flex-col h-[120px]">
+            <div className="flex items-center mb-1.5 h-5">
+              <BookOpen className="w-4 h-4 text-primary-400 mr-1.5 flex-shrink-0" />
+              <h4 className="text-transparent bg-clip-text bg-gradient-to-r from-primary-300 to-purple-300 font-semibold text-sm truncate">Children & Teens</h4>
+            </div>
+            <p className="text-gray-300 text-xs leading-tight mb-auto line-clamp-2">Future-ready STEM education</p>
+            <div className="flex items-center justify-between text-[10px] mt-1.5 pt-1.5 border-t border-white/5 w-full">
+              <span className="text-gray-400 truncate max-w-[40%]">Ages 8-18</span>
+              <span className="bg-primary-500/20 text-primary-200 px-1.5 py-0.5 rounded-full uppercase tracking-wider whitespace-nowrap text-[9px]">Interactive</span>
+            </div>
+          </div>
+
+          {/* Professionals */}
+          <div className="bg-gradient-to-br from-secondary-500/10 via-secondary-400/5 to-blue-500/10 rounded-xl p-3 transition-all duration-300 hover:scale-105 border border-white/5 flex flex-col h-[120px]">
+            <div className="flex items-center mb-1.5 h-5">
+              <Users className="w-4 h-4 text-secondary-400 mr-1.5 flex-shrink-0" />
+              <h4 className="text-transparent bg-clip-text bg-gradient-to-r from-secondary-300 to-blue-300 font-semibold text-sm truncate">Professionals</h4>
+            </div>
+            <p className="text-gray-300 text-xs leading-tight mb-auto line-clamp-2">Industry-relevant skills</p>
+            <div className="flex items-center justify-between text-[10px] mt-1.5 pt-1.5 border-t border-white/5 w-full">
+              <span className="text-gray-400 truncate max-w-[40%]">Certifications</span>
+              <span className="bg-secondary-500/20 text-secondary-200 px-1.5 py-0.5 rounded-full uppercase tracking-wider whitespace-nowrap text-[9px]">Practical</span>
+            </div>
+          </div>
+
+          {/* Homemakers */}
+          <div className="bg-gradient-to-br from-purple-500/10 via-purple-400/5 to-pink-500/10 rounded-xl p-3 transition-all duration-300 hover:scale-105 border border-white/5 flex flex-col h-[120px]">
+            <div className="flex items-center mb-1.5 h-5">
+              <Star className="w-4 h-4 text-purple-400 mr-1.5 flex-shrink-0" />
+              <h4 className="text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-pink-300 font-semibold text-sm truncate">Homemakers</h4>
+            </div>
+            <p className="text-gray-300 text-xs leading-tight mb-auto line-clamp-2">Flexible learning paths</p>
+            <div className="flex items-center justify-between text-[10px] mt-1.5 pt-1.5 border-t border-white/5 w-full">
+              <span className="text-gray-400 truncate max-w-[40%]">Flexible scheduling</span>
+              <span className="bg-purple-500/20 text-purple-200 px-1.5 py-0.5 rounded-full uppercase tracking-wider whitespace-nowrap text-[9px]">Adaptable</span>
+            </div>
+          </div>
+
+          {/* Lifelong Learners */}
+          <div className="bg-gradient-to-br from-blue-500/10 via-blue-400/5 to-teal-500/10 rounded-xl p-3 transition-all duration-300 hover:scale-105 border border-white/5 flex flex-col h-[120px]">
+            <div className="flex items-center mb-1.5 h-5">
+              <TrendingUp className="w-4 h-4 text-blue-400 mr-1.5 flex-shrink-0" />
+              <h4 className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-teal-300 font-semibold text-sm truncate">Lifelong Learners</h4>
+            </div>
+            <p className="text-gray-300 text-xs leading-tight mb-auto line-clamp-2">Continuous development</p>
+            <div className="flex items-center justify-between text-[10px] mt-1.5 pt-1.5 border-t border-white/5 w-full">
+              <span className="text-gray-400 truncate max-w-[40%]">Age-inclusive</span>
+              <span className="bg-blue-500/20 text-blue-200 px-1.5 py-0.5 rounded-full uppercase tracking-wider whitespace-nowrap text-[9px]">Continuous</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Tagline moved above CTA buttons */}
+        <div className="mt-8 mb-5 text-center">
+          <h3 className="mumkinMedh text-transparent bg-clip-text bg-gradient-to-r from-primary-400 via-purple-400 to-secondary-400 text-lg font-semibold animate-text-shimmer">
+            Medh Hain Toh Mumkin Hain!
+          </h3>
+        </div>
+
+        {/* CTA Buttons */}
+        <div className="flex flex-col gap-3 mt-4">
+          <Link href="/courses" className="w-full group relative inline-flex items-center justify-center py-3.5 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-xl text-sm transition-all">
+            <span>Let's Connect</span>
+            <ArrowRight size={16} className="ml-2" />
+          </Link>
+          <a href="#featured-courses" className="w-full group relative inline-flex items-center justify-center py-3.5 bg-white/10 hover:bg-white/15 text-white font-medium rounded-xl text-sm transition-all backdrop-blur-sm border border-white/10">
+            <span>Explore Courses</span>
+            <ChevronRight size={16} className="ml-2" />
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Main Hero component
 const Hero1 = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [featuredCourses, setFeaturedCourses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
   const { getQuery } = useGetQuery();
+
+  // Check for mobile view
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    // Initial check
+    checkIfMobile();
+    
+    // Set up listener
+    window.addEventListener('resize', checkIfMobile);
+    
+    // Cleanup
+    return () => window.removeEventListener('resize', checkIfMobile);
+  }, []);
 
   useEffect(() => {
     setIsLoaded(true);
@@ -49,55 +187,56 @@ const Hero1 = () => {
     fetchFeaturedCourses();
   }, []);
 
-  const cacheManager = {
-    set: (data) => {
-      const cacheData = {
-        timestamp: Date.now(),
-        data: data
-      };
-      localStorage.setItem(JOBS_CACHE_KEY, JSON.stringify(cacheData));
-    },
-    get: () => {
-      const cache = localStorage.getItem(JOBS_CACHE_KEY);
-      if (!cache) return null;
-      const { timestamp, data } = JSON.parse(cache);
-      return Date.now() - timestamp > CACHE_DURATION ? null : data;
-    }
-  };
+  // Conditionally render mobile or desktop version
+  if (isMobile) {
+    return (
+      <section className="relative min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 overflow-hidden">
+        <HeroMobile 
+          isLoaded={isLoaded} 
+          featuredCourses={featuredCourses} 
+          loading={loading} 
+        />
+      </section>
+    );
+  }
 
+  // Desktop version (unchanged)
   return (
     <>
-      <section style={{ paddingTop: "var(--header-height, 80px)", paddingBottom: "var(--footer-height, 80px)" }} className="relative min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 dark:from-gray-950 dark:via-gray-900 dark:to-gray-800 overflow-hidden">
+      <section style={{ paddingTop: "var(--header-height, 80px)", paddingBottom: "var(--footer-height, 80px)" }} className="relative min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 dark:from-gray-950 dark:via-gray-900 dark:to-gray-800 overflow-hidden w-full">
         {/* Enhanced Animated Background */}
         <div className="absolute inset-0 overflow-hidden">
           {/* Geometric Patterns */}
-          <div className="absolute top-0 -left-4 w-96 h-96 bg-gradient-conic from-primary-500/30 via-purple-500/20 to-secondary-500/30 rounded-full mix-blend-overlay filter blur-3xl opacity-70 animate-spin-slow"></div>
-          <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-gradient-conic from-secondary-500/30 via-pink-500/20 to-primary-500/30 rounded-full mix-blend-overlay filter blur-3xl opacity-70 animate-spin-slow-reverse"></div>
-          <div className="absolute bottom-0 left-1/3 w-96 h-96 bg-gradient-conic from-blue-500/30 via-teal-500/20 to-purple-500/30 rounded-full mix-blend-overlay filter blur-3xl opacity-70 animate-pulse-slow"></div>
+          <div className="absolute top-0 -left-4 w-[40vw] h-[40vw] bg-gradient-conic from-primary-500/40 via-purple-500/30 to-secondary-500/40 rounded-full mix-blend-overlay filter blur-3xl opacity-70 animate-spin-slow"></div>
+          <div className="absolute top-1/4 right-1/4 w-[35vw] h-[35vw] bg-gradient-conic from-secondary-500/40 via-pink-500/30 to-primary-500/40 rounded-full mix-blend-overlay filter blur-3xl opacity-70 animate-spin-slow-reverse"></div>
+          <div className="absolute bottom-0 left-1/3 w-[45vw] h-[45vw] bg-gradient-conic from-blue-500/40 via-teal-500/30 to-purple-500/40 rounded-full mix-blend-overlay filter blur-3xl opacity-70 animate-pulse-slow"></div>
           
           {/* Enhanced Grid Pattern */}
-          <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:radial-gradient(circle_at_center,white,transparent_80%)]"></div>
+          <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:radial-gradient(circle_at_center,white,transparent_80%)] opacity-30"></div>
         </div>
 
-        <div className="max-w-[1920px] w-[92%] xl:w-[90%] mx-auto relative z-10">
-          {/* Hero Content */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center min-h-[85vh] py-12 lg:py-20">
-            {/* Hero Content Left Side */}
-            <div className={`flex flex-col items-center lg:items-start justify-center transition-all duration-1000 transform text-center lg:text-left px-4 lg:px-0 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-              {/* Main Heading */}
-              <div className="w-full max-w-[500px] lg:max-w-[600px] mx-auto lg:mx-0 space-y-8">
+        <div className="max-w-[1920px] w-full mx-auto relative z-10">
+          {/* Hero Content - Centered Text */}
+          <div className="flex flex-col items-center justify-center min-h-[75vh] py-12 lg:py-20">
+            {/* Hero Content - Centered */}
+            <div className={`flex flex-col items-center justify-center transition-all duration-1000 transform text-center px-4 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+              {/* Live badge - similar to page.js */}
+             
+              
+              {/* Main Heading - Centered */}
+              <div className="w-full max-w-[800px] mx-auto space-y- mb-8">
                 <h1 className="font-bold leading-tight w-full">
                   <span 
                     style={{ 
-                      fontSize: 'clamp(1.5rem, 3vw, 1.5rem)',
-                      lineHeight: '1',
+                      fontSize: 'clamp(1.5rem, 3vw, 2.5rem)',
+                      lineHeight: '1.2',
                       letterSpacing: '0.02em'
                     }} 
-                    className="block text-white font-extrabold mb-4 lg:mb-6">
+                    className="block text-white font-extrabold mb-4">
                     UNLOCK YOUR POTENTIAL WITH
                   </span>
-                  <span className="block relative mx-auto lg:mx-0 mb-8">
-                    <div className="relative h-[clamp(3rem,_11vw,_5rem)] max-w-[150px] lg:max-w-[200px] mx-auto lg:mx-0">
+                  <span className="block relative mx-auto mb-6">
+                    <div className="relative h-[clamp(3rem,_11vw,_5rem)] max-w-[200px] mx-auto mb-8">
                       <Image
                         src={medhLogo}
                         alt="Medh Logo"
@@ -109,220 +248,233 @@ const Hero1 = () => {
                   </span>
                 </h1>
                 
-                <div className="space-y-8">
-                  <div className="flex items-center justify-center lg:justify-start gap-3 text-gray-300">
-                    <GraduationCap className="w-6 h-6 lg:w-7 lg:h-7 text-primary-400 flex-shrink-0" />
-                    <p style={{ 
-                      fontSize: 'clamp(1rem, 3vw, 1.35rem)',
-                      lineHeight: '1.4'
-                    }} 
-                    className="font-medium">
-                      Skill Development Courses led by Seasoned Experts
-                    </p>
-                  </div>
-
-                  <div className="bg-[#0C1015]/60 backdrop-blur-sm rounded-xl p-5 lg:p-6 border border-white/5 hover:border-white/10 transition-colors">
-                    <h3 className="text-white/90 font-semibold mb-5 flex items-center justify-center lg:justify-start gap-2">
-                      <Target className="w-6 h-6 text-primary-400" />
-                      <span className="text-lg lg:text-xl">Transforming Lives at Every Stage</span>
-                    </h3>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="flex items-center gap-3 group p-3 rounded-xl hover:bg-white/5 transition-all duration-300">
-                        <div className="p-2.5 rounded-lg bg-primary-500/10 group-hover:bg-primary-500/20 transition-colors">
-                          <BookOpen className="w-5 h-5 text-primary-400" />
-                        </div>
-                        <h4 className="text-white/90 font-medium text-base">Children & Teens</h4>
-                      </div>
-                      <div className="flex items-center gap-3 group p-3 rounded-xl hover:bg-white/5 transition-all duration-300">
-                        <div className="p-2.5 rounded-lg bg-secondary-500/10 group-hover:bg-secondary-500/20 transition-colors">
-                          <Users className="w-5 h-5 text-secondary-400" />
-                        </div>
-                        <h4 className="text-white/90 font-medium text-base">Professionals</h4>
-                      </div>
-                      <div className="flex items-center gap-3 group p-3 rounded-xl hover:bg-white/5 transition-all duration-300">
-                        <div className="p-2.5 rounded-lg bg-purple-500/10 group-hover:bg-purple-500/20 transition-colors">
-                          <Star className="w-5 h-5 text-purple-400" />
-                        </div>
-                        <h4 className="text-white/90 font-medium text-base">Homemakers</h4>
-                      </div>
-                      <div className="flex items-center gap-3 group p-3 rounded-xl hover:bg-white/5 transition-all duration-300">
-                        <div className="p-2.5 rounded-lg bg-pink-500/10 group-hover:bg-pink-500/20 transition-colors">
-                          <TrendingUp className="w-5 h-5 text-pink-400" />
-                        </div>
-                        <h4 className="text-white/90 font-medium text-base">Lifelong Learners</h4>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="motto-container relative mt-6 lg:mt-8">
-                    <div className="flex items-center justify-between gap-6 mb-4">
-                      <h2 className="mumkinMedh text-center lg:text-left text-transparent bg-clip-text bg-gradient-to-r from-primary-400 via-purple-400 to-secondary-400 animate-text-shimmer relative z-10 whitespace-nowrap">
-                        Medh Hain Toh Mumkin Hain!
-                      </h2>
-                      <div className="relative w-24 h-24 lg:w-28 lg:h-28 rounded-2xl transform hover:scale-105 transition-transform duration-300 flex-shrink-0 bg-gradient-to-br from-gray-900/50 to-gray-800/50 backdrop-blur-sm border border-white/5">
-                        <Image
-                          src={stemImg}
-                          alt="STEM Education"
-                          className="object-contain w-full h-full p-3"
-                          priority
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-br from-primary-500/5 to-secondary-500/5 mix-blend-overlay rounded-2xl" />
-                      </div>
-                    </div>
-                    <div className="absolute -inset-1 bg-gradient-to-r from-primary-500/20 via-purple-500/20 to-secondary-500/20 blur-lg -z-10 animate-pulse-slow"></div>
-                  </div>
-
-                  {/* CTA Buttons */}
-                  <div className="flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-4 pt-2">
-                    <Link href="/courses" 
-                      className="w-full sm:w-auto group relative inline-flex items-center justify-center px-8 py-3.5 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-medium rounded-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl hover:shadow-primary-500/25 overflow-hidden">
-                      <span className="relative z-10 text-base">Let's Connect</span>
-                      <ArrowRight size={20} className="relative z-10 ml-2 transform transition-transform group-hover:translate-x-1" />
-                      <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
-                    </Link>
-                    <a href="#featured-courses" 
-                      className="w-full sm:w-auto group relative inline-flex items-center justify-center px-8 py-3.5 bg-white/10 hover:bg-white/15 text-white font-medium rounded-xl transition-all duration-300 backdrop-blur-sm border border-white/10 hover:border-white/20 transform hover:-translate-y-1 overflow-hidden">
-                      <span className="relative z-10 text-base">Explore Courses</span>
-                      <ChevronRight size={20} className="relative z-10 ml-2 transform transition-transform group-hover:translate-x-1" />
-                      <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/5 to-white/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
-                    </a>
-                  </div>
+                <p className="text-base md:text-xl text-white/90 max-w-2xl mx-auto leading-relaxed bg-gradient-to-r from-primary-500 to-secondary-500 bg-clip-text text-transparent py-1 px-2 rounded-md shadow-sm mt-6">
+                  Join our expert-led professional courses and master the skills that drive industry innovation
+                </p>
+                
+                <div className="w-full max-w-screen-2xl mx-auto px-2 sm:px-4 lg:px-6">
+                  {/* Enhanced Header for Transforming Lives section */}
                 </div>
               </div>
-            </div>
-
-            {/* Enhanced 3D Interactive Element - Modified to align with "UNLOCK YOUR POTENTIAL WITH MEDH" */}
-            <div className={`relative transition-all duration-1000 delay-300 transform ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-              <div className="relative w-full max-w-[600px] mx-auto aspect-[4/3] perspective-1500">
-                {/* Enhanced Animated Background with glow effect */}
-                <div className="absolute inset-0">
-                  <div className="absolute inset-0 bg-gradient-conic from-primary-500 via-purple-500 to-secondary-500 rounded-full blur-3xl opacity-30 animate-spin-slow"></div>
-                  <div className="absolute inset-0 bg-gradient-conic from-secondary-500 via-pink-500 to-primary-500 rounded-full blur-3xl opacity-20 animate-spin-slow-reverse"></div>
-                </div>
-                
-                {/* Enhanced Interactive 3D Cards - modified to be more compact */}
-                <div className="absolute inset-0 flex flex-col justify-center">
-                  <div className="relative transform-gpu rotate3d-subtle">
-                    {/* Cards arranged in a vertical order with improved responsiveness */}
-                    <div className="space-y-2 sm:space-y-3 md:space-y-4 scale-[0.85] sm:scale-90 md:scale-100">
-                      {/* Row 1 */}
-                      <div className="flex gap-2 sm:gap-3 md:gap-4">
-                        {/* Course Card 1 */}
-                        <div className="group relative w-1/2 bg-gradient-to-br from-primary-500/10 to-purple-500/10 backdrop-blur-xl rounded-xl p-3 sm:p-4 md:p-5 border border-white/10 transform transition-all duration-500 hover:scale-105 hover:-translate-y-2 hover:z-10">
-                          <div className="absolute inset-0 bg-gradient-to-r from-primary-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
-                          <BookOpen className="text-primary-400 mb-2 transform transition-transform group-hover:scale-110 group-hover:rotate-6 w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" />
-                          <h3 className="text-white font-semibold mb-1 text-sm sm:text-base md:text-lg relative z-10 transition-all duration-300 group-hover:text-primary-300">Future Tech Skills</h3>
-                          <p className="text-gray-400 text-[10px] sm:text-xs md:text-sm relative z-10 transition-all duration-300 group-hover:text-white/90">AI, ML & Data Science Excellence</p>
-                        </div>
-                        
-                        {/* Course Card 2 */}
-                        <div className="group relative w-1/2 bg-gradient-to-br from-secondary-500/10 to-pink-500/10 backdrop-blur-xl rounded-xl p-3 sm:p-4 md:p-5 border border-white/10 transform transition-all duration-500 hover:scale-105 hover:-translate-y-2 hover:z-10">
-                          <div className="absolute inset-0 bg-gradient-to-r from-secondary-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
-                          <Target className="text-secondary-400 mb-2 transform transition-transform group-hover:scale-110 group-hover:rotate-6 w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" />
-                          <h3 className="text-white font-semibold mb-1 text-sm sm:text-base md:text-lg relative z-10 transition-all duration-300 group-hover:text-secondary-300">Personal Growth</h3>
-                          <p className="text-gray-400 text-[10px] sm:text-xs md:text-sm relative z-10 transition-all duration-300 group-hover:text-white/90">Transform Your Inner Potential</p>
+              {/* Desktop full-row version */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 xl:gap-10 p-6 sm:p-8">
+                  {/* Children & Teens - Desktop Card */}
+                  <div className="flex-shrink-0 w-full max-w-[480px] snap-start group transition-transform duration-500 transform hover:scale-[1.02] active:scale-[0.98] touch-manipulation">
+                    <div className="bg-gradient-to-br from-primary-500/10 via-primary-400/5 to-purple-500/10 hover:from-primary-500/15 hover:to-purple-500/15 backdrop-blur-md border border-white/10 hover:border-white/20 rounded-2xl p-4 transition-all duration-300 h-full flex flex-col relative overflow-hidden">
+                      <div className="absolute -right-8 -top-8 w-24 h-24 rounded-full bg-gradient-to-br from-primary-500/10 to-purple-500/10 animate-pulse-slow blur-xl"></div>
+                      <div className="absolute -left-4 -bottom-4 w-16 h-16 rounded-full bg-gradient-to-br from-pink-500/10 to-orange-500/10 animate-pulse-slower blur-lg"></div>
+                      <div className="relative z-10 mb-4 bg-secondary-500/10 w-14 h-14 rounded-xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300">
+                        <div className="absolute inset-0 bg-primary-500/5 rounded-xl animate-ping-slow opacity-60"></div>
+                        <BookOpen className="w-6 h-6 text-primary-400 group-hover:text-primary-200 transition-colors" />
+                      </div>
+                      <h4 className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-primary-300 to-purple-300 font-semibold text-base mb-2 group-hover:scale-[1.03] transition-transform">Children & Teens</h4>
+                      <p className="relative z-10 text-white text-sm leading-relaxed mb-3 group-hover:text-gray-100">Future-ready STEM education and creative thinking</p>
+                      <div className="mt-auto pt-2 border-t border-white/5">
+                        <div className="text-xs text-white flex items-center justify-between">
+                          <span>Perfect for ages 8-18</span>
+                          <span className="bg-primary-500/20 text-primary-200 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider font-medium">Interactive</span>
                         </div>
                       </div>
-                      
-                      {/* Row 2 */}
-                      <div className="flex gap-2 sm:gap-3 md:gap-4">
-                        {/* Course Card 3 */}
-                        <div className="group relative w-1/2 bg-gradient-to-br from-purple-500/10 to-blue-500/10 backdrop-blur-xl rounded-xl p-3 sm:p-4 md:p-5 border border-white/10 transform transition-all duration-500 hover:scale-105 hover:-translate-y-2 hover:z-10">
-                          <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
-                          <Users className="text-purple-400 mb-2 transform transition-transform group-hover:scale-110 group-hover:rotate-6 w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" />
-                          <h3 className="text-white font-semibold mb-1 text-sm sm:text-base md:text-lg relative z-10 transition-all duration-300 group-hover:text-purple-300">Ancient Wisdom</h3>
-                          <p className="text-gray-400 text-[10px] sm:text-xs md:text-sm relative z-10 transition-all duration-300 group-hover:text-white/90">Vedic Math Mastery</p>
-                        </div>
-                        
-                        {/* Course Card 4 */}
-                        <div className="group relative w-1/2 bg-gradient-to-br from-blue-500/10 to-teal-500/10 backdrop-blur-xl rounded-xl p-3 sm:p-4 md:p-5 border border-white/10 transform transition-all duration-500 hover:scale-105 hover:-translate-y-2 hover:z-10">
-                          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-teal-500/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
-                          <TrendingUp className="text-blue-400 mb-2 transform transition-transform group-hover:scale-110 group-hover:rotate-6 w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" />
-                          <h3 className="text-white font-semibold mb-1 text-sm sm:text-base md:text-lg relative z-10 transition-all duration-300 group-hover:text-blue-300">Digital Success</h3>
-                          <p className="text-gray-400 text-[10px] sm:text-xs md:text-sm relative z-10 transition-all duration-300 group-hover:text-white/90">Data-Driven Marketing Mastery</p>
-                        </div>
-                      </div>
-                      
-                      {/* Optional Connecting Line - made responsive */}
-                      <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary-500/0 via-primary-500/30 to-primary-500/0 transform -translate-x-1/2"></div>
                     </div>
                   </div>
-                </div>
+                  
+                  {/* Professionals - Desktop Card */}
+                  <div className="flex-shrink-0 w-full max-w-[480px] snap-start group transition-transform duration-500 transform hover:scale-[1.02] active:scale-[0.98] touch-manipulation">
+                    <div className="bg-gradient-to-br from-secondary-500/10 via-secondary-400/5 to-blue-500/10 hover:from-secondary-500/15 hover:to-blue-500/15 backdrop-blur-md border border-white/10 hover:border-white/20 rounded-2xl p-4 transition-all duration-300 h-full flex flex-col relative overflow-hidden">
+                      <div className="absolute -right-8 -top-8 w-24 h-24 rounded-full bg-gradient-to-br from-secondary-500/10 to-blue-500/10 animate-pulse-slow blur-xl"></div>
+                      <div className="absolute -left-4 -bottom-4 w-16 h-16 rounded-full bg-gradient-to-br from-secondary-500/10 to-indigo-500/10 animate-pulse-slower blur-lg"></div>
+                      <div className="relative z-10 mb-4 bg-secondary-500/10 w-14 h-14 rounded-xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300">
+                        <div className="absolute inset-0 bg-secondary-500/5 rounded-xl animate-ping-slow opacity-60"></div>
+                        <Users className="w-6 h-6 text-secondary-400 group-hover:text-secondary-200 transition-colors" />
+                      </div>
+                      <h4 className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-secondary-300 to-blue-300 font-semibold text-base mb-2 group-hover:scale-[1.03] transition-transform">Professionals</h4>
+                      <p className="relative z-10 text-white text-sm leading-relaxed mb-3 group-hover:text-gray-100">Industry-relevant skills for career advancement</p>
+                      <div className="mt-auto pt-2 border-t border-white/5">
+                        <div className="text-xs text-white flex items-center justify-between">
+                          <span>Industry certifications</span>
+                          <span className="bg-secondary-500/20 text-secondary-200 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider font-medium">Practical</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Homemakers - Desktop Card */}
+                  <div className="flex-shrink-0 w-full max-w-[480px] snap-start group transition-transform duration-500 transform hover:scale-[1.02] active:scale-[0.98] touch-manipulation">
+                    <div className="bg-gradient-to-br from-purple-500/10 via-purple-400/5 to-pink-500/10 hover:from-purple-500/15 hover:to-pink-500/15 backdrop-blur-md border border-white/10 hover:border-white/20 rounded-2xl p-4 transition-all duration-300 h-full flex flex-col relative overflow-hidden">
+                      <div className="absolute -right-8 -top-8 w-24 h-24 rounded-full bg-gradient-to-br from-purple-500/10 to-pink-500/10 animate-pulse-slow blur-xl"></div>
+                      <div className="absolute -left-4 -bottom-4 w-16 h-16 rounded-full bg-gradient-to-br from-purple-500/10 to-rose-500/10 animate-pulse-slower blur-lg"></div>
+                      <div className="relative z-10 mb-4 bg-purple-500/10 w-14 h-14 rounded-xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300">
+                        <div className="absolute inset-0 bg-purple-500/5 rounded-xl animate-ping-slow opacity-60"></div>
+                        <Star className="w-6 h-6 text-purple-400 group-hover:text-purple-200 transition-colors" />
+                      </div>
+                      <h4 className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-pink-300 font-semibold text-base mb-2 group-hover:scale-[1.03] transition-transform">Homemakers</h4>
+                      <p className="relative z-10 text-white text-sm leading-relaxed mb-3 group-hover:text-gray-100">Flexible learning paths for personal growth</p>
+                      <div className="mt-auto pt-2 border-t border-white/5">
+                        <div className="text-xs text-white flex items-center justify-between">
+                          <span>Flexible scheduling</span>
+                          <span className="bg-purple-500/20 text-purple-200 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider font-medium">Adaptable</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Lifelong Learners - Desktop Card */}
+                  <div className="flex-shrink-0 w-full max-w-[480px] snap-start group transition-transform duration-500 transform hover:scale-[1.02] active:scale-[0.98] touch-manipulation">
+                    <div className="bg-gradient-to-br from-blue-500/10 via-blue-400/5 to-teal-500/10 hover:from-blue-500/15 hover:to-teal-500/15 backdrop-blur-md border border-white/10 hover:border-white/20 rounded-2xl p-4 transition-all duration-300 h-full flex flex-col relative overflow-hidden">
+                      <div className="absolute -right-8 -top-8 w-24 h-24 rounded-full bg-gradient-to-br from-blue-500/10 to-teal-500/10 animate-pulse-slow blur-xl"></div>
+                      <div className="absolute -left-4 -bottom-4 w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500/10 to-emerald-500/10 animate-pulse-slower blur-lg"></div>
+                      <div className="relative z-10 mb-4 bg-blue-500/10 w-14 h-14 rounded-xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300">
+                        <div className="absolute inset-0 bg-blue-500/5 rounded-xl animate-ping-slow opacity-60"></div>
+                        <TrendingUp className="w-6 h-6 text-blue-400 group-hover:text-blue-200 transition-colors" />
+                      </div>
+                      <h4 className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-teal-300 font-semibold text-base mb-2 group-hover:scale-[1.03] transition-transform">Lifelong Learners</h4>
+                      <p className="relative z-10 text-white text-sm leading-relaxed mb-3 group-hover:text-gray-100">Continuous skills development at any age</p>
+                      <div className="mt-auto pt-2 border-t border-white/5">
+                        <div className="text-xs text-white flex items-center justify-between">
+                          <span>Age-inclusive content</span>
+                          <span className="bg-blue-500/20 text-blue-200 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider font-medium">Continuous</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+              </div>
+              <div className="motto-container relative mt-6 lg:mt-8">
+                <h2 className="mumkinMedh text-center lg:text-left text-transparent bg-clip-text bg-gradient-to-r from-primary-400 via-purple-400 to-secondary-400 animate-text-shimmer relative z-10 whitespace-nowrap">
+                  Medh Hain Toh Mumkin Hain!
+                </h2>
+              </div>
+            </div>
+            {/* CTA Buttons for Desktop */}
+            <div className="flex flex-row gap-3 mt-8 hidden md:flex items-center justify-center">
+              <Link 
+                href="/courses" 
+                className="group relative inline-flex items-center justify-center py-4 px-6 bg-gradient-to-r from-primary-500 to-secondary-500 text-white font-medium rounded-xl text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+              >
+                <span>Let's Connect</span>
+                <ArrowRight size={20} className="ml-2" />
+              </Link>
+              <a 
+                href="#featured-courses" 
+                className="group relative inline-flex items-center justify-center py-4 px-6 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 backdrop-blur-sm border border-white/10"
+              >
+                <span>Explore Courses</span>
+                <ChevronRight size={20} className="ml-2" />
+              </a>
+            </div>
+          </div>
+          
 
-                {/* Enhanced Floating Elements - made more compact */}
-                <div className="absolute top-0 left-0 w-16 h-16 sm:w-20 sm:h-20 bg-primary-500/20 rounded-full blur-xl animate-float"></div>
-                <div className="absolute bottom-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-secondary-500/20 rounded-full blur-xl animate-float animation-delay-2000"></div>
-                <div className="absolute top-1/2 left-1/2 w-20 h-20 sm:w-24 sm:h-24 bg-purple-500/20 rounded-full blur-xl animate-float animation-delay-4000"></div>
+          {/* Horizontal 3D Interactive Cards Section */}
+          <div className={`relative transition-all duration-1000 delay-300 transform py-12 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+            <div className="flex flex-col items-center justify-center">
+              <h3 className="text-2xl md:text-3xl font-bold text-white mb-8 text-center">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 via-purple-400 to-secondary-400">Explore Our Learning Pathways</span>
+              </h3>
+              
+              {/* Horizontal Card Layout */}
+              <div className="w-full max-w-[1500px] mx-auto px-4 perspective-1500">
+                <div className="flex flex-wrap justify-center gap-6 md:gap-8">
+                  {/* Course Card 1 */}
+                  <div className="group relative w-full sm:w-[calc(50%-1rem)] md:w-[calc(25%-2rem)] bg-gradient-to-br from-primary-500/15 to-purple-500/15 backdrop-blur-xl rounded-xl p-6 sm:p-7 border border-white/10 transform transition-all duration-500 hover:scale-105 hover:-translate-y-2 hover:z-10 hover:from-primary-500/25 hover:to-purple-500/25 hover:border-white/20">
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary-500/30 to-purple-500/30 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+                    <BookOpen className="text-primary-400 mb-4 transform transition-transform group-hover:scale-110 group-hover:rotate-6 w-7 h-7" />
+                    <h3 className="text-white font-semibold mb-2 text-lg md:text-xl relative z-10 transition-all duration-300 group-hover:text-primary-300">Future Tech Skills</h3>
+                    <p className="text-gray-400 text-sm md:text-base relative z-10 transition-all duration-300 group-hover:text-white/90">AI, ML & Data Science Excellence</p>
+                  </div>
+                  
+                  {/* Course Card 2 */}
+                  <div className="group relative w-full sm:w-[calc(50%-1rem)] md:w-[calc(25%-2rem)] bg-gradient-to-br from-secondary-500/10 to-pink-500/10 backdrop-blur-xl rounded-xl p-6 sm:p-7 border border-white/10 transform transition-all duration-500 hover:scale-105 hover:-translate-y-2 hover:z-10">
+                    <div className="absolute inset-0 bg-gradient-to-r from-secondary-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+                    <Target className="text-secondary-400 mb-4 transform transition-transform group-hover:scale-110 group-hover:rotate-6 w-7 h-7" />
+                    <h3 className="text-white font-semibold mb-2 text-lg md:text-xl relative z-10 transition-all duration-300 group-hover:text-secondary-300">Personal Growth</h3>
+                    <p className="text-gray-400 text-sm md:text-base relative z-10 transition-all duration-300 group-hover:text-white/90">Transform Your Inner Potential</p>
+                  </div>
+                  
+                  {/* Course Card 3 */}
+                  <div className="group relative w-full sm:w-[calc(50%-1rem)] md:w-[calc(25%-2rem)] bg-gradient-to-br from-purple-500/10 to-blue-500/10 backdrop-blur-xl rounded-xl p-6 sm:p-7 border border-white/10 transform transition-all duration-500 hover:scale-105 hover:-translate-y-2 hover:z-10">
+                    <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+                    <Users className="text-purple-400 mb-4 transform transition-transform group-hover:scale-110 group-hover:rotate-6 w-7 h-7" />
+                    <h3 className="text-white font-semibold mb-2 text-lg md:text-xl relative z-10 transition-all duration-300 group-hover:text-purple-300">Ancient Wisdom</h3>
+                    <p className="text-gray-400 text-sm md:text-base relative z-10 transition-all duration-300 group-hover:text-white/90">Vedic Math Mastery</p>
+                  </div>
+                  
+                  {/* Course Card 4 */}
+                  <div className="group relative w-full sm:w-[calc(50%-1rem)] md:w-[calc(25%-2rem)] bg-gradient-to-br from-blue-500/10 to-teal-500/10 backdrop-blur-xl rounded-xl p-6 sm:p-7 border border-white/10 transform transition-all duration-500 hover:scale-105 hover:-translate-y-2 hover:z-10">
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-teal-500/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+                    <TrendingUp className="text-blue-400 mb-4 transform transition-transform group-hover:scale-110 group-hover:rotate-6 w-7 h-7" />
+                    <h3 className="text-white font-semibold mb-2 text-lg md:text-xl relative z-10 transition-all duration-300 group-hover:text-blue-300">Digital Success</h3>
+                    <p className="text-gray-400 text-sm md:text-base relative z-10 transition-all duration-300 group-hover:text-white/90">Data-Driven Marketing Mastery</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Enhanced Featured Courses Section */}
-          <div id="featured-courses" className="py-12 px-4 max-w-[1800px] mx-auto">
-            <div className="text-center mb-10">
-              
-              <h2 className="text-4xl md:text-5xl font-extrabold relative z-10 mb-6 inline-block">
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 via-purple-400 to-secondary-400 
-                inline-block transform hover:scale-105 transition-transform duration-300">
-                  Featured Live Courses
+          {/* Featured Courses Section - Desktop */}
+          <div id="featured-courses" className="py-16 lg:py-24 w-full px-4 md:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl lg:text-4xl font-bold relative inline-block mb-6">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 via-purple-400 to-secondary-400">
+                  Featured Courses
                 </span>
-                <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full"></div>
+                <div className="absolute -bottom-3 left-0 right-0 h-1 bg-gradient-to-r from-primary-500/60 via-purple-500/60 to-secondary-500/60 rounded-full"></div>
               </h2>
-              <p className="text-gray-400 max-w-2xl mx-auto text-base leading-relaxed">
-                Discover our most popular courses designed to help you master the skills that matter most in today's digital landscape
+              <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+                Discover our most popular courses designed to elevate your skills
               </p>
             </div>
 
             {loading ? (
-              <div className="flex justify-center items-center min-h-[300px]">
+              <div className="flex justify-center items-center h-60">
                 <Preloader2 />
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 max-w-[1700px] mx-auto px-2">
-                {featuredCourses.map((course, index) => (
-                  <div 
-                    key={course._id}
-                    className={`transition-all duration-700 transform hover:scale-105 
-                      ${isLoaded 
-                        ? 'translate-y-0 opacity-100' 
-                        : 'translate-y-10 opacity-0'
-                      } 
-                      delay-${index * 100} bg-gradient-to-br from-gray-800/80 to-gray-900/80 
-                      rounded-xl overflow-hidden shadow-lg hover:shadow-xl hover:shadow-primary-500/10
-                      border border-gray-700/50 backdrop-blur-sm`}
-                    style={{ transitionDelay: `${index * 100}ms` }}
+              <div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8">
+                  {featuredCourses.map((course, index) => (
+                    <div 
+                      key={course._id}
+                      className={`transition-all duration-500 transform 
+                        ${isLoaded 
+                          ? 'translate-y-0 opacity-100' 
+                          : 'translate-y-10 opacity-0'
+                        }
+                        bg-gradient-to-br from-gray-800/80 to-gray-900/80 
+                        rounded-xl overflow-hidden shadow-lg hover:shadow-xl
+                        border border-gray-700/40 backdrop-blur-lg 
+                        hover:border-primary-500/30 group
+                        hover:-translate-y-1 transition-all duration-300
+                        hover:from-gray-800/90 hover:to-gray-900/90`}
+                      style={{ transitionDelay: `${index * 150}ms` }}
+                    >
+                      <CourseCard course={course} />
+                    </div>
+                  ))}
+                </div>
+
+                <div className="pt-12 text-center">
+                  <Link 
+                    href="/courses" 
+                    className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-primary-500 to-secondary-500 text-white font-medium rounded-lg shadow-md hover:shadow-lg hover:shadow-primary-500/20 transition-all duration-300 transform hover:-translate-y-1"
                   >
-                    <CourseCard course={course} />
-                  </div>
-                ))}
+                    <span>View All Courses</span>
+                    <ArrowRight size={18} />
+                  </Link>
+                </div>
               </div>
             )}
-            
-            {/* Enhanced View All Courses Button */}
-            <div className="mt-12 text-center">
-              <Link 
-                href="/courses" 
-                className="group relative inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white font-medium rounded-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg shadow-primary-500/20 overflow-hidden"
-              >
-                <span className="relative z-10">Explore All Courses</span>
-                <ArrowRight size={18} className="relative z-10 transform transition-transform group-hover:translate-x-1" />
-                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
-              </Link>
-              <p className="mt-3 text-gray-400 text-sm">
-                Take the next step in your professional journey
-              </p>
-            </div>
           </div>
         </div>
 
         <style jsx global>{`
           @keyframes float {
             0%, 100% { transform: translate(0, 0); }
-            50% { transform: translate(10px, -10px); }
+            50% { transform: translate(15px, -15px); }
           }
 
           @keyframes pulse-slow {
-            0%, 100% { opacity: 0.3; transform: scale(1); }
-            50% { opacity: 0.6; transform: scale(1.1); }
+            0%, 100% { opacity: 0.4; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
           }
 
           @keyframes spin-slow {
@@ -336,23 +488,19 @@ const Hero1 = () => {
           }
 
           .animate-float {
-            animation: float 6s ease-in-out infinite;
+            animation: float 8s ease-in-out infinite;
           }
 
           .animate-pulse-slow {
-            animation: pulse-slow 6s ease-in-out infinite;
+            animation: pulse-slow 8s ease-in-out infinite;
           }
 
           .animate-spin-slow {
-            animation: spin-slow 15s linear infinite;
+            animation: spin-slow 20s linear infinite;
           }
 
           .animate-spin-slow-reverse {
-            animation: spin-slow-reverse 15s linear infinite;
-          }
-
-          .animate-spin-slower {
-            animation: spin-slow 25s linear infinite;
+            animation: spin-slow-reverse 20s linear infinite;
           }
 
           .animation-delay-2000 {
@@ -363,10 +511,6 @@ const Hero1 = () => {
             animation-delay: 4000ms;
           }
 
-          .perspective-1000 {
-            perspective: 1000px;
-          }
-          
           .perspective-1500 {
             perspective: clamp(1000px, 150vw, 1500px);
           }
@@ -383,7 +527,7 @@ const Hero1 = () => {
             }
           }
 
-          .animate-gradient {
+          .animate-text-shimmer {
             background-size: 200% 200%;
             animation: gradient 8s linear infinite;
           }
@@ -394,71 +538,9 @@ const Hero1 = () => {
             100% { background-position: 0% 50%; }
           }
           
-          .rotate3d-slow {
-            animation: rotate3d 15s ease-in-out infinite;
-          }
-          
-          .rotate3d-subtle {
-            animation: rotate3d-subtle 10s ease-in-out infinite;
-          }
-          
-          @keyframes rotate3d {
-            0%, 100% { transform: rotate3d(1, 1, 1, 0deg); }
-            25% { transform: rotate3d(1, 0, 0, 5deg); }
-            50% { transform: rotate3d(0, 1, 0, 5deg); }
-            75% { transform: rotate3d(0, 0, 1, 5deg); }
-          }
-          
-          @keyframes rotate3d-subtle {
-            0%, 100% { transform: rotate3d(1, 1, 1, 0deg) scale(0.95); }
-            25% { transform: rotate3d(1, 0, 0, 2deg) scale(1); }
-            50% { transform: rotate3d(0, 1, 0, 2deg) scale(0.98); }
-            75% { transform: rotate3d(0, 0, 1, 2deg) scale(0.95); }
-          }
-          
-          /* Multilanguage translation animations */
-          @keyframes slide-up {
-            0%, 25% { 
-              transform: translateY(100%); 
-              opacity: 0;
-            }
-            30%, 45% { 
-              transform: translateY(0); 
-              opacity: 1;
-            }
-            50%, 100% { 
-              transform: translateY(-100%); 
-              opacity: 0;
-            }
-          }
-          
-          .animate-slide-up {
-            animation: slide-up 9s ease-in-out infinite;
-          }
-          
-          .animate-slide-up-delay-1 {
-            animation: slide-up 9s ease-in-out infinite;
-            animation-delay: 3s;
-          }
-          
-          .animate-slide-up-delay-2 {
-            animation: slide-up 9s ease-in-out infinite;
-            animation-delay: 6s;
-          }
-          
-          /* Ping animations with delays */
-          .animate-ping {
-            animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
-          }
-          
-          .animate-ping-delayed {
-            animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
-            animation-delay: 0.5s;
-          }
-          
-          .animate-ping-delayed-2 {
-            animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
-            animation-delay: 1s;
+          /* Mobile specific animations - lighter weight */
+          .mobile-hero-wrapper .animate-ping {
+            animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
           }
           
           @keyframes ping {
@@ -467,92 +549,114 @@ const Hero1 = () => {
               opacity: 0;
             }
           }
-          
-          .animation-delay-500 {
-            animation-delay: 500ms;
+
+          /* Additional animations for the redesigned section */
+          .scrollbar-hide {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
           }
-          
-          .animation-delay-1000 {
-            animation-delay: 1000ms;
+
+          .scrollbar-hide::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
           }
-          
-          .animation-delay-1500 {
-            animation-delay: 1500ms;
-          }
-          
-          /* Automatic glow and fade animations */
-          @keyframes pulse-glow {
-            0%, 100% { 
-              opacity: 0.2;
-              filter: blur(5px);
-            }
-            50% { 
-              opacity: 0.8;
-              filter: blur(15px);
-            }
-          }
-          
-          .animate-pulse-glow {
-            animation: pulse-glow 3s ease-in-out infinite;
-          }
-          
-          @keyframes fade-in-out {
-            0%, 100% { opacity: 0.7; }
-            50% { opacity: 1; }
-          }
-          
-          .animate-fade-in-out {
-            animation: fade-in-out 4s ease-in-out infinite;
-          }
-          
-          @keyframes text-glow {
-            0%, 100% {
-              text-shadow: 0 0 10px rgba(56, 178, 172, 0.2),
-                          0 0 20px rgba(56, 178, 172, 0);
+
+          @keyframes ping-slow {
+            0% {
+              transform: scale(1);
+              opacity: 0.5;
             }
             50% {
-              text-shadow: 0 0 15px rgba(56, 178, 172, 0.4),
-                          0 0 30px rgba(56, 178, 172, 0.2),
-                          0 0 40px rgba(237, 137, 54, 0.1);
+              transform: scale(1.2);
+              opacity: 0.3;
             }
-          }
-          
-          .animate-text-glow {
-            animation: text-glow 4s ease-in-out infinite;
-          }
-          
-          @keyframes text-pop {
-            0%, 100% {
+            100% {
               transform: scale(1);
-            }
-            30% {
-              transform: scale(1.05);
-            }
-            60% {
-              transform: scale(1);
+              opacity: 0.5;
             }
           }
-          
-          .animate-text-pop {
-            animation: text-pop 5s ease-in-out infinite;
-          }
-          
-          @keyframes text-color {
+
+          @keyframes pulse-slower {
             0%, 100% {
-              background-image: linear-gradient(to right, #4FD1C5, #ED8936, #4FD1C5);
-              background-size: 200% auto;
-              background-position: 0% center;
+              opacity: 0.3;
             }
             50% {
-              background-position: 100% center;
+              opacity: 0.6;
             }
           }
-          
-          .animate-text-color {
-            background-clip: text;
-            -webkit-background-clip: text;
-            color: transparent;
-            animation: text-color 8s linear infinite;
+
+          @keyframes swipe-hint {
+            0%, 100% {
+              transform: translateX(0);
+            }
+            50% {
+              transform: translateX(3px);
+            }
+          }
+
+          .animate-ping-slow {
+            animation: ping-slow 3s ease-in-out infinite;
+          }
+
+          .animate-pulse-slower {
+            animation: pulse-slower 5s ease-in-out infinite;
+          }
+
+          .animate-swipe-hint {
+            animation: swipe-hint 1.5s ease-in-out infinite;
+          }
+          .
+          @media (min-width: 1024px) and (max-width: 1366px) {
+            .hero-content {
+              padding: 1.5rem 3rem;
+            }
+            .hero-heading {
+              font-size: 2.25rem;
+            }
+            .hero-subheading {
+              font-size: 1.125rem;
+            }
+            .hero-cards {
+              grid-template-columns: repeat(2, 1fr);
+              gap: 1.5rem;
+            }
+            .hero-card {
+              max-width: 380px;
+            }
+          }
+
+          .hero-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            padding: 2rem;
+            box-sizing: border-box;
+          }
+
+          .hero-image {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+            aspect-ratio: 16 / 9;
+          }
+
+          @media (min-aspect-ratio: 16/10) {
+            .hero-content {
+              padding: 3rem;
+            }
+            .hero-image {
+              aspect-ratio: 16 / 10;
+            }
+          }
+
+          @media (max-width: 768px) {
+            .hero-content {
+              padding: 1rem;
+            }
+            .hero-image {
+              aspect-ratio: auto;
+            }
           }
         `}</style>
       </section>
