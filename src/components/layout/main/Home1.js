@@ -58,12 +58,6 @@ const Home1 = () => {
         <Hero1 />
       </section>
 
-      {/* Brand Hero Section with proper spacing */}
-      <section className="w-full bg-gradient-to-r from-gray-50 via-white to-gray-50 
-        dark:from-gray-900 dark:via-gray-950 dark:to-gray-900">
-        <BrandHero />
-      </section>
-
       {/* Main Content Sections with consistent spacing */}
       <div className="flex flex-col gap-y-24 md:gap-y-32">
         {/* Courses Section */}
@@ -130,6 +124,23 @@ const Home1 = () => {
 
         .animate-fade-in-up {
           animation: fadeInUp 0.5s ease-out forwards;
+        }
+
+        @media (min-width: 1024px) {
+          .main-content {
+            padding: 2rem 4rem;
+          }
+          .section {
+            margin-bottom: 3rem;
+          }
+        }
+
+        .section {
+          animation: fadeInUp 0.5s ease-out forwards;
+        }
+
+        .section + .section {
+          margin-top: 2rem;
         }
       `}</style>
     </main>

@@ -41,41 +41,7 @@ const AccordionCourses = () => {
     <div className="space-y-2">
       {/* Course navigation accordion */}
       <MobileAccordion items={items}>
-        {/* Featured course/promo image */}
-        <div className="mt-4 rounded-lg overflow-hidden">
-          <Link href="/courses/featured" className="block">
-            <Image 
-              className="w-full h-auto rounded-lg transform transition-transform hover:scale-105 duration-300" 
-              src={megamenu2} 
-              alt="Featured Courses" 
-              placeholder="blur"
-            />
-          </Link>
-          <div className="mt-2 px-2">
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              Discover our most popular courses and start your learning journey today.
-            </p>
-          </div>
-        </div>
       </MobileAccordion>
-      
-      {/* Quick links for mobile */}
-      <div className="mt-3 border-t border-gray-200 dark:border-gray-700 pt-3">
-        <div className="flex justify-between px-2">
-          <Link 
-            href="/courses/new" 
-            className="text-sm text-primary-600 dark:text-primary-400 hover:underline"
-          >
-            New Courses
-          </Link>
-          <Link 
-            href="/courses?sort=popular" 
-            className="text-sm text-primary-600 dark:text-primary-400 hover:underline"
-          >
-            Popular Courses
-          </Link>
-        </div>
-      </div>
     </div>
   );
 };

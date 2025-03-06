@@ -4,12 +4,20 @@ import PopupVideo from "../popup/PopupVideo";
 import blogImage7 from "@/assets/images/blog/blog_7.png";
 import { useCartContext } from "@/contexts/CartContext";
 import getAllCourses from "@/libs/getAllCourses";
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 const CourseEnroll = ({ type, course }) => {
   const courses = getAllCourses();
   const { title: demoTitle, price: demoPrice, image: demoImage } = courses[0];
   const { addProductToCart } = useCartContext();
   const { id, image, price, title } = course || {};
+  const { convertPrice, formatPrice } = useCurrency();
+  
+  // Convert prices to current currency
+  const currentPrice = price ? convertPrice(price) : convertPrice(32.00);
+  const originalPrice = price ? convertPrice(price * 2.1) : convertPrice(67.00); // Example: original price is 2.1x current price
+  const discountPercentage = Math.round(((originalPrice - currentPrice) / originalPrice) * 100);
+
   return (
     <div
       className="py-33px px-25px shadow-event mb-30px bg-whiteColor dark:bg-whiteColor-dark rounded-md"
@@ -33,15 +41,15 @@ const CourseEnroll = ({ type, course }) => {
         }`}
       >
         <div className="text-size-21 font-bold text-primaryColor font-inter leading-25px">
-          ${price ? price.toFixed(2) : "32.00"}{" "}
-          <del className="text-sm text-lightGrey4 font-semibold">/ $67.00</del>
+          {formatPrice(currentPrice)}{" "}
+          <del className="text-sm text-lightGrey4 font-semibold">/ {formatPrice(originalPrice)}</del>
         </div>
         <div>
           <a
             href="#"
             className="uppercase text-sm font-semibold text-secondaryColor2 leading-27px px-2 bg-whitegrey1 dark:bg-whitegrey1-dark"
           >
-            68% OFF
+            {discountPercentage}% OFF
           </a>
         </div>
       </div>
@@ -51,10 +59,11 @@ const CourseEnroll = ({ type, course }) => {
             addProductToCart({
               id: id || 1,
               title: title || demoTitle,
-              price: price || demoPrice,
+              price: currentPrice, // Use converted price
               quantity: 1,
               image: image || demoImage,
               isCourse: true,
+              originalPrice: price || demoPrice, // Store original USD price for reference
             })
           }
           className="w-full text-size-15 text-whiteColor bg-primaryColor px-25px py-10px border mb-10px leading-1.8 border-primaryColor hover:text-primaryColor hover:bg-whiteColor inline-block rounded group dark:hover:text-whiteColor dark:hover:bg-whiteColor-dark"

@@ -76,8 +76,9 @@ function CourseEducation({ courseId, courseDetails }) {
   const fetchCourseDetails = async (id) => {
     try {
       await getQuery({
-        url: `${apiUrls?.courses?.getCourseById}/${id}`,
+        url: apiUrls.courses.getCourseById(id),
         onSuccess: (data) => {
+          console.log("Education data received:", data?.course || data);
           setCourseDetails1(data);
         },
         onFail: (err) => {
