@@ -2,6 +2,7 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import StarIcon from "@/assets/images/icon/StarIcon";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 const CourseHeader = ({
   id,
@@ -19,6 +20,13 @@ const CourseHeader = ({
   const courseId = id;
   const showEnroll =
     tag?.toLowerCase() !== "pre-recorded" && tag?.toLowerCase() !== "free";
+    
+  // Use currency context for price conversion and formatting
+  const { convertPrice, formatPrice } = useCurrency();
+  
+  // Convert price to user's selected currency
+  const convertedPrice = convertPrice(price);
+  const formattedPrice = formatPrice(convertedPrice);
 
   return (
     <div className=" justify-between items-start md:items-center mt-6 w-[531px]">
@@ -164,7 +172,7 @@ const CourseHeader = ({
             router.push(`/dashboards/billing-details/${courseId}`)
           }
         >
-          {isEnrolled ? "Enrolled" : `Enroll @${price}`}
+          {isEnrolled ? "Enrolled" : `Enroll @${formattedPrice}`}
         </button>
       )}
 
