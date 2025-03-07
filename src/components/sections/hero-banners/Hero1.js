@@ -192,8 +192,8 @@ const Hero1 = () => {
     <>
       <section 
         style={{ 
-          paddingTop: "var(--header-height, clamp(50px, 8vh, 100px))",
-          paddingBottom: "var(--footer-height, clamp(60px, 8vh, 80px))"
+          paddingTop: "var(--header-height, clamp(30px, 8vh, 50px))",
+          paddingBottom: "var(--footer-height, clamp(30px, 8vh, 50px))"
         }}
         className="relative min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 dark:from-gray-950 dark:via-gray-900 dark:to-gray-800 overflow-hidden w-full"
       >
