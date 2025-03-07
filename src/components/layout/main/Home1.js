@@ -2,7 +2,7 @@
 import About1 from "@/components/sections/abouts/About1";
 import Blogs from "@/components/sections/blogs/Blogs";
 import BrowseCategories from "@/components/sections/browse-categories/BrowseCategories";
-import CoursesFilter from "@/components/sections/courses/CoursesFilter";
+import HomeCourseSection from "@/components/sections/courses/HomeCourseSection";
 import Hero1 from "@/components/sections/hero-banners/Hero1";
 import Hire from "@/components/sections/hire/Hire";
 import JoinMedh from "@/components/sections/hire/JoinMedh";
@@ -63,8 +63,9 @@ const Home1 = () => {
         {/* Courses Section */}
         <section className="w-full px-4 sm:px-6 lg:px-8">
           <div className="max-w-[1920px] mx-auto">
-            <CoursesFilter
+            <HomeCourseSection
               CustomText="Skill Development Courses"
+              CustomDescription="Discover our comprehensive range of skill development courses"
               scrollToTop={initialScrollToTop}
               hideGradeFilter
             />
