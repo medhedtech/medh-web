@@ -9,16 +9,27 @@ import JoinMedh from "@/components/sections/hire/JoinMedh";
 import Registration from "@/components/sections/registrations/Registration";
 import BrandHero from "@/components/sections/sub-section/BrandHero";
 import WhyMedh from "@/components/sections/why-medh/WhyMedh";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import ArrowIcon from "@/assets/images/icon/ArrowIcon";
 import { useRouter } from "next/navigation";
 
 const Home1 = () => {
   const router = useRouter();
   const homeRef = useRef(null);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(0);
 
   // Scroll to top ONLY when component mounts (page first loads)
   useEffect(() => {
+    // Set initial window width
+    setWindowWidth(window.innerWidth);
+
+    // Add window resize listener
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+    window.addEventListener('resize', handleResize);
+
     // Smooth scroll to top with fallback
     const smoothScrollToTop = () => {
       try {
@@ -41,28 +52,52 @@ const Home1 = () => {
         block: 'start' 
       });
     }
+
+    // Set loaded state after a small delay for animations
+    const timer = setTimeout(() => setIsLoaded(true), 100);
+
+    // Cleanup
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', handleResize);
+    };
   }, []); // Empty dependency array for mount-only execution
   
   // Function that only scrolls to top on initial load
   const initialScrollToTop = () => {
     // Only runs on component mount, not on filter changes
   };
+
+  // Calculate dynamic spacing based on screen height
+  const isLaptopHeight = typeof window !== 'undefined' && window.innerHeight <= 768;
   
   return (
     <main 
       ref={homeRef}
-      className="min-h-screen flex flex-col relative bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900"
+      className={`min-h-screen flex flex-col relative bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900 transition-all duration-700 ${
+        isLoaded ? 'opacity-100' : 'opacity-0'
+      }`}
     >
-      {/* Hero Section with full-width container */}
-      <section className="w-full">
+      {/* Enhanced Background Elements - Optimized for 1366x768 */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 -left-4 w-56 md:w-72 h-56 md:h-72 bg-primary-500/10 rounded-full mix-blend-multiply filter blur-xl animate-blob"></div>
+        <div className="absolute top-0 -right-4 w-56 md:w-72 h-56 md:h-72 bg-secondary-500/10 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-8 left-20 w-56 md:w-72 h-56 md:h-72 bg-purple-500/10 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-4000"></div>
+        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:radial-gradient(circle_at_center,white,transparent_80%)] opacity-5"></div>
+      </div>
+
+      {/* Hero Section with optimized height for 1366x768 */}
+      <section className="w-full relative z-10 laptop:min-h-[calc(100vh-4rem)]">
         <Hero1 />
       </section>
 
-      {/* Main Content Sections with consistent spacing */}
-      <div className="flex flex-col gap-y-24 md:gap-y-32">
-        {/* Courses Section */}
-        <section className="w-full px-4 sm:px-6 lg:px-8">
-          <div className="max-w-[1920px] mx-auto">
+      {/* Main Content Sections with optimized spacing for 1366x768 */}
+      <div className={`flex flex-col gap-y-12 sm:gap-y-16 md:gap-y-20 lg:gap-y-24 relative z-10 ${
+        isLaptopHeight ? 'laptop:gap-y-16' : ''
+      }`}>
+        {/* Courses Section - Optimized padding for 1366x768 */}
+        <section className="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 laptop:py-6">
+          <div className="max-w-[1366px] mx-auto">
             <HomeCourseSection
               CustomText="Skill Development Courses"
               CustomDescription="Discover our comprehensive range of skill development courses"
@@ -72,50 +107,81 @@ const Home1 = () => {
           </div>
         </section>
 
-        {/* Why Medh Section */}
-        <section className="w-full bg-gradient-to-r from-gray-50 via-white to-gray-50 
-          dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 py-16">
-          <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Why Medh Section - Optimized for 1366x768 */}
+        <section className="w-full bg-gradient-to-r from-gray-50/80 via-white to-gray-50/80 
+          dark:from-gray-900/80 dark:via-gray-950 dark:to-gray-900/80 backdrop-blur-sm py-12 laptop:py-10 relative overflow-hidden">
+          <div className="max-w-[1366px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <WhyMedh />
           </div>
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary-500/5 to-transparent"></div>
         </section>
 
-        {/* Browse Categories Section */}
-        <section className="w-full px-4 sm:px-6 lg:px-8">
-          <div className="max-w-[1920px] mx-auto">
+        {/* Browse Categories Section - Optimized for 1366x768 */}
+        <section className="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 laptop:py-6">
+          <div className="max-w-[1366px] mx-auto">
             <BrowseCategories />
           </div>
         </section>
 
-        {/* Join Medh Section with enhanced background */}
-        <section className="w-full bg-gradient-to-r from-primary-50 via-white to-primary-50 
-          dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 py-16">
-          <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Join Medh Section - Optimized for 1366x768 */}
+        <section className="w-full bg-gradient-to-r from-primary-50/90 via-white to-primary-50/90 
+          dark:from-gray-900/90 dark:via-gray-950 dark:to-gray-900/90 backdrop-blur-sm py-12 laptop:py-10 relative overflow-hidden">
+          <div className="max-w-[1366px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <JoinMedh />
           </div>
+          <div className="absolute inset-0 bg-[url('/pattern.svg')] bg-repeat opacity-5"></div>
         </section>
 
-        {/* Blog Section */}
-        <section className="w-full px-4 sm:px-6 lg:px-8">
-          <div className="max-w-[1920px] mx-auto">
+        {/* Blog Section - Optimized for 1366x768 */}
+        <section className="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 laptop:py-6">
+          <div className="max-w-[1366px] mx-auto">
             <Blogs />
           </div>
         </section>
 
-        {/* Hire Section with gradient background */}
-        <section className="w-full bg-gradient-to-r from-gray-50 via-white to-gray-50 
-          dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 py-16">
-          <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Hire Section - Optimized for 1366x768 */}
+        <section className="w-full bg-gradient-to-r from-gray-50/90 via-white to-gray-50/90 
+          dark:from-gray-900/90 dark:via-gray-950 dark:to-gray-900/90 backdrop-blur-sm py-12 laptop:py-10 relative overflow-hidden">
+          <div className="max-w-[1366px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <Hire />
           </div>
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-secondary-500/5 to-transparent"></div>
         </section>
       </div>
-      {/* Add custom styles for animations */}
+
+      {/* Enhanced animations and responsive styles - Optimized for 1366x768 */}
       <style jsx>{`
+        @keyframes blob {
+          0% {
+            transform: translate(0px, 0px) scale(1);
+          }
+          33% {
+            transform: translate(20px, -30px) scale(1.1);
+          }
+          66% {
+            transform: translate(-15px, 15px) scale(0.9);
+          }
+          100% {
+            transform: translate(0px, 0px) scale(1);
+          }
+        }
+
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+
+        .animation-delay-4000 {
+          animation-delay: 4s;
+        }
+
         @keyframes fadeInUp {
           from {
             opacity: 0;
-            transform: translateY(20px);
+            transform: translateY(15px);
           }
           to {
             opacity: 1;
@@ -124,24 +190,49 @@ const Home1 = () => {
         }
 
         .animate-fade-in-up {
-          animation: fadeInUp 0.5s ease-out forwards;
+          animation: fadeInUp 0.4s ease-out forwards;
         }
 
-        @media (min-width: 1024px) {
+        /* Optimized responsive styles for 1366x768 */
+        @media (max-width: 640px) {
+          .section {
+            padding-left: 1rem;
+            padding-right: 1rem;
+          }
+        }
+
+        @media (min-width: 641px) and (max-width: 1024px) {
+          .section {
+            padding-left: 2rem;
+            padding-right: 2rem;
+          }
+        }
+
+        @media (min-width: 1025px) and (max-width: 1366px) {
+          .section {
+            padding-left: 2.5rem;
+            padding-right: 2.5rem;
+          }
+        }
+
+        @media (min-width: 1367px) {
+          .section {
+            padding-left: 4rem;
+            padding-right: 4rem;
+          }
+        }
+
+        /* Specific optimizations for 1366x768 */
+        @media (min-width: 1024px) and (max-height: 768px) {
           .main-content {
-            padding: 2rem 4rem;
+            padding: 1.5rem 2.5rem;
           }
           .section {
-            margin-bottom: 3rem;
+            margin-bottom: 2rem;
           }
-        }
-
-        .section {
-          animation: fadeInUp 0.5s ease-out forwards;
-        }
-
-        .section + .section {
-          margin-top: 2rem;
+          .section + .section {
+            margin-top: 1.5rem;
+          }
         }
       `}</style>
     </main>
