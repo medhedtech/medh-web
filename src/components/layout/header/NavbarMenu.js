@@ -9,7 +9,7 @@ import Link from "next/link";
 const NavbarMenu = ({ menuOpen, toggleMenu }) => {
   const menuItems = [
     { href: "/corporate-training-courses", label: "Corporate Training" },
-    { href: "/hire-from-medh", label: "Hire From Medh" },
+    { href: "/hire-from-medh", label: "Hire From Us" },
     { href: "/about-us", label: "About Us" },
     { href: "/news-and-media", label: "News & Media" },
     { href: "/medh-membership", label: "Medh Membership" },
