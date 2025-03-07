@@ -1,72 +1,101 @@
-# Medh Ed-Tech Platform - Project Summary
+# Medh Web Project Summary
 
 ## Project Overview
-Medh is a modern educational technology (ed-tech) platform built with Next.js, focusing on delivering high-quality educational content through both live and blended learning approaches. The platform aims to provide a seamless user experience with a Gen Z look and feel while maintaining robust backend functionality.
+Medh is an ed-tech platform built with Next.js, focusing on delivering a modern, responsive, and user-friendly experience. The project follows industry best practices and maintains high standards for code quality and user experience.
 
-## Key Components
+## Architecture
 
-### Frontend Architecture
-- **Framework**: Next.js
-- **Styling**: Tailwind CSS + Material UI components
-- **State Management**: Context API
-- **Animations**: Framer Motion
-- **Design Theme**: Modern UI with consistent color palettes
+### Component Structure
+- `layout/` - Core layout components
+  - `header/` - Header components with responsive navigation
+  - `footer/` - Footer components
+  - `sidebar/` - Sidebar components for dashboard layouts
+- `shared/` - Reusable UI components
+- `features/` - Feature-specific components
+- `pages/` - Next.js pages and routing
 
-### Backend Integration
-- **API Structure**: RESTful API with consistent URL patterns
-- **Data Fetching**: Axios with interceptors
-- **Authentication**: Secure cookie-based auth flow
-- **Database**: MongoDB with Mongoose ODM
+### Design System
+- Uses Tailwind CSS for styling
+- Custom theme configuration
+- Responsive design with mobile-first approach
+- Dark mode support
+- Consistent spacing and typography scale
 
-## Core Features
+### Header Component Architecture
+The header implementation follows a modular approach:
+1. `Header.js` - Main container with scroll and viewport management
+2. `Navbar.js` - Primary navigation with responsive behavior
+3. `MobileMenu.js` - Mobile navigation with enhanced UX
+4. `NavbarLogo.js` - Logo component with theme support
 
-### Course Management
-- **Course Types**: Live, Blended, and Free courses
-- **Filtering System**: Advanced filtering by category, type, price range, etc.
-- **Search Functionality**: Text-based search with relevance scoring
-- **Course Display**: Grid and list views with detailed information
-- **Pricing**: Support for both individual and batch pricing with currency conversion
+### Key Features
+- Smooth transitions and animations
+- Responsive navigation
+- Search functionality
+- Dark mode support
+- Accessibility compliance
+- Performance optimization
 
-### User Experience
-- **Responsive Design**: Fully responsive across all device sizes
-- **Animations**: Smooth transitions and loading states
-- **Filtering**: Interactive filtering with visual feedback
-- **Currency**: Region-based currency conversion functionality
+## Design Decisions
 
-## Technical Standards
+### Navigation
+- Sticky header with scroll-aware behavior
+- Collapsible on scroll down, expandable on scroll up
+- Mobile-first approach with hamburger menu
+- Search integration in both desktop and mobile views
 
-### Code Organization
-- **API URLs**: Dynamically defined using environment variables
-- **Parameter Handling**: Consistent approach for query parameters
-- **Security**: Input sanitization and proper encoding
+### Visual Design
+- Clean, modern aesthetic
+- Consistent spacing and typography
+- Smooth transitions and animations
+- Visual feedback for user interactions
+- Proper contrast ratios for accessibility
 
-### Performance Optimization
-- **Lazy Loading**: Implemented for components and images
-- **Server-Side Rendering**: Used for initial page loads
-- **Caching**: Strategies for API responses and assets
+### Performance Considerations
+- Optimized image loading
+- Code splitting
+- Event handler optimization
+- Transition performance
+- Mobile performance optimization
 
-## Recent Improvements
+### Accessibility
+- Semantic HTML structure
+- ARIA labels and roles
+- Keyboard navigation support
+- Screen reader compatibility
+- Focus management
 
-### API Enhanced Parameter Handling
-- Implemented robust handling for filter parameters including arrays and comma-separated values
-- Ensured consistent handling of class_type parameter between frontend and backend
-- Improved URL construction with proper parameter encoding
-- Added comprehensive API functions for advanced course filtering
-- Enhanced existing functions to support all backend filtering capabilities
+## Development Guidelines
 
-### Currency Conversion System
-- Added support for multiple currencies based on user region
-- Implemented interactive currency selector in the navbar
-- Enhanced price display with proper formatting and conversion
+### Code Style
+- Functional components with hooks
+- Proper TypeScript usage
+- Component composition
+- Props validation
+- Performance optimization
 
-### UI/UX Enhancements
-- Improved course sections with distinctive styling for different course types
-- Added interactive filtering capabilities with visual feedback
-- Enhanced empty states and loading indicators for better user experience
+### State Management
+- React hooks for local state
+- Context for theme and auth
+- Proper prop drilling prevention
+- Optimized re-renders
 
-## Future Development Roadmap
-- Integration with real-time currency conversion API
-- Enhanced batch enrollment workflow
-- Advanced analytics dashboard for instructors
-- Personalized learning paths based on user progress
-- Mobile application development 
+### Testing Strategy
+- Unit tests for components
+- Integration tests for features
+- Accessibility testing
+- Performance monitoring
+
+### Documentation
+- Component documentation
+- Props documentation
+- Usage examples
+- Changelog maintenance
+
+## Future Improvements
+- Enhanced search functionality
+- Animation optimizations
+- Additional theme options
+- Extended mobile features
+- Performance monitoring
+- Analytics integration 
