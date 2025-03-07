@@ -40,7 +40,7 @@ function CourseBanner({
   };
 
   return (
-    <section className="relative bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 overflow-hidden">
+    <section className="relative min-h-[90vh] bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
@@ -48,15 +48,15 @@ function CourseBanner({
         <div className={`absolute bottom-0 left-0 w-1/2 h-1/2 ${themeClasses.backgroundSecondary} rounded-full blur-3xl transform -translate-x-1/2 translate-y-1/4`}></div>
       </div>
 
-      <div className="container mx-auto px-4 py-12 lg:py-16 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+      <div className="container mx-auto px-4 py-16 lg:py-24 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Content Section */}
           <motion.div
             initial="hidden"
             animate={isLoaded ? "visible" : "hidden"}
             variants={fadeInUp}
             transition={{ duration: 0.5 }}
-            className="space-y-6 lg:space-y-8"
+            className="space-y-8"
           >
             {/* Badge */}
             <div className={`inline-flex items-center gap-2 ${themeClasses.badgeContainer} rounded-full p-1 pl-2 pr-4`}>
@@ -66,17 +66,17 @@ function CourseBanner({
             </div>
 
             {/* Heading */}
-            <div className="space-y-3">
-              <h1 className="text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900 dark:text-white leading-tight">
+            <div className="space-y-4">
+              <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 dark:text-white leading-tight">
                 {title} <span className={themeClasses.title}>{titleHighlight}</span>
               </h1>
-              <p className="text-base lg:text-lg text-gray-600 dark:text-gray-300">
+              <p className="text-lg lg:text-xl text-gray-600 dark:text-gray-300">
                 {description}
               </p>
             </div>
 
             {/* Stats Section */}
-            <div className="grid grid-cols-3 gap-4 lg:gap-6">
+            <div className="grid grid-cols-3 gap-6">
               {stats.map((stat, index) => (
                 <motion.div
                   key={index}
@@ -84,17 +84,17 @@ function CourseBanner({
                   animate={isLoaded ? "visible" : "hidden"}
                   variants={fadeInUp}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="text-center p-2"
+                  className="text-center"
                 >
-                  <div className="flex justify-center mb-1">{stat.icon}</div>
-                  <div className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</div>
-                  <div className="text-xs lg:text-sm text-gray-500 dark:text-gray-400">{stat.label}</div>
+                  <div className="flex justify-center mb-2">{stat.icon}</div>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">{stat.label}</div>
                 </motion.div>
               ))}
             </div>
 
             {/* Features Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {features.map((feature, index) => (
                 <motion.div
                   key={index}
@@ -102,13 +102,13 @@ function CourseBanner({
                   animate={isLoaded ? "visible" : "hidden"}
                   variants={fadeInUp}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow"
+                  className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow"
                 >
-                  <div className="mb-2">{feature.icon}</div>
-                  <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-1">
+                  <div className="mb-4">{feature.icon}</div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                     {feature.title}
                   </h3>
-                  <p className="text-xs lg:text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     {feature.description}
                   </p>
                 </motion.div>
@@ -116,24 +116,24 @@ function CourseBanner({
             </div>
 
             {/* CTA Section */}
-            <div className="flex flex-wrap gap-3 pt-2">
+            <div className="flex flex-wrap gap-4 pt-4">
               <Link
                 href="/enroll"
-                className={`inline-flex items-center px-5 py-2.5 ${themeClasses.button} text-white font-medium rounded-lg transition-all transform hover:-translate-y-0.5 shadow-lg`}
+                className={`inline-flex items-center px-6 py-3 ${themeClasses.button} text-white font-medium rounded-lg transition-all transform hover:-translate-y-0.5 shadow-lg`}
               >
                 Enroll Now
-                <ChevronRight className="ml-2 h-4 w-4" />
+                <ChevronRight className="ml-2 h-5 w-5" />
               </Link>
               <Link
                 href="/course-details"
-                className={`inline-flex items-center px-5 py-2.5 bg-white dark:bg-gray-800 ${themeClasses.secondaryButton} font-medium rounded-lg border-2 transition-all`}
+                className={`inline-flex items-center px-6 py-3 bg-white dark:bg-gray-800 ${themeClasses.secondaryButton} font-medium rounded-lg border-2 transition-all`}
               >
                 View Details
               </Link>
             </div>
 
             {/* Slogan */}
-            <p className={`mumkinMedh text-xl lg:text-2xl font-medium italic ${themeClasses.title}`}>
+            <p className={`mumkinMedh text-2xl font-medium italic ${themeClasses.title}`}>
               Medh Hain Toh Mumkin Hain!
             </p>
           </motion.div>
@@ -144,14 +144,14 @@ function CourseBanner({
             animate={isLoaded ? "visible" : "hidden"}
             variants={fadeInUp}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="relative mt-6 lg:mt-0"
+            className="relative"
           >
-            <div className="relative rounded-xl overflow-hidden shadow-xl">
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl">
               <div className={`absolute inset-0 bg-gradient-to-tr ${themeClasses.gradientFrom} ${themeClasses.gradientVia} ${themeClasses.gradientTo}`}></div>
               <Image
                 src={mainImage}
                 alt="Course Banner"
-                className="w-full h-auto rounded-xl transform hover:scale-105 transition-transform duration-700"
+                className="w-full h-auto rounded-2xl transform hover:scale-105 transition-transform duration-700"
                 priority
               />
             </div>
@@ -161,10 +161,10 @@ function CourseBanner({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
-              className="absolute -bottom-4 -left-4 bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg"
+              className="absolute -bottom-6 -left-6 bg-white dark:bg-gray-800 p-4 rounded-xl shadow-xl"
             >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full overflow-hidden">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full overflow-hidden">
                   <Image
                     src={studentImage}
                     alt="Student"
@@ -172,7 +172,7 @@ function CourseBanner({
                   />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-gray-900 dark:text-white">
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">
                     Next Batch Starting
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
