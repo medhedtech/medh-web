@@ -126,6 +126,154 @@ const animationStyles = `
 }
 `;
 
+// Update CourseInfoTooltip component
+const CourseInfoTooltip = ({ course, isVisible, position, classType }) => {
+  if (!isVisible) return null;
+
+  const isLiveCourse = classType === 'live';
+  const { convertPrice, formatPrice: formatCurrencyPrice } = useCurrency();
+
+  return (
+    <div 
+      className={`fixed z-50 w-[400px] bg-white dark:bg-gray-900 rounded-lg shadow-2xl border border-gray-200/20 dark:border-gray-800/40 transition-all duration-300 ${
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+      }`}
+      style={{
+        left: `${position.x + 20}px`,
+        top: `${position.y}px`
+      }}
+    >
+      {/* Course Title Header */}
+      <div className="p-4 border-b border-gray-200 dark:border-gray-800">
+        <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+          {course?.course_title}
+        </h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+          {course?.tagline || 'Learn the essential skills for success'}
+        </p>
+      </div>
+
+      {/* Updated & Last Updated */}
+      <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800/50 flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
+        <span className="flex items-center gap-1">
+          <Clock size={12} />
+          Updated {course?.last_updated || 'Recently'}
+        </span>
+        {course?.language && (
+          <span className="flex items-center gap-1">
+            <Globe size={12} />
+            {course.language}
+          </span>
+        )}
+      </div>
+
+      {/* Course Preview Content */}
+      <div className="p-4 space-y-4">
+        {/* What you'll learn section */}
+        <div className="space-y-2">
+          <h4 className="font-semibold text-gray-900 dark:text-white text-sm">What you'll learn</h4>
+          <ul className="grid grid-cols-2 gap-2">
+            {(course?.learning_points || []).slice(0, 4).map((point, index) => (
+              <li key={index} className="flex items-start gap-2 text-xs text-gray-600 dark:text-gray-400">
+                <CheckCircle size={12} className="mt-0.5 shrink-0" />
+                <span>{point}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Course Content Preview */}
+        <div className="space-y-2">
+          <h4 className="font-semibold text-gray-900 dark:text-white text-sm">Course Content</h4>
+          <ul className="space-y-2">
+            <li className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
+              <div className="flex items-center gap-2">
+                <BookOpen size={12} />
+                <span>{course?.no_of_Sessions || 0} {isLiveCourse ? 'Sessions' : 'Classes'}</span>
+              </div>
+              <span>{course?.course_duration ? `${course.course_duration.split(' ').slice(0, 2).join(' ').replace('months', 'Months')} Course` : "Self-Paced Course"}</span>
+            </li>
+            <li className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
+              <div className="flex items-center gap-2">
+                <Award size={12} />
+                <span>Certificate of completion</span>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        {/* Requirements */}
+        {course?.prerequisites && course.prerequisites.length > 0 && (
+          <div className="space-y-2">
+            <h4 className="font-semibold text-gray-900 dark:text-white text-sm">Requirements</h4>
+            <ul className="space-y-1">
+              {course.prerequisites.slice(0, 2).map((req, index) => (
+                <li key={index} className="flex items-start gap-2 text-xs text-gray-600 dark:text-gray-400">
+                  <div className="w-1 h-1 rounded-full bg-gray-400 mt-1.5" />
+                  <span>{req}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Instructor Section */}
+        {course?.instructor && (
+          <div className="pt-3 border-t border-gray-200 dark:border-gray-800">
+            <div className="flex items-center gap-3">
+              {course.instructor.avatar ? (
+                <img 
+                  src={course.instructor.avatar} 
+                  alt={course?.course_duration}
+                  className="w-10 h-10 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                  <User size={20} className="text-gray-500 dark:text-gray-400" />
+                </div>
+              )}
+              <div>
+                <h4 className="font-semibold text-sm text-gray-900 dark:text-white">
+                  {course?.instructor?.name || 'Course Instructor'}
+                </h4>
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  {course.instructor?.title || 'Instructor'}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Call to Action Footer */}
+      <div className="p-4 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-800">
+        <div className="flex items-center justify-between">
+          <div className="flex items-baseline gap-2">
+            <span className={`text-2xl font-bold ${
+              isLiveCourse ? 'text-rose-600 dark:text-rose-400' : 'text-indigo-600 dark:text-indigo-400'
+            }`}>
+              {course?.course_fee ? formatCurrencyPrice(convertPrice(course.course_fee)) : 'Free'}
+            </span>
+            {course?.original_fee && (
+              <span className="text-sm text-gray-500 line-through">
+                {formatCurrencyPrice(convertPrice(course.original_fee))}
+              </span>
+            )}
+          </div>
+          <button
+            onClick={() => window.open(`/course-details/${course?._id}`, '_blank')}
+            className={`px-4 py-2 rounded-lg font-medium text-white transition-all flex items-center justify-center gap-1.5 ${
+            'bg-indigo-500 hover:bg-indigo-600'
+            }`}
+          >
+            Add to cart
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const CourseCard = ({ 
   course = {}, 
   onShowRelated = () => {},
@@ -150,6 +298,10 @@ const CourseCard = ({
   // Add state for batch/individual price toggle if card supports interaction
   const [selectedPricing, setSelectedPricing] = useState("individual");
 
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+  const [showTooltip, setShowTooltip] = useState(false);
+  const tooltipTimeout = useRef(null);
+
   const handleImageLoad = () => setIsImageLoaded(true);
   const handleImageError = () => setIsImageError(true);
   const openModal = () => setIsModalOpen(true);
@@ -164,12 +316,18 @@ const CourseCard = ({
     const x = (e.clientX - rect.left) / rect.width;
     const y = (e.clientY - rect.top) / rect.height;
     
-    const tiltX = (y - 0.5) * 10; // Max 5 degrees tilt
-    const tiltY = (0.5 - x) * 10; // Max 5 degrees tilt
+    const tiltX = (y - 0.5) * 10;
+    const tiltY = (0.5 - x) * 10;
     
     setTiltStyle({
       transform: `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`,
       transition: 'transform 0.1s ease'
+    });
+
+    // Update tooltip position
+    setTooltipPosition({
+      x: rect.right,
+      y: rect.top
     });
   };
   
@@ -372,12 +530,39 @@ const CourseCard = ({
 
   const enrollmentStatus = getEnrollmentStatus();
 
-  // Course highlights - sample data (would come from API in real implementation)
-  const courseHighlights = [
-    "Industry-recognized certification",
-    "Hands-on projects",
-    "Expert instructors"
-  ];
+  // Course highlights based on class type
+  const getHighlights = () => {
+    if (classType === 'blended_courses') {
+      return [
+        "Blend of online & offline learning",
+        "Personalized attention",
+        "Interactive classroom sessions"
+      ];
+    }
+    // Default highlights for other class types
+    return [
+      "Industry-recognized certification",
+      "Hands-on projects",
+      "Expert instructors"
+    ];
+  };
+
+  // Get the session display text based on class type
+  const getSessionDisplay = () => {
+    if (classType === 'blended_courses') {
+      return {
+        label: "Classes",
+        value: course?.no_of_Sessions || "N/A"
+      };
+    }
+    return {
+      label: "Sessions",
+      value: course?.no_of_Sessions || "N/A"
+    };
+  };
+
+  const courseHighlights = getHighlights();
+  const sessionInfo = getSessionDisplay();
 
   // Animation for badge entrance
   useEffect(() => {
@@ -434,606 +619,339 @@ const CourseCard = ({
   // Format and adapt course description for display
   const adaptedDescription = useResponsiveText(course?.course_description, {xs: 80, sm: 120, md: 160, lg: 200});
 
+  // Determine card type
+  const isLiveCourse = classType === 'live';
+  const isBlendedCourse = classType === 'blended_courses';
+
+  // Get pricing display based on class type
+  const getPricingDisplay = () => {
+    if (!course?.course_fee) return "Free";
+    
+    const formattedPrice = formatPrice(course.course_fee, course.original_fee);
+    const discount = course.original_fee ? calculateBatchDiscount(course.course_fee, course.original_fee) : 0;
+    
+    return {
+      current: formattedPrice,
+      original: course.original_fee ? formatPrice(course.original_fee) : null,
+      discount: discount > 0 ? `${discount}% off` : null
+    };
+  };
+
+  const pricingInfo = getPricingDisplay();
+
+  // Update the getGradeDisplay function
+  const getGradeDisplay = (grade) => {
+    if (!grade) return "All Grades";
+    
+    // Handle array of grades
+    if (Array.isArray(grade)) {
+      return grade.join(', ');
+    }
+    
+    // Handle different grade formats
+    const gradeMap = {
+      'Preschool': 'Preschool',
+      'Grade 1-2': 'Grade 1-2',
+      'Grade 3-4': 'Grade 3-4',
+      'Grade 5-6': 'Grade 5-6',
+      'Grade 7-8': 'Grade 7-8',
+      'Grade 9-10': 'Grade 9-10',
+      'Grade 11-12': 'Grade 11-12',
+      'UG - Graduate - Professionals': 'UG & Professionals'
+    };
+
+    // If the grade is in our map, return the formatted version
+    if (gradeMap[grade]) {
+      return gradeMap[grade];
+    }
+
+    // If it's not in our map, return as is
+    return grade;
+  };
+
+  // Update the getGradeLevelInfo function
+  const getGradeLevelInfo = (grade) => {
+    // Default info for no grade
+    const defaultInfo = {
+      icon: <Users size={16} />,
+      color: isLiveCourse ? 'text-rose-500' : 'text-indigo-500',
+      label: 'All Grades'
+    };
+
+    if (!grade) return defaultInfo;
+
+    // Handle array of grades
+    if (Array.isArray(grade)) {
+      return {
+        icon: <Users size={16} />,
+        color: isLiveCourse ? 'text-rose-500' : 'text-indigo-500',
+        label: 'Multiple Grades'
+      };
+    }
+
+    const levelInfo = {
+      'Preschool': {
+        icon: <GraduationCap size={16} />,
+        color: isLiveCourse ? 'text-rose-500' : 'text-indigo-500',
+        label: 'Early Education'
+      },
+      'Grade 1-2': {
+        icon: <BookOpen size={16} />,
+        color: isLiveCourse ? 'text-rose-500' : 'text-indigo-500',
+        label: 'Primary Level'
+      },
+      'Grade 3-4': {
+        icon: <BookOpen size={16} />,
+        color: isLiveCourse ? 'text-rose-500' : 'text-indigo-500',
+        label: 'Primary Level'
+      },
+      'Grade 5-6': {
+        icon: <BookOpen size={16} />,
+        color: isLiveCourse ? 'text-rose-500' : 'text-indigo-500',
+        label: 'Middle Level'
+      },
+      'Grade 7-8': {
+        icon: <BookOpen size={16} />,
+        color: isLiveCourse ? 'text-rose-500' : 'text-indigo-500',
+        label: 'Middle Level'
+      },
+      'Grade 9-10': {
+        icon: <GraduationCap size={16} />,
+        color: isLiveCourse ? 'text-rose-500' : 'text-indigo-500',
+        label: 'Secondary Level'
+      },
+      'Grade 11-12': {
+        icon: <GraduationCap size={16} />,
+        color: isLiveCourse ? 'text-rose-500' : 'text-indigo-500',
+        label: 'Higher Secondary'
+      },
+      'UG - Graduate - Professionals': {
+        icon: <Award size={16} />,
+        color: isLiveCourse ? 'text-rose-500' : 'text-indigo-500',
+        label: 'Professional Level'
+      }
+    };
+    
+    return levelInfo[grade] || defaultInfo;
+  };
+
+  // Update mouse enter/leave handlers
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+    tooltipTimeout.current = setTimeout(() => {
+      setShowTooltip(true);
+    }, 500); // Show tooltip after 500ms hover
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    setShowTooltip(false);
+    resetTilt();
+    if (tooltipTimeout.current) {
+      clearTimeout(tooltipTimeout.current);
+    }
+  };
+
+  // Clean up timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (tooltipTimeout.current) {
+        clearTimeout(tooltipTimeout.current);
+      }
+    };
+  }, []);
+
   return (
-    <div 
-      ref={cardRef}
-      className={`group relative flex flex-col h-full rounded-xl overflow-hidden border border-gray-200/20 dark:border-gray-800/40 bg-white/90 dark:bg-gray-900/90 backdrop-filter backdrop-blur-sm transition-all duration-300 hover:border-primary-400/60 dark:hover:border-primary-600/60 hover:shadow-lg hover:shadow-primary-500/10 ${isHovered ? 'scale-[1.02] z-10' : 'scale-100 z-0'}`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => {
-        setIsHovered(false);
-        resetTilt();
-      }}
-      onMouseMove={handleMouseMove}
-      style={tiltStyle}
-    >
-      {/* Decorative corner element - adds Gen Alpha geometric accent */}
-      <div className="absolute -top-8 -right-8 w-16 h-16 bg-gradient-to-br from-primary-500/20 to-purple-500/20 rounded-full blur-xl z-0 transition-all duration-500 group-hover:scale-150"></div>
-      <div className="absolute -bottom-8 -left-8 w-16 h-16 bg-gradient-to-tr from-primary-500/20 to-amber-500/20 rounded-full blur-xl z-0 transition-all duration-500 group-hover:scale-150"></div>
-
-      {/* Save/Bookmark Tooltip - New feature */}
-      <div className={`absolute top-2 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs py-1 px-3 rounded-full z-50 transition-all duration-300 ${saveTooltipVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}`}>
-        {isSaved ? 'Saved to your bookmarks!' : 'Removed from bookmarks'}
-      </div>
-
-      {/* Normal View */}
-      <div className={`transition-all duration-300 ${isHovered ? 'opacity-0 absolute inset-0 pointer-events-none' : 'opacity-100'} z-10`}>
-      {/* Image section with improved loading state */}
-        <div className="relative w-full aspect-[16/9] overflow-hidden">
-        {/* Skeleton loader */}
-        <div 
-          className={`absolute inset-0 bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 dark:from-gray-800 dark:via-gray-700 dark:to-gray-800 animate-pulse ${
-            isImageLoaded ? 'opacity-0' : 'opacity-100'
-          } transition-opacity duration-300`}
-        />
-        
-        <Image
-          src={!isImageError ? (course?.course_image || image6) : image6}
-          alt={course?.course_title || "Course Image"}
-          className={`w-full h-full object-cover transition-all duration-500 ${
-            isHovered ? 'scale-105' : 'scale-100'
-          } ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
-          width={400}
-          height={225}
-          onLoad={handleImageLoad}
-          onError={handleImageError}
-          priority={true}
-        />
-
-          {/* Play button overlay for video content feel */}
-          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <div className="w-10 h-10 rounded-full bg-white/30 backdrop-blur-sm flex items-center justify-center">
-              <Play size={18} className="text-white fill-white" />
-            </div>
+    <>
+      <div 
+        ref={cardRef}
+        className={`group relative flex flex-col h-full rounded-xl overflow-hidden border border-gray-200/20 dark:border-gray-800/40 bg-white/90 dark:bg-gray-900/90 backdrop-filter backdrop-blur-sm transition-all duration-300 ${
+          isHovered ? 'scale-[1.02] z-10 shadow-xl' : 'scale-100 z-0 shadow-md'
+        } ${isLiveCourse ? 'hover:border-rose-400/60 hover:shadow-rose-200/20' : 'hover:border-indigo-400/60 hover:shadow-indigo-200/20'}`}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onMouseMove={handleMouseMove}
+        style={tiltStyle}
+      >
+        {/* Pre-hover content */}
+        <div className={`flex flex-col h-full transition-opacity duration-300 ${isHovered ? 'opacity-0' : 'opacity-100'}`}>
+          {/* Image section */}
+          <div className="relative w-full aspect-[16/9] overflow-hidden">
+            <Image
+              src={!isImageError ? (course?.course_image || image6) : image6}
+              alt={course?.course_title || "Course Image"}
+              className="w-full h-full object-cover"
+              width={400}
+              height={225}
+              onLoad={handleImageLoad}
+              onError={handleImageError}
+              priority={true}
+            />
           </div>
 
-          {/* Class Type Badge */}
-          {classType && (
-            <div 
-              className={`absolute top-3 left-3 py-1 px-3 rounded-full text-xs font-medium ${
-                classType === 'live' 
-                  ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-200' 
-                  : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-200'
-              } backdrop-blur-sm z-20`}
-            >
-              {classType === 'live' ? 'Live Interactive' : 'Blended Learning'}
-            </div>
-          )}
+          {/* Course info */}
+          <div className="p-4 flex flex-col flex-grow">
+            {/* Title and Instructor */}
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 line-clamp-2">
+              {course?.course_title || "Course Title"}
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 flex items-center gap-2">
+              {classType === 'live' ? (
+                <>
+                  <Clock size={16} className="text-rose-500 dark:text-rose-400" />
+                  {course?.course_duration && course.course_duration.includes('18 months') 
+                    ? "18 Months + 3 Months Internship"
+                    : course?.course_duration 
+                      ? `${course.course_duration.split(' ').slice(0, 2).join(' ').replace('months', 'Months')} Course` 
+                      : "Self-Paced Course"}
+                </>
+              ) : (
+                <>
+                  <BookOpen size={16} className="text-indigo-500 dark:text-indigo-400" />
+                  "Self-Paced Course"
+                </>
+              )}
+            </p>
 
-          {/* Category badge - updated with more modern styling */}
-        <div className="absolute top-2 left-2 z-10">
-          {course?.course_category && (
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-medium bg-white/90 dark:bg-gray-800/90 text-primary-700 dark:text-primary-400 backdrop-blur-sm shadow-sm border border-primary-200 dark:border-primary-800">
-              <Tag size={10} className="mr-1 text-primary-500" />
-              {course.course_category}
-            </span>
-          )}
-        </div>
-
-          {/* Trending badge - updated with more modern styling */}
-        {course?.is_popular && (
-          <div className="absolute top-2 right-2 z-10">
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-medium bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-sm">
-                <TrendingUp size={10} className="mr-1 animate-pulse" />
-              Hot
-            </span>
-          </div>
-        )}
-
-          {/* Progress indicator - New feature */}
-          {isInProgress && (
-            <div className="absolute left-0 right-0 bottom-0 h-1 bg-gray-200 dark:bg-gray-700 z-20">
-              <div 
-                className="h-full bg-primary-500 transition-all duration-1000"
-                style={{ width: `${progress}%` }}
-              ></div>
-            </div>
-          )}
-          
-          {/* Completion badge - New feature */}
-          {isCompleted && (
-            <div className="absolute left-0 bottom-0 z-20 m-2">
-              <div className="bg-green-500 text-white text-[10px] font-medium px-2 py-0.5 rounded-full flex items-center">
-                <CheckCircle size={8} className="mr-1" />
-                Complete
+            {/* Course Stats */}
+            <div className="flex items-center gap-4 mb-3">
+              <div className="flex items-center gap-1.5">
+                <Users size={14} className="text-emerald-500" />
+                <span className="text-xs text-gray-600">{course?.no_of_Sessions || 0} {classType === 'live' ? 'Sessions' : 'Classes'}</span>
+                {classType != 'live' && (
+                  <span className="text-xs text-gray-600">({course?.min_hours_per_week || 0}-{course?.max_hours_per_week || 0} hrs / week)</span>
+                )}
+                {classType === 'live' && (
+                  <span className="text-xs text-gray-600">(60-90 min each)</span>
+                )}
               </div>
+              {/* <div className="flex items-center gap-1.5">
+                <Target size={14} className="text-gray-400" />
+                <span className="text-xs text-gray-600">{course?.effort_hours || "4-6"} hrs/week</span>
+              </div> */}
             </div>
-          )}
 
-          {/* Action Buttons - Updated with Save feature */}
-          <div className="absolute bottom-2 right-2 z-20 flex space-x-1.5">
-            {/* Like Button */}
-            <button 
-              onClick={handleLikeClick}
-              className="w-6 h-6 rounded-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm flex items-center justify-center transition-all hover:scale-110 active:scale-90"
-            >
-              <Heart 
-                size={12} 
-                className={`transition-all duration-300 ${isLiked ? 'fill-red-500 text-red-500' : 'text-gray-500 dark:text-gray-400'} ${likeAnimation ? 'scale-150' : 'scale-100'}`}
-              />
-            </button>
-            
-            {/* Save/Bookmark Button - New feature */}
-            <button 
-              onClick={handleSaveClick}
-              className="w-6 h-6 rounded-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm flex items-center justify-center transition-all hover:scale-110 active:scale-90"
-            >
-              <Bookmark 
-                size={12} 
-                className={`transition-all duration-300 ${isSaved ? 'fill-primary-500 text-primary-500' : 'text-gray-500 dark:text-gray-400'}`}
-              />
-            </button>
-        </div>
-      </div>
-
-      {/* Content section with optimized spacing */}
-      <div className="flex flex-col flex-grow p-3">
-          {/* Title with duration - improved spacing and heading size */}
-        <div className="mb-2">
-            <div className="flex flex-col mb-1">
-              <div className="flex justify-between items-start">
-                <h3 
-                  className="text-sm md:text-base font-extrabold text-gray-900 dark:text-white line-clamp-2 cursor-pointer hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-                  onClick={navigateToCourse}
-                >
-                  {adaptedTitle || "Course Title"}
-                </h3>
-          
-                {/* In Progress indicator - New feature */}
-                {isInProgress && (
-                  <span className="ml-2 flex-shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-300">
-                    <BarChart size={8} className="mr-1" />
-                    {progress}%
+            {/* Price */}
+            <div className="mt-auto">
+              <div className="flex items-baseline gap-2">
+                <span className={`text-xl font-bold ${
+                  isLiveCourse ? 'text-rose-600 dark:text-rose-400' : 'text-indigo-600 dark:text-indigo-400'
+                }`}>
+                  {pricingInfo.current}
+                </span>
+                {pricingInfo.original && (
+                  <span className="text-sm text-gray-500 line-through">
+                    {pricingInfo.original}
                   </span>
                 )}
               </div>
-              
-              {/* Duration displayed right after title */}
-              <div className="flex items-center mt-0.5 text-xs text-gray-700 dark:text-gray-300">
-                <Timer size={10} className="text-primary-500 mr-1" />
-                <span className="font-medium text-[11px]">{formatDuration(course?.course_duration)}</span>
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-between mt-1">
-            {course?.rating && (
-              <div className="flex items-center">
-                <div className="flex items-center">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      size={10}
-                      className={`${
-                        i < Math.floor(course.rating) 
-                          ? "text-yellow-400 fill-yellow-400" 
-                          : "text-gray-300"
-                      }`}
-                    />
-                  ))}
-                </div>
-                <span className="ml-1 text-[10px] text-gray-600 dark:text-gray-400">
-                  {course.rating} ({course.reviews || 0})
+              {pricingInfo.discount && (
+                <span className="text-xs text-green-500 font-medium">
+                  {pricingInfo.discount}
                 </span>
-              </div>
-            )}
-            
-              {/* Enrollment status - with modern badge styling */}
-            {enrollmentStatus && (
-                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 font-medium truncate max-w-[80px]">
-                {enrollmentStatus}
-              </span>
-            )}
-          </div>
-        </div>
-
-          {/* Progress bar for non-hover state - New feature */}
-          {isInProgress && (
-            <div className="mb-4">
-              <div className="flex justify-between items-center mb-1">
-                <span className="text-xs text-gray-500 dark:text-gray-400">Your progress</span>
-                <span className="text-xs font-medium text-primary-600 dark:text-primary-400">{progress}%</span>
-              </div>
-              <div className="w-full h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-primary-500 rounded-full transition-all duration-1000"
-                  style={{ width: `${progress}%` }}
-                ></div>
-              </div>
-          </div>
-          )}
-
-          {/* Course details - updated with more modern styling */}
-          <div className="grid grid-cols-2 gap-1.5 sm:gap-2 mb-4">
-            <div className="flex flex-col items-center p-1.5 sm:p-2 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-lg border border-emerald-100 dark:border-emerald-900/30 group/stats hover:scale-105 transition-transform">
-              <BookOpen size={14} className="text-emerald-500 mb-0.5 sm:mb-1 group-hover/stats:animate-bounce" />
-            <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Sessions</span>
-            <span className="text-[10px] sm:text-xs font-medium text-gray-800 dark:text-gray-300 truncate w-full text-center px-1">
-              {course?.no_of_Sessions || "N/A"}
-            </span>
-          </div>
-
-            <div className="flex flex-col items-center p-1.5 sm:p-2 bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 rounded-lg border border-violet-100 dark:border-violet-900/30 group/stats hover:scale-105 transition-transform">
-              <GraduationCap size={14} className="text-violet-500 mb-0.5 sm:mb-1 group-hover/stats:animate-bounce" />
-            <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Level</span>
-            <span className="text-[10px] sm:text-xs font-medium text-gray-800 dark:text-gray-300 truncate w-full text-center px-1">
-              {course?.course_grade || "All Levels"}
-            </span>
-          </div>
-        </div>
-
-          {/* Course features - updated with more modern styling */}
-        <div className="space-y-1.5 sm:space-y-2 mb-4 sm:mb-5">
-          {[
-              { icon: Users, text: "Expert-led instruction", color: "text-blue-500 bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-900/30" },
-              { icon: Award, text: "Industry certification", color: "text-amber-500 bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-900/30" },
-              { icon: Calendar, text: "Flexible scheduling", color: "text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-900/30" }
-          ].map(({ icon: Icon, text, color }, index) => (
-              <div key={index} className="flex items-center gap-1.5 sm:gap-2 group/feature hover:translate-x-1 transition-transform duration-200">
-                <div className={`flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 rounded-full ${color} border group-hover/feature:scale-110 transition-transform`}>
-                <Icon size={12} className="sm:w-3.5 sm:h-3.5" />
-              </div>
-              <span className="text-[11px] sm:text-xs text-gray-700 dark:text-gray-300 truncate">{text}</span>
-            </div>
-          ))}
-        </div>
-
-          {/* Price section - updated with more modern styling */}
-        <div className="mt-auto flex items-center justify-between mb-3 sm:mb-4">
-          {course?.course_fee !== undefined && (
-            <div className="flex items-baseline gap-1.5 sm:gap-2">
-              <span className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
-                {formatPrice(course.course_fee, course.original_fee)}
-              </span>
-              {course?.original_fee && course.original_fee > course.course_fee && (
-                  <div className="flex flex-col">
-                    <span className="text-xs sm:text-sm text-gray-500 line-clamp-3">
-                  {formatPrice(course.original_fee, course.original_fee)}
-                </span>
-                    <span className="text-[10px] text-green-500 font-medium">
-                      {calculateBatchDiscount(course.course_fee, course.original_fee)}% off
-                    </span>
-                  </div>
               )}
             </div>
-          )}
-          
-            {/* Show student count if available - updated with more modern styling */}
-          {course?.enrolled_students && (
-              <div className="flex items-center text-[10px] sm:text-xs px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
-              <Users size={12} className="mr-1 sm:mr-1.5" />
-              {course.enrolled_students}+ enrolled
-            </div>
-          )}
+          </div>
         </div>
-      </div>
 
-        {/* Action buttons - updated with more modern styling */}
-      <div className="px-5 pb-5 mt-auto">
-        <div className={`grid ${showRelatedButton ? 'grid-cols-1' : 'grid-cols-2'} gap-2`}>
-          {showRelatedButton ? (
-            <button
-              onClick={onShowRelated}
-                className="w-full px-5 py-2.5 bg-primary-50 text-primary-600 hover:bg-primary-100 font-medium rounded-lg flex items-center justify-center gap-2 transition-colors border border-primary-200 hover:scale-105 active:scale-95 transform transition-transform"
-            >
-              <Sparkles size={16} />
-              Show Related Courses
-            </button>
-          ) : (
-            <>
+        {/* Hover content */}
+        <div className={`absolute inset-0 bg-white dark:bg-gray-900 p-4 flex flex-col transition-opacity duration-300 ${
+          isHovered ? 'opacity-100' : 'opacity-0'
+        }`}>
+          {/* Course details */}
+          <div className="space-y-3 mb-4">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">
+              {course?.course_title}
+            </h3>
+            {/* <p className="text-sm text-gray-600 dark:text-gray-400">
+              {course?.course_description || "Course description"}
+            </p> */}
+          </div>
+
+          {/* Course stats */}
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="flex items-center gap-2 text-sm">
+              <Clock size={16} className={`${isLiveCourse ? 'text-rose-500 dark:text-rose-400' : 'text-violet-500 dark:text-violet-400'}`} />
+              <div>
+                <p className="font-medium text-gray-900 dark:text-white">
+                  {course?.no_of_Sessions || 0} {isLiveCourse ? 'Sessions' : 'Classes'}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {isLiveCourse ? 'Live Interactive' : 'Self-Paced'}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <Timer size={16} className={'text-cyan-500 dark:text-cyan-400'} />
+              <div>
+                <p className="font-medium text-gray-900 dark:text-white">
+                  {classType === 'blended_courses' 
+                    ? "Self-Paced" 
+                    : course?.course_duration && course.course_duration.includes('18 months')
+                      ? "18 Months + 3 Months Internship"
+                      : course?.course_duration 
+                        ? `${course.course_duration.split(' ').slice(0, 2).join(' ').replace('months', 'Months')}` 
+                        : "Self-Paced"}
+                </p>
+                <p className="text-xs text-gray-500">Course Duration</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <Target size={16} className={'text-emerald-500 dark:text-emerald-400'} />
+              <div>
+                <p className="font-medium text-gray-900 dark:text-white">
+                  {course?.effort_hours || "4-6"} hrs/week
+                </p>
+                <p className="text-xs text-gray-500">Required Effort</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <Award size={16} className={'text-teal-500 dark:text-teal-400'} />
+              <div>
+                <p className="font-medium text-gray-900 dark:text-white">
+                  Included
+                </p>
+                <p className="text-xs text-gray-500">Certification</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Action buttons */}
+          <div className="mt-auto space-y-2">
+            <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={openModal}
-                  className="px-5 py-2.5 border border-primary-200 dark:border-primary-800 text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30 font-medium rounded-lg flex items-center justify-center gap-2 transition-colors hover:scale-105 active:scale-95 transform transition-transform"
+                className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center justify-center gap-1.5 ${
+                  isLiveCourse
+                    ? 'border border-rose-200 text-rose-600 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-400'
+                    : 'border border-indigo-200 text-indigo-600 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400'
+                }`}
               >
-                <Download size={16} />
+                <Download size={16} className={`${isLiveCourse ? 'text-orange-500 dark:text-orange-400' : 'text-sky-500 dark:text-sky-400'}`} />
                 Brochure
               </button>
               <button
                 onClick={navigateToCourse}
-                  className={`px-5 py-2.5 ${isInProgress ? 'bg-green-600 hover:bg-green-700' : 'bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-700 hover:to-primary-600'} text-white font-medium rounded-lg flex items-center justify-center gap-2 transition-colors shadow-sm hover:scale-105 active:scale-95 transform transition-transform`}
+                className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center justify-center gap-1.5 ${
+                  isLiveCourse
+                    ? 'border border-rose-200 text-rose-600 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-400'
+                    : 'border border-indigo-200 text-indigo-600 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400'
+                }`}
               >
-                  {isInProgress ? 'Continue' : 'Details'}
-                <ArrowUpRight size={16} />
+                Details
+                <ArrowUpRight size={16} className={'text-indigo-500 dark:text-indigo-400'} />
               </button>
-            </>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Info View (on hover) - completely redesigned for Gen Alpha */}
-      <div 
-        className={`transition-all duration-300 h-full ${isHovered ? 'opacity-100 z-20' : 'opacity-0 absolute inset-0 pointer-events-none'}`}
-      >
-        {/* Course thumbnail with overlay */}
-        <div className="relative w-full aspect-[3/2]">
-          <Image
-            src={!isImageError ? (course?.course_image || image6) : image6}
-            alt={course?.course_title || "Course thumbnail"}
-            fill
-            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
-            className="object-cover"
-          />
-          
-          <div className="absolute inset-0 bg-gradient-to-b from-primary-900/80 via-primary-900/90 to-gray-900/95 backdrop-blur-[2px]"></div>
-          
-          {/* Course title and basic info */}
-          <div className="absolute inset-0 p-4 flex flex-col">
-            <div className="flex items-center mb-2 space-x-2">
-              {course?.course_category && (
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-white/20 backdrop-blur-sm text-white border border-white/20 animate-fadeIn truncate max-w-[120px] sm:max-w-[150px]">
-                  <Tag size={10} className="mr-1 flex-shrink-0" />
-                  <span className="truncate">{course.course_category}</span>
-                </span>
-              )}
-              {course?.is_popular && (
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-rose-500/30 text-rose-100 border border-rose-500/30 animate-fadeIn">
-                  <TrendingUp size={10} className="mr-1 animate-pulse flex-shrink-0" />
-                  <span className="truncate">Trending</span>
-                </span>
-              )}
             </div>
-            
-            <h3 className="text-base sm:text-lg font-extrabold text-white mb-1 animate-slideUp line-clamp-2">{adaptedTitle || "Course Title"}</h3>
-            
-            <div className="flex items-center mb-3 animate-slideUp delay-100">
-              <div className="flex items-center mr-3">
-                <Timer size={14} className="text-primary-300 mr-1 flex-shrink-0" />
-                <span className="text-xs text-white font-bold truncate">{formatDuration(course?.course_duration)}</span>
-              </div>
-              {course?.course_grade && (
-                <div className="flex items-center">
-                  <GraduationCap size={14} className="text-primary-300 mr-1 flex-shrink-0" />
-                  <span className="text-xs text-white font-bold truncate">{course?.course_grade}</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Action Buttons in hover view - Updated with Save feature */}
-          <div className="absolute top-2 right-2 z-20 flex space-x-2">
-            {/* Like Button */}
-            <button 
-              onClick={handleLikeClick}
-              className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center transition-all hover:bg-white/30 active:scale-90"
-            >
-              <Heart 
-                size={16} 
-                className={`transition-all duration-300 ${isLiked ? 'fill-red-500 text-red-500' : 'text-white'} ${likeAnimation ? 'scale-150' : 'scale-100'}`}
-              />
-            </button>
-            
-            {/* Save/Bookmark Button - New feature */}
-            <button 
-              onClick={handleSaveClick}
-              className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center transition-all hover:bg-white/30 active:scale-90"
-            >
-              <Bookmark 
-                size={16} 
-                className={`transition-all duration-300 ${isSaved ? 'fill-primary-500 text-primary-500' : 'text-white'}`}
-              />
-            </button>
-          </div>
-        </div>
-        
-        {/* Interactive tabs for different content */}
-        <div className="px-4 pt-2 border-b border-gray-200 dark:border-gray-800 animate-fadeIn delay-200">
-          <div className="flex space-x-4">
-            <button 
-              onClick={() => setActiveTab('overview')}
-              className={`pb-2 text-xs font-medium transition-colors ${
-                activeTab === 'overview' 
-                  ? 'text-primary-600 dark:text-primary-400 border-b-2 border-primary-500' 
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+            <button
+              onClick={navigateToCourse}
+              className={`w-full px-4 py-2 rounded-lg font-medium text-white transition-all flex items-center justify-center gap-1.5 ${
+                isLiveCourse
+                  ? 'bg-rose-500 hover:bg-rose-600'
+                  : 'bg-indigo-500 hover:bg-indigo-600'
               }`}
             >
-              Overview
+              Add to Cart
             </button>
-            <button 
-              onClick={() => setActiveTab('highlights')}
-              className={`pb-2 text-xs font-medium transition-colors ${
-                activeTab === 'highlights' 
-                  ? 'text-primary-600 dark:text-primary-400 border-b-2 border-primary-500' 
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-              }`}
-            >
-              Highlights
-            </button>
-            <button 
-              onClick={() => setActiveTab('stats')}
-              className={`pb-2 text-xs font-medium transition-colors ${
-                activeTab === 'stats' 
-                  ? 'text-primary-600 dark:text-primary-400 border-b-2 border-primary-500' 
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-              }`}
-            >
-              Stats
-            </button>
-          </div>
-        </div>
-        
-        {/* Tab content */}
-        <div className="p-4 flex-grow flex flex-col relative">
-          {/* Animated background pattern */}
-          <div className="absolute inset-0 opacity-5">
-            <div className="absolute top-0 right-0 w-16 h-16 rounded-full bg-primary-500 blur-2xl"></div>
-            <div className="absolute bottom-0 left-0 w-16 h-16 rounded-full bg-purple-500 blur-2xl"></div>
-          </div>
-
-          {/* Overview Tab */}
-          <div className={`transition-all duration-300 h-full ${activeTab === 'overview' ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8 absolute inset-0 pointer-events-none'}`}>
-            {/* Course description */}
-            {course?.course_description && (
-              <div className="mb-3 relative z-10">
-                <h5 className="text-xs uppercase tracking-wider text-primary-500 dark:text-primary-400 font-semibold mb-1">About this course</h5>
-                <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 font-medium">{adaptedDescription}</p>
-              </div>
-            )}
-            
-            {/* What you'll learn - simplified for overview */}
-            <div className="mb-3 relative z-10">
-              <h5 className="text-xs uppercase tracking-wider text-primary-500 dark:text-primary-400 font-semibold mb-1 flex items-center">
-                <Target size={12} className="mr-1 flex-shrink-0" />
-                What you'll learn
-              </h5>
-              <ul className="space-y-1">
-                {courseHighlights.slice(0, 2).map((highlight, idx) => (
-                  <li key={idx} className="flex items-start text-xs md:text-sm text-gray-700 dark:text-gray-300 font-medium">
-                    <CheckCircle size={12} className="text-green-500 dark:text-green-400 mr-1.5 mt-0.5 flex-shrink-0" />
-                    <span>{highlight}</span>
-                  </li>
-                ))}
-                {courseHighlights.length > 2 && (
-                  <button 
-                    onClick={() => setActiveTab('highlights')}
-                    className="text-xs font-bold text-primary-600 dark:text-primary-400 hover:underline"
-                  >
-                    + See more highlights
-                  </button>
-                )}
-              </ul>
-            </div>
-          </div>
-          
-          {/* Highlights Tab */}
-          <div className={`transition-all duration-300 h-full ${activeTab === 'highlights' ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8 absolute inset-0 pointer-events-none'}`}>
-            {/* What you'll learn - full list */}
-            <div className="mb-4 relative z-10">
-              <h5 className="text-xs uppercase tracking-wider text-primary-500 dark:text-primary-400 font-semibold mb-2 flex items-center">
-                <Target size={12} className="mr-1" />
-                What you'll learn
-              </h5>
-              <ul className="space-y-2">
-                {courseHighlights.map((highlight, idx) => (
-                  <li key={idx} className="flex items-start text-xs md:text-sm text-gray-700 dark:text-gray-300 font-medium bg-gray-50 dark:bg-gray-800/50 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                    <CheckCircle size={14} className="text-green-500 dark:text-green-400 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>{highlight}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            
-            {/* Course topics */}
-            {course?.course_topics && course.course_topics.length > 0 && (
-              <div className="mb-3 relative z-10">
-                <h5 className="text-xs uppercase tracking-wider text-primary-500 dark:text-primary-400 font-semibold mb-1.5 flex items-center">
-                  <Layers size={12} className="mr-1 flex-shrink-0" />
-                  Topics Covered
-                </h5>
-                <div className="flex flex-wrap gap-1.5">
-                  {course.course_topics.map((topic, idx) => (
-                    <span key={idx} className="text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full border border-gray-200 dark:border-gray-700 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:border-primary-200 dark:hover:border-primary-800 transition-colors truncate max-w-[120px]">
-                      {topic}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-          
-          {/* Stats Tab */}
-          <div className={`transition-all duration-300 h-full ${activeTab === 'stats' ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8 absolute inset-0 pointer-events-none'}`}>
-            {/* Course stats in cards */}
-            <div className="grid grid-cols-2 gap-3 mb-4 relative z-10">
-              <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-3 flex flex-col items-center border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors hover:scale-105 transition-transform">
-                <BookOpen size={18} className="text-primary-500 dark:text-primary-400 mb-1" />
-                <span className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400">Sessions</span>
-                <span className="text-lg font-bold text-gray-800 dark:text-gray-200">{course?.no_of_Sessions || "N/A"}</span>
-              </div>
-              
-              {course?.enrolled_students && (
-                <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-3 flex flex-col items-center border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors hover:scale-105 transition-transform">
-                  <Users size={18} className="text-primary-500 dark:text-primary-400 mb-1" />
-                  <span className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400">Students</span>
-                  <span className="text-lg font-bold text-gray-800 dark:text-gray-200">{course.enrolled_students}+</span>
-                </div>
-              )}
-              
-              {course?.rating && (
-                <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-3 flex flex-col items-center border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors hover:scale-105 transition-transform">
-                  <Star size={18} className="text-yellow-400 mb-1" />
-                  <span className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400">Rating</span>
-                  <div className="flex items-center">
-                    <span className="text-lg font-bold text-gray-800 dark:text-gray-200 mr-1">{course.rating}</span>
-                    <div className="flex">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          size={10}
-                          className={i < Math.floor(course.rating) ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              {course?.course_fee !== undefined && (
-                <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-3 flex flex-col items-center border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors hover:scale-105 transition-transform">
-                  <Tag size={18} className="text-green-500 mb-1" />
-                  <span className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400">Price</span>
-                  <div className="flex flex-col items-center">
-                    <span className="text-lg font-bold text-gray-800 dark:text-gray-200">{formatPrice(course.course_fee, course.original_fee)}</span>
-                    {course?.original_fee && course.original_fee > course.course_fee && (
-                      <span className="text-xs text-green-500 font-medium">
-                        {calculateBatchDiscount(course.course_fee, course.original_fee)}% off
-                      </span>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Progress stat - New feature */}
-              {progress !== null && (
-                <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-3 flex flex-col items-center border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors hover:scale-105 transition-transform col-span-2">
-                  <BarChart size={18} className={`${isCompleted ? 'text-green-500' : 'text-primary-500 dark:text-primary-400'} mb-1`} />
-                  <span className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400">Completion</span>
-                  <div className="w-full mt-1.5">
-                    <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                      <div 
-                        className={`h-full ${isCompleted ? 'bg-green-500' : 'bg-primary-500'} rounded-full transition-all duration-1000`}
-                        style={{ width: `${progress}%` }}
-                      ></div>
-                    </div>
-                    <div className="flex justify-between mt-1">
-                      <span className="text-xs text-gray-500 dark:text-gray-400">0%</span>
-                      <span className={`text-xs font-medium ${isCompleted ? 'text-green-500' : 'text-primary-500 dark:text-primary-400'}`}>{progress}%</span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">100%</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-          
-          {/* Price and action buttons */}
-          <div className="mt-auto relative z-10">
-            <div className={`grid ${showRelatedButton ? 'grid-cols-1' : 'grid-cols-2'} gap-2`}>
-              {showRelatedButton ? (
-                <button
-                  onClick={onShowRelated}
-                  className="w-full px-5 py-2.5 bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-900/50 font-medium rounded-lg flex items-center justify-center gap-2 transition-colors border border-primary-200 dark:border-primary-800 hover:scale-105 active:scale-95 transform transition-transform"
-                >
-                  <Sparkles size={16} />
-                  Show Related Courses
-                </button>
-              ) : (
-                <>
-                  <button
-                    onClick={openModal}
-                    className="px-5 py-2.5 border border-primary-200 dark:border-primary-800 text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30 font-medium rounded-lg flex items-center justify-center gap-2 transition-colors hover:scale-105 active:scale-95 transform transition-transform"
-                  >
-                    <Download size={16} />
-                    Brochure
-                  </button>
-                  <button
-                    onClick={navigateToCourse}
-                    className={`px-5 py-2.5 ${isInProgress ? 'bg-green-600 hover:bg-green-700' : 'bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-700 hover:to-primary-600'} text-white font-medium rounded-lg flex items-center justify-center gap-2 transition-colors shadow-sm hover:scale-105 active:scale-95 transform transition-transform`}
-                  >
-                    {isInProgress ? 'Continue' : 'Details'}
-                    <ArrowUpRight size={16} />
-                  </button>
-                </>
-              )}
-            </div>
           </div>
         </div>
       </div>
@@ -1046,7 +964,7 @@ const CourseCard = ({
         courseTitle={course?.course_title}
         courseId={course?._id}
       />
-    </div>
+    </>
   );
 };
 
