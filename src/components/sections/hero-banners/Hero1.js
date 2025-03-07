@@ -43,7 +43,7 @@ const HeroMobile = ({ isLoaded, featuredCourses, loading }) => {
       <div className={`transition-all duration-700 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'}`}>
         <div className="flex flex-col items-center justify-center">
         <h1 className="text-white font-bold text-center mb-3">
-          <span className="block text-2xl mb-2">UNLOCK YOUR POTENTIAL WITH</span>
+          <span className="hero-heading-text">UNLOCK YOUR POTENTIAL WITH</span>
           <div className="relative h-[clamp(3rem,_11vw,_5rem)] max-w-[200px] mx-auto mb-4">
             <Image
               src={medhLogo}
@@ -55,7 +55,7 @@ const HeroMobile = ({ isLoaded, featuredCourses, loading }) => {
           </div>
         </h1>
         </div>
-        <p className="text-base md:text-xl text-white/90 max-w-2xl mx-auto text-center leading-relaxed bg-gradient-to-r from-primary-500 to-secondary-500 bg-clip-text text-transparent py-1 px-4 rounded-md shadow-sm md:mt-3">
+        <p className="hero-paragraph-text text-center md:mt-3">
           Join our expert-led professional courses and master the skills that drive industry innovation
         </p>
 
@@ -226,13 +226,7 @@ const Hero1 = () => {
               {/* Main Heading - Centered */}
               <div className="w-full max-w-[800px] mx-auto space-y- mb-8">
                 <h1 className="font-bold leading-tight w-full">
-                  <span 
-                    style={{ 
-                      fontSize: 'clamp(1.5rem, 3vw, 2.5rem)',
-                      lineHeight: '1.2',
-                      letterSpacing: '0.02em'
-                    }} 
-                    className="block text-white font-extrabold mb-4">
+                  <span className="hero-heading-text">
                     UNLOCK YOUR POTENTIAL WITH
                   </span>
                   <span className="block relative mx-auto mb-6">
@@ -248,7 +242,7 @@ const Hero1 = () => {
                   </span>
                 </h1>
                 
-                <p className="text-base md:text-xl text-white/90 max-w-2xl mx-auto leading-relaxed bg-gradient-to-r from-primary-500 to-secondary-500 bg-clip-text text-transparent py-1 px-2 rounded-md shadow-sm mt-6">
+                <p className="hero-paragraph-text text-center md:mt-3">
                   Join our expert-led professional courses and master the skills that drive industry innovation
                 </p>
                 
