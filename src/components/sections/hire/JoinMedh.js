@@ -48,154 +48,101 @@ const JoinMedh = ({
   const [isVisible, setIsVisible] = useState(false);
   
   useEffect(() => {
-    // Add entrance animation effect
     const timer = setTimeout(() => setIsVisible(true), 300);
     return () => clearTimeout(timer);
   }, []);
 
-  // Convert hex colors to CSS variables or use defaults
-  const isPrimaryEducatorBtn = educatorButtonColor === "#7ECA9D";
-  const educatorBtnClass = isPrimaryEducatorBtn 
-    ? "bg-primary-500 hover:bg-primary-600 text-white" 
-    : "";
-  
-  const isPrimaryPartnerBg = partnerBackgroundColor === "#F6B335";
-  const partnerBgClass = isPrimaryPartnerBg 
-    ? "bg-secondary-500 dark:bg-secondary-600" 
-    : "";
-  
   return (
-    <div className={`flex flex-col gap-12 transition-all duration-1000 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-      {/* Educator Section */}
-      <section className="relative overflow-hidden bg-white dark:bg-gray-900 rounded-[2rem] shadow-2xl">
-        {/* Enhanced 3D decorative elements */}
-        <div className="absolute top-0 right-0 w-2/3 h-2/3 bg-gradient-conic from-primary-300/40 via-purple-300/30 to-pink-300/40 dark:from-primary-500/30 dark:via-purple-500/20 dark:to-pink-500/30 rounded-full blur-[6rem] opacity-70 transform translate-x-1/3 -translate-y-1/4 animate-pulse-slow"></div>
-        <div className="absolute bottom-0 left-0 w-2/3 h-2/3 bg-gradient-conic from-blue-300/40 via-teal-300/30 to-primary-300/40 dark:from-blue-500/30 dark:via-teal-500/20 dark:to-primary-500/30 rounded-full blur-[6rem] opacity-70 transform -translate-x-1/3 translate-y-1/4 animate-pulse-slow animation-delay-2000"></div>
+    <div className={`grid grid-cols-1 md:grid-cols-2 gap-8 p-6 md:p-8 lg:p-10 max-w-[1400px] mx-auto transition-all duration-1000 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+      {/* Educator Card */}
+      <div className="relative overflow-hidden bg-white dark:bg-gray-900 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02]">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary-400/20 to-purple-400/20 dark:from-primary-500/20 dark:to-purple-500/20 opacity-50"></div>
         
-        <div className="max-w-7xl mx-auto p-8 lg:p-12">
-          <div className="flex flex-col md:flex-row items-center gap-16">
-            {/* Enhanced image container with 3D effects */}
-            <div className="w-full md:w-1/2 relative group perspective-1000">
-              <div className="absolute inset-0 bg-gradient-to-r from-primary-400/40 to-purple-400/40 dark:from-primary-500/40 dark:to-purple-500/40 rounded-[2rem] transform rotate-6 scale-95 opacity-0 group-hover:opacity-100 transition-all duration-500 md:-ml-8 blur-xl"></div>
-              <div className="relative overflow-hidden rounded-[2rem] shadow-2xl transform transition-all duration-500 group-hover:rotate-1 group-hover:scale-[1.02] will-change-transform">
-                <Image
-                  src={educatorImage}
-                  width={720}
-                  height={450}
-                  alt={educatorTitle}
-                  className="w-full object-cover transform transition-all duration-700 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                {/* Enhanced 3D overlay effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-primary-500/20 to-purple-500/20 mix-blend-overlay opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              </div>
-            </div>
-            
-            {/* Enhanced content container with 3D effects */}
-            <div className="w-full md:w-1/2 p-8 md:p-12">
-              <div className="max-w-lg space-y-8">
-                <span className="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-primary-100 to-purple-100 dark:from-primary-900/50 dark:to-purple-900/50 text-primary-700 dark:text-primary-300 text-sm font-medium rounded-full group-hover:shadow-lg transition-all duration-300 transform hover:scale-105">
-                  <span className="mr-2 text-xl">🎓</span>
-                  Become an Educator
-                </span>
-                
-                <h2 className="text-4xl md:text-5xl xl:text-6xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-700 dark:from-white dark:via-gray-200 dark:to-gray-300 bg-clip-text text-transparent">
-                  {educatorTitle}
-                </h2>
-                
-                <p className="text-gray-600 dark:text-gray-300 text-lg xl:text-xl leading-relaxed">
-                  {educatorText}
-                </p>
-                
-                <button
-                  onClick={() => router.push("/join-us-as-educator")}
-                  className="group relative inline-flex items-center px-8 py-4 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-xl shadow-xl transition-all duration-300 transform hover:translate-y-[-2px] hover:shadow-2xl hover:shadow-primary-500/25 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 overflow-hidden"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
-                  <PlusCircle className="mr-3 h-5 w-5 transform transition-transform duration-300 group-hover:rotate-180" />
-                  <span className="text-lg relative z-10">{educatorButtonText}</span>
-                </button>
-              </div>
-            </div>
+        {/* Mobile: Image on top, content below */}
+        <div className="flex flex-col h-full">
+          <div className="relative h-56 md:h-72 overflow-hidden">
+            <Image
+              src={educatorImage}
+              fill
+              style={{ objectFit: 'cover' }}
+              alt={educatorTitle}
+              className="transform transition-transform duration-700 hover:scale-110"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
           </div>
-        </div>
-      </section>
 
-      {/* School Partnership Section with enhanced 3D styling */}
-      <section className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#FF8C42] to-[#F6B335] dark:from-[#FF8C42] dark:to-[#F6B335] shadow-2xl">
-        {/* Enhanced 3D decorative elements */}
-        <div className="absolute top-0 left-0 w-2/3 h-2/3 bg-gradient-conic from-white/30 via-white/20 to-transparent rounded-full blur-[6rem] opacity-60 transform -translate-x-1/3 -translate-y-1/4 animate-pulse-slow"></div>
-        <div className="absolute bottom-0 right-0 w-2/3 h-2/3 bg-gradient-conic from-white/30 via-white/20 to-transparent rounded-full blur-[6rem] opacity-60 transform translate-x-1/3 translate-y-1/4 animate-pulse-slow animation-delay-4000"></div>
-        
-        <div className="max-w-7xl mx-auto p-8 lg:p-12">
-          <div className="flex flex-col-reverse md:flex-row items-center gap-16">
-            {/* Enhanced content container with 3D effects */}
-            <div className="w-full md:w-1/2 p-8 md:p-12">
-              <div className="max-w-lg space-y-8">
-                <span className="inline-flex items-center px-6 py-2.5 bg-white/20 backdrop-blur-sm text-white text-sm font-medium rounded-full group-hover:shadow-lg transition-all duration-300 transform hover:scale-105">
-                  <span className="mr-2 text-xl">🤝</span>
-                  Institutional Partnership
-                </span>
-                
-                <h2 className="text-4xl md:text-5xl xl:text-6xl font-bold text-white">
-                  {partnerTitle}
-                </h2>
-                
-                <p className="text-white/90 text-lg xl:text-xl leading-relaxed">
-                  {partnerText}
-                </p>
-                
-                <button
-                  onClick={() => router.push("/join-us-as-school-institute")}
-                  className="group relative inline-flex items-center px-8 py-4 bg-white text-[#FF8C42] font-medium rounded-xl shadow-xl transition-all duration-300 transform hover:translate-y-[-2px] hover:shadow-2xl hover:shadow-white/25 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#FF8C42] overflow-hidden"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#FF8C42]/0 via-[#FF8C42]/10 to-[#FF8C42]/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
-                  <PlusCircle className="mr-3 h-5 w-5 transform transition-transform duration-300 group-hover:rotate-180" />
-                  <span className="text-lg relative z-10">{partnerButtonText}</span>
-                </button>
-              </div>
-            </div>
-            
-            {/* Enhanced image container with 3D effects */}
-            <div className="w-full md:w-1/2 relative group perspective-1000">
-              <div className="absolute inset-0 bg-white/30 rounded-[2rem] transform -rotate-6 scale-95 opacity-0 group-hover:opacity-100 transition-all duration-500 md:-mr-8 blur-xl"></div>
-              <div className="relative overflow-hidden rounded-[2rem] shadow-2xl transform transition-all duration-500 group-hover:rotate-[-1deg] group-hover:scale-[1.02] will-change-transform">
-                <Image
-                  src={partnerImage}
-                  width={720}
-                  height={450}
-                  alt={partnerTitle}
-                  className="w-full object-cover transform transition-all duration-700 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                {/* Enhanced 3D overlay effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-[#FF8C42]/20 to-[#F6B335]/20 mix-blend-overlay opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              </div>
-            </div>
+          <div className="p-6 md:p-8 lg:p-10 flex flex-col gap-5 flex-grow">
+            <span className="inline-flex items-center px-4 py-2 bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300 text-sm font-medium rounded-full">
+              <span className="mr-2 text-lg">🎓</span>
+              Become an Educator
+            </span>
+
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
+              {educatorTitle}
+            </h2>
+
+            <p className="text-gray-600 dark:text-gray-300 text-sm md:text-base lg:text-lg flex-grow">
+              {educatorText}
+            </p>
+
+            <button
+              onClick={() => router.push("/join-us-as-educator")}
+              className="group w-full md:w-auto inline-flex items-center justify-center px-8 py-4 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-xl transition-all duration-300 hover:shadow-lg"
+            >
+              <PlusCircle className="mr-3 h-5 w-5 transition-transform duration-300 group-hover:rotate-90" />
+              <span className="text-base md:text-lg">{educatorButtonText}</span>
+            </button>
           </div>
         </div>
-      </section>
+      </div>
+
+      {/* Partner Card */}
+      <div className="relative overflow-hidden rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] bg-gradient-to-br from-[#FF8C42] to-[#F6B335]">
+        <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+
+        {/* Mobile: Image on top, content below */}
+        <div className="flex flex-col h-full">
+          <div className="relative h-56 md:h-72 overflow-hidden">
+            <Image
+              src={partnerImage}
+              fill
+              style={{ objectFit: 'cover' }}
+              alt={partnerTitle}
+              className="transform transition-transform duration-700 hover:scale-110"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+          </div>
+
+          <div className="p-6 md:p-8 lg:p-10 flex flex-col gap-5 flex-grow">
+            <span className="inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm text-white text-sm font-medium rounded-full">
+              <span className="mr-2 text-lg">🤝</span>
+              Institutional Partnership
+            </span>
+
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white">
+              {partnerTitle}
+            </h2>
+
+            <p className="text-white/90 text-sm md:text-base lg:text-lg flex-grow">
+              {partnerText}
+            </p>
+
+            <button
+              onClick={() => router.push("/join-us-as-school-institute")}
+              className="group w-full md:w-auto inline-flex items-center justify-center px-8 py-4 bg-white text-[#000000] font-medium rounded-xl transition-all duration-300 hover:shadow-lg"
+            >
+              <PlusCircle className="mr-3 h-5 w-5 transition-transform duration-300 group-hover:rotate-90" />
+              <span className="text-base md:text-lg">{partnerButtonText}</span>
+            </button>
+          </div>
+        </div>
+      </div>
 
       <style jsx global>{`
-        .perspective-1000 {
-          perspective: 1000px;
-        }
-
-        .animate-pulse-slow {
-          animation: pulse-slow 6s ease-in-out infinite;
-        }
-
-        @keyframes pulse-slow {
-          0%, 100% { opacity: 0.3; transform: scale(1); }
-          50% { opacity: 0.6; transform: scale(1.1); }
-        }
-
-        .animation-delay-2000 {
-          animation-delay: 2000ms;
-        }
-
-        .animation-delay-4000 {
-          animation-delay: 4000ms;
+        @media (max-width: 768px) {
+          .grid {
+            grid-template-columns: 1fr;
+          }
         }
       `}</style>
     </div>
