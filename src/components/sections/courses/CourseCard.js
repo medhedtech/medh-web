@@ -130,7 +130,8 @@ const CourseCard = ({
   course = {}, 
   onShowRelated = () => {},
   showRelatedButton = false,
-  variant = "standard"
+  variant = "standard",
+  classType = ""
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -467,15 +468,15 @@ const CourseCard = ({
         
         <Image
           src={!isImageError ? (course?.course_image || image6) : image6}
-          alt={course?.course_title || "Course thumbnail"}
-          fill
-          sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
-          className={`object-cover transition-transform duration-500 ${
-              isHovered ? 'scale-110' : 'scale-100'
+          alt={course?.course_title || "Course Image"}
+          className={`w-full h-full object-cover transition-all duration-500 ${
+            isHovered ? 'scale-105' : 'scale-100'
           } ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
+          width={400}
+          height={225}
           onLoad={handleImageLoad}
           onError={handleImageError}
-          loading="lazy"
+          priority={true}
         />
 
           {/* Play button overlay for video content feel */}
@@ -484,6 +485,19 @@ const CourseCard = ({
               <Play size={18} className="text-white fill-white" />
             </div>
           </div>
+
+          {/* Class Type Badge */}
+          {classType && (
+            <div 
+              className={`absolute top-3 left-3 py-1 px-3 rounded-full text-xs font-medium ${
+                classType === 'live' 
+                  ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-200' 
+                  : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-200'
+              } backdrop-blur-sm z-20`}
+            >
+              {classType === 'live' ? 'Live Interactive' : 'Blended Learning'}
+            </div>
+          )}
 
           {/* Category badge - updated with more modern styling */}
         <div className="absolute top-2 left-2 z-10">
