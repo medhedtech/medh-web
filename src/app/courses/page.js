@@ -71,7 +71,7 @@ const Courses = async () => {
                     View All Categories
                   </div>
                 }
-                description="Explore our comprehensive range of professional courses designed to enhance your career prospects and industry expertise."
+                // description="Explore our comprehensive range of professional courses designed to enhance your career prospects and industry expertise."
               />
             </Suspense>
           </div>
