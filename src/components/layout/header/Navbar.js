@@ -30,6 +30,7 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => 
   const [isVisible, setIsVisible] = useState(false);
   const [hideNavbar, setHideNavbar] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isSearchActive, setIsSearchActive] = useState(false);
   
   // Refs
   const lastScrollY = useRef(0);
@@ -99,8 +100,9 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => 
   const navbarAppearanceClass = (() => {
     let baseClasses = "fixed w-full transition-all duration-300 ease-in-out z-50";
     
-    // Background & border based on scroll state
-    if (isScrolled) {
+    if (isSearchActive) {
+      baseClasses += " bg-white dark:bg-gray-900 backdrop-blur-lg shadow-lg dark:shadow-gray-900/30";
+    } else if (isScrolled) {
       baseClasses += " bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-lg dark:shadow-gray-900/30 border-b border-gray-200/50 dark:border-gray-800/30";
     } else {
       baseClasses += " bg-white dark:bg-gray-900 border-b border-gray-200/50 dark:border-gray-800/30";
@@ -139,49 +141,61 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => 
 
           {/* Main Navigation */}
           <div className={`flex items-center justify-between transition-all duration-300 ${navbarHeightClass}`}>
-            {/* Left section with logo */}
-            <div className="flex-shrink-0">
-              <NavbarLogo isScrolled={isScrolled} />
-            </div>
-
-            {/* Center section with navigation items or search bar */}
-            <div className="hidden lg:flex flex-1 px-8 items-center justify-between">
-              {/* Navigation items */}
-              <div className="transition-all duration-300 transform flex-grow">
-                {isHome2Dark ? <NavItems2 /> : <NavItems />}
+            {/* Conditional logo rendering */}
+            {!isSearchActive && (
+              <div className="flex-shrink-0">
+                <NavbarLogo isScrolled={isScrolled} />
               </div>
-              
-              {/* Search bar - Visible on desktop */}
-              <div className="ml-6 flex-grow-0 max-w-xs">
-                <NavbarSearch isScrolled={isScrolled} />
-              </div>
-            </div>
+            )}
 
-            {/* Right section with actions and mobile menu */}
-            <div className="flex items-center space-x-2">
-              
-              {/* User actions */}
-              <NavbarRight isScrolled={isScrolled} />
-              
-              {/* Mobile menu button - Only show when onMobileMenuOpen is provided */}
-              {typeof onMobileMenuOpen === 'function' && (
-                <button
-                  type="button"
-                  suppressHydrationWarning
-                  className="lg:hidden inline-flex items-center justify-center p-2 rounded-full text-gray-700 hover:text-gray-900 hover:bg-gray-100/80 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800/80 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-all duration-200 transform hover:scale-105"
-                  onClick={onMobileMenuOpen}
-                  aria-expanded="false"
-                  aria-label="Open main menu"
-                >
-                  <span className="sr-only">Open main menu</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6" aria-hidden="true">
-                    <line x1="3" y1="12" x2="21" y2="12"></line>
-                    <line x1="3" y1="6" x2="21" y2="6"></line>
-                    <line x1="3" y1="18" x2="21" y2="18"></line>
-                  </svg>
-                </button>
+            {/* Center section */}
+            <div className="hidden lg:flex flex-1 items-center justify-center">
+              {!isSearchActive ? (
+                <div className="flex-1 px-8 flex items-center justify-between">
+                  <div className="transition-all duration-300 transform flex-grow">
+                    {isHome2Dark ? <NavItems2 /> : <NavItems />}
+                  </div>
+                  <div className="ml-6 flex-grow-0">
+                    <NavbarSearch 
+                      isScrolled={isScrolled} 
+                      setIsSearchActive={setIsSearchActive}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="w-full max-w-4xl px-4">
+                  <NavbarSearch 
+                    isScrolled={isScrolled} 
+                    setIsSearchActive={setIsSearchActive}
+                  />
+                </div>
               )}
             </div>
+
+            {/* Conditional right section rendering */}
+            {!isSearchActive && (
+              <div className="flex items-center space-x-2">
+                <NavbarRight isScrolled={isScrolled} />
+                {/* Mobile menu button - Only show when onMobileMenuOpen is provided */}
+                {typeof onMobileMenuOpen === 'function' && (
+                  <button
+                    type="button"
+                    suppressHydrationWarning
+                    className="lg:hidden inline-flex items-center justify-center p-2 rounded-full text-gray-700 hover:text-gray-900 hover:bg-gray-100/80 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800/80 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-all duration-200 transform hover:scale-105"
+                    onClick={onMobileMenuOpen}
+                    aria-expanded="false"
+                    aria-label="Open main menu"
+                  >
+                    <span className="sr-only">Open main menu</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6" aria-hidden="true">
+                      <line x1="3" y1="12" x2="21" y2="12"></line>
+                      <line x1="3" y1="6" x2="21" y2="6"></line>
+                      <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </nav>

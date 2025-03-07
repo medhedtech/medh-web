@@ -83,11 +83,11 @@ export default function Navitem({ navItem, idx, children }) {
         <Link
           href={path || "#"}
           onClick={handleNavItemClick}
-          className="px-5 lg:px-3 xl:px-4 py-10 lg:py-5 2xl:py-6 leading-sm 2xl:leading-lg text-base lg:text-sm 2xl:text-base font-semibold flex items-center hover:text-primary-500 dark:text-gray-200 dark:hover:text-primary-400 transition-colors"
+          className="px-3 lg:px-2.5 xl:px-3 2xl:px-4 py-10 lg:py-5 2xl:py-6 leading-none whitespace-nowrap text-base lg:text-sm 2xl:text-base font-semibold flex items-center hover:text-primary-500 dark:text-gray-200 dark:hover:text-primary-400 transition-colors"
           aria-expanded={dropdown ? isOpen : undefined}
           aria-haspopup={dropdown ? "true" : undefined}
         >
-          <span>{name}</span>
+          <span className="whitespace-nowrap">{name}</span>
           {dropdown && (
             <svg 
               xmlns="http://www.w3.org/2000/svg" 

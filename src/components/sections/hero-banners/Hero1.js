@@ -23,20 +23,7 @@ const HeroMobile = ({ isLoaded, featuredCourses, loading }) => {
     <div className="mobile-hero-wrapper grid grid-cols-1 gap-6 p-4">
       {/* Mobile Header */}
       <div className="flex items-center justify-between mb-6">
-        <div className="h-10 w-28">
-          <Image 
-            src={medhLogo} 
-            alt="Medh Logo" 
-            className="object-contain" 
-            priority 
-          />
-        </div>
-        <Link 
-          href="#mobile-menu" 
-          className="p-2 rounded-lg bg-white/10 backdrop-blur-sm"
-        >
-          <Menu className="text-white" size={24} />
-        </Link>
+        <div className="h-12 w-28"></div>
       </div>
 
       {/* Main Content */}
@@ -123,7 +110,7 @@ const HeroMobile = ({ isLoaded, featuredCourses, loading }) => {
 
         {/* CTA Buttons */}
         <div className="flex flex-col gap-3 mt-4">
-          <Link href="/courses" className="w-full group relative inline-flex items-center justify-center py-3.5 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-xl text-sm transition-all">
+          <Link href="/contact-us" className="w-full group relative inline-flex items-center justify-center py-3.5 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-xl text-sm transition-all">
             <span>Let's Connect</span>
             <ArrowRight size={16} className="ml-2" />
           </Link>
@@ -203,7 +190,7 @@ const Hero1 = () => {
   // Desktop version (unchanged)
   return (
     <>
-      <section style={{ paddingTop: "var(--header-height, 80px)", paddingBottom: "var(--footer-height, 80px)" }} className="relative min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 dark:from-gray-950 dark:via-gray-900 dark:to-gray-800 overflow-hidden w-full">
+      <section style={{ paddingTop: "var(--header-height, 70px)", paddingBottom: "var(--footer-height, 80px)" }} className="relative min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 dark:from-gray-950 dark:via-gray-900 dark:to-gray-800 overflow-hidden w-full">
         {/* Enhanced Animated Background */}
         <div className="absolute inset-0 overflow-hidden">
           {/* Geometric Patterns */}
@@ -509,7 +496,7 @@ const Hero1 = () => {
             perspective: clamp(1000px, 150vw, 1500px);
           }
 
-          @media (max-width: 640px) {
+          @media (max-width: 600px) {
             .perspective-1500 {
               perspective: 800px;
             }
