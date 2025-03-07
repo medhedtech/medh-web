@@ -83,7 +83,7 @@ const Certified = () => {
       <div className="w-[90%] max-w-7xl mx-auto">
         <div className="text-center mb-12 space-y-2">
           <h3 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary-600 to-indigo-600 bg-clip-text text-transparent">
-            Our Awesome Certifications! 🏆
+            Our Certifications! 🏆
           </h3>
           <p className="text-gray-600 dark:text-gray-300 text-lg">
             Swipe to explore our achievements ✨
