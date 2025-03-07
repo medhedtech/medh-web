@@ -42,6 +42,11 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
   const [userRole, setUserRole] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
   
+  // Track menu sections for navigation history
+  const [menuHistory, setMenuHistory] = useState([]);
+  const [searchSuggestions, setSearchSuggestions] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  
   // Handle mounting state
   useEffect(() => {
     setMounted(true);
@@ -58,9 +63,6 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
   const previousFocusRef = useRef(null);
   const searchInputRef = useRef(null);
   
-  // Track menu sections for navigation history
-  const [menuHistory, setMenuHistory] = useState([]);
-
   // Check authentication status on mount
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -129,16 +131,16 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
     setIsAnimating(false);
   };
   
-  // Section navigation
-  const navigateToSection = (section) => {
+  // Enhanced navigation
+  const navigateToSection = useCallback((section) => {
     setIsAnimating(true);
     setAnimationDirection('left');
     setMenuHistory(prev => [...prev, activeSection]);
     setActiveSection(section);
-  };
+  }, [activeSection]);
   
-  // Back navigation
-  const goBack = () => {
+  // Enhanced back navigation
+  const goBack = useCallback(() => {
     if (menuHistory.length > 0) {
       setIsAnimating(true);
       setAnimationDirection('right');
@@ -146,7 +148,7 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
       setActiveSection(prevSection);
       setMenuHistory(prev => prev.slice(0, -1));
     }
-  };
+  }, [menuHistory]);
   
   // Accessibility - Close on ESC key
   useEffect(() => {
@@ -227,11 +229,25 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
     return () => window.removeEventListener('resize', handleResize);
   }, [isOpen, closeMenu]);
 
-  // Handle quick search
-  const handleSearchChange = (e) => {
+  // Enhanced search functionality
+  const handleSearchChange = useCallback((e) => {
     setSearchQuery(e.target.value);
-  };
-  
+    setIsSearching(true);
+    
+    // Simulated search suggestions - replace with actual API call
+    if (e.target.value.trim()) {
+      setSearchSuggestions([
+        { type: 'course', title: 'React Development', path: '/courses/react' },
+        { type: 'blog', title: 'Modern Web Development', path: '/blogs/web-dev' },
+        { type: 'training', title: 'Corporate Training', path: '/corporate-training' }
+      ]);
+    } else {
+      setSearchSuggestions([]);
+    }
+    
+    setIsSearching(false);
+  }, []);
+
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -294,13 +310,13 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
   
   return (
     <>
-      {/* Mobile menu toggle button - Only shown in standalone mode */}
+      {/* Mobile menu toggle button with improved spacing */}
       {propOnClose === undefined && (
         <button
           type="button"
           onClick={openMenu}
           data-mobile-menu-toggle="true"
-          className="lg:hidden inline-flex items-center justify-center p-2 rounded-full text-gray-700 hover:text-gray-900 hover:bg-gray-100/80 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800/80 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-all duration-200 transform hover:scale-105"
+          className="lg:hidden inline-flex items-center justify-center p-3 rounded-full text-gray-700 hover:text-gray-900 hover:bg-gray-100/80 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800/80 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-all duration-200 transform hover:scale-105"
           aria-expanded={isOpen}
           aria-controls="mobile-menu"
           aria-label="Open menu"
@@ -310,7 +326,7 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
         </button>
       )}
       
-      {/* Animated mobile menu */}
+      {/* Animated mobile menu with enhanced spacing */}
       {mounted && (
         <>
           <div
@@ -329,29 +345,27 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
             }}
             onTransitionEnd={handleAnimationEnd}
           >
-            {/* Menu Header with Back Button and Close Button */}
-            <div className="sticky top-0 flex items-center justify-between bg-white dark:bg-gray-900 px-4 py-3 border-b border-gray-200 dark:border-gray-700 z-10">
-              {/* Back button - Only show when in a submenu */}
+            {/* Menu Header with improved spacing */}
+            <div className="sticky top-0 flex items-center justify-between bg-white dark:bg-gray-900 px-6 py-4 border-b border-gray-200 dark:border-gray-700 z-10">
               {menuHistory.length > 0 ? (
                 <button
                   type="button"
-                  className="inline-flex items-center text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200"
+                  className="inline-flex items-center text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200 px-3 py-2 rounded-lg"
                   onClick={goBack}
                   aria-label="Go back to previous menu"
                 >
-                  <FontAwesomeIcon icon={faArrowLeft} className="h-4 w-4 mr-2" />
+                  <FontAwesomeIcon icon={faArrowLeft} className="h-4 w-4 mr-3" />
                   <span>Back</span>
                 </button>
               ) : (
-                <div className="text-lg font-semibold bg-gradient-to-r from-primary-500 to-purple-600 bg-clip-text text-transparent">
+                <div className="text-lg font-semibold bg-gradient-to-r from-primary-500 to-purple-600 bg-clip-text text-transparent px-3">
                   Menu
                 </div>
               )}
               
-              {/* Close button */}
               <button
                 type="button"
-                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
+                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white p-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
                 onClick={closeMenu}
                 aria-label="Close menu"
                 ref={closeButtonRef}
@@ -361,8 +375,8 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
               </button>
             </div>
 
-            {/* Quick Search */}
-            <div className="px-4 pt-4 pb-2">
+            {/* Enhanced Quick Search with improved spacing */}
+            <div className="px-6 pt-6 pb-4">
               <form onSubmit={handleSearchSubmit} className="relative">
                 <input
                   type="text"
@@ -372,16 +386,16 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
                   onFocus={handleSearchFocus}
                   onBlur={handleSearchBlur}
                   placeholder="Quick search..."
-                  className={`w-full py-2 pl-10 pr-4 text-sm text-gray-900 dark:text-white ${
+                  className={`w-full py-3 pl-12 pr-4 text-base text-gray-900 dark:text-white ${
                     searchFocused 
-                      ? 'bg-white dark:bg-gray-700 ring-2 ring-primary-500 dark:ring-primary-400 shadow-md' 
+                      ? 'bg-white dark:bg-gray-700 ring-2 ring-primary-500 dark:ring-primary-400 shadow-lg' 
                       : 'bg-gray-100 dark:bg-gray-800'
                   } rounded-full focus:outline-none transition-all duration-300`}
                   aria-label="Quick search"
                 />
                 <FontAwesomeIcon 
                   icon={faSearch} 
-                  className={`absolute left-3 top-2.5 h-4 w-4 ${
+                  className={`absolute left-4 top-3.5 h-5 w-5 ${
                     searchFocused 
                       ? 'text-primary-500 dark:text-primary-400' 
                       : 'text-gray-500 dark:text-gray-400'
@@ -389,11 +403,34 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
                 />
                 <button type="submit" className="sr-only">Search</button>
               </form>
+
+              {/* Search Suggestions with enhanced spacing */}
+              {searchQuery && searchSuggestions.length > 0 && (
+                <div className="absolute left-0 right-0 mt-4 px-6">
+                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    {searchSuggestions.map((suggestion, index) => (
+                      <Link
+                        key={index}
+                        href={suggestion.path}
+                        className="flex items-center px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+                        onClick={closeMenu}
+                      >
+                        <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mr-3">
+                          {suggestion.type}
+                        </span>
+                        <span className="text-sm text-gray-900 dark:text-white">
+                          {suggestion.title}
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Mobile menu content - Main Menu */}
+            {/* Mobile menu content with enhanced spacing */}
             <div 
-              className={`px-4 sm:px-5 pb-28 transition-all duration-300 transform ${
+              className={`px-6 pb-28 transition-all duration-300 transform ${
                 isAnimating && activeSection !== 'main'
                   ? animationDirection === 'left' 
                     ? '-translate-x-full' 
@@ -401,22 +438,22 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
                   : 'translate-x-0'
               } ${activeSection !== 'main' ? 'hidden' : ''}`}
             >
-              {/* Main section */}
-              <div className="py-2">
+              {/* Main section with improved spacing */}
+              <div className="py-4 space-y-8">
                 {/* Primary Navigation */}
-                <nav aria-label="Primary navigation" className="mt-4 space-y-1">
+                <nav aria-label="Primary navigation" className="space-y-1">
                   {isHome2Dark ? <MobileItems2 /> : <MobileMenuItems />}
                 </nav>
                 
-                {/* User Account Section */}
-                <div className="mt-8">
-                  <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3 flex items-center">
-                    <FontAwesomeIcon icon={faUser} className="h-3 w-3 mr-2" />
+                {/* User Account Section with enhanced spacing */}
+                <div className="pt-6">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-4 flex items-center px-4">
+                    <FontAwesomeIcon icon={faUser} className="h-3 w-3 mr-3" />
                     Your Account
                   </h3>
                   
                   {isLoggedIn ? (
-                    <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
                       <div className="flex items-center space-x-3">
                         <div className="relative flex-shrink-0 h-10 w-10 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center overflow-hidden">
                           <FontAwesomeIcon icon={faUser} className="h-5 w-5 text-primary-600 dark:text-primary-400" />
@@ -453,35 +490,39 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
                       </div>
                     </div>
                   ) : (
-                    <MobileMyAccount onClose={closeMenu} />
+                    <div className="px-4">
+                      <MobileMyAccount onClose={closeMenu} />
+                    </div>
                   )}
                 </div>
                 
-                {/* Featured section */}
-                <div className="mt-8 p-4 bg-gradient-to-br from-primary-50 to-purple-50 dark:from-gray-800 dark:to-gray-800 rounded-lg border border-primary-100 dark:border-gray-700">
-                  <h3 className="text-sm font-medium text-gray-900 dark:text-white flex items-center">
-                    <span className="flex h-5 w-5 mr-2 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900">
-                      <FontAwesomeIcon icon={faGraduationCap} className="h-3 w-3 text-primary-600 dark:text-primary-400" />
-                    </span>
-                    New Courses Available
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Check out our latest professional certifications.
-                  </p>
-                  <button
-                    className="mt-3 w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transform transition-transform hover:-translate-y-0.5"
-                    onClick={() => {
-                      router.push('/courses');
-                      closeMenu();
-                    }}
-                  >
-                    <FontAwesomeIcon icon={faBookOpen} className="h-3 w-3 mr-2" />
-                    Browse Courses
-                  </button>
+                {/* Featured section with improved spacing */}
+                <div className="px-4">
+                  <div className="p-6 bg-gradient-to-br from-primary-50 to-purple-50 dark:from-gray-800 dark:to-gray-800 rounded-xl border border-primary-100 dark:border-gray-700">
+                    <h3 className="text-sm font-medium text-gray-900 dark:text-white flex items-center">
+                      <span className="flex h-5 w-5 mr-2 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900">
+                        <FontAwesomeIcon icon={faGraduationCap} className="h-3 w-3 text-primary-600 dark:text-primary-400" />
+                      </span>
+                      New Courses Available
+                    </h3>
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                      Check out our latest professional certifications.
+                    </p>
+                    <button
+                      className="mt-3 w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transform transition-transform hover:-translate-y-0.5"
+                      onClick={() => {
+                        router.push('/courses');
+                        closeMenu();
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faBookOpen} className="h-3 w-3 mr-2" />
+                      Browse Courses
+                    </button>
+                  </div>
                 </div>
                 
-                {/* Social links */}
-                <div className="mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
+                {/* Social links with enhanced spacing */}
+                <div className="pt-6 px-4 border-t border-gray-200 dark:border-gray-700">
                   <MobileSocial />
                 </div>
               </div>
@@ -529,9 +570,9 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
             </div>
           </div>
           
-          {/* Backdrop - always present but conditionally visible */}
+          {/* Enhanced Backdrop */}
           <div 
-            className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-[998] transition-opacity duration-300 ${
+            className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-[998] transition-all duration-300 ${
               isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
             }`}
             onClick={closeMenu}
