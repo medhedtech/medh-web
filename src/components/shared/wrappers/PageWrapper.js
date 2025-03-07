@@ -65,7 +65,7 @@ const PageWrapper = ({ children }) => {
   return (
     <div className="flex flex-col min-h-screen scroll-smooth page-wrapper" role="main">
         {/* header */}
-        <Header role="banner" />
+        <Header />
 
         {/* main */}
         <main 
