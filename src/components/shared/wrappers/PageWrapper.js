@@ -79,12 +79,10 @@ const PageWrapper = ({ children }) => {
               {children}
             </div>
         </main>
-
-      {/* footer */}
-      <Footer role="contentinfo" className="mt-auto" />
-
-      {/* scroll up */}
-      <Scrollup role="navigation" />
+      <div className="mt-auto">
+        {/* footer */}
+        <Footer role="contentinfo" className="mt-auto" />
+      </div>
     </div>
   );
 };
