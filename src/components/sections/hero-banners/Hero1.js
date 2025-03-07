@@ -190,7 +190,13 @@ const Hero1 = () => {
   // Desktop version (unchanged)
   return (
     <>
-      <section style={{ paddingTop: "var(--header-height, 70px)", paddingBottom: "var(--footer-height, 80px)" }} className="relative min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 dark:from-gray-950 dark:via-gray-900 dark:to-gray-800 overflow-hidden w-full">
+      <section 
+        style={{ 
+          paddingTop: "var(--header-height, clamp(50px, 8vh, 100px))",
+          paddingBottom: "var(--footer-height, clamp(60px, 8vh, 80px))"
+        }}
+        className="relative min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 dark:from-gray-950 dark:via-gray-900 dark:to-gray-800 overflow-hidden w-full"
+      >
         {/* Enhanced Animated Background */}
         <div className="absolute inset-0 overflow-hidden">
           {/* Geometric Patterns */}
@@ -328,7 +334,7 @@ const Hero1 = () => {
             {/* CTA Buttons for Desktop */}
             <div className="flex flex-row gap-3 mt-8 hidden md:flex items-center justify-center">
               <Link 
-                href="/courses" 
+                href="/contact-us" 
                 className="group relative inline-flex items-center justify-center py-4 px-6 bg-gradient-to-r from-primary-500 to-secondary-500 text-white font-medium rounded-xl text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
               >
                 <span>Let's Connect</span>
