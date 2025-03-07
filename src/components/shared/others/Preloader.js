@@ -110,11 +110,11 @@ const Preloader = () => {
               {Math.round(progress)}% Complete
             </p>
             <p className="text-gray-400 text-sm font-medium">
-              <span className="inline-block animate-bounce-slow">Preparing</span>
-              <span className="inline-block animate-bounce-slow animation-delay-100"> your</span>
-              <span className="inline-block animate-bounce-slow animation-delay-200"> learning</span>
-              <span className="inline-block animate-bounce-slow animation-delay-300"> journey</span>
-              <span className="inline-block animate-pulse">...</span>
+              <span className="inline-block animate-bounce-slow">Preparing </span>
+              <span className="inline-block animate-bounce-slow animation-delay-100"> your </span>
+              <span className="inline-block animate-bounce-slow animation-delay-200"> learning </span>
+              <span className="inline-block animate-bounce-slow animation-delay-300"> journey </span>
+              <span className="inline-block animate-pulse"> ...</span>
             </p>
           </div>
         </div>
