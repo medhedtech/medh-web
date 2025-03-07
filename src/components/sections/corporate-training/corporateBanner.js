@@ -117,7 +117,7 @@ export default function CorporateBanner() {
             </div>
 
             {/* Slogan */}
-            <p className="text-2xl text-primary-500 font-medium italic">
+            <p className="mumkinMedh text-2xl text-primary-500 font-medium italic">
               Medh Hain Toh Mumkin Hain!
             </p>
           </motion.div>

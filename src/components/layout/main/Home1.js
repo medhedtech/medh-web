@@ -109,19 +109,19 @@ const Home1 = () => {
 
         {/* Why Medh Section - Optimized for 1366x768 */}
         <section className="w-full bg-gradient-to-r from-gray-50/80 via-white to-gray-50/80 
-          dark:from-gray-900/80 dark:via-gray-950 dark:to-gray-900/80 backdrop-blur-sm py-12 laptop:py-10 relative overflow-hidden">
+          dark:from-gray-900/80 dark:via-gray-950 dark:to-gray-900/80 backdrop-blur-sm py-12 laptop:py-5 relative overflow-hidden">
           <div className="max-w-[1366px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <WhyMedh />
           </div>
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary-500/5 to-transparent"></div>
         </section>
 
-        {/* Browse Categories Section - Optimized for 1366x768 */}
+        {/* Browse Categories Section - Optimized for 1366x768
         <section className="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 laptop:py-6">
           <div className="max-w-[1366px] mx-auto">
             <BrowseCategories />
           </div>
-        </section>
+        </section> */}
 
         {/* Join Medh Section - Optimized for 1366x768 */}
         <section className="w-full bg-gradient-to-r from-primary-50/90 via-white to-primary-50/90 

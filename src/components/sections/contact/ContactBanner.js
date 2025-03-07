@@ -95,7 +95,7 @@ const ContactBanner = () => {
             </div>
 
             {/* Slogan */}
-            <p className="text-3xl md:text-4xl lg:text-5xl font-Bulgathi text-[#7ECA9D] mt-8">
+            <p className="mumkinMedh text-3xl md:text-4xl lg:text-5xl font-Bulgathi text-[#7ECA9D] mt-8">
               Medh Hain Toh Mumkin Hain!
             </p>
           </div>

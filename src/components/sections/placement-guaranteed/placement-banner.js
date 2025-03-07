@@ -89,7 +89,7 @@ const PlacementGauranteedBanner = () => {
             </div>
 
             {/* Slogan */}
-            <span className="text-[#7ECA9D] text-2xl sm:text-3xl mumkinMedh font-medium mt-8 block">
+            <span className="mumkinMedh text-[#7ECA9D] text-2xl sm:text-3xl font-medium mt-8 block">
               Medh Hain Toh Mumkin Hain!
             </span>
           </div>
@@ -201,7 +201,7 @@ const PlacementGauranteedBanner = () => {
 
         {/* Slogan */}
         <p
-          className="text-[#7ECA9D] w-full text-[2.4rem] font-Bulgathi font-normal text-center mt-[5px]"
+          className="mumkinMedh text-[#7ECA9D] w-full text-[2.4rem] font-Bulgathi font-normal text-center mt-[5px]"
           style={{ color: "#7ECA9D" }}
         >
           Medh Hain Toh Mumkin Hain!
