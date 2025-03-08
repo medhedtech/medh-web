@@ -63,26 +63,24 @@ const PageWrapper = ({ children }) => {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen scroll-smooth page-wrapper" role="main">
-        {/* header */}
-        <Header />
+    <div className="flex flex-col min-h-screen bg-white dark:bg-gray-950" role="main">
+      {/* header */}
+      <Header />
 
-        {/* main */}
-        <main 
-          className={`
-            flex-grow transition-opacity duration-700 
-            ${pageLoaded ? 'opacity-100' : 'opacity-0'}
-          `}
-          role="main"
-        >
-            <div className="animate-fadeIn scroll-smooth">
-              {children}
-            </div>
-        </main>
-      <div className="mt-auto">
-        {/* footer */}
-        <Footer role="contentinfo" className="mt-auto" />
-      </div>
+      {/* main content */}
+      <main 
+        className={`flex-grow transition-opacity duration-700 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}
+      >
+        <div className="animate-fadeIn">
+          {children}
+        </div>
+      </main>
+      
+      {/* footer - positioned at the bottom with no margin above it */}
+      <Footer />
+      
+      {/* scroll to top button */}
+      <Scrollup />
     </div>
   );
 };
