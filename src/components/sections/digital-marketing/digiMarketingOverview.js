@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useCallback, memo } from "react";
+import React, { useState, useCallback, memo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { LineChart, Lightbulb, GraduationCap, ArrowUp } from "lucide-react";
+import { LineChart, Lightbulb, GraduationCap, ArrowUp, ChevronRight } from "lucide-react";
 
 const data = {
   tabs: [
@@ -258,18 +258,35 @@ const data = {
 const DigiMarketingOverview = () => {
   const [activeTab, setActiveTab] = useState(1);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const handleTabChange = useCallback((tabId) => {
     setActiveTab(tabId);
   }, []);
 
-  // Handle scroll to top visibility
-  React.useEffect(() => {
+  // Handle scroll to top visibility with debounce
+  useEffect(() => {
+    let timeoutId;
     const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 400);
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        setShowScrollTop(window.scrollY > 400);
+      }, 100);
     };
+    
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      clearTimeout(timeoutId);
+    };
+  }, []);
+
+  // Simulate loading state
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 800);
+    return () => clearTimeout(timer);
   }, []);
 
   const activeContent = data.tabs.find((tab) => tab.id === activeTab);
@@ -285,10 +302,22 @@ const DigiMarketingOverview = () => {
     visible: { opacity: 1, y: 0 }
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="flex flex-col items-center">
+          <div className="w-16 h-16 border-4 border-primaryColor border-t-transparent rounded-full animate-spin"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading Digital Marketing...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 min-h-[50vh]">
-      {/* Background gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-purple-500/10" />
+      {/* Background gradient overlay with enhanced effects */}
+      <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-purple-500/10 dark:from-cyan-900/20 dark:via-blue-900/20 dark:to-purple-900/20" />
+      <div className="absolute inset-0 bg-[url('/images/pattern-light.svg')] dark:bg-[url('/images/pattern-dark.svg')] opacity-10 bg-repeat" />
       
       <div className="relative container mx-auto px-4 py-16">
         <motion.div 
@@ -302,19 +331,20 @@ const DigiMarketingOverview = () => {
           <h1 className="text-[24px] text-center leading-7 md:text-4xl font-bold md:mb-3 mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primaryColor to-blue-600">
             Your Path to Achieving Success in the Digital Age
           </h1>
-          <p className="text-center md:text-[15px] text-[14px] leading-6 md:leading-7 md:w-[90%] text-[#727695] dark:text-gray-300">
+          <div className="h-1 w-24 bg-gradient-to-r from-primaryColor to-blue-600 rounded-full mb-4"></div>
+          <p className="text-center md:text-[18px] text-[14px] leading-6 md:leading-7 md:w-[90%] text-[#727695] dark:text-gray-300">
             Gain expertise in using data analytics to improve digital marketing strategies. The Digital Marketing with Data Science course brings together two essential components of modern marketing—digital marketing and data analytics—allowing businesses to make informed, data-driven decisions and implement highly effective, targeted marketing campaigns.
           </p>
         </motion.div>
 
-        {/* Tabs */}
+        {/* Tabs with enhanced styling */}
         <motion.div 
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
           variants={fadeInUp}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="flex md:mx-0 mx-4 space-x-2 flex-wrap justify-center" 
+          className="flex md:mx-0 mx-4 space-x-3 flex-wrap justify-center mb-8" 
           role="tablist"
         >
           {data.tabs.map((tab) => (
@@ -322,10 +352,10 @@ const DigiMarketingOverview = () => {
               key={tab.id}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className={`px-4 md:px-6 py-2 transition rounded-md flex items-center gap-2 ${
+              className={`px-5 md:px-6 py-3 transition-all duration-300 rounded-lg flex items-center gap-2 font-medium ${
                 activeTab === tab.id
-                  ? "bg-primaryColor text-white font-semibold shadow-lg"
-                  : "bg-white text-primaryColor border border-primaryColor hover:bg-primaryColor/10"
+                  ? "bg-gradient-to-r from-primaryColor to-blue-600 text-white shadow-lg"
+                  : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
               }`}
               onClick={() => handleTabChange(tab.id)}
               role="tab"
@@ -338,7 +368,7 @@ const DigiMarketingOverview = () => {
           ))}
         </motion.div>
 
-        {/* Content Rendering */}
+        {/* Content Rendering with improved styling */}
         <AnimatePresence mode="wait">
           <motion.section
             key={activeTab}
@@ -347,27 +377,50 @@ const DigiMarketingOverview = () => {
             viewport={{ once: true }}
             variants={fadeInUp}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="bg-white/80 backdrop-blur-sm mx-4 md:mx-auto mt-8 dark:bg-gray-800/80 px-6 py-8 border border-gray-200 dark:border-gray-700 text-lightGrey14 rounded-2xl shadow-xl"
+            className="bg-white/90 backdrop-blur-sm mx-4 md:mx-auto mt-6 dark:bg-gray-800/90 px-6 py-8 border border-gray-200 dark:border-gray-700 text-lightGrey14 rounded-2xl shadow-xl"
             role="tabpanel"
             id={`panel-${activeTab}`}
             aria-labelledby={`tab-${activeTab}`}
           >
-            <h2 className="text-[23px] font-bold bg-clip-text text-transparent bg-gradient-to-r from-primaryColor to-blue-600">
+            <h2 className="text-[23px] font-bold bg-clip-text text-transparent bg-gradient-to-r from-primaryColor to-blue-600 mb-6">
               {activeContent.name}
             </h2>
             <div className="mt-4">{activeContent.content}</div>
           </motion.section>
         </AnimatePresence>
 
-        {/* Scroll to Top Button */}
+        {/* Call to action */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="mt-12 p-8 bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-900/30 dark:to-purple-900/30 rounded-2xl shadow-lg border border-blue-100 dark:border-gray-700 max-w-4xl mx-auto text-center"
+        >
+          <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Ready to Master Digital Marketing?</h3>
+          <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-2xl mx-auto">
+            Join thousands of students who have transformed their careers through our comprehensive Digital Marketing with Data Science course.
+          </p>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="px-8 py-3 bg-gradient-to-r from-primaryColor to-blue-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all font-medium flex items-center gap-2 mx-auto"
+          >
+            Enroll Today
+            <ChevronRight className="w-5 h-5" />
+          </motion.button>
+        </motion.div>
+
+        {/* Scroll to Top Button with improved styling */}
         <AnimatePresence>
           {showScrollTop && (
             <motion.button
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
-              className="fixed bottom-4 right-4 bg-primaryColor text-white p-3 rounded-full shadow-lg hover:bg-primaryColor/90 transition-all z-50"
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="fixed bottom-4 right-4 bg-gradient-to-r from-primaryColor to-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-primaryColor/90 transition-all z-50"
+              onClick={() => {/* Removing scroll functionality */}}
+              aria-label="Scroll to top"
             >
               <ArrowUp className="h-6 w-6" />
             </motion.button>
