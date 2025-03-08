@@ -92,7 +92,7 @@ const Home1 = () => {
       </section>
 
       {/* Main Content Sections with optimized spacing for 1366x768 */}
-      <div className={`flex flex-col gap-y-8 sm:gap-y-10 md:gap-y-6 lg:gap-y-16 relative z-10 ${
+      <div className={`flex flex-col gap-y-8 sm:gap-y-10 md:gap-y-6 lg:gap-y-13 relative z-10 ${
         isLaptopHeight ? 'laptop:gap-y-12' : ''
       }`}>
         {/* Courses Section - Optimized padding for 1366x768 */}

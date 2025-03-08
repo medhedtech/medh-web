@@ -26,7 +26,9 @@ import {
   Heart,
   Bookmark,
   BarChart,
-  User
+  User,
+  X,
+  ChevronRight
 } from "lucide-react";
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { isFreePrice } from '@/utils/priceUtils';
@@ -291,6 +293,12 @@ const CourseCard = ({
   const [likeAnimation, setLikeAnimation] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [saveTooltipVisible, setSaveTooltipVisible] = useState(false);
+  
+  // Add state for mobile popup
+  const [showMobilePopup, setShowMobilePopup] = useState(false);
+  // Add state to track if device is mobile
+  const [isMobile, setIsMobile] = useState(false);
+  
   const cardRef = useRef(null);
   const router = useRouter();
   const { convertPrice, formatPrice: formatCurrencyPrice } = useCurrency();
@@ -301,6 +309,73 @@ const CourseCard = ({
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const [showTooltip, setShowTooltip] = useState(false);
   const tooltipTimeout = useRef(null);
+
+  // Create a new state for mobile touch-activated "hover"
+  const [mobileHoverActive, setMobileHoverActive] = useState(false);
+
+  // Check if device is mobile
+  useEffect(() => {
+    const checkIfMobile = () => {
+      const userAgent = 
+        typeof window.navigator === "undefined" ? "" : navigator.userAgent;
+      const mobile = Boolean(
+        userAgent.match(
+          /Android|BlackBerry|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i
+        )
+      );
+      setIsMobile(mobile || window.innerWidth <= 768);
+    };
+    
+    checkIfMobile();
+    window.addEventListener("resize", checkIfMobile);
+    
+    return () => window.removeEventListener("resize", checkIfMobile);
+  }, []);
+
+  // Open mobile popup
+  const openMobilePopup = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Save current scroll position
+    const scrollPosition = window.scrollY;
+    
+    // Show popup
+    setShowMobilePopup(true);
+    
+    // Prevent background scrolling
+    document.body.style.overflow = "hidden";
+    
+    // Fix viewport position to prevent jumping
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollPosition}px`;
+    document.body.style.width = "100%";
+  };
+
+  // Close mobile popup
+  const closeMobilePopup = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    // Get the scroll position from the body's top property
+    const scrollPosition = document.body.style.top;
+    
+    // Reset body styles
+    document.body.style.overflow = "";
+    document.body.style.position = "";
+    document.body.style.top = "";
+    document.body.style.width = "";
+    
+    // Restore scroll position
+    if (scrollPosition) {
+      window.scrollTo(0, parseInt(scrollPosition.replace('-', '')) || 0);
+    }
+    
+    // Close popup
+    setShowMobilePopup(false);
+  };
 
   const handleImageLoad = () => setIsImageLoaded(true);
   const handleImageError = () => setIsImageError(true);
@@ -735,20 +810,40 @@ const CourseCard = ({
     return levelInfo[grade] || defaultInfo;
   };
 
-  // Update mouse enter/leave handlers
+  // Open touch "hover" for mobile
+  const openMobileHover = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setMobileHoverActive(true);
+  };
+
+  // Close touch "hover" for mobile
+  const closeMobileHover = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setMobileHoverActive(false);
+  };
+
+  // Update mouse enter/leave handlers to not affect mobile
   const handleMouseEnter = () => {
-    setIsHovered(true);
-    tooltipTimeout.current = setTimeout(() => {
-      setShowTooltip(true);
-    }, 500); // Show tooltip after 500ms hover
+    if (!isMobile) {
+      setIsHovered(true);
+      tooltipTimeout.current = setTimeout(() => {
+        setShowTooltip(true);
+      }, 500); // Show tooltip after 500ms hover
+    }
   };
 
   const handleMouseLeave = () => {
-    setIsHovered(false);
-    setShowTooltip(false);
-    resetTilt();
-    if (tooltipTimeout.current) {
-      clearTimeout(tooltipTimeout.current);
+    if (!isMobile) {
+      setIsHovered(false);
+      setShowTooltip(false);
+      resetTilt();
+      if (tooltipTimeout.current) {
+        clearTimeout(tooltipTimeout.current);
+      }
     }
   };
 
@@ -765,16 +860,58 @@ const CourseCard = ({
     <>
       <div 
         ref={cardRef}
-        className={`group relative flex flex-col h-full rounded-xl overflow-hidden border border-gray-200/20 dark:border-gray-800/40 bg-white/90 dark:bg-gray-900/90 backdrop-filter backdrop-blur-sm transition-all duration-300 ${
-          isHovered ? 'scale-[1.02] z-10 shadow-xl' : 'scale-100 z-0 shadow-md'
+        className={`course-card group relative flex flex-col h-full rounded-xl overflow-hidden border border-gray-200/20 dark:border-gray-800/40 bg-white/90 dark:bg-gray-900/90 backdrop-filter backdrop-blur-sm transition-all duration-300 ${
+          isHovered || mobileHoverActive ? 'scale-[1.02] z-10 shadow-xl' : 'scale-100 z-0 shadow-md'
         } ${isLiveCourse ? 'hover:border-rose-400/60 hover:shadow-rose-200/20' : 'hover:border-indigo-400/60 hover:shadow-indigo-200/20'}`}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onMouseMove={handleMouseMove}
         style={tiltStyle}
       >
+        {/* Course type indicator tag */}
+        {classType && (!isMobile || !mobileHoverActive) && (
+          <div className={`absolute top-2 right-2 z-20 px-2.5 py-1 rounded-full text-xs font-bold ${
+            classType === 'live' 
+              ? 'bg-rose-500/90 text-white' 
+              : 'bg-indigo-500/90 text-white'
+          }`}>
+            {classType === 'live' ? 'Live' : 'Blended'}
+          </div>
+        )}
+
+        {/* View More button for mobile */}
+        {isMobile && !mobileHoverActive && (
+          <button 
+            onClick={openMobileHover}
+            className={`absolute bottom-4 right-4 z-20 px-4 py-2 rounded-lg shadow-md ${
+              isLiveCourse 
+                ? 'bg-rose-500 text-white hover:bg-rose-600' 
+                : 'bg-indigo-500 text-white hover:bg-indigo-600'
+            } flex items-center gap-1.5 text-sm font-semibold`}
+            aria-label="View Course Details"
+          >
+            View More
+            <ArrowUpRight size={16} className="text-white" />
+          </button>
+        )}
+
+        {/* Close button for mobile hover view */}
+        {isMobile && mobileHoverActive && (
+          <button 
+            onClick={closeMobileHover}
+            className={`absolute top-2 right-2 z-30 p-1.5 rounded-full bg-white/90 shadow-md ${
+              isLiveCourse 
+                ? 'text-rose-500' 
+                : 'text-indigo-500'
+            }`}
+            aria-label="Close Details"
+          >
+            <X size={20} />
+          </button>
+        )}
+
         {/* Pre-hover content */}
-        <div className={`flex flex-col h-full transition-opacity duration-300 ${isHovered ? 'opacity-0' : 'opacity-100'}`}>
+        <div className={`flex flex-col h-full transition-opacity duration-300 ${(isHovered && !isMobile) || (mobileHoverActive && isMobile) ? 'opacity-0' : 'opacity-100'}`}>
           {/* Image section */}
           <div className="relative w-full aspect-[16/9] overflow-hidden">
             <Image
@@ -792,10 +929,10 @@ const CourseCard = ({
           {/* Course info */}
           <div className="p-4 flex flex-col flex-grow">
             {/* Title and Instructor */}
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 line-clamp-2">
+            <h3 className="text-lg font-extrabold text-gray-900 dark:text-white mb-2 line-clamp-2">
               {course?.course_title || "Course Title"}
             </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 flex items-center gap-2">
+            <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2 flex items-center gap-2">
               {classType === 'live' ? (
                 <>
                   <Clock size={16} className="text-rose-500 dark:text-rose-400" />
@@ -816,23 +953,19 @@ const CourseCard = ({
             {/* Course Stats */}
             <div className="flex items-center gap-4 mb-3">
               <div className="flex items-center gap-1.5">
-                <Users size={14} className="text-emerald-500" />
-                <span className="text-xs text-gray-600">{course?.no_of_Sessions || 0} {classType === 'live' ? 'Sessions' : 'Classes'}</span>
+                <Users size={14} className={`${classType === 'live' ? 'text-rose-500' : 'text-indigo-500'}`} />
+                <span className="text-xs font-medium text-gray-600">{course?.no_of_Sessions || 0} {classType === 'live' ? 'Sessions' : 'Classes'}</span>
                 {classType != 'live' && (
-                  <span className="text-xs text-gray-600">({course?.min_hours_per_week || 0}-{course?.max_hours_per_week || 0} hrs / week)</span>
+                  <span className="text-xs text-gray-600">(60-90 min each)</span>
                 )}
                 {classType === 'live' && (
                   <span className="text-xs text-gray-600">(60-90 min each)</span>
                 )}
               </div>
-              {/* <div className="flex items-center gap-1.5">
-                <Target size={14} className="text-gray-400" />
-                <span className="text-xs text-gray-600">{course?.effort_hours || "4-6"} hrs/week</span>
-              </div> */}
             </div>
 
             {/* Price */}
-            <div className="mt-auto">
+            <div className={`mt-auto ${isMobile && !mobileHoverActive ? 'mb-8' : ''}`}>
               <div className="flex items-baseline gap-2">
                 <span className={`text-xl font-bold ${
                   isLiveCourse ? 'text-rose-600 dark:text-rose-400' : 'text-indigo-600 dark:text-indigo-400'
@@ -854,18 +987,15 @@ const CourseCard = ({
           </div>
         </div>
 
-        {/* Hover content */}
+        {/* Hover content - shown on hover for desktop and on "View More" for mobile */}
         <div className={`absolute inset-0 bg-white dark:bg-gray-900 p-4 flex flex-col transition-opacity duration-300 ${
-          isHovered ? 'opacity-100' : 'opacity-0'
+          (isHovered && !isMobile) || (mobileHoverActive && isMobile) ? 'opacity-100' : 'opacity-0'
         }`}>
           {/* Course details */}
           <div className="space-y-3 mb-4">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">
+            <h3 className="text-lg font-extrabold text-gray-900 dark:text-white mb-3 pr-6">
               {course?.course_title}
             </h3>
-            {/* <p className="text-sm text-gray-600 dark:text-gray-400">
-              {course?.course_description || "Course description"}
-            </p> */}
           </div>
 
           {/* Course stats */}
@@ -873,10 +1003,10 @@ const CourseCard = ({
             <div className="flex items-center gap-2 text-sm">
               <Clock size={16} className={`${isLiveCourse ? 'text-rose-500 dark:text-rose-400' : 'text-violet-500 dark:text-violet-400'}`} />
               <div>
-                <p className="font-medium text-gray-900 dark:text-white">
+                <p className="font-bold text-gray-900 dark:text-white">
                   {course?.no_of_Sessions || 0} {isLiveCourse ? 'Sessions' : 'Classes'}
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-500 font-medium">
                   {isLiveCourse ? 'Live Interactive' : 'Self-Paced'}
                 </p>
               </div>
@@ -884,32 +1014,32 @@ const CourseCard = ({
             <div className="flex items-center gap-2 text-sm">
               <Timer size={16} className={'text-cyan-500 dark:text-cyan-400'} />
               <div>
-                <p className="font-medium text-gray-900 dark:text-white">
+                <p className="font-bold text-gray-900 dark:text-white">
                   {classType === 'blended_courses' 
                     ? "Self-Paced" 
                     : course?.course_duration 
                       ? `${course.course_duration.split(' ').slice(0, 2).join(' ').replace('months', 'Months')}` 
                       : "Self-Paced"}
                 </p>
-                <p className="text-xs text-gray-500">Course Duration</p>
+                <p className="text-xs text-gray-500 font-medium">Course Duration</p>
               </div>
             </div>
             <div className="flex items-center gap-2 text-sm">
               <Target size={16} className={'text-emerald-500 dark:text-emerald-400'} />
               <div>
-                <p className="font-medium text-gray-900 dark:text-white">
+                <p className="font-bold text-gray-900 dark:text-white">
                   {course?.effort_hours || "4-6"} hrs/week
                 </p>
-                <p className="text-xs text-gray-500">Required Effort</p>
+                <p className="text-xs text-gray-500 font-medium">Required Effort</p>
               </div>
             </div>
             <div className="flex items-center gap-2 text-sm">
               <Award size={16} className={'text-teal-500 dark:text-teal-400'} />
               <div>
-                <p className="font-medium text-gray-900 dark:text-white">
+                <p className="font-bold text-gray-900 dark:text-white">
                   Included
                 </p>
-                <p className="text-xs text-gray-500">Certification</p>
+                <p className="text-xs text-gray-500 font-medium">Certification</p>
               </div>
             </div>
           </div>
@@ -919,7 +1049,7 @@ const CourseCard = ({
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={openModal}
-                className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center justify-center gap-1.5 ${
+                className={`px-4 py-2 rounded-lg font-bold transition-all flex items-center justify-center gap-1.5 ${
                   isLiveCourse
                     ? 'border border-rose-200 text-rose-600 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-400'
                     : 'border border-indigo-200 text-indigo-600 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400'
@@ -930,7 +1060,7 @@ const CourseCard = ({
               </button>
               <button
                 onClick={navigateToCourse}
-                className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center justify-center gap-1.5 ${
+                className={`px-4 py-2 rounded-lg font-bold transition-all flex items-center justify-center gap-1.5 ${
                   isLiveCourse
                     ? 'border border-rose-200 text-rose-600 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-400'
                     : 'border border-indigo-200 text-indigo-600 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400'
@@ -942,7 +1072,7 @@ const CourseCard = ({
             </div>
             <button
               onClick={navigateToCourse}
-              className={`w-full px-4 py-2 rounded-lg font-medium text-white transition-all flex items-center justify-center gap-1.5 ${
+              className={`w-full px-4 py-2 rounded-lg font-bold text-white transition-all flex items-center justify-center gap-1.5 ${
                 isLiveCourse
                   ? 'bg-rose-500 hover:bg-rose-600'
                   : 'bg-indigo-500 hover:bg-indigo-600'
@@ -952,6 +1082,30 @@ const CourseCard = ({
             </button>
           </div>
         </div>
+
+        {/* Custom styles for course type indicator */}
+        <style jsx>{`
+          .course-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: ${classType ? '4px' : '0'};
+            height: 100%;
+            background: ${classType === 'live' 
+              ? 'linear-gradient(to bottom, rgba(244, 63, 94, 0.9), rgba(244, 63, 94, 0.2))' 
+              : classType === 'blended'
+                ? 'linear-gradient(to bottom, rgba(99, 102, 241, 0.9), rgba(99, 102, 241, 0.2))'
+                : 'transparent'};
+            z-index: 5;
+          }
+          
+          @media (max-width: 640px) {
+            .course-card {
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            }
+          }
+        `}</style>
       </div>
 
       {/* Download brochure modal */}
