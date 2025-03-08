@@ -87,16 +87,16 @@ const Home1 = () => {
       </div>
 
       {/* Hero Section with optimized height for 1366x768 */}
-      <section className="w-full relative z-10 laptop:min-h-[calc(100vh-4rem)]">
-        <Hero1 />
+      <section className="w-full relative z-10 laptop:min-h-[calc(100vh-4rem)] laptop:h-auto">
+        <Hero1 isCompact={isLaptopHeight} />
       </section>
 
       {/* Main Content Sections with optimized spacing for 1366x768 */}
-      <div className={`flex flex-col gap-y-12 sm:gap-y-16 md:gap-y-20 lg:gap-y-24 relative z-10 ${
-        isLaptopHeight ? 'laptop:gap-y-16' : ''
+      <div className={`flex flex-col gap-y-8 sm:gap-y-10 md:gap-y-6 lg:gap-y-16 relative z-10 ${
+        isLaptopHeight ? 'laptop:gap-y-12' : ''
       }`}>
         {/* Courses Section - Optimized padding for 1366x768 */}
-        <section className="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 laptop:py-6">
+        <section className="w-full px-3 sm:px-4 md:px-5 lg:px-6 py-4 sm:py-5 md:py-3 laptop:py-4">
           <div className="max-w-[1366px] mx-auto">
             <HomeCourseSection
               CustomText="Skill Development Courses"
@@ -109,8 +109,8 @@ const Home1 = () => {
 
         {/* Why Medh Section - Optimized for 1366x768 */}
         <section className="w-full bg-gradient-to-r from-gray-50/80 via-white to-gray-50/80 
-          dark:from-gray-900/80 dark:via-gray-950 dark:to-gray-900/80 backdrop-blur-sm py-12 laptop:py-5 relative overflow-hidden">
-          <div className="max-w-[1366px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          dark:from-gray-900/80 dark:via-gray-950 dark:to-gray-900/80 backdrop-blur-sm py-8 md:py-5 laptop:py-4 relative overflow-hidden">
+          <div className="max-w-[1366px] mx-auto px-3 sm:px-4 md:px-5 lg:px-6 relative z-10">
             <WhyMedh />
           </div>
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary-500/5 to-transparent"></div>
@@ -125,15 +125,15 @@ const Home1 = () => {
 
         {/* Join Medh Section - Optimized for 1366x768 */}
         <section className="w-full bg-gradient-to-r from-primary-50/90 via-white to-primary-50/90 
-          dark:from-gray-900/90 dark:via-gray-950 dark:to-gray-900/90 backdrop-blur-sm py-12 laptop:py-10 relative overflow-hidden">
-          <div className="max-w-[1366px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          dark:from-gray-900/90 dark:via-gray-950 dark:to-gray-900/90 backdrop-blur-sm py-8 md:py-5 laptop:py-6 relative overflow-hidden">
+          <div className="max-w-[1366px] mx-auto px-3 sm:px-4 md:px-5 lg:px-6 relative z-10">
             <JoinMedh />
           </div>
           <div className="absolute inset-0 bg-[url('/pattern.svg')] bg-repeat opacity-5"></div>
         </section>
 
         {/* Blog Section - Optimized for 1366x768 */}
-        <section className="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 laptop:py-6">
+        <section className="w-full px-3 sm:px-4 md:px-5 lg:px-6 py-4 sm:py-5 md:py-3 laptop:py-4">
           <div className="max-w-[1366px] mx-auto">
             <Blogs />
           </div>
@@ -141,8 +141,8 @@ const Home1 = () => {
 
         {/* Hire Section - Optimized for 1366x768 */}
         <section className="w-full bg-gradient-to-r from-gray-50/90 via-white to-gray-50/90 
-          dark:from-gray-900/90 dark:via-gray-950 dark:to-gray-900/90 backdrop-blur-sm py-12 laptop:py-10 relative overflow-hidden">
-          <div className="max-w-[1366px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          dark:from-gray-900/90 dark:via-gray-950 dark:to-gray-900/90 backdrop-blur-sm py-8 md:py-5 laptop:py-6 relative overflow-hidden">
+          <div className="max-w-[1366px] mx-auto px-3 sm:px-4 md:px-5 lg:px-6 relative z-10">
             <Hire />
           </div>
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-secondary-500/5 to-transparent"></div>
@@ -196,42 +196,53 @@ const Home1 = () => {
         /* Optimized responsive styles for 1366x768 */
         @media (max-width: 640px) {
           .section {
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
+          }
+        }
+
+        @media (min-width: 641px) and (max-width: 768px) {
+          .section {
             padding-left: 1rem;
             padding-right: 1rem;
           }
         }
 
-        @media (min-width: 641px) and (max-width: 1024px) {
+        @media (min-width: 769px) and (max-width: 1024px) {
+          .section {
+            padding-left: 1.25rem;
+            padding-right: 1.25rem;
+            margin-bottom: 0.5rem;
+          }
+          .section + .section {
+            margin-top: 0.75rem;
+          }
+        }
+
+        @media (min-width: 1025px) and (max-width: 1366px) {
+          .section {
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+          }
+        }
+
+        @media (min-width: 1367px) {
           .section {
             padding-left: 2rem;
             padding-right: 2rem;
           }
         }
 
-        @media (min-width: 1025px) and (max-width: 1366px) {
-          .section {
-            padding-left: 2.5rem;
-            padding-right: 2.5rem;
-          }
-        }
-
-        @media (min-width: 1367px) {
-          .section {
-            padding-left: 4rem;
-            padding-right: 4rem;
-          }
-        }
-
         /* Specific optimizations for 1366x768 */
         @media (min-width: 1024px) and (max-height: 768px) {
           .main-content {
-            padding: 1.5rem 2.5rem;
+            padding: 1rem 1.5rem;
           }
           .section {
-            margin-bottom: 2rem;
+            margin-bottom: 0.75rem;
           }
           .section + .section {
-            margin-top: 1.5rem;
+            margin-top: 1rem;
           }
         }
       `}</style>
