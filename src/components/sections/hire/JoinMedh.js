@@ -161,7 +161,7 @@ const JoinMedh = ({
                 {/* Button */}
                 <div className="mt-auto">
                   <button
-                    onClick={() => router.push("/apply-educator")}
+                    onClick={() => router.push("/join-us-as-educator")}
                     className="relative w-full group/btn inline-flex items-center justify-center px-5 py-3.5 text-base font-medium text-white bg-gradient-to-r from-primary-500 to-indigo-600 hover:from-primary-600 hover:to-indigo-700 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg overflow-hidden"
                   >
                     <span className="relative z-10">{educatorButtonText}</span>
@@ -236,7 +236,7 @@ const JoinMedh = ({
                 {/* Button */}
                 <div className="mt-auto">
                   <button
-                    onClick={() => router.push("/partner-institute")}
+                    onClick={() => router.push("/join-us-as-school-institute")}
                     className="relative w-full group/btn inline-flex items-center justify-center px-5 py-3.5 text-base font-medium text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg overflow-hidden"
                   >
                     <span className="relative z-10">{partnerButtonText}</span>
