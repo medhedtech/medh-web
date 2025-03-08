@@ -1,4 +1,40 @@
-# Contextual Routes - Medh Project
+# Medh Project - Contextual Routes
+
+## Key Component Paths
+- **WhyMedh Section**: `/src/components/sections/why-medh/WhyMedh.js`
+- **Certified Component**: `/src/components/sections/why-medh/Certified.js`
+- **Header Component**: `/src/components/layout/header/Header.js`
+- **Navbar Component**: `/src/components/layout/navbar/Navbar.js`
+- **Footer Component**: `/src/components/layout/footer/Footer.js`
+
+## Page Routes
+- **Home Page**: `/src/app/page.js`
+- **About Us**: `/src/app/about-us/page.js`
+- **Courses**: `/src/app/courses/page.js`
+- **Placement Guaranteed Courses**: `/src/app/placement-guaranteed-courses/page.js`
+- **Blog**: `/src/app/blog/page.js`
+- **Contact**: `/src/app/contact/page.js`
+
+## Asset Paths
+- **Images**: `/src/assets/images/`
+- **Icons**: `/src/assets/images/icon/`
+- **ISO Certification Images**: `/src/assets/images/iso/`
+- **Hero Banner Images**: `/src/assets/images/herobanner/`
+
+## Styling Configuration
+- **Tailwind Config**: `/tailwind.config.js`
+- **Global CSS**: `/src/app/globals.css`
+
+## Utility Files
+- **API Routes**: `/src/apis/`
+- **Contexts**: `/src/contexts/`
+- **Hooks**: `/src/hooks/`
+- **Utils**: `/src/utils/`
+
+## Important Files for Mobile Optimization
+- **Layout File**: `/src/app/layout.js` (Contains viewport meta tags)
+- **Mobile Menu**: `/src/components/layout/navbar/MobileMenu.js`
+- **Responsive Components**: Look for media query breakpoints in Tailwind classes (sm:, md:, lg:, xl:)
 
 ## API and Backend
 - `src/apis/index.js`: API endpoint definitions and URL construction
