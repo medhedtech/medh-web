@@ -703,7 +703,7 @@ Improved the responsiveness of the course tagline text ("Join our expert-led pro
 
 1. **Mobile-First Approach**
    - Added mobile device detection with window size check
-   - Created completely separate mobile and desktop/tablet layouts
+   - Created completely separate mobile and desktop layouts
    - Optimized mobile view with smaller elements and tighter spacing
    - Improved touch targets for better mobile usability
 
@@ -1172,7 +1172,7 @@ These additions enhance the footer's branding presence while maintaining the mod
 ## CourseCard.js Close Button Positioning Fix
 
 - **Fixed Overlapping Elements**:
-  - Repositioned the close button from top-right to top-left to avoid overlap with the Live/Blended tag
+  - Repositioned the close button from top-left to top-right to avoid overlap with the Live/Blended tag
   - Added corresponding padding to the left side of the title for better layout
   - Ensured proper spacing between all elements in the hover view
   - Improved visual clarity by separating interactive elements
@@ -1356,3 +1356,153 @@ These additions enhance the footer's branding presence while maintaining the mod
   - Made the button more recognizable as a call-to-action
   - Maintained the same mobile hover interaction pattern (showing detailed information when tapped)
   - Enhanced visual hierarchy by distinguishing the button from the card content
+
+## CourseCard.js Mobile Close Button and Type Tag Improvements
+
+- **Repositioned Close Button**:
+  - Moved the close button from the top-left to the top-right corner for better usability
+  - Changed the title padding from left padding to right padding for improved spacing
+  - Maintained the same button styling and accessibility features
+  - Created a more consistent user interface pattern
+
+- **Improved Mobile Hover Experience**:
+  - Removed the course type tag (Live/Blended) when in mobile hover view to reduce visual clutter
+  - Created a cleaner mobile hover interface focused on the course details
+  - Maintained the tag visibility in normal card view for clear identification
+  - Enhanced the overall mobile experience with more streamlined visuals
+
+## Fixed Missing pattern.svg Asset
+
+- **Added Missing Background Pattern**:
+  - Created a new `pattern.svg` file in the public directory
+  - Implemented a subtle dot pattern design for background textures
+  - The pattern uses light-colored (#f0f0f0) dots on a transparent background for subtle effects
+  - Maintains a consistent 20×20 pixel grid for seamless tiling
+  - Uses a staggered dot arrangement for visual interest
+  
+- **Fixed 404 Error**:
+  - Resolved the 404 Not Found error for `/pattern.svg`
+  - Ensured proper rendering of the background pattern in JoinMedh section of Home1.js
+  - Maintained consistency with the project's visual language
+  - Enables the subtle texture overlay with 5% opacity as designed
+
+# Changes Log
+
+## API Improvements - [Date: Current Date]
+
+### Enhanced `src/apis/index.js`
+- Added new brochure API endpoints with consistent structure
+- Created dedicated endpoint functions for various brochure operations
+- Implemented URL parameter handling using shared utility functions
+- Added the following new endpoints:
+  - `getBroucherById`: Fetch a specific brochure by ID
+  - `updateBroucher`: Update an existing brochure
+  - `deleteBroucher`: Delete a brochure
+  - `downloadBroucher`: Download a brochure
+  - `requestBroucher`: Request a brochure with user information
+  - `getBrouchersByFilters`: Get brochures with filtering options
+  - `trackBroucherDownload`: Track brochure download analytics
+
+### Updated `src/components/shared/download-broucher/index.js`
+- Refactored to use the new API endpoints for improved consistency
+- Added download tracking functionality
+- Enhanced error handling
+- Improved code organization using standard API patterns
+- Added device and referrer metadata for analytics
+
+## Fixed Brochure Download Endpoint - [Date: Current Date]
+- Fixed the 404 Not Found error with the brochure request endpoint
+- Updated `requestBroucher` in `src/apis/index.js` to use the correct server endpoint (`/broucher/download/:id`)
+- Ensured backward compatibility with existing functionality
+- Added proper error handling for failed requests
+- Maintained all analytics tracking capabilities
+
+## Resolved "Invalid Route" Error - [Date: Current Date]
+- Fixed the "Invalid route" error when requesting brochures
+- Changed the endpoint format from `/broucher/download/:id` to `/broucher/request-download`
+- Modified the API structure to pass IDs in the request body instead of the URL path
+- Maintained all existing functionality and data structure
+- Ensured proper error handling for the updated endpoint
+
+## Fixed Hero1 Component Content Wrapping - [Date: Current Date]
+- Resolved issue where Hero1 component was hiding its content due to wrapping problems
+- Removed `overflow-hidden` from the main container to prevent content clipping
+- Improved responsive layout with better min-height/max-height handling
+- Adjusted card widths and grid layout to prevent overlapping
+- Removed unnecessary styles and inline CSS that were causing layout issues
+- Fixed spacing and padding to ensure all content is visible
+- Improved layout structure with better conditional classes for different screen sizes
+- Removed redundant nested containers that were causing layout issues
+- Simplified height constraints for better adaptability across different screens
+- Eliminated content cutoff by removing overflow constraints
+
+## User Preferences
+- **Important Files**:
+  - `src/apis/index.js`: Central API configuration
+  - `src/components/shared/download-broucher/index.js`: Brochure download component
+  - `src/components/sections/hero-banners/Hero1.js`: Hero banner component
+- **Design Consistency**: Following the project's established patterns for API calls
+- **API Structure**: Consistent use of utility functions for URL parameter handling
+
+# Changes Made by Cursor
+
+## 2023-09-15: API Endpoint Structure Improvements
+
+### Enhanced Brochure API Integration
+- Updated `src/apis/index.js` with structured brochure API endpoints
+- Implemented all required brochure API routes according to specifications:
+  - GET /api/v1/broucher - Get all brochures with pagination
+  - GET /api/v1/broucher/:id - Get specific brochure by ID
+  - POST /api/v1/broucher/create - Create a new brochure
+  - PUT /api/v1/broucher/:id - Update a brochure
+  - DELETE /api/v1/broucher/:id - Delete a brochure
+  - POST /api/v1/broucher/download/:courseId - Download brochure
+  - GET /api/v1/broucher/analytics - Get download analytics
+- Added detailed parameter handling for API queries
+- Improved code organization with comments and proper endpoint descriptions
+- Optimized URL construction for API calls with proper parameter encoding
+
+## 2023-09-15: Brochure API Enhancement
+
+### Comprehensive API Improvements
+- Enhanced existing brochure API implementation in `src/apis/index.js`:
+  - Added comprehensive JSDoc documentation for all methods
+  - Implemented parameter validation with error handling
+  - Added analytics filtering options to getBroucherAnalytics
+  - Enhanced metadata handling for tracking brochure downloads
+  - Created a new getShareableBroucherLink method for social sharing
+- Improved error prevention with required parameter validation
+- Added timestamp tracking for analytics data
+- Enhanced data collection with browser and device information
+- Improved the RequestBroucher method with support for additional information
+- Added UTM parameter support for marketing campaign tracking
+
+## 2023-09-15: Fixed Brochure Download Error
+
+### Bug Fix: Brochure ID Validation
+- Fixed the "Error: Brochure ID is required" error that prevented brochure downloads
+- Updated `requestBroucher` method to make brochure_id optional when course_id is provided
+- Improved error handling in brochure-related API methods
+- Made validation more flexible to handle different usage scenarios
+- Enhanced documentation to clarify optional vs. required parameters
+- Applied consistent parameter handling across all brochure-related methods:
+  - `requestBroucher`: Made brochure_id optional with course_id
+  - `trackBroucherDownload`: Made brochure_id optional with course_id
+  - `getShareableBroucherLink`: Made brochure_id optional with course_id
+- Added conditional parameter handling for better API flexibility
+
+## 2023-09-15: Fixed Brochure Download Redirection
+
+### Bug Fix: Missing File Download
+- Fixed issue where brochure URL was successfully retrieved but no file download/redirection occurred
+- Implemented more robust URL detection to handle different API response structures:
+  - Added support for `data.data.brochureUrl` nested property
+  - Improved URL detection in various response formats
+  - Added validation for direct string URL responses
+- Enhanced download mechanism with multiple fallback methods:
+  - Primary: Programmatically created and triggered anchor element
+  - Secondary: Traditional window.open method with delay
+- Added URL validation to ensure proper protocol (http/https)
+- Improved error handling with detailed logging 
+- Added courseId to download tracking for better analytics
+- Implemented additional logging to help diagnose download issues
