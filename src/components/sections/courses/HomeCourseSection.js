@@ -422,7 +422,7 @@ const HomeCourseSection = ({
             <div className="flex items-center mb-3 sm:mb-0">
               <Layers className="w-6 h-6 mr-2.5 text-indigo-500" />
               <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-800 dark:text-white">
-                Blended Learning Courses
+                Blended Self Paced Courses
               </h3>
             </div>
             

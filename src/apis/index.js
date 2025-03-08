@@ -396,6 +396,8 @@ export const apiUrls = {
      * @param {Object} [options.date_range={}] - Date range filter
      * @param {string} [options.date_range.start=""] - Start date
      * @param {string} [options.date_range.end=""] - End date
+     * @param {boolean} [options.with_content=false] - Include full content in response
+     * @param {boolean} [options.count_only=false] - Return only count of matching blogs
      * @returns {string} The constructed API URL
      */
     getAllBlogs: (options = {}) => {
@@ -409,7 +411,10 @@ export const apiUrls = {
         category = "",
         tags = "",
         author = "",
-        date_range = {}
+        date_range = {},
+        with_content = false,
+        count_only = false,
+        exclude_ids = []
       } = options;
       
       // Initialize URLSearchParams
@@ -438,6 +443,13 @@ export const apiUrls = {
       apiUtils.appendParam('sort_by', sort_by, queryParams);
       apiUtils.appendParam('sort_order', sort_order, queryParams);
       
+      // Add content options
+      apiUtils.appendParam('with_content', with_content ? 'true' : 'false', queryParams);
+      apiUtils.appendParam('count_only', count_only ? 'true' : 'false', queryParams);
+      
+      // Add excluded blog IDs
+      apiUtils.appendArrayParam('exclude_ids', exclude_ids, queryParams);
+      
       return `/blogs/get${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
     },
 
@@ -446,14 +458,27 @@ export const apiUrls = {
      * @param {Object} options - Query options
      * @param {number} [options.limit=6] - Number of blogs to return
      * @param {string} [options.type="featured"] - Type of blogs (featured, popular, recent)
+     * @param {boolean} [options.with_content=false] - Include full content in response
+     * @param {Array|string} [options.category=""] - Optional category filter
      * @returns {string} The constructed API URL
      */
     getFeaturedBlogs: (options = {}) => {
-      const { limit = 6, type = "featured" } = options;
+      const { 
+        limit = 6, 
+        type = "featured", 
+        with_content = false,
+        category = "",
+        tags = "",
+        exclude_ids = []
+      } = options;
       
       const queryParams = new URLSearchParams();
       queryParams.append('limit', limit);
       queryParams.append('type', type);
+      apiUtils.appendParam('with_content', with_content ? 'true' : 'false', queryParams);
+      apiUtils.appendArrayParam('category', category, queryParams);
+      apiUtils.appendArrayParam('tags', tags, queryParams);
+      apiUtils.appendArrayParam('exclude_ids', exclude_ids, queryParams);
       
       return `/blogs/featured?${queryParams.toString()}`;
     },
@@ -464,31 +489,41 @@ export const apiUrls = {
      * @param {string|number} options.blogId - Current blog ID
      * @param {number} [options.limit=3] - Number of related blogs to return
      * @param {Array|string} [options.tags=""] - Specific tags to match
+     * @param {Array|string} [options.category=""] - Optional category filter
+     * @param {boolean} [options.with_content=false] - Include full content in response
      * @returns {string} The constructed API URL
      */
     getRelatedBlogs: (options = {}) => {
-      const { blogId, limit = 3, tags = "" } = options;
+      const { 
+        blogId, 
+        limit = 3, 
+        tags = "", 
+        category = "",
+        with_content = false 
+      } = options;
       
       if (!blogId) throw new Error('Blog ID is required');
       
       const queryParams = new URLSearchParams();
       queryParams.append('limit', limit);
       apiUtils.appendArrayParam('tags', tags, queryParams);
+      apiUtils.appendArrayParam('category', category, queryParams);
+      apiUtils.appendParam('with_content', with_content ? 'true' : 'false', queryParams);
       
       return `/blogs/related/${blogId}?${queryParams.toString()}`;
     },
     
     /**
-     * Get a blog by ID
+     * Get a blog by ID with format matching the fake data structure
      * @param {string|number} id - Blog ID
-     * @param {boolean} [incrementViews=true] - Whether to increment view count
+     * @param {boolean} incrementViews - Whether to increment view count
      * @returns {string} The blog API URL
      */
     getBlogById: (id, incrementViews = true) => {
       if (!id) throw new Error('Blog ID is required');
       
       const queryParams = new URLSearchParams();
-      queryParams.append('incrementViews', incrementViews);
+      queryParams.append('increment_views', incrementViews ? 'true' : 'false');
       
       return `/blogs/get/${id}?${queryParams.toString()}`;
     },
@@ -528,19 +563,23 @@ export const apiUrls = {
     /**
      * Get blogs by category
      * @param {string|number} categoryId - Category ID
-     * @param {Object} options - Additional query options
+     * @param {Object} options - Query options
      * @param {number} [options.page=1] - Page number
      * @param {number} [options.limit=10] - Items per page
+     * @param {string} [options.sort_by="createdAt"] - Sort field
+     * @param {string} [options.sort_order="desc"] - Sort direction (asc/desc)
      * @returns {string} The constructed API URL
      */
     getBlogsByCategory: (categoryId, options = {}) => {
       if (!categoryId) throw new Error('Category ID is required');
       
-      const { page = 1, limit = 10 } = options;
+      const { page = 1, limit = 10, sort_by = "createdAt", sort_order = "desc" } = options;
       
       const queryParams = new URLSearchParams();
       queryParams.append('page', page);
       queryParams.append('limit', limit);
+      apiUtils.appendParam('sort_by', sort_by, queryParams);
+      apiUtils.appendParam('sort_order', sort_order, queryParams);
       
       return `/blogs/category/${categoryId}?${queryParams.toString()}`;
     },
@@ -560,8 +599,8 @@ export const apiUrls = {
      * @param {Object} options - Interaction data
      * @param {string|number} options.blogId - Blog ID
      * @param {string} options.action - Interaction type (view, like, share, comment)
-     * @param {string} [options.userId=""] - User ID if available
-     * @returns {Object} The URL and data for the API call
+     * @param {string} [options.userId=""] - User ID if authenticated
+     * @returns {Object} Request config for POST request
      */
     logBlogInteraction: (options = {}) => {
       const { blogId, action, userId = "" } = options;
@@ -575,13 +614,173 @@ export const apiUrls = {
           blog_id: blogId,
           action,
           user_id: userId,
-          timestamp: new Date().toISOString(),
-          client_info: {
-            referrer: typeof document !== 'undefined' ? document.referrer : '',
-            user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : ''
+          device_info: {
+            userAgent: navigator.userAgent,
+            platform: navigator.platform,
+            language: navigator.language,
+            referrer: document.referrer
           }
         }
       };
+    },
+
+    /**
+     * Get trending or popular blogs for a specific period
+     * @param {Object} options - Query options
+     * @param {string} [options.period="week"] - Time period (day, week, month, year)
+     * @param {number} [options.limit=5] - Number of blogs to return
+     * @param {Array|string} [options.category=""] - Optional category filter
+     * @param {Array|string} [options.tags=""] - Optional tags filter
+     * @returns {string} The constructed API URL
+     */
+    getTrendingBlogs: (options = {}) => {
+      const { 
+        period = "week", 
+        limit = 5, 
+        category = "", 
+        tags = "" 
+      } = options;
+      
+      const queryParams = new URLSearchParams();
+      queryParams.append('period', period);
+      queryParams.append('limit', limit);
+      apiUtils.appendArrayParam('category', category, queryParams);
+      apiUtils.appendArrayParam('tags', tags, queryParams);
+      
+      return `/blogs/trending?${queryParams.toString()}`;
+    },
+
+    /**
+     * Get blog stats and metrics
+     * @param {Object} options - Query options
+     * @param {string} [options.period="all"] - Time period to analyze (day, week, month, year, all)
+     * @returns {string} The blog stats API URL
+     */
+    getBlogStats: (options = {}) => {
+      const { period = "all" } = options;
+      
+      const queryParams = new URLSearchParams();
+      queryParams.append('period', period);
+      
+      return `/blogs/stats?${queryParams.toString()}`;
+    },
+
+    /**
+     * Search blogs with advanced filtering
+     * @param {Object} options - Search options
+     * @param {string} options.query - Search query
+     * @param {number} [options.limit=10] - Number of results to return
+     * @param {Array|string} [options.fields=["title","content"]] - Fields to search in
+     * @param {Array|string} [options.category=""] - Category filter
+     * @param {Array|string} [options.tags=""] - Tags filter
+     * @returns {string} The constructed API URL
+     */
+    searchBlogs: (options = {}) => {
+      const { 
+        query = "", 
+        limit = 10, 
+        fields = ["title", "content"], 
+        category = "", 
+        tags = "" 
+      } = options;
+      
+      if (!query || query.trim().length === 0) throw new Error('Search query is required');
+      
+      const queryParams = new URLSearchParams();
+      queryParams.append('query', query.trim());
+      queryParams.append('limit', limit);
+      apiUtils.appendArrayParam('fields', fields, queryParams);
+      apiUtils.appendArrayParam('category', category, queryParams);
+      apiUtils.appendArrayParam('tags', tags, queryParams);
+      
+      return `/blogs/search?${queryParams.toString()}`;
+    },
+
+    /**
+     * Generate static paths for pre-rendering blog detail pages
+     * This mimics the behavior of generateStaticParams in Next.js
+     * @param {Object} options - Query options
+     * @param {number} [options.limit=100] - Maximum number of blogs to return IDs for
+     * @returns {string} The static paths API URL
+     */
+    getStaticBlogPaths: (options = {}) => {
+      const { limit = 100 } = options;
+      
+      const queryParams = new URLSearchParams();
+      queryParams.append('limit', limit);
+      queryParams.append('fields', 'id');
+      
+      return `/blogs/paths?${queryParams.toString()}`;
+    },
+
+    /**
+     * Get blog comments
+     * @param {string|number} blogId - Blog ID
+     * @param {Object} options - Query options
+     * @param {number} [options.page=1] - Page number
+     * @param {number} [options.limit=10] - Items per page
+     * @param {string} [options.sort_by="createdAt"] - Sort field
+     * @param {string} [options.sort_order="desc"] - Sort direction (asc/desc)
+     * @returns {string} The blog comments API URL
+     */
+    getBlogComments: (blogId, options = {}) => {
+      if (!blogId) throw new Error('Blog ID is required');
+      
+      const { page = 1, limit = 10, sort_by = "createdAt", sort_order = "desc" } = options;
+      
+      const queryParams = new URLSearchParams();
+      queryParams.append('page', page);
+      queryParams.append('limit', limit);
+      queryParams.append('sort_by', sort_by);
+      queryParams.append('sort_order', sort_order);
+      
+      return `/blogs/comments/${blogId}?${queryParams.toString()}`;
+    },
+
+    /**
+     * Add a comment to a blog
+     * @param {string|number} blogId - Blog ID
+     * @returns {string} The blog comment API URL
+     */
+    addBlogComment: (blogId) => {
+      if (!blogId) throw new Error('Blog ID is required');
+      return `/blogs/comments/${blogId}`;
+    },
+
+    /**
+     * Get recent blog posts for widgets
+     * @param {Object} options - Query options
+     * @param {number} [options.limit=5] - Number of recent posts to return
+     * @param {boolean} [options.with_image=true] - Include image URLs in response
+     * @returns {string} The recent posts API URL
+     */
+    getRecentPosts: (options = {}) => {
+      const { limit = 5, with_image = true } = options;
+      
+      const queryParams = new URLSearchParams();
+      queryParams.append('limit', limit);
+      queryParams.append('with_image', with_image ? 'true' : 'false');
+      queryParams.append('sort_by', 'createdAt');
+      queryParams.append('sort_order', 'desc');
+      
+      return `/blogs/recent?${queryParams.toString()}`;
+    },
+
+    /**
+     * Get blog tags
+     * @param {Object} options - Query options
+     * @param {number} [options.limit=20] - Number of tags to return
+     * @param {boolean} [options.with_count=true] - Include post count with each tag
+     * @returns {string} The blog tags API URL
+     */
+    getBlogTags: (options = {}) => {
+      const { limit = 20, with_count = true } = options;
+      
+      const queryParams = new URLSearchParams();
+      queryParams.append('limit', limit);
+      queryParams.append('with_count', with_count ? 'true' : 'false');
+      
+      return `/blogs/tags?${queryParams.toString()}`;
     }
   },
   certificate: {
