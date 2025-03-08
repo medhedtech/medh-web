@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Menu, X, ChevronRight, Search, LogOut, User, Home, Book, Bell, Settings, Info, HelpCircle, Award, Bookmark, Heart, Share2, Calendar } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch, faUser, faSignOutAlt, faArrowLeft, faTimes, faCog, faSun, faMoon, faGraduationCap, faBookOpen, faBell, faHeart, faShareAlt } from '@fortawesome/free-solid-svg-icons';
+import { faSearch, faUser, faSignOutAlt, faArrowLeft, faTimes, faCog, faSun, faMoon, faGraduationCap, faBookOpen, faBell, faHeart, faShareAlt, faTachometerAlt, faSignInAlt, faUserPlus } from '@fortawesome/free-solid-svg-icons';
 import MobileMenuItems from "./MobileItems";
 import MobileItems2 from "./MobileItems2";
 import MobileMenuSearch from "./MobileMenuSearch";
@@ -341,31 +341,32 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
             style={{
               willChange: 'transform',
               overflowY: 'auto',
-              boxShadow: isOpen ? '-5px 0px 25px rgba(0, 0, 0, 0.15)' : 'none'
+              WebkitOverflowScrolling: 'touch',
+              boxShadow: isOpen ? '-5px 0px 25px rgba(0, 0, 0, 0.2)' : 'none'
             }}
             onTransitionEnd={handleAnimationEnd}
           >
-            {/* Menu Header with improved spacing */}
-            <div className="sticky top-0 flex items-center justify-between bg-white dark:bg-gray-900 px-6 py-4 border-b border-gray-200 dark:border-gray-700 z-10">
+            {/* Enhanced Menu Header with improved styling */}
+            <div className="sticky top-0 flex items-center justify-between bg-white/90 dark:bg-gray-900/95 backdrop-blur-md px-6 py-5 border-b border-gray-200/80 dark:border-gray-700/80 z-10">
               {menuHistory.length > 0 ? (
                 <button
                   type="button"
-                  className="inline-flex items-center text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200 px-3 py-2 rounded-lg"
+                  className="inline-flex items-center text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200 px-4 py-2 rounded-lg hover:bg-gray-100/80 dark:hover:bg-gray-800/80"
                   onClick={goBack}
                   aria-label="Go back to previous menu"
                 >
                   <FontAwesomeIcon icon={faArrowLeft} className="h-4 w-4 mr-3" />
-                  <span>Back</span>
+                  <span className="font-medium">Back</span>
                 </button>
               ) : (
-                <div className="text-lg font-semibold bg-gradient-to-r from-primary-500 to-purple-600 bg-clip-text text-transparent px-3">
+                <div className="text-lg font-semibold bg-gradient-to-r from-primary-600 to-purple-600 bg-clip-text text-transparent px-3">
                   Menu
                 </div>
               )}
               
               <button
                 type="button"
-                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white p-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
+                className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white p-3 rounded-full hover:bg-gray-100/80 dark:hover:bg-gray-800/80 transition-all duration-200 transform hover:scale-105 active:scale-95"
                 onClick={closeMenu}
                 aria-label="Close menu"
                 ref={closeButtonRef}
@@ -375,7 +376,7 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
               </button>
             </div>
 
-            {/* Enhanced Quick Search with improved spacing */}
+            {/* Enhanced Quick Search with better styling */}
             <div className="px-6 pt-6 pb-4">
               <form onSubmit={handleSearchSubmit} className="relative">
                 <input
@@ -386,16 +387,16 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
                   onFocus={handleSearchFocus}
                   onBlur={handleSearchBlur}
                   placeholder="Quick search..."
-                  className={`w-full py-3 pl-12 pr-4 text-base text-gray-900 dark:text-white ${
+                  className={`w-full py-3.5 pl-12 pr-4 text-base text-gray-900 dark:text-white rounded-xl ${
                     searchFocused 
-                      ? 'bg-white dark:bg-gray-700 ring-2 ring-primary-500 dark:ring-primary-400 shadow-lg' 
-                      : 'bg-gray-100 dark:bg-gray-800'
-                  } rounded-full focus:outline-none transition-all duration-300`}
+                      ? 'bg-white dark:bg-gray-800 ring-2 ring-primary-500 dark:ring-primary-400 shadow-lg border-transparent' 
+                      : 'bg-gray-100 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700'
+                  } focus:outline-none transition-all duration-300`}
                   aria-label="Quick search"
                 />
                 <FontAwesomeIcon 
                   icon={faSearch} 
-                  className={`absolute left-4 top-3.5 h-5 w-5 ${
+                  className={`absolute left-4 top-4 h-5 w-5 ${
                     searchFocused 
                       ? 'text-primary-500 dark:text-primary-400' 
                       : 'text-gray-500 dark:text-gray-400'
@@ -404,23 +405,31 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
                 <button type="submit" className="sr-only">Search</button>
               </form>
 
-              {/* Search Suggestions with enhanced spacing */}
+              {/* Search Suggestions with enhanced styling */}
               {searchQuery && searchSuggestions.length > 0 && (
                 <div className="absolute left-0 right-0 mt-4 px-6">
                   <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <div className="py-2 px-4 bg-gray-50 dark:bg-gray-800/80 border-b border-gray-200 dark:border-gray-700">
+                      <h3 className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Search Results</h3>
+                    </div>
                     {searchSuggestions.map((suggestion, index) => (
                       <Link
                         key={index}
                         href={suggestion.path}
-                        className="flex items-center px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+                        className="flex items-center px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-200 border-b border-gray-100 dark:border-gray-800 last:border-0"
                         onClick={closeMenu}
                       >
-                        <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mr-3">
-                          {suggestion.type}
+                        <span className="flex-shrink-0 w-8 h-8 bg-primary-100 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-full flex items-center justify-center mr-3">
+                          <FontAwesomeIcon icon={suggestion.type === 'Course' ? faGraduationCap : faFile} className="h-4 w-4" />
                         </span>
-                        <span className="text-sm text-gray-900 dark:text-white">
-                          {suggestion.title}
-                        </span>
+                        <div>
+                          <span className="block text-sm font-medium text-gray-900 dark:text-white">
+                            {suggestion.title}
+                          </span>
+                          <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mt-1 block">
+                            {suggestion.type}
+                          </span>
+                        </div>
                       </Link>
                     ))}
                   </div>
@@ -428,9 +437,14 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
               )}
             </div>
 
-            {/* Mobile menu content with enhanced spacing */}
+            {/* Divider with gradient effect */}
+            <div className="px-6">
+              <div className="h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent"></div>
+            </div>
+
+            {/* Mobile menu content with enhanced styling */}
             <div 
-              className={`px-6 pb-28 transition-all duration-300 transform ${
+              className={`px-6 pb-32 pt-4 transition-all duration-300 transform ${
                 isAnimating && activeSection !== 'main'
                   ? animationDirection === 'left' 
                     ? '-translate-x-full' 
@@ -438,92 +452,122 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
                   : 'translate-x-0'
               } ${activeSection !== 'main' ? 'hidden' : ''}`}
             >
-              {/* Main section with improved spacing */}
-              <div className="py-4 space-y-8">
-                {/* Primary Navigation */}
+              {/* Main section with improved styling */}
+              <div className="py-2 space-y-8">
+                {/* Primary Navigation with better styling */}
                 <nav aria-label="Primary navigation" className="space-y-1">
+                  <style jsx global>{`
+                    /* Enhance accordion styling */
+                    .accordion-container {
+                      @apply space-y-1;
+                    }
+                    
+                    .accordion-controller {
+                      @apply w-full flex justify-between items-center py-3 px-4 rounded-xl transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800/80;
+                    }
+                    
+                    .accordion-controller.active {
+                      @apply bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400;
+                    }
+                    
+                    .accordion-content {
+                      @apply space-y-1 py-2 pl-4 ml-4 mt-1 border-l-2 border-gray-200 dark:border-gray-700;
+                    }
+                    
+                    /* Enhance active item styling */
+                    .mobile-item-active {
+                      @apply border-l-2 border-primary-500 pl-2 -ml-2 text-primary-600 dark:text-primary-400;
+                    }
+                    
+                    /* Add animation to accordion content */
+                    .accordion-content {
+                      animation: slideDown 0.2s ease-out;
+                    }
+                    
+                    @keyframes slideDown {
+                      from {
+                        opacity: 0;
+                        transform: translateY(-10px);
+                      }
+                      to {
+                        opacity: 1;
+                        transform: translateY(0);
+                      }
+                    }
+                  `}</style>
                   {isHome2Dark ? <MobileItems2 /> : <MobileMenuItems />}
                 </nav>
                 
-                {/* User Account Section with enhanced spacing */}
-                <div className="pt-6">
+                {/* Section divider with subtle gradient */}
+                <div className="h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent"></div>
+                
+                {/* User Account Section with enhanced styling */}
+                <div className="pt-2">
                   <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-4 flex items-center px-4">
-                    <FontAwesomeIcon icon={faUser} className="h-3 w-3 mr-3" />
-                    Your Account
+                    <span>Account</span>
+                    <span className="ml-2 h-px bg-gray-300 dark:bg-gray-700 flex-grow"></span>
                   </h3>
-                  
-                  {isLoggedIn ? (
-                    <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-                      <div className="flex items-center space-x-3">
-                        <div className="relative flex-shrink-0 h-10 w-10 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center overflow-hidden">
-                          <FontAwesomeIcon icon={faUser} className="h-5 w-5 text-primary-600 dark:text-primary-400" />
+
+                  {/* Enhance account section content */}
+                  <div className="space-y-1">
+                    {isLoggedIn ? (
+                      <>
+                        {/* User profile section with improved styling */}
+                        <div className="flex items-center px-4 py-3 mb-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+                          <div className="flex-shrink-0">
+                            <div className="h-10 w-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400">
+                              <FontAwesomeIcon icon={faUser} className="h-5 w-5" />
+                            </div>
+                          </div>
+                          <div className="ml-3">
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">{userName || 'User'}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">{userRole || 'Member'}</p>
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                            {userName || 'User'}
-                          </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                            {userRole || 'Student'}
-                          </p>
-                        </div>
-                        <div className="flex-shrink-0 flex space-x-1">
-                          {/* Dashboard button */}
-                          <Link
-                            href={getDashboardUrl()}
-                            className="inline-flex items-center p-1.5 border border-transparent rounded-full shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-                            onClick={closeMenu}
-                          >
-                            <FontAwesomeIcon icon={faUser} className="h-3 w-3" aria-hidden="true" />
-                            <span className="sr-only">Dashboard</span>
-                          </Link>
-                          
-                          {/* Logout button */}
-                          <button
-                            type="button"
-                            onClick={handleLogout}
-                            className="inline-flex items-center p-1.5 border border-transparent rounded-full shadow-sm text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-                          >
-                            <FontAwesomeIcon icon={faSignOutAlt} className="h-3 w-3" aria-hidden="true" />
-                            <span className="sr-only">Log out</span>
-                          </button>
-                        </div>
+
+                        {/* Enhanced dashboard link */}
+                        <Link
+                          href={getDashboardUrl()}
+                          onClick={closeMenu}
+                          className="flex items-center px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl group transition-colors duration-200"
+                        >
+                          <FontAwesomeIcon icon={faTachometerAlt} className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-3 group-hover:text-primary-500 dark:group-hover:text-primary-400 transition-colors duration-200" />
+                          <span>Dashboard</span>
+                        </Link>
+
+                        {/* Enhanced logout button */}
+                        <button
+                          type="button"
+                          onClick={handleLogout}
+                          className="flex w-full items-center px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl group transition-colors duration-200"
+                        >
+                          <FontAwesomeIcon icon={faSignOutAlt} className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-3 group-hover:text-red-500 dark:group-hover:text-red-400 transition-colors duration-200" />
+                          <span>Sign out</span>
+                        </button>
+                      </>
+                    ) : (
+                      <div className="space-y-2 pt-2">
+                        {/* Enhanced sign in and register buttons */}
+                        <Link
+                          href="/login"
+                          onClick={closeMenu}
+                          className="flex items-center justify-center w-full px-4 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl transition-all duration-200 transform hover:scale-[1.01] active:scale-[0.99]"
+                        >
+                          <FontAwesomeIcon icon={faSignInAlt} className="h-5 w-5 mr-2" />
+                          <span>Sign in</span>
+                        </Link>
+                        
+                        <Link
+                          href="/register"
+                          onClick={closeMenu}
+                          className="flex items-center justify-center w-full px-4 py-3 mt-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl transition-all duration-200 transform hover:scale-[1.01] active:scale-[0.99]"
+                        >
+                          <FontAwesomeIcon icon={faUserPlus} className="h-5 w-5 mr-2" />
+                          <span>Register</span>
+                        </Link>
                       </div>
-                    </div>
-                  ) : (
-                    <div className="px-4">
-                      <MobileMyAccount onClose={closeMenu} />
-                    </div>
-                  )}
-                </div>
-                
-                {/* Featured section with improved spacing */}
-                <div className="px-4">
-                  <div className="p-6 bg-gradient-to-br from-primary-50 to-purple-50 dark:from-gray-800 dark:to-gray-800 rounded-xl border border-primary-100 dark:border-gray-700">
-                    <h3 className="text-sm font-medium text-gray-900 dark:text-white flex items-center">
-                      <span className="flex h-5 w-5 mr-2 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900">
-                        <FontAwesomeIcon icon={faGraduationCap} className="h-3 w-3 text-primary-600 dark:text-primary-400" />
-                      </span>
-                      New Courses Available
-                    </h3>
-                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                      Check out our latest professional certifications.
-                    </p>
-                    <button
-                      className="mt-3 w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transform transition-transform hover:-translate-y-0.5"
-                      onClick={() => {
-                        router.push('/courses');
-                        closeMenu();
-                      }}
-                    >
-                      <FontAwesomeIcon icon={faBookOpen} className="h-3 w-3 mr-2" />
-                      Browse Courses
-                    </button>
+                    )}
                   </div>
-                </div>
-                
-                {/* Social links with enhanced spacing */}
-                <div className="pt-6 px-4 border-t border-gray-200 dark:border-gray-700">
-                  <MobileSocial />
                 </div>
               </div>
             </div>
