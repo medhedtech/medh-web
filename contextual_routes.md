@@ -71,4 +71,48 @@
 - `/app/home-courses/page.js`: Home courses page
 - `/app/course-detailed/[slug]/page.js`: Course detail page
 - `/app/dashboard/add-course/page.js`: Add course page
-- `/app/dashboard/course-list/page.js`: Course list page 
+- `/app/dashboard/course-list/page.js`: Course list page
+
+# Contextual Routes for Medh Web Project
+
+## API Configuration
+- `src/apis/index.js`: Central API configuration file
+
+## Component Routes
+- `src/components/shared/download-broucher/index.js`: Brochure download modal component
+- Other component paths will be added as they are used
+
+## API Endpoint Groups
+- **User Authentication**: 
+  - Register: `/auth/register`
+  - Login: `/auth/login`
+  - Get user details: `/auth/get`
+
+- **Courses**:
+  - Get all courses: `/courses/get`
+  - Search courses: `/courses/search`
+  - Get course by ID: `/courses/get/:id`
+
+- **Brochures**:
+  - Get all brochures: `/broucher/get`
+  - Request brochure: `/broucher/request`
+  - Download brochure: `/broucher/download/:id`
+  - Track brochure download: `/broucher/track-download`
+
+- **Enrollment**:
+  - Enroll in course: `/enroll/create`
+  - Get enrolled courses: `/enroll/getAll`
+  - Get enrolled courses by student: `/enroll/student`
+
+## Important Page Routes
+- Home: `/`
+- Courses: `/courses`
+- Course Details: `/courses/[id]`
+- Login/Register: `/auth`
+- User Dashboard: `/dashboard`
+- Admin Dashboard: `/admin/dashboard`
+
+## Frequent Navigation Paths
+- Home → Course Listing → Course Details → Brochure Download
+- Home → Login → User Dashboard → Enrolled Courses
+- Admin Dashboard → Course Management → Edit Course 
