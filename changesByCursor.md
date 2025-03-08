@@ -1147,3 +1147,212 @@ These additions enhance the footer's branding presence while maintaining the mod
 - More balanced visual composition with proper spacing between sections
 - Maintained the modern aesthetic with all visual effects
 - Kept the desktop view completely unchanged as requested
+
+# Changes Made by Cursor
+
+## HomeCourseSection.js Improvements
+
+- **UI Enhancement**: Made text bolder across the component (titles, descriptions, and filter buttons)
+- **Visual Distinction**: Improved differentiation between live and blended course cards
+  - Added course type indicators (Live/Blended tags) to course cards
+  - Implemented distinct colored borders for different course types (rose for live, indigo for blended)
+- **Mobile Responsiveness**: Enhanced padding for different screen sizes (small, medium, large)
+  - Improved responsive design with better spacing and card layout
+  - Added better shadow effects for mobile view
+- **Consistency**: Made UI more cohesive by aligning styles between sections
+- **Visual Appeal**: Added subtle visual enhancements like gradient borders and hover effects
+
+## CourseCard.js Improvements
+
+- **Visual Indicators**: Added course type tags (Live/Blended) to make course types immediately identifiable
+- **Text Enhancement**: Made text bolder for better readability (especially headings and important information)
+- **Color Coding**: Enhanced color differentiation between live and blended courses
+- **Mobile Optimization**: Improved card styling for mobile devices with better shadows and transitions
+
+## CourseCard.js Close Button Positioning Fix
+
+- **Fixed Overlapping Elements**:
+  - Repositioned the close button from top-right to top-left to avoid overlap with the Live/Blended tag
+  - Added corresponding padding to the left side of the title for better layout
+  - Ensured proper spacing between all elements in the hover view
+  - Improved visual clarity by separating interactive elements
+
+## CourseCard.js Mobile Hover Interaction
+
+- **Replaced Popup with In-Card Hover Effect**:
+  - Changed mobile interaction from a popup to an in-card hover effect similar to desktop
+  - Removed the full-screen modal popup completely
+  - Implemented touch-activated hover state that displays the same content as desktop hover
+  - Added a close button to exit the hover state on mobile
+
+- **Touch-Activated Hover State**:
+  - Added `mobileHoverActive` state to track when the mobile "hover" is activated
+  - Implemented conditional rendering based on this state
+  - Created smooth transitions between normal and hover states
+  - Preserved all existing hover content functionality
+
+- **Improved Mobile UX**:
+  - Added a small close button in the top-left corner to exit hover state
+  - Maintained the "View More" button at the bottom of the card
+  - Used same hover animations and scaling as desktop for consistency
+  - Ensured proper event handling to prevent unwanted interactions
+
+- **Simplified Implementation**:
+  - Removed complex popup code and scroll position management
+  - Used the same hover content for both desktop and mobile
+  - Required minimal changes to the existing codebase
+  - Maintained visual consistency across desktop and mobile
+
+## CourseCard.js Fixed Popup Scrolling Issue
+
+- **Improved Popup Visibility**:
+  - Implemented scroll position preservation to prevent popup from scrolling out of view
+  - Added proper position fixing to keep the popup in the viewport without jumping
+  - Increased z-index to 1000+ to ensure popup appears above all other elements
+  - Implemented smooth scroll restoration when closing the popup
+
+- **Fixed Scroll Position**:
+  - Added code to save current scroll position when opening popup
+  - Set body to fixed position while popup is open to prevent viewport shifting
+  - Implemented proper scroll position restoration when closing popup
+  - Fixed width to 100% to prevent layout shifts when scrollbar disappears
+
+- **Performance Optimizations**:
+  - Added `willChange: 'transform'` hint for better performance
+  - Added `WebkitOverflowScrolling: 'touch'` for smoother scrolling on iOS
+  - Reduced maximum height from 85vh to 80vh for better visibility on all devices
+  - Added truncation to long titles to prevent layout issues
+
+- **UI Refinements**:
+  - Enhanced close button with flex-shrink-0 to prevent it from being compressed
+  - Added padding to title to prevent overlap with close button
+  - Improved handling of long course titles with truncation
+  - Enhanced touch behaviors for better mobile interaction
+
+## CourseCard.js Mobile View More Improvement
+
+- **Button Enhancement**:
+  - Transformed the "View More" button into a full-width button at the bottom of the card
+  - Changed from small corner button to prominent banner across the entire card width
+  - Increased text size and font weight for better visibility
+  - Added proper spacing above the button to avoid overlapping with price information
+
+- **Instant Popup Implementation**:
+  - Removed all transition delays for immediate popup display
+  - Set explicit opacity and transform values to prevent animation delays
+  - Set `transition: none` to ensure instant appearance without animation effects
+  - Added additional z-indexing to ensure proper stacking in the interface
+
+- **UX Improvements**:
+  - Created a clearer call-to-action that spans the full width of the card
+  - Added margin to the price section to prevent overlap with the new button
+  - Maintained consistent color scheme based on course type
+  - Improved touch target size for better mobile interaction
+
+## CourseCard.js Mobile Popup Enhancement
+
+- **Full-Screen Experience Improvement**:
+  - Enhanced the popup overlay to cover the entire screen
+  - Improved overlay opacity for better focus on the popup content
+  - Added `touchAction: none` to prevent background interaction
+  - Ensured the popup is completely modal with proper fixed positioning
+   
+- **Compact Card Design**:
+  - Reduced card width from full width to 90% with max-width of small size
+  - Decreased maximum height from 90vh to 85vh for better spacing
+  - Made the content card more compact while maintaining full-screen overlay
+  - Improved relative positioning with higher z-index (60) for proper stacking
+   
+- **Touch Interaction Enhancement**:
+  - Improved touch area for the close button (increased from p-1 to p-2)
+  - Enlarged the close icon from 20px to 24px for better visibility
+  - Enhanced event propagation handling to ensure proper touch interaction
+  - Made background dismissal more reliable with cleaner event handling
+   
+- **Visual Refinements**:
+  - Darkened the background overlay for better contrast (70% to 80% opacity)
+  - Improved the shadow on the popup card for better depth perception
+  - Enhanced content proportions for optimal mobile viewing
+  - Maintained consistent styling with the overall design language
+
+## CourseCard.js Mobile Enhancement Updates
+
+- **Mobile Button Improvement**: 
+  - Replaced circular Info icon with a more obvious "View More" text button
+  - Changed button shape from circular to rounded rectangle for better visibility
+  - Added proper padding and font weight for better readability
+  - Maintained consistent color scheme based on course type
+
+- **Popup Positioning Enhancement**:
+  - Ensured the popup is centered in the middle of the screen
+  - Added explicit margin auto and transform-none to guarantee proper centering
+  - Improved visibility by separating the popup from the originating card
+  - Enhanced user experience by making the popup location consistent regardless of card position
+
+## CourseCard.js Mobile Enhancement
+
+- **Mobile Popup Implementation**: Added a mobile-specific popup to replace hover functionality on touch devices
+  - Created a dedicated popup that appears when clicking a "View Details" button on mobile
+  - Added proper close button and stopPropagation to prevent unwanted interactions
+  - Implemented scrollable popup content with maximum height constraints
+  - Added mobile detection using both user agent and screen width checks
+   
+- **UI Improvements for Mobile**:
+  - Added a floating "View More" button for opening the popup
+  - Created a sticky header with title and close button
+  - Implemented larger touch targets for all interactive elements
+  - Added proper spacing for better readability on small screens
+   
+- **Content Organization**:
+  - Displayed course image prominently at the top of the popup
+  - Organized course stats in an easy-to-scan 2-column grid
+  - Truncated longer descriptions for better mobile viewing
+  - Added limited preview of course learning points with "more points" indicator
+   
+- **Interaction Handling**:
+  - Added body scroll lock when popup is open
+  - Implemented proper event handling to prevent bubbling
+  - Added proper cleanup for event listeners and timeout
+  - Created consistent button styles matching the desktop experience
+   
+- **Visual Consistency**:
+  - Maintained the same color scheme and branding as the desktop version
+  - Used the same course type indicators (Live/Blended)
+  - Kept the same button styles and layout patterns
+  - Preserved all functionality including brochure download and navigation
+
+## HomeCourseSection.js Improvements
+
+- **UI Enhancement**: Made text bolder across the component (titles, descriptions, and filter buttons)
+- **Visual Distinction**: Improved differentiation between live and blended course cards
+  - Added course type indicators (Live/Blended tags) to course cards
+  - Implemented distinct colored borders for different course types (rose for live, indigo for blended)
+- **Mobile Responsiveness**: Enhanced padding for different screen sizes (small, medium, large)
+  - Improved responsive design with better spacing and card layout
+  - Added better shadow effects for mobile view
+- **Consistency**: Made UI more cohesive by aligning styles between sections
+- **Visual Appeal**: Added subtle visual enhancements like gradient borders and hover effects
+
+## CourseCard.js Improvements
+
+- **Visual Indicators**: Added course type tags (Live/Blended) to make course types immediately identifiable
+- **Text Enhancement**: Made text bolder for better readability (especially headings and important information)
+- **Color Coding**: Enhanced color differentiation between live and blended courses
+- **Mobile Optimization**: Improved card styling for mobile devices with better shadows and transitions
+
+## CourseCard.js View More Button Integration
+
+- **Integrated In-Card View More Button**:
+  - Repositioned the "View More" button from a full-width banner at the bottom to a compact button in the bottom-right corner
+  - Added a rounded design with proper padding and shadow for better visibility
+  - Included an arrow icon to better indicate the action
+  - Maintained consistent color scheme based on course type (rose for live, indigo for blended)
+  - Enhanced hover states for better user feedback
+  - Improved visual appearance and interaction pattern
+
+- **Improved Mobile UX**:
+  - Created a more intuitive and visually appealing button placement within the card context
+  - Freed up the bottom edge of the card for cleaner design
+  - Made the button more recognizable as a call-to-action
+  - Maintained the same mobile hover interaction pattern (showing detailed information when tapped)
+  - Enhanced visual hierarchy by distinguishing the button from the card content
