@@ -502,13 +502,6 @@ const VedicOverview = () => {
 
   const handleTabChange = useCallback((tabId) => {
     setActiveTab(tabId);
-    // Scroll to top of content area
-    const contentElement = document.getElementById(`panel-${tabId}`);
-    if (contentElement) {
-      const yOffset = -100; // Adjust offset as needed
-      const y = contentElement.getBoundingClientRect().top + window.pageYOffset + yOffset;
-      window.scrollTo({ top: y, behavior: 'smooth' });
-    }
   }, []);
 
   // Handle scroll to top visibility with debounce
@@ -669,7 +662,7 @@ const VedicOverview = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
               className="fixed bottom-4 right-4 bg-gradient-to-r from-primaryColor to-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-primaryColor/90 transition-all z-50"
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              onClick={() => {/* Removing scroll functionality */}}
               aria-label="Scroll to top"
             >
               <ArrowUp className="h-6 w-6" />
