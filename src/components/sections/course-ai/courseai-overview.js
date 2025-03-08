@@ -530,10 +530,6 @@ const CourseAiOverview = () => {
 
   const handleTabChange = useCallback((tabId) => {
     setActiveTab(tabId);
-    // Scroll to content section when tab changes
-    if (contentRef.current) {
-      contentRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
   }, []);
 
   // Handle scroll to top visibility with debouncing for performance
@@ -953,7 +949,7 @@ const CourseAiOverview = () => {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               className="fixed bottom-6 right-6 bg-gradient-to-r from-primaryColor to-blue-600 text-white p-3 rounded-full shadow-lg hover:shadow-xl transition-all z-50"
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              onClick={() => {/* Removing scroll functionality */}}
               aria-label="Scroll to top"
             >
               <ArrowUp className="h-6 w-6" />

@@ -1609,3 +1609,26 @@ These additions enhance the footer's branding presence while maintaining the mod
 - Replaced ArrowRight icon with ChevronRight for consistency with other components
 - Improved animation with staggered delays for better visual hierarchy
 - Enhanced the overall visual balance and appeal of the component
+
+# Changes by Cursor
+
+## 2023-09-27
+- Removed auto-scrolling functionality from buttons in CourseAiOverview component:
+  - Disabled scroll-to-content behavior when clicking tab buttons
+  - Disabled scroll-to-top functionality while keeping the button visible
+- Removed auto-scrolling functionality from buttons in PersonalityOverview component:
+  - Disabled scroll-to-content behavior when clicking tab buttons
+  - Disabled scroll-to-top functionality while keeping the button visible
+- Removed auto-scrolling functionality from buttons in VedicOverview component:
+  - Disabled scroll-to-content behavior when clicking tab buttons
+  - Disabled scroll-to-top functionality while keeping the button visible
+- Enhanced design of DigiMarketingOverview component to match VedicOverview:
+  - Added loading state with spinner animation
+  - Enhanced background with pattern overlay and improved gradients
+  - Added decorative divider line after heading
+  - Improved button styling with gradients and better transitions
+  - Added call-to-action section with enroll button
+  - Improved typography with larger font sizes
+  - Enhanced component spacing and visual hierarchy
+  - Added debounce handling for scroll events
+  - Removed auto-scrolling functionality for consistency
