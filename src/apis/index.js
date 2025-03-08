@@ -381,157 +381,34 @@ export const apiUrls = {
     deleteEnrollWebsiteForm: "/enroll-form/delete",
   },
   Blogs: {
-    getAllBlogs: "/blogs/get",
-    getBlogById: "/blogs/get/:id",
-    createBlog: "/blogs/create",
-    updateBlog: "/blogs/update/:id",
-    deleteBlog: "/blogs/delete",
-  },
-  adminDashboard: {
-    getDashboardCount: "/dashboard/admin-dashboard-count",
-  },
-  assignedInstructors: {
-    getAllAssignedInstructors: "/assigned-instrutors/assigned",
-    getAssignedInstructorById: "/assigned-instrutors/get",
-    createAssignedInstructor: "/assigned-instrutors/create",
-    updateAssignedInstructor: "/assigned-instrutors/update",
-    deleteAssignedInstructor: "/assigned-instrutors/delete",
-  },
-  placements: {
-    addPlacements: "/placements/create",
-    getPlacements: "/placements/getAll",
-  },
-  quzies: {
-    getQuizes: "/quizes",
-    uploadQuizes: "/quizes/upload",
-    quizResponses: "/quizResponses",
-    getQuizResponses: "/quizResponses/responses",
-    getQuizesById: "/quizes/get",
-  },
-  assignments: {
-    addAssignments: "/assignments/create",
-    getAssignments: "/assignments",
-    submitAssignments: "/assignments/submit",
-    submittedAssignments: "/assignments/submitted/get",
-    assignmentsStatus: "/assignments/submition/status",
-    assignmentsCountByInstructorId: "/assignments/submitted-assignments-count",
-    getAssignmentsByEnrolledCourses: "/assignments/enrolled-assignments",
-    getAssignmentsCoorporateEnrolledCourses:
-      "/assignments/enrolled-assignments-coorporate",
-  },
-  feedbacks: {
-    createFeedback: "/feedback/",
-    getAllFeedbacks: "/feedback/getAll",
-    deleteFeedback: "/feedback/delete-feedback",
-    createComplaint: "/complaint/",
-    getAllComplaints: "/complaint",
-    createInstructorComplaint: "/complaint/create",
-    getAllInstructorComplaints: "/complaint/getAll",
-    createEmployeeComplaint: "/complaint/addEmployee",
-    getAllEmployeeComplaints: "/complaint/getAllEmployee",
-    deleteComplaint: "/complaint/delete",
-    updateComplaintStatus: "/complaint/change-status",
-    instructorFeedback: "/feedback/instructor/add",
-    getAllInstructorFeedbacks: "/feedback/getAll/instructors-feedbacks",
-    deleteInstructorFeedback: "/feedback/instructor",
-    createCoorporateFeedback: "/feedback/coorporate/add",
-    getAllCoorporateEmployeesFeedbacks: "/feedback/getAll/coorporate-feedbacks",
-    deleteCoorporateFeedback: "/feedback/delete-coorporate",
-  },
-  resources: {},
-  categories: {
-    getAllCategories: "/categories/getAll",
-    getCategoriesById: "/categories/get/:id",
-    createCategories: "/categories/create",
-    updateCategories: "/categories/update",
-    deleteCategories: "/categories/delete",
-  },
-  EnrollCourse: {
-    enrollCourse: "/enroll/create",
-    getEnrolledCourse: "/enroll/getAll",
-    getCountByStudentId: "/enroll/getCount",
-    getEnrolledCourseById: "/enroll/get",
-    getEnrolledCoursesByStudentId: "/enroll/student",
-    getUpcomingCoursesByStudentId: "/enroll/get-upcoming-meetings",
-    getEnrolledStudentsByCourseId: "/enroll/course",
-    watchModule: "/enroll/watch",
-    getEnrolledStudents: "/enroll/get-enrolled-students",
-  },
-  CoorporateEnrollCourse: {
-    addCooporateAssignToCourse: "/enroll-coorporate/create",
-    getCoorporateAssignCourse: "/enroll-coorporate/getAll",
-    getCoorporateAssignCourseById: "/enroll-coorporate/get",
-    getCoorporateCoursesByCoorporateId: "/enroll-coorporate/getCount",
-    getCoorporateStudentCoursesCountByEmployeeId:
-      "/enroll-coorporate/courses/corporate-student-count",
-    getEnrolledCoursesByEmployeeId: "/enroll-coorporate/getByEmployeeId",
-    getEnrolledCoorporatesByCourseId: "/enroll-coorporate/course/:course_id",
-    deleteCoorporateAssignCourse: "/enroll-coorporate/delete/:id",
-    watchCoorporateModule: "/enroll-coorporate/watchVideo-coorporate",
-    getCoorporateCountByCoorporateStudentId:
-      "/enroll-coorporate/enrolled-courses/corporate-student-count",
-  },
-  Subscription: {
-    AddSubscription: "/subscription/create",
-    getSubscription: "/subscription/getAll",
-    getSubscriptionById: "/subscription/get",
-    getEnrollmentStatus: "/subscription/enrollStatus",
-    getCoorporateEnrollmentsStatus: "/subscription/coorporate-enrollStatus",
-    getCoorporateEmployeeEnrollmentsStatus:
-      "/subscription/corporate-employee-enroll-status",
-    updateSubscription: "/subscription/update",
-    deleteSubscription: "/subscription/delete",
-    getAllSubscriptionByStudentId: "/subscription/get-subscription",
-  },
-  Membership: {
-    addMembership: "/memberships/create",
-    getMembership: "/memberships/getAll",
-    getMembershipById: "/memberships/get",
-    renewMembershipById: "/memberships/renew",
-    updateMembership: "/memberships/update",
-    deleteMembership: "/memberships/delete",
-    getSelfPackedCount: "/memberships/membership-count",
-    getMembershipBbyStudentId: "/memberships/getmembership",
-    getRenewAmount: "/memberships/get-renew-amount",
-    renewMembership: "/memberships/renew",
-  },
-  jobForm: {
-    getAllJobPosts: "/job-post/getAll",
-    getJobPostById: "/job-post/get",
-    addJobPost: "/job-post/create",
-    updateJobPost: "/job-post/update",
-    deleteJobPost: "/job-post/delete",
-    addNewJobPost: "/add-job-post/create",
-    getAllNewJobs: "/add-job-post/getAll",
-    deleteNewJobPost: "/add-job-post/delete",
-  },
-  brouchers: {
     /**
-     * Get all brochures with pagination and filtering
+     * Get all blogs with pagination and filtering options
      * @param {Object} options - Query options
      * @param {number} [options.page=1] - Page number
      * @param {number} [options.limit=10] - Items per page
-     * @param {string} [options.search=""] - Search term
+     * @param {string} [options.search=""] - Search term for title/content
      * @param {string} [options.sort_by="createdAt"] - Sort field
      * @param {string} [options.sort_order="desc"] - Sort direction (asc/desc)
-     * @param {string} [options.status=""] - Brochure status
-     * @param {Array|string} [options.category=""] - Brochure categories
-     * @param {string} [options.course_id=""] - Filter by course ID
+     * @param {string} [options.status="published"] - Blog status
+     * @param {Array|string} [options.category=""] - Blog categories
+     * @param {Array|string} [options.tags=""] - Blog tags
+     * @param {string} [options.author=""] - Filter by author ID
      * @param {Object} [options.date_range={}] - Date range filter
      * @param {string} [options.date_range.start=""] - Start date
      * @param {string} [options.date_range.end=""] - End date
      * @returns {string} The constructed API URL
      */
-    getAllBrouchers: (options = {}) => {
+    getAllBlogs: (options = {}) => {
       const {
         page = 1,
         limit = 10,
         search = "",
         sort_by = "createdAt",
         sort_order = "desc",
-        status = "",
+        status = "published",
         category = "",
-        course_id = "",
+        tags = "",
+        author = "",
         date_range = {}
       } = options;
       
@@ -545,8 +422,11 @@ export const apiUrls = {
       // Add filtering parameters
       apiUtils.appendParam('search', search, queryParams);
       apiUtils.appendParam('status', status, queryParams);
-      apiUtils.appendParam('course_id', course_id, queryParams);
+      apiUtils.appendParam('author', author, queryParams);
+      
+      // Add array parameters
       apiUtils.appendArrayParam('category', category, queryParams);
+      apiUtils.appendArrayParam('tags', tags, queryParams);
       
       // Add date range filters
       if (date_range && Object.keys(date_range).length > 0) {
@@ -558,209 +438,150 @@ export const apiUrls = {
       apiUtils.appendParam('sort_by', sort_by, queryParams);
       apiUtils.appendParam('sort_order', sort_order, queryParams);
       
-      return `/api/v1/broucher${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+      return `/blogs/get${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
     },
-    
+
     /**
-     * Get a specific brochure by ID
-     * @param {string|number} id - Brochure ID
-     * @returns {string} The brochure API URL
+     * Get featured or popular blogs with limit
+     * @param {Object} options - Query options
+     * @param {number} [options.limit=6] - Number of blogs to return
+     * @param {string} [options.type="featured"] - Type of blogs (featured, popular, recent)
+     * @returns {string} The constructed API URL
      */
-    getBroucherById: (id) => {
-      if (!id) throw new Error('Brochure ID is required');
-      return `/api/v1/broucher/${id}`;
-    },
-    
-    /**
-     * Create a new brochure
-     * @returns {string} The brochure creation API URL
-     */
-    createBroucher: "/api/v1/broucher/create",
-    
-    /**
-     * Update an existing brochure
-     * @param {string|number} id - Brochure ID to update
-     * @returns {string} The brochure update API URL
-     */
-    updateBroucher: (id) => {
-      if (!id) throw new Error('Brochure ID is required');
-      return `/api/v1/broucher/${id}`;
-    },
-    
-    /**
-     * Delete a brochure
-     * @param {string|number} id - Brochure ID to delete
-     * @returns {string} The brochure deletion API URL
-     */
-    deleteBroucher: (id) => {
-      if (!id) throw new Error('Brochure ID is required');
-      return `/api/v1/broucher/${id}`;
-    },
-    
-    /**
-     * Download a brochure for a course
-     * @param {string|number} courseId - Course ID
-     * @returns {string} The brochure download API URL
-     */
-    downloadBroucher: (courseId) => {
-      if (!courseId) throw new Error('Course ID is required');
-      return `/api/v1/broucher/download/${courseId}`;
-    },
-    
-    /**
-     * Get brochure download analytics
-     * @param {Object} options - Analytics filter options
-     * @param {string} [options.start_date=""] - Start date for analytics period
-     * @param {string} [options.end_date=""] - End date for analytics period
-     * @param {string} [options.course_id=""] - Filter by course ID
-     * @param {string} [options.source=""] - Filter by download source
-     * @returns {string} The brochure analytics API URL
-     */
-    getBroucherAnalytics: (options = {}) => {
-      const {
-        start_date = "",
-        end_date = "",
-        course_id = "",
-        source = ""
-      } = options;
+    getFeaturedBlogs: (options = {}) => {
+      const { limit = 6, type = "featured" } = options;
       
       const queryParams = new URLSearchParams();
+      queryParams.append('limit', limit);
+      queryParams.append('type', type);
       
-      // Add date range parameters
-      apiUtils.appendParam('start_date', start_date, queryParams);
-      apiUtils.appendParam('end_date', end_date, queryParams);
-      
-      // Add additional filters
-      apiUtils.appendParam('course_id', course_id, queryParams);
-      apiUtils.appendParam('source', source, queryParams);
-      
-      return `/api/v1/broucher/analytics${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+      return `/blogs/featured?${queryParams.toString()}`;
     },
     
     /**
-     * Request a brochure download (with user information)
-     * @param {Object} options - Request parameters
-     * @param {string} [options.brochure_id=""] - Brochure ID (optional if course_id is provided)
-     * @param {string} options.course_id - Course ID
-     * @param {string} options.full_name - User's full name
-     * @param {string} options.email - User's email
-     * @param {string} options.phone_number - User's phone number
-     * @param {string} [options.country_code="IN"] - User's country code
-     * @param {Object} [options.additional_info={}] - Any additional information
-     * @returns {Object} The request URL and data
+     * Get related blogs based on current blog
+     * @param {Object} options - Query options
+     * @param {string|number} options.blogId - Current blog ID
+     * @param {number} [options.limit=3] - Number of related blogs to return
+     * @param {Array|string} [options.tags=""] - Specific tags to match
+     * @returns {string} The constructed API URL
      */
-    requestBroucher: (options = {}) => {
-      const {
-        brochure_id = "",
-        course_id,
-        full_name,
-        email,
-        phone_number,
-        country_code = "IN",
-        additional_info = {}
-      } = options;
+    getRelatedBlogs: (options = {}) => {
+      const { blogId, limit = 3, tags = "" } = options;
       
-      // Validate required parameters
-      if (!course_id) throw new Error('Course ID is required');
-      // Brochure ID is optional when course_id is provided
-      if (!full_name) throw new Error('Full name is required');
-      if (!email) throw new Error('Email is required');
-      if (!phone_number) throw new Error('Phone number is required');
+      if (!blogId) throw new Error('Blog ID is required');
       
-      return {
-        url: `/broucher/download/${course_id}`,
-        data: {
-          brochure_id,
-          full_name,
-          email,
-          phone_number,
-          country_code,
-          ...additional_info
-        }
-      };
+      const queryParams = new URLSearchParams();
+      queryParams.append('limit', limit);
+      apiUtils.appendArrayParam('tags', tags, queryParams);
+      
+      return `/blogs/related/${blogId}?${queryParams.toString()}`;
     },
     
     /**
-     * Track brochure download for analytics
-     * @param {Object} options - Tracking parameters
-     * @param {string} [options.brochure_id=""] - Brochure ID (optional if course_id is provided)
-     * @param {string} [options.user_id=""] - User ID (if authenticated)
-     * @param {string} options.course_id - Course ID
-     * @param {string} [options.source="website"] - Source of download
-     * @param {Object} [options.metadata={}] - Additional metadata for analytics
-     * @param {string} [options.metadata.device_type=""] - Device type
-     * @param {string} [options.metadata.browser=""] - Browser information
-     * @param {string} [options.metadata.referrer=""] - Referrer information
-     * @returns {Object} The tracking URL and data
+     * Get a blog by ID
+     * @param {string|number} id - Blog ID
+     * @param {boolean} [incrementViews=true] - Whether to increment view count
+     * @returns {string} The blog API URL
      */
-    trackBroucherDownload: (options = {}) => {
-      const {
-        brochure_id = "",
-        user_id = "",
-        course_id,
-        source = "website",
-        metadata = {
-          device_type: "",
-          browser: "",
-          referrer: ""
-        }
-      } = options;
+    getBlogById: (id, incrementViews = true) => {
+      if (!id) throw new Error('Blog ID is required');
       
-      // Validate required parameters
-      if (!course_id) throw new Error('Course ID is required');
-      // Brochure ID is optional when course_id is provided
+      const queryParams = new URLSearchParams();
+      queryParams.append('incrementViews', incrementViews);
+      
+      return `/blogs/get/${id}?${queryParams.toString()}`;
+    },
+    
+    /**
+     * Create a new blog
+     * @returns {string} The blog creation API URL
+     */
+    createBlog: "/blogs/create",
+    
+    /**
+     * Update an existing blog
+     * @param {string|number} id - Blog ID to update
+     * @returns {string} The blog update API URL
+     */
+    updateBlog: (id) => {
+      if (!id) throw new Error('Blog ID is required');
+      return `/blogs/update/${id}`;
+    },
+    
+    /**
+     * Delete a blog
+     * @param {string|number} id - Blog ID to delete
+     * @returns {string} The blog deletion API URL
+     */
+    deleteBlog: (id) => {
+      if (!id) throw new Error('Blog ID is required');
+      return `/blogs/delete/${id}`;
+    },
+    
+    /**
+     * Get all blog categories
+     * @returns {string} The blog categories API URL
+     */
+    getBlogCategories: "/blogs/categories",
+    
+    /**
+     * Get blogs by category
+     * @param {string|number} categoryId - Category ID
+     * @param {Object} options - Additional query options
+     * @param {number} [options.page=1] - Page number
+     * @param {number} [options.limit=10] - Items per page
+     * @returns {string} The constructed API URL
+     */
+    getBlogsByCategory: (categoryId, options = {}) => {
+      if (!categoryId) throw new Error('Category ID is required');
+      
+      const { page = 1, limit = 10 } = options;
+      
+      const queryParams = new URLSearchParams();
+      queryParams.append('page', page);
+      queryParams.append('limit', limit);
+      
+      return `/blogs/category/${categoryId}?${queryParams.toString()}`;
+    },
+    
+    /**
+     * Get blog analytics
+     * @param {string|number} blogId - Blog ID
+     * @returns {string} The blog analytics API URL
+     */
+    getBlogAnalytics: (blogId) => {
+      if (!blogId) throw new Error('Blog ID is required');
+      return `/blogs/analytics/${blogId}`;
+    },
+    
+    /**
+     * Log user interaction with a blog
+     * @param {Object} options - Interaction data
+     * @param {string|number} options.blogId - Blog ID
+     * @param {string} options.action - Interaction type (view, like, share, comment)
+     * @param {string} [options.userId=""] - User ID if available
+     * @returns {Object} The URL and data for the API call
+     */
+    logBlogInteraction: (options = {}) => {
+      const { blogId, action, userId = "" } = options;
+      
+      if (!blogId) throw new Error('Blog ID is required');
+      if (!action) throw new Error('Action is required');
       
       return {
-        url: "broucher/track-download",
+        url: '/blogs/interaction',
         data: {
-          brochure_id,
-          user_id,
-          course_id,
-          source,
-          metadata: {
-            timestamp: new Date().toISOString(),
-            ...metadata
+          blog_id: blogId,
+          action,
+          user_id: userId,
+          timestamp: new Date().toISOString(),
+          client_info: {
+            referrer: typeof document !== 'undefined' ? document.referrer : '',
+            user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : ''
           }
         }
       };
-    },
-    
-    /**
-     * Generate a shareable brochure link
-     * @param {Object} options - Share options
-     * @param {string} [options.brochure_id=""] - Brochure ID (optional if course_id is provided)
-     * @param {string} options.course_id - Course ID 
-     * @param {string} [options.utm_source=""] - UTM source for tracking
-     * @param {string} [options.utm_medium=""] - UTM medium for tracking
-     * @param {string} [options.utm_campaign=""] - UTM campaign for tracking
-     * @returns {string} The shareable URL
-     */
-    getShareableBroucherLink: (options = {}) => {
-      const {
-        brochure_id = "",
-        course_id,
-        utm_source = "",
-        utm_medium = "",
-        utm_campaign = ""
-      } = options;
-      
-      // Validate required parameters
-      if (!course_id) throw new Error('Course ID is required');
-      // Brochure ID is optional when course_id is provided
-      
-      const queryParams = new URLSearchParams();
-      
-      // Add brochure_id parameter if provided
-      if (brochure_id) {
-        queryParams.append('brochure_id', brochure_id);
-      }
-      
-      // Add tracking parameters
-      apiUtils.appendParam('utm_source', utm_source, queryParams);
-      apiUtils.appendParam('utm_medium', utm_medium, queryParams);
-      apiUtils.appendParam('utm_campaign', utm_campaign, queryParams);
-      
-      return `broucher/share/${course_id}?${queryParams.toString()}`;
     }
   },
   certificate: {
