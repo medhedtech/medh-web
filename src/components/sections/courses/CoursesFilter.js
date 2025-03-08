@@ -67,7 +67,9 @@ const CoursesFilter = ({
   hideCategoryFilter,
   availableCategories,
   categoryTitle,
-  description
+  description,
+  classType = "",
+  filterState = {}
 }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -268,6 +270,59 @@ const CoursesFilter = ({
     }
   }, [allCourses, calculateRelatedCourses]);
 
+  // Apply filterState if provided
+  useEffect(() => {
+    if (Object.keys(filterState).length > 0 && filteredCourses.length > 0) {
+      let filtered = [...allCourses];
+      
+      // For live courses
+      if (classType === "live") {
+        if (filterState.upcoming) {
+          // Filter for courses starting in the future
+          const today = new Date();
+          filtered = filtered.filter(course => {
+            const startDate = new Date(course.startDate);
+            return startDate > today;
+          });
+        }
+        
+        if (filterState.popular) {
+          // Sort by popularity (using enrollmentCount or similar)
+          filtered = filtered.sort((a, b) => (b.enrollmentCount || 0) - (a.enrollmentCount || 0));
+        }
+        
+        if (filterState.latest) {
+          // Sort by creation date
+          filtered = filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        }
+      }
+      
+      // For blended courses
+      if (classType === "blended") {
+        if (filterState.popular) {
+          // Sort by popularity (using enrollmentCount or similar)
+          filtered = filtered.sort((a, b) => (b.enrollmentCount || 0) - (a.enrollmentCount || 0));
+        }
+        
+        if (filterState.latest) {
+          // Sort by creation date
+          filtered = filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        }
+
+        if (filterState.beginner) {
+          // Filter for beginner-friendly courses
+          filtered = filtered.filter(course => 
+            course.level?.toLowerCase() === 'beginner' || 
+            course.difficulty?.toLowerCase() === 'easy' ||
+            course.tags?.some(tag => tag.toLowerCase().includes('beginner'))
+          );
+        }
+      }
+      
+      setFilteredCourses(filtered);
+    }
+  }, [filterState, allCourses, classType]);
+
   const fetchCourses = async () => {
     // Use the fixed category if provided, otherwise use the selected category
     const categoryQuery = fixedCategory ? [fixedCategory] : selectedCategory;
@@ -281,7 +336,8 @@ const CoursesFilter = ({
       fixedCategory,
       selectedCategory,
       currentPage,
-      gradeQuery
+      gradeQuery,
+      classType
     });
 
     // Default case: No category selected or empty array - fetch all courses
@@ -298,7 +354,9 @@ const CoursesFilter = ({
           "Published",
           searchTerm,
           gradeQuery,
-          ""
+          "",
+          {},
+          classType
         );
         
         console.debug('API URL for all courses:', apiUrl);
@@ -348,86 +406,92 @@ const CoursesFilter = ({
             "Published",
             searchTerm,
             gradeQuery,
-            ""  // Don't use categoryParam for multi-category fetching
+            "",
+            {},
+            classType // Pass classType parameter
           );
           
-          return axios.get(`${apiBaseUrl}${apiUrl}`);
+          return axios.get(apiUrl).then(res => res.data);
         });
         
-        // Wait for all API calls to complete
-        const responses = await Promise.all(apiPromises);
+        // Combine results
+        const allResults = await Promise.all(apiPromises);
+        let combinedCourses = [];
+        let maxPages = 1;
+        let totalItems = 0;
         
-        // Combine and deduplicate results
-        const allCourses = [];
-        responses.forEach(response => {
-          if (response.data && response.data.courses) {
-            allCourses.push(...response.data.courses);
+        // Merge course lists and find max page count
+        allResults.forEach(result => {
+          if (result && result.courses) {
+            combinedCourses = [...combinedCourses, ...result.courses];
+            maxPages = Math.max(maxPages, result.totalPages || 1);
+            totalItems += result.totalItems || 0;
           }
         });
         
-        // Deduplicate courses by ID
-        const uniqueCourses = Array.from(
-          new Map(allCourses.map(course => [course._id, course])).values()
-        );
+        // Remove duplicates (in case a course belongs to multiple categories)
+        const uniqueCourses = Array.from(new Map(combinedCourses.map(course => 
+          [course._id, course]
+        )).values());
         
-        const totalItemsCount = uniqueCourses.length;
-        
-        console.debug(`Found ${uniqueCourses.length} unique courses across ${categoryQuery.length} categories`);
-        
-        // Set the fetched courses and pagination data
         setAllCourses(uniqueCourses);
         setFilteredCourses(uniqueCourses);
-        setTotalItems(totalItemsCount);
-        setTotalPages(Math.ceil(totalItemsCount / 8));
+        setTotalPages(maxPages);
+        setTotalItems(totalItems);
+        
+        return;
       } catch (error) {
         console.error('Error fetching multiple categories:', error);
-        setQueryError('Failed to fetch courses from multiple categories. Please try again later.');
+        setQueryError('Failed to fetch courses. Please try again later.');
+        return;
       }
-      
-      return;
-    } 
+    }
+    
     // Case: Single category selected
-    else {
-      const courseCategoryParam = categoryQuery[0];
-      
-      console.debug('Using single category parameter:', courseCategoryParam);
-      
-      // Standard single API call for a specific category
+    console.debug('Fetching courses for single category:', categoryQuery[0]);
+    
+    try {
       const apiUrl = apiUrls?.courses?.getAllCoursesWithLimits(
         currentPage,
         8,
         "",
         "",
-        courseCategoryParam,
+        categoryQuery[0], // Single category
         "Published",
         searchTerm,
         gradeQuery,
-        ""  // No categoryParam needed
+        "",
+        {},
+        classType // Pass classType parameter
       );
       
-      console.debug('API Request URL for single category:', apiUrl);
+      console.debug('API URL for single category:', apiUrl);
       
-      // Use the existing getQuery hook for API call
       getQuery({
         url: apiUrl,
         onSuccess: (data) => {
           if (data) {
-            console.debug(`Fetched ${data.courses?.length || 0} courses for category: ${courseCategoryParam}`);
+            console.debug(`Fetched ${data.courses?.length || 0} courses for category ${categoryQuery[0]}`);
             setAllCourses(data.courses || []);
             setFilteredCourses(data.courses || []);
             setTotalPages(data.totalPages || 1);
             setTotalItems(data.totalItems || 0);
           } else {
-            console.warn('Data response empty or invalid for category search');
+            console.warn('Data response empty or invalid');
             setAllCourses([]);
             setFilteredCourses([]);
           }
         },
         onFail: (err) => {
-          console.error('Error fetching courses for category:', err);
+          console.error('Error fetching category courses:', err);
           setQueryError('Failed to fetch courses. Please try again later.');
         }
       });
+      
+      return;
+    } catch (error) {
+      console.error('Error fetching category courses:', error);
+      setQueryError('Failed to fetch category courses. Please try again later.');
     }
   };
 
@@ -1314,7 +1378,9 @@ CoursesFilter.propTypes = {
   hideCategoryFilter: PropTypes.bool,
   availableCategories: PropTypes.arrayOf(PropTypes.string),
   categoryTitle: PropTypes.string,
-  description: PropTypes.string
+  description: PropTypes.string,
+  classType: PropTypes.string,
+  filterState: PropTypes.object
 };
 
 export default CoursesFilter;
