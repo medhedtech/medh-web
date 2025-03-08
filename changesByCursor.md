@@ -1610,25 +1610,81 @@ These additions enhance the footer's branding presence while maintaining the mod
 - Improved animation with staggered delays for better visual hierarchy
 - Enhanced the overall visual balance and appeal of the component
 
-# Changes by Cursor
+# Changes By Cursor - Course Page Bifurcation and Next.js Metadata Fix
 
-## 2023-09-27
-- Removed auto-scrolling functionality from buttons in CourseAiOverview component:
-  - Disabled scroll-to-content behavior when clicking tab buttons
-  - Disabled scroll-to-top functionality while keeping the button visible
-- Removed auto-scrolling functionality from buttons in PersonalityOverview component:
-  - Disabled scroll-to-content behavior when clicking tab buttons
-  - Disabled scroll-to-top functionality while keeping the button visible
-- Removed auto-scrolling functionality from buttons in VedicOverview component:
-  - Disabled scroll-to-content behavior when clicking tab buttons
-  - Disabled scroll-to-top functionality while keeping the button visible
-- Enhanced design of DigiMarketingOverview component to match VedicOverview:
-  - Added loading state with spinner animation
-  - Enhanced background with pattern overlay and improved gradients
-  - Added decorative divider line after heading
-  - Improved button styling with gradients and better transitions
-  - Added call-to-action section with enroll button
-  - Improved typography with larger font sizes
-  - Enhanced component spacing and visual hierarchy
-  - Added debounce handling for scroll events
-  - Removed auto-scrolling functionality for consistency
+## Summary
+Enhanced the courses page with proper bifurcation between Live and Blended courses, similar to the implementation in HomeCourseSection.js. Also fixed a Next.js build error related to metadata export in a client component.
+
+## Modified Files
+- `src/app/courses/page.js`: 
+  - Added tabs for All, Live, and Blended courses
+  - Implemented filter buttons for Live courses (upcoming, popular, latest) and Blended courses (popular, latest, beginner)
+  - Converted to client component with React hooks for interactive filtering
+  - Removed metadata export to fix build error
+- `src/app/courses/metadata.js`: 
+  - Created new file to handle page metadata separately from client component
+
+## UI/UX Improvements
+
+### Improved Course Navigation
+- **Tab-based Navigation**:
+  - Added intuitive tabs for switching between All, Live, and Blended courses
+  - Used consistent color scheme (primary for All, rose for Live, indigo for Blended)
+  - Implemented smooth state management for tab switching
+
+### Enhanced Filtering
+- **Live Course Filters**:
+  - Added Upcoming filter for time-sensitive courses
+  - Added Popular filter for most enrolled courses
+  - Added Latest filter for newest courses
+  
+- **Blended Course Filters**:
+  - Added Popular filter for most enrolled courses
+  - Added Latest filter for newest courses
+  - Added Beginner Friendly filter for entry-level courses
+
+### Component Structure
+- **Consistent Design Language**:
+  - Maintained consistent button styling across filter options
+  - Used appropriate icons to enhance visual understanding
+  - Applied color-coding to differentiate between course types
+
+## Technical Improvements
+- Fixed Next.js build error by properly separating client and server components
+- Implemented React state for filter management
+- Added conditional rendering based on active tab
+- Passed appropriate props to CoursesFilter component to filter by course type
+
+# Changes By Cursor - Course Page UI Improvement: Course Type Tabs Placement
+
+## Summary
+Improved the courses page UI by moving the course type tabs (All/Live/Blended) directly under the heading for better visual hierarchy and user experience. Also enhanced the tab switcher with a more modern, cohesive design.
+
+## Modified Files
+- `src/app/courses/page.js`: Reorganized the UI structure to place course type tabs directly under the page heading
+
+## UI/UX Improvements
+
+### Enhanced Tab Design
+- **Improved Visual Hierarchy**:
+  - Placed course type tabs directly below the main heading for better information flow
+  - Implemented a pill-style tab container with subtle background and shadow
+  - Added dynamic descriptions that change based on the selected tab
+
+### Design Refinements
+- **Tab Container**:
+  - Added a subtle background container (bg-gray-100) with soft shadow
+  - Used smaller padding for a more compact, modern look
+  - Rounded corners on both container and tabs for visual consistency
+
+### Content Dynamic Updates
+- **Contextual Descriptions**:
+  - Made page description dynamically update based on the selected tab
+  - Ensures users get relevant information for each course type
+  - Maintains context as users switch between tabs
+
+### Visual Consistency
+- **Unified Design Language**:
+  - Maintained consistent color coding for tabs (primary/rose/indigo)
+  - Improved contrast between active and inactive tabs
+  - More compact design that fits better with the page layout

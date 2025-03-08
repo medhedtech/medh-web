@@ -388,3 +388,26 @@
 - Next.js for server-side rendering and routing
 - Component-based architecture
 - Lazy loading for better performance 
+
+## Key Course Features
+- **Course Types**:
+  - **Live Courses**: Interactive sessions with instructors, real-time learning
+    - Filters: Upcoming, Popular, Latest
+    - Color scheme: Rose/Red accent (#e11d48)
+  - **Blended Courses**: Self-paced learning with interactive content
+    - Filters: Popular, Latest, Beginner Friendly
+    - Color scheme: Indigo accent (#4f46e5)
+  - **All Courses**: Combined view of both course types
+    - Color scheme: Primary brand accent
+
+- **Course API Parameters**:
+  - `class_type`: "live" or "blended" to filter course types
+  - `filterState`: Object containing active filter states
+  - Custom sorting based on filter selections (upcoming, popular, latest)
+
+## Important Files
+- **Courses Page**: 
+  - `src/app/courses/page.js`: Main client component for courses page with tab navigation
+  - `src/app/courses/metadata.js`: Server component for SEO metadata
+  - `src/components/sections/courses/CoursesFilter.js`: Main component for course filtering and display
+  - `src/components/sections/courses/HomeCourseSection.js`: Featured courses component with bifurcation 
