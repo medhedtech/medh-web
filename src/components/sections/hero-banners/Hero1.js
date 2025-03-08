@@ -195,8 +195,8 @@ const Hero1 = ({ isCompact = false }) => {
           paddingTop: "var(--header-height, clamp(30px, 8vh, 50px))",
           paddingBottom: isCompact ? "clamp(15px, 4vh, 30px)" : "var(--footer-height, clamp(30px, 8vh, 50px))"
         }}
-        className={`relative min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 dark:from-gray-950 dark:via-gray-900 dark:to-gray-800 overflow-hidden w-full ${
-          isCompact ? 'max-h-[90vh]' : ''
+        className={`relative bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 dark:from-gray-950 dark:via-gray-900 dark:to-gray-800 w-full ${
+          isCompact ? 'max-h-[90vh]' : 'min-h-screen'
         }`}
       >
         {/* Enhanced Animated Background */}
@@ -212,8 +212,8 @@ const Hero1 = ({ isCompact = false }) => {
 
         <div className="max-w-[1920px] w-full mx-auto relative z-10">
           {/* Hero Content - Centered Text */}
-          <div className={`flex flex-col items-center justify-center min-h-[75vh] py-12 lg:py-20 ${
-            isCompact ? 'py-8 lg:py-12 min-h-[70vh]' : ''
+          <div className={`flex flex-col items-center justify-center py-12 lg:py-20 ${
+            isCompact ? 'py-8 lg:py-12' : 'min-h-[75vh]'
           }`}>
             {/* Hero Content - Centered */}
             <div className={`flex flex-col items-center justify-center transition-all duration-1000 transform text-center px-4 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
@@ -221,7 +221,7 @@ const Hero1 = ({ isCompact = false }) => {
              
               
               {/* Main Heading - Centered */}
-              <div className={`w-full max-w-[800px] mx-auto space-y- mb-8 ${
+              <div className={`w-full max-w-[800px] mx-auto mb-8 ${
                 isCompact ? 'mb-6' : ''
               }`}>
                 <h1 className="font-bold leading-tight w-full">
@@ -244,18 +244,14 @@ const Hero1 = ({ isCompact = false }) => {
                 <p className="hero-paragraph-text text-center md:mt-3">
                   Join our expert-led professional courses and master the skills that drive industry innovation
                 </p>
-                
-                <div className="w-full max-w-screen-2xl mx-auto px-2 sm:px-4 lg:px-6">
-                  {/* Enhanced Header for Transforming Lives section */}
-                </div>
               </div>
-              {/* Desktop full-row version */}
-              <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 xl:gap-10 p-6 sm:p-8 ${
-                isCompact ? 'gap-3 lg:gap-6 p-4 sm:p-6' : ''
+              {/* Desktop full-row version - WITH FIXED OVERFLOW ISSUES */}
+              <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 xl:gap-6 p-6 sm:p-8 ${
+                isCompact ? 'gap-3 lg:gap-4 p-4 sm:p-6' : ''
               }`}>
                   {/* Children & Teens - Desktop Card */}
                   <div className="flex-shrink-0 w-full max-w-[480px] snap-start group transition-transform duration-500 transform hover:scale-[1.02] active:scale-[0.98] touch-manipulation">
-                    <div className="bg-gradient-to-br from-primary-500/10 via-primary-400/5 to-purple-500/10 hover:from-primary-500/15 hover:to-purple-500/15 backdrop-blur-md border border-white/10 hover:border-white/20 rounded-2xl p-4 transition-all duration-300 h-full flex flex-col relative overflow-hidden">
+                    <div className="bg-gradient-to-br from-primary-500/10 via-primary-400/5 to-purple-500/10 hover:from-primary-500/15 hover:to-purple-500/15 backdrop-blur-md border border-white/10 hover:border-white/20 rounded-2xl p-4 transition-all duration-300 h-full flex flex-col relative">
                       <div className="absolute -right-8 -top-8 w-24 h-24 rounded-full bg-gradient-to-br from-primary-500/10 to-purple-500/10 animate-pulse-slow blur-xl"></div>
                       <div className="absolute -left-4 -bottom-4 w-16 h-16 rounded-full bg-gradient-to-br from-pink-500/10 to-orange-500/10 animate-pulse-slower blur-lg"></div>
                       <div className="relative z-10 mb-4 bg-secondary-500/10 w-14 h-14 rounded-xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300">
@@ -275,7 +271,7 @@ const Hero1 = ({ isCompact = false }) => {
                   
                   {/* Professionals - Desktop Card */}
                   <div className="flex-shrink-0 w-full max-w-[480px] snap-start group transition-transform duration-500 transform hover:scale-[1.02] active:scale-[0.98] touch-manipulation">
-                    <div className="bg-gradient-to-br from-secondary-500/10 via-secondary-400/5 to-blue-500/10 hover:from-secondary-500/15 hover:to-blue-500/15 backdrop-blur-md border border-white/10 hover:border-white/20 rounded-2xl p-4 transition-all duration-300 h-full flex flex-col relative overflow-hidden">
+                    <div className="bg-gradient-to-br from-secondary-500/10 via-secondary-400/5 to-blue-500/10 hover:from-secondary-500/15 hover:to-blue-500/15 backdrop-blur-md border border-white/10 hover:border-white/20 rounded-2xl p-4 transition-all duration-300 h-full flex flex-col relative">
                       <div className="absolute -right-8 -top-8 w-24 h-24 rounded-full bg-gradient-to-br from-secondary-500/10 to-blue-500/10 animate-pulse-slow blur-xl"></div>
                       <div className="absolute -left-4 -bottom-4 w-16 h-16 rounded-full bg-gradient-to-br from-secondary-500/10 to-indigo-500/10 animate-pulse-slower blur-lg"></div>
                       <div className="relative z-10 mb-4 bg-secondary-500/10 w-14 h-14 rounded-xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300">
@@ -295,7 +291,7 @@ const Hero1 = ({ isCompact = false }) => {
                   
                   {/* Homemakers - Desktop Card */}
                   <div className="flex-shrink-0 w-full max-w-[480px] snap-start group transition-transform duration-500 transform hover:scale-[1.02] active:scale-[0.98] touch-manipulation">
-                    <div className="bg-gradient-to-br from-purple-500/10 via-purple-400/5 to-pink-500/10 hover:from-purple-500/15 hover:to-pink-500/15 backdrop-blur-md border border-white/10 hover:border-white/20 rounded-2xl p-4 transition-all duration-300 h-full flex flex-col relative overflow-hidden">
+                    <div className="bg-gradient-to-br from-purple-500/10 via-purple-400/5 to-pink-500/10 hover:from-purple-500/15 hover:to-pink-500/15 backdrop-blur-md border border-white/10 hover:border-white/20 rounded-2xl p-4 transition-all duration-300 h-full flex flex-col relative">
                       <div className="absolute -right-8 -top-8 w-24 h-24 rounded-full bg-gradient-to-br from-purple-500/10 to-pink-500/10 animate-pulse-slow blur-xl"></div>
                       <div className="absolute -left-4 -bottom-4 w-16 h-16 rounded-full bg-gradient-to-br from-purple-500/10 to-rose-500/10 animate-pulse-slower blur-lg"></div>
                       <div className="relative z-10 mb-4 bg-purple-500/10 w-14 h-14 rounded-xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300">
@@ -315,7 +311,7 @@ const Hero1 = ({ isCompact = false }) => {
                   
                   {/* Lifelong Learners - Desktop Card */}
                   <div className="flex-shrink-0 w-full max-w-[480px] snap-start group transition-transform duration-500 transform hover:scale-[1.02] active:scale-[0.98] touch-manipulation">
-                    <div className="bg-gradient-to-br from-blue-500/10 via-blue-400/5 to-teal-500/10 hover:from-blue-500/15 hover:to-teal-500/15 backdrop-blur-md border border-white/10 hover:border-white/20 rounded-2xl p-4 transition-all duration-300 h-full flex flex-col relative overflow-hidden">
+                    <div className="bg-gradient-to-br from-blue-500/10 via-blue-400/5 to-teal-500/10 hover:from-blue-500/15 hover:to-teal-500/15 backdrop-blur-md border border-white/10 hover:border-white/20 rounded-2xl p-4 transition-all duration-300 h-full flex flex-col relative">
                       <div className="absolute -right-8 -top-8 w-24 h-24 rounded-full bg-gradient-to-br from-blue-500/10 to-teal-500/10 animate-pulse-slow blur-xl"></div>
                       <div className="absolute -left-4 -bottom-4 w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500/10 to-emerald-500/10 animate-pulse-slower blur-lg"></div>
                       <div className="relative z-10 mb-4 bg-blue-500/10 w-14 h-14 rounded-xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300">
@@ -358,19 +354,18 @@ const Hero1 = ({ isCompact = false }) => {
             </div>
           </div>
           
-
-          {/* Horizontal 3D Interactive Cards Section */}
+          {/* Horizontal 3D Interactive Cards Section - REMOVED OVERFLOW HIDDEN */}
           <div className={`relative transition-all duration-1000 delay-300 transform py-12 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
             <div className="flex flex-col items-center justify-center">
               <h3 className="text-2xl md:text-3xl font-bold text-white mb-8 text-center">
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 via-purple-400 to-secondary-400">Explore Our Learning Pathways</span>
               </h3>
               
-              {/* Horizontal Card Layout */}
-              <div className="w-full max-w-[1500px] mx-auto px-4 perspective-1500">
+              {/* Horizontal Card Layout - REDUCED WIDTH FOR BETTER WRAPPING */}
+              <div className="w-full max-w-[1400px] mx-auto px-4 perspective-1500">
                 <div className="flex flex-wrap justify-center gap-6 md:gap-8">
                   {/* Course Card 1 */}
-                  <div className="group relative w-full sm:w-[calc(50%-1rem)] md:w-[calc(25%-2rem)] bg-gradient-to-br from-primary-500/15 to-purple-500/15 backdrop-blur-xl rounded-xl p-6 sm:p-7 border border-white/10 transform transition-all duration-500 hover:scale-105 hover:-translate-y-2 hover:z-10 hover:from-primary-500/25 hover:to-purple-500/25 hover:border-white/20">
+                  <div className="group relative w-full sm:w-[calc(50%-1rem)] md:w-[calc(25%-1.5rem)] bg-gradient-to-br from-primary-500/15 to-purple-500/15 backdrop-blur-xl rounded-xl p-6 sm:p-7 border border-white/10 transform transition-all duration-500 hover:scale-105 hover:-translate-y-2 hover:z-10 hover:from-primary-500/25 hover:to-purple-500/25 hover:border-white/20">
                     <div className="absolute inset-0 bg-gradient-to-r from-primary-500/30 to-purple-500/30 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
                     <BookOpen className="text-primary-400 mb-4 transform transition-transform group-hover:scale-110 group-hover:rotate-6 w-7 h-7" />
                     <h3 className="text-white font-semibold mb-2 text-lg md:text-xl relative z-10 transition-all duration-300 group-hover:text-primary-300">Future Tech Skills</h3>
@@ -378,7 +373,7 @@ const Hero1 = ({ isCompact = false }) => {
                   </div>
                   
                   {/* Course Card 2 */}
-                  <div className="group relative w-full sm:w-[calc(50%-1rem)] md:w-[calc(25%-2rem)] bg-gradient-to-br from-secondary-500/10 to-pink-500/10 backdrop-blur-xl rounded-xl p-6 sm:p-7 border border-white/10 transform transition-all duration-500 hover:scale-105 hover:-translate-y-2 hover:z-10">
+                  <div className="group relative w-full sm:w-[calc(50%-1rem)] md:w-[calc(25%-1.5rem)] bg-gradient-to-br from-secondary-500/10 to-pink-500/10 backdrop-blur-xl rounded-xl p-6 sm:p-7 border border-white/10 transform transition-all duration-500 hover:scale-105 hover:-translate-y-2 hover:z-10">
                     <div className="absolute inset-0 bg-gradient-to-r from-secondary-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
                     <Target className="text-secondary-400 mb-4 transform transition-transform group-hover:scale-110 group-hover:rotate-6 w-7 h-7" />
                     <h3 className="text-white font-semibold mb-2 text-lg md:text-xl relative z-10 transition-all duration-300 group-hover:text-secondary-300">Personal Growth</h3>
@@ -386,7 +381,7 @@ const Hero1 = ({ isCompact = false }) => {
                   </div>
                   
                   {/* Course Card 3 */}
-                  <div className="group relative w-full sm:w-[calc(50%-1rem)] md:w-[calc(25%-2rem)] bg-gradient-to-br from-purple-500/10 to-blue-500/10 backdrop-blur-xl rounded-xl p-6 sm:p-7 border border-white/10 transform transition-all duration-500 hover:scale-105 hover:-translate-y-2 hover:z-10">
+                  <div className="group relative w-full sm:w-[calc(50%-1rem)] md:w-[calc(25%-1.5rem)] bg-gradient-to-br from-purple-500/10 to-blue-500/10 backdrop-blur-xl rounded-xl p-6 sm:p-7 border border-white/10 transform transition-all duration-500 hover:scale-105 hover:-translate-y-2 hover:z-10">
                     <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
                     <Users className="text-purple-400 mb-4 transform transition-transform group-hover:scale-110 group-hover:rotate-6 w-7 h-7" />
                     <h3 className="text-white font-semibold mb-2 text-lg md:text-xl relative z-10 transition-all duration-300 group-hover:text-purple-300">Ancient Wisdom</h3>
@@ -394,270 +389,17 @@ const Hero1 = ({ isCompact = false }) => {
                   </div>
                   
                   {/* Course Card 4 */}
-                  <div className="group relative w-full sm:w-[calc(50%-1rem)] md:w-[calc(25%-2rem)] bg-gradient-to-br from-blue-500/10 to-teal-500/10 backdrop-blur-xl rounded-xl p-6 sm:p-7 border border-white/10 transform transition-all duration-500 hover:scale-105 hover:-translate-y-2 hover:z-10">
+                  <div className="group relative w-full sm:w-[calc(50%-1rem)] md:w-[calc(25%-1.5rem)] bg-gradient-to-br from-blue-500/10 to-teal-500/10 backdrop-blur-xl rounded-xl p-6 sm:p-7 border border-white/10 transform transition-all duration-500 hover:scale-105 hover:-translate-y-2 hover:z-10">
                     <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-teal-500/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
                     <TrendingUp className="text-blue-400 mb-4 transform transition-transform group-hover:scale-110 group-hover:rotate-6 w-7 h-7" />
                     <h3 className="text-white font-semibold mb-2 text-lg md:text-xl relative z-10 transition-all duration-300 group-hover:text-blue-300">Digital Success</h3>
-                    <p className="text-gray-400 text-sm md:text-base relative z-10 transition-all duration-300 group-hover:text-white/90">Data-Driven Marketing Mastery</p>
+                    <p className="text-gray-400 text-sm md:text-base relative z-10 transition-all duration-300 group-hover:text-white/90">Modern Marketing & SEO</p>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-
-          {/* Featured Courses Section - Desktop */}
-          <div id="featured-courses" className="py-16 lg:py-24 w-full px-4 md:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl lg:text-4xl font-bold relative inline-block mb-6">
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 via-purple-400 to-secondary-400">
-                  Featured Courses
-                </span>
-                <div className="absolute -bottom-3 left-0 right-0 h-1 bg-gradient-to-r from-primary-500/60 via-purple-500/60 to-secondary-500/60 rounded-full"></div>
-              </h2>
-              <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-                Discover our most popular courses designed to elevate your skills
-              </p>
-            </div>
-
-            {loading ? (
-              <div className="flex justify-center items-center h-60">
-                <Preloader2 />
-              </div>
-            ) : (
-              <div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8">
-                  {featuredCourses.map((course, index) => (
-                    <div 
-                      key={course._id}
-                      className={`transition-all duration-500 transform 
-                        ${isLoaded 
-                          ? 'translate-y-0 opacity-100' 
-                          : 'translate-y-10 opacity-0'
-                        }
-                        bg-gradient-to-br from-gray-800/80 to-gray-900/80 
-                        rounded-xl overflow-hidden shadow-lg hover:shadow-xl
-                        border border-gray-700/40 backdrop-blur-lg 
-                        hover:border-primary-500/30 group
-                        hover:-translate-y-1 transition-all duration-300
-                        hover:from-gray-800/90 hover:to-gray-900/90`}
-                      style={{ transitionDelay: `${index * 150}ms` }}
-                    >
-                      <CourseCard course={course} />
-                    </div>
-                  ))}
-                </div>
-
-                <div className="pt-12 text-center">
-                  <Link 
-                    href="/courses" 
-                    className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-primary-500 to-secondary-500 text-white font-medium rounded-lg shadow-md hover:shadow-lg hover:shadow-primary-500/20 transition-all duration-300 transform hover:-translate-y-1"
-                  >
-                    <span>View All Courses</span>
-                    <ArrowRight size={18} />
-                  </Link>
-                </div>
-              </div>
-            )}
-          </div>
         </div>
-
-        <style jsx global>{`
-          @keyframes float {
-            0%, 100% { transform: translate(0, 0); }
-            50% { transform: translate(15px, -15px); }
-          }
-
-          @keyframes pulse-slow {
-            0%, 100% { opacity: 0.4; transform: scale(1); }
-            50% { opacity: 0.7; transform: scale(1.1); }
-          }
-
-          @keyframes spin-slow {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-          }
-
-          @keyframes spin-slow-reverse {
-            from { transform: rotate(360deg); }
-            to { transform: rotate(0deg); }
-          }
-
-          .animate-float {
-            animation: float 8s ease-in-out infinite;
-          }
-
-          .animate-pulse-slow {
-            animation: pulse-slow 8s ease-in-out infinite;
-          }
-
-          .animate-spin-slow {
-            animation: spin-slow 20s linear infinite;
-          }
-
-          .animate-spin-slow-reverse {
-            animation: spin-slow-reverse 20s linear infinite;
-          }
-
-          .animation-delay-2000 {
-            animation-delay: 2000ms;
-          }
-
-          .animation-delay-4000 {
-            animation-delay: 4000ms;
-          }
-
-          .perspective-1500 {
-            perspective: clamp(1000px, 150vw, 1500px);
-          }
-
-          @media (max-width: 600px) {
-            .perspective-1500 {
-              perspective: 800px;
-            }
-          }
-
-          @media (min-width: 1536px) {
-            .perspective-1500 {
-              perspective: 2000px;
-            }
-          }
-
-          .animate-text-shimmer {
-            background-size: 200% 200%;
-            animation: gradient 8s linear infinite;
-          }
-
-          @keyframes gradient {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-          }
-          
-          /* Mobile specific animations - lighter weight */
-          .mobile-hero-wrapper .animate-ping {
-            animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
-          }
-          
-          @keyframes ping {
-            75%, 100% {
-              transform: scale(1.5);
-              opacity: 0;
-            }
-          }
-
-          /* Additional animations for the redesigned section */
-          .scrollbar-hide {
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;  /* Firefox */
-          }
-
-          .scrollbar-hide::-webkit-scrollbar {
-            display: none; /* Chrome, Safari, Opera */
-          }
-
-          @keyframes ping-slow {
-            0% {
-              transform: scale(1);
-              opacity: 0.5;
-            }
-            50% {
-              transform: scale(1.2);
-              opacity: 0.3;
-            }
-            100% {
-              transform: scale(1);
-              opacity: 0.5;
-            }
-          }
-
-          @keyframes pulse-slower {
-            0%, 100% {
-              opacity: 0.3;
-            }
-            50% {
-              opacity: 0.6;
-            }
-          }
-
-          @keyframes swipe-hint {
-            0%, 100% {
-              transform: translateX(0);
-            }
-            50% {
-              transform: translateX(3px);
-            }
-          }
-
-          .animate-ping-slow {
-            animation: ping-slow 3s ease-in-out infinite;
-          }
-
-          .animate-pulse-slower {
-            animation: pulse-slower 5s ease-in-out infinite;
-          }
-
-          .animate-swipe-hint {
-            animation: swipe-hint 1.5s ease-in-out infinite;
-          }
-          .
-          @media (min-width: 1024px) and (max-width: 1366px) {
-            .hero-content {
-              padding: 1.5rem 3rem;
-            }
-            .hero-heading {
-              font-size: 2.25rem;
-            }
-            .hero-subheading {
-              font-size: 1.125rem;
-            }
-            .hero-cards {
-              grid-template-columns: repeat(2, 1fr);
-              gap: 1.5rem;
-            }
-            .hero-card {
-              max-width: 380px;
-            }
-          }
-
-          .hero-content {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            padding: 2rem;
-            box-sizing: border-box;
-          }
-
-          .hero-image {
-            width: 100%;
-            height: auto;
-            object-fit: cover;
-            aspect-ratio: 16 / 9;
-          }
-
-          @media (min-aspect-ratio: 16/10) {
-            .hero-content {
-              padding: 3rem;
-            }
-            .hero-image {
-              aspect-ratio: 16 / 10;
-            }
-          }
-
-          @media (max-width: 768px) {
-            .hero-content {
-              padding: 1rem;
-            }
-            .hero-image {
-              aspect-ratio: auto;
-            }
-            .h
-          }
-          grid-cols-2 {
-              grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-          }
-        `}</style>
       </section>
     </>
   );

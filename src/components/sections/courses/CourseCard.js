@@ -956,7 +956,7 @@ const CourseCard = ({
                 <Users size={14} className={`${classType === 'live' ? 'text-rose-500' : 'text-indigo-500'}`} />
                 <span className="text-xs font-medium text-gray-600">{course?.no_of_Sessions || 0} {classType === 'live' ? 'Sessions' : 'Classes'}</span>
                 {classType != 'live' && (
-                  <span className="text-xs text-gray-600">(60-90 min each)</span>
+                  <span className="text-xs text-gray-600">({course?.min_hours_per_week || 0}-{course?.max_hours_per_week || 0} hrs / week)</span>
                 )}
                 {classType === 'live' && (
                   <span className="text-xs text-gray-600">(60-90 min each)</span>
