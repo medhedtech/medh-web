@@ -256,313 +256,232 @@ const HomeCourseSection = ({
 
   // Custom link button component
   const ViewAllButton = ({ href, text }) => (
-    <Link 
-      href={href}
-      className="group flex items-center gap-2 px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-full shadow-sm transition-all duration-300 hover:shadow-md"
-    >
+    <Link href={href} 
+      className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg md:px-5 md:py-2.5">
       <span>{text}</span>
-      <ChevronRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
+      <ChevronRight size={16} className="ml-1" />
     </Link>
   );
 
   // EmptyState component for when no courses match filters
   const EmptyState = ({ type }) => (
-    <div className="col-span-full flex flex-col items-center justify-center py-12 bg-white dark:bg-gray-800/30 rounded-xl border border-gray-100 dark:border-gray-800">
-      <div className={`w-16 h-16 mb-4 ${type === 'live' ? 'text-rose-500 dark:text-rose-400' : 'text-indigo-500 dark:text-indigo-400'}`}>
-        {type === 'live' ? <Video size={64} /> : <Layers size={64} />}
+    <div className="flex flex-col items-center justify-center p-6 md:p-5 text-center bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-900/50 rounded-xl">
+      <div className="w-16 h-16 mb-4 flex items-center justify-center rounded-full bg-gray-200/50 dark:bg-gray-700/50">
+        {type === 'live' ? (
+          <Video className="w-8 h-8 text-gray-500 dark:text-gray-400" />
+        ) : (
+          <Layers className="w-8 h-8 text-gray-500 dark:text-gray-400" />
+        )}
       </div>
-      <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-        No {type === 'live' ? 'Live' : 'Blended'} Courses Found
+      <h3 className="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-300">
+        No {type === 'live' ? 'Live' : 'Blended'} Courses Available
       </h3>
-      <p className="text-gray-600 dark:text-gray-400 text-center max-w-md mb-6">
-        {type === 'live' 
-          ? "No live courses match your current filter selection. Try adjusting your filters or check back later for new interactive sessions."
-          : "No blended courses match your current filter selection. Try adjusting your filters or explore our other learning options."}
+      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+        We're preparing amazing new {type === 'live' ? 'live' : 'blended'} courses. Check back soon!
       </p>
-      <button
-        onClick={() => type === 'live' 
-          ? setLiveFilters({ upcoming: false, popular: false, latest: false }) 
-          : setBlendedFilters({ beginner: false, popular: false, latest: false })}
-        className={`px-5 py-2 rounded-full text-white flex items-center gap-2 ${
-          type === 'live' ? 'bg-rose-500 hover:bg-rose-600' : 'bg-indigo-500 hover:bg-indigo-600'
-        }`}
-      >
-        <Filter size={18} />
-        Clear Filters
-      </button>
+      <Link href="/contact-us" className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 rounded-lg transition-all duration-300">
+        Request a Course
+        <ChevronRight size={16} className="ml-1" />
+      </Link>
     </div>
   );
 
   // Filter button component
-  const FilterButton = ({ active, icon, label, onClick, color="rose" }) => (
-    <button
-      onClick={onClick}
-      className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-        active 
-          ? `bg-${color}-600 text-white shadow-md` 
-          : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'
-      }`}
-    >
-      {icon}
-      <span>{label}</span>
-    </button>
-  );
+  const FilterButton = ({ active, icon, label, onClick, color="rose" }) => {
+    const colorClasses = {
+      rose: {
+        active: "bg-rose-500 text-white",
+        inactive: "bg-rose-100 text-rose-600 hover:bg-rose-200 dark:bg-rose-900/30 dark:text-rose-300 dark:hover:bg-rose-800/40"
+      },
+      indigo: {
+        active: "bg-indigo-500 text-white",
+        inactive: "bg-indigo-100 text-indigo-600 hover:bg-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 dark:hover:bg-indigo-800/40"
+      },
+      primary: {
+        active: "bg-primary-500 text-white",
+        inactive: "bg-primary-100 text-primary-600 hover:bg-primary-200 dark:bg-primary-900/30 dark:text-primary-300 dark:hover:bg-primary-800/40"
+      }
+    };
+    
+    return (
+      <button
+        onClick={onClick}
+        className={`flex items-center space-x-1 px-3 py-1.5 md:py-1 rounded-full text-xs transition-all duration-200 ${
+          active ? colorClasses[color].active : colorClasses[color].inactive
+        }`}
+      >
+        {icon}
+        <span>{label}</span>
+      </button>
+    );
+  };
 
   return (
-    <div className="w-full">
-      {/* Main Header Section with Gradient Text */}
-      <div className="mb-16 text-center max-w-4xl mx-auto">
-        <div className="flex justify-center mb-4">
-          <div className="h-12 w-12 rounded-full bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center mb-4">
-            <Sparkles size={24} className="text-primary-600 dark:text-primary-400" />
-          </div>
+    <div className="w-full py-3 md:py-2">
+      {/* Section Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 md:mb-5">
+        <div>
+          <h2 className="text-2xl font-bold mb-2 text-gray-800 dark:text-white">
+            {CustomText}
+          </h2>
+          <p className="text-sm md:text-base text-gray-600 dark:text-gray-300 max-w-2xl">
+            {CustomDescription}
+          </p>
         </div>
-        <h1 className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-primary-400 mb-4">
-          {CustomText}
-        </h1>
-        <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-          {CustomDescription}
-        </p>
+        <div className="mt-4 md:mt-0">
+          <ViewAllButton 
+            href="/courses" 
+            text="View All Courses" 
+          />
+        </div>
       </div>
 
-      {loading ? (
-        <div className="flex justify-center items-center min-h-[40vh] bg-white dark:bg-gray-900/30 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-800">
-          <Preloader2 />
+      {/* Live Courses Section */}
+      <div 
+        ref={liveRef}
+        className={`relative overflow-hidden rounded-xl bg-gradient-to-r from-rose-50 via-white to-rose-50 dark:from-rose-900/10 dark:via-gray-900 dark:to-rose-900/10 p-5 md:p-4 mb-8 md:mb-6 shadow-sm transition-all duration-500 ${
+          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+        }`}
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 md:mb-3">
+          <div className="flex items-center mb-3 sm:mb-0">
+            <Video className="w-5 h-5 mr-2 text-rose-500" />
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+              Live Interactive Courses
+            </h3>
+          </div>
+          
+          {/* Filter buttons for live courses */}
+          <div className="flex flex-wrap gap-2">
+            <FilterButton 
+              active={liveFilters.upcoming} 
+              icon={<Calendar size={14} />} 
+              label="Upcoming"
+              onClick={() => toggleLiveFilter('upcoming')}
+              color="rose"
+            />
+            <FilterButton 
+              active={liveFilters.popular} 
+              icon={<Sparkles size={14} />} 
+              label="Popular"
+              onClick={() => toggleLiveFilter('popular')}
+              color="rose"
+            />
+            <FilterButton 
+              active={liveFilters.latest} 
+              icon={<Clock size={14} />} 
+              label="Latest"
+              onClick={() => toggleLiveFilter('latest')}
+              color="rose"
+            />
+            {/* Clear filters button - only shown when filters are active */}
+            {(liveFilters.upcoming || liveFilters.popular || liveFilters.latest) && (
+              <button 
+                onClick={() => setLiveFilters({upcoming: false, popular: false, latest: false})}
+                className="flex items-center space-x-1 px-3 py-1.5 md:py-1 rounded-full text-xs bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition-all duration-200"
+              >
+                <Filter size={14} />
+                <span>Clear</span>
+              </button>
+            )}
+          </div>
         </div>
-      ) : (
-        <div className="space-y-24">
-          {/* Live Courses Section with Card Grid - Styled with extra emphasis */}
-          <section 
-            ref={liveRef}
-            className={`rounded-3xl ${showOnlyLive ? 'bg-gradient-to-b from-rose-50 to-white dark:from-rose-900/10 dark:to-gray-900/90' : 'bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-900/80'} shadow-lg border border-gray-100 dark:border-gray-800 p-8 transition-all duration-500 opacity-0 transform translate-y-4 animate-fade-in`}
+
+        {/* Courses Grid */}
+        {loading ? (
+          <div className="flex items-center justify-center p-8 md:p-6">
+            <Preloader2 />
+          </div>
+        ) : filteredLiveCourses.length > 0 ? (
+          <motion.div 
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-4"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
           >
-            <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-              <div className="max-w-2xl">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="h-10 w-10 rounded-full bg-rose-50 dark:bg-rose-900/20 flex items-center justify-center">
-                    <Video size={20} className="text-rose-600 dark:text-rose-400" />
-                  </div>
-                  <span className="text-sm font-medium text-rose-600 dark:text-rose-400 uppercase tracking-wider">
-                    Live Interactive
-                  </span>
-                </div>
-                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2" 
-                  data-class-type="live">
-                  Live Interactive Courses
-                </h2>
-                <p className="text-gray-600 dark:text-gray-400 max-w-xl">
-                  Join our real-time interactive sessions with expert instructors. Experience engaging learning through direct feedback, group discussions, and collaborative projects.
-                </p>
-              </div>
-              <ViewAllButton href="/courses?type=live" text="View All Live Courses" />
-            </div>
+            {filteredLiveCourses.map((course) => (
+              <motion.div key={course._id} variants={itemVariants}>
+                <CourseCard course={course} scrollToTop={scrollToTop} />
+              </motion.div>
+            ))}
+          </motion.div>
+        ) : (
+          <EmptyState type="live" />
+        )}
+      </div>
 
-            {/* Live Course Features */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 mt-4">
-              <div className="bg-white dark:bg-gray-800/50 rounded-xl p-4 flex items-start gap-3 shadow-sm">
-                <div className="h-8 w-8 rounded-full bg-rose-100 dark:bg-rose-900/20 flex items-center justify-center flex-shrink-0">
-                  <Clock size={16} className="text-rose-600 dark:text-rose-400" />
-                </div>
-                <div>
-                  <h3 className="font-medium text-gray-900 dark:text-white mb-1">Real-time Interaction</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Engage directly with instructors and fellow students</p>
-                </div>
-              </div>
-              <div className="bg-white dark:bg-gray-800/50 rounded-xl p-4 flex items-start gap-3 shadow-sm">
-                <div className="h-8 w-8 rounded-full bg-rose-100 dark:bg-rose-900/20 flex items-center justify-center flex-shrink-0">
-                  <Users size={16} className="text-rose-600 dark:text-rose-400" />
-                </div>
-                <div>
-                  <h3 className="font-medium text-gray-900 dark:text-white mb-1">Expert Instructors</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Learn from industry professionals with proven expertise</p>
-                </div>
-              </div>
-              <div className="bg-white dark:bg-gray-800/50 rounded-xl p-4 flex items-start gap-3 shadow-sm">
-                <div className="h-8 w-8 rounded-full bg-rose-100 dark:bg-rose-900/20 flex items-center justify-center flex-shrink-0">
-                  <Calendar size={16} className="text-rose-600 dark:text-rose-400" />
-                </div>
-                <div>
-                  <h3 className="font-medium text-gray-900 dark:text-white mb-1">Scheduled Sessions</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Join live classes on your calendar for consistent learning</p>
-                </div>
-              </div>
+      {/* Blended Courses Section - Only show if not in "showOnlyLive" mode */}
+      {!showOnlyLive && (
+        <div 
+          ref={blendedRef}
+          className={`relative overflow-hidden rounded-xl bg-gradient-to-r from-indigo-50 via-white to-indigo-50 dark:from-indigo-900/10 dark:via-gray-900 dark:to-indigo-900/10 p-5 md:p-4 shadow-sm transition-all duration-500 ${
+            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          }`}
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 md:mb-3">
+            <div className="flex items-center mb-3 sm:mb-0">
+              <Layers className="w-5 h-5 mr-2 text-indigo-500" />
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+                Blended Learning Courses
+              </h3>
             </div>
-
-            {/* Filter options for live courses */}
-            <div className="flex flex-wrap gap-2 mb-8">
+            
+            {/* Filter buttons for blended courses */}
+            <div className="flex flex-wrap gap-2">
               <FilterButton 
-                active={liveFilters.upcoming}
-                icon={<Calendar size={14} />}
-                label="Upcoming"
-                onClick={() => toggleLiveFilter('upcoming')}
-                color="rose"
+                active={blendedFilters.beginner} 
+                icon={<BookOpen size={14} />} 
+                label="Beginner-Friendly"
+                onClick={() => toggleBlendedFilter('beginner')}
+                color="indigo"
               />
               <FilterButton 
-                active={liveFilters.popular}
-                icon={<Users size={14} />}
+                active={blendedFilters.popular} 
+                icon={<Sparkles size={14} />} 
                 label="Popular"
-                onClick={() => toggleLiveFilter('popular')}
-                color="rose"
+                onClick={() => toggleBlendedFilter('popular')}
+                color="indigo"
               />
               <FilterButton 
-                active={liveFilters.latest}
-                icon={<Clock size={14} />}
+                active={blendedFilters.latest} 
+                icon={<Clock size={14} />} 
                 label="Latest"
-                onClick={() => toggleLiveFilter('latest')}
-                color="rose"
+                onClick={() => toggleBlendedFilter('latest')}
+                color="indigo"
               />
-              {Object.values(liveFilters).some(v => v) && (
-                <button
-                  onClick={() => setLiveFilters({ upcoming: false, popular: false, latest: false })}
-                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-rose-600 dark:hover:text-rose-400 flex items-center gap-1"
+              {/* Clear filters button - only shown when filters are active */}
+              {(blendedFilters.beginner || blendedFilters.popular || blendedFilters.latest) && (
+                <button 
+                  onClick={() => setBlendedFilters({beginner: false, popular: false, latest: false})}
+                  className="flex items-center space-x-1 px-3 py-1.5 md:py-1 rounded-full text-xs bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition-all duration-200"
                 >
                   <Filter size={14} />
-                  Clear filters
+                  <span>Clear</span>
                 </button>
               )}
             </div>
+          </div>
 
+          {/* Courses Grid */}
+          {loading ? (
+            <div className="flex items-center justify-center p-8 md:p-6">
+              <Preloader2 />
+            </div>
+          ) : filteredBlendedCourses.length > 0 ? (
             <motion.div 
-              className={`grid grid-cols-1 sm:grid-cols-2 ${showOnlyLive ? 'lg:grid-cols-4' : 'lg:grid-cols-4'} gap-6`}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-4"
               variants={containerVariants}
               initial="hidden"
               animate="visible"
-              data-class-type="live"
             >
-              {filteredLiveCourses.length > 0 ? (
-                filteredLiveCourses.map((course, index) => (
-                  <motion.div
-                    key={course._id}
-                    variants={itemVariants}
-                    className="transform transition-all duration-300 hover:translate-y-[-4px] hover:shadow-lg rounded-xl"
-                    data-course-id={course._id}
-                    data-class-type="live"
-                  >
-                    <CourseCard course={course} classType="live" />
-                  </motion.div>
-                ))
-              ) : (
-                <EmptyState type="live" />
-              )}
+              {filteredBlendedCourses.map((course) => (
+                <motion.div key={course._id} variants={itemVariants}>
+                  <CourseCard course={course} scrollToTop={scrollToTop} />
+                </motion.div>
+              ))}
             </motion.div>
-          </section>
-
-          {/* Blended Courses Section - Only show if not showOnlyLive */}
-          {!showOnlyLive && (
-            <section 
-              ref={blendedRef}
-              className="rounded-3xl bg-gradient-to-b from-indigo-50 to-white dark:from-indigo-900/10 dark:to-gray-900/90 shadow-lg border border-gray-100 dark:border-gray-800 p-8 transition-all duration-500 opacity-0 transform translate-y-4 animate-fade-in"
-            >
-              <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-                <div className="max-w-2xl">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="h-10 w-10 rounded-full bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center">
-                      <Layers size={20} className="text-indigo-600 dark:text-indigo-400" />
-                    </div>
-                    <span className="text-sm font-medium text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">
-                      Blended Learning
-                    </span>
-                  </div>
-                  <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2"
-                    data-class-type="blended">
-                    Blended Learning Courses
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-400 max-w-xl">
-                    Experience a hybrid approach that combines self-paced digital content with scheduled instructor guidance. Enjoy flexibility while maintaining structure and support throughout your learning journey.
-                  </p>
-                </div>
-                <ViewAllButton href="/courses?type=blended" text="View All Blended Courses" />
-              </div>
-
-              {/* Blended Course Features */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 mt-4">
-                <div className="bg-white dark:bg-gray-800/50 rounded-xl p-4 flex items-start gap-3 shadow-sm">
-                  <div className="h-8 w-8 rounded-full bg-indigo-100 dark:bg-indigo-900/20 flex items-center justify-center flex-shrink-0">
-                    <Laptop size={16} className="text-indigo-600 dark:text-indigo-400" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900 dark:text-white mb-1">Flexible Learning</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Study at your own pace with a mix of online and offline resources</p>
-                  </div>
-                </div>
-                <div className="bg-white dark:bg-gray-800/50 rounded-xl p-4 flex items-start gap-3 shadow-sm">
-                  <div className="h-8 w-8 rounded-full bg-indigo-100 dark:bg-indigo-900/20 flex items-center justify-center flex-shrink-0">
-                    <Book size={16} className="text-indigo-600 dark:text-indigo-400" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900 dark:text-white mb-1">Comprehensive Materials</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Access diverse learning resources for deeper understanding</p>
-                  </div>
-                </div>
-                <div className="bg-white dark:bg-gray-800/50 rounded-xl p-4 flex items-start gap-3 shadow-sm">
-                  <div className="h-8 w-8 rounded-full bg-indigo-100 dark:bg-indigo-900/20 flex items-center justify-center flex-shrink-0">
-                    <GraduationCap size={16} className="text-indigo-600 dark:text-indigo-400" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900 dark:text-white mb-1">Self-Paced Progress</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Learn on your schedule with structured but flexible curriculum</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Filter options for blended courses */}
-              <div className="flex flex-wrap gap-2 mb-8">
-                <FilterButton 
-                  active={blendedFilters.beginner}
-                  icon={<GraduationCap size={14} />}
-                  label="Beginner-Friendly"
-                  onClick={() => toggleBlendedFilter('beginner')}
-                  color="indigo"
-                />
-                <FilterButton 
-                  active={blendedFilters.popular}
-                  icon={<Users size={14} />}
-                  label="Popular"
-                  onClick={() => toggleBlendedFilter('popular')}
-                  color="indigo"
-                />
-                <FilterButton 
-                  active={blendedFilters.latest}
-                  icon={<Clock size={14} />}
-                  label="Latest"
-                  onClick={() => toggleBlendedFilter('latest')}
-                  color="indigo"
-                />
-                {Object.values(blendedFilters).some(v => v) && (
-                  <button
-                    onClick={() => setBlendedFilters({ beginner: false, popular: false, latest: false })}
-                    className="text-sm text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1"
-                  >
-                    <Filter size={14} />
-                    Clear filters
-                  </button>
-                )}
-              </div>
-
-              <motion.div 
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-                data-class-type="blended"
-              >
-                {filteredBlendedCourses.length > 0 ? (
-                  filteredBlendedCourses.map((course, index) => (
-                    <motion.div
-                      key={course._id}
-                      variants={itemVariants}
-                      className="transform transition-all duration-300 hover:translate-y-[-4px] hover:shadow-lg rounded-xl"
-                      data-course-id={course._id}
-                      data-class-type="blended"
-                    >
-                      <CourseCard course={course} classType="blended" />
-                    </motion.div>
-                  ))
-                ) : (
-                  <EmptyState type="blended" />
-                )}
-              </motion.div>
-            </section>
+          ) : (
+            <EmptyState type="blended" />
           )}
         </div>
       )}

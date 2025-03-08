@@ -800,7 +800,7 @@ const CourseCard = ({
                 <>
                   <Clock size={16} className="text-rose-500 dark:text-rose-400" />
                   {course?.course_duration && course.course_duration.includes('18 months') 
-                    ? "18 Months + 3 Months Internship"
+                    ? "18 Months (incl. 3-month internship)"
                     : course?.course_duration 
                       ? `${course.course_duration.split(' ').slice(0, 2).join(' ').replace('months', 'Months')} Course` 
                       : "Self-Paced Course"}
@@ -887,11 +887,9 @@ const CourseCard = ({
                 <p className="font-medium text-gray-900 dark:text-white">
                   {classType === 'blended_courses' 
                     ? "Self-Paced" 
-                    : course?.course_duration && course.course_duration.includes('18 months')
-                      ? "18 Months + 3 Months Internship"
-                      : course?.course_duration 
-                        ? `${course.course_duration.split(' ').slice(0, 2).join(' ').replace('months', 'Months')}` 
-                        : "Self-Paced"}
+                    : course?.course_duration 
+                      ? `${course.course_duration.split(' ').slice(0, 2).join(' ').replace('months', 'Months')}` 
+                      : "Self-Paced"}
                 </p>
                 <p className="text-xs text-gray-500">Course Duration</p>
               </div>
