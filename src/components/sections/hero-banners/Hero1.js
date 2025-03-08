@@ -47,7 +47,7 @@ const HeroMobile = ({ isLoaded, featuredCourses, loading }) => {
         </p>
 
         {/* Grid Layout for Content */}
-        <div className="grid grid-cols-2 gap-3 mt-5">
+        <div className="grid grid-cols-2 gap-3 mt-5 ">
           {/* Children & Teens */}
           <div className="bg-gradient-to-br from-primary-500/10 via-primary-400/5 to-purple-500/10 rounded-xl p-3 transition-all duration-300 hover:scale-105 border border-white/5 flex flex-col h-[120px]">
             <div className="flex items-center mb-1.5 h-5">
@@ -644,6 +644,10 @@ const Hero1 = () => {
             .hero-image {
               aspect-ratio: auto;
             }
+            .h
+          }
+          grid-cols-2 {
+              grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
           }
         `}</style>
       </section>
