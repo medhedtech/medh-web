@@ -125,7 +125,7 @@ const HeroMobile = ({ isLoaded, featuredCourses, loading }) => {
 };
 
 // Main Hero component
-const Hero1 = () => {
+const Hero1 = ({ isCompact = false }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [featuredCourses, setFeaturedCourses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -187,15 +187,17 @@ const Hero1 = () => {
     );
   }
 
-  // Desktop version (unchanged)
+  // Desktop version with isCompact handling
   return (
     <>
       <section 
         style={{ 
           paddingTop: "var(--header-height, clamp(30px, 8vh, 50px))",
-          paddingBottom: "var(--footer-height, clamp(30px, 8vh, 50px))"
+          paddingBottom: isCompact ? "clamp(15px, 4vh, 30px)" : "var(--footer-height, clamp(30px, 8vh, 50px))"
         }}
-        className="relative min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 dark:from-gray-950 dark:via-gray-900 dark:to-gray-800 overflow-hidden w-full"
+        className={`relative min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 dark:from-gray-950 dark:via-gray-900 dark:to-gray-800 overflow-hidden w-full ${
+          isCompact ? 'max-h-[90vh]' : ''
+        }`}
       >
         {/* Enhanced Animated Background */}
         <div className="absolute inset-0 overflow-hidden">
@@ -210,14 +212,18 @@ const Hero1 = () => {
 
         <div className="max-w-[1920px] w-full mx-auto relative z-10">
           {/* Hero Content - Centered Text */}
-          <div className="flex flex-col items-center justify-center min-h-[75vh] py-12 lg:py-20">
+          <div className={`flex flex-col items-center justify-center min-h-[75vh] py-12 lg:py-20 ${
+            isCompact ? 'py-8 lg:py-12 min-h-[70vh]' : ''
+          }`}>
             {/* Hero Content - Centered */}
             <div className={`flex flex-col items-center justify-center transition-all duration-1000 transform text-center px-4 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
               {/* Live badge - similar to page.js */}
              
               
               {/* Main Heading - Centered */}
-              <div className="w-full max-w-[800px] mx-auto space-y- mb-8">
+              <div className={`w-full max-w-[800px] mx-auto space-y- mb-8 ${
+                isCompact ? 'mb-6' : ''
+              }`}>
                 <h1 className="font-bold leading-tight w-full">
                   <span className="hero-heading-text">
                     UNLOCK YOUR POTENTIAL WITH
@@ -244,7 +250,9 @@ const Hero1 = () => {
                 </div>
               </div>
               {/* Desktop full-row version */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 xl:gap-10 p-6 sm:p-8">
+              <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 xl:gap-10 p-6 sm:p-8 ${
+                isCompact ? 'gap-3 lg:gap-6 p-4 sm:p-6' : ''
+              }`}>
                   {/* Children & Teens - Desktop Card */}
                   <div className="flex-shrink-0 w-full max-w-[480px] snap-start group transition-transform duration-500 transform hover:scale-[1.02] active:scale-[0.98] touch-manipulation">
                     <div className="bg-gradient-to-br from-primary-500/10 via-primary-400/5 to-purple-500/10 hover:from-primary-500/15 hover:to-purple-500/15 backdrop-blur-md border border-white/10 hover:border-white/20 rounded-2xl p-4 transition-all duration-300 h-full flex flex-col relative overflow-hidden">
