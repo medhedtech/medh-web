@@ -44,8 +44,9 @@ const MobileAccordion = ({ title, icon, items }) => {
               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-3 h-px bg-primary-500/30"></div>
               <Link 
                 href={item.path}
-                className="text-gray-400 hover:text-primary-400 text-xs transition-colors duration-200 block py-1 hover:translate-x-0.5 transition-transform"
+                className="text-gray-400 hover:text-primary-400 text-xs transition-colors duration-200 block py-1 hover:translate-x-0.5 transition-transform flex items-center gap-2"
               >
+                <span className="text-primary-400 flex-shrink-0">•</span>
                 {item.name}
               </Link>
             </li>
@@ -72,9 +73,9 @@ const FooterNavList = ({ logoImage, isMobile }) => {
     title: "About Medh",
     description: "Medh is an innovative ed-tech platform that empowers learners with industry-ready skills through expert-led courses, personalized learning paths, and guaranteed job placements.",
     contact: [
-      { icon: <MapPin size={14} />, text: "Bangalore, India" },
-      { icon: <Phone size={14} />, text: "+91 7710840696" },
-      { icon: <Mail size={14} />, text: "contact@medh.com" }
+      { icon: <MapPin size={14} />, text: "Mumbai, India" },
+      { icon: <Phone size={14} />, text: "+91 77108 40696" },
+      { icon: <Mail size={14} />, text: "care@medh.co" }
     ]
   };
   
@@ -258,8 +259,9 @@ const FooterNavList = ({ logoImage, isMobile }) => {
               <li key={idxItem} className="group">
                 <Link 
                   href={item.path}
-                  className="text-gray-400 hover:text-primary-400 text-xs md:text-sm transition-all duration-200 flex items-center gap-1 py-0.5 px-1 rounded hover:bg-white/5"
+                  className="text-gray-400 hover:text-primary-400 text-xs md:text-sm transition-all duration-200 flex items-center gap-2 py-0.5 px-1 rounded hover:bg-white/5"
                 >
+                  <span className="text-primary-400 flex-shrink-0">•</span>
                   <span>{item.name}</span>
                   <ExternalLink size={12} className="opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </Link>
