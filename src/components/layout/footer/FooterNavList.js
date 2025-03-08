@@ -1,20 +1,13 @@
 import React, { useState, useEffect } from "react";
-import FooterNavItems from "./FooterNavItems";
-import FooterAbout from "./FooterAbout";
-import FooterRecentPosts from "./FooterRecentPosts";
-import { LayoutGrid } from "lucide-react";
+import Link from "next/link";
+import Image from "next/image";
+import { UserPlus, Menu, GraduationCap, Info, MapPin, Phone, Mail, ChevronDown, ChevronUp } from "lucide-react";
 
 // Typography component for consistent font styling
 const Typography = ({ variant = "body", children, className = "", ...props }) => {
   const variants = {
-    h1: "font-heading text-3xl md:text-4xl font-bold leading-tight",
-    h2: "font-heading text-2xl md:text-3xl font-bold leading-tight",
-    h3: "font-heading text-xl md:text-2xl font-semibold leading-snug",
-    h4: "font-heading text-lg md:text-xl font-semibold leading-snug",
-    subtitle: "font-body text-base md:text-lg font-medium leading-relaxed",
-    body: "font-body text-base leading-relaxed",
-    caption: "font-body text-sm leading-normal",
-    small: "font-body text-xs leading-normal",
+    h3: "font-heading text-base font-semibold leading-snug",
+    body: "font-body text-sm leading-relaxed",
   };
 
   return (
@@ -24,185 +17,233 @@ const Typography = ({ variant = "body", children, className = "", ...props }) =>
   );
 };
 
-const FooterNavList = () => {
+// Accordion component for mobile navigation
+const MobileAccordion = ({ title, icon, items }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  
+  return (
+    <div className="border-b border-gray-800 py-2">
+      <button 
+        onClick={() => setIsOpen(!isOpen)} 
+        className="w-full flex items-center justify-between text-left py-2"
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-primary-400">{icon}</span>
+          <Typography variant="h3" className="text-white text-sm">{title}</Typography>
+        </div>
+        <span className="text-gray-400">
+          {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+        </span>
+      </button>
+      
+      {isOpen && (
+        <ul className="pl-6 py-2 space-y-2">
+          {items.map((item, idx) => (
+            <li key={idx}>
+              <Link 
+                href={item.path}
+                className="text-gray-400 hover:text-primary-400 text-xs transition-colors duration-200 block py-1"
+              >
+                {item.name}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+};
+
+const FooterNavList = ({ logoImage, isMobile }) => {
   const [animateItems, setAnimateItems] = useState(false);
   
   useEffect(() => {
     // Staggered animation for child elements
     const timer = setTimeout(() => {
       setAnimateItems(true);
-    }, 500);
+    }, 400);
     return () => clearTimeout(timer);
   }, []);
+
+  // About Us content
+  const aboutUsContent = {
+    title: "About Medh",
+    description: "Medh is an innovative ed-tech platform that empowers learners with industry-ready skills through expert-led courses, personalized learning paths, and guaranteed job placements.",
+    contact: [
+      { icon: <MapPin size={14} />, text: "Bangalore, India" },
+      { icon: <Phone size={14} />, text: "+91 XXXX XXXX XX" },
+      { icon: <Mail size={14} />, text: "contact@medh.com" }
+    ]
+  };
   
   const lists = [
     {
       heading: "Join Us",
-      icon: "UserPlus",
+      icon: <UserPlus size={16} />,
       items: [
-        {
-          name: "As an Educator",
-          path: "/join-us-as-educator",
-        },
-        {
-          name: "As a School or Institute",
-          path: "/join-us-as-school-institute",
-        },
-        {
-          name: "Medh Membership",
-          path: "/medh-membership",
-        },
-        {
-          name: "Hire from Medh (Recruit@Medh)",
-          path: "/hire-from-medh",
-        },
-        {
-          name: "Careers at medh",
-          path: "/careers",
-        },
+        { name: "As an Educator", path: "/join-us-as-educator" },
+        { name: "As a School", path: "/join-us-as-school-institute" },
+        { name: "Medh Membership", path: "/medh-membership" },
+        { name: "Hire from Medh", path: "/hire-from-medh" },
+        { name: "Careers", path: "/careers" },
       ],
     },
     {
       heading: "Menu",
-      icon: "Menu",
+      icon: <Menu size={16} />,
       items: [
-        {
-          name: "Corporate Training",
-          path: "/corporate-training-courses",
-        },
-        {
-          name: "About Us",
-          path: "/about-us",
-        },
-        {
-          name: "Blog",
-          path: "/blogs",
-        },
-        {
-          name: "Contact Us",
-          path: "/contact-us",
-        },
-        {
-          name: "Home",
-          path: "/",
-        },
+        { name: "Corporate Training", path: "/corporate-training-courses" },
+        { name: "About Us", path: "/about-us" },
+        { name: "Blog", path: "/blogs" },
+        { name: "Contact Us", path: "/contact-us" },
+        { name: "Home", path: "/" },
       ],
     },
     {
-      heading: "Our Courses",
-      icon: "GraduationCap",
+      heading: "Courses",
+      icon: <GraduationCap size={16} />,
       items: [
-        {
-          name: "AI and Data Science",
-          path: "/ai-and-data-science-course",
-        },
-        {
-          name: "Digital Marketing with Data Analytics",
-          path: "/digital-marketing-with-data-analytics-course",
-        },
-        {
-          name: "Personality Development",
-          path: "/personality-development-course",
-        },
-        {
-          name: "Vedic Mathematics",
-          path: "/vedic-mathematics-course",
-        },
-        {
-          name: "View All Courses",
-          path: "/skill-development-courses",
-        },
+        { name: "AI & Data Science", path: "/ai-and-data-science-course" },
+        { name: "Digital Marketing", path: "/digital-marketing-with-data-analytics-course" },
+        { name: "Personality Development", path: "/personality-development-course" },
+        { name: "Vedic Mathematics", path: "/vedic-mathematics-course" },
+        { name: "View All Courses", path: "/skill-development-courses" },
       ],
     },
   ];
 
-  return (
-    <div className="relative">
-      {/* Font styles - this would ideally go in a global CSS file */}
-      <style jsx global>{`
-        /* Font variables */
-        :root {
-          --font-heading: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-          --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  // Mobile-optimized view
+  if (isMobile) {
+    return (
+      <div className="flex flex-col">
+        {/* Logo and about us */}
+        <div className="mb-4 flex flex-col items-center">
+          {/* Logo */}
+          <div className="mb-3">
+            <Link href="/">
+              <div className="relative h-10 w-28">
+                {logoImage ? (
+                  <Image 
+                    src={logoImage} 
+                    alt="Medh Logo" 
+                    fill
+                    className="object-contain"
+                    sizes="112px"
+                    priority
+                  />
+                ) : (
+                  <>
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary-500 to-secondary-500 opacity-80 blur-sm rounded-full"></div>
+                    <div className="relative h-full w-full flex items-center justify-start">
+                      <span className="text-white font-bold text-lg">MEDH</span>
+                    </div>
+                  </>
+                )}
+              </div>
+            </Link>
+          </div>
           
-          /* Font size scale with clamp for responsive sizing */
-          --text-xs: clamp(0.75rem, 0.7rem + 0.15vw, 0.875rem);
-          --text-sm: clamp(0.875rem, 0.8rem + 0.2vw, 1rem);
-          --text-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
-          --text-lg: clamp(1.125rem, 1.05rem + 0.3vw, 1.25rem); 
-          --text-xl: clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem);
-          --text-2xl: clamp(1.5rem, 1.3rem + 0.7vw, 1.875rem);
-          --text-3xl: clamp(1.875rem, 1.65rem + 0.9vw, 2.25rem);
-          --text-4xl: clamp(2.25rem, 1.95rem + 1.1vw, 3rem);
+          {/* Brief description */}
+          <div className="text-gray-400 text-xs mb-3 text-center px-2">
+            {aboutUsContent.description.split(' ').slice(0, 12).join(' ')}...
+          </div>
           
-          /* Line heights */
-          --leading-none: 1;
-          --leading-tight: 1.2;
-          --leading-snug: 1.375;
-          --leading-normal: 1.5;
-          --leading-relaxed: 1.625;
-          --leading-loose: 2;
-          
-          /* Letter spacing */
-          --tracking-tighter: -0.05em;
-          --tracking-tight: -0.025em;
-          --tracking-normal: 0;
-          --tracking-wide: 0.025em;
-          --tracking-wider: 0.05em;
-          --tracking-widest: 0.1em;
-        }
-        
-        .font-heading {
-          font-family: var(--font-heading);
-          letter-spacing: var(--tracking-tight);
-        }
-        
-        .font-body {
-          font-family: var(--font-body);
-          letter-spacing: var(--tracking-normal);
-        }
-      `}</style>
-    
-      {/* Main grid layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-x-8 gap-y-12">
-        {/* About Section - Left Column */}
-        <div 
-          className={`lg:col-span-4 transition-all duration-700 transform ${animateItems ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
-          style={{ transitionDelay: '100ms' }}
-        >
-          <FooterAbout />
-        </div>
-        
-        {/* Navigation Sections - Middle and Right Columns */}
-        <div className="lg:col-span-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10">
-            {lists.map((list, idx) => (
-              <div 
-                key={idx}
-                className={`transition-all duration-700 transform ${animateItems ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
-                style={{ transitionDelay: `${200 + (idx * 100)}ms` }}
-              >
-                <FooterNavItems list={list} idx={idx} />
+          {/* Contact info in horizontal layout */}
+          <div className="flex justify-center gap-4 my-1">
+            {aboutUsContent.contact.map((item, idx) => (
+              <div key={idx} className="flex flex-col items-center gap-1">
+                <span className="text-primary-400 p-1.5 bg-gray-800/50 rounded-full">{item.icon}</span>
               </div>
             ))}
           </div>
         </div>
+        
+        {/* Accordion navigation */}
+        <div className="mt-2">
+          {lists.map((list, idx) => (
+            <MobileAccordion 
+              key={idx}
+              title={list.heading}
+              icon={list.icon}
+              items={list.items}
+            />
+          ))}
+        </div>
       </div>
-      
-      {/* Decorative divider */}
-      <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent my-12 opacity-50"></div>
-      
-      {/* Newsletter Section - Full Width Bottom */}
+    );
+  }
+
+  // Desktop view (unchanged)
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+      {/* About Us Section with Logo */}
       <div 
-        className={`transition-all duration-700 transform ${animateItems ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
-        style={{ transitionDelay: '600ms' }}
+        className={`transition-all duration-500 transform ${animateItems ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'}`}
+        style={{ transitionDelay: '100ms' }}
       >
-        <FooterRecentPosts />
+        {/* Logo */}
+        <div className="mb-4">
+          <Link href="/">
+            <div className="relative h-12 w-32 md:w-40">
+              {logoImage ? (
+                <Image 
+                  src={logoImage} 
+                  alt="Medh Logo" 
+                  fill
+                  className="object-contain"
+                  sizes="(max-width: 768px) 8rem, 10rem"
+                  priority
+                />
+              ) : (
+                <>
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary-500 to-secondary-500 opacity-80 blur-sm rounded-full"></div>
+                  <div className="relative h-full w-full flex items-center justify-start">
+                    <span className="text-white font-bold text-xl">MEDH</span>
+                  </div>
+                </>
+              )}
+            </div>
+          </Link>
+        </div>
+        
+        <div className="text-gray-400 text-xs md:text-sm mb-4 pr-4">
+          {aboutUsContent.description}
+        </div>
+        <ul className="space-y-2">
+          {aboutUsContent.contact.map((item, idx) => (
+            <li key={idx} className="flex items-start gap-2">
+              <span className="text-primary-400 mt-0.5">{item.icon}</span>
+              <span className="text-gray-400 text-xs">{item.text}</span>
+            </li>
+          ))}
+        </ul>
       </div>
-      
-      {/* Decorative background elements */}
-      <div className="absolute -top-6 -left-6 w-24 h-24 bg-primary-500/5 rounded-full blur-2xl"></div>
-      <div className="absolute -bottom-8 -right-8 w-40 h-40 bg-secondary-500/5 rounded-full blur-3xl"></div>
+
+      {/* Navigation Lists */}
+      {lists.map((list, idx) => (
+        <div 
+          key={idx}
+          className={`transition-all duration-500 transform ${animateItems ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'}`}
+          style={{ transitionDelay: `${200 + (idx * 100)}ms` }}
+        >
+          <div className="mb-3 flex items-center gap-2">
+            <span className="text-primary-400">{list.icon}</span>
+            <Typography variant="h3" className="text-white">{list.heading}</Typography>
+          </div>
+          <ul className="space-y-1.5">
+            {list.items.map((item, idxItem) => (
+              <li key={idxItem}>
+                <Link 
+                  href={item.path}
+                  className="text-gray-400 hover:text-primary-400 text-xs md:text-sm transition-colors duration-200 block"
+                >
+                  {item.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
     </div>
   );
 };
