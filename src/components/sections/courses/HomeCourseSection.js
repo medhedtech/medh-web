@@ -290,23 +290,23 @@ const HomeCourseSection = ({
   const FilterButton = ({ active, icon, label, onClick, color="rose" }) => {
     const colorClasses = {
       rose: {
-        active: "bg-rose-500 text-white",
-        inactive: "bg-rose-100 text-rose-600 hover:bg-rose-200 dark:bg-rose-900/30 dark:text-rose-300 dark:hover:bg-rose-800/40"
+        active: "bg-rose-500 text-white font-bold",
+        inactive: "bg-rose-100 text-rose-600 hover:bg-rose-200 dark:bg-rose-900/30 dark:text-rose-300 dark:hover:bg-rose-800/40 font-medium"
       },
       indigo: {
-        active: "bg-indigo-500 text-white",
-        inactive: "bg-indigo-100 text-indigo-600 hover:bg-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 dark:hover:bg-indigo-800/40"
+        active: "bg-indigo-500 text-white font-bold",
+        inactive: "bg-indigo-100 text-indigo-600 hover:bg-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 dark:hover:bg-indigo-800/40 font-medium"
       },
       primary: {
-        active: "bg-primary-500 text-white",
-        inactive: "bg-primary-100 text-primary-600 hover:bg-primary-200 dark:bg-primary-900/30 dark:text-primary-300 dark:hover:bg-primary-800/40"
+        active: "bg-primary-500 text-white font-bold",
+        inactive: "bg-primary-100 text-primary-600 hover:bg-primary-200 dark:bg-primary-900/30 dark:text-primary-300 dark:hover:bg-primary-800/40 font-medium"
       }
     };
     
     return (
       <button
         onClick={onClick}
-        className={`flex items-center space-x-1 px-3 py-1.5 md:py-1 rounded-full text-xs transition-all duration-200 ${
+        className={`flex items-center space-x-1 px-3 py-1.5 md:py-1.5 rounded-full text-xs transition-all duration-200 ${
           active ? colorClasses[color].active : colorClasses[color].inactive
         }`}
       >
@@ -317,14 +317,14 @@ const HomeCourseSection = ({
   };
 
   return (
-    <div className="w-full py-3 md:py-2">
+    <div className="w-full py-4 md:py-3 lg:py-4">
       {/* Section Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 md:mb-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 md:mb-6 lg:mb-7">
         <div>
-          <h2 className="text-2xl font-bold mb-2 text-gray-800 dark:text-white">
+          <h2 className="text-2xl md:text-2xl lg:text-3xl font-extrabold mb-2 text-gray-800 dark:text-white">
             {CustomText}
           </h2>
-          <p className="text-sm md:text-base text-gray-600 dark:text-gray-300 max-w-2xl">
+          <p className="text-sm md:text-base text-gray-600 dark:text-gray-300 max-w-2xl font-medium">
             {CustomDescription}
           </p>
         </div>
@@ -339,20 +339,20 @@ const HomeCourseSection = ({
       {/* Live Courses Section */}
       <div 
         ref={liveRef}
-        className={`relative overflow-hidden rounded-xl bg-gradient-to-r from-rose-50 via-white to-rose-50 dark:from-rose-900/10 dark:via-gray-900 dark:to-rose-900/10 p-5 md:p-4 mb-8 md:mb-6 shadow-sm transition-all duration-500 ${
+        className={`relative overflow-hidden rounded-xl bg-gradient-to-r from-rose-50 via-white to-rose-50 dark:from-rose-900/10 dark:via-gray-900 dark:to-rose-900/10 p-4 sm:p-5 md:p-6 lg:p-7 mb-8 md:mb-8 lg:mb-10 shadow-md transition-all duration-500 ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
         }`}
       >
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 md:mb-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 md:mb-5 lg:mb-6">
           <div className="flex items-center mb-3 sm:mb-0">
-            <Video className="w-5 h-5 mr-2 text-rose-500" />
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+            <Video className="w-6 h-6 mr-2.5 text-rose-500" />
+            <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-800 dark:text-white">
               Live Interactive Courses
             </h3>
           </div>
           
           {/* Filter buttons for live courses */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 md:gap-2.5">
             <FilterButton 
               active={liveFilters.upcoming} 
               icon={<Calendar size={14} />} 
@@ -378,7 +378,7 @@ const HomeCourseSection = ({
             {(liveFilters.upcoming || liveFilters.popular || liveFilters.latest) && (
               <button 
                 onClick={() => setLiveFilters({upcoming: false, popular: false, latest: false})}
-                className="flex items-center space-x-1 px-3 py-1.5 md:py-1 rounded-full text-xs bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition-all duration-200"
+                className="flex items-center space-x-1 px-3 py-1.5 md:py-1.5 rounded-full text-xs font-medium bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition-all duration-200"
               >
                 <Filter size={14} />
                 <span>Clear</span>
@@ -394,14 +394,14 @@ const HomeCourseSection = ({
           </div>
         ) : filteredLiveCourses.length > 0 ? (
           <motion.div 
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-4"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 md:gap-6"
             variants={containerVariants}
             initial="hidden"
             animate="visible"
           >
             {filteredLiveCourses.map((course) => (
-              <motion.div key={course._id} variants={itemVariants}>
-                <CourseCard course={course} scrollToTop={scrollToTop} />
+              <motion.div key={course._id} variants={itemVariants} className="live-course-card">
+                <CourseCard course={course} scrollToTop={scrollToTop} classType="live" />
               </motion.div>
             ))}
           </motion.div>
@@ -414,20 +414,20 @@ const HomeCourseSection = ({
       {!showOnlyLive && (
         <div 
           ref={blendedRef}
-          className={`relative overflow-hidden rounded-xl bg-gradient-to-r from-indigo-50 via-white to-indigo-50 dark:from-indigo-900/10 dark:via-gray-900 dark:to-indigo-900/10 p-5 md:p-4 shadow-sm transition-all duration-500 ${
+          className={`relative overflow-hidden rounded-xl bg-gradient-to-r from-indigo-50 via-white to-indigo-50 dark:from-indigo-900/10 dark:via-gray-900 dark:to-indigo-900/10 p-4 sm:p-5 md:p-6 lg:p-7 shadow-md transition-all duration-500 ${
             isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           }`}
         >
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 md:mb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 md:mb-5 lg:mb-6">
             <div className="flex items-center mb-3 sm:mb-0">
-              <Layers className="w-5 h-5 mr-2 text-indigo-500" />
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+              <Layers className="w-6 h-6 mr-2.5 text-indigo-500" />
+              <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-800 dark:text-white">
                 Blended Learning Courses
               </h3>
             </div>
             
             {/* Filter buttons for blended courses */}
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 md:gap-2.5">
               <FilterButton 
                 active={blendedFilters.beginner} 
                 icon={<BookOpen size={14} />} 
@@ -453,7 +453,7 @@ const HomeCourseSection = ({
               {(blendedFilters.beginner || blendedFilters.popular || blendedFilters.latest) && (
                 <button 
                   onClick={() => setBlendedFilters({beginner: false, popular: false, latest: false})}
-                  className="flex items-center space-x-1 px-3 py-1.5 md:py-1 rounded-full text-xs bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition-all duration-200"
+                  className="flex items-center space-x-1 px-3 py-1.5 md:py-1.5 rounded-full text-xs font-medium bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition-all duration-200"
                 >
                   <Filter size={14} />
                   <span>Clear</span>
@@ -469,14 +469,14 @@ const HomeCourseSection = ({
             </div>
           ) : filteredBlendedCourses.length > 0 ? (
             <motion.div 
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-4"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 md:gap-6"
               variants={containerVariants}
               initial="hidden"
               animate="visible"
             >
               {filteredBlendedCourses.map((course) => (
-                <motion.div key={course._id} variants={itemVariants}>
-                  <CourseCard course={course} scrollToTop={scrollToTop} />
+                <motion.div key={course._id} variants={itemVariants} className="blended-course-card">
+                  <CourseCard course={course} scrollToTop={scrollToTop} classType="blended" />
                 </motion.div>
               ))}
             </motion.div>
@@ -486,7 +486,7 @@ const HomeCourseSection = ({
         </div>
       )}
 
-      {/* Custom styles for animations */}
+      {/* Custom styles for animations and card styling */}
       <style jsx>{`
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(20px); }
@@ -495,6 +495,28 @@ const HomeCourseSection = ({
         
         .animate-fade-in {
           animation: fadeIn 0.8s ease forwards;
+        }
+        
+        /* Add enhanced styles for responsive text and card styling */
+        @media (max-width: 640px) {
+          .live-course-card, .blended-course-card {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+          }
+          
+          .live-course-card:hover, .blended-course-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+          }
+        }
+        
+        /* Make live course cards stand out differently from blended courses */
+        .live-course-card :global(.course-card) {
+          border-left: 3px solid rgba(244, 63, 94, 0.8); /* Rose color */
+        }
+        
+        .blended-course-card :global(.course-card) {
+          border-left: 3px solid rgba(99, 102, 241, 0.8); /* Indigo color */
         }
       `}</style>
     </div>
