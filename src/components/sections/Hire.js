@@ -199,7 +199,7 @@ const Hire = ({
             </div>
             
             <button
-              onClick={() => router.push("/corporate-training")}
+              onClick={() => router.push("/corporate-training-courses")}
               className="inline-flex items-center justify-center px-6 py-3 text-base font-medium text-green-700 bg-white hover:bg-gray-100 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform group-hover:translate-y-0 translate-y-0 group-hover:scale-[1.02]"
             >
               <span>{trainingButtonText}</span>
