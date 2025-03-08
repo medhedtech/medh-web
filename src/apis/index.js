@@ -506,8 +506,262 @@ export const apiUrls = {
     deleteNewJobPost: "/add-job-post/delete",
   },
   brouchers: {
-    getAllBrouchers: "/broucher/get",
-    addBroucher: "/broucher/create",
+    /**
+     * Get all brochures with pagination and filtering
+     * @param {Object} options - Query options
+     * @param {number} [options.page=1] - Page number
+     * @param {number} [options.limit=10] - Items per page
+     * @param {string} [options.search=""] - Search term
+     * @param {string} [options.sort_by="createdAt"] - Sort field
+     * @param {string} [options.sort_order="desc"] - Sort direction (asc/desc)
+     * @param {string} [options.status=""] - Brochure status
+     * @param {Array|string} [options.category=""] - Brochure categories
+     * @param {string} [options.course_id=""] - Filter by course ID
+     * @param {Object} [options.date_range={}] - Date range filter
+     * @param {string} [options.date_range.start=""] - Start date
+     * @param {string} [options.date_range.end=""] - End date
+     * @returns {string} The constructed API URL
+     */
+    getAllBrouchers: (options = {}) => {
+      const {
+        page = 1,
+        limit = 10,
+        search = "",
+        sort_by = "createdAt",
+        sort_order = "desc",
+        status = "",
+        category = "",
+        course_id = "",
+        date_range = {}
+      } = options;
+      
+      // Initialize URLSearchParams
+      const queryParams = new URLSearchParams();
+      
+      // Add pagination parameters
+      queryParams.append('page', page);
+      queryParams.append('limit', limit);
+      
+      // Add filtering parameters
+      apiUtils.appendParam('search', search, queryParams);
+      apiUtils.appendParam('status', status, queryParams);
+      apiUtils.appendParam('course_id', course_id, queryParams);
+      apiUtils.appendArrayParam('category', category, queryParams);
+      
+      // Add date range filters
+      if (date_range && Object.keys(date_range).length > 0) {
+        apiUtils.appendParam('date_start', date_range.start, queryParams);
+        apiUtils.appendParam('date_end', date_range.end, queryParams);
+      }
+      
+      // Add sorting parameters
+      apiUtils.appendParam('sort_by', sort_by, queryParams);
+      apiUtils.appendParam('sort_order', sort_order, queryParams);
+      
+      return `/api/v1/broucher${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    },
+    
+    /**
+     * Get a specific brochure by ID
+     * @param {string|number} id - Brochure ID
+     * @returns {string} The brochure API URL
+     */
+    getBroucherById: (id) => {
+      if (!id) throw new Error('Brochure ID is required');
+      return `/api/v1/broucher/${id}`;
+    },
+    
+    /**
+     * Create a new brochure
+     * @returns {string} The brochure creation API URL
+     */
+    createBroucher: "/api/v1/broucher/create",
+    
+    /**
+     * Update an existing brochure
+     * @param {string|number} id - Brochure ID to update
+     * @returns {string} The brochure update API URL
+     */
+    updateBroucher: (id) => {
+      if (!id) throw new Error('Brochure ID is required');
+      return `/api/v1/broucher/${id}`;
+    },
+    
+    /**
+     * Delete a brochure
+     * @param {string|number} id - Brochure ID to delete
+     * @returns {string} The brochure deletion API URL
+     */
+    deleteBroucher: (id) => {
+      if (!id) throw new Error('Brochure ID is required');
+      return `/api/v1/broucher/${id}`;
+    },
+    
+    /**
+     * Download a brochure for a course
+     * @param {string|number} courseId - Course ID
+     * @returns {string} The brochure download API URL
+     */
+    downloadBroucher: (courseId) => {
+      if (!courseId) throw new Error('Course ID is required');
+      return `/api/v1/broucher/download/${courseId}`;
+    },
+    
+    /**
+     * Get brochure download analytics
+     * @param {Object} options - Analytics filter options
+     * @param {string} [options.start_date=""] - Start date for analytics period
+     * @param {string} [options.end_date=""] - End date for analytics period
+     * @param {string} [options.course_id=""] - Filter by course ID
+     * @param {string} [options.source=""] - Filter by download source
+     * @returns {string} The brochure analytics API URL
+     */
+    getBroucherAnalytics: (options = {}) => {
+      const {
+        start_date = "",
+        end_date = "",
+        course_id = "",
+        source = ""
+      } = options;
+      
+      const queryParams = new URLSearchParams();
+      
+      // Add date range parameters
+      apiUtils.appendParam('start_date', start_date, queryParams);
+      apiUtils.appendParam('end_date', end_date, queryParams);
+      
+      // Add additional filters
+      apiUtils.appendParam('course_id', course_id, queryParams);
+      apiUtils.appendParam('source', source, queryParams);
+      
+      return `/api/v1/broucher/analytics${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    },
+    
+    /**
+     * Request a brochure download (with user information)
+     * @param {Object} options - Request parameters
+     * @param {string} [options.brochure_id=""] - Brochure ID (optional if course_id is provided)
+     * @param {string} options.course_id - Course ID
+     * @param {string} options.full_name - User's full name
+     * @param {string} options.email - User's email
+     * @param {string} options.phone_number - User's phone number
+     * @param {string} [options.country_code="IN"] - User's country code
+     * @param {Object} [options.additional_info={}] - Any additional information
+     * @returns {Object} The request URL and data
+     */
+    requestBroucher: (options = {}) => {
+      const {
+        brochure_id = "",
+        course_id,
+        full_name,
+        email,
+        phone_number,
+        country_code = "IN",
+        additional_info = {}
+      } = options;
+      
+      // Validate required parameters
+      if (!course_id) throw new Error('Course ID is required');
+      // Brochure ID is optional when course_id is provided
+      if (!full_name) throw new Error('Full name is required');
+      if (!email) throw new Error('Email is required');
+      if (!phone_number) throw new Error('Phone number is required');
+      
+      return {
+        url: `/broucher/download/${course_id}`,
+        data: {
+          brochure_id,
+          full_name,
+          email,
+          phone_number,
+          country_code,
+          ...additional_info
+        }
+      };
+    },
+    
+    /**
+     * Track brochure download for analytics
+     * @param {Object} options - Tracking parameters
+     * @param {string} [options.brochure_id=""] - Brochure ID (optional if course_id is provided)
+     * @param {string} [options.user_id=""] - User ID (if authenticated)
+     * @param {string} options.course_id - Course ID
+     * @param {string} [options.source="website"] - Source of download
+     * @param {Object} [options.metadata={}] - Additional metadata for analytics
+     * @param {string} [options.metadata.device_type=""] - Device type
+     * @param {string} [options.metadata.browser=""] - Browser information
+     * @param {string} [options.metadata.referrer=""] - Referrer information
+     * @returns {Object} The tracking URL and data
+     */
+    trackBroucherDownload: (options = {}) => {
+      const {
+        brochure_id = "",
+        user_id = "",
+        course_id,
+        source = "website",
+        metadata = {
+          device_type: "",
+          browser: "",
+          referrer: ""
+        }
+      } = options;
+      
+      // Validate required parameters
+      if (!course_id) throw new Error('Course ID is required');
+      // Brochure ID is optional when course_id is provided
+      
+      return {
+        url: "broucher/track-download",
+        data: {
+          brochure_id,
+          user_id,
+          course_id,
+          source,
+          metadata: {
+            timestamp: new Date().toISOString(),
+            ...metadata
+          }
+        }
+      };
+    },
+    
+    /**
+     * Generate a shareable brochure link
+     * @param {Object} options - Share options
+     * @param {string} [options.brochure_id=""] - Brochure ID (optional if course_id is provided)
+     * @param {string} options.course_id - Course ID 
+     * @param {string} [options.utm_source=""] - UTM source for tracking
+     * @param {string} [options.utm_medium=""] - UTM medium for tracking
+     * @param {string} [options.utm_campaign=""] - UTM campaign for tracking
+     * @returns {string} The shareable URL
+     */
+    getShareableBroucherLink: (options = {}) => {
+      const {
+        brochure_id = "",
+        course_id,
+        utm_source = "",
+        utm_medium = "",
+        utm_campaign = ""
+      } = options;
+      
+      // Validate required parameters
+      if (!course_id) throw new Error('Course ID is required');
+      // Brochure ID is optional when course_id is provided
+      
+      const queryParams = new URLSearchParams();
+      
+      // Add brochure_id parameter if provided
+      if (brochure_id) {
+        queryParams.append('brochure_id', brochure_id);
+      }
+      
+      // Add tracking parameters
+      apiUtils.appendParam('utm_source', utm_source, queryParams);
+      apiUtils.appendParam('utm_medium', utm_medium, queryParams);
+      apiUtils.appendParam('utm_campaign', utm_campaign, queryParams);
+      
+      return `broucher/share/${course_id}?${queryParams.toString()}`;
+    }
   },
   certificate: {
     getAllCertificate: "/certificates/get",

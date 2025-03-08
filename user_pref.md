@@ -267,19 +267,20 @@
 - Enhanced visual elements for touch interfaces
 - In-card hover state triggered by touch for mobile
 - Text-based action buttons instead of icon-only buttons
-- Full-width "View More" buttons at card bottom for clear call-to-action
-- Touch-activated hover state with close button in top-left corner
+- Compact "View More" buttons positioned in bottom-right corner for clear call-to-action
+- Touch-activated hover state with close button in top-right corner
 - Device detection using both user agent and viewport width
 - Larger touch targets (min 44px) for better mobile usability
 - Same content display for both desktop hover and mobile touch states
 - Consistent animation effects between desktop and mobile
 - Proper element positioning to avoid conflicts (tags and close buttons)
+- Hide course type tags in mobile hover view for cleaner interface
 
 ## Mobile Interaction Patterns
 - Replace hover states with tap-activated in-card hover effects
 - Use explicit text labels ("View More") instead of ambiguous icons
-- Position action buttons at the full width of container bottom
-- Add close buttons in top-left corner to avoid conflict with course tags
+- Position action buttons at the bottom-right corner for easy reach
+- Add close buttons in top-right corner for cleaner interaction
 - Include obvious close buttons for interactive elements
 - Ensure proper event propagation handling for nested clickable elements
 - Add immediate visual feedback for touch interactions
@@ -288,6 +289,7 @@
 - Use the same content displays for both hover (desktop) and touch (mobile)
 - Maintain consistent scaling and animation effects across platforms
 - Provide proper padding around elements to prevent overlap
+- Show course type tags only in normal view, not in hover view on mobile
 
 ## Mobile Performance Optimizations
 - Use consistent component structure between desktop and mobile
@@ -307,4 +309,48 @@
 - Lucide icons for consistent iconography
 - Device detection in useEffect hooks
 - Conditional rendering based on device type
-- Cleanup of event listeners and timers 
+- Cleanup of event listeners and timers
+
+# User Preferences for Medh Web Project
+
+## Important Files
+- **API Configuration**: `src/apis/index.js`
+- **Component Files**:
+  - `src/components/shared/download-broucher/index.js`: Brochure download modal
+- **Layout Files**: 
+  - To be added
+
+## Global Design Consistency
+- Modern UI components with a Gen Z look & feel
+- Minimal, elegant, and user-friendly design
+- Consistent color theme across all pages
+- Well-structured typography for readability
+- Smooth animations and transitions
+
+## API Structure
+- Base URL: `process.env.NEXT_PUBLIC_API_URL`
+- API utilities for URL parameter handling:
+  - `safeEncode`: Encode values for use in URLs
+  - `appendArrayParam`: Append array parameters to URL
+  - `appendParam`: Append simple parameters to URL
+- Consistent endpoint naming pattern
+- Structured API organization by module
+
+## Coding Techniques
+- Component-based architecture with React
+- Next.js for Server-Side Rendering and page routing
+- Clean, maintainable, and well-commented code
+- DRY (Don't Repeat Yourself) and SOLID principles
+- Performance optimization (lazy loading, code splitting)
+
+## Data Handling
+- Form validation with custom validation functions
+- Error handling for API requests
+- Authentication with HttpOnly cookies
+- User input sanitization
+
+## Development Guidelines
+- Plan before execution with clear goals
+- Follow an iterative approach for continuous improvement
+- Write modular, reusable components
+- Optimize for performance, security, and scalability 

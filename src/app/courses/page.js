@@ -5,9 +5,9 @@ import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import { BookOpen, Users, Star, ChevronRight, Sparkles, Clock, Award, ArrowRight } from 'lucide-react';
 
 export const metadata = {
-  title: "Professional Courses | Medh - Upskill Your Career",
-  description: "Discover industry-leading professional courses at Medh. From AI & Data Science to Digital Marketing, find the perfect course to advance your career.",
-  keywords: "professional courses, skill development, career advancement, online learning, Medh education",
+  title: "All Courses | Medh - Upskill Your Career",
+  description: "Discover industry-leading All courses at Medh. From AI & Data Science to Digital Marketing, find the perfect course to advance your career.",
+  keywords: "All courses, skill development, career advancement, online learning, Medh education",
 };
 
 const Courses = async () => {
@@ -15,7 +15,7 @@ const Courses = async () => {
     {
       icon: <BookOpen className="w-6 h-6 text-primary-400" />,
       value: "20+",
-      label: "Professional Courses"
+      label: "All Courses"
     },
     {
       icon: <Users className="w-6 h-6 text-primary-400" />,
@@ -33,7 +33,7 @@ const Courses = async () => {
     {
       icon: <Sparkles className="w-6 h-6 text-primary-400" />,
       title: "Expert-Led Training",
-      description: "Learn from industry professionals with proven expertise"
+      description: "Learn from industry ALLs with proven expertise"
     },
     {
       icon: <Clock className="w-6 h-6 text-primary-400" />,
@@ -65,13 +65,13 @@ const Courses = async () => {
               }
             >
               <CoursesFilter 
-                CustomText="Professional Courses"
+                CustomText="All Courses"
                 CustomButton={
                   <div className="inline-flex items-center px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-xl transition-colors shadow-sm hover:shadow-md">
                     View All Categories
                   </div>
                 }
-                // description="Explore our comprehensive range of professional courses designed to enhance your career prospects and industry expertise."
+                // description="Explore our comprehensive range of All courses designed to enhance your career prospects and industry expertise."
               />
             </Suspense>
           </div>
