@@ -41,6 +41,9 @@
 - `src/components/sections/hire/Hire.js` - Component for corporate hiring and training section
 - `src/components/sections/hire/JoinMedh.js` - Component for educator and partner institution section
 - `src/components/layout/main/Home1.js` - Main homepage layout with all section imports
+- `src/components/sections/courses/HomeCourseSection.js` - Courses display component
+- `src/components/sections/courses/CourseCard.js` - Individual course card component
+- `src/apis/index.js` - API configuration
 
 ## API Structure
 - Base URL Configuration: Dynamic based on environment
@@ -50,6 +53,9 @@
 - Using Next.js API routes
 - Dynamic API URL configuration
 - Server-side validation for inputs
+- Courses API uses pagination and filters
+- Live and Blended courses are fetched separately
+- Filtering applied client-side after fetching
 
 ## Performance Guidelines
 - Optimize images with next/image
@@ -236,4 +242,69 @@
 - DRY (Don't Repeat Yourself) principles
 - Component-based architecture
 - Performance optimization
-- PropTypes for type checking 
+- PropTypes for type checking
+
+## Design Consistency
+
+### Color Scheme
+- Live courses: Rose/pink color palette (#F43F5E)
+- Blended courses: Indigo color palette (#6366F1)
+- Primary gradient: Linear gradient from primary-500 to secondary-500
+
+### Typography
+- Headings: Bold/ExtraBold, gray-800 (dark: white)
+- Body text: Regular/Medium, gray-600 (dark: gray-300)
+- Buttons: Medium/Bold text
+
+### UI Components
+- Cards: Rounded corners (rounded-xl), subtle shadows, hover effects
+- Buttons: Rounded design, consistent padding
+- Filters: Pill-shaped (rounded-full)
+
+## Mobile Design
+- Improved padding for small devices
+- Optimized card layout for mobile view
+- Enhanced visual elements for touch interfaces
+- In-card hover state triggered by touch for mobile
+- Text-based action buttons instead of icon-only buttons
+- Full-width "View More" buttons at card bottom for clear call-to-action
+- Touch-activated hover state with close button in top-left corner
+- Device detection using both user agent and viewport width
+- Larger touch targets (min 44px) for better mobile usability
+- Same content display for both desktop hover and mobile touch states
+- Consistent animation effects between desktop and mobile
+- Proper element positioning to avoid conflicts (tags and close buttons)
+
+## Mobile Interaction Patterns
+- Replace hover states with tap-activated in-card hover effects
+- Use explicit text labels ("View More") instead of ambiguous icons
+- Position action buttons at the full width of container bottom
+- Add close buttons in top-left corner to avoid conflict with course tags
+- Include obvious close buttons for interactive elements
+- Ensure proper event propagation handling for nested clickable elements
+- Add immediate visual feedback for touch interactions
+- Ensure all tappable elements have proper hit areas
+- Remove animation delays for instant response to user interaction
+- Use the same content displays for both hover (desktop) and touch (mobile)
+- Maintain consistent scaling and animation effects across platforms
+- Provide proper padding around elements to prevent overlap
+
+## Mobile Performance Optimizations
+- Use consistent component structure between desktop and mobile
+- Properly truncate long text to prevent layout issues
+- Implement proper cleanup of event listeners and styles
+- Maintain animations and transitions for visual continuity
+
+## API Structure
+- Courses API uses pagination and filters
+- Live and Blended courses are fetched separately
+- Filtering applied client-side after fetching
+
+## Code Preferences
+- Functional components with hooks
+- Using Tailwind CSS for styling
+- Framer Motion for animations
+- Lucide icons for consistent iconography
+- Device detection in useEffect hooks
+- Conditional rendering based on device type
+- Cleanup of event listeners and timers 
