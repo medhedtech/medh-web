@@ -223,7 +223,7 @@ const Hire = ({
               {/* Button */}
               <div className="mt-auto">
                 <button
-                  onClick={() => router.push("/corporate-training")}
+                  onClick={() => router.push("/corporate-training-courses")}
                   className="relative w-full group/btn inline-flex items-center justify-center px-5 py-3.5 text-base font-medium text-white bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg overflow-hidden"
                 >
                   <span className="relative z-10">{trainingButtonText}</span>

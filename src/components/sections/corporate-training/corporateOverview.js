@@ -302,16 +302,6 @@ const CorporateOverview = () => {
           transition={{ delay: 0.4 }}
           className="max-w-4xl mx-auto bg-white dark:bg-gray-900 rounded-xl shadow-lg p-8 relative overflow-hidden"
         >
-          <div className="absolute top-0 right-0 m-4">
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              onClick={() => router.push("/contact")}
-              className="inline-flex items-center px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-lg transition-colors"
-            >
-              <Info size={16} className="mr-2" />
-              More Info
-            </motion.button>
-          </div>
           
           <h2 className="text-3xl font-bold text-primary-500 dark:text-primary-400 mb-6 text-center">
             {activeContent.name}

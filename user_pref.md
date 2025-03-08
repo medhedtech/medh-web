@@ -353,4 +353,38 @@
 - Plan before execution with clear goals
 - Follow an iterative approach for continuous improvement
 - Write modular, reusable components
-- Optimize for performance, security, and scalability 
+- Optimize for performance, security, and scalability
+
+# User Preferences - Medh Project
+
+## Important Files
+- `src/components/sections/blogs/Blogs.js` - Blog section component
+- `src/components/sections/blogs/BlogCard.js` - Individual blog card component
+- `src/utils/api.js` - API utilities file
+- `src/apis/apiClient.js` - API client configuration
+- `src/apis/index.js` - API endpoints definition
+- `src/hooks/getQuery.hook.js` - Custom hook for API GET requests
+
+## Global Design Consistency
+- Modern UI with Gen Z look & feel
+- Responsive design for all screen sizes
+- Smooth animations and transitions
+- Dark/light mode support
+- Consistent color palette with gradient accents
+- Card-based UI components with hover effects
+
+## API Structure
+- RESTful API endpoints
+- Consistent error handling
+- JWT authentication
+- Axios for API requests
+- Custom interceptors for request/response handling
+- Environment-based configuration
+
+## Coding Techniques
+- React hooks for state management
+- Functional components
+- Tailwind CSS for styling
+- Next.js for server-side rendering and routing
+- Component-based architecture
+- Lazy loading for better performance 
