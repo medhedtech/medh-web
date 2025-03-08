@@ -84,29 +84,26 @@ const DownloadBrochureModal = ({ isOpen, onClose, courseTitle, brochureId, cours
         return; // Stop execution here
       }
       
-      // Using the broucher/download endpoint with the ID
-      const downloadEndpoint = `${apiBaseUrl}/broucher/download/${idToUse}`;
-      
-      // Prepare user data to send with the download request
-      const userData = {
+      // Using the new API endpoints from apiUrls
+      const requestData = apiUrls.brouchers.requestBroucher({
+        brochure_id: brochureId,
+        course_id: courseId,
         full_name: formData.full_name,
         email: formData.email,
         phone_number: formData.phone_number,
-        country_code: formData.country_code,
-        course_id: courseId,
-        brochure_id: brochureId,
-      };
+        country_code: formData.country_code
+      });
 
-      console.log("Sending download request to:", downloadEndpoint);
-      console.log("With user data:", userData);
+      console.log("Sending download request to:", `${apiBaseUrl}${requestData.url}`);
+      console.log("With user data:", requestData.data);
 
-      const response = await fetch(downloadEndpoint, {
+      const response = await fetch(`${apiBaseUrl}${requestData.url}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: JSON.stringify(userData),
+        body: JSON.stringify(requestData.data),
       });
 
       if (!response.ok) {
@@ -119,15 +116,90 @@ const DownloadBrochureModal = ({ isOpen, onClose, courseTitle, brochureId, cours
       console.log("Received JSON response:", data);
 
       // Check for various possible URL fields in the response
-      const downloadUrl = data.downloadUrl || data.url || data.file || data.fileUrl || data.brochureUrl;
+      let downloadUrl = null;
+      
+      // Check for URL in the main response
+      if (typeof data === 'string' && (data.startsWith('http') || data.includes('.pdf'))) {
+        downloadUrl = data;
+      }
+      // Check for URL in data object
+      else if (data && typeof data === 'object') {
+        // Check for brochureUrl in data.data structure
+        if (data.data && typeof data.data === 'object') {
+          downloadUrl = data.data.brochureUrl || data.data.downloadUrl || data.data.url || data.data.file || data.data.fileUrl;
+        }
+        
+        // Check for URL in main data object if not found in data.data
+        if (!downloadUrl) {
+          downloadUrl = data.brochureUrl || data.downloadUrl || data.url || data.file || data.fileUrl;
+        }
+      }
 
       if (!downloadUrl) {
         console.error("Response data structure:", data);
         throw new Error('Download URL not found in response. Please contact support.');
       }
 
-      // Instead of fetching the file directly, open it in a new tab
-      window.open(downloadUrl, '_blank');
+      console.log("Found brochure URL for download:", downloadUrl);
+
+      // Track the download if user ID is available
+      const userId = localStorage.getItem('user_id');
+      if (userId) {
+        try {
+          // Track download asynchronously - don't await or block download
+          fetch(`${apiBaseUrl}${apiUrls.brouchers.trackBroucherDownload({
+            brochure_id: brochureId,
+            user_id: userId,
+            course_id: courseId,
+            source: window.location.pathname,
+            metadata: {
+              device: navigator.userAgent,
+              referrer: document.referrer
+            }
+          }).url}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(apiUrls.brouchers.trackBroucherDownload({
+              brochure_id: brochureId,
+              user_id: userId,
+              course_id: courseId,
+              source: window.location.pathname,
+              metadata: {
+                device: navigator.userAgent,
+                referrer: document.referrer
+              }
+            }).data),
+          });
+        } catch (trackError) {
+          // Don't block the download if tracking fails
+          console.error('Error tracking brochure download:', trackError);
+        }
+      }
+
+      // Ensure URL is valid before opening
+      if (!downloadUrl.startsWith('http') && !downloadUrl.startsWith('https')) {
+        downloadUrl = `https://${downloadUrl}`;
+      }
+
+      // Create a hidden anchor to trigger the download and click it programmatically
+      const downloadLink = document.createElement('a');
+      downloadLink.href = downloadUrl;
+      downloadLink.target = '_blank';
+      downloadLink.rel = 'noopener noreferrer';
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      
+      // Also try the traditional window.open as a fallback
+      setTimeout(() => {
+        try {
+          window.open(downloadUrl, '_blank');
+        } catch (openError) {
+          console.log('Tried fallback window.open method:', openError);
+        }
+      }, 500);
       
       // Show success message and reset form
       setDownloadSuccess(true);
