@@ -68,23 +68,6 @@ const Preloader = () => {
           </div>
         </div>
         
-        {/* Interactive Feature Cards */}
-        <div className="grid grid-cols-2 gap-6 mb-12 max-w-lg">
-          {/* Card 1 */}
-          <div className="group relative bg-gradient-to-br from-primary-500/10 to-purple-500/10 backdrop-blur-xl rounded-2xl p-4 border border-white/10 transform transition-all duration-500 hover:scale-105 hover:-rotate-2 hover:-translate-y-1">
-            <div className="absolute inset-0 bg-gradient-to-r from-primary-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl"></div>
-            <BookOpen className="text-primary-400 mb-2 transform transition-transform group-hover:scale-110 group-hover:rotate-6" size={24} />
-            <p className="text-white/80 text-sm font-medium">Initializing Content</p>
-          </div>
-          
-          {/* Card 2 */}
-          <div className="group relative bg-gradient-to-br from-secondary-500/10 to-pink-500/10 backdrop-blur-xl rounded-2xl p-4 border border-white/10 transform transition-all duration-500 hover:scale-105 hover:rotate-2 hover:-translate-y-1 translate-y-4">
-            <div className="absolute inset-0 bg-gradient-to-r from-secondary-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl"></div>
-            <Target className="text-secondary-400 mb-2 transform transition-transform group-hover:scale-110 group-hover:-rotate-6" size={24} />
-            <p className="text-white/80 text-sm font-medium">Loading Resources</p>
-          </div>
-        </div>
-        
         {/* Enhanced Progress Bar */}
         <div className="relative w-72 perspective">
           {/* Progress Container */}

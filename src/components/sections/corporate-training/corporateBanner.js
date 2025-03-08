@@ -3,11 +3,10 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, Award, Users, Target, BookOpen } from "lucide-react";
+import { ArrowRight, Award, Users, Target, BookOpen, Star, Briefcase, ChevronRight, Building, TrendingUp } from "lucide-react";
 import Banner from "@/assets/Header-Images/Corporate/ai-with-data-science.png";
 import Cource from "@/assets/Header-Images/Corporate/close-up-people-learning-job.jpg";
 import Iso from "@/assets/images/vedic-mathematics/vedic-logo.svg";
-import LetsConnect from "@/assets/images/news-media/btn-vertical.svg";
 
 export default function CorporateBanner() {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -20,6 +19,24 @@ export default function CorporateBanner() {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0 }
   };
+
+  const stats = [
+    {
+      icon: <Building className="w-5 h-5 text-primary-500" />,
+      value: "250+",
+      label: "Corporate Partners"
+    },
+    {
+      icon: <Star className="w-5 h-5 text-yellow-500" />,
+      value: "4.8/5",
+      label: "Training Rating"
+    },
+    {
+      icon: <TrendingUp className="w-5 h-5 text-primary-500" />,
+      value: "95%",
+      label: "ROI Satisfaction"
+    }
+  ];
 
   const features = [
     {
@@ -77,6 +94,24 @@ export default function CorporateBanner() {
               </p>
             </div>
 
+            {/* Stats Section */}
+            <div className="grid grid-cols-3 gap-6">
+              {stats.map((stat, index) => (
+                <motion.div
+                  key={index}
+                  initial="hidden"
+                  animate={isLoaded ? "visible" : "hidden"}
+                  variants={fadeInUp}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  className="text-center"
+                >
+                  <div className="flex justify-center mb-2">{stat.icon}</div>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">{stat.label}</div>
+                </motion.div>
+              ))}
+            </div>
+
             {/* Features Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {features.map((feature, index) => (
@@ -106,7 +141,7 @@ export default function CorporateBanner() {
                 className="inline-flex items-center px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-lg transition-all transform hover:-translate-y-0.5 shadow-lg shadow-primary-500/25"
               >
                 Let's Connect
-                <ArrowRight className="ml-2 h-5 w-5" />
+                <ChevronRight className="ml-2 h-5 w-5" />
               </Link>
               <Link
                 href="/courses"
@@ -138,6 +173,14 @@ export default function CorporateBanner() {
                 className="w-full h-auto rounded-2xl transform hover:scale-105 transition-transform duration-700"
                 priority
               />
+
+              {/* Accent decorations */}
+              <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm p-2 rounded-lg">
+                <Award className="text-primary-500 w-6 h-6" />
+              </div>
+              <div className="absolute bottom-4 right-4 bg-white/20 backdrop-blur-sm p-2 rounded-lg">
+                <Briefcase className="text-primary-500 w-6 h-6" />
+              </div>
             </div>
 
             {/* Floating Card */}
@@ -163,6 +206,21 @@ export default function CorporateBanner() {
                     Trained Successfully
                   </p>
                 </div>
+              </div>
+            </motion.div>
+
+            {/* Additional Floating Element */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.7 }}
+              className="absolute -top-4 -right-4 bg-white dark:bg-gray-800 px-4 py-2 rounded-lg shadow-lg"
+            >
+              <div className="flex items-center gap-2">
+                <Users className="text-primary-500 w-5 h-5" />
+                <p className="text-xs font-medium text-gray-900 dark:text-white">
+                  Custom Workforce Training
+                </p>
               </div>
             </motion.div>
           </motion.div>
