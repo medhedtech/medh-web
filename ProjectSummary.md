@@ -19,6 +19,45 @@ Medh is a modern ed-tech platform built using Next.js. The platform offers cours
 
 ## Recent Improvements
 
+### Modern UI/UX Enhancements
+1. **Blog Listing Page Modernization**
+   - Implemented comprehensive filtering system with category, tag, and search
+   - Added grid/list view toggle for content display flexibility
+   - Created visual feedback for loading, empty, and error states
+   - Implemented URL-based filter state for shareable search results
+   - Added server-side rendering with dynamic metadata generation
+
+2. **Blog Details Page Redesign**
+   - Created Gen Alpha-friendly interface with modern aesthetics
+   - Implemented interactive features like reading progress, bookmarks, and likes
+   - Added social sharing capabilities for major platforms
+   - Created auto-generated table of contents with active section tracking
+   - Enhanced typography and layout for improved readability
+   - Added responsive sidebar with related content
+
+### Next.js App Router Integration
+1. **Blog Details Page**
+   - Converted from static data to dynamic API integration
+   - Implemented server-side data fetching with proper error handling
+   - Added dynamic metadata generation for SEO optimization
+   - Enhanced route generation with API-driven static paths
+   - Improved user experience with real-time content
+
+2. **Blog Listing Page**
+   - Implemented server-side rendering with initial data fetching
+   - Added dynamic route handling with searchParams support
+   - Created adaptive metadata based on filter parameters
+   - Added smart data revalidation with caching
+   - Implemented optimized client-side hydration
+
+### API and Component Integration
+1. **Blog API Integration**
+   - Enhanced Blogs component to properly use backend API endpoints
+   - Implemented data transformation to match component requirements
+   - Added support for fetching featured blogs and filtering by tags
+   - Improved error handling and fallback mechanisms
+   - Created automatic read time estimation for blog posts
+
 ### UI/UX Enhancements
 1. **Blogs Component**
    - Added modern filtering capabilities (All, Latest, Popular, Quick Reads)
@@ -58,13 +97,52 @@ Medh is a modern ed-tech platform built using Next.js. The platform offers cours
 
 ## Key Files and Routes
 - **Components**: 
-  - `src/components/sections/blogs/Blogs.js` - Main blogs display
-  - `src/components/sections/blogs/BlogCard.js` - Individual blog cards
+  - `src/components/sections/blogs/Blogs.js` - Main blogs display with API integration
+  - `src/components/sections/blogs/BlogCard.js` - Individual blog cards with responsive design
+  - `src/components/sections/blogs/BlogsPrimary.js` - Blog listing component with filtering
+  - `src/components/sections/blog-details/BlogDetails.js` - Modern blog content display with interactive features
+  - `src/components/layout/main/BlogDetailsMain.js` - Blog details layout wrapper
+  - `src/components/layout/main/BlogsMain.js` - Blog listing page wrapper with dynamic titles
+- **Pages**:
+  - `src/app/blogs/page.js` - Blog listing page with server-side rendering
+  - `src/app/blogs/[id]/page.js` - Dynamic blog details page with API fetching
 - **API Utilities**:
   - `src/utils/api.js` - Enhanced API client with caching and retries
-  - `src/apis/index.js` - Comprehensive API endpoint definitions
+  - `src/apis/index.js` - Comprehensive API endpoint definitions for all features
 - **Hooks**:
   - `src/hooks/getQuery.hook.js` - Custom hook for API GET requests
+
+## Backend Integration
+- **Blog API Endpoints**:
+  - `/blogs/get` - Get all blogs with filtering and pagination
+  - `/blogs/get/:id` - Get a specific blog by ID
+  - `/blogs/create` - Create a new blog post
+  - `/blogs/update/:id` - Update an existing blog post
+  - `/blogs/delete/:id` - Delete a blog post
+  - `/blogs/related/:id` - Get related blogs based on tags or categories
+  - `/blogs/categories` - Get all blog categories
+  - `/blogs/tags` - Get popular blog tags
+- **Data Structure**:
+  - Blog posts include title, blog_link, upload_image, and other metadata
+  - Frontend transforms API data to match component requirements
+  - Automatic generation of missing fields with sensible defaults
+
+## User Engagement Features
+- **Interactive Elements**:
+  - Reading progress tracking with visual indicator
+  - Like/bookmark functionality with localStorage persistence
+  - Social sharing capabilities (Facebook, Twitter, LinkedIn)
+  - Copy link to clipboard with feedback
+  - Table of contents with active section highlighting
+  - Easy navigation with back-to-top button
+  - Related blogs section for content discovery
+  
+- **Content Discovery**:
+  - Advanced filtering with category and tag support
+  - Robust search functionality for content finding
+  - Grid and list view options for different browsing preferences
+  - Featured content toggle for highlighting important articles
+  - Related content recommendations for increased engagement
 
 ## Future Development
 - Enhance analytics tracking for user interactions
