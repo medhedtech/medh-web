@@ -33,5 +33,5 @@ function JoinEducator() {
     </PageWrapper>
   );
 }
-
 export default JoinEducator;
+

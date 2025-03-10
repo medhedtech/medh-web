@@ -277,7 +277,7 @@ const NavbarRight = ({ isScrolled }) => {
             >
               <span className="relative z-10 inline-flex items-center font-semibold tracking-wide overflow-hidden whitespace-nowrap text-ellipsis max-w-full">
                 <span className="animate-shimmer bg-clip-text text-transparent bg-[linear-gradient(110deg,#fff,45%,#7ECA9D,55%,#fff)] bg-[length:250%_100%] truncate">
-                  Get Started
+                  Sign Up for Free
                 </span>
                 <ExternalLink size={14} className="ml-1 flex-shrink-0 transform transition-transform group-hover:translate-x-0.5 group-hover:rotate-45" />
               </span>

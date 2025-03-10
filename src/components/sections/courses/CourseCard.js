@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import DownloadBrochureModal from "@/components/shared/download-broucher";
@@ -132,7 +132,7 @@ const animationStyles = `
 const CourseInfoTooltip = ({ course, isVisible, position, classType }) => {
   if (!isVisible) return null;
 
-  const isLiveCourse = classType === 'live';
+  const isLiveCourse = classType === 'live course';
   const { convertPrice, formatPrice: formatCurrencyPrice } = useCurrency();
 
   return (
@@ -382,8 +382,15 @@ const CourseCard = ({
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
-  // Track mouse movement for 3D tilt effect
-  const handleMouseMove = (e) => {
+  // Mouse and touch interaction handlers
+  const resetTilt = useCallback(() => {
+    setTiltStyle({
+      transform: 'perspective(1000px) rotateX(0deg) rotateY(0deg)',
+      transition: 'transform 0.5s ease'
+    });
+  }, []);
+
+  const handleMouseMove = useCallback((e) => {
     if (!cardRef.current || !isHovered) return;
     
     const card = cardRef.current;
@@ -399,19 +406,54 @@ const CourseCard = ({
       transition: 'transform 0.1s ease'
     });
 
-    // Update tooltip position
     setTooltipPosition({
       x: rect.right,
       y: rect.top
     });
-  };
-  
-  const resetTilt = () => {
-    setTiltStyle({
-      transform: 'perspective(1000px) rotateX(0deg) rotateY(0deg)',
-      transition: 'transform 0.5s ease'
-    });
-  };
+  }, [isHovered]);
+
+  const handleMouseEnter = useCallback(() => {
+    if (!isMobile) {
+      setIsHovered(true);
+      tooltipTimeout.current = setTimeout(() => {
+        setShowTooltip(true);
+      }, 500);
+    }
+  }, [isMobile]);
+
+  const handleMouseLeave = useCallback(() => {
+    if (!isMobile) {
+      setIsHovered(false);
+      setShowTooltip(false);
+      resetTilt();
+      if (tooltipTimeout.current) {
+        clearTimeout(tooltipTimeout.current);
+      }
+    }
+  }, [isMobile, resetTilt]);
+
+  const openMobileHover = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setMobileHoverActive(true);
+  }, []);
+
+  const closeMobileHover = useCallback((e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setMobileHoverActive(false);
+  }, []);
+
+  // Cleanup effect for tooltip timeout
+  useEffect(() => {
+    return () => {
+      if (tooltipTimeout.current) {
+        clearTimeout(tooltipTimeout.current);
+      }
+    };
+  }, []);
 
   // Update the formatPrice function to handle individual and batch prices
   const formatPrice = (price, batchPrice) => {
@@ -694,175 +736,79 @@ const CourseCard = ({
   // Format and adapt course description for display
   const adaptedDescription = useResponsiveText(course?.course_description, {xs: 80, sm: 120, md: 160, lg: 200});
 
-  // Determine card type
+  // Determine course type and styling
   const isLiveCourse = classType === 'live';
-  const isBlendedCourse = classType === 'blended_courses';
+  const isBlendedCourse = classType === 'blended';
 
-  // Get pricing display based on class type
-  const getPricingDisplay = () => {
-    if (!course?.course_fee) return "Free";
-    
-    const formattedPrice = formatPrice(course.course_fee, course.original_fee);
-    const discount = course.original_fee ? calculateBatchDiscount(course.course_fee, course.original_fee) : 0;
-    
-    return {
-      current: formattedPrice,
-      original: course.original_fee ? formatPrice(course.original_fee) : null,
-      discount: discount > 0 ? `${discount}% off` : null
-    };
-  };
-
-  const pricingInfo = getPricingDisplay();
-
-  // Update the getGradeDisplay function
-  const getGradeDisplay = (grade) => {
-    if (!grade) return "All Grades";
-    
-    // Handle array of grades
-    if (Array.isArray(grade)) {
-      return grade.join(', ');
-    }
-    
-    // Handle different grade formats
-    const gradeMap = {
-      'Preschool': 'Preschool',
-      'Grade 1-2': 'Grade 1-2',
-      'Grade 3-4': 'Grade 3-4',
-      'Grade 5-6': 'Grade 5-6',
-      'Grade 7-8': 'Grade 7-8',
-      'Grade 9-10': 'Grade 9-10',
-      'Grade 11-12': 'Grade 11-12',
-      'UG - Graduate - Professionals': 'UG & Professionals'
-    };
-
-    // If the grade is in our map, return the formatted version
-    if (gradeMap[grade]) {
-      return gradeMap[grade];
-    }
-
-    // If it's not in our map, return as is
-    return grade;
-  };
-
-  // Update the getGradeLevelInfo function
-  const getGradeLevelInfo = (grade) => {
-    // Default info for no grade
-    const defaultInfo = {
-      icon: <Users size={16} />,
-      color: isLiveCourse ? 'text-rose-500' : 'text-indigo-500',
-      label: 'All Grades'
-    };
-
-    if (!grade) return defaultInfo;
-
-    // Handle array of grades
-    if (Array.isArray(grade)) {
+  // Get course type specific styles
+  const getCourseTypeStyles = () => {
+    if (isLiveCourse) {
       return {
-        icon: <Users size={16} />,
-        color: isLiveCourse ? 'text-rose-500' : 'text-indigo-500',
-        label: 'Multiple Grades'
+        tagBg: 'bg-rose-500/90',
+        tagText: 'text-white',
+        buttonBg: 'bg-rose-500 hover:bg-rose-600',
+        buttonText: 'text-white',
+        accentColor: 'text-rose-500 dark:text-rose-400',
+        borderHover: 'hover:border-rose-400/60',
+        shadowHover: 'hover:shadow-rose-200/20',
+        gradientBg: 'from-rose-50 via-white to-rose-50 dark:from-rose-900/10 dark:via-gray-900 dark:to-rose-900/10',
+        iconColor: 'text-rose-500',
+        borderLeft: 'border-l-4 border-rose-500/80'
       };
     }
-
-    const levelInfo = {
-      'Preschool': {
-        icon: <GraduationCap size={16} />,
-        color: isLiveCourse ? 'text-rose-500' : 'text-indigo-500',
-        label: 'Early Education'
-      },
-      'Grade 1-2': {
-        icon: <BookOpen size={16} />,
-        color: isLiveCourse ? 'text-rose-500' : 'text-indigo-500',
-        label: 'Primary Level'
-      },
-      'Grade 3-4': {
-        icon: <BookOpen size={16} />,
-        color: isLiveCourse ? 'text-rose-500' : 'text-indigo-500',
-        label: 'Primary Level'
-      },
-      'Grade 5-6': {
-        icon: <BookOpen size={16} />,
-        color: isLiveCourse ? 'text-rose-500' : 'text-indigo-500',
-        label: 'Middle Level'
-      },
-      'Grade 7-8': {
-        icon: <BookOpen size={16} />,
-        color: isLiveCourse ? 'text-rose-500' : 'text-indigo-500',
-        label: 'Middle Level'
-      },
-      'Grade 9-10': {
-        icon: <GraduationCap size={16} />,
-        color: isLiveCourse ? 'text-rose-500' : 'text-indigo-500',
-        label: 'Secondary Level'
-      },
-      'Grade 11-12': {
-        icon: <GraduationCap size={16} />,
-        color: isLiveCourse ? 'text-rose-500' : 'text-indigo-500',
-        label: 'Higher Secondary'
-      },
-      'UG - Graduate - Professionals': {
-        icon: <Award size={16} />,
-        color: isLiveCourse ? 'text-rose-500' : 'text-indigo-500',
-        label: 'Professional Level'
-      }
+    // Default to blended course styles
+    return {
+      tagBg: 'bg-indigo-500/90',
+      tagText: 'text-white',
+      buttonBg: 'bg-indigo-500 hover:bg-indigo-600',
+      buttonText: 'text-white',
+      accentColor: 'text-indigo-500 dark:text-indigo-400',
+      borderHover: 'hover:border-indigo-400/60',
+      shadowHover: 'hover:shadow-indigo-200/20',
+      gradientBg: 'from-indigo-50 via-white to-indigo-50 dark:from-indigo-900/10 dark:via-gray-900 dark:to-indigo-900/10',
+      iconColor: 'text-indigo-500',
+      borderLeft: 'border-l-4 border-indigo-500/80'
     };
-    
-    return levelInfo[grade] || defaultInfo;
   };
 
-  // Open touch "hover" for mobile
-  const openMobileHover = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setMobileHoverActive(true);
-  };
+  const styles = getCourseTypeStyles();
 
-  // Close touch "hover" for mobile
-  const closeMobileHover = (e) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
+  // Get course type specific content
+  const getCourseTypeContent = () => {
+    if (isLiveCourse) {
+      return {
+        tag: 'Live',
+        sessionLabel: 'Live Sessions',
+        durationLabel: 'Live Interactive',
+        scheduleInfo: course?.schedule || 'Flexible Schedule',
+        instructorLabel: 'Live Instructor',
+        priceLabel: 'Per Session'
+      };
     }
-    setMobileHoverActive(false);
-  };
-
-  // Update mouse enter/leave handlers to not affect mobile
-  const handleMouseEnter = () => {
-    if (!isMobile) {
-      setIsHovered(true);
-      tooltipTimeout.current = setTimeout(() => {
-        setShowTooltip(true);
-      }, 500); // Show tooltip after 500ms hover
-    }
-  };
-
-  const handleMouseLeave = () => {
-    if (!isMobile) {
-      setIsHovered(false);
-      setShowTooltip(false);
-      resetTilt();
-      if (tooltipTimeout.current) {
-        clearTimeout(tooltipTimeout.current);
-      }
-    }
-  };
-
-  // Clean up timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (tooltipTimeout.current) {
-        clearTimeout(tooltipTimeout.current);
-      }
+    // Default to blended course content
+    return {
+      tag: 'Blended',
+      sessionLabel: 'Self-Paced Classes',
+      durationLabel: 'Self-Paced Learning',
+      scheduleInfo: 'Learn at your own pace',
+      instructorLabel: 'Course Instructor',
+      priceLabel: 'Full Course'
     };
-  }, []);
+  };
 
+  const content = getCourseTypeContent();
+
+  // Update card className to use dynamic styles
   return (
     <>
       <div 
         ref={cardRef}
-        className={`course-card group relative flex flex-col h-full rounded-xl overflow-hidden border border-gray-200/20 dark:border-gray-800/40 bg-white/90 dark:bg-gray-900/90 backdrop-filter backdrop-blur-sm transition-all duration-300 ${
-          isHovered || mobileHoverActive ? 'scale-[1.02] z-10 shadow-xl' : 'scale-100 z-0 shadow-md'
-        } ${isLiveCourse ? 'hover:border-rose-400/60 hover:shadow-rose-200/20' : 'hover:border-indigo-400/60 hover:shadow-indigo-200/20'}`}
+        className={`course-card group relative flex flex-col h-full rounded-xl overflow-hidden 
+          border border-gray-200/20 dark:border-gray-800/40 
+          bg-white/90 dark:bg-gray-900/90 backdrop-filter backdrop-blur-sm 
+          transition-all duration-300 
+          ${isHovered || mobileHoverActive ? 'scale-[1.02] z-10 shadow-xl' : 'scale-100 z-0 shadow-md'}
+          ${styles.borderHover} ${styles.shadowHover} ${styles.borderLeft}`}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onMouseMove={handleMouseMove}
@@ -870,12 +816,9 @@ const CourseCard = ({
       >
         {/* Course type indicator tag */}
         {classType && (!isMobile || !mobileHoverActive) && (
-          <div className={`absolute top-2 right-2 z-20 px-2.5 py-1 rounded-full text-xs font-bold ${
-            classType === 'live' 
-              ? 'bg-rose-500/90 text-white' 
-              : 'bg-indigo-500/90 text-white'
-          }`}>
-            {classType === 'live' ? 'Live' : 'Blended'}
+          <div className={`absolute top-2 right-2 z-20 px-2.5 py-1 rounded-full text-xs font-bold 
+            ${styles.tagBg} ${styles.tagText}`}>
+            {content.tag}
           </div>
         )}
 
@@ -933,19 +876,15 @@ const CourseCard = ({
               {course?.course_title || "Course Title"}
             </h3>
             <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2 flex items-center gap-2">
-              {classType === 'live' ? (
+              {isLiveCourse ? (
                 <>
-                  <Clock size={16} className="text-rose-500 dark:text-rose-400" />
-                  {course?.course_duration && course.course_duration.includes('18 months') 
-                    ? "18 Months (incl. 3-month internship)"
-                    : course?.course_duration 
-                      ? `${course.course_duration.split(' ').slice(0, 2).join(' ').replace('months', 'Months')} Course` 
-                      : "Self-Paced Course"}
+                  <Clock size={16} className={styles.accentColor} />
+                  {course?.course_duration || content.scheduleInfo}
                 </>
               ) : (
                 <>
-                  <BookOpen size={16} className="text-indigo-500 dark:text-indigo-400" />
-                  "Self-Paced Course"
+                  <BookOpen size={16} className={styles.accentColor} />
+                  {content.durationLabel}
                 </>
               )}
             </p>
@@ -953,12 +892,9 @@ const CourseCard = ({
             {/* Course Stats */}
             <div className="flex items-center gap-4 mb-3">
               <div className="flex items-center gap-1.5">
-                <Users size={14} className={`${classType === 'live' ? 'text-rose-500' : 'text-indigo-500'}`} />
-                <span className="text-xs font-medium text-gray-600">{course?.no_of_Sessions || 0} {classType === 'live' ? 'Sessions' : 'Classes'}</span>
-                {classType != 'live' && (
-                  <span className="text-xs text-gray-600">({course?.min_hours_per_week || 0}-{course?.max_hours_per_week || 0} hrs / week)</span>
-                )}
-                {classType === 'live' && (
+                <Users size={14} className={`${isLiveCourse ? 'text-rose-500' : 'text-indigo-500'}`} />
+                <span className="text-xs font-medium text-gray-600">{course?.no_of_Sessions || 0} {isLiveCourse ? 'Sessions' : 'Classes'}</span>
+                {isLiveCourse && (
                   <span className="text-xs text-gray-600">(60-90 min each)</span>
                 )}
               </div>
@@ -970,17 +906,17 @@ const CourseCard = ({
                 <span className={`text-xl font-bold ${
                   isLiveCourse ? 'text-rose-600 dark:text-rose-400' : 'text-indigo-600 dark:text-indigo-400'
                 }`}>
-                  {pricingInfo.current}
+                  {course?.course_fee ? formatCurrencyPrice(convertPrice(course.course_fee)) : 'Free'}
                 </span>
-                {pricingInfo.original && (
+                {course?.original_fee && (
                   <span className="text-sm text-gray-500 line-through">
-                    {pricingInfo.original}
+                    {formatCurrencyPrice(convertPrice(course.original_fee))}
                   </span>
                 )}
               </div>
-              {pricingInfo.discount && (
+              {course?.original_fee && (
                 <span className="text-xs text-green-500 font-medium">
-                  {pricingInfo.discount}
+                  {calculateBatchDiscount(course.course_fee, course.original_fee)}% off
                 </span>
               )}
             </div>
@@ -1082,30 +1018,6 @@ const CourseCard = ({
             </button>
           </div>
         </div>
-
-        {/* Custom styles for course type indicator */}
-        <style jsx>{`
-          .course-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: ${classType ? '4px' : '0'};
-            height: 100%;
-            background: ${classType === 'live' 
-              ? 'linear-gradient(to bottom, rgba(244, 63, 94, 0.9), rgba(244, 63, 94, 0.2))' 
-              : classType === 'blended'
-                ? 'linear-gradient(to bottom, rgba(99, 102, 241, 0.9), rgba(99, 102, 241, 0.2))'
-                : 'transparent'};
-            z-index: 5;
-          }
-          
-          @media (max-width: 640px) {
-            .course-card {
-              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            }
-          }
-        `}</style>
       </div>
 
       {/* Download brochure modal */}
