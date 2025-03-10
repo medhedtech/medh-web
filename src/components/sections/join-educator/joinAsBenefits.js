@@ -1,47 +1,61 @@
+"use client";
 import React from "react";
+import { motion } from "framer-motion";
+import { 
+  Globe, Award, Clock, Brain, Users, 
+  Laptop, GraduationCap, BarChart, Sparkles 
+} from "lucide-react";
 
 const benefitsData = [
   {
+    icon: <Globe className="w-6 h-6" />,
     title: "Impactful Work",
-    description:
-      "As an educator, you have the opportunity to make a significant impact on the lives of students and learners worldwide. Your expertise and teaching can reach a broader audience, transcending geographical boundaries.",
+    description: "Make a significant impact on students worldwide, transcending geographical boundaries.",
   },
   {
+    icon: <Award className="w-6 h-6" />,
     title: "Leveraging Technology",
     description:
       "Join us to leverage advanced technologies for an enhanced learning experience. Stay at the forefront of educational innovation, with interactive content, AI-driven adaptive learning, and personalized teaching.",
   },
   {
+    icon: <Clock className="w-6 h-6" />,
     title: "Flexibility & Remote Work",
     description:
       "We offer flexible work arrangements, including the option to work remotely. This can provide you with a better work-life balance and the freedom to manage your schedule.",
   },
   {
+    icon: <Brain className="w-6 h-6" />,
     title: "Diverse Audience and Subjects",
     description:
       "We cater to a wide range of subjects and learners of all ages. This diversity allows you to teach a subject you are passionate about and connect with learners from various cultural backgrounds.",
   },
   {
+    icon: <Users className="w-6 h-6" />,
     title: "Continuous Learning and Growth",
     description:
       "Working in EdTech exposes you to a dynamic and evolving industry. You'll have opportunities for professional development, training, and gaining new skills to improve your teaching abilities.",
   },
   {
+    icon: <Laptop className="w-6 h-6" />,
     title: "Global Reach",
     description:
       "As part of Medh EdTech, you can reach students from different parts of the world, creating a truly global classroom. This international exposure can broaden your perspective and enrich your teaching methods.",
   },
   {
+    icon: <Users className="w-6 h-6" />,
     title: "Community and Collaboration",
     description:
       "We foster a supportive community of educators. Collaborating with like-minded professionals can be inspiring, and you can share ideas and best practices with colleagues from diverse backgrounds.",
   },
   {
+    icon: <BarChart className="w-6 h-6" />,
     title: "Data-Driven Insights",
     description:
       "We use data analytics to track student progress and performance. This data-driven approach can help you identify individual learning needs and tailor your teaching to optimize learning outcomes.",
   },
   {
+    icon: <Sparkles className="w-6 h-6" />,
     title: "Innovation and Creativity",
     description:
       "We encourage creativity in teaching. You can experiment with different teaching strategies, create interactive content, and use multimedia to make learning engaging and enjoyable.",
@@ -63,55 +77,72 @@ const earningPotentialData = [
 ];
 
 const Benefits = () => {
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5 }
+    }
+  };
+
   return (
-    <section className="py-16 w-full bg-whit dark:bg-screen-dark flex justify-center items-center">
-      <div className="w-[92%] lg:w-[80%]">
-        {/* Benefits Section */}
-        <div className="text-center px-3 lg:px-15">
-          <h2 className="text-3xl font-bold text-primaryColor">Benefits</h2>
-          <p className="mt-4 text-gray-600 text-[15px] leading-7 dark:text-gray300">
-            Embark on an exhilarating journey of knowledge sharing, empowerment,
-            and personal growth as an educator with Medh EdTech. Our platform
-            offers a gratifying and fulfilling career choice for various
-            compelling reasons:
-          </p>
-        </div>
+    <section className="relative py-20 bg-gradient-to-b from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
+      <div className="container mx-auto px-4">
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={containerVariants}
+          className="max-w-7xl mx-auto"
+        >
+          {/* Adjusted header padding */}
+          <motion.div variants={itemVariants} className="text-center mb-16 px-4 md:px-0">
+            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-6">
+              Why Join Medh as an Educator?
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+              Discover the advantages of being part of our innovative teaching platform
+            </p>
+          </motion.div>
 
-        {/* Render the General Benefits */}
-        <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {benefitsData.map((benefit, index) => (
-            <div
-              key={index}
-              className="px-4 pb-6 pt-8 bg-white rounded-3xl border border-[#0000004D] dark:border-gray600 shadow-card-custom w-full transition-transform duration-300 ease-in-out hover:shadow-lg hover:scale-105 dark:bg-inherit "
-            >
-              <h3 className="text-[20px] leading-6 font-bold text-[#252525] dark:text-gray300 mb-4">
-                {benefit.title}
-              </h3>
-              <p className="text-[#727695] text-[14px] dark:text-gray50 leading-7 pt-1">
-                {benefit.description}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        {/* Earning Potential Section */}
-        <div className="mt-10">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 gap-6">
-            {earningPotentialData.map((item, index) => (
-              <div
+          {/* Benefits Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {benefitsData.map((benefit, index) => (
+              <motion.div
                 key={index}
-                className="w-full px-4 py-8 bg-white dark:bg-inherit shadow-card-custom rounded-2xl border dark:border-gray600 border-[#0000004D] flex flex-col transition-transform duration-300 ease-in-out hover:shadow-lg hover:scale-105"
+                variants={itemVariants}
+                className="group"
               >
-                <h3 className="text-[20px] leading-6 font-bold text-[#252525] dark:text-gray50 mb-4">
-                  {item.title}
-                </h3>
-                <p className="text-[#727695] text-[14px] dark:text-gray300 leading-7 pt-1 flex-grow">
-                  {item.description}
-                </p>
-              </div>
+                <div className="relative bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700">
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary-500/10 to-secondary-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  
+                  <div className="relative z-10">
+                    <div className="w-12 h-12 rounded-lg bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 mb-6 group-hover:scale-110 transition-transform duration-300">
+                      {benefit.icon}
+                    </div>
+                    
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 group-hover:text-primary-600 transition-colors duration-300">
+                      {benefit.title}
+                    </h3>
+                    
+                    <p className="text-gray-600 dark:text-gray-300">
+                      {benefit.description}
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

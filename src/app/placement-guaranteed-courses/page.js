@@ -20,7 +20,7 @@ function PlacementGauranty() {
       <HiringProcessPlacement/>
       <PlacementBenefits/>
       <PlacementFaq />
-      <div className="bg-white pb-6 mt-[-3%]">
+      <div>
         <Certified />
       </div>
       <PlacementCourseBanner />

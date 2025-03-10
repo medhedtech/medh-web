@@ -1,6 +1,9 @@
 export const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL; //live instance URL
 // export const apiBaseUrl = "http://localhost:8080/api/v1"; // local URL
 
+// Dynamically determine API base URL according to project standards
+// export const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
+
 // Shared utility functions for API URL construction
 const apiUtils = {
   /**
@@ -11,6 +14,54 @@ const apiUtils = {
   safeEncode: (value) => {
     if (value === null || value === undefined) return '';
     return encodeURIComponent(String(value).trim());
+  },
+  
+  /**
+   * Creates a URLSearchParams object and adds array parameters
+   * @param {string} name - The parameter name
+   * @param {Array|string} value - The parameter value (array or comma-separated string)
+   * @param {URLSearchParams} params - The URLSearchParams object to append to
+   * @param {string} separator - The separator to use for joined values (default: comma)
+   */
+  addArrayParam: (name, value, params, separator = ',') => {
+    if (!value || (Array.isArray(value) && value.length === 0)) return;
+    
+    if (Array.isArray(value)) {
+      params.set(name, value.join(separator));
+    } else if (typeof value === 'string' && value.includes(separator)) {
+      // String already contains separators, pass as is
+      params.set(name, value);
+    } else if (value) {
+      // Single value
+      params.set(name, String(value));
+    }
+  },
+  
+  /**
+   * Creates a query string with proper error handling
+   * @param {Object} params - Object of parameter key-value pairs
+   * @returns {string} - The encoded query string
+   */
+  buildQueryString: (params) => {
+    try {
+      const urlParams = new URLSearchParams();
+      
+      for (const [key, value] of Object.entries(params)) {
+        if (value === null || value === undefined) continue;
+        
+        if (Array.isArray(value)) {
+          apiUtils.addArrayParam(key, value, urlParams);
+        } else {
+          urlParams.set(key, apiUtils.safeEncode(value));
+        }
+      }
+      
+      const queryString = urlParams.toString();
+      return queryString ? `?${queryString}` : '';
+    } catch (error) {
+      console.error('Error building query string:', error);
+      return '';
+    }
   },
   
   /**
@@ -92,78 +143,181 @@ export const apiUrls = {
       course_grade = "",
       category = [],
       filters = {},
-      class_type
+      class_type = "",
+      course_duration = "",
+      course_fee = "",
+      course_type = "",
+      skill_level = "",
+      language = "",
+      sort_by = "createdAt",
+      sort_order = "desc",
+      category_type = "",
     ) => {
-      // Initialize query parameters object for better organization
+      // Validate and sanitize input parameters
+      const sanitizedParams = {
+        page: Math.max(1, parseInt(page) || 1),
+        limit: Math.min(100, Math.max(1, parseInt(limit) || 10)),
+        sort_by: ['createdAt', 'title', 'course_fee', 'course_duration', 'updatedAt'].includes(sort_by) ? sort_by : 'createdAt',
+        sort_order: ['asc', 'desc'].includes(sort_order?.toLowerCase()) ? sort_order.toLowerCase() : 'desc'
+      };
+
+      // Initialize query parameters
       const queryParams = new URLSearchParams();
       
-      // Add required pagination parameters
-      queryParams.append('page', page);
-      queryParams.append('limit', limit);
-      
-      // Add basic filtering parameters
-      apiUtils.appendParam('status', status, queryParams);
-      apiUtils.appendParam('search', search, queryParams);
-      
-      // Add course title if provided and different from search
-      if (course_title && course_title !== search) {
-        apiUtils.appendParam('course_title', course_title, queryParams);
-      }
-      
-      // Apply array parameters
-      apiUtils.appendArrayParam('course_tag', course_tag, queryParams);
-      apiUtils.appendArrayParam('course_category', course_category, queryParams);
-      
-      // Handle category parameter
-      if (category && category.length > 0) {
-        apiUtils.appendArrayParam('category', category, queryParams);
-      }
-      
-      // Add course grade if provided
-      apiUtils.appendParam('course_grade', course_grade, queryParams);
+      // Add validated pagination and sorting parameters
+      Object.entries(sanitizedParams).forEach(([key, value]) => {
+        queryParams.append(key, value);
+      });
 
-      // Handle additional filters
+      // Handle search parameters with proper validation
+      if (search?.trim()) {
+        // If general search is provided, use it as primary search parameter
+        queryParams.append('search', search.trim());
+      } else if (course_title?.trim()) {
+        // Use course title as fallback search parameter
+        queryParams.append('course_title', course_title.trim());
+      }
+
+      // Handle status with validation
+      const validStatuses = ['Published', 'Draft', 'Archived'];
+      if (status && validStatuses.includes(status)) {
+        queryParams.append('status', status);
+      }
+
+      // Handle array parameters with proper validation
+      const arrayParams = [
+        { key: 'course_tag', value: course_tag },
+        { key: 'course_category', value: course_category },
+        { key: 'category', value: category },
+        { key: 'class_type', value: class_type },
+        { key: 'category_type', value: category_type }
+      ];
+
+      arrayParams.forEach(({ key, value }) => {
+        if (value) {
+          if (Array.isArray(value)) {
+            // Filter out empty values and join with commas
+            const validValues = value.filter(item => item?.toString().trim()).map(item => item.toString().trim());
+            if (validValues.length > 0) {
+              apiUtils.appendArrayParam(key, validValues, queryParams);
+            }
+          } else if (typeof value === 'string' && value.trim()) {
+            apiUtils.appendArrayParam(key, value.trim(), queryParams);
+          }
+        }
+      });
+
+      // Handle course grade if provided
+      if (course_grade?.trim()) {
+        queryParams.append('course_grade', course_grade.trim());
+      }
+
+      // Handle course fee with range support
+      if (course_fee) {
+        if (typeof course_fee === 'object') {
+              // Handle range object format
+          if (course_fee.min !== undefined) queryParams.append('course_fee_min', course_fee.min);
+          if (course_fee.max !== undefined) queryParams.append('course_fee_max', course_fee.max);
+        } else if (!isNaN(parseFloat(course_fee))) {
+          // Handle direct numeric value
+          queryParams.append('course_fee', parseFloat(course_fee));
+        }
+      }
+
+      // Handle course duration with special parsing for format like "0 months 2 weeks"
+      if (course_duration) {
+        if (typeof course_duration === 'object') {
+          // Handle range object format
+          if (course_duration.min !== undefined) queryParams.append('course_duration_min', course_duration.min);
+          if (course_duration.max !== undefined) queryParams.append('course_duration_max', course_duration.max);
+        } else if (typeof course_duration === 'string') {
+          // Parse duration string format like "0 months 2 weeks"
+          queryParams.append('course_duration', course_duration.trim());
+        }
+      }
+
+      // Handle categorical filters
+      const categoricalFilters = {
+        course_type,
+        skill_level,
+        language
+      };
+
+      Object.entries(categoricalFilters).forEach(([key, value]) => {
+        if (value?.toString().trim()) {
+          queryParams.append(key, value.toString().trim());
+        }
+      });
+
+      // Handle additional filters from filters object
       if (filters && typeof filters === 'object') {
-        // Handle basic string filters
-        const stringFilters = [
-          { param: 'skill_level', value: filters.skillLevel },
-          { param: 'course_type', value: filters.courseType },
-          { param: 'language', value: filters.language },
-          { param: 'sort', value: filters.sortBy }
+        // Handle certification, assignments, projects, quizzes filters
+        const booleanFilters = [
+          { param: 'is_Certification', value: filters.certification },
+          { param: 'is_Assignments', value: filters.assignments },
+          { param: 'is_Projects', value: filters.projects },
+          { param: 'is_Quizes', value: filters.quizzes }
         ];
         
-        // Add each string filter if it exists
-        stringFilters.forEach(({ param, value }) => {
-          apiUtils.appendParam(param, value, queryParams);
+        booleanFilters.forEach(({ param, value }) => {
+          if (value !== undefined) {
+            const boolValue = typeof value === 'string' ? value : (value ? 'Yes' : 'No');
+            queryParams.append(param, boolValue);
+          }
         });
-        
-        // Handle array filters
-        if (filters.features && Array.isArray(filters.features)) {
+
+        // Handle effort per week filter
+        if (filters.effortPerWeek) {
+          if (typeof filters.effortPerWeek === 'object') {
+            if (filters.effortPerWeek.min !== undefined) {
+              queryParams.append('min_hours_per_week', filters.effortPerWeek.min);
+            }
+            if (filters.effortPerWeek.max !== undefined) {
+              queryParams.append('max_hours_per_week', filters.effortPerWeek.max);
+            }
+          }
+        }
+
+        // Handle session count filter
+        if (filters.noOfSessions !== undefined) {
+          queryParams.append('no_of_Sessions', filters.noOfSessions);
+        }
+
+        // Handle price filters with currency support
+        if (filters.priceRange) {
+          if (filters.priceRange.min !== undefined) {
+            queryParams.append('price_min', filters.priceRange.min);
+          }
+          if (filters.priceRange.max !== undefined) {
+            queryParams.append('price_max', filters.priceRange.max);
+          }
+          if (filters.priceRange.currency) {
+            queryParams.append('price_currency', filters.priceRange.currency);
+          }
+        }
+
+        // Handle features array
+        if (filters.features?.length) {
           apiUtils.appendArrayParam('features', filters.features, queryParams);
         }
-        
-        // Handle range filters
-        if (filters.priceRange) {
-          apiUtils.appendParam('price_min', filters.priceRange.min, queryParams);
-          apiUtils.appendParam('price_max', filters.priceRange.max, queryParams);
+
+        // Handle tools and technologies
+        if (filters.tools?.length) {
+          apiUtils.appendArrayParam('tools_technologies', filters.tools, queryParams);
         }
-        
-        if (filters.duration) {
-          apiUtils.appendParam('duration_min', filters.duration.min, queryParams);
-          apiUtils.appendParam('duration_max', filters.duration.max, queryParams);
-        }
-        
-        // Handle date filters
+
+        // Handle date range filters
         if (filters.dateRange) {
-          apiUtils.appendParam('date_start', filters.dateRange.start, queryParams);
-          apiUtils.appendParam('date_end', filters.dateRange.end, queryParams);
+          if (filters.dateRange.start) queryParams.append('date_start', filters.dateRange.start);
+          if (filters.dateRange.end) queryParams.append('date_end', filters.dateRange.end);
+        }
+
+        // Handle free courses filter
+        if (filters.isFree !== undefined) {
+          queryParams.append('isFree', filters.isFree ? 'true' : 'false');
         }
       }
 
-      if (class_type) {
-        apiUtils.appendArrayParam('class_type', class_type, queryParams);
-      }
-      
       return `/courses/search?${queryParams.toString()}`;
     },
     getNewCourses: (
@@ -176,6 +330,8 @@ export const apiUrls = {
       sort_by = "createdAt",
       sort_order = "desc",
       class_type = ""
+
+      
     ) => {
       // Use the shared URLSearchParams approach for consistent URL building
       const queryParams = new URLSearchParams();
