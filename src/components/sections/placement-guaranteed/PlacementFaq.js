@@ -1,16 +1,10 @@
 "use client";
 import React, { useState } from "react";
-import Image from "next/image";
-import Left from "@/assets/images/personality/left.svg";
-import Down from "@/assets/images/personality/down.svg";
-import { DownIcon, LeftIcon } from "@/assets/images/icon/FaqIcon";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronDown, Mail } from "lucide-react";
 
-function PlacementFaq() {
+const PlacementFaq = () => {
   const [openIndex, setOpenIndex] = useState(null);
-
-  const toggleFAQ = (index) => {
-    setOpenIndex(openIndex === index ? null : index);
-  };
 
   const faqs = [
     {
@@ -38,7 +32,7 @@ function PlacementFaq() {
       question:
         "What happens if I do not get a job after completing the course?",
       answer:
-        "If you meet all the program requirements and still do not secure a job, you can apply for a tuition refund. The process includes: Submitting a request for a refund within 30 days of the Termination Date listed in your Job Guarantee agreement., Providing necessary documentation to verify your job search efforts and compliance with the program’s terms.",
+        "If you meet all the program requirements and still do not secure a job, you can apply for a tuition refund. The process includes: Submitting a request for a refund within 30 days of the Termination Date listed in your Job Guarantee agreement., Providing necessary documentation to verify your job search efforts and compliance with the program's terms.",
     },
     {
       question: "Are there any additional costs involved in the program?",
@@ -59,7 +53,7 @@ function PlacementFaq() {
     {
       question: "How do I apply for a tuition refund if I don't get a job?",
       answer:
-        "To apply for a tuition refund, you must:Ensure you have met all the course requirements and career commitments., Submit a written request for a refund within 30 days of the Termination Date., Provide documentation of your job search efforts and compliance with the program’s terms.",
+        "To apply for a tuition refund, you must:Ensure you have met all the course requirements and career commitments., Submit a written request for a refund within 30 days of the Termination Date., Provide documentation of your job search efforts and compliance with the program's terms.",
     },
     {
       question:
@@ -74,67 +68,141 @@ function PlacementFaq() {
     },
   ];
 
-  return (
-    <div
-      className="bg-white dark:bg-screen-dark text-lightGrey14 flex justify-center items-center flex-col py-4 pb-8"
-    >
-      <div className="md:w-[80%] w-[94%]">
-        <h2 className="md:text-3xl text-[22px] font-bold mb-4 text-center dark:text-white text-[#5C6574]">
-          Frequently Asked Questions (FAQs)
-        </h2>
-        <div className="mt-[-1%]">
-          <p className=" w-[96%]  sm:w-[100%] text-[#727695] text-center text-[14px] sm:text-[14.5px] md:text-[15px] lg:text-[15.5px] xl:text-[16px] dark:text-gray300 leading-5 sm:leading-6 md:leading-7 lg:leading-7 font-light pt-1 flex-grow">
-            Discover answers to frequently asked questions about Medh&#39;s Job
-            Guaranteed Courses.
-          </p>
-          <p className="text-[#727695] text-center text-[14px] sm:text-[14.5px] md:text-[15px] lg:text-[15.5px] xl:text-[16px] dark:text-gray300 leading-5 sm:leading-6 md:leading-7 lg:leading-7 font-light pt-0 pb-8 flex-grow">
-            Learn about the process, prerequisites, career opportunities, refund
-            policies, and more.
-          </p>
-        </div>
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2
+      }
+    }
+  };
 
-        <div className="space-y-4">
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5 }
+    }
+  };
+
+  return (
+    <section className="relative py-20 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+
+      <div className="container mx-auto px-4">
+        {/* Section Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="text-center max-w-3xl mx-auto mb-16"
+        >
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
+            Frequently Asked Questions
+          </h2>
+          <p className="text-lg text-gray-600 dark:text-gray-300">
+            Discover answers to frequently asked questions about Medh's Job Guaranteed Courses.
+            Learn about the process, prerequisites, career opportunities, refund policies, and more.
+          </p>
+        </motion.div>
+
+        {/* FAQ Items */}
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          className="max-w-3xl mx-auto space-y-4"
+        >
           {faqs.map((faq, index) => (
-            <div key={index} className="border dark:border-gray600 shadow-sm">
-              <div
-                className="flex justify-between items-center py-4 cursor-pointer px-2 sm:px-4"
-                onClick={() => toggleFAQ(index)}
+            <motion.div
+              key={index}
+              variants={itemVariants}
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden border border-gray-100 dark:border-gray-700"
+            >
+              <button
+                onClick={() => setOpenIndex(openIndex === index ? null : index)}
+                className="w-full px-6 py-4 flex items-center justify-between text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/50"
               >
-                <h3 className="md:text-[15px] text-[14px] font-semibold dark:text-white">
+                <span className="font-semibold text-gray-900 dark:text-white pr-8">
                   {faq.question}
-                </h3>
-                <span
-                  className={`md:text-[15px] text-[14px] ${
-                    openIndex === index ? "text-white" : "text-black"
-                  } dark:text-white`}
-                >
-                  {openIndex === index ? <DownIcon /> : <LeftIcon />}
                 </span>
-              </div>
-              {openIndex === index && (
-                <p className="text-lightGrey14 pb-4 px-2 md:pr-12 sm:px-4 md:text-[15px] text-[14px] ">
-                  {faq.answer}
-                </p>
-              )}
-            </div>
+                <motion.div
+                  animate={{ rotate: openIndex === index ? 180 : 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="flex-shrink-0 text-[#7ECA9D]"
+                >
+                  <ChevronDown className="w-5 h-5" />
+                </motion.div>
+              </button>
+
+              <AnimatePresence mode="wait">
+                {openIndex === index && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ 
+                      height: "auto", 
+                      opacity: 1,
+                      transition: {
+                        height: { duration: 0.3 },
+                        opacity: { duration: 0.3, delay: 0.1 }
+                      }
+                    }}
+                    exit={{ 
+                      height: 0, 
+                      opacity: 0,
+                      transition: {
+                        height: { duration: 0.3 },
+                        opacity: { duration: 0.2 }
+                      }
+                    }}
+                    className="overflow-hidden"
+                  >
+                    <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700/50">
+                      <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+                        {faq.answer}
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
           ))}
-          <div className="flex items-center justify-center mt-4 w-full">
-            <p className="sm:w-[70%] w-[96%] mx-auto text-[#727695] text-center text-[14px] sm:text-[14.5px] md:text-[15px] lg:text-[15.5px] xl:text-[16px] dark:text-gray300 leading-5 sm:leading-6 md:leading-7 lg:leading-7 font-light pt-0 py-8">
-              Note: If you have any other questions or concerns not covered in
-              the FAQs, please feel free to contact our support team at{" "}
-              <a
-                href="mailto:care@medh.co"
-                className="text-blue underline hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-600"
-              >
-                care@medh.co
-              </a>
-              , and we&#39;ll be happy to assist you!
-            </p>
+        </motion.div>
+
+        {/* Contact Info */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="mt-12 text-center"
+        >
+          <div className="bg-[#7ECA9D]/10 backdrop-blur-sm rounded-xl p-8 max-w-2xl mx-auto">
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-[#7ECA9D]/20 flex items-center justify-center">
+                <Mail className="w-6 h-6 text-[#7ECA9D]" />
+              </div>
+              <p className="text-gray-600 dark:text-gray-300">
+                Have more questions? Contact our support team at{" "}
+                <a
+                  href="mailto:care@medh.co"
+                  className="text-[#7ECA9D] font-semibold hover:underline"
+                >
+                  care@medh.co
+                </a>
+              </p>
+            </div>
           </div>
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </section>
   );
-}
+};
 
 export default PlacementFaq;

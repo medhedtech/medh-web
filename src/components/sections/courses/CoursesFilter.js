@@ -1,21 +1,36 @@
 "use client";
-import { useEffect, useState, useRef, useMemo, useCallback } from "react";
-import PropTypes from 'prop-types';
+
+import { useEffect, useState, useRef, useCallback } from "react";
+import PropTypes from "prop-types";
+import dynamic from "next/dynamic";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  X,
+  Filter,
+  Search,
+  ChevronDown,
+  Zap,
+  GraduationCap,
+  LayoutGrid,
+  List,
+  Palette,
+  BookOpen,
+} from "lucide-react";
 import CategoryFilter from "./CategoryFilter";
-import CourseCard from "./CourseCard";
 import Pagination from "@/components/shared/pagination/Pagination";
 import useGetQuery from "@/hooks/getQuery.hook";
-import { apiUrls, apiBaseUrl } from "@/apis";
-import { useRouter, useSearchParams } from "next/navigation";
-import { 
-  X, Filter, Search, ChevronDown, Zap, GraduationCap, 
-  LayoutGrid, List, Palette, BookOpen
-} from "lucide-react";
 import Preloader2 from "@/components/shared/others/Preloader2";
 import CategoryToggle from "@/components/shared/courses/CategoryToggle";
-import axios from "axios";
+import { apiUrls } from "@/apis";
 
-const categories = [
+// Dynamically import components that might cause hydration issues
+const DynamicCourseCard = dynamic(() => import("./CourseCard"), {
+  ssr: true,
+  loading: () => <div className="animate-pulse bg-gray-200 rounded-lg h-96"></div>,
+});
+
+// Fallback categories if none provided
+const fallbackCategories = [
   "AI and Data Science",
   "AI For Professionals",
   "Business And Management",
@@ -30,38 +45,48 @@ const categories = [
   "Language And Linguistic",
   "Legal And Compliance Skills",
   "Personal Well-Being",
-  "Personality Development",
-  "Sales And Marketing",
-  "Technical Skills",
-  "Vedic Mathematics",
 ];
 
-const grades = [
-  "Preschool",
-  "Grade 1-2",
-  "Grade 3-4",
-  "Grade 5-6",
-  "Grade 7-8",
-  "Grade 9-10",
-  "Grade 11-12",
-  "UG - Graduate - Professionals",
-];
+/**
+ * Simple ErrorBoundary
+ */
+const ErrorBoundary = ({ children }) => {
+  const [hasError, setHasError] = useState(false);
 
-const extractWeeks = (duration) => {
-  if (!duration) return 0;
-  const matches = duration.match(/\d+/);
-  if (!matches) return 0;
+  useEffect(() => {
+    const handleError = (event) => {
+      console.error("Caught error:", event);
+      setHasError(true);
+    };
+    window.addEventListener("error", handleError);
+    return () => window.removeEventListener("error", handleError);
+  }, []);
 
-  const value = parseInt(matches[0], 10);
-  if (duration.toLowerCase().includes("month")) {
-    return value * 4;
+  if (hasError) {
+    return (
+      <div className="p-8 bg-red-50 rounded-lg my-8 text-center">
+        <h2 className="text-2xl font-bold text-red-700 mb-4">
+          Something went wrong
+        </h2>
+        <p className="mb-4 text-red-600">
+          We&apos;re sorry, but there was an error loading this page.
+        </p>
+        <button
+          onClick={() => window.location.reload()}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Reload Page
+        </button>
+      </div>
+    );
   }
-  return value;
+
+  return children;
 };
 
-const CoursesFilter = ({ 
-  CustomButton, 
-  CustomText, 
+const CoursesFilter = ({
+  CustomButton,
+  CustomText,
   scrollToTop,
   fixedCategory,
   hideCategoryFilter,
@@ -69,1318 +94,854 @@ const CoursesFilter = ({
   categoryTitle,
   description,
   classType = "",
-  filterState = {}
+  filterState = {},
 }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { getQuery, loading } = useGetQuery();
+
+  // Filter states
+  const [selectedCategory, setSelectedCategory] = useState([]);
+  const [selectedGrade, setSelectedGrade] = useState("");
+  const [sortOrder, setSortOrder] = useState("newest-first");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [viewMode, setViewMode] = useState("grid");
+
+  // API data
   const [allCourses, setAllCourses] = useState([]);
   const [filteredCourses, setFilteredCourses] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [sortOrder, setSortOrder] = useState("newest-first");
-  const { getQuery, loading, error } = useGetQuery();
-  const [selectedGrade, setSelectedGrade] = useState(null);
-  const [categorySliderOpen, setCategorySliderOpen] = useState(false); 
-  const [isVisible, setIsVisible] = useState(false);
-  const [activeFilters, setActiveFilters] = useState([]);
-  const [queryError, setQueryError] = useState(null);
-  const [viewMode, setViewMode] = useState("grid"); // Changed default to netflix view
-  const [relatedCourses, setRelatedCourses] = useState({});
-  const [showingRelated, setShowingRelated] = useState(false);
   const [totalItems, setTotalItems] = useState(0);
-  const [filtersVisible, setFiltersVisible] = useState(false); // New state for filter drawer
-  const [hoveredCourse, setHoveredCourse] = useState(null); // Track hovered course for expanded view
-  
-  const contentRef = useRef(null);
-  const filterDrawerRef = useRef(null);
 
-  // Add default props to ensure consistent initial state
-  const defaultProps = {
-    CustomButton: null,
-    CustomText: "Skill Development Courses",
-    scrollToTop: () => {},
-    fixedCategory: null,
-    hideCategoryFilter: false,
-    availableCategories: categories,
-    categoryTitle: "Categories",
-    description: null
-  };
+  // UI states
+  const [showingRelated, setShowingRelated] = useState(false);
+  const [activeFilters, setActiveFilters] = useState([]);
+  const [showFilters, setShowFilters] = useState(false);
+  const [queryError, setQueryError] = useState(null);
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
 
-  // Memoize expensive computations and event handlers
-  const memoizedHandleSearch = useCallback((e) => {
-    setSearchTerm(e.target.value);
-    setCurrentPage(1);
-  }, []);
+  // Refs
+  const sortDropdownRef = useRef(null);
+  const didInitRef = useRef(false);
+  const debounceTimer = useRef(null);
 
-  const memoizedHandleSortChange = useCallback((e) => {
-    setSortOrder(e.target.value);
-    setCurrentPage(1);
-  }, []);
-
-  const memoizedHandlePageChange = useCallback((page) => {
-    setCurrentPage(page);
-  }, []);
-
-  // Ensure initial state is consistent between server and client
-  const [isClient, setIsClient] = useState(false);
+  /**
+   * 1) Read URL + filterState once on mount
+   */
   useEffect(() => {
-    setIsClient(true);
-    
-    // Instead of setting a default category, we'll ensure it works with empty category
-    // This ensures all courses are loaded on initial render
+    if (didInitRef.current) return;
+    didInitRef.current = true;
+
+    // If fixedCategory is provided, override any category from URL
     if (fixedCategory) {
-      // If there's a fixed category, use it
       setSelectedCategory([fixedCategory]);
     } else {
-      // Get category from URL if present
-      const urlCategory = searchParams?.get('category');
+      const urlCategory = searchParams?.get("category");
       if (urlCategory) {
-        // Split by comma if there are multiple categories
-        const categories = urlCategory.includes(',') 
-          ? urlCategory.split(',') 
-          : [urlCategory];
-        setSelectedCategory(categories);
-      } else {
-        // Otherwise, leave it empty to fetch all courses
-        setSelectedCategory([]);
+        try {
+          const decoded = urlCategory
+            .split(",")
+            .map((cat) => decodeURIComponent(cat.trim()))
+            .filter(Boolean);
+          setSelectedCategory(decoded);
+        } catch (error) {
+          console.error("Error parsing category from URL:", error);
+        }
       }
     }
-  }, [fixedCategory, searchParams, availableCategories]);
 
+    // Grade
+    const urlGrade = searchParams?.get("grade");
+    if (urlGrade) setSelectedGrade(urlGrade);
+
+    // Page
+    const urlPage = searchParams?.get("page");
+    if (urlPage) {
+      const pageVal = parseInt(urlPage, 10);
+      if (!isNaN(pageVal)) setCurrentPage(pageVal);
+    }
+
+    // Search
+    const urlSearch = searchParams?.get("search");
+    if (urlSearch) setSearchTerm(urlSearch);
+
+    // Sort
+    const urlSort = searchParams?.get("sort");
+    if (urlSort) setSortOrder(urlSort);
+
+    // Also apply optional filterState overrides
+    if (filterState.category && !fixedCategory) {
+      setSelectedCategory([filterState.category]);
+    }
+    if (filterState.grade) setSelectedGrade(filterState.grade);
+    if (filterState.search) setSearchTerm(filterState.search);
+    if (filterState.sort) setSortOrder(filterState.sort);
+  }, [searchParams, fixedCategory, filterState]);
+
+  /**
+   * 2) When local filters change, update the URL (debounced).
+   */
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsVisible(true);
-    }, 100);
-    
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && scrollToTop) {
-      scrollToTop();
+    if (!didInitRef.current) return; // only after the first mount parse
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
     }
-  }, []); 
 
-  // Calculate similar categories for a given category
-  const findSimilarCourses = (course, allCoursesData) => {
-    if (!course || !allCoursesData || allCoursesData.length === 0) {
-      return [];
-    }
-    
-    // Don't include the source course in results
-    const otherCourses = allCoursesData.filter(c => c._id !== course._id);
-    
-    // Extract key information from the source course
-    const courseCategories = [
-      course.category,
-      course.course_category,
-      course.category_type,
-      ...(course.additional_categories || [])
-    ].filter(Boolean).map(cat => typeof cat === 'string' ? cat.toLowerCase().trim() : '');
-    
-    const courseInstructor = course.instructor_name?.toLowerCase() || '';
-    const courseGrade = course.course_grade?.toLowerCase() || '';
-    const courseTitle = course.course_title?.toLowerCase() || '';
-    const courseTitleWords = courseTitle.split(/\s+/).filter(w => w.length > 2);
-    
-    // Score each course based on similarity
-    const scoredCourses = otherCourses.map(otherCourse => {
-      let score = 0;
-      
-      // Check category match - highest priority
-      const otherCourseCategories = [
-        otherCourse.category,
-        otherCourse.course_category,
-        otherCourse.category_type,
-        ...(otherCourse.additional_categories || [])
-      ].filter(Boolean).map(cat => typeof cat === 'string' ? cat.toLowerCase().trim() : '');
-      
-      // Direct category match gives highest score boost
-      if (courseCategories.some(cat => otherCourseCategories.includes(cat))) {
-        score += 5;
-      }
-      
-      // Word-by-word category match
-      const categoryOverlap = courseCategories.some(cat => 
-        otherCourseCategories.some(otherCat => 
-          cat.includes(otherCat) || otherCat.includes(cat)
-        )
-      );
-      if (categoryOverlap) score += 3;
-      
-      // Same instructor
-      const otherInstructor = otherCourse.instructor_name?.toLowerCase() || '';
-      if (courseInstructor && otherInstructor && courseInstructor === otherInstructor) {
-        score += 2;
-      }
-      
-      // Same grade level
-      const otherGrade = otherCourse.course_grade?.toLowerCase() || '';
-      if (courseGrade && otherGrade && courseGrade === otherGrade) {
-        score += 2;
-      }
-      
-      // Title word overlap
-      const otherTitle = otherCourse.course_title?.toLowerCase() || '';
-      const otherTitleWords = otherTitle.split(/\s+/).filter(w => w.length > 2);
-      
-      const titleWordMatch = courseTitleWords.filter(word => 
-        otherTitleWords.some(otherWord => 
-          word.includes(otherWord) || otherWord.includes(word)
-        )
-      ).length;
-      
-      if (titleWordMatch > 0) {
-        score += titleWordMatch * 1; 
-      }
-      
-      return { course: otherCourse, score };
-    });
-    
-    // Sort by score and take top matches
-    return scoredCourses
-      .filter(item => item.score > 0)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 6)
-      .map(item => item.course);
-  };
+    debounceTimer.current = setTimeout(() => {
+      const baseUrl = window.location.pathname;
+      const q = new URLSearchParams();
 
-  // Find related courses for each course
-  const calculateRelatedCourses = useCallback(() => {
-    if (!allCourses || allCourses.length === 0) return {};
-    
-    const relatedCoursesMap = {};
-    
-    // For each course, find related courses
-    allCourses.forEach(course => {
-      if (course._id) {
-        relatedCoursesMap[course._id] = findSimilarCourses(course, allCourses);
+      // Category
+      if (!fixedCategory && selectedCategory.length > 0) {
+        const catParam = selectedCategory
+          .map((cat) => encodeURIComponent(cat.trim()))
+          .join(",");
+        if (catParam) q.set("category", catParam);
       }
-    });
-    
-    setRelatedCourses(relatedCoursesMap);
-  }, [allCourses]);
-
-  // Calculate related courses when all courses are loaded
-  useEffect(() => {
-    if (allCourses.length > 0) {
-      calculateRelatedCourses();
-    }
-  }, [allCourses, calculateRelatedCourses]);
-
-  // Apply filterState if provided
-  useEffect(() => {
-    if (Object.keys(filterState).length > 0 && filteredCourses.length > 0) {
-      let filtered = [...allCourses];
-      
-      // For live courses
-      if (classType === "live") {
-        if (filterState.upcoming) {
-          // Filter for courses starting in the future
-          const today = new Date();
-          filtered = filtered.filter(course => {
-            const startDate = new Date(course.startDate);
-            return startDate > today;
-          });
-        }
-        
-        if (filterState.popular) {
-          // Sort by popularity (using enrollmentCount or similar)
-          filtered = filtered.sort((a, b) => (b.enrollmentCount || 0) - (a.enrollmentCount || 0));
-        }
-        
-        if (filterState.latest) {
-          // Sort by creation date
-          filtered = filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        }
+      // Grade
+      if (selectedGrade) {
+        q.set("grade", encodeURIComponent(selectedGrade));
       }
-      
-      // For blended courses
-      if (classType === "blended") {
-        if (filterState.popular) {
-          // Sort by popularity (using enrollmentCount or similar)
-          filtered = filtered.sort((a, b) => (b.enrollmentCount || 0) - (a.enrollmentCount || 0));
-        }
-        
-        if (filterState.latest) {
-          // Sort by creation date
-          filtered = filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        }
-
-        if (filterState.beginner) {
-          // Filter for beginner-friendly courses
-          filtered = filtered.filter(course => 
-            course.level?.toLowerCase() === 'beginner' || 
-            course.difficulty?.toLowerCase() === 'easy' ||
-            course.tags?.some(tag => tag.toLowerCase().includes('beginner'))
-          );
-        }
+      // Search
+      if (searchTerm) {
+        q.set("search", encodeURIComponent(searchTerm));
       }
-      
-      setFilteredCourses(filtered);
-    }
-  }, [filterState, allCourses, classType]);
+      // Sort
+      if (sortOrder && sortOrder !== "newest-first") {
+        q.set("sort", sortOrder);
+      }
+      // Page
+      if (currentPage > 1) {
+        q.set("page", currentPage.toString());
+      }
 
-  const fetchCourses = async () => {
-    // Use the fixed category if provided, otherwise use the selected category
-    const categoryQuery = fixedCategory ? [fixedCategory] : selectedCategory;
-    const gradeQuery = selectedGrade || "";
+      const newQuery = q.toString();
+      const newUrl = newQuery ? `${baseUrl}?${newQuery}` : baseUrl;
+      const currentUrl = window.location.pathname + window.location.search;
+      if (newUrl !== currentUrl) {
+        router.push(newUrl, { shallow: true });
+      }
+    }, 300);
 
-    // Clear any previous errors
+    return () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+    };
+  }, [
+    selectedCategory,
+    selectedGrade,
+    searchTerm,
+    sortOrder,
+    currentPage,
+    router,
+    fixedCategory,
+  ]);
+
+  /**
+   * 3) Fetch courses from API whenever relevant states change (debounced).
+   */
+  const fetchCourses = useCallback(async () => {
     setQueryError(null);
 
-    console.debug('Fetching courses with:', {
-      categoryQuery,
-      fixedCategory,
-      selectedCategory,
-      currentPage,
-      gradeQuery,
-      classType
-    });
+    // Make sure categories are in sync (fixed or chosen)
+    const catList = fixedCategory
+      ? [fixedCategory]
+      : selectedCategory.map((c) => c.trim()).filter(Boolean);
 
-    // Default case: No category selected or empty array - fetch all courses
-    if (!categoryQuery || categoryQuery.length === 0) {
-      console.debug('Fetching all courses - default behavior');
-      
-      try {
-        const apiUrl = apiUrls?.courses?.getAllCoursesWithLimits(
-          currentPage,
-          8,
-          "",
-          "",
-          "",  // Empty category to fetch all
-          "Published",
-          searchTerm,
-          gradeQuery,
-          "",
-          {},
-          classType
-        );
-        
-        console.debug('API URL for all courses:', apiUrl);
-        
-        getQuery({
-          url: apiUrl,
-          onSuccess: (data) => {
-            if (data) {
-              console.debug(`Fetched ${data.courses?.length || 0} courses successfully`);
-              setAllCourses(data.courses || []);
-              setFilteredCourses(data.courses || []);
-              setTotalPages(data.totalPages || 1);
-              setTotalItems(data.totalItems || 0);
-            } else {
-              console.warn('Data response empty or invalid');
-              setAllCourses([]);
-              setFilteredCourses([]);
-            }
-          },
-          onFail: (err) => {
-            console.error('Error fetching all courses:', err);
-            setQueryError('Failed to fetch courses. Please try again later.');
-          }
-        });
-        
-        return;
-      } catch (error) {
-        console.error('Error in fetching all courses:', error);
-        setQueryError('Failed to fetch all courses. Please try again later.');
-        return;
-      }
+    // Simple single encoding for categories
+    const encodedCategory = catList.length > 0
+      ? catList.map(cat => encodeURIComponent(cat)).join(",")
+      : "";
+
+    // Build sort parameters
+    let sortBy, sortDir;
+    switch (sortOrder) {
+      case "oldest-first":
+        sortBy = "createdAt";
+        sortDir = "asc";
+        break;
+      case "A-Z":
+        sortBy = "course_title";
+        sortDir = "asc";
+        break;
+      case "Z-A":
+        sortBy = "course_title";
+        sortDir = "desc";
+        break;
+      case "price-low-high":
+        sortBy = "course_fee";
+        sortDir = "asc";
+        break;
+      case "price-high-low":
+        sortBy = "course_fee";
+        sortDir = "desc";
+        break;
+      case "newest-first":
+      default:
+        sortBy = "createdAt";
+        sortDir = "desc";
     }
 
-    // Case: Multiple categories selected
-    if (categoryQuery.length > 1) {
-      console.debug('Fetching courses for multiple categories:', categoryQuery);
-      
-      try {
-        // Make separate API calls for each category
-        const apiPromises = categoryQuery.map(category => {
-          const apiUrl = apiUrls?.courses?.getAllCoursesWithLimits(
-            currentPage,
-            8,
-            "",
-            "",
-            category, // Use each category individually
-            "Published",
-            searchTerm,
-            gradeQuery,
-            "",
-            {},
-            classType // Pass classType parameter
-          );
-          
-          return axios.get(apiUrl).then(res => res.data);
-        });
-        
-        // Combine results
-        const allResults = await Promise.all(apiPromises);
-        let combinedCourses = [];
-        let maxPages = 1;
-        let totalItems = 0;
-        
-        // Merge course lists and find max page count
-        allResults.forEach(result => {
-          if (result && result.courses) {
-            combinedCourses = [...combinedCourses, ...result.courses];
-            maxPages = Math.max(maxPages, result.totalPages || 1);
-            totalItems += result.totalItems || 0;
-          }
-        });
-        
-        // Remove duplicates (in case a course belongs to multiple categories)
-        const uniqueCourses = Array.from(new Map(combinedCourses.map(course => 
-          [course._id, course]
-        )).values());
-        
-        setAllCourses(uniqueCourses);
-        setFilteredCourses(uniqueCourses);
-        setTotalPages(maxPages);
-        setTotalItems(totalItems);
-        
-        return;
-      } catch (error) {
-        console.error('Error fetching multiple categories:', error);
-        setQueryError('Failed to fetch courses. Please try again later.');
-        return;
-      }
-    }
-    
-    // Case: Single category selected
-    console.debug('Fetching courses for single category:', categoryQuery[0]);
-    
+    // Safely encode search term and grade
+    const encodedSearch = searchTerm ? encodeURIComponent(decodeURIComponent(searchTerm.trim())) : "";
+    const encodedGrade = selectedGrade ? encodeURIComponent(decodeURIComponent(selectedGrade.trim())) : "";
+
     try {
-      const apiUrl = apiUrls?.courses?.getAllCoursesWithLimits(
+      const apiUrl = apiUrls.courses.getAllCoursesWithLimits(
         currentPage,
-        8,
-        "",
-        "",
-        categoryQuery[0], // Single category
+        8, // items per page
+        "", // course_title
+        "", // course_tag
+        encodedCategory,
         "Published",
-        searchTerm,
-        gradeQuery,
-        "",
-        {},
-        classType // Pass classType parameter
+        encodedSearch,
+        encodedGrade,
+        [], // category array (deprecated)
+        {
+          certification: false,
+          hasAssignments: false,
+          hasProjects: false,
+          hasQuizzes: false,
+          sortBy,
+          sortOrder: sortDir
+        },
+        classType
       );
-      
-      console.debug('API URL for single category:', apiUrl);
-      
-      getQuery({
+
+      // Log the final URL for debugging
+      console.debug('Fetching courses with URL:', apiUrl);
+
+      await getQuery({
         url: apiUrl,
         onSuccess: (data) => {
-          if (data) {
-            console.debug(`Fetched ${data.courses?.length || 0} courses for category ${categoryQuery[0]}`);
-            setAllCourses(data.courses || []);
-            setFilteredCourses(data.courses || []);
-            setTotalPages(data.totalPages || 1);
-            setTotalItems(data.totalItems || 0);
+          if (data && Array.isArray(data.courses)) {
+            setAllCourses(data.courses);
+            setFilteredCourses(data.courses);
+            setTotalPages(data.pagination?.totalPages || 1);
+            setTotalItems(data.pagination?.totalCourses || 0);
+
+            if (scrollToTop) {
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
           } else {
-            console.warn('Data response empty or invalid');
+            console.warn('Invalid or empty response data:', data);
             setAllCourses([]);
             setFilteredCourses([]);
+            setTotalPages(1);
+            setTotalItems(0);
           }
         },
         onFail: (err) => {
-          console.error('Error fetching category courses:', err);
-          setQueryError('Failed to fetch courses. Please try again later.');
-        }
+          console.error("API Error:", err);
+          setQueryError(err?.message || "Failed to fetch courses. Please try again.");
+          setAllCourses([]);
+          setFilteredCourses([]);
+        },
       });
-      
-      return;
     } catch (error) {
-      console.error('Error fetching category courses:', error);
-      setQueryError('Failed to fetch category courses. Please try again later.');
-    }
-  };
-
-  const applyFilters = (coursesToFilter = allCourses) => {
-    console.debug('Applying Filters with Courses:', coursesToFilter);
-    
-    // Guard against undefined or empty coursesToFilter
-    if (!coursesToFilter || !Array.isArray(coursesToFilter) || coursesToFilter.length === 0) {
-      console.debug('No courses to filter, returning empty array');
+      console.error("Fetch error:", error);
+      setQueryError("An unexpected error occurred. Please try again later.");
+      setAllCourses([]);
       setFilteredCourses([]);
-      setShowingRelated(false);
-      return;
     }
-    
-    let filtered = [...coursesToFilter];
+  }, [
+    currentPage,
+    sortOrder,
+    searchTerm,
+    selectedGrade,
+    selectedCategory,
+    fixedCategory,
+    classType,
+    scrollToTop,
+    getQuery
+  ]);
 
-    // Search Term Filter - More flexible matching
-    if (searchTerm) {
-      const searchTerms = searchTerm.toLowerCase().split(' ').filter(term => term.length > 0);
-      filtered = filtered.filter(course => {
-        const searchableFields = [
-          course.course_title,
-          course.course_category,
-          course.course_duration,
-          course.course_description,
-          course.course_grade,
-          course.category,
-          course.instructor_name
-        ].filter(Boolean).map(field => field.toLowerCase());
-        
-        return searchTerms.every(term => 
-          searchableFields.some(field => field.includes(term))
-        );
-      });
-    }
-
-    // Category Filter - Support multiple categories (OR logic between categories)
-    if (selectedCategory && selectedCategory.length) {
-      filtered = filtered.filter((course) => {
-        // Get all possible category values from the course
-        const courseCategories = [
-          course.category,
-          course.course_category,
-          course.category_type,
-          ...(course.additional_categories || [])
-        ].filter(Boolean).map(cat => typeof cat === 'string' ? cat.toLowerCase().trim() : '');
-
-        const selectedCats = selectedCategory.map(c => c.toLowerCase().trim());
-        
-        // Enhanced matching logic with multiple strategies
-        return selectedCats.some(selected => {
-          // Strategy 1: Direct match
-          if (courseCategories.includes(selected)) return true;
-          
-          // Strategy 2: Contains match (course category contains selected or vice versa)
-          if (courseCategories.some(cat => cat.includes(selected) || selected.includes(cat))) return true;
-          
-          // Strategy 3: Word-by-word matching (handle multi-word categories)
-          const selectedWords = selected.split(/\s+/).filter(word => word.length > 2);
-          if (selectedWords.length > 1) {
-            // If the selected category has multiple words, check if most words are found in the course categories
-            const matchCount = selectedWords.filter(word => 
-              courseCategories.some(cat => cat.includes(word))
-            ).length;
-            
-            // Match if at least 70% of words match
-            if (matchCount / selectedWords.length >= 0.7) return true;
-          }
-          
-          return false;
-        });
-      });
-    }
-
-    // Grade Filter - More flexible matching
-    if (selectedGrade) {
-      filtered = filtered.filter(course => {
-        const courseGrade = course.course_grade || course.grade || '';
-        return courseGrade.toLowerCase() === selectedGrade.toLowerCase() ||
-               courseGrade.toLowerCase().includes(selectedGrade.toLowerCase()) ||
-               selectedGrade.toLowerCase().includes(courseGrade.toLowerCase());
-      });
-    }
-
-    // Sorting Logic - More robust with error handling
-    try {
-      if (sortOrder === "A-Z") {
-        filtered.sort((a, b) => 
-          (a.course_title || '').toLowerCase().localeCompare((b.course_title || '').toLowerCase())
-        );
-      } else if (sortOrder === "Z-A") {
-        filtered.sort((a, b) => 
-          (b.course_title || '').toLowerCase().localeCompare((a.course_title || '').toLowerCase())
-        );
-      } else if (sortOrder === "newest-first") {
-        filtered.sort((a, b) => {
-          const dateA = new Date(a.createdAt || 0);
-          const dateB = new Date(b.createdAt || 0);
-          return dateB - dateA;
-        });
-      } else if (sortOrder === "oldest-first") {
-        filtered.sort((a, b) => {
-          const dateA = new Date(a.createdAt || 0);
-          const dateB = new Date(b.createdAt || 0);
-          return dateA - dateB;
-        });
-      } else if (sortOrder === "duration-asc") {
-        filtered.sort((a, b) => {
-          const durationA = extractWeeks(a.course_duration);
-          const durationB = extractWeeks(b.course_duration);
-          return durationA - durationB;
-        });
-      } else if (sortOrder === "duration-desc") {
-        filtered.sort((a, b) => {
-          const durationA = extractWeeks(a.course_duration);
-          const durationB = extractWeeks(b.course_duration);
-          return durationB - durationA;
-        });
-      }
-    } catch (error) {
-      console.error('Error during sorting:', error);
-    }
-
-    console.debug('Filtered Courses:', {
-      total: filtered.length,
-      searchTerm: searchTerm || 'none',
-      categories: selectedCategory,
-      grade: selectedGrade || 'none',
-      sortOrder
-    });
-
-    setFilteredCourses(filtered);
-    setShowingRelated(false); // Reset when filters change
-  };
-
-  // Update active filters
+  // Whenever relevant states change, fire the fetch (with small debounce)
   useEffect(() => {
-    const filters = [];
-    
-    if (searchTerm) {
-      filters.push({ type: 'search', value: searchTerm });
+    if (!didInitRef.current) return; // skip on first mount (we do it after initialization)
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
     }
-    
-    if (selectedGrade) {
-      filters.push({ type: 'grade', value: selectedGrade });
-    }
-    
-    if (sortOrder !== "newest-first") {
-      let sortLabel = "";
-      switch(sortOrder) {
-        case "A-Z": sortLabel = "A to Z"; break;
-        case "Z-A": sortLabel = "Z to A"; break;
-        case "oldest-first": sortLabel = "Oldest First"; break;
-        case "duration-asc": sortLabel = "Duration (Short to Long)"; break;
-        case "duration-desc": sortLabel = "Duration (Long to Short)"; break;
-        default: sortLabel = sortOrder;
-      }
-      filters.push({ type: 'sort', value: sortLabel });
-    }
-
-    if (!hideCategoryFilter) {
-      selectedCategory.forEach(cat => {
-        filters.push({ type: 'category', value: cat });
-      });
-    }
-    
-    setActiveFilters(filters);
-  }, [searchTerm, selectedCategory, sortOrder, selectedGrade, hideCategoryFilter]);
-
-  // Update the useEffect that calls fetchCourses
-  useEffect(() => {
-    // Only fetch courses when the client is ready and component is initialized
-    if (isClient) {
-      console.debug('Fetching courses after state change:', {
-        currentPage,
-        searchTerm,
-        selectedCategory,
-        selectedGrade
-      });
+    debounceTimer.current = setTimeout(() => {
       fetchCourses();
-    }
-  }, [currentPage, searchTerm, selectedCategory, selectedGrade, isClient]);
+    }, 350);
 
-  // Handle fixed category changes
+    return () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+    };
+  }, [fetchCourses]);
+
+  // For the very first load, do one fetch after states are set
   useEffect(() => {
-    if (fixedCategory && isClient) {
-      setSelectedCategory(fixedCategory ? [fixedCategory] : []);
+    // If we just finished reading from URL/filterState,
+    // give 1 tick for states to settle, then fetch.
+    setTimeout(() => {
+      if (didInitRef.current) {
+        fetchCourses();
+      }
+    }, 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /**
+   * Handlers for filters
+   */
+  const handleCategoryChange = useCallback(
+    (cats) => {
+      if (fixedCategory) return; // don't override
+      // Filter out empties
+      const newCats = cats.filter(Boolean);
+      setSelectedCategory(newCats);
       setCurrentPage(1);
-    }
-  }, [fixedCategory, isClient]);
+    },
+    [fixedCategory]
+  );
 
-  useEffect(() => {
-    if (allCourses.length > 0) {
-      applyFilters(allCourses);
-    }
-  }, [allCourses, searchTerm, selectedCategory, selectedGrade, sortOrder]);
+  const handleGradeChange = useCallback((grade) => {
+    setSelectedGrade(grade);
+    setCurrentPage(1);
+  }, []);
 
-  // Simplify page change handler to just update state without scrolling
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
-
-  const handleSearch = (e) => {
+  const handleSearch = useCallback((e) => {
     setSearchTerm(e.target.value);
-    // Reset to page 1 when searching
     setCurrentPage(1);
-  };
+  }, []);
 
-  const handleSortChange = (e) => {
-    setSortOrder(e.target.value);
-    // Reset to page 1 when changing sort order
+  const handleSortChange = useCallback((val) => {
+    setSortOrder(val);
+    setShowSortDropdown(false);
     setCurrentPage(1);
-  };
+  }, []);
 
-  const handleClearFilters = () => {
+  const handlePageChange = useCallback((page) => {
+    setCurrentPage(page);
+  }, []);
+
+  /**
+   * Clear all filters
+   */
+  const handleClearFilters = useCallback(() => {
     if (fixedCategory) {
-      // Only clear non-fixed filters
-      const updatedFilters = activeFilters.filter(
-        filter => filter.type === 'category' && filter.value === fixedCategory
-      );
-      setActiveFilters(updatedFilters);
+      setSelectedCategory([fixedCategory]);
     } else {
-      setActiveFilters([]);
+      setSelectedCategory([]);
     }
-    
-    setSelectedCategory(fixedCategory ? [fixedCategory] : []);
-    setSelectedGrade(null);
+    setSelectedGrade("");
     setSearchTerm("");
     setSortOrder("newest-first");
     setCurrentPage(1);
-    
-    // Fix router issue - use a different approach to update URL that works with Next.js 14
-    try {
-      // For Next.js 14, just build the URL directly instead of using router.pathname
-      const baseUrl = window.location.pathname;
-      const newUrl = fixedCategory 
-        ? `${baseUrl}?category=${encodeURIComponent(fixedCategory)}` 
-        : baseUrl;
-      
-      router.push(newUrl);
-    } catch (error) {
-      console.error("Error updating URL:", error);
-      // Fallback: continue without URL update if router fails
-    }
-  };
+    setShowingRelated(false);
+  }, [fixedCategory]);
 
-  const removeFilter = (filterType, value) => {
-    // Update activeFilters
-    setActiveFilters(prev => prev.filter(f => !(f.type === filterType && f.value === value)));
-    
-    // Update specific state variables based on filter type
-    if (filterType === 'search') {
-      setSearchTerm('');
-    } else if (filterType === 'category') {
-      setSelectedCategory(prev => prev.filter(cat => cat !== value));
-    } else if (filterType === 'grade') {
-      setSelectedGrade(null);
-    } else if (filterType === 'sort') {
-      setSortOrder('newest-first');
-    }
-    
-    setCurrentPage(1);
-    
-    // Update URL with the new state - compatible with Next.js 14
-    try {
-      const baseUrl = window.location.pathname;
-      const updatedCategories = selectedCategory.filter(cat => cat !== value);
-      
-      // Build URL query parameters
-      const queryParams = new URLSearchParams();
-      if (fixedCategory) {
-        queryParams.set('category', fixedCategory);
-      } else if (updatedCategories.length > 0) {
-        queryParams.set('category', updatedCategories.join(','));
+  /**
+   * Remove individual filter
+   */
+  const removeFilter = useCallback(
+    (type, val) => {
+      switch (type) {
+        case "category":
+          if (fixedCategory === val) return;
+          setSelectedCategory((prev) => prev.filter((c) => c !== val));
+          break;
+        case "grade":
+          setSelectedGrade("");
+          break;
+        case "search":
+          setSearchTerm("");
+          break;
+        case "sort":
+          setSortOrder("newest-first");
+          break;
+        default:
+          console.warn("Unknown filter type:", type);
       }
-      
-      if (filterType !== 'grade' && selectedGrade) {
-        queryParams.set('grade', selectedGrade);
+      setCurrentPage(1);
+    },
+    [fixedCategory]
+  );
+
+  // Show related courses
+  const showRelatedCourses = useCallback(
+    (course) => {
+      if (!course) return;
+      const related = allCourses.filter(
+        (c) =>
+          c._id !== course._id &&
+          c.course_category === course.course_category
+      );
+      if (related.length > 0) {
+        setFilteredCourses(related.slice(0, 4));
+        setShowingRelated(true);
       }
-      
-      // Navigate to the new URL
-      const queryString = queryParams.toString();
-      const newUrl = queryString ? `${baseUrl}?${queryString}` : baseUrl;
-      router.push(newUrl);
-    } catch (error) {
-      console.error("Error updating URL:", error);
-      // Continue without URL update if router fails
-    }
-  };
+    },
+    [allCourses]
+  );
 
-  // Prevent unnecessary re-renders
-  const memoizedFilteredAndSortedCourses = useMemo(() => {
-    return filteredCourses;
-  }, [filteredCourses]);
+  // Return to the main course list
+  const clearRelated = useCallback(() => {
+    setShowingRelated(false);
+    setFilteredCourses(allCourses);
+  }, [allCourses]);
 
-  // Toggle view between standard grid and Netflix-like view
-  const toggleViewMode = () => {
-    setViewMode(prev => prev === "grid" ? "netflix" : "grid");
-  };
-
-  
-  // Close filters when clicking outside
+  /**
+   * Compute active filters
+   */
   useEffect(() => {
-    function handleClickOutside(event) {
-      if (filterDrawerRef.current && !filterDrawerRef.current.contains(event.target)) {
-        setFiltersVisible(false);
-      }
+    const newFilters = [];
+    // search
+    if (searchTerm) {
+      newFilters.push({
+        type: "search",
+        label: `Search: ${searchTerm}`,
+        value: searchTerm,
+      });
     }
-    
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [filterDrawerRef]);
-
-  // Add this function to properly initialize the active filters based on URL params and fixed category
-  useEffect(() => {
-    const initialFilters = [];
-    if (fixedCategory) {
-      initialFilters.push({ type: 'category', value: fixedCategory });
-    }
-    
-    // Only initialize with URL params if they were explicitly set
-    if (searchParams) {
-      const categoryParam = searchParams.get('category');
-      if (categoryParam && !fixedCategory) {
-        // Split by comma if there are multiple categories
-        const categories = categoryParam.includes(',') 
-          ? categoryParam.split(',') 
-          : [categoryParam];
-        
-        categories.forEach(category => {
-          if (category) {
-            initialFilters.push({ type: 'category', value: category });
-          }
+    // category
+    if (selectedCategory.length > 0 && !hideCategoryFilter) {
+      selectedCategory.forEach((cat) => {
+        newFilters.push({
+          type: "category",
+          label: `Category: ${cat}`,
+          value: cat,
         });
-      }
-      
-      const gradeParam = searchParams.get('grade');
-      if (gradeParam) {
-        initialFilters.push({ type: 'grade', value: gradeParam });
-      }
+      });
     }
-    
-    setActiveFilters(initialFilters);
-  }, [fixedCategory, searchParams]);
+    // grade
+    if (selectedGrade) {
+      newFilters.push({
+        type: "grade",
+        label: `Grade: ${selectedGrade}`,
+        value: selectedGrade,
+      });
+    }
+    // sort
+    if (sortOrder && sortOrder !== "newest-first") {
+      const map = {
+        "oldest-first": "Oldest First",
+        "A-Z": "Name (A-Z)",
+        "Z-A": "Name (Z-A)",
+        "price-low-high": "Price (Low->High)",
+        "price-high-low": "Price (High->Low)",
+      };
+      newFilters.push({
+        type: "sort",
+        label: `Sort: ${map[sortOrder] || sortOrder}`,
+        value: sortOrder,
+      });
+    }
+    setActiveFilters(newFilters);
+  }, [searchTerm, selectedCategory, selectedGrade, sortOrder, hideCategoryFilter]);
 
-  // Render only on client to prevent hydration mismatches
-  if (!isClient) {
-    return null;
-  }
+  /**
+   * No results
+   */
+  const renderNoResults = useCallback(() => {
+    return (
+      <div className="w-full flex flex-col items-center justify-center py-8">
+        <div className="text-center">
+          <h3 className="text-xl font-semibold mb-2">No Courses Found</h3>
+          <p className="text-gray-600 mb-4">
+            {searchTerm
+              ? `No results found for "${searchTerm}".`
+              : "No courses match your current filters."}
+          </p>
+          <button
+            onClick={handleClearFilters}
+            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
+          >
+            Clear Filters
+          </button>
+        </div>
+      </div>
+    );
+  }, [searchTerm, handleClearFilters]);
+
+  /**
+   * Count text
+   */
+  const coursesCountText = (() => {
+    if (showingRelated) return "Related Courses";
+    if (totalItems === 0) return "No courses found";
+    if (totalItems === 1) return "1 course found";
+    return `${totalItems} courses found`;
+  })();
 
   return (
-    <div className="container max-w-[1440px] mx-auto px-4 pt-6 pb-16">
-      {queryError && (
-        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded shadow-md">
-          <p>{queryError}</p>
-        </div>
-      )}
-      
-      {!error ? (
-        <div ref={contentRef}>
-          {description && (
-            <div className="mb-8 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-900 p-6 rounded-xl shadow-sm">
-              <p className="text-lg text-gray-700 dark:text-gray-300">{description}</p>
-            </div>
-          )}
-          
-          {/* Hero Header with Netflix-style treatment */}
-          <div className="mb-10">
-            <div className="flex flex-col md:flex-row md:justify-between md:items-center">
-              <div className="flex-1">
-                <h1 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-primary-400 mb-2">
-                  {CustomText || "Skill Development Courses"}
-                </h1>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Discover courses tailored to your learning journey
-                </p>
-              </div>
-              <div className="mt-4 md:mt-0">{CustomButton}</div>
+    <ErrorBoundary>
+      <section className="pb-20 relative">
+        {/* Header */}
+        <div className="bg-gray-900 py-10 md:py-16">
+          <div className="container mx-auto px-4">
+            <div className="max-w-4xl mx-auto text-center text-white">
+              <h1 className="text-3xl md:text-4xl font-bold mb-4">
+                {categoryTitle || "Explore Courses"}
+              </h1>
+              <p className="text-gray-300 text-lg">
+                {description ||
+                  "Discover courses to enhance your skills and advance your career."}
+              </p>
             </div>
           </div>
-          
-          {/* Sticky Navbar with Search and Filter Toggle - Netflix Style */}
-          <div className="sticky top-0 z-30 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md py-4 mb-6 rounded-b-xl shadow-md px-4 -mx-4 transition-all duration-300">
-            <div className="flex flex-col md:flex-row items-center gap-3">
-              {/* Search Field - Simplified */}
-              <div className="w-full md:w-1/3 relative group">
-                <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                  <Search size={18} className="text-gray-400 group-focus-within:text-primary-500 transition-colors" />
+        </div>
+
+        {/* Main Wrapper */}
+        <div className="container mx-auto px-4 -mt-8">
+          <div className="bg-white rounded-lg shadow-lg p-4 md:p-6 mb-8">
+            {/* Top Filters Row */}
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
+              {/* Search Input */}
+              <div className="flex-grow relative">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search courses..."
+                    value={searchTerm}
+                    onChange={handleSearch}
+                    className="w-full py-2 pl-10 pr-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                  {searchTerm && (
+                    <button
+                      onClick={() => setSearchTerm("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      <X size={16} />
+                    </button>
+                  )}
                 </div>
-                <input
-                  type="text"
-                  placeholder="Search courses..."
-                  value={searchTerm}
-                  onChange={memoizedHandleSearch}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Escape') {
-                      setSearchTerm('');
-                      setCurrentPage(1);
+              </div>
+
+              {/* Sort */}
+              <div className="relative" ref={sortDropdownRef}>
+                <button
+                  onClick={() => setShowSortDropdown(!showSortDropdown)}
+                  className="flex items-center justify-between w-full md:w-48 py-2 px-4 border border-gray-300 rounded-lg bg-white"
+                >
+                  <span className="text-sm font-medium">
+                    {
+                      {
+                        "newest-first": "Newest First",
+                        "oldest-first": "Oldest First",
+                        "A-Z": "Name (A-Z)",
+                        "Z-A": "Name (Z-A)",
+                        "price-low-high": "Price (Low->High)",
+                        "price-high-low": "Price (High->Low)",
+                      }[sortOrder] || "Newest First"
                     }
-                  }}
-                  suppressHydrationWarning={true}
-                  className="w-full pl-10 pr-10 py-2.5 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all"
-                />
-                {searchTerm && (
-                  <button
-                    onClick={() => {
-                      setSearchTerm('');
-                      setCurrentPage(1);
-                    }}
-                    className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                  >
-                    <X size={18} />
-                  </button>
+                  </span>
+                  <ChevronDown size={16} />
+                </button>
+
+                {showSortDropdown && (
+                  <div className="absolute right-0 mt-1 w-full md:w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                    <div className="py-1">
+                      <button
+                        onClick={() => handleSortChange("newest-first")}
+                        className={`${
+                          sortOrder === "newest-first"
+                            ? "bg-gray-100 text-blue-600"
+                            : "text-gray-700"
+                        } block w-full text-left px-4 py-2 text-sm hover:bg-gray-50`}
+                      >
+                        Newest First
+                      </button>
+                      <button
+                        onClick={() => handleSortChange("oldest-first")}
+                        className={`${
+                          sortOrder === "oldest-first"
+                            ? "bg-gray-100 text-blue-600"
+                            : "text-gray-700"
+                        } block w-full text-left px-4 py-2 text-sm hover:bg-gray-50`}
+                      >
+                        Oldest First
+                      </button>
+                      <button
+                        onClick={() => handleSortChange("A-Z")}
+                        className={`${
+                          sortOrder === "A-Z"
+                            ? "bg-gray-100 text-blue-600"
+                            : "text-gray-700"
+                        } block w-full text-left px-4 py-2 text-sm hover:bg-gray-50`}
+                      >
+                        Name (A-Z)
+                      </button>
+                      <button
+                        onClick={() => handleSortChange("Z-A")}
+                        className={`${
+                          sortOrder === "Z-A"
+                            ? "bg-gray-100 text-blue-600"
+                            : "text-gray-700"
+                        } block w-full text-left px-4 py-2 text-sm hover:bg-gray-50`}
+                      >
+                        Name (Z-A)
+                      </button>
+                      <button
+                        onClick={() => handleSortChange("price-low-high")}
+                        className={`${
+                          sortOrder === "price-low-high"
+                            ? "bg-gray-100 text-blue-600"
+                            : "text-gray-700"
+                        } block w-full text-left px-4 py-2 text-sm hover:bg-gray-50`}
+                      >
+                        Price (Low-&gt;High)
+                      </button>
+                      <button
+                        onClick={() => handleSortChange("price-high-low")}
+                        className={`${
+                          sortOrder === "price-high-low"
+                            ? "bg-gray-100 text-blue-600"
+                            : "text-gray-700"
+                        } block w-full text-left px-4 py-2 text-sm hover:bg-gray-50`}
+                      >
+                        Price (High-&gt;Low)
+                      </button>
+                    </div>
+                  </div>
                 )}
               </div>
-              
-              {/* Filter Button */}
-              <button
-                onClick={() => setFiltersVisible(!filtersVisible)}
-                className="w-full md:w-auto flex items-center justify-center gap-2 py-2.5 px-4 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full font-medium transition-colors"
-              >
-                <Filter size={18} />
-                <span>Filters{activeFilters.length > 0 && activeFilters.some(f => !(f.type === 'category' && f.value === fixedCategory)) ? ` (${activeFilters.filter(f => !(f.type === 'category' && f.value === fixedCategory)).length})` : ''}</span>
-              </button>
-              
-              {/* View Mode Toggle */}
-              <div className="flex items-center gap-2 ml-auto">
-                <button 
-                  onClick={toggleViewMode}
-                  className={`p-2 rounded-full ${viewMode === 'grid' 
-                    ? 'bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400' 
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'}`}
-                  aria-label="Grid view"
+
+              {/* View Mode */}
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setViewMode("grid")}
+                  className={`p-2 rounded-md ${
+                    viewMode === "grid"
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-200 text-gray-600"
+                  }`}
                 >
-                  <LayoutGrid size={18} />
+                  <LayoutGrid size={20} />
                 </button>
-                <button 
-                  onClick={toggleViewMode}
-                  className={`p-2 rounded-full ${viewMode === 'netflix' 
-                    ? 'bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400' 
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'}`}
-                  aria-label="Netflix view"
+                <button
+                  onClick={() => setViewMode("list")}
+                  className={`p-2 rounded-md ${
+                    viewMode === "list"
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-200 text-gray-600"
+                  }`}
                 >
-                  <List size={18} />
+                  <List size={20} />
                 </button>
               </div>
+
+              {/* Mobile Filters */}
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className="md:hidden flex items-center justify-center p-2 border border-gray-300 rounded-lg bg-white"
+              >
+                <Filter size={18} className="mr-2" />
+                <span>Filters</span>
+              </button>
             </div>
-            
-            {/* Active Filters - Only show when there are explicitly applied filters (not just fixed category) */}
-            {activeFilters.length > 0 && activeFilters.some(f => !(f.type === 'category' && f.value === fixedCategory)) && (
-              <div className="mt-3 flex flex-wrap gap-2 items-center">
-                <span className="text-sm text-gray-500 dark:text-gray-400">Active filters:</span>
-                {activeFilters
-                  .filter(filter => !(filter.type === 'category' && filter.value === fixedCategory))
-                  .map((filter, index) => (
-                    <span 
-                      key={index} 
-                      className="inline-flex items-center gap-1 px-3 py-1 bg-primary-50 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 rounded-full text-sm"
+
+            {/* Active Filters */}
+            {activeFilters.length > 0 && (
+              <div className="mb-6">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-sm font-medium text-gray-700">
+                    Active Filters:
+                  </span>
+                  {activeFilters.map((f, idx) => (
+                    <div
+                      key={`${f.type}-${idx}`}
+                      className="flex items-center bg-blue-50 text-blue-800 text-sm font-medium px-3 py-1 rounded-full"
                     >
-                      {filter.type}: {filter.value}
+                      {f.label}
                       <button
-                        onClick={() => removeFilter(filter.type, filter.value)}
-                        className="ml-1 hover:text-primary-900 dark:hover:text-primary-100"
+                        onClick={() => removeFilter(f.type, f.value)}
+                        className="ml-2"
                       >
                         <X size={14} />
                       </button>
-                    </span>
+                    </div>
                   ))}
-                {/* Only show clear all if there are filters that can be cleared */}
-                {activeFilters.some(f => !(f.type === 'category' && f.value === fixedCategory)) && (
                   <button
                     onClick={handleClearFilters}
-                    className="text-sm text-primary-600 dark:text-primary-400 hover:underline ml-auto"
+                    className="text-sm text-blue-600 hover:text-blue-800 underline ml-2"
                   >
-                    Clear all
+                    Clear All
                   </button>
-                )}
-              </div>
-            )}
-          </div>
-          
-          {/* Advanced Filters Drawer - Netflix Style */}
-          <div 
-            ref={filterDrawerRef}
-            className={`fixed inset-y-0 right-0 z-40 w-full sm:max-w-md bg-white dark:bg-gray-900 shadow-2xl transform transition-transform duration-300 ease-in-out ${
-              filtersVisible ? 'translate-x-0' : 'translate-x-full'
-            } overflow-y-auto`}
-          >
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">Filters</h3>
-                <button 
-                  onClick={() => setFiltersVisible(false)}
-                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-              
-              {/* Category Filter */}
-              {!hideCategoryFilter && !fixedCategory && (
-                <div className="mb-8">
-                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                    {categoryTitle || "Categories"}
-                  </h4>
-                  <CategoryFilter
-                    categories={availableCategories || categories}
-                    selectedCategory={selectedCategory}
-                    setSelectedCategory={(categories) => {
-                      setSelectedCategory(categories);
-                      setCurrentPage(1);
-                    }}
-                  />
-                </div>
-              )}
-              
-              {/* Grade Level Filter */}
-              <div className="mb-8">
-                <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                  Grade Level
-                </h4>
-                <div className="space-y-2">
-                  {grades.map((grade) => (
-                    <label key={grade} className="flex items-center cursor-pointer">
-                      <input
-                        type="radio"
-                        name="grade"
-                        className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                        checked={selectedGrade === grade}
-                        onChange={() => {
-                          setSelectedGrade(selectedGrade === grade ? null : grade);
-                          setCurrentPage(1);
-                        }}
-                      />
-                      <span className="ml-2 text-gray-700 dark:text-gray-300">{grade}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Sort Order */}
-              <div className="mb-8">
-                <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                  Sort By
-                </h4>
-                <select
-                  value={sortOrder}
-                  onChange={handleSortChange}
-                  className="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all"
-                >
-                  <option value="newest-first">Newest First</option>
-                  <option value="oldest-first">Oldest First</option>
-                  <option value="price-low-high">Price: Low to High</option>
-                  <option value="price-high-low">Price: High to Low</option>
-                  <option value="duration-short-long">Duration: Short to Long</option>
-                  <option value="duration-long-short">Duration: Long to Short</option>
-                  <option value="popularity">Popularity</option>
-                </select>
-              </div>
-              
-              {/* Action Buttons */}
-              <div className="flex gap-3">
-                <button 
-                  onClick={handleClearFilters} 
-                  className="flex-1 py-3 px-4 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                >
-                  Clear All
-                </button>
-                <button 
-                  onClick={() => setFiltersVisible(false)} 
-                  className="flex-1 py-3 px-4 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-medium transition-colors"
-                >
-                  Apply Filters
-                </button>
-              </div>
-            </div>
-          </div>
-          
-          {/* Backdrop for filter drawer */}
-          {filtersVisible && (
-            <div 
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-30"
-              onClick={() => setFiltersVisible(false)}
-            />
-          )}
-
-          {/* Main Content with Sidebar (conditionally rendered) */}
-          <div className="flex flex-col md:flex-row gap-6">
-            {/* Sidebar - Only show on standard view, not on Netflix view */}
-            {!hideCategoryFilter && !fixedCategory && viewMode !== "netflix" && (
-              <div className="hidden md:block w-full md:w-1/5 lg:w-[18%] max-w-[280px]">
-                <div className="sticky top-24 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                    {categoryTitle || "Categories"}
-                  </h3>
-                  <CategoryFilter
-                    categories={availableCategories || categories}
-                    selectedCategory={selectedCategory}
-                    setSelectedCategory={(categories) => {
-                      setSelectedCategory(categories);
-                      setCurrentPage(1);
-                    }}
-                  />
                 </div>
               </div>
             )}
 
-            {/* Course Display Area */}
-            <div className="flex-1 w-full min-w-0">
-              {loading ? (
-                <div className="flex justify-center items-center min-h-[50vh] w-full">
-                  <Preloader2 />
-                </div>
-              ) : filteredCourses.length > 0 ? (
-                <>
-                  {/* Standard Grid View */}
-                  {viewMode === "grid" && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 w-full">
-                      {filteredCourses.map((course, index) => (
-                        <div 
-                          key={course._id || index}
-                          className="transition-all duration-500 h-full"
-                          style={{ 
-                            transitionDelay: `${index * 50}ms`,
-                            opacity: isVisible ? 1 : 0,
-                            transform: isVisible ? 'translateY(0)' : 'translateY(20px)'
-                          }}
-                        >
-                          <CourseCard course={course} />
-                        </div>
-                      ))}
+            {/* Main Content */}
+            <div className="flex flex-col lg:flex-row gap-8">
+              {/* Sidebar */}
+              <div className={`lg:w-1/4 ${showFilters ? "block" : "hidden lg:block"}`}>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="font-semibold text-gray-800">Filters</h3>
+                      <button
+                        onClick={handleClearFilters}
+                        className="text-sm text-blue-600 hover:text-blue-800"
+                      >
+                        Clear All
+                      </button>
                     </div>
-                  )}
-                  
-                  {/* Netflix-like View */}
-                  {viewMode === "netflix" && (
-                    <div className="space-y-14">
-                      {/* Main featured courses section */}
-                      <div>
-                        <div className="flex items-center justify-between mb-4">
-
-                          {showingRelated && (
-                            <button 
-                              onClick={() => setShowingRelated(false)}
-                              className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium"
-                            >
-                              Back to all courses
-                            </button>
-                          )}
-                        </div>
-                        
-                        {/* Netflix horizontal scrollable row with hover expand effect */}
-                        <div className="relative -mx-4 px-4">
-                          <div className="overflow-x-auto pb-4 pt-1 hide-scrollbar">
-                            <div className="flex space-x-4" style={{ minWidth: 'max-content' }}>
-                              {(showingRelated ? 
-                                relatedCourses[showingRelated] || [] : 
-                                filteredCourses.slice(0, Math.min(12, filteredCourses.length))
-                              ).map((course, index) => (
-                                <div 
-                                  key={course._id || index}
-                                  className={`transition-all duration-300 flex-shrink-0 ${
-                                    hoveredCourse === course._id ? 'w-[340px]' : 'w-[260px]'
-                                  }`}
-                                  onMouseEnter={() => setHoveredCourse(course._id)}
-                                  onMouseLeave={() => setHoveredCourse(null)}
-                                >
-                                  <div 
-                                    className={`transition-all duration-300 ${
-                                      hoveredCourse === course._id ? 'transform scale-105 shadow-xl' : 'transform scale-100 shadow-md'
-                                    }`}
-                                  >
-                                    <CourseCard 
-                                      course={course}
-                                    />
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Additional course categories sections - Only show if we have enough courses and not showing related */}
-                      {!showingRelated && selectedCategory.length <= 1 && filteredCourses.length > 12 && (
-                        <>
-                          {/* Trending Courses Row */}
-                          <div>
-                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                              Trending Courses
-                            </h2>
-                            <div className="relative -mx-4 px-4">
-                              <div className="overflow-x-auto pb-4 pt-1 hide-scrollbar">
-                                <div className="flex space-x-4" style={{ minWidth: 'max-content' }}>
-                                  {filteredCourses
-                                    .filter(course => course.is_popular)
-                                    .slice(0, Math.min(10, filteredCourses.length))
-                                    .map((course, index) => (
-                                      <div 
-                                        key={course._id || index}
-                                        className={`transition-all duration-300 flex-shrink-0 ${
-                                          hoveredCourse === course._id ? 'w-[340px]' : 'w-[260px]'
-                                        }`}
-                                        onMouseEnter={() => setHoveredCourse(course._id)}
-                                        onMouseLeave={() => setHoveredCourse(null)}
-                                      >
-                                        <div 
-                                          className={`transition-all duration-300 ${
-                                            hoveredCourse === course._id ? 'transform scale-105 shadow-xl' : 'transform scale-100 shadow-md'
-                                          }`}
-                                        >
-                                          <CourseCard course={course} />
-                                        </div>
-                                      </div>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          {/* Recently Added Courses Row */}
-                          <div>
-                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                              Recently Added
-                            </h2>
-                            <div className="relative -mx-4 px-4">
-                              <div className="overflow-x-auto pb-4 pt-1 hide-scrollbar">
-                                <div className="flex space-x-4" style={{ minWidth: 'max-content' }}>
-                                  {filteredCourses
-                                    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-                                    .slice(0, Math.min(10, filteredCourses.length))
-                                    .map((course, index) => (
-                                      <div 
-                                        key={course._id || index}
-                                        className={`transition-all duration-300 flex-shrink-0 ${
-                                          hoveredCourse === course._id ? 'w-[340px]' : 'w-[260px]'
-                                        }`}
-                                        onMouseEnter={() => setHoveredCourse(course._id)}
-                                        onMouseLeave={() => setHoveredCourse(null)}
-                                      >
-                                        <div 
-                                          className={`transition-all duration-300 ${
-                                            hoveredCourse === course._id ? 'transform scale-105 shadow-xl' : 'transform scale-100 shadow-md'
-                                          }`}
-                                        >
-                                          <CourseCard course={course} />
-                                        </div>
-                                      </div>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </>
-                      )}
-                      
-                      {/* All courses grid - If there are more courses */}
-                      {!showingRelated && filteredCourses.length > 12 && (
-                        <div>
-                          <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                              All Courses
-                            </h2>
-                          </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
-                            {filteredCourses
-                              .slice((currentPage - 1) * 12, currentPage * 12)
-                              .map((course, index) => (
-                                <div 
-                                  key={course._id || index}
-                                  className="transition-all duration-500"
-                                  style={{ 
-                                    transitionDelay: `${index * 50}ms`,
-                                    opacity: isVisible ? 1 : 0,
-                                    transform: isVisible ? 'translateY(0)' : 'translateY(20px)'
-                                  }}
-                                >
-                                  <CourseCard course={course} />
-                                </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Pagination - More visually appealing and smooth */}
-                  {totalPages > 1 && (
-                    <div className="mt-12 flex justify-center">
-                      <div className="bg-white dark:bg-gray-800 shadow-md rounded-xl p-2 inline-flex">
-                        <Pagination
-                          currentPage={currentPage}
-                          totalPages={totalPages}
-                          onPageChange={(page) => {
-                            handlePageChange(page);
-                            scrollToTop();
-                          }}
-                          className="pagination-netflix" // Custom class for Netflix-style pagination
+                    {/* Categories */}
+                    {!hideCategoryFilter && (
+                      <div className="mb-6">
+                        <h4 className="font-medium text-gray-700 mb-3">
+                          Categories
+                        </h4>
+                        <CategoryFilter
+                          categories={availableCategories || fallbackCategories}
+                          selectedCategory={selectedCategory}
+                          setSelectedCategory={handleCategoryChange}
                         />
                       </div>
+                    )}
+                    {/* Grade */}
+                    <div className="mb-6">
+                      <h4 className="font-medium text-gray-700 mb-3">
+                        Grade Level
+                      </h4>
+                      <select
+                        value={selectedGrade}
+                        onChange={(e) => handleGradeChange(e.target.value)}
+                        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        
+                        <option value="All Grade">All Grade</option>
+                        <option value="Preschool">Preschool</option>
+                        <option value="Grade 1-2">Grade 1-2</option>
+                        <option value="Grade 3-4">Grade 3-4</option>
+                        <option value="Grade 5-6">Grade 5-6</option>
+                        <option value="Grade 7-8">Grade 7-8</option>
+                        <option value="Grade 9-10">Grade 9-10</option>
+                        <option value="Grade 11-12">Grade 11-12</option>
+                        <option value="UG - Graduate - Professionals">UG - Graduate - Professionals</option>
+                      </select>
                     </div>
-                  )}
-                </>
-              ) : (
-                <div className="min-h-[50vh] flex flex-col items-center justify-center text-center p-8 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-200 dark:border-gray-700">
-                  <div className="w-20 h-20 mb-6 text-gray-300 dark:text-gray-600">
-                    <BookOpen size={80} />
+
+                    {/* Features (static placeholders) */}
+                    <div className="space-y-3">
+                      <h4 className="font-medium text-gray-700 mb-2">
+                        Course Features
+                      </h4>
+                      <div className="flex items-center space-x-2 text-gray-700">
+                        <Zap size={16} className="text-yellow-500" />
+                        <span className="text-sm">Certification Available</span>
+                      </div>
+                      <div className="flex items-center space-x-2 text-gray-700">
+                        <BookOpen size={16} className="text-blue-500" />
+                        <span className="text-sm">Includes Assignments</span>
+                      </div>
+                      <div className="flex items-center space-x-2 text-gray-700">
+                        <GraduationCap size={16} className="text-green-500" />
+                        <span className="text-sm">Project-Based Learning</span>
+                      </div>
+                      <div className="flex items-center space-x-2 text-gray-700">
+                        <Palette size={16} className="text-purple-500" />
+                        <span className="text-sm">Interactive Quizzes</span>
+                      </div>
+                    </div>
                   </div>
-                  <h3 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                    No courses found
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400 max-w-md mb-6">
-                    We couldn't find any courses matching your criteria. Try adjusting your filters or check back later.
-                  </p>
-                  <button
-                    onClick={handleClearFilters}
-                    className="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-full shadow-sm transition-colors"
-                  >
-                    Clear Filters
-                  </button>
                 </div>
-              )}
+              </div>
+
+              {/* Courses Section */}
+              <div className="lg:w-3/4">
+                {/* Top row for count */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+                  <div className="text-gray-600 mb-4 sm:mb-0">
+                    {coursesCountText}
+                    {showingRelated && (
+                      <button
+                        onClick={clearRelated}
+                        className="ml-2 text-blue-600 hover:text-blue-800 underline"
+                      >
+                        Back to All Courses
+                      </button>
+                    )}
+                  </div>
+
+                  {!hideCategoryFilter && (
+                    <CategoryToggle
+                      categories={(availableCategories || fallbackCategories).slice(
+                        0,
+                        6
+                      )}
+                      selectedCategory={selectedCategory}
+                      setSelectedCategory={handleCategoryChange}
+                    />
+                  )}
+                </div>
+
+                {/* Query Error */}
+                {queryError && (
+                  <div className="bg-red-50 text-red-800 p-4 rounded-lg mb-6">
+                    <h3 className="font-semibold mb-1">Error</h3>
+                    <p>{queryError}</p>
+                  </div>
+                )}
+
+                {/* Loading */}
+                {loading ? (
+                  <div className="w-full flex justify-center py-12">
+                    <Preloader2 />
+                  </div>
+                ) : filteredCourses.length > 0 ? (
+                  // Show courses
+                  <div
+                    className={
+                      viewMode === "grid"
+                        ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+                        : "flex flex-col gap-4"
+                    }
+                  >
+                    {filteredCourses.map((course) => (
+                      <DynamicCourseCard
+                        key={course._id}
+                        course={course}
+                        viewMode={viewMode}
+                        onShowRelated={() => showRelatedCourses(course)}
+                        CustomButton={CustomButton}
+                        CustomText={CustomText}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  // No results
+                  renderNoResults()
+                )}
+
+                {/* Pagination */}
+                {filteredCourses.length > 0 && totalPages > 1 && (
+                  <div className="mt-8 flex justify-center">
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      onPageChange={handlePageChange}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      ) : (
-        <div className="min-h-[60vh] flex flex-col items-center justify-center">
-          <div className="w-20 h-20 mb-6 text-red-500">
-            <X size={80} />
-          </div>
-          <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            Error Loading Courses
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400 max-w-md text-center mb-6">
-            There was a problem loading the courses. Please try again later.
-          </p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-full shadow-sm transition-colors"
-          >
-            Refresh Page
-          </button>
-        </div>
-      )}
-      
-      {/* Add custom styles for Netflix-style UI */}
-      <style jsx global>{`
-        /* Hide scrollbar for Chrome, Safari and Opera */
-        .hide-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        
-        /* Hide scrollbar for IE, Edge and Firefox */
-        .hide-scrollbar {
-          -ms-overflow-style: none;  /* IE and Edge */
-          scrollbar-width: none;  /* Firefox */
-        }
-        
-        /* Custom pagination styling */
-        .pagination-netflix button {
-          transition: all 0.3s ease;
-        }
-        
-        .pagination-netflix button:hover:not([disabled]) {
-          transform: translateY(-2px);
-        }
-        
-        /* Smooth page transitions */
-        .page-transition {
-          transition: all 0.5s ease-in-out;
-        }
-      `}</style>
-    </div>
+      </section>
+    </ErrorBoundary>
   );
 };
 
 CoursesFilter.propTypes = {
-  CustomButton: PropTypes.node,
-  CustomText: PropTypes.string,
-  scrollToTop: PropTypes.func,
+  CustomButton: PropTypes.func,
+  CustomText: PropTypes.func,
+  scrollToTop: PropTypes.bool,
   fixedCategory: PropTypes.string,
   hideCategoryFilter: PropTypes.bool,
-  availableCategories: PropTypes.arrayOf(PropTypes.string),
+  availableCategories: PropTypes.array,
   categoryTitle: PropTypes.string,
   description: PropTypes.string,
   classType: PropTypes.string,
-  filterState: PropTypes.object
+  filterState: PropTypes.object,
 };
 
 export default CoursesFilter;
