@@ -1688,3 +1688,58 @@ Improved the courses page UI by moving the course type tabs (All/Live/Blended) d
   - Maintained consistent color coding for tabs (primary/rose/indigo)
   - Improved contrast between active and inactive tabs
   - More compact design that fits better with the page layout
+
+## Fixed Brochure Download Functionality - [Date: Current Date]
+- Fixed the "Cannot read properties of undefined (reading 'requestBroucher')" error
+- Added the missing `brouchers` object to the `apiUrls` definition in `src/apis/index.js`
+- Implemented the following brochure-related API methods:
+  - `requestBroucher`: For requesting brochure downloads with proper error handling
+  - `trackBroucherDownload`: For tracking download events with analytics
+  - `getAllBrouchers`: For retrieving brochure listings with pagination
+  - `getBroucherById`: For fetching specific brochure details
+- Made both brochure_id and course_id parameters optional when at least one is provided
+- Ensured proper error handling with user-friendly messages
+- Added comprehensive JSDoc documentation for all brochure-related methods
+- Implemented proper data structure for all request/response handling
+- Used the '/broucher/request-download' endpoint for brochure requests
+- Added timestamp tracking for analytics purposes
+
+## Fixed Brochure Request 404 Error - [Date: Current Date]
+- Fixed the 404 Not Found error when requesting brochures from the server
+- Updated the API endpoint from `/broucher/request` to the correct `/broucher/download/:courseId` in `src/apis/index.js`
+- Modified the API call structure to follow RESTful conventions with course/brochure ID in the URL path
+- Ensured alignment with the actual backend API implementation as documented
+- Improved error handling with explicit error throwing when required parameters are missing
+- Optimized the request payload to only include necessary data
+- Prioritized course_id for the URL parameter while supporting brochure_id as a fallback
+- Improved code robustness by using template literals for dynamic URL construction
+- Maintained support for both course and brochure IDs while following the API's expected structure
+- Added proper object spread syntax to conditionally include brochure_id only when needed
+
+# Changes Made by Cursor
+
+## Course Filter Components Update - [Date: Current Date]
+
+### CoursesFilter.js
+- Improved the UI design with modern aesthetics including better spacing, rounded corners, and shadows
+- Enhanced the filter drawer with a more organized layout and visual cues
+- Added new filter options for course features (certification, assignments, projects, quizzes)
+- Integrated the new `filterCourses` API endpoint for more efficient and comprehensive filtering
+- Improved the sorting options with clearer labels and consistent behavior
+- Added proper handling for API facets to enable dynamic filter counts
+- Optimized the mobile layout with better responsive design
+
+### HomeCourseSection.js
+- Redesigned with a cleaner, more professional appearance
+- Improved filter buttons with hover effects and visual clarity
+- Enhanced the empty state component for better user experience
+- Updated to use the new `filterCourses` API for both live and blended courses
+- Optimized filter state management to reduce unnecessary re-renders
+- Added proper loading state management for better UX during data fetching
+- Improved accessibility with clearer visual hierarchy and semantic HTML
+
+### API Integration
+- Replaced the outdated `getAllCoursesWithLimits` calls with the new `filterCourses` API
+- Implemented proper parameter handling for the new API contract
+- Added support for advanced filtering options (feature filters, sorting, etc.)
+- Improved error handling and loading state management

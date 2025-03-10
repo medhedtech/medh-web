@@ -801,4 +801,119 @@ export const apiUrls = {
   Session_Count: {
     getCountByInstructorId: "/track-sessions/get",
   },
+  brouchers: {
+    /**
+     * Request a brochure download based on either course_id or brochure_id
+     * @param {Object} options - Request parameters
+     * @param {string} [options.brochure_id] - Brochure ID (optional if course_id is provided)
+     * @param {string} [options.course_id] - Course ID (optional if brochure_id is provided)
+     * @param {string} options.full_name - User's full name
+     * @param {string} options.email - User's email address
+     * @param {string} options.phone_number - User's phone number
+     * @param {string} options.country_code - Country code for phone number
+     * @returns {Object} Request config with URL and data
+     */
+    requestBroucher: (options = {}) => {
+      const { 
+        brochure_id, 
+        course_id, 
+        full_name, 
+        email, 
+        phone_number, 
+        country_code = "IN"
+      } = options;
+      
+      if (!brochure_id && !course_id) {
+        console.error("Either brochure_id or course_id must be provided");
+        throw new Error("Either brochure_id or course_id must be provided");
+      }
+      
+      // Prioritize course_id for the URL path as per the API design
+      const idToUse = course_id || brochure_id;
+      
+      return {
+        url: `/broucher/download/${idToUse}`,
+        data: {
+          full_name,
+          email,
+          phone_number,
+          country_code,
+          // Only include brochure_id in the body if different from the URL param and it exists
+          ...(brochure_id && course_id ? { brochure_id } : {})
+        }
+      };
+    },
+    
+    /**
+     * Track brochure download events
+     * @param {Object} options - Tracking parameters
+     * @param {string} [options.brochure_id] - Brochure ID (optional if course_id is provided)
+     * @param {string} [options.course_id] - Course ID (optional if brochure_id is provided)
+     * @param {string} options.user_id - User ID for tracking
+     * @param {string} options.source - Source page or referrer
+     * @param {Object} [options.metadata] - Additional tracking metadata
+     * @returns {Object} Request config with URL and data
+     */
+    trackBroucherDownload: (options = {}) => {
+      const { 
+        brochure_id, 
+        course_id, 
+        user_id, 
+        source = "", 
+        metadata = {} 
+      } = options;
+      
+      if (!brochure_id && !course_id) {
+        console.error("Either brochure_id or course_id must be provided");
+      }
+      
+      return {
+        url: '/broucher/track-download',
+        data: {
+          brochure_id: brochure_id || null,
+          course_id: course_id || null,
+          user_id,
+          source,
+          timestamp: new Date().toISOString(),
+          metadata: {
+            ...metadata,
+            browser: navigator?.userAgent || '',
+            timestamp: new Date().toISOString()
+          }
+        }
+      };
+    },
+    
+    /**
+     * Get all brochures with filtering options
+     * @param {Object} options - Query parameters
+     * @param {number} [options.page=1] - Page number
+     * @param {number} [options.limit=10] - Items per page
+     * @param {string} [options.search=""] - Search term
+     * @returns {string} The brochure list API URL
+     */
+    getAllBrouchers: (options = {}) => {
+      const { page = 1, limit = 10, search = "" } = options;
+      
+      const queryParams = new URLSearchParams();
+      queryParams.append('page', page);
+      queryParams.append('limit', limit);
+      
+      if (search && search.trim() !== '') {
+        queryParams.append('search', search.trim());
+      }
+      
+      return `/broucher/get?${queryParams.toString()}`;
+    },
+    
+    /**
+     * Get a specific brochure by ID
+     * @param {string} id - Brochure ID
+     * @returns {string} The brochure detail API URL
+     */
+    getBroucherById: (id) => {
+      if (!id) throw new Error('Brochure ID is required');
+      return `/broucher/get/${id}`;
+    }
+  }
 };
