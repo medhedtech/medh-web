@@ -1,22 +1,15 @@
 "use client";
 import React, { useState } from "react";
-import Image from "next/image";
-import Left from "@/assets/images/personality/left.svg";
-import Down from "@/assets/images/personality/down.svg";
-import { DownIcon, LeftIcon } from "@/assets/images/icon/FaqIcon";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronDown, Mail, HelpCircle } from "lucide-react";
 
-function HireFromMedhFaq() {
+const HireFromMedhFaq = () => {
   const [openIndex, setOpenIndex] = useState(null);
-
-  const toggleFAQ = (index) => {
-    setOpenIndex(openIndex === index ? null : index);
-  };
 
   const faqs = [
     {
       question: "What is Recruit@Medh?",
-      answer:
-        "Recruit@Medh is our dedicated department that facilitates the recruitment of highly skilled and qualified IT professionals for various job roles in the IT industry. We work closely with both our students, professional job-seekers and industry partners to bridge the gap between talent and opportunities.",
+      answer: "Recruit@Medh is our dedicated department that facilitates the recruitment of highly skilled and qualified IT professionals for various job roles in the IT industry. We work closely with both our students, professional job-seekers and industry partners to bridge the gap between talent and opportunities.",
     },
     {
       question: "What types of IT professionals does Recruit@Medh cater to?",
@@ -61,7 +54,7 @@ function HireFromMedhFaq() {
     {
       question: "Can companies offer internships to IT students through Recruit@Medh?",
       answer:
-        "Absolutely! We encourage companies to offer internships to our IT students. Internships are an excellent way for students to gain practical experience and understand the real-world dynamics of the IT industry. It also allows companies to assess the intern’s potential for future full-time roles.",
+        "Absolutely! We encourage companies to offer internships to our IT students. Internships are an excellent way for students to gain practical experience and understand the real-world dynamics of the IT industry. It also allows companies to assess the intern's potential for future full-time roles.",
     },
     {
       question: "What support does Recruit@Medh provide during the recruitment process?",
@@ -70,42 +63,143 @@ function HireFromMedhFaq() {
     },
   ];
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5 }
+    }
+  };
+
   return (
-    <div className="bg-white dark:bg-screen-dark text-lightGrey14 flex justify-center items-center flex-col py-4 pb-8">
-      <div className="md:w-[80%] w-[90%]">
-        <h2 className="md:text-3xl text-[22px] font-bold mb-4 text-center dark:text-white text-[#5C6574]">
-          Frequently Asked Questions (FAQs)
-        </h2>
-        
-        <div className="space-y-4">
+    <section className="relative py-20 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 bg-grid-pattern opacity-5" />
+
+      <div className="container mx-auto px-4">
+        {/* Section Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="text-center max-w-3xl mx-auto mb-16"
+        >
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <HelpCircle className="w-8 h-8 text-[#F6B335]" />
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white">
+              Frequently Asked Questions
+            </h2>
+          </div>
+          <p className="text-lg text-gray-600 dark:text-gray-300">
+            Find answers to common questions about hiring from Recruit@Medh and our recruitment process.
+          </p>
+        </motion.div>
+
+        {/* FAQ Items */}
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          className="max-w-3xl mx-auto space-y-4"
+        >
           {faqs.map((faq, index) => (
-            <div key={index} className="border dark:border-gray600 shadow-sm">
-              <div
-                className="flex justify-between items-center py-4 cursor-pointer px-2 sm:px-4"
-                onClick={() => toggleFAQ(index)}
+            <motion.div
+              key={index}
+              variants={itemVariants}
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden border border-gray-100 dark:border-gray-700"
+            >
+              <button
+                onClick={() => setOpenIndex(openIndex === index ? null : index)}
+                className="w-full px-6 py-4 flex items-center justify-between text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/50"
               >
-                <h3 className="md:text-[15px] text-[14px] font-semibold dark:text-white">
+                <span className="font-semibold text-gray-900 dark:text-white pr-8">
                   {faq.question}
-                </h3>
-                <span
-                  className={`md:text-[15px] text-[14px] ${
-                    openIndex === index ? "text-white" : "text-black"
-                  } dark:text-white`}
-                >
-                  {openIndex === index ? <DownIcon /> : <LeftIcon />}
                 </span>
-              </div>
-              {openIndex === index && (
-                <p className="text-lightGrey14 pb-4 px-2 md:pr-12 sm:px-4 md:text-[15px] text-[14px] ">
-                  {faq.answer}
-                </p>
-              )}
-            </div>
+                <motion.div
+                  animate={{ rotate: openIndex === index ? 180 : 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="flex-shrink-0 text-[#F6B335]"
+                >
+                  <ChevronDown className="w-5 h-5" />
+                </motion.div>
+              </button>
+
+              <AnimatePresence mode="wait">
+                {openIndex === index && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ 
+                      height: "auto", 
+                      opacity: 1,
+                      transition: {
+                        height: { duration: 0.3 },
+                        opacity: { duration: 0.3, delay: 0.1 }
+                      }
+                    }}
+                    exit={{ 
+                      height: 0, 
+                      opacity: 0,
+                      transition: {
+                        height: { duration: 0.3 },
+                        opacity: { duration: 0.2 }
+                      }
+                    }}
+                    className="overflow-hidden"
+                  >
+                    <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700/50">
+                      <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+                        {faq.answer}
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
+
+        {/* Contact Info */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="mt-12 text-center"
+        >
+          <div className="bg-[#F6B335]/10 backdrop-blur-sm rounded-xl p-8 max-w-2xl mx-auto">
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-[#F6B335]/20 flex items-center justify-center">
+                <Mail className="w-6 h-6 text-[#F6B335]" />
+              </div>
+              <p className="text-gray-600 dark:text-gray-300">
+                Have more questions about hiring? Contact our recruitment team at{" "}
+                <a
+                  href="mailto:recruit@medh.co"
+                  className="text-[#F6B335] font-semibold hover:underline"
+                >
+                  recruit@medh.co
+                </a>
+              </p>
+            </div>
+          </div>
+        </motion.div>
       </div>
-    </div>
+    </section>
   );
-}
+};
 
 export default HireFromMedhFaq;
