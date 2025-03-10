@@ -119,20 +119,39 @@ const Blogs = ({
   // Fetch Blogs Data from API using enhanced API endpoints
   const fetchBlogs = async (options = {}) => {
     try {
-      // Use the enhanced getAllBlogs function with filtering options
-      const apiUrl = apiUrls?.Blogs?.getAllBlogs({
-        limit: options.limit || maxBlogs,
-        sort_by: options.sort_by || 'createdAt',
-        sort_order: options.sort_order || 'desc',
-        tags: options.tags || '',
-        status: 'published'
-      });
+      // Use the updated getAllBlogs function
+      const apiUrl = options.featured 
+        ? apiUrls.Blogs.getFeaturedBlogs({
+            limit: options.limit || maxBlogs,
+            type: 'featured'
+          })
+        : apiUrls.Blogs.getAllBlogs({
+            limit: options.limit || maxBlogs,
+            sort_by: options.sort_by || 'createdAt',
+            sort_order: options.sort_order || 'desc',
+            tags: options.tags || (activeFilter !== 'all' ? activeFilter : ''),
+            status: 'published'
+          });
       
       await getQuery({
         url: apiUrl,
         onSuccess: (response) => {
           if (response.success) {
-            setBlogs(response.data.slice(0, maxBlogs));
+            // Transform data if needed to match what BlogCard expects
+            const transformedBlogs = response.data.map(blog => ({
+              _id: blog._id,
+              title: blog.title,
+              featured_image: blog.upload_image || "/images/blog/default.png", // Fallback if no image
+              blog_link: blog.blog_link,
+              excerpt: blog.excerpt || `Read our latest blog post about ${blog.title}`,
+              author: blog.author || "Medh Team",
+              createdAt: blog.createdAt,
+              readTime: blog.readTime || `${Math.ceil(blog.title.length / 100)} min read`, // Estimate read time if not provided
+              category: blog.category || "Education",
+              tags: blog.tags || []
+            }));
+            
+            setBlogs(transformedBlogs.slice(0, maxBlogs));
           } else {
             console.error("Failed to fetch blogs: ", response.message);
             setBlogs([]);
