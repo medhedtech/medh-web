@@ -1,77 +1,152 @@
+"use client";
+import { useState, useEffect } from "react";
+import { apiBaseUrl } from "@/apis";
 import CourseCard from "../courses/CourseCard";
-import PlacementImage1 from "../../../assets/images/placement/course-placement-1.jpg";
-import PlacementImage2 from "../../../assets/images/placement/course-placement-2.jpg";
-
-const coursesData = [
-  {
-    _id: "1",
-    course_image: PlacementImage1,
-    course_title: "Digital Marketing with Data Analytics",
-    course_category: "Professional Edge Diploma In",
-    course_duration: "6 months",
-  },
-  {
-    _id: "2",
-    course_image: PlacementImage2,
-    course_title: "AI & Data Science",
-    course_category: "Professional Edge Diploma In",
-    course_duration: "18 Months Course",
-  },
-];
+import Preloader2 from "@/components/shared/others/Preloader2";
 
 const HireSectionPlacement = () => {
-  return (
-    <div className="bg-white dark:bg-screen-dark h-auto py-10 w-full flex justify-center items-center">
-      <div className="w-full md:w-[100%]">
-        <div className="flex items-center flex-col w-[100%] sm:w-80% md:mb-10 mb-5 px-4">
-          <h1 className="text-[#5C6574] text-center leading-tight sm:mb-0 mb-4 md:leading-normal font-Poppins font-bold text-size-26 sm:text-size-32">
-            Empower Your Career Ambitions with
-          </h1>
-          <h1 className="text-[#7ECA9D] text-center leading-tight md:leading-9 font-Poppins font-bold text-size-26 sm:text-size-32">
-            Medh Job Assurance Programs
-          </h1>
-          <p className="mt-6 text-gray-700 text-sm sm:text-base text-center font-normal md:text-lg w-[100%] sm:w-[75%] mx-auto">
-            At Medh, we empower individuals through education, offering 100% Job
-            Guaranteed Courses designed to provide in-demand skills for your
-            dream job in your desired field.
-          </p>
-        </div>
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-        <div className="w-full bg-gray-100 py-4">
-          <div className="flex items-center flex-col w-[100%] sm:w-80% md:mb-10 mb-5 px-4">
-            <h1 className="text-[#7ECA9D] font-Poppins text-center leading-tight sm:mb-0 mb-4 md:leading-normal font-bold text-size-26 sm:text-size-32">
-              Medh-Professional-Edge-Diploma-Courses
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const response = await fetch(
+          `${apiBaseUrl}/courses/search?page=1&limit=8&status=Published&course_duration=18 months%2072%20weeks`
+        );
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch courses');
+        }
+
+        const data = await response.json();
+        // Add class_type and other live course specific properties
+        const liveCourses = (data.courses || []).map(course => ({
+          ...course,
+          class_type: "live",
+          is_live: true,
+          schedule: "Flexible Schedule",
+          effort_hours: "4-6",
+          course_duration: "18 Months (Including 3 Months Internship)", // Updated duration
+          features: [
+            ...(course.features || []),
+            "3 Months Corporate Internship Included"
+          ]
+        }));
+        setCourses(liveCourses);
+      } catch (err) {
+        console.error('Error fetching courses:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, []);
+
+  return (
+    <section className="pb-20 relative">
+      {/* Header Section */}
+      <div className="bg-gray-900 py-10 md:py-16">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center text-white">
+            <h1 className="text-3xl md:text-4xl font-bold mb-4">
+              Empower Your Career Ambitions with
+              <span className="text-[#7ECA9D] block mt-2">
+                Medh 18-Month Job Assurance Programs
+              </span>
             </h1>
-            <p className="text-center md:text-[1rem] text-gray-600 text-[14px] leading-normal md:leading-7 md:w-[70%] text-[#727695] dark:text-gray-300">
-              These courses integrate theoretical knowledge with practical
-              application through corporate internships, equipping learners with
-              essential tools to excel. Designed by industry experts, the
-              curriculum ensures a relevant, up-to-date learning experience that
-              leads to guaranteed corporate sector employment.
+            <p className="text-gray-300 text-lg">
+              At Medh, we empower individuals through education, offering 100% Job
+              Guaranteed Courses designed to provide in-depth skills with our comprehensive
+              18-month live interactive programs including 3 months of corporate internship.
             </p>
           </div>
         </div>
+      </div>
 
-        {/* Section for displaying Course Cards */}
-        <section className="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-20 px-4 pt-8 md:px-16 md:pt-16 bg-white dark:bg-screen-dark">
-          {/* Render only the first two courses */}
-          {coursesData.slice(0, 2).map((course) => (
-            <CourseCard key={course._id} course={course} />
-          ))}
-        </section>
-        <div className="flex items-center flex-col w-80% md:mb-10 mb-5 px-4">
-          {/* Move the paragraph outside of the loop, so it appears below both cards */}
-          <p className="mt-6 text-gray-700 text-sm sm:text-base text-center font-normal md:text-lg w-[90%] sm:w-[75%] mx-auto">
-            The curriculum for these courses is carefully crafted to cover
-            essential topics, tools, and techniques for each field. Learners
-            engage in hands-on projects, case studies, and simulations, gaining
-            practical experience. The program also includes internships,
-            industry certifications, and job readiness modules to enhance
-            marketability.
+      {/* Professional Edge Section */}
+      <div className="bg-gray-100 dark:bg-gray-800 py-8 -mt-8">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-[#7ECA9D] font-bold text-2xl md:text-3xl mb-4">
+              Live Interactive Professional Diploma Courses
+            </h2>
+            <p className="text-gray-600 dark:text-gray-300">
+              These comprehensive programs feature live interactive sessions with industry experts,
+              combining 15 months of theoretical knowledge with 3 months of practical application 
+              through corporate internships. Our live courses ensure personalized attention and 
+              real-time interaction, leading to guaranteed corporate sector employment.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Courses Section */}
+      <div className="container mx-auto px-4 mt-8">
+        {loading ? (
+          <div className="w-full flex justify-center py-12">
+            <Preloader2 />
+          </div>
+        ) : error ? (
+          <div className="text-center text-red-600 py-8">
+            {error}
+          </div>
+        ) : (
+          <div className="flex justify-center">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 xl:gap-8 max-w-[900px]">
+              {courses.map((course) => (
+                <CourseCard
+                  key={course._id}
+                  course={course}
+                  classType="live"
+                  variant="standard"
+                  showRelatedButton={false}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Duration Breakdown */}
+      <div className="container mx-auto px-4 mt-12">
+        <div className="max-w-4xl mx-auto text-center bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+            Program Duration Breakdown
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <h4 className="font-semibold text-[#7ECA9D] mb-2">15 Months</h4>
+              <p className="text-gray-600 dark:text-gray-300">
+                Intensive Live Interactive Learning
+              </p>
+            </div>
+            <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <h4 className="font-semibold text-[#7ECA9D] mb-2">3 Months</h4>
+              <p className="text-gray-600 dark:text-gray-300">
+                Corporate Internship
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Description */}
+      <div className="container mx-auto px-4 mt-12">
+        <div className="max-w-4xl mx-auto text-center">
+          <p className="text-gray-700 dark:text-gray-300">
+            Our live interactive curriculum spans 18 months, with 15 months of intensive 
+            learning followed by a 3-month corporate internship. Students engage in live 
+            sessions, hands-on projects, case studies, and simulations, gaining practical 
+            experience through direct interaction. The program includes industry certifications 
+            and job readiness modules to enhance marketability and ensure successful career placement.
           </p>
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 
