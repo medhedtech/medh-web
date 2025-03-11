@@ -1,3 +1,58 @@
+# Changes By Cursor - Course Content Component Standardization
+
+## Summary
+Created a shared AnimatedContent component system to standardize the implementation across all course pages, reducing code duplication and ensuring consistent behavior while preserving course-specific styling.
+
+## Modified Files
+- Created `src/components/shared/course-content/AnimatedContent.js`: Shared component with optimized animations
+- Created `src/components/shared/course-content/CourseContentAdapter.js`: Adapter component for easy migration
+- Created `src/components/shared/course-content/index.js`: Export file for easier importing
+- Updated `src/app/digital-marketing-with-data-analytics-course/AnimatedContent.js`: Migrated to shared component
+- Updated `src/app/vedic-mathematics-course/AnimatedContent.js`: Migrated to shared component
+- Updated `src/app/personality-development-course/AnimatedContent.js`: Migrated to shared component
+- Updated `src/app/ai-and-data-science-course/AnimatedContent.js`: Migrated to shared component
+
+## Technical Improvements
+
+### Shared AnimatedContent Component
+- **Performance Optimizations**:
+  - Implemented scroll event throttling with requestAnimationFrame
+  - Added hardware acceleration with transform-gpu class
+  - Used optimized animation properties for better performance
+  - Added proper cleanup of event listeners
+
+- **Accessibility Improvements**:
+  - Implemented reduced motion support for accessibility
+  - Added proper ARIA labels for interactive elements
+  - Used semantic HTML structure
+  - Added keyboard navigability for interactive elements
+
+- **Enhanced Animations**:
+  - Implemented spring animations for more natural motion
+  - Used optimized animation variants
+  - Added smooth transitions with proper timing
+  - Used AnimatePresence for proper mount/unmount animations
+
+### CourseContentAdapter Implementation
+- **Course-Specific Adapters**:
+  - Created mapping system for course-specific component names
+  - Implemented course-specific styling options
+  - Preserved unique color schemes and gradients
+  - Maintained course-specific animation preferences
+
+- **Standardized Structure**:
+  - Unified the section structure across all courses
+  - Implemented consistent motion props
+  - Added conditional rendering for optional components
+  - Used consistent naming conventions
+
+## Benefits
+- **Reduced Code Duplication**: Centralized animation and structure logic
+- **Consistent User Experience**: Standardized UI patterns across courses
+- **Improved Performance**: Optimized animations and event handling
+- **Better Maintainability**: Easier updates across all course pages
+- **Enhanced Accessibility**: Added reduced motion support and ARIA labels
+
 # Changes By Cursor - Blog Listing Page Modernization
 
 ## Summary
@@ -2000,3 +2055,93 @@ Enhanced the HeadingDashboard component with modern Gen Alpha design, micro-inte
 - **Visual Consistency**: Maintains design cohesion with the Navbar.js component
 - **Enhanced Performance**: Optimized animations and transitions
 - **Better Dark Mode Support**: Seamless transitions between light and dark themes
+
+# Changes Made by Cursor
+
+## AnimatedContent Component Standardization (2023-06-15)
+
+### Created Shared Components
+
+1. Created a reusable shared AnimatedContent component:
+   - Path: `src/components/shared/course-content/AnimatedContent.js`
+   - Features:
+     - Standardized animation effects with hardware acceleration
+     - Optimized scroll handling with throttling
+     - Accessible scroll-to-top button
+     - Responsive section layout
+     - Support for customization via options
+
+2. Created an adapter component to ease migration:
+   - Path: `src/components/shared/course-content/CourseContentAdapter.js`
+   - Features:
+     - Course-specific configuration
+     - Component name mapping
+     - Visual style customization per course
+
+3. Created an index file for easy importing:
+   - Path: `src/components/shared/course-content/index.js`
+
+### Refactored Course Pages
+
+1. Updated Digital Marketing course page:
+   - Path: `src/app/digital-marketing-with-data-analytics-course/AnimatedContent.js`
+   - Changes:
+     - Replaced custom implementation with shared component
+     - Maintained all existing functionality
+     - Preserved course-specific styling
+
+# Changes by Cursor
+
+## Dark Mode Enhancement - Courses Page
+- Enhanced dark mode in Courses page and CoursesFilter component
+- Added transition effects for smoother light/dark mode switching
+- Improved color contrasts for better readability in dark mode
+- Added proper dark mode styling to interactive elements (buttons, inputs, dropdowns)
+- Enhanced background colors and gradients for better visual hierarchy
+- Ensured consistent styling across all UI elements
+- Added proper dark mode borders and shadows for better element separation
+- Optimized loading animation colors for dark mode
+- Improved accessibility by enhancing text contrast in dark mode
+
+## CoursesFilter Improvements
+- Made component full width for better use of screen real estate
+- Adjusted card grid layout (2 columns instead of 3-4) to prevent compressed details
+- Added preserveClassType flag to maintain proper course type styling (live/blended)
+- Enhanced error and empty state displays with better visibility in dark mode
+- Improved loading state skeletons with dark mode support
+- Added responsive width adjustments for better display across device sizes
+- Refined UI of filter components for better interaction
+- Standardized animation transitions for smoother user experience
+- Added proper handling of course cards with consistent spacing
+
+## Course Filter UI Enhancements
+- Expanded liveCourseFilters and blendedCourseFilters to full width of the page
+- Removed container constraints to create an edge-to-edge design
+- Changed filter button layout from center to left-aligned on larger screens
+- Added responsive padding with sm/lg breakpoints
+- Included a helpful filter instruction text on desktop view
+- Added screen reader accessible headings for filters
+- Increased spacing between filter buttons on larger screens
+- Improved visual hierarchy with flex-grow spacer
+- Maintained consistent styling with the existing design system
+
+## HomeCourseSection Duration Filtering
+- Modified live courses section to display courses by specific durations only:
+  - 18 months (72 weeks) courses
+  - 9 months (36 weeks) courses
+- Added utility function `durationToWeeks()` to convert duration strings to week counts
+- Implemented intelligent parsing of different duration formats (months, weeks)
+- Changed default sort order to display longer duration courses first
+- Updated filter application logic to maintain duration-based sorting
+- Maintained filter functionality for upcoming, popular, and latest filters
+- Kept the blended courses section unchanged with API fetching
+
+## HomeCourseSection Category Diversity
+- Modified live courses section to display one course from each available category
+- Added helper function `getOneCoursePerCategory()` to select diverse course offerings
+- Implemented Map-based approach to ensure category uniqueness
+- Changed default sort order to alphabetical by category name
+- Updated filter application logic to maintain category-based diversity
+- Added fallback handling for courses without categories ("Uncategorized")
+- Maintained filter functionality for upcoming, popular, and latest filters
+- Kept the blended courses section unchanged with API fetching

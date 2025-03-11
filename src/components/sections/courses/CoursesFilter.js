@@ -15,6 +15,9 @@ import {
   List,
   Palette,
   BookOpen,
+  AlertCircle,
+  SearchX,
+  ChevronRight,
 } from "lucide-react";
 import CategoryFilter from "./CategoryFilter";
 import Pagination from "@/components/shared/pagination/Pagination";
@@ -22,11 +25,12 @@ import useGetQuery from "@/hooks/getQuery.hook";
 import Preloader2 from "@/components/shared/others/Preloader2";
 import CategoryToggle from "@/components/shared/courses/CategoryToggle";
 import { apiUrls } from "@/apis";
+import Link from "next/link";
 
 // Dynamically import components that might cause hydration issues
 const DynamicCourseCard = dynamic(() => import("./CourseCard"), {
   ssr: true,
-  loading: () => <div className="animate-pulse bg-gray-200 rounded-lg h-96"></div>,
+  loading: () => <div className="animate-pulse bg-gray-200 dark:bg-gray-700 rounded-lg h-96 transition-colors duration-200"></div>,
 });
 
 // Fallback categories if none provided
@@ -541,24 +545,21 @@ const CoursesFilter = ({
    */
   const renderNoResults = useCallback(() => {
     return (
-      <div className="w-full flex flex-col items-center justify-center py-8">
-        <div className="text-center">
-          <h3 className="text-xl font-semibold mb-2">No Courses Found</h3>
-          <p className="text-gray-600 mb-4">
-            {searchTerm
-              ? `No results found for "${searchTerm}".`
-              : "No courses match your current filters."}
-          </p>
-          <button
-            onClick={handleClearFilters}
-            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
-          >
-            Clear Filters
-          </button>
-        </div>
+      <div className="flex flex-col items-center justify-center py-12 px-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800/50 text-center">
+        <SearchX size={48} className="text-gray-400 dark:text-gray-500 mb-4" />
+        <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">No Courses Found</h3>
+        <p className="text-gray-600 dark:text-gray-400 max-w-md mb-6">
+          We couldn't find any courses matching your search criteria. Try adjusting your filters or search term.
+        </p>
+        <button
+          onClick={handleClearFilters}
+          className="px-4 py-2 bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 text-white rounded-lg transition-colors duration-200"
+        >
+          Clear All Filters
+        </button>
       </div>
     );
-  }, [searchTerm, handleClearFilters]);
+  }, [handleClearFilters]);
 
   /**
    * Count text
@@ -571,363 +572,383 @@ const CoursesFilter = ({
   })();
 
   return (
-    <ErrorBoundary>
-      <section className="pb-20 relative">
-        {/* Header */}
-        <div className="bg-gray-900 py-10 md:py-16">
-          <div className="container mx-auto px-4">
-            <div className="max-w-4xl mx-auto text-center text-white">
-              <h1 className="text-3xl md:text-4xl font-bold mb-4">
-                {categoryTitle || "Explore Courses"}
-              </h1>
-              <p className="text-gray-300 text-lg">
-                {description ||
-                  "Discover courses to enhance your skills and advance your career."}
-              </p>
+    <>
+      <ErrorBoundary>
+        <section className="pb-20 relative w-full">
+          {/* Course Header */}
+          <div className="bg-gray-900 dark:bg-gray-950 py-10 md:py-16 transition-colors duration-300 border-b border-gray-800 dark:border-gray-800/40 w-full">
+            <div className="container mx-auto px-4">
+              <div className="max-w-4xl mx-auto text-center text-white">
+                <h1 className="text-3xl md:text-4xl font-bold mb-4 text-white dark:text-gray-50">
+                  {categoryTitle || "Explore Courses"}
+                </h1>
+                <p className="text-gray-300 dark:text-gray-300/90 text-lg transition-colors duration-300">
+                  {description ||
+                    "Discover courses to enhance your skills and advance your career."}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Main Wrapper */}
-        <div className="container mx-auto px-4 -mt-8">
-          <div className="bg-white rounded-lg shadow-lg p-4 md:p-6 mb-8">
-            {/* Top Filters Row */}
-            <div className="flex flex-col md:flex-row gap-4 mb-6">
-              {/* Search Input */}
-              <div className="flex-grow relative">
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Search courses..."
-                    value={searchTerm}
-                    onChange={handleSearch}
-                    className="w-full py-2 pl-10 pr-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                  {searchTerm && (
-                    <button
-                      onClick={() => setSearchTerm("")}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    >
-                      <X size={16} />
-                    </button>
+          {/* Main Wrapper */}
+          <div className="container mx-auto px-4 -mt-8 w-full">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-gray-900/30 p-4 md:p-6 mb-8 border border-transparent dark:border-gray-700 transition-colors duration-300">
+              {/* Top Filters Row */}
+              <div className="flex flex-col md:flex-row gap-4 mb-6">
+                {/* Search Input */}
+                <div className="flex-grow relative">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search courses..."
+                      value={searchTerm}
+                      onChange={handleSearch}
+                      className="w-full py-2 pl-10 pr-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors duration-200"
+                    />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" size={18} />
+                    {searchTerm && (
+                      <button
+                        onClick={() => setSearchTerm("")}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
+                      >
+                        <X size={16} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Sort */}
+                <div className="relative" ref={sortDropdownRef}>
+                  <button
+                    onClick={() => setShowSortDropdown(!showSortDropdown)}
+                    className="flex items-center justify-between w-full md:w-48 py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 transition-colors duration-200"
+                  >
+                    <span className="text-sm font-medium">
+                      {
+                        {
+                          "newest-first": "Newest First",
+                          "oldest-first": "Oldest First",
+                          "A-Z": "Name (A-Z)",
+                          "Z-A": "Name (Z-A)",
+                          "price-low-high": "Price (Low->High)",
+                          "price-high-low": "Price (High->Low)",
+                        }[sortOrder] || "Newest First"
+                      }
+                    </span>
+                    <ChevronDown size={16} />
+                  </button>
+
+                  {showSortDropdown && (
+                    <div className="absolute right-0 mt-1 w-full md:w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-10 transition-colors duration-200">
+                      <div className="py-1">
+                        <button
+                          onClick={() => handleSortChange("newest-first")}
+                          className={`${
+                            sortOrder === "newest-first"
+                              ? "bg-gray-100 dark:bg-gray-700 text-blue-600 dark:text-blue-400"
+                              : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/70"
+                          } block w-full text-left px-4 py-2 text-sm transition-colors duration-200`}
+                        >
+                          Newest First
+                        </button>
+                        <button
+                          onClick={() => handleSortChange("oldest-first")}
+                          className={`${
+                            sortOrder === "oldest-first"
+                              ? "bg-gray-100 dark:bg-gray-700 text-blue-600 dark:text-blue-400"
+                              : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/70"
+                          } block w-full text-left px-4 py-2 text-sm transition-colors duration-200`}
+                        >
+                          Oldest First
+                        </button>
+                        <button
+                          onClick={() => handleSortChange("A-Z")}
+                          className={`${
+                            sortOrder === "A-Z"
+                              ? "bg-gray-100 dark:bg-gray-700 text-blue-600 dark:text-blue-400"
+                              : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/70"
+                          } block w-full text-left px-4 py-2 text-sm transition-colors duration-200`}
+                        >
+                          Name (A-Z)
+                        </button>
+                        <button
+                          onClick={() => handleSortChange("Z-A")}
+                          className={`${
+                            sortOrder === "Z-A"
+                              ? "bg-gray-100 dark:bg-gray-700 text-blue-600 dark:text-blue-400"
+                              : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/70"
+                          } block w-full text-left px-4 py-2 text-sm transition-colors duration-200`}
+                        >
+                          Name (Z-A)
+                        </button>
+                        <button
+                          onClick={() => handleSortChange("price-low-high")}
+                          className={`${
+                            sortOrder === "price-low-high"
+                              ? "bg-gray-100 dark:bg-gray-700 text-blue-600 dark:text-blue-400"
+                              : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/70"
+                          } block w-full text-left px-4 py-2 text-sm transition-colors duration-200`}
+                        >
+                          Price (Low-&gt;High)
+                        </button>
+                        <button
+                          onClick={() => handleSortChange("price-high-low")}
+                          className={`${
+                            sortOrder === "price-high-low"
+                              ? "bg-gray-100 dark:bg-gray-700 text-blue-600 dark:text-blue-400"
+                              : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/70"
+                          } block w-full text-left px-4 py-2 text-sm transition-colors duration-200`}
+                        >
+                          Price (High-&gt;Low)
+                        </button>
+                      </div>
+                    </div>
                   )}
                 </div>
-              </div>
 
-              {/* Sort */}
-              <div className="relative" ref={sortDropdownRef}>
-                <button
-                  onClick={() => setShowSortDropdown(!showSortDropdown)}
-                  className="flex items-center justify-between w-full md:w-48 py-2 px-4 border border-gray-300 rounded-lg bg-white"
-                >
-                  <span className="text-sm font-medium">
-                    {
-                      {
-                        "newest-first": "Newest First",
-                        "oldest-first": "Oldest First",
-                        "A-Z": "Name (A-Z)",
-                        "Z-A": "Name (Z-A)",
-                        "price-low-high": "Price (Low->High)",
-                        "price-high-low": "Price (High->Low)",
-                      }[sortOrder] || "Newest First"
-                    }
-                  </span>
-                  <ChevronDown size={16} />
-                </button>
-
-                {showSortDropdown && (
-                  <div className="absolute right-0 mt-1 w-full md:w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-                    <div className="py-1">
-                      <button
-                        onClick={() => handleSortChange("newest-first")}
-                        className={`${
-                          sortOrder === "newest-first"
-                            ? "bg-gray-100 text-blue-600"
-                            : "text-gray-700"
-                        } block w-full text-left px-4 py-2 text-sm hover:bg-gray-50`}
-                      >
-                        Newest First
-                      </button>
-                      <button
-                        onClick={() => handleSortChange("oldest-first")}
-                        className={`${
-                          sortOrder === "oldest-first"
-                            ? "bg-gray-100 text-blue-600"
-                            : "text-gray-700"
-                        } block w-full text-left px-4 py-2 text-sm hover:bg-gray-50`}
-                      >
-                        Oldest First
-                      </button>
-                      <button
-                        onClick={() => handleSortChange("A-Z")}
-                        className={`${
-                          sortOrder === "A-Z"
-                            ? "bg-gray-100 text-blue-600"
-                            : "text-gray-700"
-                        } block w-full text-left px-4 py-2 text-sm hover:bg-gray-50`}
-                      >
-                        Name (A-Z)
-                      </button>
-                      <button
-                        onClick={() => handleSortChange("Z-A")}
-                        className={`${
-                          sortOrder === "Z-A"
-                            ? "bg-gray-100 text-blue-600"
-                            : "text-gray-700"
-                        } block w-full text-left px-4 py-2 text-sm hover:bg-gray-50`}
-                      >
-                        Name (Z-A)
-                      </button>
-                      <button
-                        onClick={() => handleSortChange("price-low-high")}
-                        className={`${
-                          sortOrder === "price-low-high"
-                            ? "bg-gray-100 text-blue-600"
-                            : "text-gray-700"
-                        } block w-full text-left px-4 py-2 text-sm hover:bg-gray-50`}
-                      >
-                        Price (Low-&gt;High)
-                      </button>
-                      <button
-                        onClick={() => handleSortChange("price-high-low")}
-                        className={`${
-                          sortOrder === "price-high-low"
-                            ? "bg-gray-100 text-blue-600"
-                            : "text-gray-700"
-                        } block w-full text-left px-4 py-2 text-sm hover:bg-gray-50`}
-                      >
-                        Price (High-&gt;Low)
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* View Mode */}
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => setViewMode("grid")}
-                  className={`p-2 rounded-md ${
-                    viewMode === "grid"
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-200 text-gray-600"
-                  }`}
-                >
-                  <LayoutGrid size={20} />
-                </button>
-                <button
-                  onClick={() => setViewMode("list")}
-                  className={`p-2 rounded-md ${
-                    viewMode === "list"
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-200 text-gray-600"
-                  }`}
-                >
-                  <List size={20} />
-                </button>
-              </div>
-
-              {/* Mobile Filters */}
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className="md:hidden flex items-center justify-center p-2 border border-gray-300 rounded-lg bg-white"
-              >
-                <Filter size={18} className="mr-2" />
-                <span>Filters</span>
-              </button>
-            </div>
-
-            {/* Active Filters */}
-            {activeFilters.length > 0 && (
-              <div className="mb-6">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-sm font-medium text-gray-700">
-                    Active Filters:
-                  </span>
-                  {activeFilters.map((f, idx) => (
-                    <div
-                      key={`${f.type}-${idx}`}
-                      className="flex items-center bg-blue-50 text-blue-800 text-sm font-medium px-3 py-1 rounded-full"
-                    >
-                      {f.label}
-                      <button
-                        onClick={() => removeFilter(f.type, f.value)}
-                        className="ml-2"
-                      >
-                        <X size={14} />
-                      </button>
-                    </div>
-                  ))}
+                {/* View Mode */}
+                <div className="flex items-center space-x-2">
                   <button
-                    onClick={handleClearFilters}
-                    className="text-sm text-blue-600 hover:text-blue-800 underline ml-2"
+                    onClick={() => setViewMode("grid")}
+                    className={`p-2 rounded-md transition-colors duration-200 ${
+                      viewMode === "grid"
+                        ? "bg-blue-500 dark:bg-blue-600 text-white"
+                        : "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                    }`}
                   >
-                    Clear All
+                    <LayoutGrid size={20} />
+                  </button>
+                  <button
+                    onClick={() => setViewMode("list")}
+                    className={`p-2 rounded-md transition-colors duration-200 ${
+                      viewMode === "list"
+                        ? "bg-blue-500 dark:bg-blue-600 text-white"
+                        : "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                    }`}
+                  >
+                    <List size={20} />
                   </button>
                 </div>
-              </div>
-            )}
 
-            {/* Main Content */}
-            <div className="flex flex-col lg:flex-row gap-8">
-              {/* Sidebar */}
-              <div className={`lg:w-1/4 ${showFilters ? "block" : "hidden lg:block"}`}>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <div className="mb-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-semibold text-gray-800">Filters</h3>
-                      <button
-                        onClick={handleClearFilters}
-                        className="text-sm text-blue-600 hover:text-blue-800"
-                      >
-                        Clear All
-                      </button>
-                    </div>
-                    {/* Categories */}
-                    {!hideCategoryFilter && (
-                      <div className="mb-6">
-                        <h4 className="font-medium text-gray-700 mb-3">
-                          Categories
-                        </h4>
-                        <CategoryFilter
-                          categories={availableCategories || fallbackCategories}
-                          selectedCategory={selectedCategory}
-                          setSelectedCategory={handleCategoryChange}
-                        />
-                      </div>
-                    )}
-                    {/* Grade */}
-                    <div className="mb-6">
-                      <h4 className="font-medium text-gray-700 mb-3">
-                        Grade Level
-                      </h4>
-                      <select
-                        value={selectedGrade}
-                        onChange={(e) => handleGradeChange(e.target.value)}
-                        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        
-                        <option value="All Grade">All Grade</option>
-                        <option value="Preschool">Preschool</option>
-                        <option value="Grade 1-2">Grade 1-2</option>
-                        <option value="Grade 3-4">Grade 3-4</option>
-                        <option value="Grade 5-6">Grade 5-6</option>
-                        <option value="Grade 7-8">Grade 7-8</option>
-                        <option value="Grade 9-10">Grade 9-10</option>
-                        <option value="Grade 11-12">Grade 11-12</option>
-                        <option value="UG - Graduate - Professionals">UG - Graduate - Professionals</option>
-                      </select>
-                    </div>
-
-                    {/* Features (static placeholders) */}
-                    <div className="space-y-3">
-                      <h4 className="font-medium text-gray-700 mb-2">
-                        Course Features
-                      </h4>
-                      <div className="flex items-center space-x-2 text-gray-700">
-                        <Zap size={16} className="text-yellow-500" />
-                        <span className="text-sm">Certification Available</span>
-                      </div>
-                      <div className="flex items-center space-x-2 text-gray-700">
-                        <BookOpen size={16} className="text-blue-500" />
-                        <span className="text-sm">Includes Assignments</span>
-                      </div>
-                      <div className="flex items-center space-x-2 text-gray-700">
-                        <GraduationCap size={16} className="text-green-500" />
-                        <span className="text-sm">Project-Based Learning</span>
-                      </div>
-                      <div className="flex items-center space-x-2 text-gray-700">
-                        <Palette size={16} className="text-purple-500" />
-                        <span className="text-sm">Interactive Quizzes</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                {/* Mobile Filters */}
+                <button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="md:hidden flex items-center justify-center p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 transition-colors duration-200"
+                >
+                  <Filter size={18} className="mr-2" />
+                  <span>Filters</span>
+                </button>
               </div>
 
-              {/* Courses Section */}
-              <div className="lg:w-3/4">
-                {/* Top row for count */}
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-                  <div className="text-gray-600 mb-4 sm:mb-0">
-                    {coursesCountText}
-                    {showingRelated && (
-                      <button
-                        onClick={clearRelated}
-                        className="ml-2 text-blue-600 hover:text-blue-800 underline"
+              {/* Active Filters */}
+              {activeFilters.length > 0 && (
+                <div className="mb-6">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">
+                      Active Filters:
+                    </span>
+                    {activeFilters.map((f, idx) => (
+                      <div
+                        key={`${f.type}-${idx}`}
+                        className="flex items-center bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-sm font-medium px-3 py-1 rounded-full transition-colors duration-200"
                       >
-                        Back to All Courses
-                      </button>
-                    )}
-                  </div>
-
-                  {!hideCategoryFilter && (
-                    <CategoryToggle
-                      categories={(availableCategories || fallbackCategories).slice(
-                        0,
-                        6
-                      )}
-                      selectedCategory={selectedCategory}
-                      setSelectedCategory={handleCategoryChange}
-                    />
-                  )}
-                </div>
-
-                {/* Query Error */}
-                {queryError && (
-                  <div className="bg-red-50 text-red-800 p-4 rounded-lg mb-6">
-                    <h3 className="font-semibold mb-1">Error</h3>
-                    <p>{queryError}</p>
-                  </div>
-                )}
-
-                {/* Loading */}
-                {loading ? (
-                  <div className="w-full flex justify-center py-12">
-                    <Preloader2 />
-                  </div>
-                ) : filteredCourses.length > 0 ? (
-                  // Show courses
-                  <div
-                    className={
-                      viewMode === "grid"
-                        ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-                        : "flex flex-col gap-4"
-                    }
-                  >
-                    {filteredCourses.map((course) => (
-                      <DynamicCourseCard
-                        key={course._id}
-                        course={course}
-                        viewMode={viewMode}
-                        onShowRelated={() => showRelatedCourses(course)}
-                        CustomButton={CustomButton}
-                        CustomText={CustomText}
-                      />
+                        {f.label}
+                        <button
+                          onClick={() => removeFilter(f.type, f.value)}
+                          className="ml-2 hover:text-blue-600 dark:hover:text-blue-200 transition-colors duration-200"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
                     ))}
+                    <button
+                      onClick={handleClearFilters}
+                      className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline ml-2 transition-colors duration-200"
+                    >
+                      Clear All
+                    </button>
                   </div>
-                ) : (
-                  // No results
-                  renderNoResults()
-                )}
+                </div>
+              )}
 
-                {/* Pagination */}
-                {filteredCourses.length > 0 && totalPages > 1 && (
-                  <div className="mt-8 flex justify-center">
-                    <Pagination
-                      currentPage={currentPage}
-                      totalPages={totalPages}
-                      onPageChange={handlePageChange}
-                    />
+              {/* Main Content */}
+              <div className="flex flex-col lg:flex-row gap-8">
+                {/* Sidebar */}
+                <div className={`lg:w-1/4 ${showFilters ? "block" : "hidden lg:block"}`}>
+                  <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg border border-transparent dark:border-gray-700 transition-colors duration-200">
+                    <div className="mb-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="font-semibold text-gray-800 dark:text-gray-200 transition-colors duration-200">Filters</h3>
+                        <button
+                          onClick={handleClearFilters}
+                          className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200"
+                        >
+                          Clear All
+                        </button>
+                      </div>
+                      {/* Categories */}
+                      {!hideCategoryFilter && (
+                        <div className="mb-6">
+                          <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-3 transition-colors duration-200">
+                            Categories
+                          </h4>
+                          <CategoryFilter
+                            categories={availableCategories || fallbackCategories}
+                            selectedCategory={selectedCategory}
+                            setSelectedCategory={handleCategoryChange}
+                          />
+                        </div>
+                      )}
+                      {/* Grade */}
+                      <div className="mb-6">
+                        <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-3 transition-colors duration-200">
+                          Grade Level
+                        </h4>
+                        <select
+                          value={selectedGrade}
+                          onChange={(e) => handleGradeChange(e.target.value)}
+                          className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors duration-200"
+                        >
+                          <option value="">All Grades</option>
+                          <option value="Elementary">Elementary</option>
+                          <option value="Middle School">Middle School</option>
+                          <option value="High School">High School</option>
+                          <option value="College">College</option>
+                          <option value="Professional">Professional</option>
+                        </select>
+                      </div>
+
+                      {/* Features (static placeholders) */}
+                      <div className="space-y-3">
+                        <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">
+                          Course Features
+                        </h4>
+                        <div className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 transition-colors duration-200">
+                          <Zap size={16} className="text-yellow-500 dark:text-yellow-400" />
+                          <span className="text-sm">Certification Available</span>
+                        </div>
+                        <div className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 transition-colors duration-200">
+                          <BookOpen size={16} className="text-blue-500 dark:text-blue-400" />
+                          <span className="text-sm">Includes Assignments</span>
+                        </div>
+                        <div className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 transition-colors duration-200">
+                          <GraduationCap size={16} className="text-green-500 dark:text-green-400" />
+                          <span className="text-sm">Project-Based Learning</span>
+                        </div>
+                        <div className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 transition-colors duration-200">
+                          <Palette size={16} className="text-purple-500 dark:text-purple-400" />
+                          <span className="text-sm">Interactive Quizzes</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                )}
+                </div>
+
+                {/* Content Area */}
+                <div className="lg:w-3/4">
+                  {/* Top row for count */}
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+                    <div className="text-gray-600 dark:text-gray-300 mb-4 sm:mb-0">
+                      {coursesCountText}
+                      {showingRelated && (
+                        <button
+                          onClick={clearRelated}
+                          className="ml-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline"
+                        >
+                          Back to All Courses
+                        </button>
+                      )}
+                    </div>
+
+                    {!hideCategoryFilter && (
+                      <CategoryToggle
+                        categories={(availableCategories || fallbackCategories).slice(
+                          0,
+                          6
+                        )}
+                        selectedCategory={selectedCategory}
+                        setSelectedCategory={handleCategoryChange}
+                      />
+                    )}
+                  </div>
+
+                  {/* Query Error */}
+                  {queryError && (
+                    <div className="flex flex-col items-center justify-center py-12 px-4 border border-red-200 dark:border-red-900/30 rounded-lg bg-red-50 dark:bg-red-900/10 text-center">
+                      <AlertCircle size={48} className="text-red-500 dark:text-red-400 mb-4" />
+                      <h3 className="text-xl font-semibold text-red-700 dark:text-red-300 mb-2">Error Loading Courses</h3>
+                      <p className="text-red-600 dark:text-red-400 max-w-md mb-6">
+                        {queryError || "We encountered an error while loading courses. Please try again later."}
+                      </p>
+                      <button
+                        onClick={() => window.location.reload()}
+                        className="px-4 py-2 bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 text-white rounded-lg transition-colors duration-200"
+                      >
+                        Refresh Page
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Loading */}
+                  {loading ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+                      {Array.from({ length: 6 }).map((_, idx) => (
+                        <div key={idx} className="animate-pulse bg-gray-200 dark:bg-gray-700 rounded-lg h-96 transition-colors duration-200"></div>
+                      ))}
+                    </div>
+                  ) : filteredCourses.length > 0 ? (
+                    // Show courses
+                    <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6" : "space-y-4"}>
+                      {filteredCourses.map((course) => (
+                        <ErrorBoundary key={course._id || course.id}>
+                          <DynamicCourseCard 
+                            course={course} 
+                            viewMode={viewMode}
+                            isCompact={false}
+                            preserveClassType={true}
+                            className={viewMode === "list" ? "border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200" : ""}
+                          />
+                        </ErrorBoundary>
+                      ))}
+                    </div>
+                  ) : (
+                    // No results
+                    renderNoResults()
+                  )}
+
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                    <div className="mt-10 flex justify-center">
+                      <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={handlePageChange}
+                        className="dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
+                      />
+                    </div>
+                  )}
+
+                  {/* Bottom Action */}
+                  <div className="mt-12 text-center">
+                    {CustomButton ? (
+                      <div className="inline-block">{CustomButton}</div>
+                    ) : (
+                      <Link
+                        href="/courses"
+                        className="inline-flex items-center px-6 py-3 bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 text-white text-sm font-medium rounded-xl transition-colors duration-200 shadow-sm hover:shadow-md"
+                      >
+                        <span>View All Courses</span>
+                        <ChevronRight className="ml-2 w-5 h-5" />
+                      </Link>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
-    </ErrorBoundary>
+        </section>
+      </ErrorBoundary>
+    </>
   );
 };
 
