@@ -1,9 +1,10 @@
 "use client";
 import React, { useRef, useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import "@/assets/css/ovalAnimation.css";
-import { ArrowRight, ChevronRight } from "lucide-react";
+import { ArrowRight, ChevronRight, Award, Users, Target, Book, GraduationCap, FileCheck } from "lucide-react";
 
 export default function AboutBanner({
   bannerImage,
@@ -16,10 +17,44 @@ export default function AboutBanner({
   isoText,
   slogan,
   buttonImage,
-  headingColor,
-  descriptionColor,
-  isoTextColor,
-  subheadingColor,
+  headingColor = "text-blue-500",
+  descriptionColor = "text-gray-300",
+  isoTextColor = "text-blue-500",
+  subheadingColor = "text-blue-500",
+  stats = [
+    {
+      icon: <Users className="w-5 h-5 text-blue-500 animate-pulse" />,
+      value: "5000+",
+      label: "Students Enrolled"
+    },
+    {
+      icon: <Award className="w-5 h-5 text-yellow-500 animate-bounce" />,
+      value: "99%",
+      label: "Success Rate"
+    },
+    {
+      icon: <Target className="w-5 h-5 text-green-500 animate-pulse" />,
+      value: "24/7",
+      label: "Support Available"
+    }
+  ],
+  features = [
+    {
+      icon: <Book className="w-6 h-6 text-blue-500 transform hover:rotate-180 transition-transform duration-500" />,
+      title: "Expert Curriculum",
+      description: "Industry-aligned courses"
+    },
+    {
+      icon: <GraduationCap className="w-6 h-6 text-green-500 hover:scale-110 transition-transform duration-300" />,
+      title: "Certified Learning",
+      description: "Recognized credentials"
+    },
+    {
+      icon: <FileCheck className="w-6 h-6 text-yellow-500 hover:scale-110 transition-transform duration-300" />,
+      title: "Job Assistance",
+      description: "Career support"
+    }
+  ]
 }) {
   const [isLoaded, setIsLoaded] = useState(false);
   const sectionRef = useRef(null);
@@ -37,122 +72,182 @@ export default function AboutBanner({
     }
   };
 
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
+
+  // Split heading into two parts if it contains a comma
+  const headingParts = heading ? heading.split(',') : ['', ''];
+  const mainHeading = headingParts[0] || heading;
+  const subHeading = headingParts.length > 1 ? headingParts[1] : '';
+
   return (
-    <section className="relative min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 dark:from-gray-950 dark:to-gray-900 overflow-hidden">
-      {/* Background Image - Large Screens */}
-      <div className="absolute inset-0 hidden lg:block">
-        <Image
-          src={bannerImage}
-          alt="Banner Background"
-          fill
-          className="opacity-40 object-cover"
-          priority
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-black/40" />
-      </div>
+    <motion.div
+      initial="hidden"
+      animate={isLoaded ? "visible" : "hidden"}
+      variants={fadeInUp}
+      transition={{ duration: 0.5 }}
+      className="bg-gradient-to-b from-gray-50/50 to-white/50 dark:from-gray-950/50 dark:to-gray-900/50"
+    >
+      <section className="relative min-h-screen">
+        {/* Background Image with Overlay */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src={bannerImage}
+            alt="Background"
+            fill
+            className="object-cover opacity-10"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-gray-900/90 via-gray-800/80 to-transparent" />
+        </div>
 
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-0 -left-4 w-72 h-72 bg-primary-500 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob"></div>
-        <div className="absolute top-0 -right-4 w-72 h-72 bg-secondary-500 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob animation-delay-2000"></div>
-        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob animation-delay-4000"></div>
-      </div>
+        {/* Content Container */}
+        <div className="container mx-auto px-4 py-20 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left Content */}
+            <motion.div
+              variants={fadeInUp}
+              transition={{ delay: 0.2 }}
+              className="space-y-8"
+            >
+              {/* Badge */}
+              <motion.div
+                variants={fadeInUp}
+                className="inline-flex items-center px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 backdrop-blur-sm"
+              >
+                <span className="text-blue-500 font-semibold" style={{ color: subheadingColor }}>
+                  {subheading}
+                </span>
+              </motion.div>
 
-      {/* Main Content */}
-      <div className="container mx-auto px-4 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center min-h-screen py-10">
-          {/* Left Content */}
-          <div className={`space-y-8 transition-all duration-1000 transform ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-            {/* Subheading Badge */}
-            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-primary-500/10 to-primary-500/0 rounded-full p-1 pl-2 pr-4 backdrop-blur-sm border-l-4 border-primaryColor">
-              <span className="text-primary-300 text-sm font-bold" style={{ color: subheadingColor }}>
-                {subheading}
-              </span>
-            </div>
+              {/* Title */}
+              <motion.h1
+                variants={fadeInUp}
+                className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white space-y-3"
+              >
+                {mainHeading}
+                <span className="block text-blue-500" style={{ color: headingColor }}>
+                  {subHeading}
+                </span>
+              </motion.h1>
 
-            {/* Main Heading */}
-            <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight">
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#7ECA9D] to-primary-400" style={{ color: headingColor }}>
-                {heading}
-              </span>
-            </h1>
+              {/* Description */}
+              <motion.p
+                variants={fadeInUp}
+                className="text-xl text-gray-600 dark:text-gray-300"
+                style={{ color: descriptionColor }}
+              >
+                {description}
+              </motion.p>
 
-            {/* Description Section */}
-            <div className="flex flex-col md:flex-row gap-6 items-start">
-              {/* ISO Badge */}
-              <div className="flex-shrink-0 p-2 rounded-lg bg-white/5 backdrop-blur-sm">
+              {/* Stats */}
+              <motion.div
+                variants={fadeInUp}
+                className="grid grid-cols-3 gap-6"
+              >
+                {stats.map((stat, index) => (
+                  <div key={index} className="text-center">
+                    <div className="flex justify-center mb-2">{stat.icon}</div>
+                    <div className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</div>
+                    <div className="text-sm text-gray-500">{stat.label}</div>
+                  </div>
+                ))}
+              </motion.div>
+
+              {/* Features */}
+              <motion.div
+                variants={fadeInUp}
+                className="grid grid-cols-3 gap-6"
+              >
+                {features.map((feature, index) => (
+                  <div
+                    key={index}
+                    className="bg-white/5 backdrop-blur-sm rounded-lg p-4 hover:bg-white/10 transition-all duration-300"
+                  >
+                    <div className="flex justify-center mb-3">{feature.icon}</div>
+                    <h3 className="text-center text-gray-900 dark:text-white font-semibold">{feature.title}</h3>
+                    <p className="text-center text-gray-500 text-sm">{feature.description}</p>
+                  </div>
+                ))}
+              </motion.div>
+
+              {/* CTA Buttons */}
+              <div className="flex flex-wrap items-center gap-6">
+                <Link href="#enroll-section" passHref>
+                  <motion.button
+                    variants={fadeInUp}
+                    whileHover={{ scale: 1.05, y: -5 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleScrollToSection}
+                    className="bg-blue-500 text-white px-8 py-3 rounded-lg hover:bg-blue-600 transition-all shadow-lg shadow-blue-500/25"
+                  >
+                    {buttonImage && (
+                      <Image
+                        src={buttonImage}
+                        alt="Button Icon"
+                        width={24}
+                        height={24}
+                        className="mr-2 inline"
+                      />
+                    )}
+                    {buttonText}
+                  </motion.button>
+                </Link>
+                <Link href="#courses-section" passHref>
+                  <motion.span
+                    whileHover={{ x: 5 }}
+                    className="inline-flex items-center hover:text-blue-400 transition-colors cursor-pointer"
+                    style={{ color: isoTextColor }}
+                  >
+                    {isoText}
+                    <ChevronRight size={18} className="ml-1" />
+                  </motion.span>
+                </Link>
+              </div>
+            </motion.div>
+
+            {/* Right Content - Image */}
+            <motion.div
+              variants={fadeInUp}
+              transition={{ delay: 0.4 }}
+              className="relative hidden lg:block"
+            >
+              <div className="relative w-full h-[600px] rounded-2xl overflow-hidden">
                 <Image
-                  src={isoImage}
-                  alt="ISO Certification"
-                  width={100}
-                  height={100}
-                  className="object-contain"
+                  src={logoImage}
+                  alt="Featured Image"
+                  fill
+                  className="object-cover rounded-2xl transform hover:scale-105 transition-all duration-700"
+                  priority
                 />
-              </div>
-
-              <div className="space-y-6">
-                <p className="text-lg text-gray-300 leading-relaxed" style={{ color: descriptionColor }}>
-                  {description}
-                </p>
-
-                {/* CTA Buttons */}
-                <div className="flex flex-wrap items-center gap-6">
-                  <Link href="#enroll-section" passHref>
-                    <button
-                      onClick={handleScrollToSection}
-                      className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-[#7ECA9D] to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-medium rounded-lg transition-all transform hover:-translate-y-0.5 shadow-lg shadow-primary-500/25"
-                    >
-                      {buttonImage && (
-                        <Image
-                          src={buttonImage}
-                          alt="Button Icon"
-                          width={24}
-                          height={24}
-                          className="mr-2"
-                        />
-                      )}
-                      {buttonText}
-                      <ArrowRight size={18} className="ml-2" />
-                    </button>
-                  </Link>
-                  <Link href="#courses-section" passHref>
-                    <span
-                      className="inline-flex items-center text-primary-400 hover:text-primary-300 transition-colors cursor-pointer border-b-2 border-primary-500/50"
-                      style={{ color: isoTextColor }}
-                    >
-                      {isoText}
-                      <ChevronRight size={18} className="ml-1" />
-                    </span>
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            {/* Slogan */}
-            <p className="text-3xl md:text-4xl lg:text-5xl font-Bulgathi text-[#7ECA9D] mt-8">
-              {slogan}
-            </p>
-          </div>
-
-          {/* Right Content - Logo/Image */}
-          <div className={`relative transition-all duration-1000 delay-300 transform ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-            <div className="relative w-full aspect-square max-w-2xl mx-auto">
-              <div className="absolute inset-0 bg-gradient-to-r from-[#7ECA9D] to-primary-500 rounded-full blur-3xl opacity-20 animate-pulse"></div>
-              <div className="wavy-oval overflow-hidden rounded-3xl border border-white/10 backdrop-blur-sm">
-                <div className="absolute inset-0 flex items-center justify-center">
+                {/* ISO Badge */}
+                <div className="absolute bottom-4 right-4 bg-white/90 dark:bg-gray-800/90 rounded-full p-2 backdrop-blur-sm">
                   <Image
-                    src={logoImage}
-                    alt="Featured Image"
-                    fill
-                    className="w-full h-full object-cover"
-                    priority
+                    src={isoImage}
+                    alt="ISO Certified"
+                    width={60}
+                    height={60}
+                    className="w-12 h-12"
                   />
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
+
+          {/* Slogan */}
+          <motion.div
+            variants={fadeInUp}
+            transition={{ delay: 0.6 }}
+            className="text-center mt-12"
+          >
+            <h2 className="mumkinMedh text-2xl text-blue-500 dark:text-blue-400 font-medium italic">
+              {slogan}
+            </h2>
+          </motion.div>
         </div>
-      </div>
-    </section>
+      </section>
+    </motion.div>
   );
 }

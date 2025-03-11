@@ -28,7 +28,9 @@ import {
   BarChart,
   User,
   X,
-  ChevronRight
+  ChevronRight,
+  ExternalLink,
+  Briefcase
 } from "lucide-react";
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { isFreePrice } from '@/utils/priceUtils';
@@ -636,7 +638,12 @@ const CourseCard = ({
   };
 
   const navigateToCourse = () => {
-    if (course?._id) {
+    // For live interactive courses, we use the custom URL
+    if (course?.custom_url) {
+      window.location.href = course.custom_url;
+    } 
+    // For other courses, we navigate to the course details page
+    else if (course?._id) {
       window.open(`/course-details/${course._id}`, '_blank');
     }
   };
@@ -754,16 +761,16 @@ const CourseCard = ({
   const getCourseTypeStyles = () => {
     if (isLiveCourse) {
       return {
-        tagBg: 'bg-rose-500/90',
+        tagBg: 'bg-[#379392]/90',
         tagText: 'text-white',
-        buttonBg: 'bg-rose-500 hover:bg-rose-600',
+        buttonBg: 'bg-[#379392] hover:bg-[#379392]/90',
         buttonText: 'text-white',
-        accentColor: 'text-rose-500 dark:text-rose-400',
-        borderHover: 'hover:border-rose-400/60',
-        shadowHover: 'hover:shadow-rose-200/20',
-        gradientBg: 'from-rose-50 via-white to-rose-50 dark:from-rose-900/10 dark:via-gray-900 dark:to-rose-900/10',
-        iconColor: 'text-rose-500',
-        borderLeft: 'border-l-4 border-rose-500/80'
+        accentColor: 'text-[#379392] dark:text-[#379392]/80',
+        borderHover: 'hover:border-[#379392]/60',
+        shadowHover: 'hover:shadow-[#379392]/20',
+        gradientBg: 'from-[#379392]/10 via-white to-[#379392]/10 dark:from-[#379392]/20 dark:via-gray-900 dark:to-[#379392]/20',
+        iconColor: 'text-[#379392]',
+        borderLeft: 'border-l-4 border-[#379392]/80'
       };
     }
     // Default to blended course styles
@@ -808,6 +815,13 @@ const CourseCard = ({
 
   const content = getCourseTypeContent();
 
+  // Check if this is one of the special courses that should show internship
+  const hasInternshipOption = course?.course_title && (
+    course.course_title.toLowerCase().includes('ai & data science') ||
+    course.course_title.toLowerCase().includes('artificial intelligence') ||
+    course.course_title.toLowerCase().includes('digital marketing')
+  );
+
   // Update card className to use dynamic styles
   return (
     <>
@@ -838,7 +852,7 @@ const CourseCard = ({
             onClick={openMobileHover}
             className={`absolute bottom-4 right-4 z-20 px-4 py-2 rounded-lg shadow-md ${
               isLiveCourse 
-                ? 'bg-rose-500 text-white hover:bg-rose-600' 
+                ? 'bg-[#379392] text-white hover:bg-[#379392]/90' 
                 : 'bg-indigo-500 text-white hover:bg-indigo-600'
             } flex items-center gap-1.5 text-sm font-semibold`}
             aria-label="View Course Details"
@@ -854,7 +868,7 @@ const CourseCard = ({
             onClick={closeMobileHover}
             className={`absolute top-2 right-2 z-30 p-1.5 rounded-full bg-white/90 shadow-md ${
               isLiveCourse 
-                ? 'text-rose-500' 
+                ? 'text-[#379392]' 
                 : 'text-indigo-500'
             }`}
             aria-label="Close Details"
@@ -879,58 +893,82 @@ const CourseCard = ({
             />
           </div>
 
-          {/* Course info */}
-          <div className="p-4 flex flex-col flex-grow">
-            {/* Title and Instructor */}
-            <h3 className="text-lg font-extrabold text-gray-900 dark:text-white mb-2 line-clamp-2">
-              {course?.course_title || "Course Title"}
-            </h3>
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2 flex items-center gap-2">
-              {isLiveCourse ? (
-                <>
-                  <Clock size={16} className={styles.accentColor} />
-                  {course?.course_duration || content.scheduleInfo}
-                </>
-              ) : (
+          {/* Course info - different for Live vs Blended */}
+          {isLiveCourse ? (
+            // Live courses - simplified view with key info
+            <div className="flex flex-col p-4 flex-grow">
+              {/* Course type badge */}
+              <div className="flex items-center gap-1.5 mb-3">
+                <span className="px-2 py-1 text-xs font-semibold rounded-full bg-[#379392]/10 text-[#379392]">
+                  {content.tag} Interactive
+                </span>
+              </div>
+
+              {/* Title */}
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3 line-clamp-2">
+                {course?.course_title}
+              </h3>
+              
+              {/* Duration - only shown pre-hover */}
+              <div className="flex items-center gap-2 text-sm mt-auto">
+                <Clock size={16} className="text-[#379392] dark:text-[#379392]/80" />
+                <div>
+                  <p className="font-bold text-gray-900 dark:text-white">
+                    {course?.course_duration || "4-8 Weeks"}
+                  </p>
+                  <p className="text-xs text-gray-500 font-medium">Course Duration</p>
+                </div>
+              </div>
+              
+              {/* Additional highlight text */}
+              <div className="mt-3 pt-3 border-t border-gray-100">
+                <p className="text-xs font-medium text-[#379392]">
+                  Expert-led live sessions with real-time interaction
+                </p>
+              </div>
+            </div>
+          ) : (
+            // Blended courses - using the original style
+            <div className="p-4 flex flex-col flex-grow">
+              {/* Title and Instructor */}
+              <h3 className="text-lg font-extrabold text-gray-900 dark:text-white mb-2 line-clamp-2">
+                {course?.course_title || "Course Title"}
+              </h3>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2 flex items-center gap-2">
                 <>
                   <BookOpen size={16} className={styles.accentColor} />
                   {content.durationLabel}
                 </>
-              )}
-            </p>
+              </p>
 
-            {/* Course Stats */}
-            <div className="flex items-center gap-4 mb-3">
-              <div className="flex items-center gap-1.5">
-                <Users size={14} className={`${isLiveCourse ? 'text-rose-500' : 'text-indigo-500'}`} />
-                <span className="text-xs font-medium text-gray-600">{course?.no_of_Sessions || 0} {isLiveCourse ? 'Sessions' : 'Classes'}</span>
-                {isLiveCourse && (
-                  <span className="text-xs text-gray-600">(60-90 min each)</span>
-                )}
+              {/* Course Stats */}
+              <div className="flex items-center gap-4 mb-3">
+                <div className="flex items-center gap-1.5">
+                  <Users size={14} className="text-indigo-500" />
+                  <span className="text-xs font-medium text-gray-600">{course?.no_of_Sessions || 0} Classes</span>
+                </div>
               </div>
-            </div>
 
-            {/* Price */}
-            <div className={`mt-auto ${isMobile && !mobileHoverActive ? 'mb-8' : ''}`}>
-              <div className="flex items-baseline gap-2">
-                <span className={`text-xl font-bold ${
-                  isLiveCourse ? 'text-rose-600 dark:text-rose-400' : 'text-indigo-600 dark:text-indigo-400'
-                }`}>
-                  {course?.course_fee ? formatCurrencyPrice(convertPrice(course.course_fee)) : 'Free'}
-                </span>
+              {/* Price */}
+              <div className={`mt-auto ${isMobile && !mobileHoverActive ? 'mb-8' : ''}`}>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
+                    {course?.course_fee ? formatCurrencyPrice(convertPrice(course.course_fee)) : 'Free'}
+                  </span>
+                  {course?.original_fee && (
+                    <span className="text-sm text-gray-500 line-through">
+                      {formatCurrencyPrice(convertPrice(course.original_fee))}
+                    </span>
+                  )}
+                </div>
                 {course?.original_fee && (
-                  <span className="text-sm text-gray-500 line-through">
-                    {formatCurrencyPrice(convertPrice(course.original_fee))}
+                  <span className="text-xs text-green-500 font-medium">
+                    {calculateBatchDiscount(course.course_fee, course.original_fee)}% off
                   </span>
                 )}
               </div>
-              {course?.original_fee && (
-                <span className="text-xs text-green-500 font-medium">
-                  {calculateBatchDiscount(course.course_fee, course.original_fee)}% off
-                </span>
-              )}
             </div>
-          </div>
+          )}
         </div>
 
         {/* Hover content - shown on hover for desktop and on "View More" for mobile */}
@@ -944,89 +982,132 @@ const CourseCard = ({
             </h3>
           </div>
 
-          {/* Course stats */}
-          <div className="grid grid-cols-2 gap-3 mb-4">
-            <div className="flex items-center gap-2 text-sm">
-              <Clock size={16} className={`${isLiveCourse ? 'text-rose-500 dark:text-rose-400' : 'text-violet-500 dark:text-violet-400'}`} />
-              <div>
-                <p className="font-bold text-gray-900 dark:text-white">
-                  {course?.no_of_Sessions || 0} {isLiveCourse ? 'Sessions' : 'Classes'}
-                </p>
-                <p className="text-xs text-gray-500 font-medium">
-                  {isLiveCourse ? 'Live Interactive' : 'Self-Paced'}
-                </p>
+          {/* Display different hover content based on course type */}
+          {isLiveCourse ? (
+            // Live courses - improved hover display
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="flex items-center gap-2 text-sm">
+                <Timer size={16} className={'text-cyan-500 dark:text-cyan-400'} />
+                <div>
+                  <p className="font-bold text-gray-900 dark:text-white">
+                    {course?.course_duration || "4-8 Weeks"}
+                  </p>
+                  <p className="text-xs text-gray-500 font-medium">Course Duration</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Target size={16} className={'text-emerald-500 dark:text-emerald-400'} />
+                <div>
+                  <p className="font-bold text-gray-900 dark:text-white">
+                    {course?.effort_hours || "4-6"} hrs/week
+                  </p>
+                  <p className="text-xs text-gray-500 font-medium">Required Effort</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Award size={16} className={'text-teal-500 dark:text-teal-400'} />
+                <div>
+                  <p className="font-bold text-gray-900 dark:text-white">
+                    Included
+                  </p>
+                  <p className="text-xs text-gray-500 font-medium">Certification</p>
+                </div>
+              </div>
+              
+              {/* Special feature - Internship for specific courses */}
+              {hasInternshipOption && (
+                <div className="flex items-center gap-2 text-sm">
+                  <Briefcase size={16} className={'text-indigo-500 dark:text-indigo-400'} />
+                  <div>
+                    <p className="font-bold text-gray-900 dark:text-white">
+                      Guaranteed
+                    </p>
+                    <p className="text-xs text-gray-500 font-medium">Internship Opportunity</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            // Blended courses - course stats in original style
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="flex items-center gap-2 text-sm">
+                <Clock size={16} className="text-violet-500 dark:text-violet-400" />
+                <div>
+                  <p className="font-bold text-gray-900 dark:text-white">
+                    {course?.no_of_Sessions || 0} Classes
+                  </p>
+                  <p className="text-xs text-gray-500 font-medium">Self-Paced</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Timer size={16} className="text-cyan-500 dark:text-cyan-400" />
+                <div>
+                  <p className="font-bold text-gray-900 dark:text-white">
+                    Self-Paced
+                  </p>
+                  <p className="text-xs text-gray-500 font-medium">Course Duration</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Target size={16} className="text-emerald-500 dark:text-emerald-400" />
+                <div>
+                  <p className="font-bold text-gray-900 dark:text-white">
+                    Flexible
+                  </p>
+                  <p className="text-xs text-gray-500 font-medium">Study Hours</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Award size={16} className="text-teal-500 dark:text-teal-400" />
+                <div>
+                  <p className="font-bold text-gray-900 dark:text-white">
+                    Included
+                  </p>
+                  <p className="text-xs text-gray-500 font-medium">Certification</p>
+                </div>
               </div>
             </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Timer size={16} className={'text-cyan-500 dark:text-cyan-400'} />
-              <div>
-                <p className="font-bold text-gray-900 dark:text-white">
-                  {classType === 'blended_courses' 
-                    ? "Self-Paced" 
-                    : course?.course_duration 
-                      ? `${course.course_duration.split(' ').slice(0, 2).join(' ').replace('months', 'Months')}` 
-                      : "Self-Paced"}
-                </p>
-                <p className="text-xs text-gray-500 font-medium">Course Duration</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Target size={16} className={'text-emerald-500 dark:text-emerald-400'} />
-              <div>
-                <p className="font-bold text-gray-900 dark:text-white">
-                  {course?.effort_hours || "4-6"} hrs/week
-                </p>
-                <p className="text-xs text-gray-500 font-medium">Required Effort</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Award size={16} className={'text-teal-500 dark:text-teal-400'} />
-              <div>
-                <p className="font-bold text-gray-900 dark:text-white">
-                  Included
-                </p>
-                <p className="text-xs text-gray-500 font-medium">Certification</p>
-              </div>
-            </div>
-          </div>
+          )}
 
-          {/* Action buttons */}
-          <div className="mt-auto space-y-2">
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={openModal}
-                className={`px-4 py-2 rounded-lg font-bold transition-all flex items-center justify-center gap-1.5 ${
-                  isLiveCourse
-                    ? 'border border-rose-200 text-rose-600 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-400'
-                    : 'border border-indigo-200 text-indigo-600 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400'
-                }`}
+          {/* Action buttons - different for Live vs Blended */}
+          {isLiveCourse ? (
+            // Live courses - simple explore button
+            <div className="mt-auto">
+              <button 
+                onClick={navigateToCourse}
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg font-medium text-white bg-[#379392] hover:bg-[#2a7170] shadow-lg shadow-[#379392]/20 transition-all"
               >
-                <Download size={16} className={`${isLiveCourse ? 'text-orange-500 dark:text-orange-400' : 'text-sky-500 dark:text-sky-400'}`} />
-                Brochure
+                <ExternalLink size={18} className="group-hover:rotate-12 transition-transform" />
+                Explore Course
               </button>
+            </div>
+          ) : (
+            // Blended courses - original action buttons
+            <div className="mt-auto space-y-2">
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={openModal}
+                  className="px-4 py-2 rounded-lg font-bold transition-all flex items-center justify-center gap-1.5 border border-indigo-200 text-indigo-600 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400"
+                >
+                  <Download size={16} className="text-sky-500 dark:text-sky-400" />
+                  Brochure
+                </button>
+                <button
+                  onClick={() => onShowRelated ? onShowRelated(course) : window.open(`/course-details/${course?._id}`, '_blank')}
+                  className="px-4 py-2 rounded-lg font-bold transition-all flex items-center justify-center gap-1.5 border border-indigo-200 text-indigo-600 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400"
+                >
+                  Details
+                  <ArrowUpRight size={16} className="text-indigo-500 dark:text-indigo-400" />
+                </button>
+              </div>
               <button
                 onClick={navigateToCourse}
-                className={`px-4 py-2 rounded-lg font-bold transition-all flex items-center justify-center gap-1.5 ${
-                  isLiveCourse
-                    ? 'border border-rose-200 text-rose-600 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-400'
-                    : 'border border-indigo-200 text-indigo-600 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400'
-                }`}
+                className="w-full px-4 py-2 rounded-lg font-bold text-white transition-all flex items-center justify-center gap-1.5 bg-indigo-500 hover:bg-indigo-600"
               >
-                Details
-                <ArrowUpRight size={16} className={'text-indigo-500 dark:text-indigo-400'} />
+                Add to Cart
               </button>
             </div>
-            <button
-              onClick={navigateToCourse}
-              className={`w-full px-4 py-2 rounded-lg font-bold text-white transition-all flex items-center justify-center gap-1.5 ${
-                isLiveCourse
-                  ? 'bg-rose-500 hover:bg-rose-600'
-                  : 'bg-indigo-500 hover:bg-indigo-600'
-              }`}
-            >
-              Add to Cart
-            </button>
-          </div>
+          )}
         </div>
       </div>
 
