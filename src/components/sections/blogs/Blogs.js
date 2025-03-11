@@ -166,9 +166,13 @@ const Blogs = ({
     
     const handleResize = () => {
       checkMobile();
-      // Reinitialize slider on resize
-      if (sliderRef.current) {
-        sliderRef.current.slickSetOption({}, true);
+      // Safely reinitialize slider on resize
+      if (sliderRef.current && sliderRef.current.slick) {
+        try {
+          sliderRef.current.slick.refresh();
+        } catch (error) {
+          console.warn('Error refreshing slider:', error);
+        }
       }
     };
 
