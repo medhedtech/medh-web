@@ -9,6 +9,12 @@ import PropTypes from 'prop-types';
 import { motion } from "framer-motion";
 import Link from "next/link";
 
+// List of specific course durations to display (in weeks)
+const TARGET_DURATIONS = [
+  72,  // 18 months (72 weeks)
+  36   // 9 months (36 weeks)
+];
+
 const HomeCourseSection = ({ 
   CustomText = "Featured Courses",
   CustomDescription = "Explore our curated selection of blended and live learning experiences",
@@ -59,6 +65,49 @@ const HomeCourseSection = ({
     }
   };
 
+  // Helper function to convert duration string to weeks
+  const durationToWeeks = (duration) => {
+    if (!duration) return 0;
+    
+    // Convert duration string to number of weeks
+    const durationString = duration.toLowerCase();
+    
+    // Check for months format
+    if (durationString.includes('month')) {
+      const months = parseInt(durationString.match(/\d+/)?.[0] || '0');
+      return months * 4; // Approximate 4 weeks per month
+    }
+    
+    // Check for weeks format
+    if (durationString.includes('week')) {
+      return parseInt(durationString.match(/\d+/)?.[0] || '0');
+    }
+    
+    // Return 0 if format is not recognized
+    return 0;
+  };
+
+  // Function to pick one course from each category
+  const getOneCoursePerCategory = (courses) => {
+    if (!courses || !Array.isArray(courses)) return [];
+    
+    // Create a map to hold one course per category
+    const categoryMap = new Map();
+    
+    // For each course, save one course per course_category
+    courses.forEach(course => {
+      const category = course.course_category || "Uncategorized";
+      
+      // If we don't have a course for this category yet, add it
+      if (!categoryMap.has(category)) {
+        categoryMap.set(category, course);
+      }
+    });
+    
+    // Convert map back to array
+    return Array.from(categoryMap.values());
+  };
+
   // Fetch both blended and live courses
   const fetchCourses = async () => {
     try {
@@ -91,7 +140,7 @@ const HomeCourseSection = ({
       getQuery({
         url: apiUrls?.courses?.getAllCoursesWithLimits(
           1, // page
-          showOnlyLive ? 12 : 8, // Get more courses if we're only showing live
+          100, // Get more courses to ensure we have courses from all categories
           "", // course_title
           "", // course_tag
           "", // course_category
@@ -104,21 +153,32 @@ const HomeCourseSection = ({
         ),
         onSuccess: (data) => {
           if (data?.courses) {
-            setLiveCourses(data.courses);
-            setFilteredLiveCourses(data.courses);
+            // Get one course from each category
+            const onePerCategory = getOneCoursePerCategory(data.courses);
+            
+            // Sort alphabetically by category name
+            const sortedCourses = onePerCategory.sort((a, b) => {
+              const categoryA = a.course_category || "Uncategorized";
+              const categoryB = b.course_category || "Uncategorized";
+              return categoryA.localeCompare(categoryB);
+            });
+            
+            setLiveCourses(sortedCourses);
+            setFilteredLiveCourses(sortedCourses);
           }
         }
       });
     } catch (error) {
       console.error("Error fetching courses:", error);
-      setError(true);
     }
   };
 
   // Apply filters to live courses
   const applyLiveFilters = () => {
+    // Start with our one-per-category list
     let filtered = [...liveCourses];
     
+    // Apply filters if needed
     if (liveFilters.upcoming) {
       // Filter for courses starting in the future
       const today = new Date();
@@ -131,11 +191,16 @@ const HomeCourseSection = ({
     if (liveFilters.popular) {
       // Sort by popularity (using enrollmentCount or similar)
       filtered = filtered.sort((a, b) => (b.enrollmentCount || 0) - (a.enrollmentCount || 0));
-    }
-    
-    if (liveFilters.latest) {
+    } else if (liveFilters.latest) {
       // Sort by creation date
       filtered = filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    } else {
+      // Default to category sorting if no other sort is applied
+      filtered = filtered.sort((a, b) => {
+        const categoryA = a.course_category || "Uncategorized";
+        const categoryB = b.course_category || "Uncategorized";
+        return categoryA.localeCompare(categoryB);
+      });
     }
     
     setFilteredLiveCourses(filtered);

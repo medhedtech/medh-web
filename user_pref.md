@@ -411,3 +411,92 @@
   - `src/app/courses/metadata.js`: Server component for SEO metadata
   - `src/components/sections/courses/CoursesFilter.js`: Main component for course filtering and display
   - `src/components/sections/courses/HomeCourseSection.js`: Featured courses component with bifurcation 
+
+# Medh Project User Preferences
+
+## Important Files
+
+### Course Content Components
+- **Shared Course Content**: `src/components/shared/course-content/AnimatedContent.js`
+- **Course Content Adapter**: `src/components/shared/course-content/CourseContentAdapter.js`
+- **Course Content Index**: `src/components/shared/course-content/index.js`
+
+### Course Pages
+- **Digital Marketing**: `src/app/digital-marketing-with-data-analytics-course/AnimatedContent.js`
+- **Vedic Mathematics**: `src/app/vedic-mathematics-course/AnimatedContent.js`
+- **Personality Development**: `src/app/personality-development-course/AnimatedContent.js`
+- **AI & Data Science**: `src/app/ai-and-data-science-course/AnimatedContent.js`
+
+## Design Consistency
+
+### Animation Standards
+- Use hardware-accelerated animations with `transform-gpu` class
+- Implement reduced motion support for accessibility
+- Use spring animations for more natural motion
+- Implement throttling for scroll handlers
+
+### Color Schemes
+- **Digital Marketing**: Cyan/Blue gradient
+- **Vedic Mathematics**: Yellow/Orange/Red gradient
+- **Personality Development**: Purple/Pink gradient
+- **AI & Data Science**: Blue/Indigo/Purple gradient
+
+## Component Structure
+- All course pages should follow the same section structure
+- Use conditional rendering for optional components
+- Maintain consistent prop naming across components
+- Use the adapter pattern for backward compatibility
+
+# User Preferences
+
+## Important Files
+- `src/app/courses/page.js`: Main courses page
+- `src/components/sections/courses/CoursesFilter.js`: Course filtering component
+- `src/components/sections/courses/CourseCard.js`: Individual course card component
+- `src/components/shared/wrappers/PageWrapper.js`: Page wrapper component
+- `src/hooks/getQuery.hook.js`: Hook for API queries
+
+## Design Consistency
+- Dark mode support is important throughout the application
+- Use transition effects for color changes (duration: 200-300ms)
+- Maintain high contrast in dark mode for accessibility
+- Interactive elements should have clear hover/active states
+- Use border-transparent in light mode but visible borders in dark mode
+
+## CoursesFilter Layout
+- Use a full-width layout for the CoursesFilter component
+- Limit to 2 columns in grid view for better content display (prevents compression)
+- Properly maintain class type styling between live and blended courses
+- Card size should be optimized for readability on all devices
+- Maintain consistent spacing for filter components
+- Enhance empty state and error state UI for better user experience
+
+## Course Card Specifications
+- Add preserveClassType flag to maintain proper styling based on course type
+- Live courses should use rose/pink color theme
+- Blended courses should use indigo/blue color theme
+- Cards should have consistent height and spacing
+- Optimize text truncation for different screen sizes
+- Maintain proper contrast for all interactive elements
+- Ensure color coding is consistent across all card instances
+
+## API Structure
+- API URLs are defined with a base URL in environment variables
+- API calls are made using the getQuery hook
+- Response data is properly validated before use
+- Filter parameters are properly passed to API calls
+
+## Coding Techniques
+- Use React hooks for state management
+- Implement proper error handling
+- Debounce search and filter operations
+- Use Suspense for loading states
+- Keep components modular and reusable
+
+## Dark Mode Guidelines
+- Background: light (white/gray-50) → dark (gray-900/gray-800)
+- Text: gray-900 → white, gray-600 → gray-300
+- Borders: gray-200 → gray-700/gray-800
+- Inputs: white → gray-800, border-gray-300 → border-gray-600
+- Interactive elements: Add /70 or /80 opacity variants for hover states
+- Primary elements: Use darker variants in dark mode (e.g., primary-600 → primary-700) 
