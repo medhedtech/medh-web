@@ -281,7 +281,10 @@ const CourseCard = ({
   onShowRelated = () => {},
   showRelatedButton = false,
   variant = "standard",
-  classType = ""
+  classType = "",
+  viewMode = "grid",
+  isCompact = false,
+  preserveClassType = false
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -736,9 +739,16 @@ const CourseCard = ({
   // Format and adapt course description for display
   const adaptedDescription = useResponsiveText(course?.course_description, {xs: 80, sm: 120, md: 160, lg: 200});
 
-  // Determine course type and styling
-  const isLiveCourse = classType === 'live';
-  const isBlendedCourse = classType === 'blended';
+  // Determine the effective class type based on preserveClassType flag
+  const getEffectiveClassType = () => {
+    // If preserveClassType is true, use the course's own class_type
+    // Otherwise, override with the classType prop if provided
+    return preserveClassType ? (course.class_type || "") : (classType || course.class_type || "");
+  };
+
+  // Updated to use the effective class type
+  const isLiveCourse = getEffectiveClassType().toLowerCase() === 'live';
+  const isBlendedCourse = getEffectiveClassType().toLowerCase() === 'blended';
 
   // Get course type specific styles
   const getCourseTypeStyles = () => {
