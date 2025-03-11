@@ -11,7 +11,7 @@ function CourseBanner({
   title,
   titleHighlight,
   description,
-  stats,
+  // stats,
   features,
   mainImage,
   studentImage,
@@ -76,7 +76,7 @@ function CourseBanner({
             </div>
 
             {/* Stats Section */}
-            <div className="grid grid-cols-3 gap-6">
+            {/* <div className="grid grid-cols-3 gap-6">
               {stats.map((stat, index) => (
                 <motion.div
                   key={index}
@@ -91,7 +91,7 @@ function CourseBanner({
                   <div className="text-sm text-gray-500 dark:text-gray-400">{stat.label}</div>
                 </motion.div>
               ))}
-            </div>
+            </div> */}
 
             {/* Features Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
