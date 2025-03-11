@@ -34,22 +34,28 @@ const DynamicCourseCard = dynamic(() => import("./CourseCard"), {
 });
 
 // Fallback categories if none provided
-const fallbackCategories = [
-  "AI and Data Science",
-  "AI For Professionals",
-  "Business And Management",
-  "Career Development",
-  "Communication And Soft Skills",
-  "Data And Analytics",
-  "Digital Marketing with Data Analytics",
-  "Environmental and Sustainability Skills",
-  "Finance And Accounts",
-  "Health And Wellness",
-  "Industry-Specific Skills",
-  "Language And Linguistic",
-  "Legal And Compliance Skills",
-  "Personal Well-Being",
-];
+const fallbackCategories = {
+  live: [
+    "AI and Data Science",
+    "Personality Development",
+    "Vedic Mathematics",
+    "Digital Marketing with Data Analytics",
+  ],
+  blended: [
+    "AI For Professionals",
+    "Business And Management",
+    "Career Development",
+    "Communication And Soft Skills",
+    "Data And Analytics",
+    "Environmental and Sustainability Skills",
+    "Finance And Accounts",
+    "Health And Wellness",
+    "Industry-Specific Skills",
+    "Language And Linguistic",
+    "Legal And Compliance Skills",
+    "Personal Well-Being",
+  ]
+};
 
 /**
  * Simple ErrorBoundary
@@ -792,11 +798,32 @@ const CoursesFilter = ({
                           <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-3 transition-colors duration-200">
                             Categories
                           </h4>
-                          <CategoryFilter
-                            categories={availableCategories || fallbackCategories}
-                            selectedCategory={selectedCategory}
-                            setSelectedCategory={handleCategoryChange}
-                          />
+                          
+                          {/* Live Categories */}
+                          <div className="mb-4">
+                            <h5 className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-2 flex items-center">
+                              <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                              Live Courses
+                            </h5>
+                            <CategoryFilter
+                              categories={availableCategories?.filter(cat => fallbackCategories.live.includes(cat)) || fallbackCategories.live}
+                              selectedCategory={selectedCategory}
+                              setSelectedCategory={handleCategoryChange}
+                            />
+                          </div>
+                          
+                          {/* Blended Categories */}
+                          <div className="mb-2">
+                            <h5 className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-2 flex items-center">
+                              <span className="inline-block w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
+                              Blended Courses
+                            </h5>
+                            <CategoryFilter
+                              categories={availableCategories?.filter(cat => fallbackCategories.blended.includes(cat)) || fallbackCategories.blended}
+                              selectedCategory={selectedCategory}
+                              setSelectedCategory={handleCategoryChange}
+                            />
+                          </div>
                         </div>
                       )}
                       {/* Grade */}
@@ -810,7 +837,8 @@ const CoursesFilter = ({
                           className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors duration-200"
                         >
                           <option value="">All Grades</option>
-                          <option value="Elementary">Elementary</option>
+                          <option value="Pre-school">Pre-school</option>
+                          <option value="1">Elementary</option>
                           <option value="Middle School">Middle School</option>
                           <option value="High School">High School</option>
                           <option value="College">College</option>
@@ -861,14 +889,27 @@ const CoursesFilter = ({
                     </div>
 
                     {!hideCategoryFilter && (
-                      <CategoryToggle
-                        categories={(availableCategories || fallbackCategories).slice(
-                          0,
-                          6
-                        )}
-                        selectedCategory={selectedCategory}
-                        setSelectedCategory={handleCategoryChange}
-                      />
+                      <div className="flex flex-wrap gap-2">
+                        <div className="mr-2 mb-2">
+                          <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">Course Types:</span>
+                        </div>
+                        <CategoryToggle
+                          categories={availableCategories?.filter(cat => 
+                            fallbackCategories.live.includes(cat))?.slice(0, 3) || 
+                            fallbackCategories.live.slice(0, 3)}
+                          selectedCategory={selectedCategory}
+                          setSelectedCategory={handleCategoryChange}
+                          customClass="bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900/30"
+                        />
+                        <CategoryToggle
+                          categories={availableCategories?.filter(cat => 
+                            fallbackCategories.blended.includes(cat))?.slice(0, 3) || 
+                            fallbackCategories.blended.slice(0, 3)}
+                          selectedCategory={selectedCategory}
+                          setSelectedCategory={handleCategoryChange}
+                          customClass="bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-900/30"
+                        />
+                      </div>
                     )}
                   </div>
 
@@ -891,14 +932,14 @@ const CoursesFilter = ({
 
                   {/* Loading */}
                   {loading ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {Array.from({ length: 6 }).map((_, idx) => (
                         <div key={idx} className="animate-pulse bg-gray-200 dark:bg-gray-700 rounded-lg h-96 transition-colors duration-200"></div>
                       ))}
                     </div>
                   ) : filteredCourses.length > 0 ? (
                     // Show courses
-                    <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6" : "space-y-4"}>
+                    <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"}>
                       {filteredCourses.map((course) => (
                         <ErrorBoundary key={course._id || course.id}>
                           <DynamicCourseCard 
