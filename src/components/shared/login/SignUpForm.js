@@ -87,49 +87,12 @@ const schema = yup
       .oneOf([true], "You must accept the terms to proceed")
       .required(),
     role: yup.array()
-      .of(yup.string()
-        .oneOf([
-          "admin",
-          "student",
-          "instructor",
-          "coorporate",
-          "coorporate-student"
-        ])
-      )
-      .default(["student"]),
-    role_description: yup.string().nullable(),
-    assign_department: yup.array()
-      .of(yup.string())
-      .default([]),
-    permissions: yup.array()
-      .of(yup.string()
-        .oneOf([
-          "course_management",
-          "student_management",
-          "instructor_management",
-          "corporate_management",
-          "generate_certificate",
-          "get_in_touch",
-          "enquiry_form",
-          "post_job",
-          "feedback_and_complaints",
-          "placement_requests",
-          "blogs"
-        ])
-      )
-      .default([]),
-    age: yup.string().nullable(),
+      .of(yup.string().oneOf(["student"]))
+      .default(["student"])
+      .required("Role is required"),
     status: yup.string()
-      .oneOf(["Active", "Inactive"])
       .default("Active"),
-    facebook_link: yup.string().nullable(),
-    instagram_link: yup.string().nullable(),
-    linkedin_link: yup.string().nullable(),
-    user_image: yup.string().nullable(),
     meta: yup.object({
-      course_name: yup.string().nullable(),
-      age: yup.string().nullable(),
-      category: yup.string().nullable(),
       gender: yup.string()
         .oneOf(["Male", "Female", "Others"])
         .default("Male"),
@@ -140,12 +103,6 @@ const schema = yup
       gender: "Male",
       upload_resume: []
     })),
-    admin_role: yup.string()
-      .oneOf(["super-admin", "admin", "coorporate-admin"])
-      .default("admin"),
-    company_type: yup.string()
-      .oneOf(["Institute", "University"])
-      .nullable(),
     phone_numbers: yup.array()
       .of(yup.object({
         country: yup.string().required("Country code is required"),
@@ -158,8 +115,6 @@ const schema = yup
       }))
       .min(1, "At least one phone number is required")
       .required(),
-    company_website: yup.string().nullable(),
-    corporate_id: yup.string().nullable(),
     recaptcha: yup.string()
       .required("Please verify that you are human")
   })
@@ -321,66 +276,15 @@ const SignUpForm = () => {
         full_name: data.full_name.trim(),
         email: data.email.toLowerCase().trim(),
         password: data.password,
-        phone_numbers: [formattedPhoneNumber], // Ensure this is an array with at least one number
+        phone_numbers: [formattedPhoneNumber],
         agree_terms: data.agree_terms,
-        role: ['student'],
-        assign_department: [],
-        permissions: [],
+        role: ["student"],
         status: "Active",
         meta: {
-          gender: "Male",
+          gender: data.meta?.gender || "Male",
           upload_resume: []
-        },
-        admin_role: "admin"
+        }
       };
-
-      // Add optional fields only if they have values
-      if (data.role_description?.trim()) {
-        requestData.role_description = data.role_description.trim();
-      }
-      
-      if (data.age?.trim()) {
-        requestData.age = data.age.trim();
-      }
-
-      if (data.facebook_link?.trim()) {
-        requestData.facebook_link = data.facebook_link.trim();
-      }
-
-      if (data.instagram_link?.trim()) {
-        requestData.instagram_link = data.instagram_link.trim();
-      }
-
-      if (data.linkedin_link?.trim()) {
-        requestData.linkedin_link = data.linkedin_link.trim();
-      }
-
-      if (data.user_image?.trim()) {
-        requestData.user_image = data.user_image.trim();
-      }
-
-      if (data.company_type) {
-        requestData.company_type = data.company_type;
-      }
-
-      if (data.company_website?.trim()) {
-        requestData.company_website = data.company_website.trim();
-      }
-
-      if (data.corporate_id?.trim()) {
-        requestData.corporate_id = data.corporate_id.trim();
-      }
-
-      // Handle meta object
-      if (data.meta) {
-        requestData.meta = {
-          gender: data.meta.gender || "Male",
-          upload_resume: data.meta.upload_resume || [],
-          ...(data.meta.course_name?.trim() && { course_name: data.meta.course_name.trim() }),
-          ...(data.meta.age?.trim() && { age: data.meta.age.trim() }),
-          ...(data.meta.category?.trim() && { category: data.meta.category.trim() })
-        };
-      }
 
       // Log the request data for debugging
       console.log('Request Data:', JSON.stringify(requestData, null, 2));
