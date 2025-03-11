@@ -1,4 +1,59 @@
-# Medh Web Project Summary
+# Medh Project Summary
+
+## Project Structure
+The project is a Next.js application with a focus on course management and educational content delivery.
+
+## Key Components
+
+### Courses Page
+- Located at: `src/app/courses/page.js`
+- Main page for course exploration
+- Supports multiple view modes (All, Live, Blended)
+- Includes filtering capabilities through tabs and filter buttons
+- Uses Suspense for asynchronous content loading
+
+### CoursesFilter Component
+- Located at: `src/components/sections/courses/CoursesFilter.js`
+- Complex component handling course filtering functionality
+- Includes search, sort, category filtering, and pagination
+- Supports both grid and list views
+- Provides full-width layout with optimized card sizing
+- Contains error states, loading states, and empty results handling
+
+### CourseCard Component
+- Located at: `src/components/sections/courses/CourseCard.js`
+- Displays individual course information
+- Supports different class types (Live, Blended) with appropriate styling
+- Uses preserveClassType flag to maintain course type styling during filtering
+- Includes responsive design for all screen sizes
+- Contains hover effects and interactive elements
+
+## UI/UX Considerations
+- Modern UI with Gen Z look & feel
+- Dark mode support throughout the application
+- Responsive design for all screen sizes
+- Smooth transitions and animations
+- Accessible color contrasts and interactive elements
+- Optimized card layouts to prevent compressed content
+- Full-width layouts for better screen real estate utilization
+
+## Design System
+- Uses Tailwind CSS for styling
+- Primary colors: blue, rose, indigo
+- Dark mode utilizes darker backgrounds with appropriate contrast
+- Interactive elements have hover and active states
+- Consistent spacing and typography
+- Course type-specific color coding (rose for Live, indigo for Blended)
+- Card-based UI with proper information hierarchy
+
+## Code Standards
+- Component-based architecture
+- Client-side components with "use client" directive
+- Suspense for async operations
+- Proper state management with React hooks
+- Code splitting and dynamic imports for performance
+- Consistent prop naming and structure
+- Type checking with PropTypes
 
 ## Project Overview
 Medh is a modern ed-tech platform built using Next.js. The platform offers courses, blogs, brochures, and educational resources with a focus on user experience and performance. The application follows industry best practices, modern UI/UX standards, and well-documented coding principles.
@@ -149,3 +204,44 @@ Medh is a modern ed-tech platform built using Next.js. The platform offers cours
 - Implement server-side rendering for blog content
 - Add content recommendation engine
 - Further optimize for mobile performance 
+
+## Project Context: Course Content Components
+
+The Medh ed-tech platform includes several course landing pages, each with similar structure but different styling and content. We've implemented a standardization solution to reduce code duplication and ensure consistency.
+
+### Problem Identified
+Each course page (`digital-marketing`, `vedic-mathematics`, `personality-development`, `ai-data-science`) had its own implementation of an `AnimatedContent.js` component with:
+- Duplicate animation logic
+- Similar UI structure
+- Different styling approaches
+- Varying levels of performance optimization
+
+### Solution Implemented
+1. **Shared AnimatedContent Component**
+   - Created a standardized, reusable component
+   - Implemented performance optimizations (throttling, hardware acceleration)
+   - Added accessibility features (reduced motion support)
+   - Supports customization via options
+
+2. **Adapter Pattern**
+   - Created a `CourseContentAdapter` to ease migration
+   - Maps course-specific component names to standardized names
+   - Preserves course-specific styling and animations
+   - Allows gradual adoption without breaking changes
+
+3. **Implementation Strategy**
+   - Started with the Digital Marketing course as a proof of concept
+   - Plan to gradually refactor other course pages
+   - Maintain backward compatibility throughout
+
+### Benefits
+- **Reduced Code Duplication**: Centralized animation and layout logic
+- **Consistent User Experience**: Standardized UI patterns across courses
+- **Improved Performance**: Optimized animations and scroll handling
+- **Better Maintainability**: Easier updates and feature additions
+- **Enhanced Accessibility**: Added reduced motion support
+
+### Next Steps
+- Refactor remaining course pages to use the shared component
+- Add automated tests for the shared component
+- Consider expanding the shared component library for other repeated UI patterns 
