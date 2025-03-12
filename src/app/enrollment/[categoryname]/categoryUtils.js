@@ -8,7 +8,7 @@ import { GRADE_OPTIONS, GRADE_MAP, getGradeLabel, getGradeDescription } from '..
 // Shared grade configurations for specific categories
 const SHARED_GRADE_OPTIONS = {
   schoolStudent: {
-    gradeRange: ['grade+5-6', 'grade+7-8', 'grade+9-10', 'grade+11-12'],
+    gradeRange: ['Grade 5-6', 'Grade 7-8', 'Grade 9-10', 'Grade 11-12'],
     recommendedFor: ['Students preparing for competitive exams', 'Students aged 10-18 years']
   }
 };
@@ -33,10 +33,10 @@ export const CATEGORY_MAP = {
     ],
     recommendedFor: SHARED_GRADE_OPTIONS.schoolStudent.recommendedFor,
     targetGrades: SHARED_GRADE_OPTIONS.schoolStudent.gradeRange,
-    recommendedGrades: ['grade+7-8', 'grade+9-10'] // Most suitable grades for this subject
+    recommendedGrades: ['Grade 7-8', 'Grade 9-10'] // Most suitable grades for this subject
   },
   'ai-and-data-science': {
-    displayName: 'AI & Data Science',
+    displayName: 'AI and Data Science',
     description: 'Explore the cutting-edge fields of artificial intelligence and data science with hands-on projects and practical skills.',
     shortDescription: 'Master modern AI algorithms, machine learning techniques, and data analysis skills.',
     colorClass: 'text-violet-600 dark:text-violet-400',
@@ -89,7 +89,7 @@ export const CATEGORY_MAP = {
     ],
     recommendedFor: SHARED_GRADE_OPTIONS.schoolStudent.recommendedFor,
     targetGrades: SHARED_GRADE_OPTIONS.schoolStudent.gradeRange,
-    recommendedGrades: ['grade+9-10', 'grade+11-12'] // Most suitable grades for this subject
+    recommendedGrades: ['Grade 9-10', 'Grade 11-12'] // Most suitable grades for this subject
   }
 };
 
