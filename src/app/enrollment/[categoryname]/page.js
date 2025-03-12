@@ -3,10 +3,10 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  CheckCircle2, Clock, Calendar, Users, Award, CreditCard, Star, 
+  CheckCircle2, Clock, Calendar,Users, Award, CreditCard, Star, 
   BookOpen, ChevronDown, Calculator, BrainCircuit, TrendingUp, 
   UserCheck, Check, ArrowRight, Sparkles, ArrowLeft, MessageCircle,
-  FileBadge, GraduationCap, Blocks, HelpCircle, FileText, RefreshCw
+  FileBadge, GraduationCap, Blocks, HelpCircle, FileText, RefreshCw, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -19,12 +19,12 @@ import ThemeController from "@/components/shared/others/ThemeController";
 // API and utilities
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
+import { GRADE_OPTIONS } from '../constants';
 import { 
   CATEGORY_MAP, 
   getCategoryInfo, 
   normalizeCategory,
   DURATION_OPTIONS,
-  GRADE_OPTIONS,
   formatPrice,
   formatDuration,
   parseDuration,
@@ -116,6 +116,7 @@ const SECTIONS = [
   { id: 'certificate', label: 'Certificate', icon: FileBadge }
 ];
 
+
 // Custom hook for handling dynamic course content
 function useDynamicCourseContent(selectedCourse, categoryInfo) {
   const [courseContent, setCourseContent] = useState({
@@ -154,6 +155,10 @@ function CategoryEnrollmentPage({ params }) {
   const categoryInfo = useMemo(() => getCategoryInfo(normalizedCategory), [normalizedCategory]);
   const router = useRouter();
   
+  // Add states for dynamic options
+  const [availableGrades, setAvailableGrades] = useState([]);
+  const [availableDurations, setAvailableDurations] = useState([]);
+  
   // Refs for section navigation
   const sectionRefs = {
     overview: useRef(null),
@@ -183,19 +188,15 @@ function CategoryEnrollmentPage({ params }) {
   const [courses, setCourses] = useState([]);
   const [filteredCourses, setFilteredCourses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [courseLoading, setCourseLoading] = useState(false); // For individual course loading
+  const [courseLoading, setCourseLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedDuration, setSelectedDuration] = useState('all');
   const [selectedGrade, setSelectedGrade] = useState('all');
   const [selectedCourse, setSelectedCourse] = useState(null);
-  const [sectionLoadStates, setSectionLoadStates] = useState({
-    overview: false,
-    about: false,
-    curriculum: false,
-    reviews: false,
-    faq: false,
-    certificate: false
-  });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const itemsPerPage = 8;
   const { getQuery } = useGetQuery();
 
   // New state for recommendations
@@ -244,51 +245,162 @@ function CategoryEnrollmentPage({ params }) {
     }
   }, [normalizedCategory]);
 
-  // Fetch courses on component mount
+  // Function to extract and format duration options from courses
+  const extractDurationOptions = useCallback((courses) => {
+    const durationMap = new Map();
+    
+    courses.forEach(course => {
+      if (!course.course_duration) return;
+      
+      const duration = course.course_duration;
+      const durationId = duration.toLowerCase().replace(/\s+/g, '-');
+      
+      durationMap.set(durationId, {
+        id: durationId,
+        name: duration,
+        label: duration,
+        description: `${duration} duration course`
+      });
+    });
+    
+    return Array.from(durationMap.values());
+  }, []);
+
+  // Function to extract and format grade options from courses
+  const extractGradeOptions = useCallback((courses) => {
+    const gradeMap = new Map();
+    
+    courses.forEach(course => {
+      if (!course.grade) return;
+      
+      const grade = course.grade.toLowerCase();
+      let option;
+      
+      // Map the grade to a standardized format
+      if (grade.includes('preschool') || grade.includes('pre-school')) {
+        option = { id: 'preschool', label: 'Pre-school', description: 'Early learning foundation' };
+      } else if (grade.includes('grade 1') || grade.includes('grade 2')) {
+        option = { id: 'grade+1-2', label: 'Grade 1-2', description: 'Primary education basics' };
+      } else if (grade.includes('grade 3') || grade.includes('grade 4')) {
+        option = { id: 'grade+3-4', label: 'Grade 3-4', description: 'Elementary fundamentals' };
+      } else if (grade.includes('grade 5') || grade.includes('grade 6')) {
+        option = { id: 'grade+5-6', label: 'Grade 5-6', description: 'Upper elementary concepts' };
+      } else if (grade.includes('grade 7') || grade.includes('grade 8')) {
+        option = { id: 'grade+7-8', label: 'Grade 7-8', description: 'Middle school advancement' };
+      } else if (grade.includes('grade 9') || grade.includes('grade 10')) {
+        option = { id: 'grade+9-10', label: 'Grade 9-10', description: 'High school preparation' };
+      } else if (grade.includes('grade 11') || grade.includes('grade 12')) {
+        option = { id: 'grade+11-12', label: 'Grade 11-12', description: 'College preparation' };
+      } else if (grade.includes('undergraduate') || grade.includes('ug')) {
+        option = { id: 'undergraduate', label: 'Undergraduate', description: 'University level' };
+      } else if (grade.includes('graduate') || grade.includes('pg')) {
+        option = { id: 'graduate', label: 'Graduate & Professional', description: 'Advanced studies' };
+      }
+      
+      if (option) {
+        gradeMap.set(option.id, option);
+      }
+    });
+    
+    return Array.from(gradeMap.values());
+  }, []);
+
+  // Update the filter logic to work with the new data structure
+  useEffect(() => {
+    if (!courses.length) return;
+    
+    // Get the appropriate filter functions
+    const durationFilter = getDurationFilter(selectedDuration);
+    const gradeFilter = getGradeFilter(selectedGrade);
+    
+    // Apply both filters without the search filter
+    const filtered = courses.filter(course => {
+      const matchesDuration = selectedDuration === 'all' ? true : durationFilter(course);
+      const matchesGrade = selectedGrade === 'all' ? true : gradeFilter(course);
+      
+      return matchesDuration && matchesGrade;
+    });
+    
+    setFilteredCourses(filtered);
+    
+    // Only update selected course if there isn't one already selected or if it's not in the filtered results
+    if (filtered.length > 0 && (!selectedCourse || !filtered.some(course => course._id === selectedCourse._id))) {
+      setSelectedCourse(filtered[0]);
+    } else if (filtered.length === 0) {
+      setSelectedCourse(null);
+    }
+  }, [selectedDuration, selectedGrade, courses]);
+
+  // Fetch courses useEffect
   useEffect(() => {
     if (!normalizedCategory) return;
 
     const fetchCourses = async () => {
       try {
         setLoading(true);
-        console.log("Fetching courses for category:", categoryInfo?.displayName || categoryname);
+        console.log("Fetching courses for category:", categoryInfo?.displayName);
         
-        // Get category display name from categoryInfo
-        const categoryTitle = categoryInfo?.displayName || categoryname || "";
-        
-        // Use the direct API endpoint provided
-        const apiEndpoint = `https://13.202.119.19.nip.io/api/v1/courses/search?page=1&limit=100&sort_by=createdAt&sort_order=desc&course_category=${encodeURIComponent(categoryTitle)}&status=Published`;
-        console.log("Using API URL:", apiEndpoint);
-        
+        // Construct API endpoint using apiUrls helper
+        const apiEndpoint = apiUrls.courses.getAllCoursesWithLimits(
+          currentPage,
+          itemsPerPage,
+          "", // course_title
+          "", // course_tag
+          categoryInfo?.displayName || "", // course_category
+          "Published", // status
+          "", // search
+          selectedGrade !== 'all' ? selectedGrade : "", // course_grade
+          [], // category array
+          {
+            // Additional filters
+            certification: false,
+            hasAssignments: false,
+            hasProjects: false,
+            hasQuizzes: false,
+            course_duration: selectedDuration !== 'all' ? selectedDuration : undefined,
+            sortBy: "createdAt",
+            sortOrder: "desc"
+          },
+          "", // class_type
+          undefined, // course_duration
+          undefined, // course_fee
+          undefined, // course_type
+          undefined, // skill_level
+          undefined, // language
+          "createdAt", // sort_by
+          "asc", // sort_order
+          undefined // category_type
+        );
+
         getQuery({
           url: apiEndpoint,
           onSuccess: (response) => {
-            console.log(`${categoryTitle} courses:`, response);
             const courseData = response?.courses || [];
-            console.log("Courses data:", courseData.length, "courses found");
+            const pagination = response?.pagination || {};
+            const metadata = response?.metadata || {};
             
-            // Process course data to match expected structure with the new API format
+            // Process course data
             const processedCourseData = courseData.map(course => ({
               _id: course._id,
               title: course.course_title || "",
-              description: course.course_description || `A course on ${categoryTitle}`,
-              long_description: course.course_description || `Comprehensive ${categoryTitle} course designed to enhance your skills and knowledge in this field.`,
-              category: course.course_category || categoryTitle,
+              description: course.course_description || `A course on ${categoryInfo?.displayName}`,
+              long_description: course.course_description || `Comprehensive ${categoryInfo?.displayName} course designed to enhance your skills and knowledge in this field.`,
+              category: course.course_category || categoryInfo?.displayName,
               grade: course.course_grade || "",
               thumbnail: course.course_image || null,
               course_duration: formatDuration(course.course_duration) || "",
               course_duration_days: parseDuration(course.course_duration) || 30,
               course_fee: course.course_fee || 0,
               enrolled_students: course.enrolled_students || 0,
-              is_Certification: course.is_Certification === "Yes" || false,
-              is_Assignments: course.is_Assignments === "Yes" || false,
-              is_Projects: course.is_Projects === "Yes" || false,
-              is_Quizes: course.is_Quizes === "Yes" || false,
+              is_Certification: course.is_Certification === "Yes",
+              is_Assignments: course.is_Assignments === "Yes",
+              is_Projects: course.is_Projects === "Yes",
+              is_Quizes: course.is_Quizes === "Yes",
               curriculum: Array.isArray(course.curriculum) ? course.curriculum : [],
-              highlights: [],
-              learning_outcomes: [],
-              prerequisites: [],
-              faqs: [],
+              highlights: course.highlights || [],
+              learning_outcomes: course.learning_outcomes || [],
+              prerequisites: course.prerequisites || [],
+              faqs: course.faqs || [],
               no_of_Sessions: course.no_of_Sessions || 0,
               status: course.status || "Published",
               isFree: course.isFree || false,
@@ -296,28 +408,45 @@ function CategoryEnrollmentPage({ params }) {
             }));
             
             setCourses(processedCourseData);
-            setFilteredCourses(processedCourseData);
-            setLoading(false);
+            setTotalPages(pagination.totalPages || 1);
+            setTotalItems(pagination.totalCourses || 0);
             
-            // Select the first course by default if available
-            if (processedCourseData.length > 0) {
-              setSelectedCourse(processedCourseData[0]);
-              
-              // Set section load states to true since we have data
-              setSectionLoadStates({
-                overview: true,
-                about: true,
-                curriculum: true,
-                reviews: true,
-                faq: true,
-                certificate: !!processedCourseData[0].is_Certification
-              });
+            // Extract available options from metadata or courses
+            if (metadata.available_grades) {
+              setAvailableGrades(metadata.available_grades.map(grade => ({
+                id: grade.id || grade.toLowerCase().replace(/\s+/g, '-'),
+                label: grade,
+                description: `Courses for ${grade} level`
+              })));
+            } else {
+              const gradeOptions = [
+                { id: 'preschool', label: 'Pre-school', description: 'Early learning foundation' },
+                { id: 'grade1-2', label: 'Grade 1-2', description: 'Primary education basics' },
+                { id: 'grade3-4', label: 'Grade 3-4', description: 'Elementary fundamentals' },
+                { id: 'grade5-6', label: 'Grade 5-6', description: 'Upper elementary concepts' },
+                { id: 'grade7-8', label: 'Grade 7-8', description: 'Middle school advancement' },
+                { id: 'grade9-10', label: 'Grade 9-10', description: 'High school preparation' },
+                { id: 'grade11-12', label: 'Grade 11-12', description: 'College preparation' },
+                { id: 'graduate', label: 'UG - Graduate-Professional', description: 'University level' }]
+              setAvailableGrades(gradeOptions);
             }
+
+            if (metadata.available_durations) {
+              setAvailableDurations(metadata.available_durations.map(duration => ({
+                id: duration.toLowerCase().replace(/\s+/g, '-'),
+                name: duration,
+                label: duration,
+                description: `${duration} duration course`
+              })));
+            } else {
+              setAvailableDurations(extractDurationOptions(processedCourseData));
+            }
+            
+            setLoading(false);
           },
           onError: (err) => {
             console.error("Error fetching courses:", err);
-            console.error("Error details:", err?.response?.data || err?.message || "Unknown error");
-            setError(parseApiError(err) || `Failed to load ${categoryTitle} courses`);
+            setError(parseApiError(err) || `Failed to load ${categoryInfo?.displayName} courses`);
             setLoading(false);
           }
         });
@@ -329,7 +458,22 @@ function CategoryEnrollmentPage({ params }) {
     };
 
     fetchCourses();
-  }, [getQuery, normalizedCategory, categoryInfo]);
+  }, [
+    normalizedCategory,
+    categoryInfo,
+    currentPage,
+    selectedGrade,
+    selectedDuration,
+    getQuery,
+    extractDurationOptions,
+    extractGradeOptions
+  ]);
+
+  // Handle page change
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // Update the loadAdditionalCourseDetails to work with the new API format
   const loadAdditionalCourseDetails = useCallback((courseId) => {
@@ -412,34 +556,6 @@ function CategoryEnrollmentPage({ params }) {
     });
   }, [getQuery, selectedCourse, categoryInfo]);
 
-  // Update the filter logic to work with the new data structure
-  useEffect(() => {
-    if (!courses.length) return;
-    
-    // Get the appropriate filter functions
-    const durationFilter = getDurationFilter(selectedDuration);
-    const gradeFilter = getGradeFilter(selectedGrade);
-    
-    // Apply both filters without the search filter
-    const filtered = courses.filter(course => {
-      const matchesDuration = selectedDuration === 'all' ? true : durationFilter(course);
-      const matchesGrade = selectedGrade === 'all' ? true : (course.grade && course.grade.toLowerCase().includes(selectedGrade.toLowerCase()));
-      
-      return matchesDuration && matchesGrade;
-    });
-    
-    setFilteredCourses(filtered);
-    
-    // Update selected course if current selection is not in filtered results
-    if (filtered.length > 0) {
-      if (!selectedCourse || !filtered.some(course => course._id === selectedCourse._id)) {
-        setSelectedCourse(filtered[0]);
-      }
-    } else {
-      setSelectedCourse(null);
-    }
-  }, [selectedDuration, selectedGrade, courses, selectedCourse]);
-
   // Handle duration selection
   const handleDurationChange = (durationId) => {
     setSelectedDuration(durationId);
@@ -448,6 +564,8 @@ function CategoryEnrollmentPage({ params }) {
   // Handle grade selection
   const handleGradeChange = (gradeId) => {
     setSelectedGrade(gradeId);
+    // Reset selected course when grade changes
+    setSelectedCourse(null);
   };
 
   // Handle course selection with progress update
@@ -840,7 +958,7 @@ function CategoryEnrollmentPage({ params }) {
                 
                 {/* Right Column - Filters and Course Selection */}
                 <div className="w-full lg:w-4/12">
-                  <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 sticky top-24" style={{ maxHeight: 'calc(100vh - 100px)', overflowY: 'auto' }}>
+                  <div className="sticky top-24 bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700" style={{ maxHeight: 'calc(100vh - 100px)', overflowY: 'auto' }}>
                     {/* Category Title */}
                     <div className="mb-6">
                       <div className="flex items-center mb-2">
@@ -869,65 +987,218 @@ function CategoryEnrollmentPage({ params }) {
                     
                     {/* Filter Dropdowns */}
                     <div className="space-y-4 mb-6">
-                      {/* Grade Dropdown - Only shown for Vedic Math and Personality Development */}
+                      {/* Grade Filter - Only for Vedic Mathematics and Personality Development */}
                       {(normalizedCategory === 'vedic-mathematics' || 
-                         normalizedCategory === 'personality-development') && (
-                        <div className="space-y-2">
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Grade Level
-                          </label>
-                          <select
-                            value={selectedGrade}
-                            onChange={(e) => handleGradeChange(e.target.value)}
-                            className={`block w-full py-2.5 px-3 border ${selectedGrade !== 'all' ? `${categoryInfo?.borderClass || 'border-emerald-300 dark:border-emerald-700'}` : 'border-gray-300 dark:border-gray-700'} bg-white dark:bg-gray-800 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-700 dark:text-gray-300`}
-                          >
-                            <option value="all">All Grades</option>
-                            {GRADE_OPTIONS.map((option) => (
-                              <option key={option.id} value={option.id}>
-                                {option.label}
-                              </option>
+                         normalizedCategory === 'personality-development') && availableGrades.length > 0 ? (
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                              <GraduationCap className="w-4 h-4 mr-2" />
+                              Grade Level
+                            </label>
+                            <div className="relative group">
+                              <select
+                                value={selectedGrade}
+                                onChange={(e) => handleGradeChange(e.target.value)}
+                                className="appearance-none block w-full px-4 py-3 text-base transition-all duration-200 ease-in-out
+                                border-2 dark:border-gray-600 rounded-xl
+                                bg-white dark:bg-gray-700 
+                                text-gray-900 dark:text-white
+                                focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900
+                                focus:border-primary-500 dark:focus:border-primary-400
+                                hover:border-gray-400 dark:hover:border-gray-500
+                                shadow-sm hover:shadow-md
+                                cursor-pointer
+                                group-hover:border-gray-400 dark:group-hover:border-gray-500"
+                              >
+                                <option value="all">All Grades</option>
+                                {GRADE_OPTIONS.map((option) => (
+                                  <option 
+                                    key={option.id} 
+                                    value={option.id}
+                                    className="py-2"
+                                  >
+                                    {option.label}
+                                  </option>
+                                ))}
+                              </select>
+                              <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors">
+                                <div className="border-l border-gray-200 dark:border-gray-600 pl-3 py-2">
+                                  <ChevronDown className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
+                                </div>
+                              </div>
+                            
+                              <div className="absolute inset-x-0 h-1/2 bottom-0 rounded-b-xl bg-gradient-to-t from-gray-50 dark:from-gray-800/50 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            </div>
+                           
+                            <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                              Select a grade level to view available courses
+                            </p>
+                          </div>
+
+                          {/* Course List with Grade Filter */}
+                          <div className="space-y-6">
+                            {selectedGrade !== 'all' ? (
+                              // Show filtered courses when grade is selected
+                              <motion.div 
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                className="space-y-4"
+                              >
+                                <div className="flex items-center justify-between">
+                                  <h3 className="text-sm font-medium text-gray-900 dark:text-white flex items-center">
+                                    <Clock className="w-4 h-4 mr-2" />
+                                    Courses for {availableGrades.find(g => g.id === selectedGrade)?.label}
+                                  </h3>
+                                  <button
+                                    onClick={() => setSelectedGrade('all')}
+                                    className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 flex items-center"
+                                  >
+                                    <RefreshCw className="w-3 h-3 mr-1" />
+                                    View All
+                                  </button>
+                                </div>
+
+                                <div className="space-y-2">
+                                  {filteredCourses.map((course) => (
+                                    <motion.div 
+                                      key={course._id}
+                                      onClick={() => handleCourseSelection(course)}
+                                      className={`cursor-pointer group flex items-center p-4 rounded-xl transition-all duration-200 ${
+                                        selectedCourse?._id === course._id 
+                                          ? `border-2 ${categoryInfo?.borderClass || 'border-primary-300 dark:border-primary-700'} ${categoryInfo?.bgClass || 'bg-primary-50 dark:bg-primary-900/20'} shadow-lg`
+                                          : 'border-2 border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750 hover:shadow-md'
+                                      }`}
+                                      whileHover={{ scale: 1.02 }}
+                                      whileTap={{ scale: 0.98 }}
+                                    >
+                                      <div className="min-w-0 flex-1">
+                                        <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
+                                          {course.title}
+                                        </p>
+                                        <div className="flex items-center mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                          <Clock className="w-4 h-4 mr-1.5" />
+                                          {course.course_duration || 'Flexible duration'}
+                                        </div>
+                                      </div>
+                                      
+                                      {selectedCourse?._id === course._id && (
+                                        <CheckCircle2 className={`h-5 w-5 ${categoryInfo?.colorClass || 'text-primary-600 dark:text-primary-400'} ml-2 flex-shrink-0`} />
+                                      )}
+                                    </motion.div>
+                                  ))}
+                                </div>
+                              </motion.div>
+                            ) : (
+                              // Show all courses when no grade is selected
+                              <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                  <h3 className="text-sm font-medium text-gray-900 dark:text-white flex items-center">
+                                    <BookOpen className="w-4 h-4 mr-2" />
+                                    All Available Courses
+                                  </h3>
+                                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                                    {courses.length} courses
+                                  </span>
+                                </div>
+
+                                <div className="space-y-2">
+                                  {courses.map((course) => (
+                                    <motion.div 
+                                      key={course._id}
+                                      onClick={() => handleCourseSelection(course)}
+                                      className={`cursor-pointer group flex items-center p-4 rounded-xl transition-all duration-200 ${
+                                        selectedCourse?._id === course._id 
+                                          ? `border-2 ${categoryInfo?.borderClass || 'border-primary-300 dark:border-primary-700'} ${categoryInfo?.bgClass || 'bg-primary-50 dark:bg-primary-900/20'} shadow-lg`
+                                          : 'border-2 border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750 hover:shadow-md'
+                                      }`}
+                                      whileHover={{ scale: 1.02 }}
+                                      whileTap={{ scale: 0.98 }}
+                                    >
+                                      <div className="min-w-0 flex-1">
+                                        <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
+                                          {course.title}
+                                        </p>
+                                        <div className="flex items-center mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                          <Clock className="w-4 h-4 mr-1.5" />
+                                          {course.course_duration || 'Flexible duration'}
+                                          {course.grade && (
+                                            <>
+                                              <span className="mx-2">•</span>
+                                              <GraduationCap className="w-4 h-4 mr-1.5" />
+                                              {course.grade}
+                                            </>
+                                          )}
+                                        </div>
+                                      </div>
+                                      
+                                      {selectedCourse?._id === course._id && (
+                                        <CheckCircle2 className={`h-5 w-5 ${categoryInfo?.colorClass || 'text-primary-600 dark:text-primary-400'} ml-2 flex-shrink-0`} />
+                                      )}
+                                    </motion.div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        // Direct course list for AI & Data Science and Digital Marketing
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <h3 className="text-sm font-medium text-gray-900 dark:text-white flex items-center">
+                              <BookOpen className="w-4 h-4 mr-2" />
+                              Available Courses
+                            </h3>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                              {courses.length} courses
+                            </span>
+                          </div>
+
+                          <div className="space-y-2">
+                            {courses.map((course) => (
+                              <motion.div 
+                                key={course._id}
+                                onClick={() => handleCourseSelection(course)}
+                                className={`cursor-pointer group flex items-center p-4 rounded-xl transition-all duration-200 ${
+                                  selectedCourse?._id === course._id 
+                                    ? `border-2 ${categoryInfo?.borderClass || 'border-primary-300 dark:border-primary-700'} ${categoryInfo?.bgClass || 'bg-primary-50 dark:bg-primary-900/20'} shadow-lg`
+                                    : 'border-2 border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750 hover:shadow-md'
+                                }`}
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                              >
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
+                                    {course.title}
+                                  </p>
+                                  <div className="flex items-center mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                    <Clock className="w-4 h-4 mr-1.5" />
+                                    {course.course_duration || 'Flexible duration'}
+                                    {course.enrolled_students > 0 && (
+                                      <>
+                                        <span className="mx-2">•</span>
+                                        <Users className="w-4 h-4 mr-1.5" />
+                                        {course.enrolled_students} enrolled
+                                      </>
+                                    )}
+                                  </div>
+                                </div>
+                                
+                                {selectedCourse?._id === course._id && (
+                                  <CheckCircle2 className={`h-5 w-5 ${categoryInfo?.colorClass || 'text-primary-600 dark:text-primary-400'} ml-2 flex-shrink-0`} />
+                                )}
+                              </motion.div>
                             ))}
-                          </select>
+                          </div>
                         </div>
                       )}
-                      
-                      {/* Duration Dropdown - Shown for all categories */}
-                      <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                          Duration
-                        </label>
-                        <select
-                          value={selectedDuration}
-                          onChange={(e) => handleDurationChange(e.target.value)}
-                          className={`block w-full py-2.5 px-3 border ${selectedDuration !== 'all' ? `${categoryInfo?.borderClass || 'border-emerald-300 dark:border-emerald-700'}` : 'border-gray-300 dark:border-gray-700'} bg-white dark:bg-gray-800 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-700 dark:text-gray-300`}
-                        >
-                          <option value="all">All Durations</option>
-                          {DURATION_OPTIONS.map((option) => (
-                            <option key={option.id} value={option.id}>
-                              {option.name} - {option.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
                     </div>
                     
                     {/* Active Filters */}
                     {(selectedGrade !== 'all' || selectedDuration !== 'all') && (
                       <div className="mb-6">
-                        <div className="flex items-center justify-between mb-2">
-                          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Active Filters
-                          </h3>
-                          <button
-                            onClick={() => {
-                              setSelectedGrade('all');
-                              setSelectedDuration('all');
-                            }}
-                            className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                          >
-                            Clear All
-                          </button>
-                        </div>
                         <div className="flex flex-wrap gap-2">
                           {selectedGrade !== 'all' && (
                             <div className={`${categoryInfo?.bgClass || 'bg-emerald-50 dark:bg-emerald-900/20'} ${categoryInfo?.colorClass || 'text-emerald-600 dark:text-emerald-400'} px-2 py-1 rounded-full text-xs font-medium flex items-center`}>
@@ -1000,13 +1271,6 @@ function CategoryEnrollmentPage({ params }) {
                             <span className="absolute inset-0 bg-gradient-to-r from-primary-light to-secondary-light opacity-0 group-hover:opacity-100 transition-opacity" />
                           </motion.button>
                         </div>
-                        
-                        {/* Course Selection Count */}
-                        <div className="bg-gray-50 dark:bg-gray-750 rounded-lg p-4 mb-6">
-                          <p className="text-sm text-gray-600 dark:text-gray-300">
-                            Showing <span className="font-medium">{filteredCourses.length}</span> {filteredCourses.length === 1 ? 'course' : 'courses'} matching your criteria
-                          </p>
-                        </div>
                       </div>
                     )}
                     
@@ -1041,43 +1305,6 @@ function CategoryEnrollmentPage({ params }) {
                         })}
                       </div>
                     </div>
-                    
-                    {/* Course List with course names */}
-                    {filteredCourses.length > 0 && (
-                      <div className="mt-6 border-t border-gray-200 dark:border-gray-700 pt-4">
-                        <h3 className="font-medium text-gray-900 dark:text-white mb-3">
-                          Available Courses
-                        </h3>
-                        <div className="max-h-[320px] overflow-y-auto pr-2 space-y-3">
-                          {filteredCourses.map((course) => (
-                            <motion.div 
-                              key={course._id}
-                              onClick={() => handleCourseSelection(course)}
-                              className={`cursor-pointer group flex items-center p-3 rounded-lg border transition-all ${
-                                selectedCourse?._id === course._id 
-                                  ? `border-2 ${categoryInfo?.borderClass || 'border-emerald-200 dark:border-emerald-800'} ${categoryInfo?.bgClass || 'bg-emerald-50 dark:bg-emerald-900/20'}`
-                                  : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750'
-                              }`}
-                              whileHover={{ 
-                                scale: 1.02,
-                                boxShadow: "0 4px 20px rgba(0,0,0,0.1)"
-                              }}
-                              whileTap={{ scale: 0.98 }}
-                            >
-                              <div className="min-w-0 flex-1">
-                                <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
-                                  {course.title}
-                                </p>
-                              </div>
-                              
-                              {selectedCourse?._id === course._id && (
-                                <CheckCircle2 className={`h-5 w-5 ${categoryInfo?.colorClass || 'text-emerald-600 dark:text-emerald-400'} ml-2 flex-shrink-0`} />
-                              )}
-                            </motion.div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>

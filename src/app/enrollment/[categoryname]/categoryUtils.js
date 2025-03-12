@@ -3,6 +3,16 @@
  * Includes formatters, data processing, and category info
  */
 
+import { GRADE_OPTIONS, GRADE_MAP, getGradeLabel, getGradeDescription } from '../constants';
+
+// Shared grade configurations for specific categories
+const SHARED_GRADE_OPTIONS = {
+  schoolStudent: {
+    gradeRange: ['grade+5-6', 'grade+7-8', 'grade+9-10', 'grade+11-12'],
+    recommendedFor: ['Students preparing for competitive exams', 'Students aged 10-18 years']
+  }
+};
+
 // Map of category slugs to their display names and attributes
 export const CATEGORY_MAP = {
   'vedic-mathematics': {
@@ -21,7 +31,9 @@ export const CATEGORY_MAP = {
       'Develop stronger number sense and mathematical intuition',
       'Applicable to competitive exams and daily calculations'
     ],
-    recommendedFor: ['Students preparing for competitive exams', 'Math enthusiasts', 'Students aged 10-18 years']
+    recommendedFor: SHARED_GRADE_OPTIONS.schoolStudent.recommendedFor,
+    targetGrades: SHARED_GRADE_OPTIONS.schoolStudent.gradeRange,
+    recommendedGrades: ['grade+7-8', 'grade+9-10'] // Most suitable grades for this subject
   },
   'ai-and-data-science': {
     displayName: 'AI & Data Science',
@@ -75,7 +87,9 @@ export const CATEGORY_MAP = {
       'Confidence building and leadership development',
       'Interview preparation and professional etiquette'
     ],
-    recommendedFor: ['Students', 'Young professionals', 'Job seekers', 'Anyone looking to improve social skills']
+    recommendedFor: SHARED_GRADE_OPTIONS.schoolStudent.recommendedFor,
+    targetGrades: SHARED_GRADE_OPTIONS.schoolStudent.gradeRange,
+    recommendedGrades: ['grade+9-10', 'grade+11-12'] // Most suitable grades for this subject
   }
 };
 
@@ -98,17 +112,9 @@ export const getCategoryInfo = (categorySlug) => {
 
 // Duration options with flexible descriptions
 export const DURATION_OPTIONS = [
-  { id: 'short', name: '3 Months (12 weeks)', label: 'Quick Learning', description: 'Perfect for beginners looking to quickly grasp core concepts' },
-  { id: 'medium', name: '6 Months (24 weeks)', label: 'Comprehensive', description: 'Deeper understanding with extensive practice and application' },
-  { id: 'long', name: '9 Months (36 weeks)', label: 'Complete Mastery', description: 'Master all aspects with advanced techniques and specialized topics' }
-];
-
-// Grade options
-export const GRADE_OPTIONS = [
-  { id: 'grade5-6', label: 'Grade 5-6', description: 'Fundamental concepts tailored for younger students' },
-  { id: 'grade7-8', label: 'Grade 7-8', description: 'Advanced concepts for middle school students' },
-  { id: 'grade9-10', label: 'Grade 9-10', description: 'Higher-level concepts for secondary students' },
-  { id: 'grade11-12', label: 'Grade 11-12', description: 'Pre-college preparation and advanced topics' }
+  { id: 'short', name: 'Short', label: '1-4 weeks', description: 'Quick, focused learning' },
+  { id: 'medium', name: 'Medium', label: '1-3 months', description: 'Comprehensive coverage' },
+  { id: 'long', name: 'Long', label: '3+ months', description: 'In-depth mastery' }
 ];
 
 // Format price consistently
@@ -213,17 +219,17 @@ export const getDurationFilter = (durationId) => {
     case 'short':
       return (course) => {
         const courseDuration = course.course_duration_days || parseDuration(course.course_duration);
-        return courseDuration <= 7; // 1 week or less
+        return courseDuration <= 28; // 1-4 weeks
       };
     case 'medium':
       return (course) => {
         const courseDuration = course.course_duration_days || parseDuration(course.course_duration);
-        return courseDuration > 7 && courseDuration <= 30; // 1 week to 1 month
+        return courseDuration > 28 && courseDuration <= 90; // 1-3 months
       };
     case 'long':
       return (course) => {
         const courseDuration = course.course_duration_days || parseDuration(course.course_duration);
-        return courseDuration > 30; // More than 1 month
+        return courseDuration > 90; // 3+ months
       };
     default:
       return () => true; // No filtering
@@ -232,16 +238,13 @@ export const getDurationFilter = (durationId) => {
 
 // Update the getGradeFilter function to work with the new grade field
 export const getGradeFilter = (gradeId) => {
-  if (gradeId === 'all') return () => true;
+  if (!gradeId || gradeId === 'all') return () => true;
   
   return (course) => {
     if (!course.grade) return false;
     
     const courseGrade = course.grade.toLowerCase();
-    const grade = gradeId.toLowerCase();
-    
-    // Check if the course grade contains the selected grade
-    return courseGrade.includes(grade);
+    return GRADE_MAP[gradeId]?.some(grade => courseGrade.includes(grade)) || false;
   };
 };
 
@@ -266,4 +269,16 @@ export const parseApiError = (error) => {
   
   // Default error message
   return error.message || 'Something went wrong. Please try again.';
+};
+
+// Helper to get first available course for a grade
+export const getFirstCourseForGrade = (courses, gradeId) => {
+  if (!courses || !courses.length) return null;
+  
+  // Get the grade filter function
+  const gradeFilter = getGradeFilter(gradeId);
+  
+  // Filter courses by grade and return the first match
+  const matchingCourses = courses.filter(gradeFilter);
+  return matchingCourses.length > 0 ? matchingCourses[0] : null;
 }; 
