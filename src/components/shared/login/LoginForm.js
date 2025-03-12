@@ -225,15 +225,12 @@ const LoginForm = () => {
   // Apply font styles
   return (
     <>
-      {/* Font imports */}
+      {/* Font styles */}
       <style jsx global>{`
-        /* Import fonts from Google Fonts - in production, consider using next/font or hosting locally */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap');
-        
         /* Font variables */
         :root {
-          --font-heading: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-          --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          --font-heading: var(--font-montserrat);
+          --font-body: var(--font-inter);
         }
         
         .font-heading {
