@@ -207,10 +207,10 @@ img, video, canvas, svg, iframe {
   --purple-800: #44337A;
   --purple-900: #322659;
 
-  /* Base styles for typography */
-  --font-heading: var(--font-montserrat), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --font-body: var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --font-accent: var(--font-nunito), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  /* Font family variables */
+  --font-heading: var(--font-montserrat), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  --font-body: var(--font-inter), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  --font-accent: var(--font-nunito), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
 }
 
 .dark {
@@ -255,6 +255,7 @@ h6 {
   line-height: 1.2;
   margin-bottom: 0.5em;
   letter-spacing: -0.01em;
+  font-display: swap;
 }
 
 @font-face {
@@ -955,6 +956,10 @@ option {
 /* Addition for smooth transitions when changing themes */
 body {
   transition: background-color 0.3s ease, color 0.3s ease;
+  font-family: var(--font-body);
+  font-weight: 400;
+  line-height: 1.5;
+  font-display: swap;
 }
 
 /* Responsive improvements */
@@ -1533,4 +1538,17 @@ select.success {
 
 .tab-modern .tab-link.active {
   @apply bg-white dark:bg-gray-800 text-blue-700 dark:text-blue-400 shadow;
+}
+
+/* Typography styles */
+body {
+  font-family: var(--font-body);
+  font-weight: 400;
+  line-height: 1.5;
+  font-display: swap;
+}
+
+.accent-text {
+  font-family: var(--font-accent);
+  font-display: swap;
 }

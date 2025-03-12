@@ -1,0 +1,236 @@
+/* Enrollment Page Custom Styles - Apple-inspired Design Elements */
+
+/* Global Styles */
+.enrollment-page {
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --transition-regular: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Apple-style Animations */
+@keyframes fade-up {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Apple-style Selection Pill */
+.selection-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  color: #1d1d1f;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 100px;
+  transition: var(--transition-regular);
+}
+
+.selection-pill.active {
+  background-color: #06c;
+  color: white;
+  border-color: #06c;
+}
+
+/* Modern Card Design */
+.apple-card {
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: var(--transition-regular);
+}
+
+.apple-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Apple-style Loading Indicator */
+.apple-loader {
+  display: inline-block;
+  position: relative;
+  width: 40px;
+  height: 40px;
+}
+
+.apple-loader div {
+  position: absolute;
+  top: 33px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #06c;
+  animation-timing-function: cubic-bezier(0, 1, 1, 0);
+}
+
+.apple-loader div:nth-child(1) {
+  left: 8px;
+  animation: apple-loader1 0.6s infinite;
+}
+
+.apple-loader div:nth-child(2) {
+  left: 8px;
+  animation: apple-loader2 0.6s infinite;
+}
+
+.apple-loader div:nth-child(3) {
+  left: 32px;
+  animation: apple-loader2 0.6s infinite;
+}
+
+.apple-loader div:nth-child(4) {
+  left: 56px;
+  animation: apple-loader3 0.6s infinite;
+}
+
+@keyframes apple-loader1 {
+  0% {
+    transform: scale(0);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes apple-loader3 {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(0);
+  }
+}
+
+@keyframes apple-loader2 {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(24px, 0);
+  }
+}
+
+/* Apple-style Button */
+.apple-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 100px;
+  background: #06c;
+  color: white;
+  border: none;
+  transition: all 0.2s;
+}
+
+.apple-button:hover {
+  background: #0071e3;
+  transform: translateY(-1px);
+}
+
+.apple-button:active {
+  transform: translateY(1px);
+}
+
+.apple-button.secondary {
+  background: transparent;
+  color: #06c;
+  border: 1px solid #06c;
+}
+
+.apple-button.secondary:hover {
+  background: rgba(0, 102, 204, 0.1);
+}
+
+/* Image Gallery */
+.image-gallery {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.image-gallery::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-lg);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 20px;
+}
+
+/* Dark Mode Overrides */
+@media (prefers-color-scheme: dark) {
+  .apple-card {
+    background: rgba(30, 30, 32, 0.8);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .selection-pill {
+    color: #f5f5f7;
+    background: #1d1d1f;
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .apple-button.secondary {
+    color: #2997ff;
+    border-color: #2997ff;
+  }
+  
+  .apple-button.secondary:hover {
+    background: rgba(41, 151, 255, 0.1);
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+} 

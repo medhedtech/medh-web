@@ -1029,12 +1029,15 @@ const CoursesFilter = ({
                             className="select-modern"
                           >
                             <option value="">All Grades</option>
-                            <option value="Pre-school">Pre-school</option>
-                            <option value="1">Elementary</option>
-                            <option value="Middle School">Middle School</option>
-                            <option value="High School">High School</option>
-                            <option value="College">College</option>
-                            <option value="Professional">Professional</option>
+                            <option value="Preschool">Pre-school</option>
+                            <option value="Grade 1-2">Grade 1-2</option>
+                            <option value="Grade 3-4">Grade 3-4</option>
+                            <option value="Grade 5-6">Grade 5-6</option>
+                            <option value="Grade 7-8">Grade 7-8</option>
+                            <option value="Grade 9-10">Grade 9-10</option>
+                            <option value="Grade 9-10">Grade 9-10</option>
+                            <option value="Grade 11-12">Grade 11-12</option>
+                            <option value="UG - Graduate - Professionals">UG - Graduate - Professionals</option>
                           </select>
                         </div>
 
@@ -1081,30 +1084,6 @@ const CoursesFilter = ({
                           </button>
                         )}
                       </div>
-
-                      {!hideCategoryFilter && !hideFilterBar && (
-                        <div className="flex flex-wrap gap-2">
-                          <div className="mr-2 mb-2">
-                            <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">Course Types:</span>
-                          </div>
-                          <CategoryToggle
-                            categories={availableCategories?.filter(cat => 
-                              fallbackCategories.live.includes(cat))?.slice(0, 3) || 
-                              fallbackCategories.live.slice(0, 3)}
-                            selectedCategory={selectedCategory}
-                            setSelectedCategory={handleCategoryChange}
-                            customClass="bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900/30"
-                          />
-                          <CategoryToggle
-                            categories={availableCategories?.filter(cat => 
-                              fallbackCategories.blended.includes(cat))?.slice(0, 3) || 
-                              fallbackCategories.blended.slice(0, 3)}
-                            selectedCategory={selectedCategory}
-                            setSelectedCategory={handleCategoryChange}
-                            customClass="bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-900/30"
-                          />
-                        </div>
-                      )}
                     </div>
                   )}
 
