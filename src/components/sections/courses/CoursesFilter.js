@@ -94,6 +94,103 @@ const ErrorBoundary = ({ children }) => {
   return children;
 };
 
+// Helper component for simplified pagination - renamed to avoid naming conflict
+const SimplePaginationWrapper = ({ currentPage, totalPages, onPageChange, className = "", simplified = false }) => {
+  if (simplified) {
+    return (
+      <div className={`flex items-center justify-center space-x-2 ${className}`}>
+        <button
+          onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
+          disabled={currentPage <= 1}
+          className={`px-3 py-1 rounded-md ${
+            currentPage <= 1
+              ? "bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
+              : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+          }`}
+          aria-label="Previous page"
+        >
+          Previous
+        </button>
+        <span className="text-sm text-gray-600 dark:text-gray-400">
+          Page {currentPage} of {totalPages}
+        </span>
+        <button
+          onClick={() => currentPage < totalPages && onPageChange(currentPage + 1)}
+          disabled={currentPage >= totalPages}
+          className={`px-3 py-1 rounded-md ${
+            currentPage >= totalPages
+              ? "bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
+              : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+          }`}
+          aria-label="Next page"
+        >
+          Next
+        </button>
+      </div>
+    );
+  }
+
+  // Original pagination implementation
+  const renderPageNumbers = () => {
+    const pages = [];
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, startPage + 4);
+
+    if (endPage - startPage < 4) {
+      startPage = Math.max(1, endPage - 4);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(
+        <button
+          key={i}
+          onClick={() => onPageChange(i)}
+          className={`w-9 h-9 flex items-center justify-center rounded-md transition-colors duration-200 ${
+            currentPage === i
+              ? "bg-blue-600 dark:bg-blue-700 text-white"
+              : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+          }`}
+        >
+          {i}
+        </button>
+      );
+    }
+    return pages;
+  };
+
+  return (
+    <div className={`flex items-center justify-center space-x-2 ${className}`}>
+      <button
+        onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
+        disabled={currentPage <= 1}
+        className={`w-9 h-9 flex items-center justify-center rounded-md ${
+          currentPage <= 1
+            ? "bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
+            : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+        }`}
+        aria-label="Previous page"
+      >
+        &lsaquo;
+      </button>
+
+      {renderPageNumbers()}
+
+      <button
+        onClick={() => currentPage < totalPages && onPageChange(currentPage + 1)}
+        disabled={currentPage >= totalPages}
+        className={`w-9 h-9 flex items-center justify-center rounded-md ${
+          currentPage >= totalPages
+            ? "bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
+            : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+        }`}
+        aria-label="Next page"
+      >
+        &rsaquo;
+      </button>
+    </div>
+  );
+};
+
 const CoursesFilter = ({
   CustomButton,
   CustomText,
@@ -105,6 +202,21 @@ const CoursesFilter = ({
   description,
   classType = "",
   filterState = {},
+  activeTab = "all",
+  onFilterToggle = () => {},
+  // New props for simplified display
+  hideSearch = false,
+  hideSortOptions = false,
+  hideFilterBar = false,
+  hideViewModeSwitch = false,
+  hideHeader = false,
+  forceViewMode = null,
+  gridColumns = 3,
+  itemsPerPage = 8,
+  simplePagination = false,
+  emptyStateContent = null,
+  customGridClassName = "",
+  customGridStyle = {}
 }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -116,7 +228,15 @@ const CoursesFilter = ({
   const [sortOrder, setSortOrder] = useState("newest-first");
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [viewMode, setViewMode] = useState("grid");
+  // Use forceViewMode if provided, otherwise use the state
+  const [viewMode, setViewMode] = useState(forceViewMode || "grid");
+
+  // Effect to update viewMode if forceViewMode changes
+  useEffect(() => {
+    if (forceViewMode) {
+      setViewMode(forceViewMode);
+    }
+  }, [forceViewMode]);
 
   // API data
   const [allCourses, setAllCourses] = useState([]);
@@ -577,177 +697,248 @@ const CoursesFilter = ({
     return `${totalItems} courses found`;
   })();
 
+  // Determine UI theme colors based on activeTab
+  const getTabStyles = () => {
+    const styles = {
+      all: {
+        bgColor: "bg-primary-50/80 dark:bg-primary-900/10",
+        borderColor: "border-primary-100 dark:border-primary-900/20",
+        textColor: "text-primary-700 dark:text-primary-300",
+        buttonColor: "bg-primary-600 hover:bg-primary-700 dark:bg-primary-700 dark:hover:bg-primary-600"
+      },
+      live: {
+        bgColor: "bg-rose-50/80 dark:bg-rose-900/10",
+        borderColor: "border-rose-100 dark:border-rose-900/20",
+        textColor: "text-rose-700 dark:text-rose-300",
+        buttonColor: "bg-rose-600 hover:bg-rose-700 dark:bg-rose-700 dark:hover:bg-rose-600"
+      },
+      blended: {
+        bgColor: "bg-indigo-50/80 dark:bg-indigo-900/10",
+        borderColor: "border-indigo-100 dark:border-indigo-900/20",
+        textColor: "text-indigo-700 dark:text-indigo-300",
+        buttonColor: "bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-700 dark:hover:bg-indigo-600"
+      }
+    };
+    
+    return styles[activeTab] || styles.all;
+  };
+
+  // Use getTabStyles to generate dynamic styling based on activeTab
+  const tabStyles = getTabStyles();
+
+  // Determine grid column classes
+  const getGridColumnClasses = () => {
+    if (customGridClassName) {
+      return customGridClassName;
+    }
+    
+    // Default responsive grid
+    let gridClass = "grid gap-6";
+    
+    switch (gridColumns) {
+      case 1:
+        gridClass += " grid-cols-1";
+        break;
+      case 2:
+        gridClass += " grid-cols-1 md:grid-cols-2";
+        break;
+      case 4:
+        gridClass += " grid-cols-1 sm:grid-cols-2 lg:grid-cols-4";
+        break;
+      case 5:
+        gridClass += " grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5";
+        break;
+      case 3:
+      default:
+        gridClass += " grid-cols-1 sm:grid-cols-2 lg:grid-cols-3";
+    }
+    
+    return gridClass;
+  };
+
   return (
     <>
       <ErrorBoundary>
         <section className="pb-20 relative w-full">
-          {/* Course Header */}
-          <div className="bg-gray-900 dark:bg-gray-950 py-10 md:py-16 transition-colors duration-300 border-b border-gray-800 dark:border-gray-800/40 w-full">
-            <div className="container mx-auto px-4">
-              <div className="max-w-4xl mx-auto text-center text-white">
-                <h1 className="text-3xl md:text-4xl font-bold mb-4 text-white dark:text-gray-50">
-                  {categoryTitle || "Explore Courses"}
-                </h1>
-                <p className="text-gray-300 dark:text-gray-300/90 text-lg transition-colors duration-300">
-                  {description ||
-                    "Discover courses to enhance your skills and advance your career."}
-                </p>
+          {/* Course Header - Only render if not hidden */}
+          {!hideHeader && (
+            <div className={`${activeTab !== 'all' ? tabStyles.bgColor : 'bg-gray-900 dark:bg-gray-950'} py-10 md:py-16 transition-colors duration-300 border-b ${activeTab !== 'all' ? tabStyles.borderColor : 'border-gray-800 dark:border-gray-800/40'} w-full`}>
+              <div className="container mx-auto px-4">
+                <div className="max-w-4xl mx-auto text-center text-white">
+                  <h1 className={`text-3xl md:text-4xl font-bold mb-4 ${activeTab !== 'all' ? tabStyles.textColor : 'text-white dark:text-gray-50'}`}>
+                    {categoryTitle || CustomText || "Explore Courses"}
+                  </h1>
+                  <p className="text-gray-300 dark:text-gray-300/90 text-lg transition-colors duration-300">
+                    {description ||
+                      "Discover courses to enhance your skills and advance your career."}
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Main Wrapper */}
           <div className="container mx-auto px-4 -mt-8 w-full">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-gray-900/30 p-4 md:p-6 mb-8 border border-transparent dark:border-gray-700 transition-colors duration-300">
-              {/* Top Filters Row */}
-              <div className="flex flex-col md:flex-row gap-4 mb-6">
-                {/* Search Input */}
-                <div className="flex-grow relative">
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="Search courses..."
-                      value={searchTerm}
-                      onChange={handleSearch}
-                      className="w-full py-2 pl-10 pr-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors duration-200"
-                    />
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" size={18} />
-                    {searchTerm && (
-                      <button
-                        onClick={() => setSearchTerm("")}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
-                      >
-                        <X size={16} />
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Sort */}
-                <div className="relative" ref={sortDropdownRef}>
-                  <button
-                    onClick={() => setShowSortDropdown(!showSortDropdown)}
-                    className="flex items-center justify-between w-full md:w-48 py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 transition-colors duration-200"
-                  >
-                    <span className="text-sm font-medium">
-                      {
-                        {
-                          "newest-first": "Newest First",
-                          "oldest-first": "Oldest First",
-                          "A-Z": "Name (A-Z)",
-                          "Z-A": "Name (Z-A)",
-                          "price-low-high": "Price (Low->High)",
-                          "price-high-low": "Price (High->Low)",
-                        }[sortOrder] || "Newest First"
-                      }
-                    </span>
-                    <ChevronDown size={16} />
-                  </button>
-
-                  {showSortDropdown && (
-                    <div className="absolute right-0 mt-1 w-full md:w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-10 transition-colors duration-200">
-                      <div className="py-1">
-                        <button
-                          onClick={() => handleSortChange("newest-first")}
-                          className={`${
-                            sortOrder === "newest-first"
-                              ? "bg-gray-100 dark:bg-gray-700 text-blue-600 dark:text-blue-400"
-                              : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/70"
-                          } block w-full text-left px-4 py-2 text-sm transition-colors duration-200`}
-                        >
-                          Newest First
-                        </button>
-                        <button
-                          onClick={() => handleSortChange("oldest-first")}
-                          className={`${
-                            sortOrder === "oldest-first"
-                              ? "bg-gray-100 dark:bg-gray-700 text-blue-600 dark:text-blue-400"
-                              : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/70"
-                          } block w-full text-left px-4 py-2 text-sm transition-colors duration-200`}
-                        >
-                          Oldest First
-                        </button>
-                        <button
-                          onClick={() => handleSortChange("A-Z")}
-                          className={`${
-                            sortOrder === "A-Z"
-                              ? "bg-gray-100 dark:bg-gray-700 text-blue-600 dark:text-blue-400"
-                              : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/70"
-                          } block w-full text-left px-4 py-2 text-sm transition-colors duration-200`}
-                        >
-                          Name (A-Z)
-                        </button>
-                        <button
-                          onClick={() => handleSortChange("Z-A")}
-                          className={`${
-                            sortOrder === "Z-A"
-                              ? "bg-gray-100 dark:bg-gray-700 text-blue-600 dark:text-blue-400"
-                              : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/70"
-                          } block w-full text-left px-4 py-2 text-sm transition-colors duration-200`}
-                        >
-                          Name (Z-A)
-                        </button>
-                        <button
-                          onClick={() => handleSortChange("price-low-high")}
-                          className={`${
-                            sortOrder === "price-low-high"
-                              ? "bg-gray-100 dark:bg-gray-700 text-blue-600 dark:text-blue-400"
-                              : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/70"
-                          } block w-full text-left px-4 py-2 text-sm transition-colors duration-200`}
-                        >
-                          Price (Low-&gt;High)
-                        </button>
-                        <button
-                          onClick={() => handleSortChange("price-high-low")}
-                          className={`${
-                            sortOrder === "price-high-low"
-                              ? "bg-gray-100 dark:bg-gray-700 text-blue-600 dark:text-blue-400"
-                              : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/70"
-                          } block w-full text-left px-4 py-2 text-sm transition-colors duration-200`}
-                        >
-                          Price (High-&gt;Low)
-                        </button>
+              {/* Top Filters Row - Only render if not hidden */}
+              {!hideFilterBar && (
+                <div className="flex flex-col md:flex-row gap-4 mb-6">
+                  {/* Search Input - Only render if not hidden */}
+                  {!hideSearch && (
+                    <div className="flex-grow relative">
+                      <div className="relative">
+                        <input
+                          type="text"
+                          placeholder="Search courses..."
+                          value={searchTerm}
+                          onChange={handleSearch}
+                          className="input-modern w-full py-2 pl-10 pr-4"
+                        />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" size={18} />
+                        {searchTerm && (
+                          <button
+                            onClick={() => setSearchTerm("")}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
+                          >
+                            <X size={16} />
+                          </button>
+                        )}
                       </div>
                     </div>
                   )}
+
+                  {/* Sort - Only render if not hidden */}
+                  {!hideSortOptions && (
+                    <div className="relative" ref={sortDropdownRef}>
+                      <button
+                        onClick={() => setShowSortDropdown(!showSortDropdown)}
+                        className="select-modern flex items-center justify-between w-full md:w-48"
+                      >
+                        <span className="text-sm font-medium">
+                          {
+                            {
+                              "newest-first": "Newest First",
+                              "oldest-first": "Oldest First",
+                              "A-Z": "Name (A-Z)",
+                              "Z-A": "Name (Z-A)",
+                              "price-low-high": "Price (Low->High)",
+                              "price-high-low": "Price (High->Low)",
+                            }[sortOrder] || "Newest First"
+                          }
+                        </span>
+                        <ChevronDown size={16} />
+                      </button>
+
+                      {showSortDropdown && (
+                        <div className="absolute right-0 mt-1 w-full md:w-48 card-modern z-10">
+                          <div className="py-1">
+                            <button
+                              onClick={() => handleSortChange("newest-first")}
+                              className={`${
+                                sortOrder === "newest-first"
+                                  ? "bg-gray-100 dark:bg-gray-700 text-blue-600 dark:text-blue-400"
+                                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/70"
+                              } block w-full text-left px-4 py-2 text-sm transition-colors duration-200`}
+                            >
+                              Newest First
+                            </button>
+                            <button
+                              onClick={() => handleSortChange("oldest-first")}
+                              className={`${
+                                sortOrder === "oldest-first"
+                                  ? "bg-gray-100 dark:bg-gray-700 text-blue-600 dark:text-blue-400"
+                                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/70"
+                              } block w-full text-left px-4 py-2 text-sm transition-colors duration-200`}
+                            >
+                              Oldest First
+                            </button>
+                            <button
+                              onClick={() => handleSortChange("A-Z")}
+                              className={`${
+                                sortOrder === "A-Z"
+                                  ? "bg-gray-100 dark:bg-gray-700 text-blue-600 dark:text-blue-400"
+                                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/70"
+                              } block w-full text-left px-4 py-2 text-sm transition-colors duration-200`}
+                            >
+                              Name (A-Z)
+                            </button>
+                            <button
+                              onClick={() => handleSortChange("Z-A")}
+                              className={`${
+                                sortOrder === "Z-A"
+                                  ? "bg-gray-100 dark:bg-gray-700 text-blue-600 dark:text-blue-400"
+                                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/70"
+                              } block w-full text-left px-4 py-2 text-sm transition-colors duration-200`}
+                            >
+                              Name (Z-A)
+                            </button>
+                            <button
+                              onClick={() => handleSortChange("price-low-high")}
+                              className={`${
+                                sortOrder === "price-low-high"
+                                  ? "bg-gray-100 dark:bg-gray-700 text-blue-600 dark:text-blue-400"
+                                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/70"
+                              } block w-full text-left px-4 py-2 text-sm transition-colors duration-200`}
+                            >
+                              Price (Low-&gt;High)
+                            </button>
+                            <button
+                              onClick={() => handleSortChange("price-high-low")}
+                              className={`${
+                                sortOrder === "price-high-low"
+                                  ? "bg-gray-100 dark:bg-gray-700 text-blue-600 dark:text-blue-400"
+                                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/70"
+                              } block w-full text-left px-4 py-2 text-sm transition-colors duration-200`}
+                            >
+                              Price (High-&gt;Low)
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* View Mode Switch - Only render if not hidden */}
+                  {!hideViewModeSwitch && (
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => setViewMode("grid")}
+                        className={`p-2 rounded-md transition-colors duration-200 ${
+                          viewMode === "grid"
+                            ? "bg-blue-500 dark:bg-blue-600 text-white"
+                            : "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                        }`}
+                      >
+                        <LayoutGrid size={20} />
+                      </button>
+                      <button
+                        onClick={() => setViewMode("list")}
+                        className={`p-2 rounded-md transition-colors duration-200 ${
+                          viewMode === "list"
+                            ? "bg-blue-500 dark:bg-blue-600 text-white"
+                            : "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                        }`}
+                      >
+                        <List size={20} />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Mobile Filters Button - Only render if filters are not hidden */}
+                  {!hideFilterBar && (
+                    <button
+                      onClick={() => setShowFilters(!showFilters)}
+                      className="md:hidden btn-modern btn-secondary flex items-center justify-center"
+                    >
+                      <Filter size={18} className="mr-2" />
+                      <span>Filters</span>
+                    </button>
+                  )}
                 </div>
+              )}
 
-                {/* View Mode */}
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => setViewMode("grid")}
-                    className={`p-2 rounded-md transition-colors duration-200 ${
-                      viewMode === "grid"
-                        ? "bg-blue-500 dark:bg-blue-600 text-white"
-                        : "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
-                    }`}
-                  >
-                    <LayoutGrid size={20} />
-                  </button>
-                  <button
-                    onClick={() => setViewMode("list")}
-                    className={`p-2 rounded-md transition-colors duration-200 ${
-                      viewMode === "list"
-                        ? "bg-blue-500 dark:bg-blue-600 text-white"
-                        : "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
-                    }`}
-                  >
-                    <List size={20} />
-                  </button>
-                </div>
-
-                {/* Mobile Filters */}
-                <button
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="md:hidden flex items-center justify-center p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 transition-colors duration-200"
-                >
-                  <Filter size={18} className="mr-2" />
-                  <span>Filters</span>
-                </button>
-              </div>
-
-              {/* Active Filters */}
-              {activeFilters.length > 0 && (
+              {/* Active Filters - Only render if filters are not hidden */}
+              {!hideFilterBar && activeFilters.length > 0 && (
                 <div className="mb-6">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">
@@ -756,7 +947,7 @@ const CoursesFilter = ({
                     {activeFilters.map((f, idx) => (
                       <div
                         key={`${f.type}-${idx}`}
-                        className="flex items-center bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-sm font-medium px-3 py-1 rounded-full transition-colors duration-200"
+                        className="badge badge-primary"
                       >
                         {f.label}
                         <button
@@ -779,139 +970,143 @@ const CoursesFilter = ({
 
               {/* Main Content */}
               <div className="flex flex-col lg:flex-row gap-8">
-                {/* Sidebar */}
-                <div className={`lg:w-1/4 ${showFilters ? "block" : "hidden lg:block"}`}>
-                  <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg border border-transparent dark:border-gray-700 transition-colors duration-200">
-                    <div className="mb-6">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="font-semibold text-gray-800 dark:text-gray-200 transition-colors duration-200">Filters</h3>
-                        <button
-                          onClick={handleClearFilters}
-                          className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200"
-                        >
-                          Clear All
-                        </button>
-                      </div>
-                      {/* Categories */}
-                      {!hideCategoryFilter && (
+                {/* Sidebar - Only render if category filter is not hidden */}
+                {!hideCategoryFilter && (
+                  <div className={`lg:w-1/4 ${showFilters ? "block" : "hidden lg:block"}`}>
+                    <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg border border-transparent dark:border-gray-700 transition-colors duration-200">
+                      <div className="mb-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="font-semibold text-gray-800 dark:text-gray-200 transition-colors duration-200">Filters</h3>
+                          <button
+                            onClick={handleClearFilters}
+                            className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200"
+                          >
+                            Clear All
+                          </button>
+                        </div>
+                        {/* Categories */}
+                        {!hideCategoryFilter && (
+                          <div className="mb-6">
+                            <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-3 transition-colors duration-200">
+                              Categories
+                            </h4>
+                            
+                            {/* Live Categories */}
+                            <div className="mb-4">
+                              <h5 className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-2 flex items-center">
+                                <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                                Live Courses
+                              </h5>
+                              <CategoryFilter
+                                categories={availableCategories?.filter(cat => fallbackCategories.live.includes(cat)) || fallbackCategories.live}
+                                selectedCategory={selectedCategory}
+                                setSelectedCategory={handleCategoryChange}
+                              />
+                            </div>
+                            
+                            {/* Blended Categories */}
+                            <div className="mb-2">
+                              <h5 className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-2 flex items-center">
+                                <span className="inline-block w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
+                                Blended Courses
+                              </h5>
+                              <CategoryFilter
+                                categories={availableCategories?.filter(cat => fallbackCategories.blended.includes(cat)) || fallbackCategories.blended}
+                                selectedCategory={selectedCategory}
+                                setSelectedCategory={handleCategoryChange}
+                              />
+                            </div>
+                          </div>
+                        )}
+                        {/* Grade */}
                         <div className="mb-6">
                           <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-3 transition-colors duration-200">
-                            Categories
+                            Grade Level
                           </h4>
-                          
-                          {/* Live Categories */}
-                          <div className="mb-4">
-                            <h5 className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-2 flex items-center">
-                              <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                              Live Courses
-                            </h5>
-                            <CategoryFilter
-                              categories={availableCategories?.filter(cat => fallbackCategories.live.includes(cat)) || fallbackCategories.live}
-                              selectedCategory={selectedCategory}
-                              setSelectedCategory={handleCategoryChange}
-                            />
-                          </div>
-                          
-                          {/* Blended Categories */}
-                          <div className="mb-2">
-                            <h5 className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-2 flex items-center">
-                              <span className="inline-block w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
-                              Blended Courses
-                            </h5>
-                            <CategoryFilter
-                              categories={availableCategories?.filter(cat => fallbackCategories.blended.includes(cat)) || fallbackCategories.blended}
-                              selectedCategory={selectedCategory}
-                              setSelectedCategory={handleCategoryChange}
-                            />
-                          </div>
+                          <select
+                            value={selectedGrade}
+                            onChange={(e) => handleGradeChange(e.target.value)}
+                            className="select-modern"
+                          >
+                            <option value="">All Grades</option>
+                            <option value="Pre-school">Pre-school</option>
+                            <option value="1">Elementary</option>
+                            <option value="Middle School">Middle School</option>
+                            <option value="High School">High School</option>
+                            <option value="College">College</option>
+                            <option value="Professional">Professional</option>
+                          </select>
                         </div>
-                      )}
-                      {/* Grade */}
-                      <div className="mb-6">
-                        <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-3 transition-colors duration-200">
-                          Grade Level
-                        </h4>
-                        <select
-                          value={selectedGrade}
-                          onChange={(e) => handleGradeChange(e.target.value)}
-                          className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors duration-200"
-                        >
-                          <option value="">All Grades</option>
-                          <option value="Pre-school">Pre-school</option>
-                          <option value="1">Elementary</option>
-                          <option value="Middle School">Middle School</option>
-                          <option value="High School">High School</option>
-                          <option value="College">College</option>
-                          <option value="Professional">Professional</option>
-                        </select>
-                      </div>
 
-                      {/* Features (static placeholders) */}
-                      <div className="space-y-3">
-                        <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">
-                          Course Features
-                        </h4>
-                        <div className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 transition-colors duration-200">
-                          <Zap size={16} className="text-yellow-500 dark:text-yellow-400" />
-                          <span className="text-sm">Certification Available</span>
-                        </div>
-                        <div className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 transition-colors duration-200">
-                          <BookOpen size={16} className="text-blue-500 dark:text-blue-400" />
-                          <span className="text-sm">Includes Assignments</span>
-                        </div>
-                        <div className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 transition-colors duration-200">
-                          <GraduationCap size={16} className="text-green-500 dark:text-green-400" />
-                          <span className="text-sm">Project-Based Learning</span>
-                        </div>
-                        <div className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 transition-colors duration-200">
-                          <Palette size={16} className="text-purple-500 dark:text-purple-400" />
-                          <span className="text-sm">Interactive Quizzes</span>
+                        {/* Features (static placeholders) */}
+                        <div className="space-y-3">
+                          <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">
+                            Course Features
+                          </h4>
+                          <div className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 transition-colors duration-200">
+                            <Zap size={16} className="text-yellow-500 dark:text-yellow-400" />
+                            <span className="text-sm">Certification Available</span>
+                          </div>
+                          <div className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 transition-colors duration-200">
+                            <BookOpen size={16} className="text-blue-500 dark:text-blue-400" />
+                            <span className="text-sm">Includes Assignments</span>
+                          </div>
+                          <div className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 transition-colors duration-200">
+                            <GraduationCap size={16} className="text-green-500 dark:text-green-400" />
+                            <span className="text-sm">Project-Based Learning</span>
+                          </div>
+                          <div className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 transition-colors duration-200">
+                            <Palette size={16} className="text-purple-500 dark:text-purple-400" />
+                            <span className="text-sm">Interactive Quizzes</span>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
 
-                {/* Content Area */}
-                <div className="lg:w-3/4">
-                  {/* Top row for count */}
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-                    <div className="text-gray-600 dark:text-gray-300 mb-4 sm:mb-0">
-                      {coursesCountText}
-                      {showingRelated && (
-                        <button
-                          onClick={clearRelated}
-                          className="ml-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline"
-                        >
-                          Back to All Courses
-                        </button>
+                {/* Content Area - Adjust width based on whether sidebar is shown */}
+                <div className={!hideCategoryFilter ? "lg:w-3/4" : "w-full"}>
+                  {/* Top row for count - Only show if filters are not hidden */}
+                  {!hideFilterBar && (
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+                      <div className="text-gray-600 dark:text-gray-300 mb-4 sm:mb-0">
+                        {coursesCountText}
+                        {showingRelated && (
+                          <button
+                            onClick={clearRelated}
+                            className="ml-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline"
+                          >
+                            Back to All Courses
+                          </button>
+                        )}
+                      </div>
+
+                      {!hideCategoryFilter && !hideFilterBar && (
+                        <div className="flex flex-wrap gap-2">
+                          <div className="mr-2 mb-2">
+                            <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">Course Types:</span>
+                          </div>
+                          <CategoryToggle
+                            categories={availableCategories?.filter(cat => 
+                              fallbackCategories.live.includes(cat))?.slice(0, 3) || 
+                              fallbackCategories.live.slice(0, 3)}
+                            selectedCategory={selectedCategory}
+                            setSelectedCategory={handleCategoryChange}
+                            customClass="bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900/30"
+                          />
+                          <CategoryToggle
+                            categories={availableCategories?.filter(cat => 
+                              fallbackCategories.blended.includes(cat))?.slice(0, 3) || 
+                              fallbackCategories.blended.slice(0, 3)}
+                            selectedCategory={selectedCategory}
+                            setSelectedCategory={handleCategoryChange}
+                            customClass="bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-900/30"
+                          />
+                        </div>
                       )}
                     </div>
-
-                    {!hideCategoryFilter && (
-                      <div className="flex flex-wrap gap-2">
-                        <div className="mr-2 mb-2">
-                          <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">Course Types:</span>
-                        </div>
-                        <CategoryToggle
-                          categories={availableCategories?.filter(cat => 
-                            fallbackCategories.live.includes(cat))?.slice(0, 3) || 
-                            fallbackCategories.live.slice(0, 3)}
-                          selectedCategory={selectedCategory}
-                          setSelectedCategory={handleCategoryChange}
-                          customClass="bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900/30"
-                        />
-                        <CategoryToggle
-                          categories={availableCategories?.filter(cat => 
-                            fallbackCategories.blended.includes(cat))?.slice(0, 3) || 
-                            fallbackCategories.blended.slice(0, 3)}
-                          selectedCategory={selectedCategory}
-                          setSelectedCategory={handleCategoryChange}
-                          customClass="bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-900/30"
-                        />
-                      </div>
-                    )}
-                  </div>
+                  )}
 
                   {/* Query Error */}
                   {queryError && (
@@ -932,14 +1127,17 @@ const CoursesFilter = ({
 
                   {/* Loading */}
                   {loading ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {Array.from({ length: 6 }).map((_, idx) => (
+                    <div className={getGridColumnClasses()}>
+                      {Array.from({ length: itemsPerPage }).map((_, idx) => (
                         <div key={idx} className="animate-pulse bg-gray-200 dark:bg-gray-700 rounded-lg h-96 transition-colors duration-200"></div>
                       ))}
                     </div>
                   ) : filteredCourses.length > 0 ? (
-                    // Show courses
-                    <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"}>
+                    // Show courses with custom grid layout if in grid mode
+                    <div 
+                      className={viewMode === "grid" ? getGridColumnClasses() : "space-y-4"}
+                      style={viewMode === "grid" && Object.keys(customGridStyle).length > 0 ? customGridStyle : {}}
+                    >
                       {filteredCourses.map((course) => (
                         <ErrorBoundary key={course._id || course.id}>
                           <DynamicCourseCard 
@@ -953,30 +1151,40 @@ const CoursesFilter = ({
                       ))}
                     </div>
                   ) : (
-                    // No results
-                    renderNoResults()
+                    // No results or custom empty state
+                    emptyStateContent || renderNoResults()
                   )}
 
-                  {/* Pagination */}
+                  {/* Pagination - Only show if there are multiple pages */}
                   {totalPages > 1 && (
                     <div className="mt-10 flex justify-center">
-                      <Pagination
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        onPageChange={handlePageChange}
-                        className="dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
-                      />
+                      {simplePagination ? (
+                        <SimplePaginationWrapper
+                          currentPage={currentPage}
+                          totalPages={totalPages}
+                          onPageChange={handlePageChange}
+                          className="dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
+                          simplified={true}
+                        />
+                      ) : (
+                        <Pagination
+                          currentPage={currentPage}
+                          totalPages={totalPages}
+                          onPageChange={handlePageChange}
+                          className="dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
+                        />
+                      )}
                     </div>
                   )}
 
-                  {/* Bottom Action */}
+                  {/* Bottom Action with dynamic styling */}
                   <div className="mt-12 text-center">
                     {CustomButton ? (
                       <div className="inline-block">{CustomButton}</div>
                     ) : (
                       <Link
                         href="/courses"
-                        className="inline-flex items-center px-6 py-3 bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 text-white text-sm font-medium rounded-xl transition-colors duration-200 shadow-sm hover:shadow-md"
+                        className={`btn-modern ${tabStyles.buttonColor} inline-flex items-center px-6 py-3 text-white text-sm font-medium rounded-xl transition-colors shadow-sm hover:shadow-md`}
                       >
                         <span>View All Courses</span>
                         <ChevronRight className="ml-2 w-5 h-5" />
@@ -1004,6 +1212,21 @@ CoursesFilter.propTypes = {
   description: PropTypes.string,
   classType: PropTypes.string,
   filterState: PropTypes.object,
+  activeTab: PropTypes.string,
+  onFilterToggle: PropTypes.func,
+  // New props
+  hideSearch: PropTypes.bool,
+  hideSortOptions: PropTypes.bool,
+  hideFilterBar: PropTypes.bool,
+  hideViewModeSwitch: PropTypes.bool,
+  hideHeader: PropTypes.bool,
+  forceViewMode: PropTypes.string,
+  gridColumns: PropTypes.number,
+  itemsPerPage: PropTypes.number,
+  simplePagination: PropTypes.bool,
+  emptyStateContent: PropTypes.node,
+  customGridClassName: PropTypes.string,
+  customGridStyle: PropTypes.object
 };
 
 export default CoursesFilter;
