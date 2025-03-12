@@ -38,6 +38,9 @@ const nunito = Nunito_Sans({
   weight: ["300", "400", "500", "600", "700"],
   display: "swap",
   variable: "--font-nunito",
+  adjustFontFallback: true,
+  fallback: ['system-ui', 'arial'],
+  preload: true,
 });
 
 // Using local font instead of Google Fonts to avoid build issues
