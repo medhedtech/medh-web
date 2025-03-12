@@ -55,8 +55,6 @@ export default function AboutProgram({ courseId }) {
   useEffect(() => {
     if (courseId) {
       fetchCourseDetails(courseId);
-    } else {
-      notFound();
     }
   }, [courseId]);
 
@@ -71,8 +69,6 @@ export default function AboutProgram({ courseId }) {
           // Process curriculum data
           if (data?.curriculum && Array.isArray(data.curriculum) && data.curriculum.length > 0) {
             setCurriculum(data.curriculum);
-          } else {
-            setCurriculum(generateDefaultCurriculum(data));
           }
           
           // Process tools & technologies
@@ -87,99 +83,10 @@ export default function AboutProgram({ courseId }) {
         },
         onFail: (err) => {
           console.error("Error fetching course details:", err);
-          setCurriculum(generateDefaultCurriculum());
         },
       });
     } catch (error) {
       console.error("Error in fetching course details:", error);
-      setCurriculum(generateDefaultCurriculum());
-    }
-  };
-
-  // Generate default curriculum when none is available
-  const generateDefaultCurriculum = (courseData = null) => {
-    const courseTitle = courseData?.course_title || "this course";
-    const isDataAnalytics = courseTitle.toLowerCase().includes("data") || courseTitle.toLowerCase().includes("analytics");
-    const isProgramming = courseTitle.toLowerCase().includes("programming") || courseTitle.toLowerCase().includes("development");
-    const isMarketing = courseTitle.toLowerCase().includes("marketing") || courseTitle.toLowerCase().includes("seo");
-    
-    if (isDataAnalytics) {
-      return [
-        {
-          weekTitle: "Weeks 1-2: Introduction to Data Analytics",
-          weekDescription: "Overview of data analytics concepts, tools, and methodologies. Introduction to data collection, cleaning, and preparation techniques."
-        },
-        {
-          weekTitle: "Weeks 3-4: Data Visualization Fundamentals",
-          weekDescription: "Learn to create effective visualizations using industry-standard tools. Understand principles of visual communication and dashboard design."
-        },
-        {
-          weekTitle: "Weeks 5-6: Statistical Analysis",
-          weekDescription: "Apply statistical methods to analyze data patterns and trends. Learn hypothesis testing and confidence intervals for data-driven decision making."
-        },
-        {
-          weekTitle: "Weeks 7-8: Advanced Analytics & Reporting",
-          weekDescription: "Master advanced analytics techniques and create professional reports. Learn to present insights effectively to different stakeholders."
-        }
-      ];
-    } else if (isProgramming) {
-      return [
-        {
-          weekTitle: "Weeks 1-2: Programming Fundamentals",
-          weekDescription: "Introduction to programming concepts, syntax, and problem-solving approaches. Build a foundation in logical thinking and algorithm development."
-        },
-        {
-          weekTitle: "Weeks 3-4: Data Structures & Algorithms",
-          weekDescription: "Learn essential data structures and algorithms for efficient code. Understand time and space complexity analysis."
-        },
-        {
-          weekTitle: "Weeks 5-6: Web Development Basics",
-          weekDescription: "Introduction to HTML, CSS, and JavaScript for building interactive web applications. Learn responsive design principles."
-        },
-        {
-          weekTitle: "Weeks 7-8: Backend Development & Databases",
-          weekDescription: "Understand server-side programming and database management. Build complete web applications with frontend and backend components."
-        }
-      ];
-    } else if (isMarketing) {
-      return [
-        {
-          weekTitle: "Weeks 1-2: Digital Marketing Fundamentals",
-          weekDescription: "Overview of digital marketing channels, strategies, and metrics. Understand customer journey and digital touchpoints."
-        },
-        {
-          weekTitle: "Weeks 3-4: Content Marketing & SEO",
-          weekDescription: "Learn content creation strategies and search engine optimization techniques. Understand keyword research and on-page/off-page SEO."
-        },
-        {
-          weekTitle: "Weeks 5-6: Social Media Marketing",
-          weekDescription: "Master social media platforms, content strategies, and paid advertising. Learn community management and engagement techniques."
-        },
-        {
-          weekTitle: "Weeks 7-8: Analytics & Campaign Optimization",
-          weekDescription: "Analyze marketing performance and optimize campaigns based on data. Learn A/B testing and conversion rate optimization."
-        }
-      ];
-    } else {
-      // Generic curriculum
-      return [
-        {
-          weekTitle: `Weeks 1-2: Introduction to ${courseTitle}`,
-          weekDescription: `Overview of fundamental concepts and principles in ${courseTitle}. Build a strong foundation for advanced topics.`
-        },
-        {
-          weekTitle: "Weeks 3-4: Core Methodologies & Techniques",
-          weekDescription: "Learn essential methodologies and techniques used by industry professionals. Practice with hands-on exercises and case studies."
-        },
-        {
-          weekTitle: "Weeks 5-6: Applied Skills Development",
-          weekDescription: "Apply learned concepts to real-world scenarios and projects. Develop practical skills valued in the workplace."
-        },
-        {
-          weekTitle: "Weeks 7-8: Advanced Topics & Final Project",
-          weekDescription: "Explore advanced topics and complete a comprehensive final project. Prepare for professional application of skills."
-        }
-      ];
     }
   };
 
@@ -446,7 +353,7 @@ export default function AboutProgram({ courseId }) {
                       variants={fadeIn}
                     >
                       <div className="flex items-center justify-center bg-gradient-to-r from-emerald-400 to-green-500 p-2.5 rounded-lg mr-3 shadow-sm text-white">
-                        <Calendar className="w-5 h-5" />
+                        <GraduationCap className="w-5 h-5" />
                       </div>
                       <span>Course Details</span>
                     </motion.h3>
