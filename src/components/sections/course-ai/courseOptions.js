@@ -1,23 +1,16 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import CoursesFilter from "../courses/CoursesFilter";
-import { Zap } from "lucide-react";
+import { Zap, Sparkles } from "lucide-react";
 import Link from "next/link";
 
 function CourseOptions() {
-  // Add scroll to top functionality
-  const handleScrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
-  };
-
-  // Define available grades for AI courses
-  const grades = [
-    "Grade 11-12",
-    "UG - Graduate - Professionals"
-  ];
+  // Define view settings
+  const [viewSettings] = useState({
+    gridColumns: 4,
+    showFilters: false,
+    itemsPerPage: 8
+  });
 
   // Custom empty state content
   const emptyStateContent = (
@@ -34,28 +27,69 @@ function CourseOptions() {
     </div>
   );
 
+  // Custom header content
+  const customHeader = (
+    <div className="text-center mb-8">
+      <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-sm font-medium mb-3">
+        <Sparkles className="w-4 h-4" />
+        Future-Ready Skills
+      </span>
+      <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+        AI and Data Science Courses
+      </h2>
+      <p className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+        Master the future of technology with our comprehensive AI and Data Science courses. From machine learning to data analytics, our programs are designed to help you excel in the digital age.
+      </p>
+    </div>
+  );
+
+  // Custom course grid styling
+  const customGridStyle = {
+    gridTemplateColumns: `repeat(${viewSettings.gridColumns}, minmax(0, 1fr))`,
+  };
+
   return (
-    <CoursesFilter
-      key="ai-and-data-science"
-      CustomText="AI and Data Science Courses"
-      CustomButton={
-        <Link href="/courses">
-          <div className="inline-flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm hover:shadow-md">
-            Explore All AI Courses
-          </div>
-        </Link>
-      }
-      // Force filter to only show AI courses
-      fixedCategory="AI and Data Science"
-      categoryTitle="Grade Level"
-      // Add scroll to top functionality
-      scrollToTop={handleScrollToTop}
-      hideCategoryFilter={true}
-      // Add a description for the courses section
-      description="Master the future of technology with our comprehensive AI and Data Science courses. From machine learning to data analytics, our programs are designed to help you excel in the digital age."
-      // Custom empty state
-      emptyStateContent={emptyStateContent}
-    />
+    <div className="py-12 bg-gray-50 dark:bg-gray-900">
+      <div className="container mx-auto px-4">
+        {customHeader}
+        
+        <CoursesFilter
+          key="ai-and-data-science"
+          CustomText="AI and Data Science Courses"
+          CustomButton={
+            <Link href="/courses">
+              <div className="inline-flex items-center px-6 py-3 bg-primary-600 hover:bg-primary-700 dark:bg-primary-700 dark:hover:bg-primary-600 text-white text-sm font-medium rounded-xl transition-colors shadow-sm hover:shadow-md">
+                Explore All Courses
+              </div>
+            </Link>
+          }
+          // Force filter to only show AI courses
+          fixedCategory="AI and Data Science"
+          // Hide all filter UI components
+          hideCategoryFilter={true}
+          hideSearch={true}
+          hideSortOptions={true}
+          hideFilterBar={true}
+          hideViewModeSwitch={true}
+          hideHeader={true}
+          // Fix view mode to grid with 4 columns
+          forceViewMode="grid"
+          gridColumns={viewSettings.gridColumns}
+          // Limit courses shown per page
+          itemsPerPage={viewSettings.itemsPerPage}
+          // Minimize pagination
+          simplePagination={true}
+          // Description for SEO/accessibility
+          description="Master the future of technology with our comprehensive AI and Data Science courses."
+          // Custom empty state
+          emptyStateContent={emptyStateContent}
+          // Custom styling
+          customGridClassName="grid gap-6 sm:gap-8"
+          // Pass custom style object
+          customGridStyle={customGridStyle}
+        />
+      </div>
+    </div>
   );
 }
 
