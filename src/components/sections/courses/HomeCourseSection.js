@@ -15,110 +15,6 @@ const TARGET_DURATIONS = [
   36   // 9 months (36 weeks)
 ];
 
-// Specific courses to display in Live Interactive section
-const FEATURED_LIVE_COURSES = [
-  {
-    id: "ai-data-science",
-    title: "AI & Data Science",
-    url: "https://www.medh.co/ai-and-data-science-course",
-    duration_range: "4-18 months",
-    description: "Master AI fundamentals, machine learning, and data science skills with industry-relevant projects and expert guidance.",
-    highlights: ["Python Programming", "Machine Learning", "Data Analysis", "AI Tools"],
-    effort_hours: "6-8",
-    no_of_Sessions: 36,
-    instructor: {
-      name: "Dr. Amit Kumar",
-      title: "AI Research Scientist",
-      avatar: null
-    },
-    learning_points: [
-      "Build real-world AI applications from scratch",
-      "Master Python for data science workflows",
-      "Implement machine learning algorithms",
-      "Analyze and visualize complex datasets"
-    ],
-    prerequisites: [
-      "Basic understanding of mathematics",
-      "No coding experience required"
-    ]
-  },
-  {
-    id: "digital-marketing",
-    title: "Digital Marketing with Data Analytics",
-    url: "https://www.medh.co/digital-marketing-with-data-analytics-course",
-    duration_range: "4-18 months",
-    description: "Learn comprehensive digital marketing strategies combined with powerful data analytics tools for measurable business growth.",
-    highlights: ["SEO & SEM", "Social Media", "Analytics Tools", "Content Strategy"],
-    effort_hours: "5-8",
-    no_of_Sessions: 30,
-    instructor: {
-      name: "Priya Sharma",
-      title: "Digital Marketing Expert",
-      avatar: null
-    },
-    learning_points: [
-      "Create effective digital marketing campaigns",
-      "Analyze campaign performance with data tools",
-      "Master content creation for various platforms",
-      "Implement SEO strategies for better visibility"
-    ],
-    prerequisites: [
-      "Basic computer skills",
-      "Interest in marketing and analytics"
-    ]
-  },
-  {
-    id: "personality-development",
-    title: "Personality Development",
-    url: "https://www.medh.co/personality-development-course",
-    duration_range: "3-9 months",
-    description: "Enhance your communication, leadership, and interpersonal skills to excel professionally and personally.",
-    highlights: ["Public Speaking", "Confidence Building", "Leadership", "Emotional Intelligence"],
-    effort_hours: "4-6",
-    no_of_Sessions: 24,
-    instructor: {
-      name: "Rajesh Khanna",
-      title: "Leadership Coach",
-      avatar: null
-    },
-    learning_points: [
-      "Develop effective communication skills",
-      "Build confidence in social and professional settings",
-      "Master emotional intelligence for better relationships",
-      "Enhance leadership capabilities"
-    ],
-    prerequisites: [
-      "Open mindset to personal growth",
-      "Willingness to practice new skills"
-    ]
-  },
-  {
-    id: "vedic-mathematics",
-    title: "Vedic Mathematics",
-    url: "https://www.medh.co/vedic-mathematics-course",
-    duration_range: "3-9 months",
-    description: "Learn ancient math techniques to improve calculation speed, mental ability, and problem-solving skills.",
-    highlights: ["Fast Calculation", "Mental Math", "Numerical Patterns", "Problem Solving"],
-    effort_hours: "3-5",
-    no_of_Sessions: 20,
-    instructor: {
-      name: "Dr. Shweta Patel",
-      title: "Mathematics Expert",
-      avatar: null
-    },
-    learning_points: [
-      "Master rapid mental calculation techniques",
-      "Solve complex problems with simplified methods",
-      "Develop mathematical intuition and confidence",
-      "Apply Vedic math in competitive exams"
-    ],
-    prerequisites: [
-      "Basic arithmetic knowledge",
-      "Interest in mathematical concepts"
-    ]
-  }
-];
-
 // Feature courses for Live Interactive section - added with course URLs
 const featuredLiveCourses = [
   {
@@ -126,7 +22,7 @@ const featuredLiveCourses = [
     title: "AI & Data Science",
     description: "Master the fundamentals of artificial intelligence and data science with hands-on projects and industry mentorship.",
     url: "/ai-and-data-science-course", // URL for redirection
-    duration_range: "10-16 Weeks",
+    duration_range: "4-18 months",
     effort_hours: "8-10",
     no_of_Sessions: 24,
     learning_points: [
@@ -148,7 +44,7 @@ const featuredLiveCourses = [
     title: "Digital Marketing with Data Analytics",
     description: "Learn how to leverage digital platforms and data analytics to create successful marketing campaigns.",
     url: "/digital-marketing-with-data-analytics-course", // URL for redirection
-    duration_range: "8-12 Weeks",
+    duration_range: "4-18 months",
     effort_hours: "6-8",
     no_of_Sessions: 20,
     learning_points: [
@@ -170,7 +66,7 @@ const featuredLiveCourses = [
     title: "Personality Development",
     description: "Develop essential soft skills, communication abilities, and confidence for personal and professional growth.",
     url: "/personality-development-course", // URL for redirection
-    duration_range: "6-8 Weeks",
+    duration_range: "3-9 months",
     effort_hours: "4-6",
     no_of_Sessions: 16,
     learning_points: [
@@ -192,7 +88,7 @@ const featuredLiveCourses = [
     title: "Vedic Mathematics",
     description: "Learn ancient Indian mathematical techniques for faster calculations and enhanced problem-solving abilities.",
     url: "/vedic-mathematics-course", // URL for redirection
-    duration_range: "6-8 Weeks",
+    duration_range: "3-9 months",
     effort_hours: "4-6",
     no_of_Sessions: 16,
     learning_points: [
@@ -722,7 +618,7 @@ const HomeCourseSection = ({
           </div>
         ) : filteredLiveCourses.length > 0 ? (
           <motion.div 
-            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6"
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-5 md:gap-6"
             variants={containerVariants}
             initial="hidden"
             animate="visible"
@@ -736,6 +632,8 @@ const HomeCourseSection = ({
                     course_description: course.description || course.course_description,
                     course_image: course.thumbnail,
                     course_duration: course.duration_range || "4-18 months",
+                    display_duration: true,
+                    duration_range: course.duration_range || "4-18 months",
                     course_fee: course.price || "Free",
                     custom_url: course.custom_url,
                     href: course.custom_url,
@@ -747,6 +645,7 @@ const HomeCourseSection = ({
                   }} 
                   classType="live" 
                   scrollToTop={scrollToTop}
+                  showDuration={true}
                 />
               </motion.div>
             ))}
@@ -848,11 +747,27 @@ const HomeCourseSection = ({
           .live-course-card, .blended-course-card {
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+            /* Add additional bottom padding to prevent "View More" button overlap */
+            padding-bottom: 3rem;
+            position: relative;
+            min-height: 300px;
           }
           
           .live-course-card:hover, .blended-course-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+          }
+          
+          /* Ensure "View More" button doesn't overlap with content */
+          .live-course-card :global(.course-card), 
+          .blended-course-card :global(.course-card) {
+            padding-bottom: 3rem !important;
+            min-height: 24rem;
+          }
+          
+          /* Specifically style the duration box in live courses */
+          .live-course-card :global(.bg-\[\#379392\]\/10) {
+            margin-bottom: 3rem;
           }
         }
         
@@ -861,6 +776,30 @@ const HomeCourseSection = ({
           display: flex;
           height: 100%;
           transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        /* Standard heights for live course cards to ensure consistency */
+        .live-course-card {
+          min-height: 380px;
+        }
+        
+        /* Desktop-specific heights to prevent scrolling */
+        @media (min-width: 768px) {
+          .live-course-card {
+            min-height: 400px;
+            max-height: 420px;
+          }
+          
+          /* Desktop hover card styles */
+          .live-course-card :global(.hover-content) {
+            overflow: hidden;
+          }
+        }
+        
+        /* Standard heights for content containers */
+        .live-course-card :global(.course-card), 
+        .blended-course-card :global(.course-card) {
+          height: 100%;
         }
         
         /* Add hover effect to live course cards similar to blended course cards */
@@ -877,6 +816,29 @@ const HomeCourseSection = ({
           height: 100%;
           width: 100%;
           transition: transform 0.3s ease, box-shadow 0.3s ease;
+          position: relative; /* Ensure positioned elements inside use this as reference */
+        }
+        
+        /* Handle content sizing for different screen sizes */
+        @media (min-width: 1024px) {
+          .live-course-card :global(.course-card) {
+            min-height: 400px;
+            max-height: 420px;
+          }
+        }
+        
+        @media (min-width: 768px) and (max-width: 1023px) {
+          .live-course-card :global(.course-card) {
+            min-height: 420px;
+            max-height: 450px;
+          }
+        }
+        
+        @media (min-width: 640px) and (max-width: 767px) {
+          .live-course-card :global(.course-card) {
+            min-height: 420px;
+            max-height: 460px;
+          }
         }
         
         /* Add hover effect to card content */
@@ -901,6 +863,8 @@ const HomeCourseSection = ({
           flex-grow: 1;
           display: flex;
           flex-direction: column;
+          /* Add additional bottom margin for mobile view */
+          margin-bottom: 1rem;
         }
         
         /* Make live course cards stand out differently from blended courses */
@@ -923,6 +887,12 @@ const HomeCourseSection = ({
         .blended-course-card :global(.relative) {
           height: 12rem;
           overflow: hidden;
+        }
+        
+        /* Make course descriptions not overlap with View More button on mobile */
+        .live-course-card :global(p), 
+        .blended-course-card :global(p) {
+          margin-bottom: 0.75rem;
         }
         
         /* Fix for IE and older browsers */

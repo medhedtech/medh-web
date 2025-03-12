@@ -1,6 +1,6 @@
 "use client";
 
-import { Inter } from "next/font/google";
+import { Inter, Montserrat, Nunito_Sans } from "next/font/google";
 import localFont from "next/font/local";
 import "@/assets/css/icofont.min.css";
 import "@/assets/css/popup.css";
@@ -22,6 +22,22 @@ const inter = Inter({
   weight: ["300", "400", "500", "600", "700"],
   display: "swap",
   variable: "--font-inter",
+});
+
+// Modern heading font
+const montserrat = Montserrat({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800"],
+  display: "swap",
+  variable: "--font-montserrat",
+});
+
+// Secondary modern font
+const nunito = Nunito_Sans({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  display: "swap",
+  variable: "--font-nunito",
 });
 
 // Using local font instead of Google Fonts to avoid build issues
@@ -101,7 +117,7 @@ export default function ClientLayout({ children }) {
     <html 
       lang="en" 
       suppressHydrationWarning 
-      className={`${hind.variable} ${inter.variable} h-full`}
+      className={`${hind.variable} ${inter.variable} ${montserrat.variable} ${nunito.variable} h-full`}
     >
       <body className="relative bg-bodyBg dark:bg-bodyBg-dark text-gray-700 dark:text-gray-200 min-h-screen font-sans antialiased">
         <Providers>

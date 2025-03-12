@@ -51,7 +51,7 @@ const CategoryFilter = ({
   return (
     <div className="w-full dark:text-gray-300 rounded-md">
       {heading && (
-        <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
+        <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white text-heading">
           {heading}
         </h2>
       )}
@@ -69,12 +69,12 @@ const CategoryFilter = ({
                 {isChecked(category) ? (
                   <CheckSquare 
                     size={18} 
-                    className="text-primary-500 dark:text-primary-400"
+                    className="text-blue-600 dark:text-blue-400 transition-transform duration-150 ease-in-out transform group-hover:scale-110"
                   />
                 ) : (
                   <Square 
                     size={18} 
-                    className="text-gray-400 dark:text-gray-600 group-hover:text-gray-500 dark:group-hover:text-gray-500 transition-colors"
+                    className="text-gray-400 dark:text-gray-600 group-hover:text-gray-500 dark:group-hover:text-gray-500 transition-all duration-150 ease-in-out group-hover:scale-110"
                   />
                 )}
                 <input
@@ -86,7 +86,7 @@ const CategoryFilter = ({
                   aria-label={`Filter by ${getCategoryDisplayValue(category)}`}
                 />
               </div>
-              <span className="ml-2 text-gray-700 dark:text-gray-300 text-sm group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors line-clamp-2">
+              <span className="ml-2 text-gray-700 dark:text-gray-300 text-sm group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 font-medium">
                 {getCategoryDisplayValue(category)}
               </span>
             </label>

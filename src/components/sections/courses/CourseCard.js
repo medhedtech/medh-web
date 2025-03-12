@@ -111,7 +111,7 @@ const animationStyles = `
   }
 }
 
-@media (min-width: 641px) and (max-width: 768px) {
+@media (min-width: 640px) and (max-width: 768px) {
   .responsive-text-xs {
     font-size: 0.8125rem;
   }
@@ -195,7 +195,7 @@ const CourseInfoTooltip = ({ course, isVisible, position, classType }) => {
                 <BookOpen size={12} />
                 <span>{course?.no_of_Sessions || 0} {isLiveCourse ? 'Sessions' : 'Classes'}</span>
               </div>
-              <span>{course?.course_duration ? `${course.course_duration.split(' ').slice(0, 2).join(' ').replace('months', 'Months')} Course` : "Self-Paced Course"}</span>
+              <span>{course?.duration_range || (course?.course_duration ? `${course.course_duration.split(' ').slice(0, 2).join(' ').replace('months', 'Months')} Course` : "Self-Paced Course")}</span>
             </li>
             <li className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
               <div className="flex items-center gap-2">
@@ -832,7 +832,8 @@ const CourseCard = ({
           bg-white/90 dark:bg-gray-900/90 backdrop-filter backdrop-blur-sm 
           transition-all duration-300 
           ${isHovered || mobileHoverActive ? 'scale-[1.02] z-10 shadow-xl' : 'scale-100 z-0 shadow-md'}
-          ${styles.borderHover} ${styles.shadowHover} ${styles.borderLeft}`}
+          ${styles.borderHover} ${styles.shadowHover} ${styles.borderLeft}
+          ${isMobile ? 'pb-16' : ''}`}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onMouseMove={handleMouseMove}
@@ -850,7 +851,7 @@ const CourseCard = ({
         {isMobile && !mobileHoverActive && (
           <button 
             onClick={openMobileHover}
-            className={`absolute bottom-4 right-4 z-20 px-4 py-2 rounded-lg shadow-md ${
+            className={`absolute bottom-3 right-4 z-30 px-4 py-2 rounded-lg shadow-md ${
               isLiveCourse 
                 ? 'bg-[#379392] text-white hover:bg-[#379392]/90' 
                 : 'bg-indigo-500 text-white hover:bg-indigo-600'
@@ -866,14 +867,14 @@ const CourseCard = ({
         {isMobile && mobileHoverActive && (
           <button 
             onClick={closeMobileHover}
-            className={`absolute top-2 right-2 z-30 p-1.5 rounded-full bg-white/90 shadow-md ${
+            className={`absolute top-2 right-2 z-30 p-1.5 rounded-full bg-white dark:bg-gray-800 shadow-md ${
               isLiveCourse 
                 ? 'text-[#379392]' 
                 : 'text-indigo-500'
             }`}
             aria-label="Close Details"
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         )}
 
@@ -898,33 +899,31 @@ const CourseCard = ({
             // Live courses - simplified view with key info
             <div className="flex flex-col p-4 flex-grow">
               {/* Course type badge */}
-              <div className="flex items-center gap-1.5 mb-3">
-                <span className="px-2 py-1 text-xs font-semibold rounded-full bg-[#379392]/10 text-[#379392]">
-                  {content.tag} Interactive
-                </span>
+              <div className={`inline-flex mb-3 items-center text-xs font-semibold rounded-full px-2.5 py-1 ${
+                styles.courseBadgeBg
+              }`}>
+                <Play size={12} className={`mr-1 ${styles.courseBadgeIcon}`} />
+                <span className={styles.courseBadgeText}>{course?.course_category || "Live Course"}</span>
               </div>
 
-              {/* Title */}
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3 line-clamp-2">
-                {course?.course_title}
+              {/* Course title */}
+              <h3 className={`text-lg font-bold mb-4 ${
+                styles.titleText
+              }`}>
+                {course?.course_title || "Course Title"}
               </h3>
-              
-              {/* Duration - only shown pre-hover */}
-              <div className="flex items-center gap-2 text-sm mt-auto">
-                <Clock size={16} className="text-[#379392] dark:text-[#379392]/80" />
-                <div>
-                  <p className="font-bold text-gray-900 dark:text-white">
-                    {course?.course_duration || "4-8 Weeks"}
-                  </p>
-                  <p className="text-xs text-gray-500 font-medium">Course Duration</p>
+
+              {/* Course duration - highlighted */}
+              <div className={`mt-auto ${isMobile ? 'mb-12' : 'mb-0'}`}>
+                <div className="flex items-center bg-[#379392]/10 p-3 rounded-lg">
+                  <Clock size={18} className="mr-2 text-[#379392] flex-shrink-0" />
+                  <div>
+                    <span className="text-[#379392] font-bold text-sm">Course Duration</span>
+                    <p className="text-gray-700 dark:text-gray-300 font-medium text-sm md:text-base">
+                      {course?.duration_range || formatDuration(course?.course_duration || "4-18 months")}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              
-              {/* Additional highlight text */}
-              <div className="mt-3 pt-3 border-t border-gray-100">
-                <p className="text-xs font-medium text-[#379392]">
-                  Expert-led live sessions with real-time interaction
-                </p>
               </div>
             </div>
           ) : (
@@ -972,57 +971,65 @@ const CourseCard = ({
         </div>
 
         {/* Hover content - shown on hover for desktop and on "View More" for mobile */}
-        <div className={`absolute inset-0 bg-white dark:bg-gray-900 p-4 flex flex-col transition-opacity duration-300 ${
-          (isHovered && !isMobile) || (mobileHoverActive && isMobile) ? 'opacity-100' : 'opacity-0'
+        <div className={`hover-content absolute inset-0 bg-white dark:bg-gray-900 ${isMobile ? 'p-4' : 'p-3'} flex flex-col transition-opacity duration-300 ${
+          isMobile ? 'overflow-y-auto' : 'overflow-hidden'
+        } max-h-full ${
+          (isHovered && !isMobile) || (mobileHoverActive && isMobile) ? 'opacity-100 z-20' : 'opacity-0 -z-10'
         }`}>
           {/* Course details */}
-          <div className="space-y-3 mb-4">
-            <h3 className="text-lg font-extrabold text-gray-900 dark:text-white mb-3 pr-6">
+          <div className={`${isMobile ? 'mb-3' : 'mb-1.5'}`}>
+            <h3 className={`${isMobile ? 'text-lg' : 'text-base'} font-extrabold text-gray-900 dark:text-white pr-6 line-clamp-2`}>
               {course?.course_title}
             </h3>
           </div>
 
           {/* Display different hover content based on course type */}
           {isLiveCourse ? (
-            // Live courses - improved hover display
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <div className="flex items-center gap-2 text-sm">
-                <Timer size={16} className={'text-cyan-500 dark:text-cyan-400'} />
+            // Live courses - improved hover display with duration emphasis
+            <div className={`flex flex-col ${isMobile ? 'gap-3 mb-3' : 'gap-1.5 mb-1.5'}`}>
+              <div className={`flex items-center gap-3 bg-[#379392]/10 ${isMobile ? 'p-3' : 'p-2'} rounded-lg`}>
+                <Clock size={isMobile ? 18 : 16} className="text-[#379392] flex-shrink-0" />
                 <div>
-                  <p className="font-bold text-gray-900 dark:text-white">
-                    {course?.course_duration || "4-8 Weeks"}
+                  <span className="text-[#379392] font-bold text-sm">Course Duration</span>
+                  <p className="text-gray-700 dark:text-gray-300 font-medium text-sm">
+                    {course?.duration_range || formatDuration(course?.course_duration || "4-18 months")}
                   </p>
-                  <p className="text-xs text-gray-500 font-medium">Course Duration</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Target size={16} className={'text-emerald-500 dark:text-emerald-400'} />
-                <div>
-                  <p className="font-bold text-gray-900 dark:text-white">
-                    {course?.effort_hours || "4-6"} hrs/week
-                  </p>
-                  <p className="text-xs text-gray-500 font-medium">Required Effort</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Award size={16} className={'text-teal-500 dark:text-teal-400'} />
-                <div>
-                  <p className="font-bold text-gray-900 dark:text-white">
-                    Included
-                  </p>
-                  <p className="text-xs text-gray-500 font-medium">Certification</p>
                 </div>
               </div>
               
+              {course?.effort_hours && (
+                <div className={`flex items-center gap-3 ${isMobile ? 'p-2.5' : 'p-2'} border border-gray-100 dark:border-gray-800 rounded-lg`}>
+                  <Target size={isMobile ? 16 : 14} className="text-gray-600 dark:text-gray-400 flex-shrink-0" />
+                  <div>
+                    <p className="font-bold text-gray-900 dark:text-white text-sm">
+                      {course.effort_hours} hrs/week
+                    </p>
+                    <p className="text-xs text-gray-500 font-medium">Required Effort</p>
+                  </div>
+                </div>
+              )}
+              
+              {course?.no_of_Sessions && (
+                <div className={`flex items-center gap-3 ${isMobile ? 'p-2.5' : 'p-2'} border border-gray-100 dark:border-gray-800 rounded-lg`}>
+                  <Users size={isMobile ? 16 : 14} className="text-gray-600 dark:text-gray-400 flex-shrink-0" />
+                  <div>
+                    <p className="font-bold text-gray-900 dark:text-white text-sm">
+                      {course.no_of_Sessions} Sessions
+                    </p>
+                    <p className="text-xs text-gray-500 font-medium">Total Live Sessions</p>
+                  </div>
+                </div>
+              )}
+              
               {/* Special feature - Internship for specific courses */}
               {hasInternshipOption && (
-                <div className="flex items-center gap-2 text-sm">
-                  <Briefcase size={16} className={'text-indigo-500 dark:text-indigo-400'} />
+                <div className={`flex items-center gap-3 ${isMobile ? 'p-2.5' : 'p-2'} border border-gray-100 dark:border-gray-800 rounded-lg`}>
+                  <Briefcase size={isMobile ? 16 : 14} className="text-gray-600 dark:text-gray-400 flex-shrink-0" />
                   <div>
-                    <p className="font-bold text-gray-900 dark:text-white">
-                      Guaranteed
+                    <p className="font-bold text-gray-900 dark:text-white text-sm">
+                      Guaranteed Internship
                     </p>
-                    <p className="text-xs text-gray-500 font-medium">Internship Opportunity</p>
+                    <p className="text-xs text-gray-500 font-medium">For Top Performers</p>
                   </div>
                 </div>
               )}
@@ -1068,16 +1075,16 @@ const CourseCard = ({
               </div>
             </div>
           )}
-
+          
           {/* Action buttons - different for Live vs Blended */}
           {isLiveCourse ? (
             // Live courses - simple explore button
-            <div className="mt-auto">
+            <div className={`mt-auto ${isMobile ? 'pt-1' : 'pt-0.5'}`}>
               <button 
                 onClick={navigateToCourse}
-                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg font-medium text-white bg-[#379392] hover:bg-[#2a7170] shadow-lg shadow-[#379392]/20 transition-all"
+                className={`w-full flex items-center justify-center gap-1.5 ${isMobile ? 'py-2' : 'py-1.5'} px-4 rounded-lg font-medium text-white bg-[#379392] hover:bg-[#2a7170] shadow-md shadow-[#379392]/20 transition-all text-sm`}
               >
-                <ExternalLink size={18} className="group-hover:rotate-12 transition-transform" />
+                <ExternalLink size={isMobile ? 16 : 14} className="group-hover:rotate-12 transition-transform" />
                 Explore Course
               </button>
             </div>
