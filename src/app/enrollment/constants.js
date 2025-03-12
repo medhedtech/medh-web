@@ -4,27 +4,26 @@
 
 // Centralized grade options configuration
 export const GRADE_OPTIONS = [
-  { id: 'preschool', label: 'Pre-school', description: 'Early learning foundation' },
-  { id: 'grade+1-2', label: 'Grade 1-2', description: 'Primary education basics' },
-  { id: 'grade+3-4', label: 'Grade 3-4', description: 'Elementary fundamentals' },
-  { id: 'grade+5-6', label: 'Grade 5-6', description: 'Upper elementary concepts' },
-  { id: 'grade+7-8', label: 'Grade 7-8', description: 'Middle school advancement' },
-  { id: 'grade+9-10', label: 'Grade 9-10', description: 'High school preparation' },
-  { id: 'grade+11-12', label: 'Grade 11-12', description: 'College preparation' },
-  { id: 'graduate', label: 'UG - Graduate-Professional', description: 'University level' }
+  { id: 'Preschool', label: 'Pre-school', description: 'Early learning foundation' },
+  { id: 'Grade 1-2', label: 'Grade 1-2', description: 'Primary education basics' },
+  { id: 'Grade 3-4', label: 'Grade 3-4', description: 'Elementary fundamentals' },
+  { id: 'Grade 5-6', label: 'Grade 5-6', description: 'Upper elementary concepts' },
+  { id: 'Grade 7-8', label: 'Grade 7-8', description: 'Middle school advancement' },
+  { id: 'Grade 9-10', label: 'Grade 9-10', description: 'High school preparation' },
+  { id: 'Grade 11-12', label: 'Grade 11-12', description: 'College preparation' },
+  { id: 'UG - Graduate - Professionals', label: 'UG - Graduate - Professionals', description: 'University level' }
 ];
 
 // Grade mapping for filtering and validation
 export const GRADE_MAP = {
-  'preschool': ['preschool', 'pre-school', 'pre school'],
-  'grade+1-2': ['grade 1', 'grade 2', 'grade1', 'grade2', 'grade 1-2', 'grade+1-2'],
-  'grade+3-4': ['grade 3', 'grade 4', 'grade3', 'grade4', 'grade 3-4', 'grade+3-4'],
-  'grade+5-6': ['grade 5', 'grade 6', 'grade5', 'grade6', 'grade 5-6', 'grade+5-6'],
-  'grade+7-8': ['grade 7', 'grade 8', 'grade7', 'grade8', 'grade 7-8', 'grade+7-8'],
-  'grade+9-10': ['grade 9', 'grade 10', 'grade9', 'grade10', 'grade 9-10', 'grade+9-10'],
-  'grade+11-12': ['grade 11', 'grade 12', 'grade11', 'grade12', 'grade 11-12', 'grade+11-12'],
-  'undergraduate': ['undergraduate', 'ug', 'bachelors', 'ug - graduate', 'ug - graduate - professionals'],
-  'graduate': ['graduate', 'professional', 'pg', 'masters', 'ug - graduate - professionals']
+  'Preschool': ['preschool', 'pre-school', 'pre school'],
+  'Grade 1-2': ['Grade 1', 'Grade 2', 'Grade 1', 'Grade 2', 'Grade 1-2', 'Grade 1-2'],
+  'Grade 3-4': ['Grade 3', 'Grade 4', 'Grade 3', 'Grade 4', 'Grade 3-4', 'Grade 3-4'],
+  'Grade 5-6': ['Grade 5', 'Grade 6', 'Grade 5', 'Grade 6', 'Grade 5-6', 'Grade 5-6'],
+  'Grade 7-8': ['Grade 7', 'Grade 8', 'Grade 7', 'Grade 8', 'Grade 7-8', 'Grade 7-8'],
+  'Grade 9-10': ['Grade 9', 'Grade 10', 'Grade 9', 'Grade 10', 'Grade 9-10', 'Grade 9-10'],
+  'Grade 11-12': ['Grade 11', 'Grade 12', 'Grade 11', 'Grade 12', 'Grade 11-12', 'Grade 11-12'],
+  'UG - Graduate - Professionals': ['Undergraduate', 'UG', 'Bachelors', 'UG - Graduate', 'UG - Graduate - Professionals']
 };
 
 // Helper to get grade label by ID
