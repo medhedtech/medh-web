@@ -25,9 +25,9 @@ function JoinEducator() {
         <Registration showUploadField={true}  pageTitle="join_as_educator" />
         <Certified />
         <EducatorFaq />
-        <div className="pb-16">
+        {/* <div className="pb-16">
           <EducatorCourceBanner />
-        </div>
+        </div> */}
         
       </div>
     </PageWrapper>

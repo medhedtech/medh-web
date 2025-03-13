@@ -2,7 +2,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, ArrowRight, Briefcase } from "lucide-react";
 import Arrow from "@/assets/images/join-educator/arrow1.png";
 import Logo1 from "@/assets/images/join-educator/logo-1.svg";
 import Logo2 from "@/assets/images/join-educator/logo-2.svg";
@@ -17,51 +17,58 @@ const HiringProcess = () => {
     {
       title: "Application Screening",
       description:
-        "We review the applications received from potential tutors/educators based on their qualifications, experience, teaching philosophy, and alignment with the company's mission and values.",
+        "We review applications based on qualifications, experience, teaching philosophy, and alignment with Medh's mission and values.",
       icon: Logo1,
       arrow: true,
+      gradient: "gradient-indigo"
     },
     {
       title: "Interview Process",
       description:
-        "Shortlisted candidates are invited for interviews, which could be conducted in person, over the phone, or via video conferencing to evaluate the tutor's teaching approach, communication skills, ability to handle different types of learners, and subject knowledge.",
+        "Selected candidates participate in interviews to evaluate teaching approach, communication skills, and subject expertise.",
       icon: Logo2,
       arrow: true,
+      gradient: "gradient-violet"
     },
     {
       title: "Subject Proficiency Test",
       description:
-        "Depending on the subject they will be teaching, tutors may be required to take a subject proficiency test to assess their knowledge and understanding.",
+        "Candidates complete subject proficiency assessments to demonstrate mastery of the content they'll be teaching.",
       icon: Logo3,
-      arrow: false,
+      arrow: false, 
+      gradient: "gradient-blue"
     },
     {
       title: "Demo Session",
       description:
-        "Request the shortlisted candidates to conduct a demo tutoring session through a virtual platform to assess their teaching style and ability to engage with students effectively.",
+        "Conduct a live teaching demonstration to showcase your ability to engage students and present material effectively.",
       icon: Logo4,
       arrow: true,
+      gradient: "gradient-teal" 
     },
     {
-      title: "Training and Onboarding",
+      title: "Training & Onboarding",
       description:
-        "Once selected, the tutor may undergo training to familiarize themselves with the company's teaching methodologies, platform, and policies.",
+        "Learn Medh's teaching methodologies, technology platform, and processes through our comprehensive training program.",
       icon: Logo5,
       arrow: true,
+      gradient: "gradient-emerald"
     },
     {
-      title: "Contract and Compensation",
+      title: "Contract & Compensation",
       description:
-        "An employment contract is drawn up, outlining the terms of employment, compensation, working hours, and other relevant details. Upon acceptance, sign an employment contract.",
+        "Review and sign your employment agreement outlining competitive compensation, benefits, and position details.",
       icon: Logo6,
       arrow: false,
+      gradient: "gradient-amber"
     },
     {
-      title: "Performance Evaluation",
+      title: "Performance Support",
       description:
-        "We may periodically evaluate the performance of tutors based on student feedback, teaching effectiveness, and adherence to the company's standards.",
+        "Receive ongoing feedback, coaching, and professional development opportunities to maximize your success.",
       icon: Logo7,
       arrow: true,
+      gradient: "gradient-rose"
     },
   ];
 
@@ -83,58 +90,107 @@ const HiringProcess = () => {
   };
 
   return (
-    <section className="relative py-20 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+    <section className="relative py-24 bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-gray-900 overflow-hidden">
+      {/* Background Decorative Elements */}
+      <div className="absolute inset-0 bg-grid-pattern opacity-5" />
+      <div className="absolute top-40 right-10 w-80 h-80 bg-indigo-500/10 dark:bg-indigo-600/10 rounded-full blur-3xl" />
+      <div className="absolute -bottom-20 left-1/4 w-72 h-72 bg-violet-500/10 dark:bg-violet-600/10 rounded-full blur-3xl" />
+      
       <motion.div
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: true }}
+        viewport={{ once: true, margin: "-100px" }}
         variants={containerVariants}
-        className="container mx-auto px-4"
+        className="container mx-auto px-6"
       >
-        <motion.div variants={itemVariants} className="text-center mb-16 px-4 md:px-0">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-6">
-            Process of Hiring an Educator at Medh!
-          </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-            Join our team through our streamlined hiring process
+        <motion.div variants={itemVariants} className="text-center mb-20">
+          <div className="inline-flex items-center px-4 py-2 bg-indigo-50/80 dark:bg-indigo-900/40 backdrop-blur-sm rounded-full mb-6 border border-indigo-100 dark:border-indigo-800/40 shadow-sm">
+            <Briefcase className="w-4 h-4 text-indigo-600 dark:text-indigo-400 mr-2" />
+            <span className="text-sm font-medium text-indigo-700 dark:text-indigo-300">Recruitment Process</span>
+          </div>
+          
+          <h2 className="text-4xl md:text-5xl font-bold text-slate-800 dark:text-white mb-6 leading-tight tracking-tight">
+            Your journey to becoming a <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400">Medh Educator</span>
+          </h2>
+          
+          <p className="text-xl text-slate-600 dark:text-slate-300 leading-relaxed max-w-3xl mx-auto">
+            Our structured hiring process is designed to identify exceptional educators who will thrive in our innovative teaching environment
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mb-10">
           {processSteps.map((step, index) => (
             <motion.div
               key={index}
               variants={itemVariants}
+              whileHover={{ y: -5 }}
               className="group relative"
             >
-              <div className="relative bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700">
-                <div className="absolute inset-0 bg-gradient-to-r from-primary-500/10 to-secondary-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="relative h-full bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-200/80 dark:border-slate-700/80 overflow-hidden">
+                <div className={`absolute -right-20 -top-20 w-40 h-40 rounded-full ${step.gradient} opacity-10 blur-2xl group-hover:opacity-20 transition-opacity duration-500`} />
                 
                 <div className="relative z-10">
-                  <Image 
-                    src={step.icon} 
-                    alt={step.title}
-                    className="w-16 h-16 mx-auto mb-6 transform group-hover:scale-110 transition-transform duration-300"
-                  />
+                  <div className={`w-16 h-16 mx-auto rounded-2xl ${step.gradient} p-0.5 transform group-hover:scale-110 transition-transform duration-300 mb-6 shadow-md`}>
+                    <div className="w-full h-full rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center">
+                      <Image 
+                        src={step.icon} 
+                        alt={step.title}
+                        className="w-10 h-10"
+                      />
+                    </div>
+                  </div>
                   
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 text-center group-hover:text-primary-600 transition-colors duration-300">
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center border border-indigo-200 dark:border-indigo-700">
+                    <span className="text-sm font-bold text-indigo-700 dark:text-indigo-300">{index + 1}</span>
+                  </div>
+                  
+                  <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-4 text-center group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-300">
                     {step.title}
                   </h3>
                   
-                  <p className="text-gray-600 dark:text-gray-300 text-center">
+                  <p className="text-slate-600 dark:text-slate-300 text-center leading-relaxed">
                     {step.description}
                   </p>
                 </div>
+                
+                {/* Decorative bottom line */}
+                <div className={`absolute bottom-0 left-0 w-full h-1.5 ${step.gradient} transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 rounded-b-xl opacity-80`} />
               </div>
               
               {step.arrow && (
-                <div className="hidden lg:block absolute top-1/2 right-0 transform translate-x-1/2 -translate-y-1/2">
-                  <ChevronRight className="w-8 h-8 text-primary-600" />
+                <div className="hidden lg:flex absolute top-1/2 -right-4 transform translate-x-0 -translate-y-1/2 z-20">
+                  <div className="w-8 h-8 bg-indigo-100 dark:bg-indigo-900/70 rounded-full flex items-center justify-center shadow-md">
+                    <ArrowRight className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                  </div>
                 </div>
               )}
             </motion.div>
           ))}
         </div>
+        
+        {/* Process Timeline for Mobile */}
+        <motion.div variants={itemVariants} className="block lg:hidden mt-10 mb-8">
+          <div className="w-full h-2 bg-gradient-to-r from-indigo-500 to-violet-500 dark:from-indigo-600 dark:to-violet-600 rounded-full opacity-80"></div>
+          <div className="flex justify-between mt-2">
+            <span className="text-sm font-medium text-indigo-700 dark:text-indigo-400">Application</span>
+            <span className="text-sm font-medium text-violet-700 dark:text-violet-400">Onboarding</span>
+          </div>
+        </motion.div>
+        
+        {/* CTA Button */}
+        <motion.div variants={itemVariants} className="text-center mt-14">
+          <a 
+            href="#apply-now" 
+            className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-500 dark:to-violet-500 text-white font-semibold rounded-xl shadow-lg shadow-indigo-500/20 dark:shadow-indigo-700/30 hover:shadow-xl hover:shadow-indigo-500/30 dark:hover:shadow-indigo-700/40 transform hover:-translate-y-1 transition-all duration-300 text-lg group"
+          >
+            <Briefcase className="w-5 h-5 mr-3" />
+            Start Your Application
+            <ArrowRight className="w-5 h-5 ml-2 transform group-hover:translate-x-1 transition-transform duration-300" />
+          </a>
+          <p className="mt-6 text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+            The average time from application to offer is approximately 2-3 weeks
+          </p>
+        </motion.div>
       </motion.div>
     </section>
   );
