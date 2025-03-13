@@ -127,8 +127,8 @@ export default function ClientLayout({ children }) {
           {/* Preloader */}
           <PreloaderPrimary />
           
-          {/* Main Content */}
-          <div className="relative flex flex-col min-h-screen z-10">
+          {/* Main Content - No Width Constraints */}
+          <div className="relative flex flex-col min-h-screen w-full z-10">
             {children}
           </div>
 

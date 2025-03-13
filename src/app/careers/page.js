@@ -15,7 +15,10 @@ const JobOpening = dynamic(() => import("@/components/sections/careers/jobPositi
   loading: () => <Preloader />,
   ssr: false
 });
-const UniqueBenefits = dynamic(() => import("@/components/sections/careers/uniqueBenefits"));
+const UniqueBenefits = dynamic(() => import("@/components/sections/careers/uniqueBenefits"), {
+  loading: () => <Preloader />,
+  ssr: false
+});
 
 export default function CareersPage() {
   return (
