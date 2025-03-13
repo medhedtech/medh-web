@@ -95,7 +95,7 @@ const AboutMain = () => {
 
   return (
     <main 
-      className="relative bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 min-h-screen overflow-hidden"
+      className="relative bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 min-h-screen overflow-hidden w-full"
       aria-label="About Medh main content"
     >
       {/* Scroll Progress Indicator */}
@@ -123,11 +123,11 @@ const AboutMain = () => {
         </div>
       )}
 
-      {/* Main Content Container with width constraints */}
-      <div className="relative">
-        {/* Hero Section with Animation - Improved header padding */}
-        <div className="px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-black/10 to-transparent dark:from-black/20">
-          <div className="max-w-7xl mx-auto">
+      {/* Main Content Container with full width */}
+      <div className="relative w-full">
+        {/* Hero Section with Animation - Full width with proper padding */}
+        <div className="w-full bg-gradient-to-r from-black/10 to-transparent dark:from-black/20">
+          <div className="w-full px-4 sm:px-6 lg:px-8">
             <section 
               ref={heroRef}
               id="hero"
@@ -139,58 +139,50 @@ const AboutMain = () => {
           </div>
         </div>
 
-        {/* Content Sections with proper width constraints */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Content Sections with full width and proper padding */}
+        <div className="w-full px-4 sm:px-6 lg:px-8">
           {/* About Content with Fade In */}
           <section 
             ref={aboutRef}
             id="about"
-            className={`mt-20 md:mt-28 transform transition-all duration-1000 delay-300 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}
+            className={`mt-20 md:mt-28 transform transition-all duration-1000 delay-300 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'} w-full`}
             aria-labelledby="about-heading"
           >
-            <div className="mx-auto">
-              <AboutContent />
-            </div>
+            <AboutContent />
           </section>
 
           {/* At Medh Section with Slide In */}
           <section 
             ref={atMedhRef}
             id="atMedh"
-            className={`mt-20 md:mt-28 transform transition-all duration-1000 delay-500 ${isLoaded ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'}`}
+            className={`mt-20 md:mt-28 transform transition-all duration-1000 delay-500 ${isLoaded ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'} w-full`}
             aria-labelledby="atmedh-heading"
           >
-            <div className="mx-auto">
-              <AtMedh />
-            </div>
+            <AtMedh />
           </section>
 
           {/* Who We Are Section with Fade Up */}
           <section 
             ref={whoWeAreRef}
             id="whoWeAre"
-            className="relative overflow-hidden mt-20 md:mt-28"
+            className="relative overflow-hidden mt-20 md:mt-28 w-full"
             aria-labelledby="whoweare-heading"
           >
             <div className={`transform transition-all duration-1000 delay-700 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-              <div className="mx-auto">
-                <WhoWeAre />
-              </div>
+              <WhoWeAre />
             </div>
           </section>
         </div>
 
-        {/* Why Choose MEDH Section with Scale In - Full width but with internal content constraints */}
+        {/* Why Choose MEDH Section with Scale In - Full width */}
         <section 
           ref={whyChooseRef}
           id="whyChoose"
-          className="relative bg-gradient-to-b from-transparent to-gray-50 dark:to-gray-900 mt-20 md:mt-28 pb-20 md:pb-28"
+          className="relative bg-gradient-to-b from-transparent to-gray-50 dark:to-gray-900 mt-20 md:mt-28 pb-20 md:pb-28 w-full"
           aria-labelledby="whychoose-heading"
         >
-          <div className={`transform transition-all duration-1000 delay-900 ${isLoaded ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}>
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <WhyChooseMEDH />
-            </div>
+          <div className={`transform transition-all duration-1000 delay-900 ${isLoaded ? 'scale-100 opacity-100' : 'scale-95 opacity-0'} w-full px-4 sm:px-6 lg:px-8`}>
+            <WhyChooseMEDH />
           </div>
         </section>
 
@@ -216,17 +208,17 @@ const AboutMain = () => {
           </button>
         </div>
 
-        {/* Optional Sections with proper width constraints */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* <section className="bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 mt-20 md:mt-28">
+        {/* Optional Sections with full width */}
+        <div className="w-full px-4 sm:px-6 lg:px-8">
+          {/* <section className="bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 mt-20 md:mt-28 w-full">
             <About11 />
           </section> */}
 
-          {/* <section className="relative overflow-hidden mt-20 md:mt-28">
+          {/* <section className="relative overflow-hidden mt-20 md:mt-28 w-full">
             <Overview />
           </section> */}
 
-          {/* <section className="bg-gradient-to-b from-transparent to-gray-50 dark:to-gray-900 mt-20 md:mt-28">
+          {/* <section className="bg-gradient-to-b from-transparent to-gray-50 dark:to-gray-900 mt-20 md:mt-28 w-full">
             <FeatureCourses
               title={
                 <>
@@ -239,11 +231,11 @@ const AboutMain = () => {
             />
           </section> */}
 
-          {/* <section className="relative overflow-hidden mt-20 md:mt-28">
+          {/* <section className="relative overflow-hidden mt-20 md:mt-28 w-full">
             <Testimonials />
           </section>
 
-          <section className="bg-white dark:bg-gray-900 mt-20 md:mt-28">
+          <section className="bg-white dark:bg-gray-900 mt-20 md:mt-28 w-full">
             <Brands />
           </section> */}
         </div>
