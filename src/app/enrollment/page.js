@@ -18,9 +18,6 @@ import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { parseApiError, formatDuration, formatPrice, getDurationFilter } from './errorHandler';
 
-// Import custom styles
-import './styles.css';
-
 // Duration options
 const DURATION_OPTIONS = [
   { id: 'short', name: '1-3 Months', label: 'Short Term', description: 'Quick skill acquisition for immediate application' },
@@ -163,10 +160,10 @@ function EnrollmentPage() {
   return (
     <PageWrapper>
       <Toaster position="bottom-center" />
-      <div className="relative min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 enrollment-page">
+      <div className="relative min-h-screen w-full bg-gray-50 dark:bg-gray-900">
         {/* Fixed Header */}
-        <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transform-gpu">
-          <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
+        <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 shadow-sm">
+          <div className="container mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
                 Course Enrollment
@@ -177,7 +174,7 @@ function EnrollmentPage() {
             </div>
             
             {/* Search input */}
-            <div className="relative max-w-sm">
+            <div className="relative w-full max-w-sm">
               <input
                 type="text"
                 placeholder="Search courses..."
@@ -191,18 +188,17 @@ function EnrollmentPage() {
                 </svg>
               </div>
             </div>
-          </nav>
+          </div>
         </header>
 
         {/* Content with Header Offset */}
-        <main className="flex-grow pt-24">
+        <main className="pt-20 pb-16 w-full mx-auto">
           {loading ? (
             <div className="flex items-center justify-center min-h-[60vh]">
-              <div className="apple-loader">
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
+              <div className="flex space-x-2 justify-center items-center">
+                <div className="h-3 w-3 bg-emerald-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                <div className="h-3 w-3 bg-emerald-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                <div className="h-3 w-3 bg-emerald-500 rounded-full animate-bounce"></div>
               </div>
             </div>
           ) : error ? (
@@ -223,14 +219,14 @@ function EnrollmentPage() {
               </div>
             </div>
           ) : (
-            <div className="container mx-auto px-4">
-              {/* Duration Selection - Apple-style */}
+            <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              {/* Duration Selection */}
               <motion.section 
                 initial="initial"
                 animate="animate"
                 exit="exit"
                 variants={fadeIn}
-                className="mb-12"
+                className="mb-16"
               >
                 <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-white mb-6">
                   Choose Your Learning Journey
@@ -239,7 +235,7 @@ function EnrollmentPage() {
                   Select a duration that fits your schedule and learning goals. Our courses are designed to provide quality education regardless of the time commitment.
                 </p>
                 
-                <div className="max-w-4xl mx-auto apple-card">
+                <div className="max-w-4xl mx-auto rounded-2xl overflow-hidden bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
                   <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-gray-200 dark:divide-gray-700">
                     {DURATION_OPTIONS.map((option) => (
                       <button
@@ -252,7 +248,7 @@ function EnrollmentPage() {
                         }`}
                       >
                         <div className="flex items-start">
-                          <div className={`mt-0.5 flex-shrink-0 h-5 w-5 rounded-full ${
+                          <div className={`mt-0.5 flex-shrink-0 h-5 w-5 rounded-full flex items-center justify-center ${
                             selectedDuration === option.id
                               ? 'bg-emerald-500'
                               : 'bg-gray-200 dark:bg-gray-700'
@@ -284,7 +280,7 @@ function EnrollmentPage() {
                 variants={staggerContainer}
                 initial="initial"
                 animate="animate"
-                className="mb-12"
+                className="mb-16"
               >
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
                   Available Courses
@@ -295,7 +291,7 @@ function EnrollmentPage() {
                     : 'No courses found for your selected duration. Try a different duration or search term.'}
                 </p>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   <AnimatePresence mode="wait">
                     {filteredCourses.map((course) => (
                       <motion.div
@@ -307,7 +303,7 @@ function EnrollmentPage() {
                           selectedCourse?._id === course._id 
                             ? 'border-emerald-500 ring-2 ring-emerald-500/30' 
                             : 'border-gray-200 dark:border-gray-700'
-                        } bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-all`}
+                        } bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-all h-full`}
                       >
                         <div className="relative h-48 w-full bg-gray-200 dark:bg-gray-700">
                           {course.thumbnail ? (
@@ -320,7 +316,7 @@ function EnrollmentPage() {
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center bg-gradient-to-r from-emerald-500/20 to-blue-500/20">
-                              <span className="text-xl font-bold text-gray-500 dark:text-gray-400">
+                              <span className="text-4xl font-bold text-gray-500 dark:text-gray-400">
                                 {course.title?.substring(0, 1).toUpperCase() || 'M'}
                               </span>
                             </div>
@@ -337,22 +333,22 @@ function EnrollmentPage() {
                           </div>
                         </div>
                         
-                        <div className="p-4">
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white line-clamp-2">
+                        <div className="p-4 flex flex-col h-[calc(100%-12rem)]">
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white line-clamp-2 mb-2">
                             {course.title}
                           </h3>
                           
                           <div className="mt-2 flex items-center text-sm text-gray-600 dark:text-gray-300">
-                            <Clock className="h-4 w-4 mr-1.5 text-gray-500 dark:text-gray-400" />
+                            <Clock className="h-4 w-4 mr-1.5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
                             <span>{formatDuration(course.course_duration_days)}</span>
                           </div>
                           
                           <div className="mt-1 flex items-center text-sm text-gray-600 dark:text-gray-300">
-                            <Users className="h-4 w-4 mr-1.5 text-gray-500 dark:text-gray-400" />
+                            <Users className="h-4 w-4 mr-1.5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
                             <span>{course.enrolled_students || 0} students enrolled</span>
                           </div>
                           
-                          <div className="mt-4 flex items-center justify-between">
+                          <div className="mt-auto pt-4 flex items-center justify-between">
                             <div className="flex items-center text-yellow-500">
                               <Star className="h-4 w-4 fill-current" />
                               <Star className="h-4 w-4 fill-current" />
@@ -382,22 +378,22 @@ function EnrollmentPage() {
                   animate="animate"
                   exit="exit"
                   variants={fadeIn}
-                  className="max-w-5xl mx-auto mb-16"
+                  className="w-full mb-16"
                 >
-                  <div className="apple-card p-6 md:p-8">
-                    <div className="md:flex items-start">
-                      <div className="md:flex-shrink-0 mb-6 md:mb-0 md:mr-8">
-                        <div className="image-gallery relative h-64 w-full md:w-80">
+                  <div className="w-full rounded-2xl overflow-hidden bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700 p-6 md:p-8">
+                    <div className="md:flex items-start gap-8">
+                      <div className="md:w-1/3 flex-shrink-0 mb-6 md:mb-0">
+                        <div className="relative h-64 w-full rounded-xl overflow-hidden">
                           {selectedCourse.thumbnail ? (
                             <Image
                               src={selectedCourse.thumbnail}
                               alt={selectedCourse.title}
                               fill
                               className="object-cover"
-                              sizes="(max-width: 768px) 100vw, 320px"
+                              sizes="(max-width: 768px) 100vw, 33vw"
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-r from-emerald-500/20 to-blue-500/20">
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-r from-emerald-500/20 to-blue-500/20 rounded-xl">
                               <span className="text-6xl font-bold text-gray-500 dark:text-gray-400">
                                 {selectedCourse.title?.substring(0, 1).toUpperCase() || 'M'}
                               </span>
@@ -406,17 +402,17 @@ function EnrollmentPage() {
                         </div>
                       </div>
                       
-                      <div className="flex-1">
+                      <div className="md:w-2/3">
                         <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-3">
                           {selectedCourse.title}
                         </h2>
                         
                         <div className="flex flex-wrap gap-2 mb-4">
-                          <span className="selection-pill">
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
                             {selectedCourse.category || 'Course'}
                           </span>
                           {selectedCourse.is_trending && (
-                            <span className="selection-pill flex items-center">
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
                               <span className="relative flex h-2 w-2 mr-1">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-500 opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
@@ -426,13 +422,13 @@ function EnrollmentPage() {
                           )}
                         </div>
                         
-                        <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-3">
+                        <p className="text-gray-600 dark:text-gray-300 mb-6 line-clamp-3 md:line-clamp-none">
                           {selectedCourse.description || 'No description available for this course.'}
                         </p>
                         
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-8">
                           <div className="flex items-center">
-                            <Clock className="h-5 w-5 text-emerald-500 mr-2" />
+                            <Clock className="h-5 w-5 text-emerald-500 mr-2 flex-shrink-0" />
                             <div>
                               <p className="text-sm font-medium text-gray-900 dark:text-white">Duration</p>
                               <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -442,7 +438,7 @@ function EnrollmentPage() {
                           </div>
                           
                           <div className="flex items-center">
-                            <Calendar className="h-5 w-5 text-emerald-500 mr-2" />
+                            <Calendar className="h-5 w-5 text-emerald-500 mr-2 flex-shrink-0" />
                             <div>
                               <p className="text-sm font-medium text-gray-900 dark:text-white">Start Date</p>
                               <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -452,7 +448,7 @@ function EnrollmentPage() {
                           </div>
                           
                           <div className="flex items-center">
-                            <Award className="h-5 w-5 text-emerald-500 mr-2" />
+                            <Award className="h-5 w-5 text-emerald-500 mr-2 flex-shrink-0" />
                             <div>
                               <p className="text-sm font-medium text-gray-900 dark:text-white">Certificate</p>
                               <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -462,7 +458,7 @@ function EnrollmentPage() {
                           </div>
                           
                           <div className="flex items-center">
-                            <Users className="h-5 w-5 text-emerald-500 mr-2" />
+                            <Users className="h-5 w-5 text-emerald-500 mr-2 flex-shrink-0" />
                             <div>
                               <p className="text-sm font-medium text-gray-900 dark:text-white">Enrolled</p>
                               <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -472,7 +468,7 @@ function EnrollmentPage() {
                           </div>
                           
                           <div className="flex items-center">
-                            <Star className="h-5 w-5 text-emerald-500 mr-2" />
+                            <Star className="h-5 w-5 text-emerald-500 mr-2 flex-shrink-0" />
                             <div>
                               <p className="text-sm font-medium text-gray-900 dark:text-white">Rating</p>
                               <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -482,7 +478,7 @@ function EnrollmentPage() {
                           </div>
                           
                           <div className="flex items-center">
-                            <CreditCard className="h-5 w-5 text-emerald-500 mr-2" />
+                            <CreditCard className="h-5 w-5 text-emerald-500 mr-2 flex-shrink-0" />
                             <div>
                               <p className="text-sm font-medium text-gray-900 dark:text-white">Price</p>
                               <p className="text-sm text-emerald-600 dark:text-emerald-400 font-medium">
@@ -495,14 +491,14 @@ function EnrollmentPage() {
                         <div className="flex flex-col sm:flex-row gap-4">
                           <button
                             onClick={handleEnroll}
-                            className="apple-button"
+                            className="px-6 py-3 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
                           >
                             Enroll Now
                           </button>
                           
                           <button
                             onClick={() => router.push(`/course-details/${selectedCourse._id}`)}
-                            className="apple-button secondary"
+                            className="px-6 py-3 rounded-full bg-transparent border border-emerald-600 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
                           >
                             View Course Details
                           </button>
@@ -513,9 +509,9 @@ function EnrollmentPage() {
                 </motion.section>
               )}
 
-              {/* Category Navigation Section (New) */}
-              <section className="mb-16 max-w-7xl mx-auto px-4">
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+              {/* Category Navigation Section */}
+              <section className="mb-16 w-full">
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border border-gray-200 dark:border-gray-700">
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
                     Browse by Category
                   </h2>
@@ -523,63 +519,63 @@ function EnrollmentPage() {
                     Explore our courses organized by specialized categories
                   </p>
                   
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {/* Vedic Mathematics */}
                     <Link href="/enrollment?category=vedic-mathematics" className="group">
-                      <div className="p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-emerald-500 dark:hover:border-emerald-500 transition-colors hover:shadow-md">
-                        <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-full w-12 h-12 flex items-center justify-center mb-3">
-                          <Calculator className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+                      <div className="p-6 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-emerald-500 dark:hover:border-emerald-500 transition-colors hover:shadow-md h-full">
+                        <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-full w-14 h-14 flex items-center justify-center mb-4">
+                          <Calculator className="h-7 w-7 text-emerald-600 dark:text-emerald-400" />
                         </div>
-                        <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors mb-2">
                           Vedic Mathematics
                         </h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                          Ancient calculation techniques
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          Ancient calculation techniques for modern problem-solving
                         </p>
                       </div>
                     </Link>
                     
                     {/* AI & Data Science */}
                     <Link href="/enrollment?category=ai-and-data-science" className="group">
-                      <div className="p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-violet-500 dark:hover:border-violet-500 transition-colors hover:shadow-md">
-                        <div className="bg-violet-50 dark:bg-violet-900/20 rounded-full w-12 h-12 flex items-center justify-center mb-3">
-                          <BrainCircuit className="h-6 w-6 text-violet-600 dark:text-violet-400" />
+                      <div className="p-6 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-violet-500 dark:hover:border-violet-500 transition-colors hover:shadow-md h-full">
+                        <div className="bg-violet-50 dark:bg-violet-900/20 rounded-full w-14 h-14 flex items-center justify-center mb-4">
+                          <BrainCircuit className="h-7 w-7 text-violet-600 dark:text-violet-400" />
                         </div>
-                        <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors mb-2">
                           AI & Data Science
                         </h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                          Modern tech skills
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          Master modern technologies and machine learning algorithms
                         </p>
                       </div>
                     </Link>
                     
                     {/* Digital Marketing */}
                     <Link href="/enrollment?category=digital-marketing" className="group">
-                      <div className="p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-amber-500 dark:hover:border-amber-500 transition-colors hover:shadow-md">
-                        <div className="bg-amber-50 dark:bg-amber-900/20 rounded-full w-12 h-12 flex items-center justify-center mb-3">
-                          <TrendingUp className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+                      <div className="p-6 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-amber-500 dark:hover:border-amber-500 transition-colors hover:shadow-md h-full">
+                        <div className="bg-amber-50 dark:bg-amber-900/20 rounded-full w-14 h-14 flex items-center justify-center mb-4">
+                          <TrendingUp className="h-7 w-7 text-amber-600 dark:text-amber-400" />
                         </div>
-                        <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors mb-2">
                           Digital Marketing
                         </h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                          Online growth strategies
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          Comprehensive strategies for online business growth
                         </p>
                       </div>
                     </Link>
                     
                     {/* Personality Development */}
                     <Link href="/enrollment?category=personality-development" className="group">
-                      <div className="p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-pink-500 dark:hover:border-pink-500 transition-colors hover:shadow-md">
-                        <div className="bg-pink-50 dark:bg-pink-900/20 rounded-full w-12 h-12 flex items-center justify-center mb-3">
-                          <UserCheck className="h-6 w-6 text-pink-600 dark:text-pink-400" />
+                      <div className="p-6 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-pink-500 dark:hover:border-pink-500 transition-colors hover:shadow-md h-full">
+                        <div className="bg-pink-50 dark:bg-pink-900/20 rounded-full w-14 h-14 flex items-center justify-center mb-4">
+                          <UserCheck className="h-7 w-7 text-pink-600 dark:text-pink-400" />
                         </div>
-                        <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-pink-600 dark:group-hover:text-pink-400 transition-colors">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-pink-600 dark:group-hover:text-pink-400 transition-colors mb-2">
                           Personality Development
                         </h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                          Communication & soft skills
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          Enhance communication skills and professional presence
                         </p>
                       </div>
                     </Link>
@@ -590,13 +586,13 @@ function EnrollmentPage() {
           )}
         </main>
 
-        {/* Theme Controller - Now positioned in bottom right */}
+        {/* Theme Controller - positioned in bottom right */}
         <div className="fixed bottom-4 right-4 z-50">
           <ThemeController />
         </div>
 
         {/* Bottom Gradient Line */}
-        <div className="h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-800 to-transparent" />
+        <div className="h-px w-full bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-800 to-transparent" />
       </div>
     </PageWrapper>
   );

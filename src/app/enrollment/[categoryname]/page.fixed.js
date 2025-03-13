@@ -3,9 +3,17 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Calculator, BrainCircuit, TrendingUp, UserCheck, ArrowLeft, 
-  ChevronUp, ArrowRight, Sparkles, GraduationCap, Blocks, Star,
-  HelpCircle, FileBadge, BookOpen
+  CheckCircle2, Clock, Calendar, Users, Award, CreditCard, Star, 
+  BookOpen, ChevronDown, Calculator, BrainCircuit, TrendingUp, 
+  UserCheck, Check, ArrowRight, Sparkles, ArrowLeft, MessageCircle,
+  FileBadge, GraduationCap, Blocks, HelpCircle, FileText, RefreshCw, ChevronLeft, ChevronRight,
+  Info, AlertTriangle, AlertCircle, Bookmark, ThumbsUp, ExternalLink, ChevronUp,
+  ChevronDown, ChevronUp, ChevronLeft, ChevronRight, 
+  Filter, X, Check, Clock, Users, BookOpen, Calendar, 
+  Search, CheckCircle, CreditCard, Sparkles, ExternalLink,
+  ArrowRight, TrendingUp, Menu, Shield, Award, Layers,
+  BarChart, Briefcase, Server, Database, Globe, Scroll,
+  Heart, Star, Zap
 } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -14,22 +22,6 @@ import { toast, Toaster } from 'react-hot-toast';
 // Core components
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import ThemeController from "@/components/shared/others/ThemeController";
-
-// New Course Components
-// import CourseHeader from '@/components/sections/course-detailed/CourseHeader';
-// import CourseNavigation from '@/components/sections/course-detailed/CourseNavigation';
-import GradeFilter from '@/components/sections/course-detailed/GradeFilter';
-import CourseSelector from '@/components/sections/course-detailed/CourseSelector';
-import EnrollmentDetails from '@/components/sections/course-detailed/EnrollmentDetails';
-
-// Existing Course Components
-import CourseFaq from '@/components/sections/course-detailed/courseFaq';
-import AboutProgram from '@/components/sections/course-detailed/aboutProgram';
-import CourseCertificate from '@/components/sections/course-detailed/courseCertificate';
-import CourseRelated from '@/components/sections/course-detailed/courseRelated';
-
-// New Integrated Course Details Component
-import CourseDetailsPage from '@/components/pages/CourseDetailsPage';
 
 // API and utilities
 import { apiUrls } from "@/apis";
@@ -51,50 +43,12 @@ import {
 // Import custom styles
 import './styles.css';
 
-// Custom CSS for sticky sidebar
-const stickyStyles = `
-  /* Hide scrollbar for Chrome, Safari and Opera */
-  .hide-scrollbar::-webkit-scrollbar {
-    width: 4px;
-  }
-  
-  .hide-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  
-  .hide-scrollbar::-webkit-scrollbar-thumb {
-    background-color: rgba(156, 163, 175, 0.3);
-    border-radius: 20px;
-  }
-  
-  /* Hide scrollbar for IE, Edge and Firefox */
-  .hide-scrollbar {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
-  }
-  
-  /* Sticky sidebar animation */
-  .sticky-sidebar {
-    transition: transform 0.3s ease-out;
-  }
-  
-  /* Scroll progress indicator */
-  .scroll-progress {
-    transition: width 0.2s ease-out;
-  }
-  
-  /* Smooth scroll behavior for the page */
-  html {
-    scroll-behavior: smooth;
-  }
-  
-  @media (prefers-reduced-motion: reduce) {
-    .sticky-sidebar, .scroll-progress, html {
-      transition: none;
-      scroll-behavior: auto;
-    }
-  }
-`;
+// Import components
+import CourseFaq from '@/components/sections/course-detailed/courseFaq';
+import AboutProgram from '@/components/sections/course-detailed/aboutProgram';
+import CourseCertificate from '@/components/sections/course-detailed/courseCertificate';
+import CourseRelated from '@/components/sections/course-detailed/courseRelated';
+import UnifiedCourseDetails from '@/components/sections/course-detailed/UnifiedCourseDetails';
 
 // Animations
 const fadeIn = {
@@ -259,9 +213,6 @@ function CategoryEnrollmentPage({ params }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const [scrollProgress, setScrollProgress] = useState(0);
-  const mainContentRef = useRef(null);
-  const sidebarRef = useRef(null);
   const itemsPerPage = 8;
   const { getQuery } = useGetQuery();
 
@@ -351,23 +302,23 @@ function CategoryEnrollmentPage({ params }) {
       
       // Map the grade to a standardized format
       if (grade.includes('preschool') || grade.includes('pre-school')) {
-        option = { id: 'Preschool', label: 'Pre-school', description: 'Early learning foundation' };
-      } else if (grade.includes('grade 1') || grade.includes('grade 2')) {
-        option = { id: 'Grade 1-2', label: 'Grade 1-2', description: 'Primary education basics' };
-      } else if (grade.includes('grade 3') || grade.includes('grade 4')) {
-        option = { id: 'Grade 3-4', label: 'Grade 3-4', description: 'Elementary fundamentals' };
-      } else if (grade.includes('grade 5') || grade.includes('grade 6')) {
-        option = { id: 'Grade 5-6', label: 'Grade 5-6', description: 'Upper elementary concepts' };
-      } else if (grade.includes('grade 7') || grade.includes('grade 8')) {
-        option = { id: 'Grade 7-8', label: 'Grade 7-8', description: 'Middle school advancement' };
-      } else if (grade.includes('grade 9') || grade.includes('grade 10')) {
-        option = { id: 'Grade 9-10', label: 'Grade 9-10', description: 'High school preparation' };
-      } else if (grade.includes('grade 11') || grade.includes('grade 12')) {
-        option = { id: 'Grade 11-12', label: 'Grade 11-12', description: 'College preparation' };
-      } else if (grade.includes('undergraduate') || grade.includes('ug')) {
-        option = { id: 'Undergraduate', label: 'Undergraduate', description: 'University level' };
-      } else if (grade.includes('graduate') || grade.includes('pg')) {
-        option = { id: 'Graduate', label: 'Graduate & Professional', description: 'Advanced studies' };
+        option = { id: 'preschool', label: 'Pre-school', description: 'Early learning foundation' };
+      } else if (grade.includes('Grade 1') || grade.includes('Grade 2')) {
+        option = { id: 'grade 1-2', label: 'Grade 1-2', description: 'Primary education basics' };
+      } else if (grade.includes('Grade 3') || grade.includes('Grade 4')) {
+        option = { id: 'grade 3-4', label: 'Grade 3-4', description: 'Elementary fundamentals' };
+      } else if (grade.includes('Grade 5') || grade.includes('Grade 6')) {
+        option = { id: 'grade 5-6', label: 'Grade 5-6', description: 'Upper elementary concepts' };
+      } else if (grade.includes('Grade 7') || grade.includes('Grade 8')) {
+        option = { id: 'grade 7-8', label: 'Grade 7-8', description: 'Middle school advancement' };
+      } else if (grade.includes('Grade 9') || grade.includes('Grade 10')) {
+        option = { id: 'grade 9-10', label: 'Grade 9-10', description: 'High school preparation' };
+      } else if (grade.includes('Grade 11') || grade.includes('Grade 12')) {
+        option = { id: 'grade 11-12', label: 'Grade 11-12', description: 'College preparation' };
+      } else if (grade.includes('Undergraduate') || grade.includes('UG')) {
+        option = { id: 'undergraduate', label: 'Undergraduate', description: 'University level' };
+      } else if (grade.includes('Graduate') || grade.includes('PG')) {
+        option = { id: 'graduate', label: 'Graduate & Professional', description: 'Advanced studies' };
       }
       
       if (option) {
@@ -386,42 +337,77 @@ function CategoryEnrollmentPage({ params }) {
     setSelectedCourse(null);
   };
 
-  // Filter courses when grade filter changes
+  // Update the filter logic to work with the new data structure
   useEffect(() => {
-    if (loading) return;
-    
-    let filteredResults = [...courses];
-    
-    // Apply grade filter for categories that use it
-    if (['vedic-mathematics', 'personality-development'].includes(normalizedCategory) && selectedGrade !== 'all') {
-      filteredResults = filteredResults.filter(course => 
-        course.course_grade === availableGrades.find(g => g.id === selectedGrade)?.label
-      );
+    if (!courses.length) {
+      console.log('No courses available to filter'); // Debug log
+      return;
     }
     
-    // For categories with hidden grade selector, show all courses 
-    if (['ai-and-data-science', 'digital-marketing'].includes(normalizedCategory)) {
-      // No grade filtering for these categories
-      filteredResults = [...courses];
-    }
+    console.log('Current grade selection:', selectedGrade); // Debug log
+    console.log('Available courses:', courses); // Debug log
     
-    // Apply duration filter if active
-    if (selectedDuration !== 'all') {
-      const durationFilter = getDurationFilter(selectedDuration);
-      if (durationFilter) {
-        filteredResults = filteredResults.filter(course => 
-          durationFilter.test(course, durationFilter.days)
-        );
+    // Get the appropriate filter functions
+    const durationFilter = getDurationFilter(selectedDuration);
+    const gradeFilter = (course) => {
+      if (selectedGrade === 'all') return true;
+      
+      // Normalize the course grade and selected grade for comparison
+      const courseGrade = course.grade?.toLowerCase() || '';
+      const grade = selectedGrade.toLowerCase();
+      
+      console.log('Comparing grades:', { courseGrade, selectedGrade: grade }); // Debug log
+      
+      // Special handling for diploma and professional courses
+      if (grade === 'ug - graduate-professional' || grade === 'graduate') {
+        return courseGrade.includes('ug') || 
+               courseGrade.includes('graduate') || 
+               courseGrade.includes('professional') ||
+               courseGrade.includes('diploma') ||
+               courseGrade.includes('executive');
       }
-    }
+      
+      // Handle different grade formats
+      if (grade === 'preschool') {
+        return courseGrade.includes('preschool') || courseGrade.includes('pre-school');
+      } else if (grade.includes('grade')) {
+        // Extract grade numbers for comparison
+        const gradeNum = grade.match(/\d+/g);
+        if (gradeNum) {
+          return courseGrade.includes(gradeNum[0]);
+        }
+      }
+      
+      // Direct match for other cases
+      return courseGrade.includes(grade);
+    };
     
-    setFilteredCourses(filteredResults);
+    // Apply both filters
+    const filtered = courses.filter(course => {
+      const matchesDuration = selectedDuration === 'all' ? true : durationFilter(course);
+      const matchesGrade = gradeFilter(course);
+      
+      console.log('Course filtering result:', { 
+        courseId: course._id,
+        title: course.title,
+        courseGrade: course.grade,
+        matchesDuration,
+        matchesGrade
+      }); // Debug log
+      
+      return matchesDuration && matchesGrade;
+    });
     
-    // Reset selected course if it's no longer in filtered results
-    if (selectedCourse && !filteredResults.some(c => c._id === selectedCourse._id)) {
+    console.log('Filtered courses:', filtered); // Debug log
+    setFilteredCourses(filtered);
+    
+    // Update selected course if needed
+    if (filtered.length > 0 && (!selectedCourse || !filtered.some(course => course._id === selectedCourse._id))) {
+      setSelectedCourse(filtered[0]);
+    } else if (filtered.length === 0) {
       setSelectedCourse(null);
     }
-  }, [selectedGrade, selectedDuration, courses, loading, normalizedCategory, availableGrades]);
+  }, [selectedDuration, selectedGrade, courses, selectedCourse]);
 
   // Fetch courses useEffect
   useEffect(() => {
@@ -696,38 +682,18 @@ function CategoryEnrollmentPage({ params }) {
         }
       });
     };
-  }, [sectionRefs]);
+  }, [sectionRefs, selectedCourse]);
 
-  // Track scroll progress for sticky sidebar
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!mainContentRef.current) return;
-      
-      // Calculate scroll progress
-      const windowHeight = window.innerHeight;
-      const documentHeight = document.documentElement.scrollHeight;
-      const scrollTop = window.scrollY;
-      
-      // Calculate progress percentage
-      const scrollPercentage = (scrollTop / (documentHeight - windowHeight)) * 100;
-      setScrollProgress(Math.min(scrollPercentage, 100));
-      
-      // Apply subtle parallax effect to sidebar
-      if (sidebarRef.current) {
-        const translateY = scrollTop * 0.05; // Adjust multiplier for effect intensity
-        sidebarRef.current.style.transform = `translateY(${translateY}px)`;
-      }
-    };
-    
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Modified scrollToSection function to just update the activeSection state
-  // without scrolling behavior
+  // Handle scroll to section
   const scrollToSection = (sectionId) => {
     setActiveSection(sectionId);
-    // No scrolling behavior - we'll update content dynamically instead
+    
+    if (sectionRefs[sectionId]?.current) {
+      sectionRefs[sectionId].current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
   };
 
   // Loading skeleton component
@@ -875,20 +841,12 @@ function CategoryEnrollmentPage({ params }) {
     };
   }, []);
 
-  // Ensure we have a selected course when filtered courses change
-  useEffect(() => {
-    if (filteredCourses.length > 0 && !selectedCourse) {
-      handleCourseSelection(filteredCourses[0]);
-    }
-  }, [filteredCourses, selectedCourse, handleCourseSelection]);
-
   return (
     <PageWrapper>
       <Toaster position="bottom-center" />
-      <style jsx global>{stickyStyles}</style>
       <div className={`relative min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 category-page`} data-category={normalizedCategory}>
         {/* Fixed Header */}
-        <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transform-gpu">
+        <header className="sticky top-0 z-40 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm shadow-sm">
           <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
             <div className="flex items-center space-x-2 sm:space-x-4 overflow-hidden">
               <button 
@@ -901,6 +859,11 @@ function CategoryEnrollmentPage({ params }) {
               <div className="flex items-center overflow-hidden">
                 <h1 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
                   {categoryInfo?.displayName || "Course Categories"} 
+                  {/* Add emoji based on category */}
+                  {normalizedCategory === 'vedic-mathematics' && " 🔢"}
+                  {normalizedCategory === 'ai-and-data-science' && " 🤖"}
+                  {normalizedCategory === 'digital-marketing' && " 📱"}
+                  {normalizedCategory === 'personality-development' && " 🌟"}
                 </h1>
                 <span className={`ml-2 px-2 py-1 text-xs font-medium ${categoryInfo?.bgClass || 'bg-blue-50 dark:bg-blue-900/30'} ${categoryInfo?.colorClass || 'text-blue-700 dark:text-blue-300'} rounded-full hidden sm:inline-block`}>
                   Category
@@ -937,149 +900,21 @@ function CategoryEnrollmentPage({ params }) {
                 <div></div>
               </div>
             </div>
-          ) : error ? (
-            <ErrorDisplay />
           ) : (
-            <div className="container mx-auto px-4">
-              {/* Two Column Layout - Improved mobile design */}
-              <div className="flex flex-col lg:flex-row gap-4 lg:gap-8" ref={mainContentRef}>
-                {/* Left Column - Dynamic Course Content */}
-                <div className="w-full lg:w-8/12 space-y-4 lg:space-y-8">
-                  {/* CourseDetailsPage integration - show dynamically based on selected course */}
-                  {selectedCourse && (
-                    <div className="relative z-10">
-                      {/* We pass the activeSection to control which tab is visible */}
-                      <CourseDetailsPage 
-                        courseId={selectedCourse?._id} 
-                        initialActiveSection={activeSection !== 'overview' ? activeSection : 'about'}
-                      />
-                    </div>
-                  )}
-                </div>
-                
-                {/* Right Column - Filters and Course Selection */}
-                <div className="w-full lg:w-4/12 mb-8 lg:mb-0">
-                  <div className="lg:sticky lg:top-24 space-y-6 transition-all duration-300">
-                    {/* Sticky Container with scroll behavior */}
-                    <div className="sticky-sidebar max-h-[calc(100vh-120px)] overflow-y-auto pr-2 pb-4 hide-scrollbar" ref={sidebarRef}>
-                      {/* Show GradeFilter only for specific categories */}
-                      {(normalizedCategory === 'vedic-mathematics' || 
-                       normalizedCategory === 'personality-development') && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.5 }}
-                        >
-                          <GradeFilter 
-                            selectedGrade={selectedGrade}
-                            availableGrades={availableGrades}
-                            filteredCourses={filteredCourses}
-                            selectedCourse={selectedCourse}
-                            handleGradeChange={handleGradeChange}
-                            handleCourseSelection={handleCourseSelection}
-                            categoryInfo={categoryInfo}
-                            setSelectedGrade={setSelectedGrade}
-                          />
-                        </motion.div>
-                      )}
-
-                      {/* For AI/Data Science and Digital Marketing, just show course selection */}
-                      {(normalizedCategory === 'ai-and-data-science' || 
-                       normalizedCategory === 'digital-marketing') && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.5 }}
-                        >
-                          <GradeFilter 
-                            selectedGrade={selectedGrade}
-                            availableGrades={availableGrades}
-                            filteredCourses={filteredCourses}
-                            selectedCourse={selectedCourse}
-                            handleGradeChange={handleGradeChange}
-                            handleCourseSelection={handleCourseSelection}
-                            categoryInfo={categoryInfo}
-                            setSelectedGrade={setSelectedGrade}
-                            hideGradeSelector={true}
-                          />
-                        </motion.div>
-                      )}
-
-                      {/* For other categories, show regular filter */}
-                      {!(['vedic-mathematics', 'personality-development', 'ai-and-data-science', 'digital-marketing'].includes(normalizedCategory)) && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.5 }}
-                        >
-                          <GradeFilter 
-                            selectedGrade={selectedGrade}
-                            availableGrades={availableGrades}
-                            filteredCourses={filteredCourses}
-                            selectedCourse={selectedCourse}
-                            handleGradeChange={handleGradeChange}
-                            handleCourseSelection={handleCourseSelection}
-                            categoryInfo={categoryInfo}
-                            setSelectedGrade={setSelectedGrade}
-                          />
-                        </motion.div>
-                      )}
-
-                      {/* Enrollment Details with improved mobile design */}
-                      {selectedCourse && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.5, delay: 0.2 }}
-                          className="pt-4 lg:pt-6"
-                        >
-                          <EnrollmentDetails 
-                            courseDetails={selectedCourse}
-                            categoryInfo={categoryInfo}
-                          />
-                        </motion.div>
-                      )}
-                    </div>
-
-                    {/* Scroll indicator - hidden on mobile */}
-                    <div className="hidden lg:block h-1 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden mt-2">
-                      <motion.div 
-                        className="h-full bg-gradient-to-r from-emerald-500 to-green-500"
-                        initial={{ width: "0%" }}
-                        animate={{ width: `${scrollProgress}%` }}
-                        transition={{ duration: 0.1 }}
-                      />
-                    </div>
-                    
-                    {/* Mobile Action Button */}
-                    <div className="fixed bottom-0 left-0 right-0 z-50 p-3 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 lg:hidden">
-                      <button 
-                        onClick={() => {
-                          // Handle enrollment action
-                          if (selectedCourse) {
-                            // Implement your enrollment logic here
-                            toast.success("Enrollment feature coming soon!");
-                          } else {
-                            toast.error("Please select a course first!");
-                          }
-                        }} 
-                        className={`w-full py-3 px-4 rounded-lg font-medium text-white transition-all ${
-                          selectedCourse 
-                            ? "bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700"
-                            : "bg-gray-400 cursor-not-allowed"
-                        }`}
-                        disabled={!selectedCourse}
-                      >
-                        {selectedCourse ? "Enroll Now" : "Select a Course"}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            // Content for when loading is complete
+            <div>
+              {/* The rest of your content here */}
             </div>
           )}
         </main>
       </div>
+      
+      {/* Replace individual component calls with the unified component */}
+      {selectedCourse && (
+        <div className="mb-12">
+          <UnifiedCourseDetails courseId={selectedCourse._id} />
+        </div>
+      )}
     </PageWrapper>
   );
 }

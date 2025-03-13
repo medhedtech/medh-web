@@ -221,14 +221,14 @@ function VedicMathematics() {
       return;
     }
     
-    // Redirect to course details page
-    router.push(`/course-details/${selectedCourse._id}`);
+    // Redirect to enrollment page
+    router.push('/enrollment/vedic-mathematics');
   };
 
   // Handle view details
   const handleViewDetails = () => {
     if (selectedCourse) {
-      router.push(`/course-details/${selectedCourse._id}`);
+      router.push(`/enrollment/vedic-mathematics/details`);
     }
   };
 
