@@ -294,23 +294,21 @@
 
 /* Button Styles */
 .category-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  border-radius: 0.75rem;
   padding: 0.75rem 1.5rem;
-  font-size: 1rem;
-  font-weight: 600;
-  border-radius: 100px;
-  background: var(--color-primary);
+  background-image: linear-gradient(to right, var(--color-primary-light), var(--color-secondary-light));
   color: white;
-  border: none;
-  transition: all 0.2s;
+  font-weight: 500;
+  transition-property: all;
+  transition-duration: 300ms;
+  background-position: 0% 0%;
+  background-size: 200% 100%;
+  transition: all 0.3s ease;
 }
 
 .category-button:hover {
-  background: var(--color-primary-dark);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.25);
+  background-position: 100% 0%;
+  box-shadow: 0 10px 20px rgba(var(--color-primary-rgb), 0.15);
 }
 
 .category-button:active {
@@ -497,9 +495,9 @@
 
 /* Add enhanced category-specific colors with more vibrant variants */
 :root {
-  --color-primary-rgb: 52, 211, 153; /* Default - emerald */
-  --color-primary-light: rgb(16, 185, 129);
-  --color-secondary-light: rgb(5, 150, 105);
+  --color-primary-rgb: 79, 70, 229; /* Default indigo color */
+  --color-primary-light: rgb(99, 102, 241); /* Indigo-400 */
+  --color-secondary-light: rgb(67, 56, 202); /* Indigo-600 */
   
   /* Gen Alpha friendly shadows */
   --shadow-glow: 0 0 15px rgba(var(--color-primary-rgb), 0.5);
@@ -600,20 +598,23 @@
 
 /* Selection pills */
 .selection-pill {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.25rem 0.75rem;
-  background-color: rgba(var(--color-primary-rgb), 0.1);
-  color: rgb(var(--color-primary-rgb));
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
   border-radius: 9999px;
   font-size: 0.75rem;
-  font-weight: 600;
-  transition: all 0.2s ease;
+  font-weight: 500;
+  background-color: rgb(243 244 246); /* gray-100 */
+  color: rgb(55 65 81); /* gray-700 */
+  transition-property: color, background-color, border-color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
 }
 
-.selection-pill:hover {
-  background-color: rgba(var(--color-primary-rgb), 0.2);
-  transform: scale(1.05);
+.dark .selection-pill {
+  background-color: rgb(55 65 81); /* gray-700 */
+  color: rgb(209 213 219); /* gray-300 */
 }
 
 /* Fun loading animations for Gen Alpha */
@@ -853,4 +854,257 @@
 
 .interactive-element:hover::after {
   opacity: 1;
+}
+
+/* Enhanced Category Enrollment Page Styles */
+
+/* Custom styles for enrollment page */
+.category-page {
+  background-image: 
+    radial-gradient(circle at 100% 0%, rgba(var(--color-primary-rgb), 0.05) 0%, transparent 25%),
+    radial-gradient(circle at 0% 80%, rgba(var(--color-primary-rgb), 0.03) 0%, transparent 30%);
+}
+
+/* Smooth scrolling for the page */
+.category-page {
+  scroll-behavior: smooth;
+}
+
+/* Loading animation - enhanced */
+.category-loader {
+  position: relative;
+  width: 54px;
+  height: 54px;
+  perspective: 800px;
+}
+.category-loader div {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: rgba(var(--color-primary-rgb), 0.8);
+  transform-origin: 50% 50%;
+  animation: category-loader-anim 1.2s infinite ease-in-out;
+  border-radius: 2px;
+}
+.category-loader div:nth-child(1) {
+  top: 0;
+  left: 0;
+  animation-delay: 0s;
+}
+.category-loader div:nth-child(2) {
+  top: 0;
+  left: 21px;
+  animation-delay: 0.1s;
+}
+.category-loader div:nth-child(3) {
+  top: 0;
+  right: 0;
+  animation-delay: 0.2s;
+}
+.category-loader div:nth-child(4) {
+  top: 21px;
+  left: 0;
+  animation-delay: 0.9s;
+}
+.category-loader div:nth-child(5) {
+  top: 21px;
+  left: 21px;
+  animation-delay: 0.5s;
+}
+.category-loader div:nth-child(6) {
+  top: 21px;
+  right: 0;
+  animation-delay: 0.3s;
+}
+.category-loader div:nth-child(7) {
+  bottom: 0;
+  left: 0;
+  animation-delay: 0.8s;
+}
+.category-loader div:nth-child(8) {
+  bottom: 0;
+  left: 21px;
+  animation-delay: 0.7s;
+}
+.category-loader div:nth-child(9) {
+  bottom: 0;
+  right: 0;
+  animation-delay: 0.6s;
+}
+
+@keyframes category-loader-anim {
+  0%, 100% {
+    transform: scale(1) translateZ(0);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.7) translateZ(-100px);
+    opacity: 0.5;
+  }
+}
+
+/* Category Button */
+.category-button {
+  border-radius: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  background-image: linear-gradient(to right, var(--color-primary-light), var(--color-secondary-light));
+  color: white;
+  font-weight: 500;
+  transition-property: all;
+  transition-duration: 300ms;
+  background-position: 0% 0%;
+  background-size: 200% 100%;
+  transition: all 0.3s ease;
+}
+
+.category-button:hover {
+  background-position: 100% 0%;
+  box-shadow: 0 10px 20px rgba(var(--color-primary-rgb), 0.15);
+}
+
+/* Selection Pills */
+.selection-pill {
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background-color: rgb(243 244 246); /* gray-100 */
+  color: rgb(55 65 81); /* gray-700 */
+  transition-property: color, background-color, border-color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.dark .selection-pill {
+  background-color: rgb(55 65 81); /* gray-700 */
+  color: rgb(209 213 219); /* gray-300 */
+}
+
+/* Enhanced scrollbar for better UI */
+.scrollbar-thin {
+  scrollbar-width: thin;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: rgba(var(--color-primary-rgb), 0.2);
+  border-radius: 10px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(var(--color-primary-rgb), 0.3);
+}
+
+.scrollbar-thumb-gray-300::-webkit-scrollbar-thumb {
+  background-color: #d1d5db;
+}
+
+.scrollbar-thumb-gray-300::-webkit-scrollbar-thumb:hover {
+  background-color: #9ca3af;
+}
+
+.dark .scrollbar-thumb-gray-600::-webkit-scrollbar-thumb {
+  background-color: #4b5563;
+}
+
+.dark .scrollbar-thumb-gray-600::-webkit-scrollbar-thumb:hover {
+  background-color: #6b7280;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 640px) {
+  .category-page .grid {
+    grid-gap: 1rem;
+  }
+  
+  .category-page h1 {
+    font-size: 1.25rem;
+  }
+  
+  .category-page .rounded-xl {
+    border-radius: 0.75rem;
+  }
+}
+
+/* Focus styles for accessibility */
+.category-page button:focus-visible, 
+.category-page a:focus-visible,
+.category-page select:focus-visible {
+  outline: 2px solid rgba(var(--color-primary-rgb), 0.5);
+  outline-offset: 2px;
+}
+
+/* Custom underline animation */
+.hover-underline-animation {
+  position: relative;
+}
+
+.hover-underline-animation::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 2px;
+  bottom: -2px;
+  left: 0;
+  background-color: rgba(var(--color-primary-rgb), 0.7);
+  transform: scaleX(0);
+  transform-origin: bottom right;
+  transition: transform 0.3s ease-out;
+}
+
+.hover-underline-animation:hover::after {
+  transform: scaleX(1);
+  transform-origin: bottom left;
+}
+
+/* Enhanced image hover effects */
+.image-hover-zoom {
+  overflow: hidden;
+}
+
+.image-hover-zoom img {
+  transition: transform 0.5s ease;
+}
+
+.image-hover-zoom:hover img {
+  transform: scale(1.05);
+}
+
+/* Enhance card transitions */
+.card-hover-effect {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.card-hover-effect:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* Print styles */
+@media print {
+  .category-page {
+    background: white !important;
+  }
+  
+  .category-page * {
+    color: black !important;
+    background: white !important;
+    box-shadow: none !important;
+  }
+  
+  .category-page button,
+  .category-page .hidden-print {
+    display: none !important;
+  }
 } 

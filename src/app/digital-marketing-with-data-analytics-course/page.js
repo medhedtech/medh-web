@@ -13,6 +13,10 @@ import ExploreJourney from "@/components/sections/explore-journey/Enroll-Form";
 import AnimatedContent from './AnimatedContent';
 
 function DigitalMarketing() {
+  const bannerProps = {
+    enrollmentPath: "/enrollment/digital-marketing",
+  };
+
   return (
     <PageWrapper>
       <div className="relative min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
