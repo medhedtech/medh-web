@@ -21,4 +21,278 @@ html {
   :root {
     scroll-behavior: auto;
   }
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* MEDH COLOR SYSTEM */
+  
+  /* ======== PRIMARY COLOR FAMILY ======== */
+  
+  /* Blue Family (Primary Brand Colors) */
+  --color-primary-50: 239 246 255; /* blue-50 */
+  --color-primary-100: 219 234 254; /* blue-100 */
+  --color-primary-200: 191 219 254; /* blue-200 */
+  --color-primary-300: 147 197 253; /* blue-300 */
+  --color-primary-400: 96 165 250; /* blue-400 */
+  --color-primary-500: 59 130 246; /* blue-500 */
+  --color-primary-600: 37 99 235; /* blue-600 */
+  --color-primary-700: 29 78 216; /* blue-700 */
+  --color-primary-800: 30 64 175; /* blue-800 */
+  --color-primary-900: 30 58 138; /* blue-900 */
+  
+  /* Indigo Family (Secondary Brand Colors) */
+  --color-secondary-50: 238 242 255; /* indigo-50 */
+  --color-secondary-100: 224 231 255; /* indigo-100 */
+  --color-secondary-200: 199 210 254; /* indigo-200 */
+  --color-secondary-300: 165 180 252; /* indigo-300 */
+  --color-secondary-400: 129 140 248; /* indigo-400 */
+  --color-secondary-500: 99 102 241; /* indigo-500 */
+  --color-secondary-600: 79 70 229; /* indigo-600 */
+  --color-secondary-700: 67 56 202; /* indigo-700 */
+  --color-secondary-800: 55 48 163; /* indigo-800 */
+  --color-secondary-900: 49 46 129; /* indigo-900 */
+  
+  /* Yellow/Amber Family (Growth & Reward Colors) */
+  --color-reward-yellow-50: 254 252 232; /* yellow-50 */
+  --color-reward-yellow-100: 254 249 195; /* yellow-100 */
+  --color-reward-yellow-300: 253 224 71; /* yellow-300 */
+  --color-reward-yellow-400: 250 204 21; /* yellow-400 */
+  --color-reward-yellow-500: 234 179 8; /* yellow-500 */
+  --color-reward-yellow-600: 202 138 4; /* yellow-600 */
+  
+  --color-reward-amber-50: 255 251 235; /* amber-50 */
+  --color-reward-amber-100: 254 243 199; /* amber-100 */
+  --color-reward-amber-300: 252 211 77; /* amber-300 */
+  --color-reward-amber-400: 251 191 36; /* amber-400 */
+  --color-reward-amber-500: 245 158 11; /* amber-500 */
+  --color-reward-amber-600: 217 119 6; /* amber-600 */
+  --color-reward-amber-700: 180 83 9; /* amber-700 */
+  
+  /* ======== ACCENT COLOR FAMILIES ======== */
+  
+  /* Violet/Purple Family */
+  --color-accent-violet-400: 167 139 250; /* violet-400 */
+  --color-accent-violet-500: 139 92 246; /* violet-500 */
+  --color-accent-violet-600: 124 58 237; /* violet-600 */
+  --color-accent-violet-700: 109 40 217; /* violet-700 */
+  
+  --color-accent-purple-400: 192 132 252; /* purple-400 */
+  --color-accent-purple-500: 168 85 247; /* purple-500 */
+  --color-accent-purple-600: 147 51 234; /* purple-600 */
+  --color-accent-purple-700: 126 34 206; /* purple-700 */
+  
+  /* Emerald/Teal Family */
+  --color-accent-emerald-400: 52 211 153; /* emerald-400 */
+  --color-accent-emerald-500: 16 185 129; /* emerald-500 */
+  --color-accent-emerald-600: 5 150 105; /* emerald-600 */
+  --color-accent-emerald-700: 4 120 87; /* emerald-700 */
+  
+  --color-accent-teal-400: 45 212 191; /* teal-400 */
+  --color-accent-teal-500: 20 184 166; /* teal-500 */
+  --color-accent-teal-600: 13 148 136; /* teal-600 */
+  --color-accent-teal-700: 15 118 110; /* teal-700 */
+  
+  /* Amber/Orange Family */
+  --color-accent-amber-400: 251 191 36; /* amber-400 */
+  --color-accent-amber-500: 245 158 11; /* amber-500 */
+  --color-accent-amber-600: 217 119 6; /* amber-600 */
+  --color-accent-amber-700: 180 83 9; /* amber-700 */
+  
+  --color-accent-orange-400: 251 146 60; /* orange-400 */
+  --color-accent-orange-500: 249 115 22; /* orange-500 */
+  --color-accent-orange-600: 234 88 12; /* orange-600 */
+  --color-accent-orange-700: 194 65 12; /* orange-700 */
+  
+  /* Rose/Pink Family */
+  --color-accent-rose-400: 251 113 133; /* rose-400 */
+  --color-accent-rose-500: 244 63 94; /* rose-500 */
+  --color-accent-rose-600: 225 29 72; /* rose-600 */
+  --color-accent-rose-700: 190 18 60; /* rose-700 */
+  
+  --color-accent-pink-400: 244 114 182; /* pink-400 */
+  --color-accent-pink-500: 236 72 153; /* pink-500 */
+  --color-accent-pink-600: 219 39 119; /* pink-600 */
+  --color-accent-pink-700: 190 24 93; /* pink-700 */
+  
+  /* Sky/Blue Family */
+  --color-accent-sky-400: 56 189 248; /* sky-400 */
+  --color-accent-sky-500: 14 165 233; /* sky-500 */
+  --color-accent-sky-600: 2 132 199; /* sky-600 */
+  --color-accent-sky-700: 3 105 161; /* sky-700 */
+  
+  /* Fuchsia Family */
+  --color-accent-fuchsia-400: 232 121 249; /* fuchsia-400 */
+  --color-accent-fuchsia-500: 217 70 239; /* fuchsia-500 */
+  --color-accent-fuchsia-600: 192 38 211; /* fuchsia-600 */
+  --color-accent-fuchsia-700: 162 28 175; /* fuchsia-700 */
+  
+  /* Lime/Green Family */
+  --color-accent-lime-400: 163 230 53; /* lime-400 */
+  --color-accent-lime-500: 132 204 22; /* lime-500 */
+  --color-accent-lime-600: 101 163 13; /* lime-600 */
+  --color-accent-lime-700: 77 124 15; /* lime-700 */
+  
+  --color-accent-green-400: 74 222 128; /* green-400 */
+  --color-accent-green-500: 34 197 94; /* green-500 */
+  --color-accent-green-600: 22 163 74; /* green-600 */
+  --color-accent-green-700: 21 128 61; /* green-700 */
+  
+  /* ======== NEUTRAL COLOR SYSTEM ======== */
+  
+  /* Slate Family (Main Neutral Colors) */
+  --color-neutral-50: 248 250 252; /* slate-50 */
+  --color-neutral-100: 241 245 249; /* slate-100 */
+  --color-neutral-200: 226 232 240; /* slate-200 */
+  --color-neutral-300: 203 213 225; /* slate-300 */
+  --color-neutral-400: 148 163 184; /* slate-400 */
+  --color-neutral-500: 100 116 139; /* slate-500 */
+  --color-neutral-600: 71 85 105; /* slate-600 */
+  --color-neutral-700: 51 65 85; /* slate-700 */
+  --color-neutral-800: 30 41 59; /* slate-800 */
+  --color-neutral-900: 15 23 42; /* slate-900 */
+}
+
+/* Dark Mode Custom Properties */
+.dark {
+  /* Adjusted color variables for dark mode */
+  --color-primary-400: 129 140 248; /* indigo-400 in dark mode */
+  --color-primary-600: 96 165 250; /* blue-400 in dark mode */
+  
+  --color-reward-yellow-300: 250 204 21; /* brighter in dark mode */
+  --color-reward-amber-400: 251 191 36; /* brighter in dark mode */
+}
+
+@layer base {
+  /* Base utility classes */
+  body {
+    @apply bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-white;
+  }
+}
+
+@layer components {
+  /* GRADIENT UTILITY CLASSES */
+  .gradient-primary {
+    @apply bg-gradient-to-r from-blue-500 to-indigo-500 dark:from-blue-600/80 dark:to-indigo-700/80;
+  }
+  
+  .gradient-reward {
+    @apply bg-gradient-to-r from-yellow-500 to-amber-500 dark:from-yellow-600/80 dark:to-amber-700/80;
+  }
+  
+  .gradient-violet {
+    @apply bg-gradient-to-br from-violet-500 to-purple-500 dark:from-violet-600/80 dark:to-purple-700/80;
+  }
+  
+  .gradient-emerald {
+    @apply bg-gradient-to-br from-emerald-500 to-teal-500 dark:from-emerald-600/80 dark:to-teal-700/80;
+  }
+  
+  .gradient-teal {
+    @apply bg-gradient-to-br from-teal-500 to-emerald-500 dark:from-teal-600/80 dark:to-emerald-700/80;
+  }
+  
+  .gradient-amber {
+    @apply bg-gradient-to-br from-amber-500 to-orange-500 dark:from-amber-600/80 dark:to-orange-700/80;
+  }
+  
+  .gradient-rose {
+    @apply bg-gradient-to-br from-rose-500 to-pink-500 dark:from-rose-600/80 dark:to-pink-700/80;
+  }
+  
+  .gradient-sky {
+    @apply bg-gradient-to-br from-sky-500 to-blue-500 dark:from-sky-600/80 dark:to-blue-700/80;
+  }
+  
+  .gradient-indigo {
+    @apply bg-gradient-to-br from-indigo-500 to-violet-500 dark:from-indigo-600/80 dark:to-violet-700/80;
+  }
+  
+  .gradient-fuchsia {
+    @apply bg-gradient-to-br from-fuchsia-500 to-violet-500 dark:from-fuchsia-600/80 dark:to-violet-700/80;
+  }
+  
+  .gradient-lime {
+    @apply bg-gradient-to-br from-lime-500 to-green-500 dark:from-lime-600/80 dark:to-green-700/80;
+  }
+  
+  /* COMMON COMPONENT STYLES */
+  .badge {
+    @apply inline-flex items-center px-4 py-2 rounded-full backdrop-blur-sm shadow-sm;
+  }
+  
+  .badge-primary {
+    @apply badge bg-blue-50/80 dark:bg-blue-900/40 border border-blue-100 dark:border-blue-800/40 text-blue-700 dark:text-blue-300;
+  }
+  
+  .badge-reward {
+    @apply badge bg-amber-50/80 dark:bg-amber-900/40 border border-amber-100 dark:border-amber-800/40 text-amber-700 dark:text-amber-300;
+  }
+  
+  .card {
+    @apply relative h-full bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-200/80 dark:border-slate-700/80 overflow-hidden;
+  }
+  
+  .card-gradient {
+    @apply absolute -right-20 -top-20 w-40 h-40 rounded-full opacity-10 blur-2xl group-hover:opacity-20 transition-opacity duration-500;
+  }
+  
+  .card-icon-container {
+    @apply w-14 h-14 rounded-2xl p-0.5 transform group-hover:scale-110 transition-transform duration-300 mb-6 shadow-md;
+  }
+  
+  .card-icon-inner {
+    @apply w-full h-full rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center;
+  }
+  
+  .gradient-hover-line {
+    @apply absolute bottom-0 left-0 w-full h-1.5 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 rounded-b-xl opacity-80;
+  }
+  
+  .btn-primary {
+    @apply inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-500 dark:to-indigo-500 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/20 dark:shadow-blue-700/30 hover:shadow-xl hover:shadow-blue-500/30 dark:hover:shadow-blue-700/40 transform hover:-translate-y-1 transition-all duration-300 text-lg;
+  }
+  
+  /* TEXT GRADIENT */
+  .text-gradient-primary {
+    @apply text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400;
+  }
+  
+  .text-gradient-reward {
+    @apply text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-amber-500 dark:from-yellow-400 dark:to-amber-400;
+  }
+}
+
+/* ======== ANIMATION UTILITIES ======== */
+@layer utilities {
+  .animation-delay-300 {
+    animation-delay: 300ms;
+  }
+  
+  .animation-delay-600 {
+    animation-delay: 600ms;
+  }
+  
+  .backdrop-blur {
+    backdrop-filter: blur(8px);
+  }
+  
+  .bg-grid-pattern {
+    background-image: 
+      linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+}
+
+/* === MEDIA QUERIES === */
+@media (prefers-color-scheme: dark) {
+  .bg-grid-pattern {
+    background-image: 
+      linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
+  }
 } 
