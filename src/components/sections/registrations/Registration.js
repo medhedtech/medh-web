@@ -336,7 +336,6 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
                 <form
                   onSubmit={handleSubmit(onSubmit)}
                   className="space-y-7"
-                  data-aos="fade-up"
                   aria-label="Contact form"
                   noValidate
                 >

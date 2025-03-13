@@ -52,31 +52,9 @@ const SectionLoader = ({ text }) => (
 export default function MembershipPage() {
   return (
     <PageWrapper>
-      <main className="min-h-screen">
-        <Suspense fallback={<SectionLoader text="Loading banner..." />}>
-          <MembershipBanner />
-        </Suspense>
-        <Suspense fallback={<SectionLoader text="Loading overview..." />}>
-          <MembershipOverview />
-        </Suspense>
-        <Suspense fallback={<SectionLoader text="Loading features..." />}>
-          <MembershipFeatures />
-        </Suspense>
-        <Suspense fallback={<SectionLoader text="Loading prime benefits..." />}>
-          <PrimeMembership />
-        </Suspense>
-        <Suspense fallback={<SectionLoader text="Loading FAQ..." />}>
-          <MembershipFaq />
-        </Suspense>
-        <Suspense fallback={<SectionLoader text="Loading courses..." />}>
-          <MembershipCourceBanner />
-        </Suspense>
-        <div className="bg-white dark:bg-screen-dark pb-16">
-          <Suspense fallback={<SectionLoader text="Loading certifications..." />}>
-            <Certified />
-          </Suspense>
-        </div>
-        
+      <main className="min-h-screen pt-12">
+       <PrimeMembership />
+       <MembershipFeatures />
       </main>
     </PageWrapper>
   );
