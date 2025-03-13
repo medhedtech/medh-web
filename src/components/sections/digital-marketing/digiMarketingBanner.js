@@ -8,6 +8,7 @@ import Cource from "@/assets/Header-Images/digital-marketing/freelancer-woman-co
 
 function DigiMarketingBanner() {
   const bannerProps = {
+    enrollmentPath: "/enrollment/digital-marketing",
     badge: "Industry Ready",
     title: "Digital Marketing with",
     titleHighlight: "Data Analytics",

@@ -15,6 +15,7 @@ function CourseBanner({
   features,
   mainImage,
   studentImage,
+  enrollmentPath = '/enrollment',
   themeClasses = {
     badge: "bg-blue-500",
     badgeContainer: "bg-blue-500/10",
@@ -118,14 +119,14 @@ function CourseBanner({
             {/* CTA Section */}
             <div className="flex flex-wrap gap-4 pt-4">
               <Link
-                href="/enroll"
+                href={enrollmentPath}
                 className={`inline-flex items-center px-6 py-3 ${themeClasses.button} text-white font-medium rounded-lg transition-all transform hover:-translate-y-0.5 shadow-lg`}
               >
                 Enroll Now
                 <ChevronRight className="ml-2 h-5 w-5" />
               </Link>
               <Link
-                href="/course-details"
+                href={`${enrollmentPath}/details`}
                 className={`inline-flex items-center px-6 py-3 bg-white dark:bg-gray-800 ${themeClasses.secondaryButton} font-medium rounded-lg border-2 transition-all`}
               >
                 View Details

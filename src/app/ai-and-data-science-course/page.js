@@ -26,6 +26,7 @@ function CourseAi() {
     title: "Artificial Intelligence &",
     titleHighlight: "Data Science",
     description: "Gain in-depth knowledge and hands-on experience to excel in the dynamic world of technology and analytics.",
+    enrollmentPath: "/enrollment/ai-and-data-science",
     stats: [
       {
         icon: <Users className="w-5 h-5 text-primary-500" />,
