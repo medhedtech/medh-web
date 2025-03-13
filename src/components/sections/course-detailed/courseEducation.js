@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import Education from "@/assets/images/course-detailed/education.svg";
 import Emi from "@/assets/images/course-detailed/emi-card.svg";
 import Cer from "@/assets/images/course-detailed/certificate.png";
@@ -26,10 +26,31 @@ import { HelpCircle, DollarSign, Award, BookOpen, Check, Star, Zap, Calendar, Us
 import { motion, AnimatePresence } from "framer-motion";
 import { Calculator, GraduationCap, Info } from "lucide-react";
 
+// Error Fallback component
+const ErrorFallback = ({ error, resetErrorBoundary }) => (
+  <div className="flex flex-col items-center justify-center min-h-[50vh] p-6 text-center">
+    <div className="bg-red-50 dark:bg-red-900/20 p-6 rounded-xl max-w-md mx-auto">
+      <h2 className="text-xl font-semibold text-red-700 dark:text-red-400 mb-3">
+        Failed to load course details
+      </h2>
+      <p className="text-gray-700 dark:text-gray-300 mb-4">
+        {error || "We couldn't load the course details. Please try again."}
+      </p>
+      <button
+        onClick={resetErrorBoundary}
+        className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg"
+      >
+        Try Again
+      </button>
+    </div>
+  </div>
+);
+
 function CourseEducation({ courseId, courseDetails }) {
   const { getQuery, loading } = useGetQuery();
   const { postQuery } = usePostQuery();
-  const [courseDetails1, setCourseDetails1] = useState(courseDetails || null);
+  const [courseData, setCourseData] = useState(courseDetails || null);
+  const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [formattedContent, setFormattedContent] = useState({ overview: '', benefits: [] });
@@ -58,61 +79,81 @@ function CourseEducation({ courseId, courseDetails }) {
     return { overview, benefits };
   };
 
-  useEffect(() => {
-    if (courseId && !courseDetails) {
-      fetchCourseDetails(courseId);
-    } else if (courseDetails) {
-      setCourseDetails1(courseDetails);
-    }
-  }, [courseId, courseDetails]);
+  const formattedContentMemo = useMemo(() => {
+    if (!courseData?.course_description) return { overview: '', benefits: [] };
 
-  useEffect(() => {
-    if (courseDetails1?.course_description) {
-      const parsed = parseDescription(courseDetails1.course_description);
-      setFormattedContent(parsed);
-    }
-  }, [courseDetails1?.course_description]);
+    const parts = courseData.course_description.split('Benefits');
+    const overview = parts[0]?.replace('Program Overview', '').trim() || '';
+    const benefits = parts[1]?.split('-')
+      .map(benefit => benefit.trim())
+      .filter(benefit => benefit.length > 0) || [];
 
-  const fetchCourseDetails = async (id) => {
+    return { overview, benefits };
+  }, [courseData?.course_description]);
+
+  const fetchCourseDetails = useCallback(async () => {
+    if (!courseId) {
+      setError('No course ID provided');
+      return;
+    }
+
     try {
       await getQuery({
-        url: apiUrls.courses.getCourseById(id),
+        url: apiUrls.courses.getCourseById(courseId),
         onSuccess: (data) => {
-          console.log("Education data received:", data?.course || data);
-          setCourseDetails1(data);
+          if (!data || !data._id) {
+            throw new Error('Invalid course data');
+          }
+          setCourseData(data);
         },
         onFail: (err) => {
-          console.error("Error fetching course details:", err);
-        },
+          console.error('Course fetch error:', err);
+          setError(err?.message || 'Failed to load course details');
+          toast.error('Failed to load course details');
+        }
       });
-    } catch (error) {
-      console.error("Error in fetching course details:", error);
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      setError('An unexpected error occurred');
     }
-  };
+  }, [courseId, getQuery]);
+
+  useEffect(() => {
+    if (!courseDetails) {
+      fetchCourseDetails();
+    }
+  }, [courseId, courseDetails, fetchCourseDetails]);
+
+  useEffect(() => {
+    if (courseData?.course_description) {
+      const parsed = parseDescription(courseData.course_description);
+      setFormattedContent(parsed);
+    }
+  }, [courseData?.course_description]);
 
   // Course highlights
   const highlights = [
     { 
       label: "Industry-recognized certification", 
-      value: courseDetails1?.is_Certification === "Yes",
+      value: courseData?.is_Certification === "Yes",
       icon: Award,
       color: "green"
     },
     { 
       label: "Hands-on assignments", 
-      value: courseDetails1?.is_Assignments === "Yes",
+      value: courseData?.is_Assignments === "Yes",
       icon: BookOpen,
       color: "blue"
     },
     { 
       label: "Real-world projects", 
-      value: courseDetails1?.is_Projects === "Yes",
+      value: courseData?.is_Projects === "Yes",
       icon: Zap,
       color: "purple"
     },
     { 
       label: "Interactive quizzes", 
-      value: courseDetails1?.is_Quizes === "Yes",
+      value: courseData?.is_Quizes === "Yes",
       icon: Star,
       color: "amber"
     },
@@ -130,7 +171,7 @@ function CourseEducation({ courseId, courseDetails }) {
     },
     {
       label: "Course completion certificate",
-      value: courseDetails1?.is_Certification === "Yes",
+      value: courseData?.is_Certification === "Yes",
       icon: GraduationCap,
       color: "orange"
     }
@@ -140,25 +181,25 @@ function CourseEducation({ courseId, courseDetails }) {
   const courseStats = [
     {
       label: "Duration",
-      value: courseDetails1?.course_duration || "10 weeks",
+      value: courseData?.course_duration || "10 weeks",
       icon: Clock,
       color: "blue"
     },
     {
       label: "Course Level",
-      value: courseDetails1?.course_grade || "All Levels",
+      value: courseData?.course_grade || "All Levels",
       icon: Lightbulb,
       color: "amber" 
     },
     {
       label: "Enrolled Students",
-      value: courseDetails1?.enrolled_students || "500+",
+      value: courseData?.enrolled_students || "500+",
       icon: Users,
       color: "purple"
     },
     {
       label: "Start Date",
-      value: courseDetails1?.start_date || "Flexible",
+      value: courseData?.start_date || "Flexible",
       icon: Calendar,
       color: "green"
     }
@@ -189,14 +230,14 @@ function CourseEducation({ courseId, courseDetails }) {
       return;
     }
     
-    if (courseDetails1) {
-      const courseFee = Number(courseDetails1?.course_fee) || 59500;
+    if (courseData) {
+      const courseFee = Number(courseData?.course_fee) || 59500;
       const options = {
         key: "rzp_test_Rz8NSLJbl4LBA5",
         amount: courseFee * 100 * 84.47,
         currency: "INR",
-        name: courseDetails1?.course_title,
-        description: `Payment for ${courseDetails1?.course_title}`,
+        name: courseData?.course_title,
+        description: `Payment for ${courseData?.course_title}`,
         image: Education,
         handler: async function (response) {
           toast.success("Payment Successful!");
@@ -356,6 +397,10 @@ function CourseEducation({ courseId, courseDetails }) {
     }
   };
 
+  if (error) {
+    return <ErrorFallback error={error} resetErrorBoundary={fetchCourseDetails} />;
+  }
+
   if (loading) {
     return (
       <div className="flex justify-center items-center py-20">
@@ -401,8 +446,8 @@ function CourseEducation({ courseId, courseDetails }) {
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
             <div className="relative h-[300px] md:h-[400px] group">
               <Image
-                src={courseDetails1?.course_image || Education}
-                alt={courseDetails1?.course_title || "Course"}
+                src={courseData?.course_image || Education}
+                alt={courseData?.course_title || "Course"}
                 fill
                 className="object-cover transition-transform duration-700 group-hover:scale-105"
                 priority
@@ -416,9 +461,9 @@ function CourseEducation({ courseId, courseDetails }) {
               >
                 <div className="flex items-center space-x-2 mb-3">
                   <span className="inline-block px-3 py-1 bg-gradient-to-r from-emerald-500 to-green-500 text-white text-xs font-medium rounded-full">
-                    {courseDetails1?.course_grade || "All Levels"}
+                    {courseData?.course_grade || "All Levels"}
                   </span>
-                  {courseDetails1?.is_Popular === "Yes" && (
+                  {courseData?.is_Popular === "Yes" && (
                     <span className="inline-block px-3 py-1 bg-amber-100 text-amber-800 text-xs font-medium rounded-full flex items-center">
                       <Star className="w-3 h-3 mr-1 text-amber-500" />
                       Popular
@@ -426,25 +471,25 @@ function CourseEducation({ courseId, courseDetails }) {
                   )}
                 </div>
                 <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow-sm">
-                  {courseDetails1?.course_title || "Digital Marketing with Data Analytics"}
+                  {courseData?.course_title || "Digital Marketing with Data Analytics"}
                 </h1>
                 <div className="flex flex-wrap gap-3 mt-3">
-                  {courseDetails1?.course_duration && (
+                  {courseData?.course_duration && (
                     <div className="flex items-center bg-black/30 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full">
                       <Clock className="w-3 h-3 mr-1" />
-                      {courseDetails1.course_duration}
+                      {courseData.course_duration}
                     </div>
                   )}
-                  {courseDetails1?.students_count && (
+                  {courseData?.students_count && (
                     <div className="flex items-center bg-black/30 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full">
                       <Users className="w-3 h-3 mr-1" />
-                      {courseDetails1.students_count} students
+                      {courseData.students_count} students
                     </div>
                   )}
-                  {courseDetails1?.class_type && (
+                  {courseData?.class_type && (
                     <div className="flex items-center bg-black/30 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full">
                       <BookOpen className="w-3 h-3 mr-1" />
-                      {courseDetails1.class_type}
+                      {courseData.class_type}
                     </div>
                   )}
                 </div>
@@ -453,7 +498,7 @@ function CourseEducation({ courseId, courseDetails }) {
             
             <div className="p-5">
               {/* Course Description */}
-              {courseDetails1?.course_description && (
+              {courseData?.course_description && (
                 <div className="mb-4">
                   <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-100 flex items-center">
                     <span className="bg-gradient-to-r from-emerald-500 to-blue-500 bg-clip-text text-transparent">
@@ -534,7 +579,7 @@ function CourseEducation({ courseId, courseDetails }) {
                     <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-medium">Course Fee</p>
                     <div className="flex items-center">
                       <h3 className="text-3xl font-bold text-gray-800 dark:text-gray-50">
-                        ${courseDetails1?.course_fee || "595"}
+                        ${courseData?.course_fee || "595"}
                       </h3>
                       <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">USD</span>
                     </div>
@@ -619,7 +664,7 @@ function CourseEducation({ courseId, courseDetails }) {
                   <div className="flex items-center">
                     <BookOpen size={16} className="text-blue-500 mr-2" />
                     <span className="text-sm text-gray-600 dark:text-gray-300">
-                      {courseDetails1?.class_type || "Live Online Classes"}
+                      {courseData?.class_type || "Live Online Classes"}
                     </span>
                   </div>
                   <motion.span 

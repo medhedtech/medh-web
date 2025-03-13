@@ -20,6 +20,7 @@ function PersonalityDevelopment() {
     title: "Comprehensive",
     titleHighlight: "Personality",
     description: "Uncover Your Untapped Potential. Perfect for Students, Professionals, and Homemakers. Unleash Your Best Self.",
+    enrollmentPath: "/enrollment/personality-development",
     stats: [
       {
         icon: <Users className="w-5 h-5 text-primary-500" />,
