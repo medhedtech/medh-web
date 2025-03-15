@@ -102,15 +102,13 @@ function CourseAi() {
               CourseAiOverview,
               CourseOptions,
               CourseAiFaq,
-              CourseAiCourseBanner,
               CourseAiRelatedCourses,
-              ExploreJourney,
               ThemeController
             }}
-            exploreJourneyProps={{
-              mainText: "Master AI & Data Science. Future-proof Your Career.",
-              subText: "Enroll Now!"
-            }}
+            // exploreJourneyProps={{
+            //   mainText: "Master AI & Data Science. Future-proof Your Career.",
+            //   subText: "Enroll Now!"
+            // }}
             bannerProps={bannerProps}
           />
         </main>
