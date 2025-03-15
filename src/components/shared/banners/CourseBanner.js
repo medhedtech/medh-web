@@ -59,12 +59,12 @@ function CourseBanner({
             transition={{ duration: 0.5 }}
             className="space-y-8"
           >
-            {/* Badge */}
+            {/* Badge
             <div className={`inline-flex items-center gap-2 ${themeClasses.badgeContainer} rounded-full p-1 pl-2 pr-4`}>
               <span className={`${themeClasses.badge} text-white text-xs font-semibold px-2 py-1 rounded-full`}>
                 {badge}
               </span>
-            </div>
+            </div> */}
 
             {/* Heading */}
             <div className="space-y-4">
