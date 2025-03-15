@@ -46,13 +46,13 @@ const fallbackCategories = {
     "Business And Management",
     "Career Development",
     "Communication And Soft Skills",
-    "Data And Analytics",
+    "Data & Analytics",
     "Environmental and Sustainability Skills",
-    "Finance And Accounts",
-    "Health And Wellness",
+    "Finance & Accounts",
+    "Health & Wellness",
     "Industry-Specific Skills",
-    "Language And Linguistic",
-    "Legal And Compliance Skills",
+    "Language & Linguistic",
+    "Legal & Compliance Skills",
     "Personal Well-Being",
   ]
 };
@@ -222,6 +222,44 @@ const CoursesFilter = ({
   const searchParams = useSearchParams();
   const { getQuery, loading } = useGetQuery();
 
+  // Add responsive states similar to courseOptions.js
+  const [isMobile, setIsMobile] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
+  const [responsiveGridColumns, setResponsiveGridColumns] = useState(gridColumns);
+
+  // Check for screen size on client-side only
+  useEffect(() => {
+    // Skip during SSR
+    if (typeof window === 'undefined') return;
+    
+    const checkScreenSize = () => {
+      const isMobileView = window.innerWidth < 768;
+      const isTabletView = window.innerWidth >= 768 && window.innerWidth < 1024;
+      
+      setIsMobile(isMobileView);
+      setIsTablet(isTabletView);
+      
+      // Update grid columns based on screen size
+      // Use passed gridColumns as a base, but adjust for mobile/tablet if it's larger than appropriate
+      if (isMobileView) {
+        setResponsiveGridColumns(1); // Mobile: 1 column
+      } else if (isTabletView) {
+        setResponsiveGridColumns(Math.min(gridColumns, 2)); // Tablet: max 2 columns
+      } else {
+        setResponsiveGridColumns(gridColumns); // Desktop: use provided columns
+      }
+    };
+    
+    // Initial check
+    checkScreenSize();
+    
+    // Add event listener for window resize
+    window.addEventListener('resize', checkScreenSize);
+    
+    // Cleanup
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, [gridColumns]);
+
   // Filter states
   const [selectedCategory, setSelectedCategory] = useState([]);
   const [selectedGrade, setSelectedGrade] = useState("");
@@ -319,38 +357,41 @@ const CoursesFilter = ({
     }
 
     debounceTimer.current = setTimeout(() => {
-      const baseUrl = window.location.pathname;
-      const q = new URLSearchParams();
+      // Run this code only on the client side
+      if (typeof window !== 'undefined') {
+        const baseUrl = window.location.pathname;
+        const q = new URLSearchParams();
 
-      // Category
-      if (!fixedCategory && selectedCategory.length > 0) {
-        const catParam = selectedCategory
-          .map((cat) => encodeURIComponent(cat.trim()))
-          .join(",");
-        if (catParam) q.set("category", catParam);
-      }
-      // Grade
-      if (selectedGrade) {
-        q.set("grade", encodeURIComponent(selectedGrade));
-      }
-      // Search
-      if (searchTerm) {
-        q.set("search", encodeURIComponent(searchTerm));
-      }
-      // Sort
-      if (sortOrder && sortOrder !== "newest-first") {
-        q.set("sort", sortOrder);
-      }
-      // Page
-      if (currentPage > 1) {
-        q.set("page", currentPage.toString());
-      }
+        // Category
+        if (!fixedCategory && selectedCategory.length > 0) {
+          const catParam = selectedCategory
+            .map((cat) => encodeURIComponent(cat.trim()))
+            .join(",");
+          if (catParam) q.set("category", catParam);
+        }
+        // Grade
+        if (selectedGrade) {
+          q.set("grade", encodeURIComponent(selectedGrade));
+        }
+        // Search
+        if (searchTerm) {
+          q.set("search", encodeURIComponent(searchTerm));
+        }
+        // Sort
+        if (sortOrder && sortOrder !== "newest-first") {
+          q.set("sort", sortOrder);
+        }
+        // Page
+        if (currentPage > 1) {
+          q.set("page", currentPage.toString());
+        }
 
-      const newQuery = q.toString();
-      const newUrl = newQuery ? `${baseUrl}?${newQuery}` : baseUrl;
-      const currentUrl = window.location.pathname + window.location.search;
-      if (newUrl !== currentUrl) {
-        router.push(newUrl, { shallow: true });
+        const newQuery = q.toString();
+        const newUrl = newQuery ? `${baseUrl}?${newQuery}` : baseUrl;
+        const currentUrl = window.location.pathname + window.location.search;
+        if (newUrl !== currentUrl) {
+          router.push(newUrl, { shallow: true });
+        }
       }
     }, 300);
 
@@ -373,6 +414,9 @@ const CoursesFilter = ({
    * 3) Fetch courses from API whenever relevant states change (debounced).
    */
   const fetchCourses = useCallback(async () => {
+    // Skip during SSR
+    if (typeof window === 'undefined') return;
+    
     setQueryError(null);
 
     // Make sure categories are in sync (fixed or chosen)
@@ -452,7 +496,7 @@ const CoursesFilter = ({
             setTotalPages(data.pagination?.totalPages || 1);
             setTotalItems(data.pagination?.totalCourses || 0);
 
-            if (scrollToTop) {
+            if (scrollToTop && typeof window !== 'undefined') {
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }
           } else {
@@ -735,7 +779,8 @@ const CoursesFilter = ({
     // Default responsive grid
     let gridClass = "grid gap-6";
     
-    switch (gridColumns) {
+    // These will run on the server with default values, and will be updated on client
+    switch (responsiveGridColumns) {
       case 1:
         gridClass += " grid-cols-1";
         break;
@@ -756,10 +801,19 @@ const CoursesFilter = ({
     return gridClass;
   };
 
+  // Create an SSR-safe grid style
+  const safeGridStyle = {
+    ...customGridStyle,
+    // Only set gridTemplateColumns if actually provided
+    ...(Object.keys(customGridStyle).length > 0 ? {} : {
+      gridTemplateColumns: `repeat(${responsiveGridColumns}, minmax(0, 1fr))`
+    })
+  };
+
   return (
     <>
       <ErrorBoundary>
-        <section className="pb-20 relative w-full">
+        <section className="pb-5 relative w-full">
           {/* Course Header - Only render if not hidden */}
           {!hideHeader && (
             <div className={`${activeTab !== 'all' ? tabStyles.bgColor : 'bg-gray-900 dark:bg-gray-950'} py-10 md:py-16 transition-colors duration-300 border-b ${activeTab !== 'all' ? tabStyles.borderColor : 'border-gray-800 dark:border-gray-800/40'} w-full`}>
@@ -1115,7 +1169,7 @@ const CoursesFilter = ({
                     // Show courses with custom grid layout if in grid mode
                     <div 
                       className={viewMode === "grid" ? getGridColumnClasses() : "space-y-4"}
-                      style={viewMode === "grid" && Object.keys(customGridStyle).length > 0 ? customGridStyle : {}}
+                      style={viewMode === "grid" && Object.keys(customGridStyle).length > 0 ? safeGridStyle : {}}
                     >
                       {filteredCourses.map((course) => (
                         <ErrorBoundary key={course._id || course.id}>

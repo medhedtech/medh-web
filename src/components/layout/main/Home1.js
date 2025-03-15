@@ -96,11 +96,11 @@ const Home1 = () => {
         isLaptopHeight ? 'laptop:gap-y-12' : ''
       }`}>
         {/* Courses Section - Optimized padding for 1366x768 */}
-        <section className="w-full px-3 sm:px-4 md:px-5 lg:px-6 py-4 sm:py-5 md:py-3 laptop:py-4">
+        <section className="w-full px-3 sm:px-4 md:px-5 lg:px-6 py-4 sm:py-2 md:py-3 laptop:py-4">
           <div className="max-w-[1366px] mx-auto">
             <HomeCourseSection
-              CustomText="Skill Development Courses"
-              CustomDescription="Discover our comprehensive range of skill development courses"
+              CustomText="Discover our comprehensive range of "
+              CustomDescription="Skill Development Courses"
               scrollToTop={initialScrollToTop}
               hideGradeFilter
             />
@@ -109,7 +109,7 @@ const Home1 = () => {
 
         {/* Why Medh Section - Optimized for 1366x768 */}
         <section className="w-full bg-gradient-to-r from-gray-50/80 via-white to-gray-50/80 
-          dark:from-gray-900/80 dark:via-gray-950 dark:to-gray-900/80 backdrop-blur-sm py-8 md:py-5 laptop:py-4 relative overflow-hidden">
+          dark:from-gray-900/80 dark:via-gray-950 dark:to-gray-900/80 backdrop-blur-sm py-8 md:py-2 laptop:py-4 relative overflow-hidden">
           <div className="max-w-[1366px] mx-auto px-3 sm:px-4 md:px-5 lg:px-6 relative z-10">
             <WhyMedh />
           </div>
@@ -132,12 +132,6 @@ const Home1 = () => {
           <div className="absolute inset-0 bg-[url('/pattern.svg')] bg-repeat opacity-5"></div>
         </section>
 
-        {/* Blog Section - Optimized for 1366x768 */}
-        <section className="w-full px-3 sm:px-4 md:px-5 lg:px-6 py-4 sm:py-5 md:py-3 laptop:py-4">
-          <div className="max-w-[1366px] mx-auto">
-            <Blogs />
-          </div>
-        </section>
 
         {/* Hire Section - Optimized for 1366x768 */}
         <section className="w-full bg-gradient-to-r from-gray-50/90 via-white to-gray-50/90 
@@ -148,6 +142,13 @@ const Home1 = () => {
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-secondary-500/5 to-transparent"></div>
         </section>
       </div>
+      
+      {/* Blog Section - Optimized for 1366x768 */}
+      <section className="w-full px-3 sm:px-4 md:px-5 lg:px-6 py-4 sm:py-5 md:py-3 laptop:py-4">
+          <div className="max-w-[1366px] mx-auto">
+            <Blogs />
+          </div>
+        </section>
 
       {/* Enhanced animations and responsive styles - Optimized for 1366x768 */}
       <style jsx>{`

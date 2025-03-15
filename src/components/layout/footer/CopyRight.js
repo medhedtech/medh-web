@@ -35,8 +35,8 @@ const CopyRight = ({ qrCodeImage, isMobile }) => {
   ];
   
   const policyLinks = [
-    { name: "Terms", path: "/terms-and-services" },
-    { name: "Privacy", path: "/privacy-policy" },
+    { name: "Terms of Use", path: "/terms-and-services" },
+    { name: "Privacy Policy", path: "/privacy-policy" },
     { name: "Cookie Policy", path: "/cookie-policy" },
     { name: "Refund Policy", path: "/cancellation-and-refund-policy" }
   ];
@@ -90,12 +90,12 @@ const CopyRight = ({ qrCodeImage, isMobile }) => {
             </div>
             
             {/* 3. Policy Links - each on their own line for clarity */}
-            <div className="flex flex-col items-center gap-2 pt-2 pb-3 w-full">
+            <div className="flex  items-center gap-2 pt-2 pb-3 w-full">
               {policyLinks.map((link, index) => (
                 <button
                   key={index}
                   onClick={() => handleNavigation(link.path)}
-                  className="text-gray-400 hover:text-primary-400 transition-colors text-xs hover:underline decoration-primary-400/30 underline-offset-2 flex items-center gap-1 py-1"
+                  className="text-gray-400 hover:text-primary-400 transition-colors text-xs hover:underline decoration-primary-400/30 underline-offset-2 flex items-center gap-1 py-1 " 
                 >
                   <span>{link.name}</span>
                   <ArrowUpRight size={10} className="opacity-70" />

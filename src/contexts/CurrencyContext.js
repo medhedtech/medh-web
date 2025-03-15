@@ -7,19 +7,19 @@ import Cookies from 'js-cookie';
 const CURRENCIES = {
   USD: { symbol: "$", name: "US Dollar", rate: 1 },
   EUR: { symbol: "€", name: "Euro", rate: 0.91 },
+  AED: { symbol: "د.إ‎", name: "United Arab Emirates Dirham", rate: 3.67 },
   GBP: { symbol: "£", name: "British Pound", rate: 0.78 },
   INR: { symbol: "₹", name: "Indian Rupee", rate: 83.18 },
   AUD: { symbol: "A$", name: "Australian Dollar", rate: 1.52 },
   CAD: { symbol: "C$", name: "Canadian Dollar", rate: 1.36 },
-  JPY: { symbol: "¥", name: "Japanese Yen", rate: 151.79 },
   SGD: { symbol: "S$", name: "Singapore Dollar", rate: 1.34 }
 };
 
 // Country to currency mapping
 const COUNTRY_CURRENCY_MAP = {
-  US: 'USD', CA: 'CAD', GB: 'GBP', 
+  US: 'USD', AED: 'AED', CA: 'CAD', GB: 'GBP', 
   IE: 'EUR', FR: 'EUR', DE: 'EUR', IT: 'EUR', ES: 'EUR', 
-  IN: 'INR', AU: 'AUD', JP: 'JPY', SG: 'SGD',
+  IN: 'INR', AU: 'AUD', SG: 'SGD',
   // Add more country to currency mappings as needed
 };
 

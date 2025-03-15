@@ -103,11 +103,15 @@ const WhyMedh = () => {
               />
               
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 md:mb-4 text-gray-800 dark:text-white leading-tight">
-                100% Job-guaranteed Courses from <span className="text-primary-500 dark:text-primary-400">Medh</span>.
+                100% Job-guaranteed Courses from <span className="text-medhgreen dark:text-medhgreen" >Medh</span>.
               </h2>
               
+              {/* todo: break after or */}
               <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mb-5 md:mb-6 max-w-md mx-auto">
-                Our job guarantee program ensures that you'll land a job in your field within 6 months of graduation, or we'll refund your course fee.
+                Our job guarantee program ensures that you'll land a job in your field within six months of course completion, or
+              </p>
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 md:mb-2 max-w-md mx-auto ">
+                <b>We will refund your course fee. </b>
               </p>
             </div>
             
@@ -131,7 +135,7 @@ const WhyMedh = () => {
               onClick={() => router.push("/placement-guaranteed-courses")}
               className="mt-1 md:mt-2 inline-flex items-center px-5 py-2.5 md:px-6 md:py-3.5 bg-primary-500 hover:bg-primary-600 text-white text-sm md:text-base font-medium rounded-full transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 group"
             >
-              Explore Guaranteed Courses
+              Explore Job Guaranteed Courses
               <ChevronRight className="ml-1.5 w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-0.5 transition-transform" />
             </button>
           </div>
@@ -153,7 +157,7 @@ const WhyMedh = () => {
               </span>
               
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 md:mb-4 text-gray-800 dark:text-white">
-                Why Choose <span className="text-primary-500 dark:text-primary-400">MEDH</span>?
+                Why Choose <span className="text-medhgreen dark:text-medhgreen">MEDH</span>?
               </h2>
               
               <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
@@ -192,14 +196,6 @@ const WhyMedh = () => {
                       <p className="text-gray-600 dark:text-gray-300 text-sm">
                         {item.desc}
                       </p>
-                      
-                      <button
-                        onClick={() => router.push("/about-us")}
-                        className="mt-3 inline-flex items-center text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium"
-                      >
-                        Learn more
-                        <ArrowUpRight size={14} className="ml-1" />
-                      </button>
                     </div>
                   </SwiperSlide>
                 ))}
@@ -227,13 +223,6 @@ const WhyMedh = () => {
                       {item.desc}
                     </p>
                     
-                    <button
-                      onClick={() => router.push("/about-us")}
-                      className="mt-3 md:mt-4 inline-flex items-center text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-xs md:text-sm font-medium"
-                    >
-                      Learn more
-                      <ArrowUpRight size={12} className="ml-1 md:ml-1.5" />
-                    </button>
                   </div>
                 ))}
               </div>
