@@ -30,9 +30,9 @@ function CourseContentAdapter(props) {
         CourseOverview: components.DigiMarketingOverview,
         CourseContent: components.DigiMarketingCource,
         CourseFAQ: components.DigiMarketingFaq,
-        CourseContentBanner: components.DigiMarketingCourceBanner,
+        // CourseContentBanner: components.DigiMarketingCourceBanner,
         CourseRelatedCourses: components.DigiMarketingRalatedCource,
-        ExploreJourney: components.ExploreJourney,
+        // ExploreJourney: components.ExploreJourney,
         ThemeController: components.ThemeController
       },
       options: {
@@ -50,9 +50,9 @@ function CourseContentAdapter(props) {
         CourseOverview: components.VedicOverview,
         CourseContent: components.VedicCource,
         CourseFAQ: components.VedicFaq,
-        CourseContentBanner: components.VedicCourceBanner,
+        // CourseContentBanner: components.VedicCourceBanner,
         CourseRelatedCourses: components.VedicRalatedCource,
-        ExploreJourney: components.ExploreJourney,
+        // ExploreJourney: components.ExploreJourney,
         ThemeController: components.ThemeController
       },
       options: {
@@ -70,9 +70,9 @@ function CourseContentAdapter(props) {
         CourseOverview: components.PersonalityOvereveiw,
         CourseContent: components.PersonalityCourse,
         CourseFAQ: components.PersonalityFaq,
-        CourseContentBanner: components.PersonalityCourseBanner,
+        // CourseContentBanner: components.PersonalityCourseBanner,
         CourseRelatedCourses: components.PersonalityRelatedCourse,
-        ExploreJourney: components.ExploreJourney,
+        // ExploreJourney: components.ExploreJourney,
         ThemeController: components.ThemeController
       },
       options: {
@@ -95,9 +95,9 @@ function CourseContentAdapter(props) {
         CourseOverview: components.CourseAiOverview,
         CourseContent: components.CourseOptions,
         CourseFAQ: components.CourseAiFaq,
-        CourseContentBanner: components.CourseAiCourseBanner,
+        // CourseContentBanner: components.CourseAiCourseBanner,
         CourseRelatedCourses: components.CourseAiRelatedCourses,
-        ExploreJourney: components.ExploreJourney,
+        // ExploreJourney: components.ExploreJourney,
         ThemeController: components.ThemeController
       },
       options: {
@@ -120,7 +120,7 @@ function CourseContentAdapter(props) {
   return (
     <AnimatedContent
       components={courseConfig.componentMap}
-      exploreJourneyProps={exploreJourneyProps}
+      // exploreJourneyProps={exploreJourneyProps}
       bannerProps={bannerProps}
       options={courseConfig.options}
       {...rest}
