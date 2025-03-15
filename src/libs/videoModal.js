@@ -1,3 +1,4 @@
+// videoModal.js - Video modal utility for course videos
 const videoModal = () => {
   document
     .querySelectorAll(".lvideo")
