@@ -15,7 +15,7 @@ import { ArrowUpCircle } from 'lucide-react';
  */
 function AnimatedContent({ 
   components, 
-  exploreJourneyProps, 
+  // exploreJourneyProps, 
   bannerProps = {}, 
   options = {} 
 }) {
@@ -33,14 +33,14 @@ function AnimatedContent({
     // Course FAQ component
     CourseFAQ,
     
-    // Course banner component
-    CourseContentBanner,
+    // // Course banner component
+    // CourseContentBanner,
     
     // Related courses component
     CourseRelatedCourses,
     
-    // Journey exploration component
-    ExploreJourney,
+    // // Journey exploration component
+    // ExploreJourney,
     
     // Theme controller component
     ThemeController
@@ -165,14 +165,14 @@ function AnimatedContent({
         )}
 
         {/* Enrollment CTA Section */}
-        {ExploreJourney && (
+        {/* {ExploreJourney && (
           <section className="relative w-full py-16 md:py-20 overflow-hidden">
             <div className={`absolute inset-0 bg-gradient-to-r from-${ctaGradientColors[0]} via-${ctaGradientColors[1]} to-${ctaGradientColors[2]}`} />
             <motion.div {...motionSectionProps}>
               <ExploreJourney {...exploreJourneyProps} />
             </motion.div>
           </section>
-        )}
+        )} */}
 
         {/* FAQ Section */}
         {CourseFAQ && (
@@ -186,11 +186,11 @@ function AnimatedContent({
         )}
 
         {/* Course Banner Section */}
-        {CourseContentBanner && (
+        {/* {CourseContentBanner && (
           <motion.section {...motionSectionProps}>
             <CourseContentBanner />
           </motion.section>
-        )}
+        )} */}
 
         {/* Related Courses Section */}
         {CourseRelatedCourses && (
