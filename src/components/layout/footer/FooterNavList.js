@@ -73,7 +73,7 @@ const FooterNavList = ({ logoImage, isMobile }) => {
     title: "About Medh",
     description: "Medh is an innovative ed-tech platform that empowers learners with industry-ready skills through expert-led courses, personalized learning paths, and guaranteed job placements.",
     contact: [
-      { icon: <MapPin size={14} />, text: "Mumbai, India" },
+      // { icon: <MapPin size={14} />, text: "Mumbai, India" },
       { icon: <Phone size={14} />, text: "+91 77108 40696" },
       { icon: <Mail size={14} />, text: "care@medh.co" }
     ]
@@ -86,20 +86,22 @@ const FooterNavList = ({ logoImage, isMobile }) => {
       items: [
         { name: "As an Educator", path: "/join-us-as-educator" },
         { name: "As a School", path: "/join-us-as-school-institute" },
-        { name: "Medh Membership", path: "/medh-membership" },
+        { name: "Career@Medh", path: "/careers" },
         { name: "Hire from Medh", path: "/hire-from-medh" },
-        { name: "Careers", path: "/careers" },
+        { name: "Medh Membership", path: "/medh-membership" },
+        
       ],
     },
     {
-      heading: "Menu",
+      heading: "Quick Menu",
       icon: <Menu size={16} />,
       items: [
-        { name: "Corporate Training", path: "/corporate-training-courses" },
         { name: "About Us", path: "/about-us" },
         { name: "Blog", path: "/blogs" },
+        { name: "Corporate Training", path: "/corporate-training-courses" }, 
+        { name: "News and Media", path: "/news-and-media" },
         { name: "Contact Us", path: "/contact-us" },
-        { name: "Home", path: "/" },
+        // { name: "Home", path: "/" },
       ],
     },
     {
@@ -146,7 +148,7 @@ const FooterNavList = ({ logoImage, isMobile }) => {
           </div>
           
           {/* Brief description with improved styling */}
-          <div className="text-gray-400 text-xs mb-4 text-center px-4 max-w-xs leading-relaxed">
+          <div className="text-gray-400 text-xs mb-4 text-center px-4 max-w-xs leading-relaxed ">
             {aboutUsContent.description.split(' ').slice(0, 14).join(' ')}...
           </div>
           
@@ -222,16 +224,16 @@ const FooterNavList = ({ logoImage, isMobile }) => {
         
         {/* Enhanced contact list with better alignment and styling */}
         <div className="backdrop-blur-sm bg-black/20 p-4 rounded-lg border border-white/5 max-w-xl">
-          <h3 className="text-white text-sm font-medium mb-3 flex items-center gap-2">
+          {/* <h3 className="text-white text-sm font-medium mb-3 flex items-center gap-2">
             <div className="w-4 h-4 bg-primary-500/30 rounded-full flex items-center justify-center">
               <div className="w-2 h-2 bg-primary-500 rounded-full"></div>
             </div>
             Contact Information
-          </h3>
+          </h3> */}
           <ul className="space-y-3">
             {aboutUsContent.contact.map((item, idx) => (
-              <li key={idx} className="flex items-center gap-3 group bg-black/30 p-2 rounded-lg hover:bg-black/40 transition-colors duration-300">
-                <span className="text-primary-400 bg-black/40 p-1.5 rounded-md transition-colors duration-300 group-hover:bg-primary-500/20">
+              <li key={idx} className="flex items-center  gap-3 group bg-black/30 p-2 rounded-lg hover:bg-black/40 transition-colors duration-300 ">
+                <span className="text-primary-400 bg-black/40 p-1.5 rounded-md transition-colors duration-300 group-hover:bg-primary-500/20 ">
                   {item.icon}
                 </span>
                 <span className="text-gray-300 text-sm group-hover:text-white transition-colors duration-300">

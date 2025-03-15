@@ -54,6 +54,15 @@ function PersonalityDevelopmentCourses() {
     gridTemplateColumns: `repeat(${viewSettings.gridColumns}, minmax(0, 1fr))`,
   };
 
+  // Ensure consistent text alignment
+  const customCardStyle = {
+    textAlign: 'center',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    minHeight: '100%'
+  };
+
   // Custom empty state content
   const emptyStateContent = (
     <div className="flex flex-col items-center justify-center min-h-[30vh] text-center p-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
@@ -107,6 +116,7 @@ function PersonalityDevelopmentCourses() {
           // Custom styling
           customGridClassName="grid gap-6 sm:gap-8"
           customGridStyle={customGridStyle}
+          customCardStyle={customCardStyle}
           // Custom empty state
           emptyStateContent={emptyStateContent}
           // Theme

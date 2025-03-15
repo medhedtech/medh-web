@@ -23,12 +23,13 @@ function AnimatedContent({
   const {
     // Optional course-specific banner component
     CourseBanner,
+
+
+    // Course content/options component
+    CourseContent,
     
     // Course overview component
     CourseOverview,
-    
-    // Course content/options component
-    CourseContent,
     
     // Course FAQ component
     CourseFAQ,
@@ -130,7 +131,7 @@ function AnimatedContent({
     whileInView: "visible",
     viewport: { once: true, amount: 0.1 },
     variants: fadeInUp,
-    className: "w-full py-12 md:py-16 relative z-10 transform-gpu"
+    className: "w-full py-3 md:py-16 relative z-10 transform-gpu"
   };
 
   return (
@@ -148,8 +149,15 @@ function AnimatedContent({
         <div className="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-gray-50 dark:from-gray-900 to-transparent" />
       </section>
 
+      {/* Course Content Section */}
+      {CourseContent && (
+          <motion.section {...motionSectionProps}>
+            <CourseContent />
+          </motion.section>
+        )}
+
       {/* Main Content */}
-      <main className="relative w-full bg-gray-50 dark:bg-gray-900">
+      <main className="relative w-full bg-gray-50 dark:bg-gray-900 ">
         {/* Overview Section */}
         {CourseOverview && (
           <motion.section {...motionSectionProps}>
@@ -157,12 +165,7 @@ function AnimatedContent({
           </motion.section>
         )}
 
-        {/* Course Content Section */}
-        {CourseContent && (
-          <motion.section {...motionSectionProps}>
-            <CourseContent />
-          </motion.section>
-        )}
+        
 
         {/* Enrollment CTA Section */}
         {/* {ExploreJourney && (
@@ -177,8 +180,8 @@ function AnimatedContent({
         {/* FAQ Section */}
         {CourseFAQ && (
           <motion.section {...motionSectionProps}>
-            <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl">
-              <div className="py-8">
+            <div className="">
+              <div className="py-0">
                 <CourseFAQ />
               </div>
             </div>
