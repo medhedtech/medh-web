@@ -24,7 +24,7 @@ export const formatPrice = (price, currencyCode = 'USD', showSymbol = true) => {
     INR: '₹',
     AUD: 'A$',
     CAD: 'C$',
-    JPY: '¥',
+    AED: 'د.إ‎',
     SGD: 'S$'
   };
   
