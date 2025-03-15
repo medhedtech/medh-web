@@ -24,20 +24,20 @@ const schema = yup.object({
       /^[a-zA-Z\s'-]+$/,
       "Name can only contain alphabets, spaces, hyphens, and apostrophes."
     )
-    .required("Name is required."),
+    .required("Full name is required"),
   email: yup
     .string()
     .trim()
-    .email("Please enter a valid email address.")
-    .required("Email is required."),
+    .email("Please enter a valid email address")
+    .required("Email address is required"),
   country: yup
     .string()
-    .required("Please select your country."),
+    .required("Please select your country"),
   phone_number: yup
     .string()
-    .required("Please enter your mobile number")
+    .required("Phone number is required")
     .matches(/^\d+$/, "Phone number can only contain digits")
-    .test("is-valid-phone", "Invalid phone number.", function (value) {
+    .test("is-valid-phone", "Phone number must be 10 digits", function (value) {
       const { country } = this.parent;
       if (!value || !country) return false;
 
@@ -64,7 +64,7 @@ const schema = yup.object({
     .string()
     .trim()
     .min(10, "Message must be at least 10 characters")
-    .required("Please enter the message"),
+    .required("Please tell us about your requirements"),
   accept: yup
     .boolean()
     .oneOf([true], "You must accept the terms and privacy policy")
@@ -373,7 +373,7 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
                         {...register("email")}
                         id="email"
                         type="email"
-                        placeholder="Email Address"
+                        placeholder="Your Email Address"
                         className={`w-full pl-12 pr-4 py-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 border-2 ${
                           errors.email 
                             ? 'border-red-500 focus:ring-red-500 dark:border-red-500' 
@@ -436,7 +436,7 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
                           inputMode="numeric"
                           onChange={handlePhoneInput}
                           value={watchedFields.phone_number}
-                          placeholder="10-digit phone number"
+                          placeholder="10-digit Mobile Number"
                           className={`w-full pl-12 pr-4 py-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 border-2 ${
                             errors.phone_number 
                               ? 'border-red-500 focus:ring-red-500 dark:border-red-500' 
@@ -466,13 +466,18 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
                       <textarea
                         {...register("message")}
                         id="message"
-                        placeholder="How can we help you? Tell us about your requirements..."
+                        placeholder="How can we help you? Tell us about your learning goals or questions..."
                         className={`w-full pl-12 pr-4 py-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 border-2 ${
                           errors.message 
                             ? 'border-red-500 focus:ring-red-500 dark:border-red-500' 
                             : 'border-gray-200 dark:border-gray-700 hover:border-primary-400 dark:hover:border-primary-500 focus:ring-primary-500 focus:border-primary-500'
                         } text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-opacity-50 focus:border-transparent transition-all duration-200 shadow-sm h-32 resize-none hover:bg-white dark:hover:bg-gray-700/70`}
                       />
+                      
+                      {/* Character Counter */}
+                      <div className="text-xs text-gray-400 absolute right-3 bottom-3">
+                        {(watchedFields.message?.length || 0)}/10+ characters
+                      </div>
                     </div>
                     {errors.message && (
                       <span className="text-red-500 text-sm mt-1.5 flex items-center pl-1" role="alert">
