@@ -23,8 +23,8 @@ const featuredLiveCourses = [
     description: "Master the fundamentals of artificial intelligence and data science with hands-on projects and industry mentorship.",
     url: "/ai-and-data-science-course", // URL for redirection
     duration_range: "4-18 months",
-    effort_hours: "8-10",
-    no_of_Sessions: 24,
+    effort_hours: "4-6",
+    no_of_Sessions: "24-120",
     learning_points: [
       "Python for Data Science",
       "Machine Learning Algorithms",
@@ -45,8 +45,8 @@ const featuredLiveCourses = [
     description: "Learn how to leverage digital platforms and data analytics to create successful marketing campaigns.",
     url: "/digital-marketing-with-data-analytics-course", // URL for redirection
     duration_range: "4-18 months",
-    effort_hours: "6-8",
-    no_of_Sessions: 20,
+    effort_hours: "4-6",
+    no_of_Sessions: "24-120",
     learning_points: [
       "Social Media Marketing",
       "SEO & SEM",
@@ -68,7 +68,7 @@ const featuredLiveCourses = [
     url: "/personality-development-course", // URL for redirection
     duration_range: "3-9 months",
     effort_hours: "4-6",
-    no_of_Sessions: 16,
+    no_of_Sessions: "24-72",
     learning_points: [
       "Effective Communication",
       "Emotional Intelligence",
@@ -90,7 +90,7 @@ const featuredLiveCourses = [
     url: "/vedic-mathematics-course", // URL for redirection
     duration_range: "3-9 months",
     effort_hours: "4-6",
-    no_of_Sessions: 16,
+    no_of_Sessions: "24-72",
     learning_points: [
       "Speed Mathematics",
       "Vedic Sutras",
@@ -106,6 +106,42 @@ const featuredLiveCourses = [
     }
   }
 ];
+
+// Estimated video count and QnA sessions for blended courses
+const getBlendedCourseSessions = (course) => {
+  // Default values if not available in course data
+  const defaultVideoCount = 20; // Random between 30-50
+  const defaultQnaSessions = 2; // Random between 4-8
+  
+  // Try to extract from course data or use defaults
+  const videoCount = course.video_count || course.lectures_count || defaultVideoCount;
+  const qnaSessions = course.qa_sessions || course.live_sessions || defaultQnaSessions;
+  
+  return {
+    videoCount,
+    qnaSessions
+  };
+};
+
+// Prepare icons for learning experience display
+const VideoIcon = () => <Video size={14} className="mr-1 flex-shrink-0" />;
+const QnaIcon = () => <Users size={14} className="mr-1 flex-shrink-0" />;
+
+// Format the blended course learning experience text with better phrasing and icons
+const formatBlendedLearningExperience = (videoCount, qnaSessions) => {
+  return (
+    <div className="flex flex-col space-y-1.5">
+      <div className="flex items-center text-xs">
+        <VideoIcon />
+        <span>{videoCount} Video Lessons</span>
+      </div>
+      <div className="flex items-center text-xs">
+        <QnaIcon />
+        <span>{qnaSessions} Live QnA Sessions / Week</span>
+      </div>
+    </div>
+  );
+};
 
 const HomeCourseSection = ({ 
   CustomText = "Featured Courses",
@@ -563,7 +599,7 @@ const HomeCourseSection = ({
       {/* Live Courses Section */}
       <div 
         ref={liveRef}
-        className={`relative overflow-hidden rounded-xl bg-gradient-to-r from-[#379392]/10 via-white to-[#379392]/10 dark:from-[#379392]/20 dark:via-gray-900 dark:to-[#379392]/20 p-4 sm:p-5 md:p-6 lg:p-7 mb-8 md:mb-8 lg:mb-10 shadow-md transition-all duration-500 ${
+        className={`relative overflow-hidden rounded-xl bg-gradient-to-r from-[#379392]/10 via-white to-[#379392]/10 dark:from-[#379392]/20 dark:via-gray-900 dark:to-[#379392]/20 p-3 sm:p-5 md:p-6 lg:p-7 mb-8 md:mb-8 lg:mb-10 shadow-md transition-all duration-500 ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
         }`}
       >
@@ -624,12 +660,17 @@ const HomeCourseSection = ({
             animate="visible"
           >
             {filteredLiveCourses.map((course) => (
-              <motion.div key={course._id} variants={itemVariants} className="live-course-card h-full">
+              <motion.div 
+                key={course._id} 
+                variants={itemVariants} 
+                className={`h-full live-course-card ${course._id === "digital_marketing" ? "active" : ""}`}
+                data-course={course._id}
+              >
                 <CourseCard 
                   course={{
                     _id: course._id || course.id,
                     course_title: course.course_title,
-                    course_description: course.description || course.course_description,
+                    course_description: course.course_description,
                     course_image: course.thumbnail,
                     course_duration: course.duration_range || "4-18 months",
                     display_duration: true,
@@ -646,6 +687,8 @@ const HomeCourseSection = ({
                   classType="live" 
                   scrollToTop={scrollToTop}
                   showDuration={true}
+                  hidePrice={true}
+                  expandedView={course._id === "digital_marketing"}
                 />
               </motion.div>
             ))}
@@ -719,11 +762,40 @@ const HomeCourseSection = ({
               initial="hidden"
               animate="visible"
             >
-              {filteredBlendedCourses.map((course) => (
-                <motion.div key={course._id} variants={itemVariants} className="blended-course-card h-full">
-                  <CourseCard course={course} scrollToTop={scrollToTop} classType="blended" />
-                </motion.div>
-              ))}
+              {filteredBlendedCourses.map((course) => {
+                // Get video and QnA session info for the blended course
+                const { videoCount, qnaSessions } = getBlendedCourseSessions(course);
+                
+                // Format the learning experience text with icons
+                const learningExperienceText = formatBlendedLearningExperience(videoCount, qnaSessions);
+                
+                return (
+                  <motion.div key={course._id} variants={itemVariants} className="blended-course-card h-full">
+                    <CourseCard 
+                      course={{
+                        _id: course._id || course.id,
+                        course_title: course.course_title,
+                        course_image: course.thumbnail || course.course_image,
+                        course_duration: learningExperienceText,
+                        display_duration: true,
+                        duration_range: `${videoCount} Videos • ${qnaSessions} Q&A`,
+                        course_fee: course.course_fee || course.price || "Free",
+                        price: course.price || course.course_fee || "Free",
+                        custom_url: course.custom_url || `/course-details/${course._id}`,
+                        href: course.custom_url || `/course-details/${course._id}`,
+                        no_of_Sessions: videoCount + qnaSessions,
+                        effort_hours: course.effort_hours || "3-5",
+                        learning_points: course.learning_points || course.course_highlights || [],
+                        prerequisites: course.prerequisites || [],
+                        instructor: course.instructor || null
+                      }} 
+                      classType="blended" 
+                      scrollToTop={scrollToTop}
+                      showDuration={true}
+                    />
+                  </motion.div>
+                );
+              })}
             </motion.div>
           ) : (
             <EmptyState type="blended" />
@@ -786,8 +858,8 @@ const HomeCourseSection = ({
         /* Desktop-specific heights to prevent scrolling */
         @media (min-width: 768px) {
           .live-course-card {
-            min-height: 400px;
-            max-height: 420px;
+            min-height: 420px; /* Set to a fixed height instead of min/max range */
+            height: 420px; /* Force consistent height */
           }
           
           /* Desktop hover card styles */
@@ -800,6 +872,8 @@ const HomeCourseSection = ({
         .live-course-card :global(.course-card), 
         .blended-course-card :global(.course-card) {
           height: 100%;
+          display: flex;
+          flex-direction: column;
         }
         
         /* Add hover effect to live course cards similar to blended course cards */
@@ -813,7 +887,6 @@ const HomeCourseSection = ({
         .blended-course-card :global(.course-card) {
           display: flex;
           flex-direction: column;
-          height: 100%;
           width: 100%;
           transition: transform 0.3s ease, box-shadow 0.3s ease;
           position: relative; /* Ensure positioned elements inside use this as reference */
@@ -822,22 +895,25 @@ const HomeCourseSection = ({
         /* Handle content sizing for different screen sizes */
         @media (min-width: 1024px) {
           .live-course-card :global(.course-card) {
-            min-height: 400px;
-            max-height: 420px;
+            height: 420px; /* Fixed consistent height */
           }
         }
         
         @media (min-width: 768px) and (max-width: 1023px) {
           .live-course-card :global(.course-card) {
-            min-height: 420px;
-            max-height: 450px;
+            height: 450px; /* Fixed consistent height */
           }
         }
         
         @media (min-width: 640px) and (max-width: 767px) {
           .live-course-card :global(.course-card) {
-            min-height: 420px;
-            max-height: 460px;
+            height: 460px; /* Fixed consistent height */
+          }
+        }
+        
+        @media (max-width: 639px) {
+          .live-course-card :global(.course-card) {
+            height: 480px; /* Fixed consistent height for mobile */
           }
         }
         
@@ -847,59 +923,370 @@ const HomeCourseSection = ({
           box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
         }
         
-        /* Ensure consistent title heights */
+        /* Strict text control for card titles */
         .live-course-card :global(h3), 
         .blended-course-card :global(h3) {
-          min-height: 3.5rem;
+          height: 3.5rem;
+          line-height: 1.3;
+          margin-bottom: 0.5rem;
           display: -webkit-box;
           -webkit-line-clamp: 2;
           -webkit-box-orient: vertical;
           overflow: hidden;
+          text-overflow: ellipsis;
+          font-size: 1.125rem;
+          word-break: break-word;
         }
         
-        /* Ensure consistent content area heights */
+        /* Fixed content container heights and strict overflow control */
         .live-course-card :global(.p-4), 
         .blended-course-card :global(.p-4) {
-          flex-grow: 1;
+          flex: 1 1 auto;
           display: flex;
           flex-direction: column;
-          /* Add additional bottom margin for mobile view */
-          margin-bottom: 1rem;
+          overflow: hidden;
+          position: relative;
+          padding-bottom: 3rem; /* Space for buttons/footers */
         }
         
-        /* Make live course cards stand out differently from blended courses */
-        .live-course-card :global(.course-card) {
-          border-left: 4px solid rgba(55, 147, 146, 0.8); /* Updated to #379392 */
+        /* Ensure the inner content is properly distributed */
+        .live-course-card :global(.course-card) > :global(*) {
+          flex-shrink: 0; /* Prevent content from shrinking */
         }
         
-        .blended-course-card :global(.course-card) {
-          border-left: 4px solid rgba(99, 102, 241, 0.8); /* Indigo color */
-        }
-        
-        /* Consistent spacing across all card elements */
-        .live-course-card :global(.mb-3),
-        .blended-course-card :global(.mb-3) {
+        /* Control text wrapping in all text elements */
+        .live-course-card :global(p),
+        .blended-course-card :global(p) {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          max-height: 3rem;
+          line-height: 1.5;
           margin-bottom: 0.75rem;
+          font-size: 0.875rem;
+          word-break: break-word;
         }
         
-        /* Fix thumbnail image sizing */
+        /* Ensure consistent image height */
         .live-course-card :global(.relative),
         .blended-course-card :global(.relative) {
-          height: 12rem;
+          height: 180px;
+          overflow: hidden;
+          flex-shrink: 0;
+        }
+        
+        /* Fixed height containers for duration/metadata info */
+        .live-course-card :global(.bg-\[\#379392\]\/10),
+        .blended-course-card :global(.bg-\[\#379392\]\/10),
+        .live-course-card :global(.bg-indigo-100),
+        .blended-course-card :global(.bg-indigo-100) {
+          height: 4.5rem;
+          overflow: hidden;
+          margin-bottom: 0.75rem;
+          flex-shrink: 0;
+        }
+        
+        /* Control text in duration/session boxes */
+        .live-course-card :global(.flex-col.space-y-1\.5),
+        .blended-course-card :global(.flex-col.space-y-1\.5) {
           overflow: hidden;
         }
         
-        /* Make course descriptions not overlap with View More button on mobile */
-        .live-course-card :global(p), 
-        .blended-course-card :global(p) {
-          margin-bottom: 0.75rem;
+        /* Control text size in duration/session info */
+        .live-course-card :global(.text-xs),
+        .blended-course-card :global(.text-xs) {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          font-size: 0.75rem;
+          line-height: 1.25;
         }
         
-        /* Fix for IE and older browsers */
-        @media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
-          .live-course-card, .blended-course-card {
-            height: 450px;
+        /* Fixed footer positioning to prevent layout shifts */
+        .live-course-card :global(.absolute),
+        .blended-course-card :global(.absolute) {
+          position: absolute;
+          bottom: 1rem;
+          left: 1rem;
+          right: 1rem;
+        }
+        
+        /* Control button text wrapping */
+        .live-course-card :global(button),
+        .blended-course-card :global(button),
+        .live-course-card :global(a.inline-flex),
+        .blended-course-card :global(a.inline-flex) {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-width: 100%;
+        }
+        
+        /* Ensure the footer elements (like buttons) align at the bottom */
+        .live-course-card :global(.mt-auto),
+        .live-course-card :global(.course-card) > :global(:last-child),
+        .blended-course-card :global(.mt-auto),
+        .blended-course-card :global(.course-card) > :global(:last-child) {
+          margin-top: auto;
+          position: absolute;
+          bottom: 1rem;
+          left: 1rem;
+          right: 1rem;
+        }
+        
+        /* Ensure price is consistently positioned and doesn't shift layout */
+        .live-course-card :global(.course-fee),
+        .blended-course-card :global(.course-fee),
+        .live-course-card :global(.text-primary-600),
+        .blended-course-card :global(.text-primary-600) {
+          font-weight: 700;
+          font-size: 1.1rem;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          position: absolute;
+          bottom: 3.5rem;
+          left: 1rem;
+        }
+        
+        /* Fix any nested overflow issues */
+        .live-course-card :global(*),
+        .blended-course-card :global(*) {
+          max-width: 100%;
+        }
+
+        /* Live course cards - fixed height and hover functionality */
+        .live-course-card {
+          height: 420px; /* Fixed consistent height for all cards */
+          transition: all 0.3s ease;
+          position: relative;
+          border-radius: 0.75rem;
+          overflow: hidden;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Ensure course cards have fixed heights and proper overflow control */
+        .live-course-card :global(.course-card) {
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          position: relative;
+          overflow: hidden;
+          border-radius: 0.75rem;
+          background: white;
+          border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Enhanced hover state */
+        .live-course-card:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 12px 20px rgba(55, 147, 146, 0.12);
+        }
+        
+        /* Fixed image container height */
+        .live-course-card :global(.relative) {
+          height: 180px;
+          overflow: hidden;
+          flex-shrink: 0;
+          position: relative;
+        }
+        
+        /* Add overlay gradient to images */
+        .live-course-card :global(.relative)::after {
+          content: "";
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 40%;
+          background: linear-gradient(to top, rgba(0,0,0,0.5), transparent);
+          z-index: 1;
+        }
+        
+        /* Live badge positioning and style */
+        .live-course-card :global(.relative) :global(.absolute) {
+          z-index: 2;
+          top: 0.75rem;
+          right: 0.75rem;
+          background-color: rgba(55, 147, 146, 0.9) !important;
+          color: white;
+          padding: 0.25rem 0.75rem;
+          border-radius: 0.25rem;
+          font-weight: 600;
+          font-size: 0.75rem;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        /* Card content area with fixed height */
+        .live-course-card :global(.p-4) {
+          flex: 1;
+          padding: 1rem !important;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+          position: relative;
+        }
+        
+        /* Course title with consistent height and overflow control */
+        .live-course-card :global(h3) {
+          margin-top: 0;
+          margin-bottom: 1rem;
+          font-size: 1.125rem;
+          font-weight: 700;
+          line-height: 1.4;
+          color: #1f2937;
+          height: 3.2rem;
+          overflow: hidden;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          text-overflow: ellipsis;
+        }
+        
+        /* Course info sections */
+        .live-course-card :global(.bg-\[\#379392\]\/10) {
+          background-color: rgba(55, 147, 146, 0.08) !important;
+          border-radius: 0.5rem;
+          padding: 0.75rem;
+          display: flex;
+          align-items: center;
+          margin-bottom: 0.75rem;
+          border: 1px solid rgba(55, 147, 146, 0.12);
+        }
+        
+        /* Collapsed state (default for all cards except active) */
+        .live-course-card .collapsed-info {
+          height: 3.5rem;
+          overflow: hidden;
+        }
+        
+        /* Expanded state (for active/hovered card) */
+        .live-course-card:hover .collapsed-info,
+        .live-course-card.active .collapsed-info {
+          height: auto;
+          max-height: 12rem;
+          overflow: auto;
+        }
+        
+        /* Additional course info styling */
+        .live-course-card :global(.flex-col.space-y-1\.5) {
+          width: 100%;
+        }
+        
+        /* Footer container for buttons and actions */
+        .live-course-card :global(.mt-auto) {
+          margin-top: auto;
+          position: absolute;
+          bottom: 1rem;
+          left: 1rem;
+          right: 1rem;
+          display: flex;
+          justify-content: space-between;
+        }
+        
+        /* Style for action buttons */
+        .live-course-card :global(.inline-flex) {
+          padding: 0.5rem 1rem;
+          border-radius: 0.375rem;
+          font-size: 0.875rem;
+          font-weight: 500;
+          transition: all 0.2s;
+        }
+        
+        /* Primary button - Details */
+        .live-course-card :global(.bg-\[\#379392\]) {
+          background-color: #379392 !important;
+          color: white !important;
+          box-shadow: 0 2px 4px rgba(55, 147, 146, 0.3);
+        }
+        
+        /* Secondary button - Brochure */
+        .live-course-card :global(.border-\[\#379392\]) {
+          border: 1px solid #379392 !important;
+          color: #379392 !important;
+        }
+        
+        /* Additional course details - initially hidden, shown on hover */
+        .live-course-card .additional-details {
+          height: 0;
+          overflow: hidden;
+          opacity: 0;
+          transition: all 0.3s ease;
+        }
+        
+        .live-course-card:hover .additional-details,
+        .live-course-card.active .additional-details {
+          height: auto;
+          max-height: 6rem;
+          opacity: 1;
+          margin-bottom: 3rem; /* Space for footer buttons */
+        }
+        
+        /* Ensure consistent spacing and alignment */
+        .live-course-card :global(.flex.items-center) {
+          margin-bottom: 0.5rem;
+        }
+        
+        /* Icon styling */
+        .live-course-card :global(svg) {
+          width: 1rem;
+          height: 1rem;
+          color: #379392;
+          margin-right: 0.5rem;
+          flex-shrink: 0;
+        }
+        
+        /* Mobile responsiveness adjustments */
+        @media (max-width: 768px) {
+          .live-course-card {
+            height: 400px; /* Slightly smaller on mobile */
           }
+          
+          .live-course-card :global(.relative) {
+            height: 160px; /* Smaller images on mobile */
+          }
+          
+          .live-course-card :global(h3) {
+            font-size: 1rem;
+            height: 2.8rem;
+          }
+          
+          /* Ensure buttons don't overflow on small screens */
+          .live-course-card :global(.mt-auto) {
+            flex-direction: column;
+            gap: 0.5rem;
+          }
+          
+          .live-course-card :global(.inline-flex) {
+            width: 100%;
+            justify-content: center;
+          }
+        }
+        
+        /* Handle IE and legacy browsers */
+        @media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
+          .live-course-card, .live-course-card :global(.course-card) {
+            height: 420px !important;
+          }
+        }
+
+        /* Ensure the active card (Digital Marketing card) shows expanded content */
+        .live-course-card[data-course="digital_marketing"] {
+          border: 2px solid #379392;
+          box-shadow: 0 8px 16px rgba(55, 147, 146, 0.2);
+        }
+        
+        .live-course-card[data-course="digital_marketing"] .collapsed-info {
+          height: auto;
+          max-height: 12rem;
+        }
+        
+        .live-course-card[data-course="digital_marketing"] .additional-details {
+          height: auto;
+          max-height: 6rem;
+          opacity: 1;
         }
       `}</style>
     </div>
