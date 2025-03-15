@@ -107,6 +107,8 @@ img, video, canvas, svg, iframe {
   --borderColor2: #CBD5E0;
   
   /* Modern theme colors */
+
+  --medh-green: #39AC66;
   --primary-50: #E6FFFA;
   --primary-100: #B2F5EA;
   --primary-200: #81E6D9;
@@ -267,7 +269,7 @@ h6 {
 
 .mumkinMedh {
   font-family: "Bulgathi", sans-serif;
-  color: #319795 !important;
+  color: #40AB62 !important;
   font-size: clamp(2rem, 5vw, 2.8rem) !important;
   line-height: 1.2 !important;
   padding: 0.5rem 0;

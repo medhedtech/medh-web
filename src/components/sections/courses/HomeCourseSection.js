@@ -8,6 +8,7 @@ import { BookOpen, ChevronRight, Layers, Sparkles, Video, Clock, Users, Calendar
 import PropTypes from 'prop-types';
 import { motion } from "framer-motion";
 import Link from "next/link";
+import mobileMenu from "@/libs/mobileMenu";
 
 // List of specific course durations to display (in weeks)
 const TARGET_DURATIONS = [
@@ -124,20 +125,20 @@ const getBlendedCourseSessions = (course) => {
 };
 
 // Prepare icons for learning experience display
-const VideoIcon = () => <Video size={14} className="mr-1 flex-shrink-0" />;
-const QnaIcon = () => <Users size={14} className="mr-1 flex-shrink-0" />;
+const VideoIcon = () => <Video size={14} className="mr-1 flex-shrink-0 text-rose-500" />;
+const QnaIcon = () => <Users size={14} className="mr-1 flex-shrink-0 text-[#379392]" />;
 
 // Format the blended course learning experience text with better phrasing and icons
 const formatBlendedLearningExperience = (videoCount, qnaSessions) => {
   return (
-    <div className="flex flex-col space-y-1.5">
+    <div className="flex flex-col space-y-1" >
       <div className="flex items-center text-xs">
         <VideoIcon />
         <span>{videoCount} Video Lessons</span>
       </div>
       <div className="flex items-center text-xs">
         <QnaIcon />
-        <span>{qnaSessions} Live QnA Sessions / Week</span>
+        <span> Live QnA Sessions</span>
       </div>
     </div>
   );
@@ -577,18 +578,20 @@ const HomeCourseSection = ({
   };
 
   return (
-    <div className="w-full py-4 md:py-3 lg:py-4">
+    // Improve background and section sizing
+    <div className="w-full py-4 md:py-6 lg:py-8 relative">
       {/* Section Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 md:mb-6 lg:mb-7">
         <div>
-          <h2 className="text-2xl md:text-2xl lg:text-3xl font-extrabold mb-2 text-gray-800 dark:text-white">
+          <h2 className="text-sm md:text-2xl lg:text-base font-extrabold mb-2  dark:text-gray-300 max-w-2xl font-medium">
             {CustomText}
           </h2>
-          <p className="text-sm md:text-base text-gray-600 dark:text-gray-300 max-w-2xl font-medium">
+          <p className="text-2xl md:text-base lg:text-3xl text-gray-600 text-gray-800 dark:text-white text:bol">
             {CustomDescription}
           </p>
         </div>
-        <div className="mt-4 md:mt-0">
+        {/* Desktop View All Courses button */}
+        <div className="mt-4 md:mt-0 hidden md:block">
           <ViewAllButton 
             href="/courses" 
             text="View All Courses" 
@@ -599,7 +602,7 @@ const HomeCourseSection = ({
       {/* Live Courses Section */}
       <div 
         ref={liveRef}
-        className={`relative overflow-hidden rounded-xl bg-gradient-to-r from-[#379392]/10 via-white to-[#379392]/10 dark:from-[#379392]/20 dark:via-gray-900 dark:to-[#379392]/20 p-3 sm:p-5 md:p-6 lg:p-7 mb-8 md:mb-8 lg:mb-10 shadow-md transition-all duration-500 ${
+        className={`relative overflow-hidden rounded-xl bg-gradient-to-r from-[#379392]/10 via-white to-[#379392]/10 dark:from-[#379392]/25 dark:via-gray-800 dark:to-[#379392]/25 p-4 sm:p-5 md:p-6 lg:p-7 mb-8 md:mb-8 lg:mb-10 shadow-md transition-all duration-500 ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
         }`}
       >
@@ -608,6 +611,8 @@ const HomeCourseSection = ({
             <Video className="w-6 h-6 mr-2.5 text-[#379392]" />
             <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-800 dark:text-white">
               Live Interactive Courses
+              <span className="hidden sm:inline"> (Weekend / Weekday Classes Available)</span>
+              <span className="block sm:hidden text-sm font-medium text-gray-600 dark:text-gray-400 mt-1">Weekend / Weekday Classes Available</span>
             </h3>
           </div>
           
@@ -670,12 +675,15 @@ const HomeCourseSection = ({
                   course={{
                     _id: course._id || course.id,
                     course_title: course.course_title,
-                    course_description: course.course_description,
+                    course_type: course.course_type,
+                    // course_description: course.description || '', // Use description if available
                     course_image: course.thumbnail,
                     course_duration: course.duration_range || "4-18 months",
                     display_duration: true,
                     duration_range: course.duration_range || "4-18 months",
-                    course_fee: course.price || "Free",
+                    course_fee: "695 Onwards",
+                    price_suffix: "Onwards",
+                    // fee_note: "Starting Price",
                     custom_url: course.custom_url,
                     href: course.custom_url,
                     no_of_Sessions: course.no_of_Sessions || 24,
@@ -687,7 +695,6 @@ const HomeCourseSection = ({
                   classType="live" 
                   scrollToTop={scrollToTop}
                   showDuration={true}
-                  hidePrice={true}
                   expandedView={course._id === "digital_marketing"}
                 />
               </motion.div>
@@ -702,15 +709,15 @@ const HomeCourseSection = ({
       {!showOnlyLive && (
         <div 
           ref={blendedRef}
-          className={`relative overflow-hidden rounded-xl bg-gradient-to-r from-indigo-50 via-white to-indigo-50 dark:from-indigo-900/10 dark:via-gray-900 dark:to-indigo-900/10 p-4 sm:p-5 md:p-6 lg:p-7 shadow-md transition-all duration-500 ${
+          className={`relative overflow-hidden rounded-xl bg-gradient-to-r from-[#379392]/10 via-white to-[#379392]/10 dark:from-[#379392]/20 dark:via-gray-800 dark:to-[#379392]/20 p-4 sm:p-5 md:p-6 lg:p-7 shadow-md transition-all duration-500 ${
             isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           }`}
         >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 md:mb-5 lg:mb-6">
             <div className="flex items-center mb-3 sm:mb-0">
-              <Layers className="w-6 h-6 mr-2.5 text-indigo-500" />
+              <Layers className="w-6 h-6 mr-2.5 text-[#379392]" />
               <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-800 dark:text-white">
-                Blended Self Paced Courses
+                Blended Self Paced Certification Courses 
               </h3>
             </div>
             
@@ -721,21 +728,21 @@ const HomeCourseSection = ({
                 icon={<BookOpen size={14} />} 
                 label="Beginner-Friendly"
                 onClick={() => toggleBlendedFilter('beginner')}
-                color="indigo"
+                color="teal"
               />
               <FilterButton 
                 active={activeBlendedFilters.popular} 
                 icon={<Sparkles size={14} />} 
                 label="Popular"
                 onClick={() => toggleBlendedFilter('popular')}
-                color="indigo"
+                color="teal"
               />
               <FilterButton 
                 active={activeBlendedFilters.latest} 
                 icon={<Clock size={14} />} 
                 label="Latest"
                 onClick={() => toggleBlendedFilter('latest')}
-                color="indigo"
+                color="teal"
               />
               {/* Clear filters button - only shown when filters are active */}
               {(activeBlendedFilters.beginner || activeBlendedFilters.popular || activeBlendedFilters.latest) && (
@@ -803,6 +810,18 @@ const HomeCourseSection = ({
         </div>
       )}
 
+      {/* Mobile View All Courses button - positioned after courses instead of fixed */}
+      <div className="md:hidden mt-6 mb-10 flex justify-center px-4">
+        <Link
+          href="/courses"
+          className="w-full max-w-md px-5 py-3.5 flex items-center justify-center bg-gradient-to-r from-[#379392] to-[#379392]/90 text-white font-medium rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl hover:from-[#2d7978] hover:to-[#2d7978]/90"
+          onClick={scrollToTop}
+        >
+          View All Courses
+          <ChevronRight size={18} className="ml-1.5" />
+        </Link>
+      </div>
+
       {/* Custom styles for animations and card styling */}
       <style jsx>{`
         @keyframes fadeIn {
@@ -819,8 +838,7 @@ const HomeCourseSection = ({
           .live-course-card, .blended-course-card {
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
-            /* Add additional bottom padding to prevent "View More" button overlap */
-            padding-bottom: 3rem;
+            /* Remove extra bottom padding since fixed button is gone */
             position: relative;
             min-height: 300px;
           }
@@ -830,16 +848,16 @@ const HomeCourseSection = ({
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
           }
           
-          /* Ensure "View More" button doesn't overlap with content */
+          /* Adjust course card padding since fixed button is gone */
           .live-course-card :global(.course-card), 
           .blended-course-card :global(.course-card) {
-            padding-bottom: 3rem !important;
+            padding-bottom: 1rem !important;
             min-height: 24rem;
           }
           
-          /* Specifically style the duration box in live courses */
+          /* Adjust margin for duration box */
           .live-course-card :global(.bg-\[\#379392\]\/10) {
-            margin-bottom: 3rem;
+            margin-bottom: 1rem;
           }
         }
         
@@ -852,14 +870,13 @@ const HomeCourseSection = ({
         
         /* Standard heights for live course cards to ensure consistency */
         .live-course-card {
-          min-height: 380px;
+          min-height: 460px;
         }
         
         /* Desktop-specific heights to prevent scrolling */
         @media (min-width: 768px) {
           .live-course-card {
-            min-height: 420px; /* Set to a fixed height instead of min/max range */
-            height: 420px; /* Force consistent height */
+            height: 460px; /* Fixed consistent height */
           }
           
           /* Desktop hover card styles */
@@ -895,13 +912,13 @@ const HomeCourseSection = ({
         /* Handle content sizing for different screen sizes */
         @media (min-width: 1024px) {
           .live-course-card :global(.course-card) {
-            height: 420px; /* Fixed consistent height */
+            height: 460px; /* Fixed consistent height */
           }
         }
         
         @media (min-width: 768px) and (max-width: 1023px) {
           .live-course-card :global(.course-card) {
-            height: 450px; /* Fixed consistent height */
+            height: 460px; /* Fixed consistent height */
           }
         }
         
@@ -914,6 +931,7 @@ const HomeCourseSection = ({
         @media (max-width: 639px) {
           .live-course-card :global(.course-card) {
             height: 480px; /* Fixed consistent height for mobile */
+            margin-bottom: 1rem; /* Add spacing between cards */
           }
         }
         
@@ -972,7 +990,7 @@ const HomeCourseSection = ({
         /* Ensure consistent image height */
         .live-course-card :global(.relative),
         .blended-course-card :global(.relative) {
-          height: 180px;
+          height: 200px;
           overflow: hidden;
           flex-shrink: 0;
         }
@@ -1056,10 +1074,10 @@ const HomeCourseSection = ({
         .blended-course-card :global(*) {
           max-width: 100%;
         }
-
+        
         /* Live course cards - fixed height and hover functionality */
         .live-course-card {
-          height: 420px; /* Fixed consistent height for all cards */
+          height: 460px; /* Increased height for all cards */
           transition: all 0.3s ease;
           position: relative;
           border-radius: 0.75rem;
@@ -1067,8 +1085,22 @@ const HomeCourseSection = ({
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
         
-        /* Ensure course cards have fixed heights and proper overflow control */
-        .live-course-card :global(.course-card) {
+        /* Blended course cards styling */
+        .blended-course-card {
+          height: 460px;
+          transition: all 0.3s ease;
+          position: relative;
+          border-radius: 0.75rem;
+          overflow: hidden;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        
+        .blended-course-card:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 12px 20px rgba(55, 147, 146, 0.12);
+        }
+        
+        .blended-course-card :global(.course-card) {
           height: 100%;
           display: flex;
           flex-direction: column;
@@ -1076,77 +1108,12 @@ const HomeCourseSection = ({
           overflow: hidden;
           border-radius: 0.75rem;
           background: white;
-          border: 1px solid rgba(0, 0, 0, 0.05);
-        }
-        
-        /* Enhanced hover state */
-        .live-course-card:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 12px 20px rgba(55, 147, 146, 0.12);
-        }
-        
-        /* Fixed image container height */
-        .live-course-card :global(.relative) {
-          height: 180px;
-          overflow: hidden;
-          flex-shrink: 0;
-          position: relative;
-        }
-        
-        /* Add overlay gradient to images */
-        .live-course-card :global(.relative)::after {
-          content: "";
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          height: 40%;
-          background: linear-gradient(to top, rgba(0,0,0,0.5), transparent);
-          z-index: 1;
-        }
-        
-        /* Live badge positioning and style */
-        .live-course-card :global(.relative) :global(.absolute) {
-          z-index: 2;
-          top: 0.75rem;
-          right: 0.75rem;
-          background-color: rgba(55, 147, 146, 0.9) !important;
-          color: white;
-          padding: 0.25rem 0.75rem;
-          border-radius: 0.25rem;
-          font-weight: 600;
-          font-size: 0.75rem;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        /* Card content area with fixed height */
-        .live-course-card :global(.p-4) {
-          flex: 1;
-          padding: 1rem !important;
-          display: flex;
-          flex-direction: column;
-          overflow: hidden;
-          position: relative;
-        }
-        
-        /* Course title with consistent height and overflow control */
-        .live-course-card :global(h3) {
-          margin-top: 0;
-          margin-bottom: 1rem;
-          font-size: 1.125rem;
-          font-weight: 700;
-          line-height: 1.4;
-          color: #1f2937;
-          height: 3.2rem;
-          overflow: hidden;
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-          text-overflow: ellipsis;
+          border: 1px solid rgba(55, 147, 146, 0.1);
         }
         
         /* Course info sections */
-        .live-course-card :global(.bg-\[\#379392\]\/10) {
+        .blended-course-card :global(.bg-indigo-100),
+        .blended-course-card :global(.bg-blue-100) {
           background-color: rgba(55, 147, 146, 0.08) !important;
           border-radius: 0.5rem;
           padding: 0.75rem;
@@ -1156,38 +1123,8 @@ const HomeCourseSection = ({
           border: 1px solid rgba(55, 147, 146, 0.12);
         }
         
-        /* Collapsed state (default for all cards except active) */
-        .live-course-card .collapsed-info {
-          height: 3.5rem;
-          overflow: hidden;
-        }
-        
-        /* Expanded state (for active/hovered card) */
-        .live-course-card:hover .collapsed-info,
-        .live-course-card.active .collapsed-info {
-          height: auto;
-          max-height: 12rem;
-          overflow: auto;
-        }
-        
-        /* Additional course info styling */
-        .live-course-card :global(.flex-col.space-y-1\.5) {
-          width: 100%;
-        }
-        
-        /* Footer container for buttons and actions */
-        .live-course-card :global(.mt-auto) {
-          margin-top: auto;
-          position: absolute;
-          bottom: 1rem;
-          left: 1rem;
-          right: 1rem;
-          display: flex;
-          justify-content: space-between;
-        }
-        
-        /* Style for action buttons */
-        .live-course-card :global(.inline-flex) {
+        /* Style for blended cards action buttons */
+        .blended-course-card :global(.inline-flex) {
           padding: 0.5rem 1rem;
           border-radius: 0.375rem;
           font-size: 0.875rem;
@@ -1195,42 +1132,23 @@ const HomeCourseSection = ({
           transition: all 0.2s;
         }
         
-        /* Primary button - Details */
-        .live-course-card :global(.bg-\[\#379392\]) {
+        /* Primary button for blended - Details */
+        .blended-course-card :global(.bg-indigo-500),
+        .blended-course-card :global(.bg-blue-500) {
           background-color: #379392 !important;
           color: white !important;
           box-shadow: 0 2px 4px rgba(55, 147, 146, 0.3);
         }
         
-        /* Secondary button - Brochure */
-        .live-course-card :global(.border-\[\#379392\]) {
+        /* Secondary button for blended - Brochure */
+        .blended-course-card :global(.border-indigo-500),
+        .blended-course-card :global(.border-blue-500) {
           border: 1px solid #379392 !important;
           color: #379392 !important;
         }
         
-        /* Additional course details - initially hidden, shown on hover */
-        .live-course-card .additional-details {
-          height: 0;
-          overflow: hidden;
-          opacity: 0;
-          transition: all 0.3s ease;
-        }
-        
-        .live-course-card:hover .additional-details,
-        .live-course-card.active .additional-details {
-          height: auto;
-          max-height: 6rem;
-          opacity: 1;
-          margin-bottom: 3rem; /* Space for footer buttons */
-        }
-        
-        /* Ensure consistent spacing and alignment */
-        .live-course-card :global(.flex.items-center) {
-          margin-bottom: 0.5rem;
-        }
-        
-        /* Icon styling */
-        .live-course-card :global(svg) {
+        /* Icon styling for blended cards */
+        .blended-course-card :global(svg) {
           width: 1rem;
           height: 1rem;
           color: #379392;
@@ -1241,11 +1159,11 @@ const HomeCourseSection = ({
         /* Mobile responsiveness adjustments */
         @media (max-width: 768px) {
           .live-course-card {
-            height: 400px; /* Slightly smaller on mobile */
+            height: 440px; /* Increased height for mobile */
           }
           
           .live-course-card :global(.relative) {
-            height: 160px; /* Smaller images on mobile */
+            height: 180px; /* Increased image height for mobile */
           }
           
           .live-course-card :global(h3) {
@@ -1263,12 +1181,17 @@ const HomeCourseSection = ({
             width: 100%;
             justify-content: center;
           }
+          
+          /* Add bottom padding to account for fixed mobile view button */
+          .w-full {
+            padding-bottom: 0rem;
+          }
         }
         
         /* Handle IE and legacy browsers */
         @media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
           .live-course-card, .live-course-card :global(.course-card) {
-            height: 420px !important;
+            height: 460px !important;
           }
         }
 
