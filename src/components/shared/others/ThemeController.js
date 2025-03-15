@@ -99,9 +99,9 @@ const ThemeController = ({ position = 'fixed' }) => {
           </div>
           
           {/* Text Label */}
-          <span className="text-xs font-medium whitespace-nowrap">
+          {/* <span className="text-xs font-medium whitespace-nowrap">
             {isDarkMode ? 'Light' : 'Dark'}
-          </span>
+          </span> */}
 
           {/* Tooltip */}
           <div 
