@@ -179,6 +179,7 @@ module.exports = {
         },
         // Background colors
         bodyColor: "#1A202C",
+        medhgreen: "#39AC66",
         bodyBg: "#FFFFFF",
         bodyBg1: "#F7FAFC",
         whiteColor: "#ffffff",
