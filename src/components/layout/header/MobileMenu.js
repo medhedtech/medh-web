@@ -420,7 +420,7 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
                         onClick={closeMenu}
                       >
                         <span className="flex-shrink-0 w-8 h-8 bg-primary-100 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-full flex items-center justify-center mr-3">
-                          <FontAwesomeIcon icon={suggestion.type === 'Course' ? faGraduationCap : faFile} className="h-4 w-4" />
+                          {/* <FontAwesomeIcon icon={suggestion.type === 'Course' ? faGraduationCap : faFile} className="h-4 w-4" /> */}
                         </span>
                         <div>
                           <span className="block text-sm font-medium text-gray-900 dark:text-white">
