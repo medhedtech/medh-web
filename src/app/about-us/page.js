@@ -7,23 +7,76 @@ import Brands from "@/components/sections/brands/Brands";
 import FeatureCourses from "@/components/sections/featured-courses/FeatureCourses";
 import HeroPrimary from "@/components/sections/hero-banners/HeroPrimary";
 import HeroSectionContant from "@/components/sections/hero-banners/HeroSectionContant";
-
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 
 export const metadata = {
-  title: "About | Medh - Education LMS Template",
-  description: "About | Medh - Education LMS Template",
+  title: "About MEDH | Leading EdTech Platform for Professional Development",
+  description: "Discover MEDH's mission to transform education through innovative learning solutions. Our expert-led courses in AI, Data Science, and Digital Marketing help professionals advance their careers.",
+  keywords: "about MEDH, EdTech platform, professional development, online learning, career advancement, AI courses, data science education, digital marketing training",
+  openGraph: {
+    title: "About MEDH | Leading EdTech Platform for Professional Development",
+    description: "Discover MEDH's mission to transform education through innovative learning solutions",
+    type: "website",
+    images: [
+      {
+        url: "/images/about-og.jpg",
+        width: 1200,
+        height: 630,
+        alt: "About MEDH - Our Mission and Vision"
+      }
+    ]
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "About MEDH | Leading EdTech Platform",
+    description: "Discover MEDH's mission to transform education through innovative learning solutions",
+    images: ["/images/about-og.jpg"]
+  }
+};
+
+// JSON-LD Schema for better SEO
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "MEDH",
+  "description": "Leading EdTech Platform for Professional Development",
+  "url": "https://www.medh.co/about-us",
+  "sameAs": [
+    "https://www.linkedin.com/company/medh",
+    "https://twitter.com/medh",
+    "https://www.facebook.com/medh"
+  ],
+  "offers": {
+    "@type": "Offer",
+    "category": "Professional Education"
+  }
 };
 
 const About = async () => {
   return (
     <PageWrapper>
-      <div className="pt-16">
-      <HeroSectionContant/>
-      </div>
-      <AboutContent />
-      <AtMedh />
+      {/* Add JSON-LD Schema */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       
+      {/* Hero Section */}
+      <div className="pt-16">
+        <HeroSectionContant />
+      </div>
+
+      {/* Main Content Sections */}
+      <AboutContent />
+      <WhoWeAre />
+      <AtMedh />
+      <WhyChooseMEDH />
+      
+      {/* Social Proof Sections */}
+      <Brands />
+      
+      {/* Featured Courses Section */}
+      <FeatureCourses />
     </PageWrapper>
   );
 };
