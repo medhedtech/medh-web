@@ -9,11 +9,9 @@ import ThemeController from "@/components/shared/others/ThemeController";
 
 // Section components
 import CourseAiOverview from "@/components/sections/course-ai/courseai-overview";
-import CourseAiCourseBanner from "@/components/sections/course-ai/courseAiCourseBanner";
 import CourseAiFaq from "@/components/sections/course-ai/courseAiFaq";
 import CourseAiRelatedCourses from "@/components/sections/course-ai/courseAiRelatedCourse";
 import CourseOptions from "@/components/sections/course-ai/courseOptions";
-import ExploreJourney from "@/components/sections/explore-journey/Enroll-Form";
 import AnimatedContent from './AnimatedContent';
 
 // Assets

@@ -11,7 +11,9 @@ import CorporateJourneyForm from "@/components/sections/corporate-enquiry-form/C
 function CorporateTraining() {
   return (
     <PageWrapper>
-      <CorporateBanner />
+      <div className="py-12">
+        <CorporateBanner />
+      </div>
       <CorporateOverview />
       {/* <CorporateJourneyForm
         mainText="Transform Your Workforce Today: Drive Change, Unlock Growth!"

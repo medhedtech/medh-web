@@ -850,18 +850,87 @@ const CourseCard = ({
     course.course_title.toLowerCase().includes('digital marketing')
   );
 
+  // Mobile-specific styles
+  const mobileCardStyles = `
+    ${isMobile ? `
+      p-3 
+      rounded-lg 
+      shadow-sm
+      border-[0.5px]
+      min-h-[280px]
+      ${isCompact ? 'min-h-[240px]' : ''}
+      mx-auto
+      w-full
+      max-w-[360px]
+      mb-6
+      sm:mb-8
+    ` : ''}
+  `;
+
+  const mobileImageStyles = `
+    ${isMobile ? `
+      aspect-[16/10]
+      rounded-lg
+      overflow-hidden
+      shadow-sm
+    ` : ''}
+  `;
+
+  const mobileContentStyles = `
+    ${isMobile ? `
+      px-2 
+      pt-1.5
+      pb-2
+      space-y-1.5
+    ` : ''}
+  `;
+
+  const mobileTitleStyles = `
+    ${isMobile ? `
+      text-[15px]
+      leading-snug
+      font-semibold
+      tracking-tight
+    ` : ''}
+  `;
+
+  const mobileButtonStyles = `
+    ${isMobile ? `
+      fixed
+      bottom-4
+      left-1/2
+      transform
+      -translate-x-1/2
+      z-30
+      px-4
+      py-2.5
+      rounded-lg
+      shadow-lg
+      min-w-[140px]
+      text-sm
+      font-medium
+      flex
+      items-center
+      justify-center
+      gap-1.5
+      backdrop-blur-md
+    ` : ''}
+  `;
+
   // Update card className to use dynamic styles
   return (
     <>
       <div 
         ref={cardRef}
-        className={`course-card group relative flex flex-col h-full rounded-xl overflow-hidden 
+        className={`course-card ${mobileCardStyles} group relative flex flex-col h-full rounded-xl overflow-hidden 
           border border-gray-200/20 dark:border-gray-800/40 
           bg-white/90 dark:bg-gray-900/90 backdrop-filter backdrop-blur-sm 
           transition-all duration-300 
           ${isHovered || mobileHoverActive ? 'scale-[1.02] z-10 shadow-xl' : 'scale-100 z-0 shadow-md'}
           ${styles.borderHover} ${styles.shadowHover} ${styles.borderLeft}
-          ${isMobile ? 'pb-20' : ''}`}
+          ${isMobile ? 'pb-20 last:mb-0' : ''}
+          ${viewMode === 'grid' ? 'sm:mx-2 md:mx-3' : ''}
+          hover:shadow-2xl`}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onMouseMove={handleMouseMove}
@@ -879,15 +948,14 @@ const CourseCard = ({
         {isMobile && !mobileHoverActive && (
           <button 
             onClick={openMobileHover}
-            className={`absolute bottom-4 left-1/2 transform -translate-x-1/2 z-30 px-6 py-2 rounded-lg shadow-md ${
+            className={`${mobileButtonStyles} ${
               isLiveCourse 
-                ? 'bg-[#379392] text-white hover:bg-[#379392]/90' 
-                : 'bg-indigo-500 text-white hover:bg-indigo-600'
-            } flex items-center gap-1.5 text-sm font-semibold min-w-[120px] justify-center`}
-            aria-label="View Course Details"
+                ? 'bg-[#379392]/90 text-white hover:bg-[#379392]' 
+                : 'bg-indigo-500/90 text-white hover:bg-indigo-500'
+            }`}
           >
             View More
-            <ArrowUpRight size={16} className="text-white" />
+            <ArrowUpRight size={14} className="text-white" />
           </button>
         )}
 
@@ -909,7 +977,7 @@ const CourseCard = ({
         {/* Pre-hover content */}
         <div className={`flex flex-col h-full transition-opacity duration-300 ${(isHovered && !isMobile) || (mobileHoverActive && isMobile) ? 'opacity-0' : 'opacity-100'}`}>
           {/* Image section */}
-          <div className="relative w-full aspect-[16/9] overflow-hidden">
+          <div className={`relative ${mobileImageStyles} ...`}>
             <Image
               src={!isImageError ? (course?.course_image || image6) : image6}
               alt={course?.course_title || "Course Image"}
@@ -923,11 +991,11 @@ const CourseCard = ({
           </div>
 
           {/* Course info - consistent style for both Live and Blended */}
-          <div className="flex flex-col p-4 flex-grow justify-between">
-            <div className="flex flex-col items-center justify-center flex-grow py-2 md:py-3 min-h-[100px]">
+          <div className={`${mobileContentStyles} flex flex-col p-3 flex-grow justify-between`}>
+            <div className="flex flex-col items-center justify-center flex-grow py-1.5 min-h-[90px]">
               {/* Course category badge */}
               {course?.course_category && (
-                <div className={`inline-flex mb-2 md:mb-3 items-center text-xs font-semibold rounded-full px-2.5 py-1 ${
+                <div className={`inline-flex mb-1.5 items-center text-xs font-semibold rounded-full px-2.5 py-0.5 ${
                   isLiveCourse ? 'bg-[#379392]/10 text-[#379392]' : 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400'
                 } mx-auto`}>
                   {isLiveCourse ? 
@@ -938,35 +1006,34 @@ const CourseCard = ({
                 </div>
               )}
 
-              {/* Course title - centrally aligned vertically and horizontally */}
-              <h3 className="text-lg font-bold mb-2 md:mb-3 text-gray-900 dark:text-white line-clamp-2 text-center mx-auto max-w-[95%]">
+              {/* Course title - optimized spacing */}
+              <h3 className={`${mobileTitleStyles} text-gray-900 dark:text-white line-clamp-2 text-center mx-auto max-w-[95%] ${course?.course_category ? 'mt-1' : 'mt-0'}`}>
                 {course?.course_title || "Course Title"}
               </h3>
               
-              {/* Course description - only if there's space and we want to show it */}
+              {/* Course description - optimized spacing */}
               {!isCompact && !hideDescription && (
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 md:mb-3 line-clamp-2 text-center mx-auto max-w-[95%]">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1.5 line-clamp-2 text-center mx-auto max-w-[95%]">
                   {course?.course_description}
                 </p>
               )}
             </div>
 
-            {/* Course Duration/Learning Experience - shown for both types */}
+            {/* Course Duration/Learning Experience - adjusted spacing */}
             {showDuration && course?.course_duration && (
-              <div className={`mx-auto ${isMobile ? 'mb-14' : 'mb-0'} w-full`}>
-                {/* Support for JSX formatted duration (for blended courses) */}
+              <div className={`mx-auto ${isMobile ? 'mb-12' : 'mb-0'} w-full mt-1`}>
                 {React.isValidElement(course.course_duration) ? (
-                  <div className={`flex items-center ${styles.durationBoxBg} p-3 rounded-lg`}>
+                  <div className={`flex items-center ${styles.durationBoxBg} p-2.5 rounded-lg`}>
                     {course.course_duration}
                   </div>
                 ) : (
-                  <div className={`flex items-center ${styles.durationBoxBg} p-2.5 md:p-3 rounded-lg justify-center`}>
-                    <Clock size={18} className={`mr-2 ${styles.durationIconColor} flex-shrink-0`} />
+                  <div className={`flex items-center ${styles.durationBoxBg} p-2.5 rounded-lg justify-center`}>
+                    <Clock size={16} className={`mr-2 ${styles.durationIconColor} flex-shrink-0`} />
                     <div className="text-center">
-                      <span className={`${styles.durationTextColor} font-bold text-sm`}>
+                      <span className={`${styles.durationTextColor} font-semibold text-sm`}>
                         {isLiveCourse ? 'Course Duration' : 'Learning Experience'}
                       </span>
-                      <p className="text-gray-700 dark:text-gray-300 font-medium text-sm md:text-base">
+                      <p className="text-gray-700 dark:text-gray-300 font-medium text-sm">
                         {course?.duration_range || formatDuration(course?.course_duration)}
                       </p>
                     </div>
@@ -975,11 +1042,11 @@ const CourseCard = ({
               </div>
             )}
 
-            {/* Price section - shown for both but especially emphasized for blended courses */}
+            {/* Price section - adjusted spacing */}
             {!hidePrice && (
-              <div className="mt-2 text-center">
+              <div className="mt-1.5 text-center">
                 <div className="flex items-baseline gap-1.5 justify-center">
-                  <span className={`text-xl font-bold ${styles.priceColor}`}>
+                  <span className={`text-lg font-bold ${styles.priceColor}`}>
                     {course?.course_fee ? formatPrice(course.course_fee) : 'Free'}
                   </span>
                   {course?.original_fee && (
