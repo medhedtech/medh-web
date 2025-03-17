@@ -127,9 +127,9 @@ export default function BannerNews() {
                 STAY UPDATED WITH MEDH
               </h2>
               <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-white leading-tight">
-                <span className="block">Latest Insights</span>
-                <span className="block">& Updates<span className="text-blue-500">.</span></span>
-                <span className="bg-gradient-to-r from-blue-500 to-indigo-500 bg-clip-text text-transparent">From Medh</span>
+                <span className="block">STAY INFORMED</span>
+                <span className="block">GROW DYNAMICALLY</span>
+                <span className="text-medhgreen">with MEDH</span>
               </h1>
               <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300 leading-relaxed max-w-3xl mx-auto">
                 Become part of our mission to redefine Innovative EdTech and transform Skill Development for the future.

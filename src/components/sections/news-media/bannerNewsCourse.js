@@ -107,20 +107,6 @@ function BannerNewsCourse() {
                   </div>
                 </motion.div>
               </div>
-
-              {/* Image Section */}
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6 }}
-                className="relative h-full min-h-[400px] lg:min-h-[600px]"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-[#F6B335]/10 to-[#F6B335]/5 rounded-l-2xl transform rotate-3"></div>
-                <CourseBanner
-                  imageUrl={course.imageUrl}
-                  className="h-full object-cover rounded-l-2xl"
-                />
-              </motion.div>
             </div>
           </motion.div>
         ))}
