@@ -1,4 +1,3 @@
-"use client";
 import React from "react";
 import Image from "next/image";
 import { Building, Target, Users, BookOpen, Star, TrendingUp } from "lucide-react";
@@ -91,7 +90,6 @@ export default function CorporateBanner() {
       description={
         <>
           <p>Elevate your workforce's skills, motivation, and engagement to drive business growth and achieve exceptional results.</p>
-          {/* {statsInfo} */}
         </>
       }
       features={features}

@@ -15,18 +15,15 @@ import React from "react";
 function HireFromMedh() {
   return (
     <PageWrapper>
-      <div className="py-6">
-        <HireFromMedhBanner/>
-      </div>
+      <HireFromMedhBanner/>
       <HireSection />
       <SkillsSection />
       <HiringProcess />
       <Registration showUploadField={true} pageTitle="hire_from_medh" />
-      <div className="bg-white py-6">
-        <Certified />
-      </div>
+      <Certified />
+
       <HireFromMedhFaq />
-      <HireFromMedhCourseBanner />
+      {/* <HireFromMedhCourseBanner /> */}
       
     </PageWrapper>
   );

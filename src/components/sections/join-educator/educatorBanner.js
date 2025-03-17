@@ -6,12 +6,6 @@ import { CheckCircle, Users, Star, BookOpen } from "lucide-react";
 import EducatorHero from "@/assets/Header-Images/Educator/virtual-kindergarten-.jpg";
 
 const EducatorBanner = () => {
-  const stats = [
-    { icon: <Users />, value: "500+", label: "Expert Educators" },
-    { icon: <Star />, value: "4.8", label: "Educator Rating" },
-    { icon: <BookOpen />, value: "100+", label: "Active Courses" }
-  ];
-
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -30,7 +24,7 @@ const EducatorBanner = () => {
   };
 
   return (
-    <section className="relative bg-gradient-to-b from-primary-50 to-white dark:from-gray-900 dark:to-gray-800 overflow-hidden pt-28 md:pt-32">
+    <section className="relative bg-gradient-to-b from-primary-50 to-white dark:from-gray-900 dark:to-gray-800 overflow-hidden pt-12 md:pt-12">
       <div className="absolute inset-0 bg-grid-pattern opacity-5" />
       
       <div className="container mx-auto px-4 py-20">
@@ -50,29 +44,6 @@ const EducatorBanner = () => {
               <p className="text-xl text-gray-600 dark:text-gray-300">
                 Shape the future of education by becoming part of our innovative teaching platform
               </p>
-            </motion.div>
-
-            {/* Stats Section */}
-            <motion.div 
-              variants={itemVariants}
-              className="grid grid-cols-3 gap-6"
-            >
-              {stats.map((stat, index) => (
-                <div 
-                  key={index}
-                  className="text-center p-4 bg-white dark:bg-gray-800 rounded-xl shadow-lg"
-                >
-                  <div className="w-12 h-12 mx-auto mb-3 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center text-primary-600">
-                    {stat.icon}
-                  </div>
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {stat.value}
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-300">
-                    {stat.label}
-                  </div>
-                </div>
-              ))}
             </motion.div>
 
             {/* Features List */}
@@ -96,6 +67,15 @@ const EducatorBanner = () => {
                 Join as Educator
               </button>
             </motion.div>
+            {/* Enhanced Slogan */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+            className={`mumkinMedh text-xl sm:text-2xl md:text-3xl font-medium italic text-center lg:text-left mt-1 sm:mt-4`}
+          >
+            Medh Hain Toh Mumkin Hain!
+          </motion.div>
           </motion.div>
 
           {/* Image Section */}
