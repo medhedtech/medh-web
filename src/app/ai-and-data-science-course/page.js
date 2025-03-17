@@ -1,5 +1,3 @@
-'use client';
-
 import { Cpu, Database, Brain, Star, Users, BookOpen } from 'lucide-react';
 
 // Core components

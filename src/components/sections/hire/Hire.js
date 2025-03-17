@@ -75,11 +75,11 @@ const Hire = ({
   return (
     <div className={`py-4 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
       <div className="mb-10 text-center max-w-md mx-auto">
-        <h2 className="text-2xl md:text-3xl font-bold mb-3 inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-primary-600 bg-clip-text text-transparent">
+        <h2 className="text-2xl md:text-2xl font-bold mb-3 inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-primary-600 bg-clip-text text-transparent">
           <Sparkles className="w-5 h-5 text-purple-500" />
           Partner with Medh
         </h2>
-        <p className="text-sm text-gray-600 dark:text-gray-300">
+        <p className="text-xs text-gray-600 dark:text-gray-300">
           Build your team or enhance your workforce with our specialized services
         </p>
       </div>

@@ -161,7 +161,6 @@ const ContactPrimary = () => {
           />
         </svg>
       ),
-      href: "https://goo.gl/maps/UD1D9H5tL5XdYsnt5",
       action: "Get directions",
       emoji: "🏢"
     },
@@ -208,7 +207,6 @@ const ContactPrimary = () => {
 
         <div className="w-full flex flex-col lg:flex-row gap-8 items-start">
           {/* Contact Information Cards - Full width layout */}
-          <div className="w-full lg:w-2/5 grid grid-cols-1 sm:grid-cols-2 gap-4">
             {contactCards.map((item, i) => (
               <motion.div
                 key={i}
@@ -229,56 +227,6 @@ const ContactPrimary = () => {
                 <div className="flex-grow">{item.content}</div>
               </motion.div>
             ))}
-          </div>
-
-          {/* Google Map - Full width map container with responsive height */}
-          <div className="w-full lg:w-3/5 relative rounded-xl overflow-hidden shadow-xl bg-white dark:bg-gray-800 h-[400px] md:h-[500px]">
-            {/* Loading state */}
-            {!isMapLoaded && (
-              <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800 z-10">
-                <div className="flex flex-col items-center">
-                  <div className="w-12 h-12 border-4 border-[#7ECA9D] border-t-transparent rounded-full animate-spin mb-4"></div>
-                  <p className="text-gray-600 dark:text-gray-400">Loading map...</p>
-                </div>
-              </div>
-            )}
-
-            {/* Map with proper stacking context */}
-            <div className="relative w-full h-full z-0">
-              {/* Google Map iframe */}
-              <iframe
-                ref={mapRef}
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3500.6886970906114!2d77.30289831481935!3d28.66682798849935!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390cfaee853e7dbf%3A0x4850ffffdf8de30c!2sBhavishya%20Nidhi%20Bhawan%2C%20Deshbandhu%20Nagar%2C%20Pandav%20Nagar%2C%20Delhi%2C%20110092!5e0!3m2!1sen!2sin!4v1680257257971!5m2!1sen!2sin"
-                width="100%"
-                height="100%"
-                style={{ border: 0 }}
-                allowFullScreen=""
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                className="z-0"
-                onLoad={handleMapLoad}
-              ></iframe>
-
-              {/* Map overlay for better UX */}
-              <div 
-                className={`absolute inset-0 bg-gradient-to-b from-black/5 to-transparent pointer-events-none z-10 opacity-80 ${isMapLoaded ? 'block' : 'hidden'}`}
-              ></div>
-              
-              {/* Location marker with animation */}
-              <div className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 ${isMapLoaded ? 'block' : 'hidden'}`}>
-                <motion.div
-                  animate={{ y: [0, -15, 0] }}
-                  transition={{ repeat: Infinity, duration: 1.5 }}
-                  className="flex flex-col items-center"
-                >
-                  <div className="w-6 h-6 bg-[#7ECA9D] rounded-full flex items-center justify-center shadow-lg shadow-[#7ECA9D]/30">
-                    <FiCheckCircle className="text-white w-4 h-4" />
-                  </div>
-                  <div className="w-2 h-2 bg-[#7ECA9D] rounded-full mt-1 shadow-lg shadow-[#7ECA9D]/30"></div>
-                </motion.div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </section>
