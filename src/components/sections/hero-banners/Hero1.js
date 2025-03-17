@@ -191,7 +191,7 @@ const Hero1 = ({ isCompact = false }) => {
               }`}>
                 <h1 className="font-bold leading-tight w-full">
                   <span className="hero-heading-text block mb-3">
-                    UNLOCK YOUR POTENTIAL WITH
+                  UNLOCK YOUR POTENTIAL JOURNEY WITH
                   </span>
                   <span className="block relative mx-auto">
                     <div className="relative h-[clamp(2.5rem,_9vw,_4rem)] max-w-[180px] mx-auto">
@@ -207,7 +207,7 @@ const Hero1 = ({ isCompact = false }) => {
                 </h1>
                 
                 <p className="hero-paragraph-text text-center mt-4 text-xs lg:text-sm">
-                  Join our expert-led professional courses and master the skills that drive industry innovation
+                   Expert-Led Courses Transforming Skills and Driving Professional Innovation Globally.
                 </p>
               </div>
               {/* Desktop full-row version - WITH FIXED OVERFLOW ISSUES */}

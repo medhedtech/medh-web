@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { isFreePrice } from '@/utils/priceUtils';
+import { shimmer, toBase64 } from '@/utils/imageUtils';
 
 // Text adaptation hook for responsive text
 const useResponsiveText = (text, maxLength = {xs: 60, sm: 80, md: 120, lg: 180}) => {
@@ -130,166 +131,54 @@ const animationStyles = `
 }
 `;
 
-// // Update CourseInfoTooltip component
-// const CourseInfoTooltip = ({ course, isVisible, position, classType, hidePrice = false }) => {
-//   if (!isVisible) return null;
+// Add new ImageWrapper component for consistent image handling
+const ImageWrapper = ({ src, alt, onLoad, onError, priority = false }) => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
 
-//   const isLiveCourse = classType === 'live course';
-//   const { convertPrice, formatPrice: formatCurrencyPrice } = useCurrency();
+  const handleLoad = (e) => {
+    setIsLoading(false);
+    onLoad?.(e);
+  };
 
-//   return (
-//     <div 
-//       className={`fixed z-50 w-[400px] bg-white dark:bg-gray-900 rounded-lg shadow-2xl border border-gray-200/20 dark:border-gray-800/40 transition-all duration-300 ${
-//         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-//       }`}
-//       style={{
-//         left: `${position.x + 20}px`,
-//         top: `${position.y}px`
-//       }}
-//     >
-//       {/* Course Title Header */}
-//       <div className="p-4 border-b border-gray-200 dark:border-gray-800">
-//         <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-//           {course?.course_title}
-//         </h3>
-//         <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-//           {course?.tagline || 'Learn the essential skills for success'}
-//         </p>
-//       </div>
+  const handleError = (e) => {
+    setIsLoading(false);
+    setHasError(true);
+    onError?.(e);
+  };
 
-//       {/* Updated & Last Updated */}
-//       <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800/50 flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
-//         <span className="flex items-center gap-1">
-//           <Clock size={12} />
-//           Updated {course?.last_updated || 'Recently'}
-//         </span>
-//         {course?.language && (
-//           <span className="flex items-center gap-1">
-//             <Globe size={12} />
-//             {course.language}
-//           </span>
-//         )}
-//       </div>
+  return (
+    <div className="relative w-full aspect-video min-h-[160px] sm:min-h-[140px] md:min-h-[150px] bg-gray-100 dark:bg-gray-800/50 overflow-hidden rounded-t-xl group">
+      {/* Skeleton loader */}
+      {isLoading && (
+        <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-gray-800 dark:via-gray-700 dark:to-gray-800" />
+      )}
 
-//       {/* Course Preview Content */}
-//       <div className="p-4 space-y-4">
-//         {/* What you'll learn section */}
-//         <div className="space-y-2">
-//           <h4 className="font-semibold text-gray-900 dark:text-white text-sm">What you'll learn</h4>
-//           <ul className="grid grid-cols-2 gap-2">
-//             {(course?.learning_points || []).slice(0, 4).map((point, index) => (
-//               <li key={index} className="flex items-start gap-2 text-xs text-gray-600 dark:text-gray-400">
-//                 <CheckCircle size={12} className="mt-0.5 shrink-0" />
-//                 <span>{point}</span>
-//               </li>
-//             ))}
-//           </ul>
-//         </div>
+      {/* Actual image */}
+      <Image
+        src={hasError ? image6 : src}
+        alt={alt}
+        fill
+        className={`object-cover transition-all duration-300 group-hover:scale-105 ${
+          isLoading ? 'opacity-0' : 'opacity-100'
+        }`}
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+        quality={90}
+        priority={priority}
+        placeholder="blur"
+        blurDataURL={`data:image/svg+xml;base64,${toBase64(shimmer(700, 475))}`}
+        onLoad={handleLoad}
+        onError={handleError}
+      />
 
-//         {/* Course Content Preview */}
-//         <div className="space-y-2">
-//           <h4 className="font-semibold text-gray-900 dark:text-white text-sm">Course Content</h4>
-//           <ul className="space-y-2">
-//             <li className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
-//               <div className="flex items-center gap-2">
-//                 <BookOpen size={12} />
-//                 <span>{course?.no_of_Sessions || 0} {isLiveCourse ? 'Sessions' : 'Classes'}</span>
-//               </div>
-//               <span>{course?.duration_range || (course?.course_duration ? `${course.course_duration.split(' ').slice(0, 2).join(' ').replace('months', 'Months')} Course` : "Self-Paced Course")}</span>
-//             </li>
-//             <li className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
-//               <div className="flex items-center gap-2">
-//                 <Award size={12} />
-//                 <span>Certificate of completion</span>
-//               </div>
-//             </li>
-//           </ul>
-//         </div>
-
-//         {/* Requirements */}
-//         {course?.prerequisites && course.prerequisites.length > 0 && (
-//           <div className="space-y-2">
-//             <h4 className="font-semibold text-gray-900 dark:text-white text-sm">Requirements</h4>
-//             <ul className="space-y-1">
-//               {course.prerequisites.slice(0, 2).map((req, index) => (
-//                 <li key={index} className="flex items-start gap-2 text-xs text-gray-600 dark:text-gray-400">
-//                   <div className="w-1 h-1 rounded-full bg-gray-400 mt-1.5" />
-//                   <span>{req}</span>
-//                 </li>
-//               ))}
-//             </ul>
-//           </div>
-//         )}
-
-//         {/* Instructor Section */}
-//         {course?.instructor && (
-//           <div className="pt-3 border-t border-gray-200 dark:border-gray-800">
-//             <div className="flex items-center gap-3">
-//               {course.instructor.avatar ? (
-//                 <img 
-//                   src={course.instructor.avatar} 
-//                   alt={course?.course_duration}
-//                   className="w-10 h-10 rounded-full object-cover"
-//                 />
-//               ) : (
-//                 <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-//                   <User size={20} className="text-gray-500 dark:text-gray-400" />
-//                 </div>
-//               )}
-//               <div>
-//                 <h4 className="font-semibold text-sm text-gray-900 dark:text-white">
-//                   {course?.instructor?.name || 'Course Instructor'}
-//                 </h4>
-//                 <p className="text-xs text-gray-600 dark:text-gray-400">
-//                   {course.instructor?.title || 'Instructor'}
-//                 </p>
-//               </div>
-//             </div>
-//           </div>
-//         )}
-//       </div>
-
-//       {/* Call to Action Footer */}
-//       <div className="p-4 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-800">
-//         {!hidePrice ? (
-//           <div className="flex items-center justify-between">
-//             <div className="flex items-baseline gap-2">
-//               <span className={`text-2xl font-bold ${
-//                 isLiveCourse ? 'text-rose-600 dark:text-rose-400' : 'text-indigo-600 dark:text-indigo-400'
-//               }`}>
-//                 {course?.course_fee ? formatCurrencyPrice(convertPrice(course.course_fee)) : 'Free'}
-//               </span>
-//               {course?.original_fee && (
-//                 <span className="text-sm text-gray-500 line-through">
-//                   {formatCurrencyPrice(convertPrice(course.original_fee))}
-//                 </span>
-//               )}
-//             </div>
-//             <button
-//               onClick={() => window.open(`/course-details/${course?._id}`, '_blank')}
-//               className={`px-4 py-2 rounded-lg font-medium text-white transition-all flex items-center justify-center gap-1.5 ${
-//               'bg-indigo-500 hover:bg-indigo-600'
-//               }`}
-//             >
-//               Add to cart
-//             </button>
-//           </div>
-//         ) : (
-//           <div className="flex justify-end">
-//             <button
-//               onClick={() => window.open(`/course-details/${course?._id}`, '_blank')}
-//               className={`px-4 py-2 rounded-lg font-medium text-white transition-all flex items-center justify-center gap-1.5 ${
-//               'bg-indigo-500 hover:bg-indigo-600'
-//               }`}
-//             >
-//               View details
-//             </button>
-//           </div>
-//         )}
-//       </div>
-//     </div>
-//   );
-// };
+      {/* Enhanced gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/30 dark:from-black/20 dark:to-black/40 transition-opacity duration-300 group-hover:opacity-70" />
+      
+      {/* Optional shine effect on hover */}
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-tr from-transparent via-white/10 to-transparent transform translate-x-full animate-shine" />
+    </div>
+  );
+};
 
 const CourseCard = ({ 
   course = {}, 
@@ -850,7 +739,7 @@ const CourseCard = ({
     course.course_title.toLowerCase().includes('digital marketing')
   );
 
-  // Mobile-specific styles
+  // Mobile-specific stylesi
   const mobileCardStyles = `
     ${isMobile ? `
       p-3 
@@ -976,38 +865,33 @@ const CourseCard = ({
 
         {/* Pre-hover content */}
         <div className={`flex flex-col h-full transition-opacity duration-300 ${(isHovered && !isMobile) || (mobileHoverActive && isMobile) ? 'opacity-0' : 'opacity-100'}`}>
-          {/* Image section */}
-          <div className={`relative ${mobileImageStyles} ...`}>
-            <Image
-              src={!isImageError ? (course?.course_image || image6) : image6}
-              alt={course?.course_title || "Course Image"}
-              className="w-full h-full object-cover"
-              width={400}
-              height={225}
-              onLoad={handleImageLoad}
-              onError={handleImageError}
-              priority={true}
-            />
-          </div>
+          {/* Updated Image section */}
+          <ImageWrapper
+            src={course?.course_image || image6}
+            alt={course?.course_title || "Course Image"}
+            onLoad={handleImageLoad}
+            onError={handleImageError}
+            priority={true}
+          />
 
           {/* Course info - consistent style for both Live and Blended */}
-          <div className={`${mobileContentStyles} flex flex-col p-3 flex-grow justify-between`}>
-            <div className="flex flex-col items-center justify-center flex-grow py-1.5 min-h-[90px]">
+          <div className={`${mobileContentStyles} flex flex-col p-4 flex-grow justify-between`}>
+            <div className="flex flex-col items-center justify-center flex-grow py-2 min-h-[100px]">
               {/* Course category badge */}
-              {course?.course_category && (
-                <div className={`inline-flex mb-1.5 items-center text-xs font-semibold rounded-full px-2.5 py-0.5 ${
+              {course?.course_grade && (
+                <div className={`inline-flex mb-2 items-center text-xs font-semibold rounded-full px-3 py-1 ${
                   isLiveCourse ? 'bg-[#379392]/10 text-[#379392]' : 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400'
                 } mx-auto`}>
                   {isLiveCourse ? 
-                    <Play size={12} className="mr-1" /> : 
-                    <Layers size={12} className="mr-1" />
+                    <Play size={14} className="mr-1.5" /> : 
+                    <Layers size={14} className="mr-1.5" />
                   }
-                  <span>{course?.course_category}</span>
+                  <span>{course?.course_grade}</span>
                 </div>
               )}
 
               {/* Course title - optimized spacing */}
-              <h3 className={`${mobileTitleStyles} text-gray-900 dark:text-white line-clamp-2 text-center mx-auto max-w-[95%] ${course?.course_category ? 'mt-1' : 'mt-0'}`}>
+              <h3 className={`${mobileTitleStyles} text-base font-bold text-gray-900 dark:text-white line-clamp-2 text-center mx-auto max-w-[95%] ${course?.course_category ? 'mt-1.5' : 'mt-0'}`}>
                 {course?.course_title || "Course Title"}
               </h3>
               
@@ -1021,19 +905,19 @@ const CourseCard = ({
 
             {/* Course Duration/Learning Experience - adjusted spacing */}
             {showDuration && course?.course_duration && (
-              <div className={`mx-auto ${isMobile ? 'mb-12' : 'mb-0'} w-full mt-1`}>
+              <div className={`mx-auto ${isMobile ? 'mb-14' : 'mb-2'} w-full mt-2`}>
                 {React.isValidElement(course.course_duration) ? (
-                  <div className={`flex items-center ${styles.durationBoxBg} p-2.5 rounded-lg`}>
+                  <div className={`flex items-start ${styles.durationBoxBg} p-3 rounded-lg`}>
                     {course.course_duration}
                   </div>
                 ) : (
-                  <div className={`flex items-center ${styles.durationBoxBg} p-2.5 rounded-lg justify-center`}>
-                    <Clock size={16} className={`mr-2 ${styles.durationIconColor} flex-shrink-0`} />
+                  <div className={`flex items-center ${styles.durationBoxBg} p-3 rounded-lg justify-center`}>
+                    <Clock size={18} className={`mr-2.5 ${styles.durationIconColor} flex-shrink-0`} />
                     <div className="text-center">
                       <span className={`${styles.durationTextColor} font-semibold text-sm`}>
                         {isLiveCourse ? 'Course Duration' : 'Learning Experience'}
                       </span>
-                      <p className="text-gray-700 dark:text-gray-300 font-medium text-sm">
+                      <p className="text-gray-700 dark:text-gray-300 font-medium text-sm mt-0.5">
                         {course?.duration_range || formatDuration(course?.course_duration)}
                       </p>
                     </div>
@@ -1066,60 +950,55 @@ const CourseCard = ({
         </div>
 
         {/* Hover content - similar structure for both course types */}
-        <div className={`hover-content absolute inset-0 bg-white dark:bg-gray-900 ${isMobile ? 'p-4' : 'p-3'} flex flex-col transition-opacity duration-300 ${
+        <div className={`hover-content absolute inset-0 bg-white dark:bg-gray-900 ${isMobile ? 'p-5' : 'p-4'} flex flex-col transition-opacity duration-300 ${
           isMobile ? 'overflow-y-auto' : 'overflow-hidden'
         } max-h-full ${
           (isHovered && !isMobile) || (mobileHoverActive && isMobile) ? 'opacity-100 z-20' : 'opacity-0 -z-10'
         }`}>
           {/* Course details */}
-          <div className={`${isMobile ? 'mb-3' : 'mb-1.5'} flex items-center justify-center py-3 md:py-4`}>
+          <div className={`${isMobile ? 'mb-4' : 'mb-3'} flex items-center justify-center py-3 md:py-4`}>
             <h3 className={`${isMobile ? 'text-lg' : 'text-xl'} font-extrabold text-gray-900 dark:text-white line-clamp-2 text-center max-w-[90%]`}>
               {course?.course_title}
             </h3>
           </div>
 
           {/* Consistent hover content structure for both course types */}
-          <div className={`flex flex-col ${isMobile ? 'gap-3 mb-3' : 'gap-1.5 mb-1.5'} items-center`}>
+          <div className={`flex flex-col ${isMobile ? 'gap-4 mb-4' : 'gap-3 mb-3'} items-stretch`}>
             {/* Course Duration / Learning Experience Box */}
-            <div className={`flex items-center gap-3 ${styles.durationBoxBg} ${isMobile ? 'p-3' : 'p-2'} rounded-lg w-full justify-center`}>
-              {/* <Clock size={isMobile ? 18 : 16} className={`${styles.durationIconColor} flex-shrink-0`} /> */}
-              <div className="text-center">
+            {/* <div className={`flex items-start ${styles.durationBoxBg} ${isMobile ? 'p-4' : 'p-3'} rounded-lg w-full`}>
+              <Clock size={isMobile ? 20 : 18} className={`mt-0.5 mr-3 ${styles.durationIconColor} flex-shrink-0`} />
+              <div className="flex flex-col">
                 <span className={`${styles.durationTextColor} font-bold text-sm`}>
                   {isLiveCourse ? 'Course Duration' : 'Learning Experience'}
                 </span>
-                {/* Support for JSX or string duration */}
-                {React.isValidElement(course.course_duration) ? (
-                  course.course_duration
-                ) : (
-                  <p className="text-gray-700 dark:text-gray-300 font-medium text-sm">
-                    {course?.duration_range || formatDuration(course?.course_duration)}
-                  </p>
-                )}
+                <p className="text-gray-700 dark:text-gray-300 font-medium text-sm mt-0.5">
+                  {course?.duration_range || formatDuration(course?.course_duration)}
+                </p>
               </div>
-            </div>
+            </div> */}
             
             {/* Effort Hours - for both types */}
             {course?.effort_hours && (
-              <div className={`flex items-center gap-3 ${isMobile ? 'p-2.5' : 'p-2'} border border-gray-100 dark:border-gray-800 rounded-lg w-full justify-center`}>
-                <Target size={isMobile ? 16 : 14} className="text-yellow dark:text-yellow-400 flex-shrink-0" />
-                <div className="text-center">
+              <div className={`flex items-start ${isMobile ? 'p-3.5' : 'p-3'} border border-gray-100 dark:border-gray-800 rounded-lg w-full`}>
+                <Target size={isMobile ? 18 : 16} className="mt-0.5 mr-3 text-yellow-500 dark:text-yellow-400 flex-shrink-0" />
+                <div className="flex flex-col">
                   <p className="font-bold text-gray-900 dark:text-white text-sm">
                     {course.effort_hours} hrs/week
                   </p>
-                  <p className="text-xs text-gray-500 font-medium">Required Effort</p>
+                  <p className="text-xs text-gray-500 font-medium mt-0.5">Required Effort</p>
                 </div>
               </div>
             )}
             
             {/* Sessions - for both types */}
             {course?.no_of_Sessions && (
-              <div className={`flex items-center gap-3 ${isMobile ? 'p-2.5' : 'p-2'} border border-gray-100 dark:border-gray-800 rounded-lg w-full justify-center`}>
-                <Users size={isMobile ? 16 : 14} className="text-medhgreen dark:text-medhgreen flex-shrink-0" />
-                <div className="text-center">
+              <div className={`flex items-start ${isMobile ? 'p-3.5' : 'p-3'} border border-gray-100 dark:border-gray-800 rounded-lg w-full`}>
+                <Users size={isMobile ? 18 : 16} className="mt-0.5 mr-3 text-medhgreen dark:text-medhgreen flex-shrink-0" />
+                <div className="flex flex-col">
                   <p className="font-bold text-gray-900 dark:text-white text-sm">
                     {course.no_of_Sessions} {isLiveCourse ? 'Sessions' : 'Classes'}
                   </p>
-                  <p className="text-xs text-gray-500 font-medium">
+                  <p className="text-xs text-gray-500 font-medium mt-0.5">
                     {isLiveCourse ? 'Total Live Sessions' : 'Total Learning Units'}
                   </p>
                 </div>
@@ -1128,13 +1007,13 @@ const CourseCard = ({
             
             {/* Special feature - Internship for specific courses */}
             {hasInternshipOption && (
-              <div className={`flex items-center gap-3 ${isMobile ? 'p-2.5' : 'p-2'} border border-gray-100 dark:border-gray-800 rounded-lg w-full justify-center`}>
-                <Briefcase size={isMobile ? 16 : 14} className="text-gray-600 dark:text-gray-400 flex-shrink-0" />
-                <div className="text-center">
+              <div className={`flex items-start ${isMobile ? 'p-3.5' : 'p-3'} border border-gray-100 dark:border-gray-800 rounded-lg w-full`}>
+                <Briefcase size={isMobile ? 18 : 16} className="mt-0.5 mr-3 text-gray-600 dark:text-gray-400 flex-shrink-0" />
+                <div className="flex flex-col">
                   <p className="font-bold text-gray-900 dark:text-white text-sm">
                     Guaranteed Job
                   </p>
-                  <p className="text-xs text-gray-500 font-medium">For 18 Month Course</p>
+                  <p className="text-xs text-gray-500 font-medium mt-0.5">For 18 Month Course</p>
                 </div>
               </div>
             )}
@@ -1213,6 +1092,19 @@ if (typeof document !== 'undefined') {
     /* Improved contrast for important text */
     .font-extrabold {
       letter-spacing: -0.02em;
+    }
+
+    @keyframes shine {
+      0% {
+        transform: translateX(-100%);
+      }
+      100% {
+        transform: translateX(100%);
+      }
+    }
+
+    .animate-shine {
+      animation: shine 1.5s infinite;
     }
   `;
   document.head.appendChild(style);
