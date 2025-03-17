@@ -1,5 +1,8 @@
+"use client";
 import React from "react";
 import Image from "next/image";
+import { motion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
 import Logo1 from "@/assets/images/join-as-school/logo-1.svg";
 import Logo2 from "@/assets/images/join-as-school/logo-2.svg";
 import Logo3 from "@/assets/images/join-as-school/logo-3.svg";
@@ -25,7 +28,7 @@ const advantagesData = [
     icon: Logo2,
     title: "Data-Driven Insights for Educators",
     description:
-      "We provide data analytics and insights to educators, enabling them to track students’ progress, identify areas for improvement, and personalize instruction based on individual learning patterns.",
+      "We provide data analytics and insights to educators, enabling them to track students' progress, identify areas for improvement, and personalize instruction based on individual learning patterns.",
   },
   {
     id: 3,
@@ -74,7 +77,7 @@ const advantagesData = [
     icon: Logo9,
     title: "Integration of Technology",
     description:
-      "Collaborate to integrate our state-of-the-art tools, platforms, and applications into their teaching methods, enhancing students’ digital literacy and technological proficiency.",
+      "Collaborate to integrate our state-of-the-art tools, platforms, and applications into their teaching methods, enhancing students' digital literacy and technological proficiency.",
   },
 ];
 
@@ -97,71 +100,142 @@ const advantagesPotentialData = [
 ];
 
 const KeyAdvantages = () => {
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.5
+      }
+    }
+  };
+
   return (
-    <section className="py-16 w-full bg-white dark:bg-screen-dark flex justify-center items-center">
-      <div className="w-[92%] lg:w-[80%]">
-        {/* Benefits Section */}
-        <div className="text-center px-3 lg:px-50 ">
-          <h2 className="text-3xl font-bold text-[#252525] dark:text-gray50">
-            Collaborate with Medh and Empower your Students with cutting-edge
-            skills.
+    <section className="py-20 w-full bg-gradient-to-b from-primary-50 to-white dark:from-gray-900 dark:to-gray-800">
+      <motion.div 
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        variants={containerVariants}
+        className="container mx-auto px-4 max-w-7xl"
+      >
+        {/* Header Section */}
+        <motion.div 
+          variants={itemVariants}
+          className="text-center max-w-4xl mx-auto mb-16 space-y-4"
+        >
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white leading-tight">
+            Collaborate with Medh and Empower your Students
+            <span className="text-primary-600"> with cutting-edge skills.</span>
           </h2>
-          <p className="mt-4 lg:px-16 px-2 text-[#5C6574] dark:text-gray300 text-[17px] font-normal leading-6 font-sans ">
+          <p className="text-xl text-gray-600 dark:text-gray-300 leading-relaxed">
             Equip your students for the future: upskill for confidence,
-            job-readiness, and success. Let&#39;s work together to bring innovative
+            job-readiness, and success. Let's work together to bring innovative
             and effective education solutions to your institution.
           </p>
-        </div>
-        <div className="text-[#252525] dark:text-gray50 text-3xl text-center font-bold lg:pt-16 pt-10">
-          <h2>Key advantages to Schools/Institutes</h2>
-        </div>
+        </motion.div>
 
-        {/* Render the General Benefits */}
-        <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-x-5  lg:gap-y-8 gap-y-5 ">
-          {advantagesData.map((advantages, index) => (
-            <div
-              key={index}
-              className=" px-2 py-1 text-center bg-white dark:bg-inherit dark:border-whitegrey rounded-3xl border border-[#0000004D] shadow-card-custom w-full transition-transform duration-300 ease-in-out hover:shadow-lg hover:scale-105 "
+        {/* Key Advantages Title */}
+        <motion.div 
+          variants={itemVariants}
+          className="text-center mb-12"
+        >
+          <h3 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Key advantages to Schools/Institutes
+          </h3>
+        </motion.div>
+
+        {/* Main Advantages Grid */}
+        <motion.div 
+          variants={containerVariants}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16"
+        >
+          {advantagesData.map((advantage, index) => (
+            <motion.div
+              key={advantage.id}
+              variants={itemVariants}
+              whileHover={{ scale: 1.02 }}
+              className="group relative bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700"
             >
-              <Image
-                src={advantages.icon}
-                alt="img"
-                className="mx-auto h-16   mb-1"
-              />
-              <h3 className="text-[15px] leading-7 font-bold text-[#252525] dark:text-gray50 font-Open mb-1">
-                {advantages.title}
-              </h3>
-              <p className="text-[#252525] text-[15px] leading-7 font-normal font-Open dark:text-gray300">
-                {advantages.description}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        {/* Earning Potential Section */}
-        <div className="mt-10">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 gap-6">
-            {advantagesPotentialData.map((item, index) => (
-              <div
-                key={index}
-                className="w-full px-2 py-1 text-center  bg-white dark:bg-screen-dark dark:border-whitegrey shadow-card-custom rounded-2xl border border-[#0000004D] flex flex-col transition-transform duration-300 ease-in-out hover:shadow-lg hover:scale-105"
-              >
-                <Image
-                  src={item.icon}
-                  alt="img"
-                  className="mx-auto h-16 mb-1"
-                />
-                <h3 className="text-[15px] leading-7 font-bold text-[#252525] font-Open mb-1 dark:text-gray50">
-                  {item.title}
-                </h3>
-                <p className="text-[#252525] text-[15px] leading-7 font-normal font-Open flex-grow dark:text-gray300">
-                  {item.description}
+              <div className="absolute inset-0 bg-gradient-to-r from-primary-500/10 to-purple-500/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              
+              <div className="relative z-10">
+                <div className="mb-4 flex items-center justify-between">
+                  <div className="w-16 h-16 bg-primary-100 dark:bg-primary-900/30 rounded-xl p-3 flex items-center justify-center">
+                    <Image
+                      src={advantage.icon}
+                      alt={advantage.title}
+                      className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110"
+                    />
+                  </div>
+                  <ArrowRight className="w-5 h-5 text-primary-600 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-300" />
+                </div>
+                
+                <h4 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
+                  {advantage.title}
+                </h4>
+                <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+                  {advantage.description}
                 </p>
               </div>
-            ))}
-          </div>
-        </div>
-      </div>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* Additional Benefits Section */}
+        <motion.div 
+          variants={containerVariants}
+          className="grid md:grid-cols-2 gap-8"
+        >
+          {advantagesPotentialData.map((item, index) => (
+            <motion.div
+              key={item.id}
+              variants={itemVariants}
+              whileHover={{ scale: 1.02 }}
+              className="group bg-gradient-to-br from-primary-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-primary-100 dark:border-gray-700"
+            >
+              <div className="flex items-start space-x-6">
+                <div className="w-20 h-20 bg-white dark:bg-gray-800 rounded-xl p-4 shadow-md">
+                  <Image
+                    src={item.icon}
+                    alt={item.title}
+                    className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110"
+                  />
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+                    {item.title}
+                  </h4>
+                  <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+                    {item.description}
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* Bottom CTA */}
+        <motion.div
+          variants={itemVariants}
+          className="text-center mt-16"
+        >
+          <p className="text-primary-600 dark:text-primary-400 text-lg font-medium italic">
+            Medh Hain Toh Mumkin Hain!
+          </p>
+        </motion.div>
+      </motion.div>
     </section>
   );
 };

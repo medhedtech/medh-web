@@ -38,13 +38,11 @@ const HireSection = () => {
       {/* Header Section */}
       <div className="container mx-auto text-center px-4 sm:px-6 py-8">
         <h1 className="text-3xl md:text-4xl font-bold text-[#5C6574] dark:text-white mb-4">
-          Start your hiring process now with{" "}
-          <span className="text-[#7ECA9D]">Recruit @ Medh</span>.
+        DISCOVER EXCEPTIONAL TALENT INSTANTLY WITH{" "}
+          <span className="text-medhgreen">MEDH</span>.
         </h1>
         <p className="text-lg text-[#727695] dark:text-gray-300 max-w-3xl mx-auto">
-          Providing access to top talent in the IT domain. Our platform offers a
-          seamless experience for effortlessly recruiting industry-trained IT Professionals who
-          are job-ready.
+        Pre-Vetted Professionals Ready to Accelerate Innovation across multiple Domains
         </p>
       </div>
 

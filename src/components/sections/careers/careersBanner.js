@@ -68,11 +68,10 @@ export default function CareerBanner() {
             {/* Heading */}
             <div className="space-y-4">
               <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 dark:text-white leading-tight">
-                INNOVATE, INSPIRE, and{" "}
-                <span className="text-primary-500">GROW</span>
+                GROW IMPACT THRIVE MEANINGFULLY with <span className="text-medhgreen">MEDH</span>
               </h1>
               <p className="text-lg lg:text-xl text-gray-600 dark:text-gray-300">
-                Join Medh's Team that is Transforming Education. Advance your career and become part of a dynamic, inclusive work culture where growth and innovation thrive.
+              Join Dynamic Team Dedicated to Transforming Education and Creating Opportunities.
               </p>
             </div>
 
