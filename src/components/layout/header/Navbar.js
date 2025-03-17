@@ -88,11 +88,11 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => 
   // Determine container class based on page type
   const containerClass = (() => {
     if (isHome1 || isHome1Dark || isHome4 || isHome4Dark || isHome5 || isHome5Dark) {
-      return "lg:container 3xl:container2-lg";
+      return "w-full max-w-[1920px] lg:px-4 xl:px-6";
     } else if (isHome2 || isHome2Dark) {
-      return "container sm:container-fluid lg:container 3xl:container-secondary";
+      return "w-full max-w-[1920px] lg:px-4 xl:px-6";
     } else {
-      return "lg:container 3xl:container-secondary-lg";
+      return "w-full max-w-[1920px] lg:px-4 xl:px-6";
     }
   })();
 
@@ -101,11 +101,11 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => 
     let baseClasses = "fixed w-full transition-all duration-300 ease-in-out z-50";
     
     if (isSearchActive) {
-      baseClasses += " bg-white dark:bg-gray-900 backdrop-blur-lg shadow-lg dark:shadow-gray-900/30";
+      baseClasses += " bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-lg dark:shadow-gray-900/30";
     } else if (isScrolled) {
-      baseClasses += " bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-lg dark:shadow-gray-900/30 border-b border-gray-200/50 dark:border-gray-800/30";
+      baseClasses += " bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg shadow-lg dark:shadow-gray-900/30 border-b border-gray-200/50 dark:border-gray-800/30";
     } else {
-      baseClasses += " bg-white dark:bg-gray-900 border-b border-gray-200/50 dark:border-gray-800/30";
+      baseClasses += " bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-800/30";
     }
     
     // Visibility based on animation and scroll state
@@ -120,8 +120,13 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => 
     return baseClasses;
   })();
 
-  // Height class based on scroll state
-  const navbarHeightClass = isScrolled ? 'h-16 md:h-14' : 'h-18';
+  // Height class based on scroll state and screen size
+  const navbarHeightClass = (() => {
+    if (isScrolled) {
+      return 'h-14 lg:h-16';
+    }
+    return 'h-16 lg:h-18';
+  })();
 
   // Check if the current page is the search page
   const isSearchPage = pathname?.startsWith('/search');
@@ -131,31 +136,31 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => 
       ref={navbarRef}
       className={navbarAppearanceClass}
       style={{
-        transition: 'transform 0.3s ease, opacity 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease'
+        transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease'
       }}
     >
-      <nav className="relative">
-        <div className={`${containerClass} mx-auto px-4 sm:px-6 lg:px-8`}>
+      <nav className="relative w-full flex justify-center">
+        <div className={`${containerClass} mx-auto px-3 sm:px-4`}>
           {/* Top Navigation for specific pages */}
           {(isHome4 || isHome4Dark || isHome5 || isHome5Dark) && <NavbarTop />}
 
           {/* Main Navigation */}
           <div className={`flex items-center justify-between transition-all duration-300 ${navbarHeightClass}`}>
-            {/* Conditional logo rendering */}
+            {/* Conditional logo rendering with improved spacing */}
             {!isSearchActive && (
-              <div className="flex-shrink-0">
+              <div className="flex-shrink-0 mr-3 lg:mr-6">
                 <NavbarLogo isScrolled={isScrolled} />
               </div>
             )}
 
-            {/* Center section */}
-            <div className="hidden lg:flex flex-1 items-center justify-center">
+            {/* Center section with improved layout */}
+            <div className="hidden lg:flex flex-1 items-center justify-center max-w-6xl mx-auto">
               {!isSearchActive ? (
-                <div className="flex-1 px-8 flex items-center justify-between">
-                  <div className="transition-all duration-300 transform flex-grow">
+                <div className="flex-1 px-3 lg:px-4 flex items-center justify-between">
+                  <div className="transition-all duration-300 transform flex-grow max-w-2xl xl:max-w-3xl">
                     {isHome2Dark ? <NavItems2 /> : <NavItems />}
                   </div>
-                  <div className="ml-6 flex-grow-0">
+                  <div className="ml-4 xl:ml-6 flex-shrink-0">
                     <NavbarSearch 
                       isScrolled={isScrolled} 
                       setIsSearchActive={setIsSearchActive}
@@ -163,7 +168,7 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => 
                   </div>
                 </div>
               ) : (
-                <div className="w-full max-w-4xl px-4">
+                <div className="w-full max-w-2xl xl:max-w-3xl px-3 lg:px-4">
                   <NavbarSearch 
                     isScrolled={isScrolled} 
                     setIsSearchActive={setIsSearchActive}
@@ -172,22 +177,24 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => 
               )}
             </div>
 
-            {/* Conditional right section rendering */}
+            {/* Right section with improved spacing */}
             {!isSearchActive && (
-              <div className="flex items-center space-x-2">
-                <NavbarRight isScrolled={isScrolled} />
-                {/* Mobile menu button - Only show when onMobileMenuOpen is provided */}
+              <div className="flex items-center space-x-2 sm:space-x-3 lg:space-x-4">
+                <div className="flex-shrink-0">
+                  <NavbarRight isScrolled={isScrolled} />
+                </div>
+                {/* Mobile menu button with improved styling */}
                 {typeof onMobileMenuOpen === 'function' && (
                   <button
                     type="button"
                     suppressHydrationWarning
-                    className="lg:hidden inline-flex items-center justify-center p-2 rounded-full text-gray-700 hover:text-gray-900 hover:bg-gray-100/80 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800/80 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-all duration-200 transform hover:scale-105"
+                    className="lg:hidden inline-flex items-center justify-center p-2 sm:p-2.5 rounded-lg sm:rounded-xl text-gray-700 hover:text-gray-900 hover:bg-gray-100/90 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800/90 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-all duration-200 transform hover:scale-105 active:scale-95"
                     onClick={onMobileMenuOpen}
                     aria-expanded="false"
                     aria-label="Open main menu"
                   >
                     <span className="sr-only">Open main menu</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true">
                       <line x1="3" y1="12" x2="21" y2="12"></line>
                       <line x1="3" y1="6" x2="21" y2="6"></line>
                       <line x1="3" y1="18" x2="21" y2="18"></line>
