@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useState, useEffect } from 'react';
 import CourseBanner from '@/components/shared/banners/CourseBanner';
 import { Calculator, Brain, Gauge, Star, Users, BookOpen } from 'lucide-react';
@@ -75,26 +73,7 @@ function VedicBanner() {
   };
 
   return (
-    <motion.div
-      initial="hidden"
-      animate={isLoaded ? "visible" : "hidden"}
-      variants={fadeInUp}
-      transition={{ duration: 0.5 }}
-      className="bg-gradient-to-b from-amber-50/50 to-orange-50/50 dark:from-amber-950/50 dark:to-orange-950/50"
-    >
       <CourseBanner {...bannerProps} />
-      <motion.div
-        initial="hidden"
-        animate={isLoaded ? "visible" : "hidden"}
-        variants={fadeInUp}
-        transition={{ duration: 0.5, delay: 0.7 }}
-        className="mt-8 text-center pb-8"
-      >
-        <p className="text-2xl text-amber-700 dark:text-amber-500 font-medium italic animate-pulse">
-          Discover the Magic of Vedic Math!
-        </p>
-      </motion.div>
-    </motion.div>
   );
 }
 
