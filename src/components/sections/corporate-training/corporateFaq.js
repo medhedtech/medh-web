@@ -1,22 +1,54 @@
 "use client";
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import Accordion from "@/components/shared/accordion/Accordion";
-import AccordionContent from "@/components/shared/accordion/AccordionContent";
-import AccordionController from "@/components/shared/accordion/AccordionController";
-import AccordionContainer from "@/components/shared/containers/AccordionContainer";
+import React, { useState, useRef, useEffect } from "react";
+import Image from "next/image";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { ChevronDown, ChevronRight, Lightbulb, Brain, Award, Zap, Sparkles } from "lucide-react";
+import DOMPurify from "dompurify";
 
-export default function CorporateFaq() {
-  const [selectedCategory, setSelectedCategory] = useState("all");
+function CourseAiFaq() {
+  const [openIndex, setOpenIndex] = useState(null);
+  const [hoveredIndex, setHoveredIndex] = useState(null);
+  const prefersReducedMotion = useReducedMotion();
+  const containerRef = useRef(null);
+  
+  // Optimize animations based on device capability
+  useEffect(() => {
+    // Check if IntersectionObserver is available
+    if ('IntersectionObserver' in window) {
+      const lazyLoadObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && containerRef.current) {
+            containerRef.current.dataset.visible = 'true';
+            lazyLoadObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1 });
+      
+      if (containerRef.current) {
+        lazyLoadObserver.observe(containerRef.current);
+      }
+      
+      return () => {
+        if (containerRef.current) {
+          lazyLoadObserver.unobserve(containerRef.current);
+        }
+      };
+    }
+  }, []);
 
-  const categories = [
-    "all",
-    "courses",
-    "pricing",
-    "certification",
-    "support",
-    "enrollment"
-  ];
+  const toggleFAQ = (index) => {
+    setOpenIndex(openIndex === index ? null : index);
+  };
+
+  // Custom emoji and icon mapping for different FAQ categories
+  const getIconForQuestion = (question) => {
+    if (question.includes("designed for")) return <Brain className="w-6 h-6 text-violet-500" />;
+    if (question.includes("Data Science")) return <Zap className="w-6 h-6 text-blue-500" />;
+    if (question.includes("Artificial Intelligence")) return <Sparkles className="w-6 h-6 text-amber-500" />;
+    if (question.includes("programming language")) return <Lightbulb className="w-6 h-6 text-green-500" />;
+    if (question.includes("MEDH")) return <Award className="w-6 h-6 text-pink-500" />;
+    return <Lightbulb className="w-6 h-6 text-indigo-500" />;
+  };
 
   const faqs = [
     {
@@ -66,105 +98,241 @@ export default function CorporateFaq() {
     },
   ];
 
-  const filteredFaqs = selectedCategory === "all" 
-    ? faqs 
-    : faqs.filter(faq => faq.category === selectedCategory);
-
-  const handleCategoryChange = (category) => {
-    setSelectedCategory(category);
+  // Animation variants - optimized for performance
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: {
+        staggerChildren: prefersReducedMotion ? 0 : 0.07,
+        delayChildren: 0.1
+      }
+    }
+  };
+  
+  const itemVariants = {
+    hidden: { opacity: 0, y: prefersReducedMotion ? 0 : 15 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { 
+        type: "spring", 
+        stiffness: 500, 
+        damping: 30, 
+        mass: 1
+      }
+    }
+  };
+  
+  const contentVariants = {
+    hidden: { opacity: 0, height: 0, scale: 0.98 },
+    visible: { 
+      opacity: 1, 
+      height: "auto",
+      scale: 1,
+      transition: { 
+        type: "spring",
+        stiffness: 400,
+        damping: 30,
+        mass: 0.8,
+        opacity: { duration: 0.2 }
+      }
+    }
   };
 
   return (
-    <section className="bg-background text-text py-16">
-      <div className="container mx-auto px-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-6 text-primary">
-              Frequently Asked Questions
+    <div className="w-full px-4 py-10 bg-gradient-to-br from-indigo-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 rounded-xl will-change-auto">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ 
+          duration: 0.5,
+          type: "spring",
+          stiffness: 100, 
+          damping: 20
+        }}
+        className="max-w-5xl mx-auto"
+        style={{ 
+          willChange: "transform, opacity",
+          backfaceVisibility: "hidden"
+        }}
+        ref={containerRef}
+      >
+        <div className="text-center mb-10">
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ 
+              duration: 0.5,
+              type: "spring",
+              stiffness: 200
+            }}
+            style={{ 
+              willChange: "transform, opacity",
+              transformOrigin: "center" 
+            }}
+          >
+            <h2 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-600 to-blue-500 dark:from-violet-400 dark:to-blue-300 inline-block mb-4">
+              Explore FAQs
             </h2>
-            <p className="text-secondary mb-8 max-w-2xl mx-auto">
-              Find answers to common questions about MEDH's Corporate Training Courses. 
-              Can't find what you're looking for? We're here to help!
-            </p>
-
-            {/* Category selection */}
-            <div className="mb-8 flex flex-wrap justify-center gap-3">
-              {categories.map((category) => (
-                <button
-                  key={category}
-                  onClick={() => handleCategoryChange(category)}
-                  className={`px-4 py-2 rounded-md transition-all duration-300 ${
-                    selectedCategory === category
-                      ? "bg-primary text-white shadow-md transform scale-105"
-                      : "bg-card-bg text-text hover:bg-opacity-90 hover:transform hover:scale-102"
-                  }`}
-                >
-                  {category.charAt(0).toUpperCase() + category.slice(1)}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* FAQs */}
-          <AccordionContainer>
-            {filteredFaqs.length > 0 ? (
-              filteredFaqs.map((faq, idx) => (
-                <Accordion
-                  key={idx}
-                  idx={idx}
-                  isActive={idx === 0}
-                  accordion={"secondaryLg"}
-                >
-                  <AccordionController type={"secondaryLg"}>
-                    {faq.question}
-                  </AccordionController>
-                  <AccordionContent>
-                    <div className="content-wrapper py-4 px-5">
-                      <p className="leading-7 text-contentColor dark:text-contentColor-dark">
-                        {faq.answer}
-                      </p>
-                    </div>
-                  </AccordionContent>
-                </Accordion>
-              ))
-            ) : (
-              <div className="text-center py-8">
-                <p>No FAQs found for this category.</p>
-              </div>
-            )}
-          </AccordionContainer>
-
-          {/* Contact section */}
-          <div className="mt-12 text-center bg-card-bg p-8 rounded-lg shadow-md">
-            <p className="text-text mb-4">
-              Have a question that isn't answered here?
-            </p>
-            <p className="flex items-center justify-center gap-2">
-              Contact our support team at{" "}
-              <a 
-                href="mailto:care@medh.co" 
-                className="text-primary hover:text-opacity-80 transition-colors duration-200 font-semibold flex items-center gap-2"
-              >
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  className="h-5 w-5" 
-                  fill="none" 
-                  viewBox="0 0 24 24" 
-                  stroke="currentColor"
-                >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" 
-                  />
-                </svg>
-                care@medh.co
-              </a>
-            </p>
-          </div>
+          </motion.div>
+          <p className="text-gray-600 dark:text-gray-300 text-lg max-w-2xl mx-auto">
+            Discover everything you need to know about our amazing AI and Data Science course!
+          </p>
         </div>
-      </div>
-    </section>
+
+        <motion.div 
+          className="space-y-4"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          style={{ 
+            willChange: "transform",
+            perspective: 1000
+          }}
+        >
+          {faqs.map((faq, index) => (
+            <motion.div 
+              key={index} 
+              variants={itemVariants}
+              onMouseEnter={() => setHoveredIndex(index)}
+              onMouseLeave={() => setHoveredIndex(null)}
+              className={`
+                relative overflow-hidden rounded-xl transform-gpu transition-all duration-300
+                ${openIndex === index ? 'shadow-lg' : 'shadow-md'} 
+                ${hoveredIndex === index && openIndex !== index ? 'scale-[1.01]' : 'scale-100'}
+                bg-white dark:bg-gray-800 border-0
+              `}
+              style={{ 
+                willChange: hoveredIndex === index ? "transform, box-shadow" : "auto",
+                translateZ: 0
+              }}
+              layout="position"
+              layoutDependency={openIndex}
+              layoutId={`faq-${index}`}
+            >
+              <motion.div
+                className="absolute top-0 right-0 w-20 h-20 -mr-10 -mt-10 rounded-full opacity-10"
+                style={{
+                  background: `radial-gradient(circle, 
+                    ${index % 3 === 0 ? '#8b5cf6' : index % 3 === 1 ? '#3b82f6' : '#ec4899'} 0%, 
+                    transparent 70%)`,
+                  willChange: openIndex === index ? "transform" : "auto",
+                  backfaceVisibility: "hidden"
+                }}
+                initial={{ scale: 0 }}
+                animate={{ scale: openIndex === index ? 5 : 1 }}
+                transition={{ 
+                  duration: 0.5,
+                  ease: [0.25, 0.1, 0.25, 1.0]
+                }}
+              />
+              
+              <div
+                className={`
+                  flex justify-between items-center p-5 cursor-pointer
+                  ${openIndex === index ? 'bg-opacity-5' : 'hover:bg-opacity-5'} 
+                  rounded-t-xl relative z-10
+                `}
+                onClick={() => toggleFAQ(index)}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="hidden sm:flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-indigo-100 to-blue-100 dark:from-gray-700 dark:to-gray-700">
+                    {getIconForQuestion(faq.question)}
+                  </div>
+                  <h3 className="font-bold text-gray-800 dark:text-gray-100 text-lg">
+                    {faq.question}
+                  </h3>
+                </div>
+                <motion.div
+                  animate={{ rotate: openIndex === index ? 90 : 0 }}
+                  transition={{ 
+                    duration: 0.2,
+                    type: "spring",
+                    stiffness: 500
+                  }}
+                  style={{ 
+                    transformOrigin: "center",
+                    willChange: "transform"
+                  }}
+                >
+                  {openIndex === index ? (
+                    <ChevronDown className="w-6 h-6 text-indigo-500 dark:text-indigo-400" />
+                  ) : (
+                    <ChevronRight className="w-6 h-6 text-gray-400 dark:text-gray-500" />
+                  )}
+                </motion.div>
+              </div>
+              
+              <AnimatePresence>
+                {openIndex === index && (
+                  <motion.div
+                    variants={contentVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="hidden"
+                    className="px-5 pb-5 pt-1 relative z-10"
+                    style={{ 
+                      willChange: "height, opacity, transform",
+                      transformOrigin: "top",
+                      overflow: "hidden"
+                    }}
+                  >
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ 
+                        duration: 0.3, 
+                        delay: 0.1,
+                        ease: "easeOut"
+                      }}
+                      className="text-gray-600 dark:text-gray-300 prose prose-sm sm:prose-base max-w-none dark:prose-invert"
+                      style={{ transformOrigin: "top center" }}
+                      dangerouslySetInnerHTML={{
+                        __html: DOMPurify.sanitize(faq.answer),
+                      }}
+                    ></motion.div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        <motion.div 
+          className="mt-12 text-center bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md transform-gpu"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ 
+            duration: 0.5, 
+            delay: 0.3,
+            type: "spring",
+            stiffness: 100,
+            damping: 20
+          }}
+          style={{ 
+            willChange: "transform, opacity",
+            backfaceVisibility: "hidden"
+          }}
+        >
+          <p className="text-gray-700 dark:text-gray-300 mb-2">
+            Still have questions? We're here to help! 
+          </p>
+          <a 
+            href="mailto:care@medh.co" 
+            className="inline-flex items-center px-6 py-3 font-semibold rounded-full bg-gradient-to-r from-violet-500 to-blue-500 text-white hover:from-violet-600 hover:to-blue-600 transition-all duration-300 transform-gpu hover:scale-105"
+            style={{ 
+              willChange: "transform",
+              backfaceVisibility: "hidden"
+            }}
+          >
+            <span className="mr-2">Contact Support</span>
+            <span className="text-xl">✨</span>
+          </a>
+        </motion.div>
+      </motion.div>
+    </div>
   );
 }
+
+export default CourseAiFaq;

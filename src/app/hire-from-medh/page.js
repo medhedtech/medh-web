@@ -15,7 +15,9 @@ import React from "react";
 function HireFromMedh() {
   return (
     <PageWrapper>
-      <HireFromMedhBanner />
+      <div className="py-6">
+        <HireFromMedhBanner/>
+      </div>
       <HireSection />
       <SkillsSection />
       <HiringProcess />

@@ -42,7 +42,7 @@ function DigiMarketingCource() {
       <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
         Digital Marketing & Data Analytics
       </h2>
-      <p className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+      <p className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto pb-6">
         Master the art of digital marketing with our comprehensive courses combining modern marketing techniques 
         with data analytics. Learn to create, analyze, and optimize digital campaigns for maximum ROI.
       </p>

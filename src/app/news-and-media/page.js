@@ -12,9 +12,7 @@ function NewsMedia() {
       <BannerNews />
       <LatestNews />
       <BannerNewsCourse />
-      <div className="bg-white py-8">
-        <Certified />
-      </div>
+      <Certified />
       
     </PageWrapper>
   );
