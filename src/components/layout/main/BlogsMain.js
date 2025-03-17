@@ -4,7 +4,7 @@ import React from "react";
 
 const BlogsMain = ({ initialBlogs = [], totalBlogs = 0, initialFilters = {} }) => {
   // Prepare title based on filters
-  let heroTitle = "Blog Articles";
+  let heroTitle = "LEARN GROW INSPIRE CONTINUOUSLY";
   let heroDescription = "Explore our latest educational insights, tips, and industry trends";
   
   if (initialFilters.category) {
