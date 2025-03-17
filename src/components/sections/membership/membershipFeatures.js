@@ -122,29 +122,6 @@ const MembershipFeatures = () => {
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
-        {/* Header Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-center max-w-4xl mx-auto mb-16"
-        >
-          <motion.span
-            whileHover={{ scale: 1.05 }}
-            className="inline-block px-6 py-2 bg-gradient-to-r from-blue-600 via-violet-600 to-fuchsia-600 text-white text-sm font-medium rounded-full mb-4 shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-violet-500/30 transition-all duration-300"
-          >
-            Premium Features
-          </motion.span>
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-violet-600 to-fuchsia-600 hover:saturate-150 transition-all duration-300">
-            Unlock Your Learning Potential with{" "}
-            <span className="font-extrabold bg-gradient-to-r from-emerald-500 via-teal-600 to-cyan-600 bg-clip-text">MEDH</span>
-          </h2>
-          <p className="text-gray-600 dark:text-gray-300 text-lg md:text-xl">
-            Experience a comprehensive learning journey with our premium membership features,
-            designed to enhance your professional growth and development
-          </p>
-        </motion.div>
-
         {/* Features Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {features.map((feature, index) => (
