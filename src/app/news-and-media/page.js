@@ -9,7 +9,9 @@ import Certified from "@/components/sections/why-medh/Certified";
 function NewsMedia() {
   return (
     <PageWrapper>
+      <div className="pt-16">
       <BannerNews />
+      </div>
       <LatestNews />
       <BannerNewsCourse />
       <Certified />
