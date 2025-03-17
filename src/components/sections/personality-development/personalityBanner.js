@@ -84,7 +84,7 @@ function PersonalityBanner() {
             {/* Heading */}
             <div className="space-y-4">
               <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 dark:text-white leading-tight">
-                Comprehensive <span className="text-blue-500">Personality</span> Development Course
+                Comprehensive <span className="text-blue-500">Personality Development Course</span> 
               </h1>
               <p className="text-lg lg:text-xl text-gray-600 dark:text-gray-300">
                 Uncover Your Untapped Potential. Perfect for Students, Professionals, and Homemakers. Unleash Your Best Self.

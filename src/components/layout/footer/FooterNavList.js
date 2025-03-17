@@ -17,42 +17,28 @@ const Typography = ({ variant = "body", children, className = "", ...props }) =>
   );
 };
 
-// Enhanced Accordion component for mobile navigation
-const MobileAccordion = ({ title, icon, items }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  
+// Modern Mobile List Section
+const MobileList = ({ title, icon, items }) => {
   return (
-    <div className="border-b border-white/10 py-2">
-      <button 
-        onClick={() => setIsOpen(!isOpen)} 
-        className="w-full flex items-center justify-between text-left py-2 transition-all duration-300 group"
-        aria-expanded={isOpen}
-      >
-        <div className="flex items-center gap-2">
-          <span className="text-primary-400 group-hover:text-primary-300 transition-colors duration-300 bg-white/5 p-1.5 rounded-md">{icon}</span>
-          <Typography variant="h3" className="text-white text-sm">{title}</Typography>
-        </div>
-        <span className={`text-gray-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : 'rotate-0'}`}>
-          <ChevronDown size={16} />
-        </span>
-      </button>
-      
-      <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
-        <ul className="pl-9 py-2 space-y-2">
-          {items.map((item, idx) => (
-            <li key={idx} className="relative">
-              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-3 h-px bg-primary-500/30"></div>
-              <Link 
-                href={item.path}
-                className="text-gray-400 hover:text-primary-400 text-xs transition-colors duration-200 block py-1 hover:translate-x-0.5 transition-transform flex items-center gap-2"
-              >
-                <span className="text-primary-400 flex-shrink-0">•</span>
-                {item.name}
-              </Link>
-            </li>
-          ))}
-        </ul>
+    <div className="py-4">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-primary-400 bg-white/5 p-1.5 rounded-md">{icon}</span>
+        <Typography variant="h3" className="text-white text-sm">{title}</Typography>
       </div>
+      <ul className="space-y-2.5 pl-8">
+        {items.map((item, idx) => (
+          <li key={idx} className="relative group">
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-2 h-px bg-primary-500/30 group-hover:w-3 group-hover:bg-primary-400 transition-all duration-300"></div>
+            <Link 
+              href={item.path}
+              className="text-gray-400 hover:text-primary-400 text-xs transition-all duration-200 block py-1 hover:translate-x-0.5 flex items-center gap-2"
+            >
+              <span className="text-primary-400/60 group-hover:text-primary-400 transition-colors">•</span>
+              {item.name}
+            </Link>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };
@@ -61,7 +47,6 @@ const FooterNavList = ({ logoImage, isMobile }) => {
   const [animateItems, setAnimateItems] = useState(false);
   
   useEffect(() => {
-    // Staggered animation for child elements
     const timer = setTimeout(() => {
       setAnimateItems(true);
     }, 400);
@@ -73,7 +58,6 @@ const FooterNavList = ({ logoImage, isMobile }) => {
     title: "About Medh",
     description: "Medh is an innovative ed-tech platform that empowers learners with industry-ready skills through expert-led courses, personalized learning paths, and guaranteed job placements.",
     contact: [
-      // { icon: <MapPin size={14} />, text: "Mumbai, India" },
       { icon: <Phone size={14} />, text: "+91 77108 40696" },
       { icon: <Mail size={14} />, text: "care@medh.co" }
     ]
@@ -89,7 +73,6 @@ const FooterNavList = ({ logoImage, isMobile }) => {
         { name: "Career@Medh", path: "/careers" },
         { name: "Hire from Medh", path: "/hire-from-medh" },
         { name: "Medh Membership", path: "/medh-membership" },
-        
       ],
     },
     {
@@ -101,7 +84,6 @@ const FooterNavList = ({ logoImage, isMobile }) => {
         { name: "Corporate Training", path: "/corporate-training-courses" }, 
         { name: "News and Media", path: "/news-and-media" },
         { name: "Contact Us", path: "/contact-us" },
-        // { name: "Home", path: "/" },
       ],
     },
     {
@@ -117,14 +99,14 @@ const FooterNavList = ({ logoImage, isMobile }) => {
     },
   ];
 
-  // Enhanced mobile-optimized view
+  // Enhanced mobile view with modern list layout
   if (isMobile) {
     return (
       <div className="flex flex-col">
-        {/* Enhanced Logo and about us */}
-        <div className="mb-5 flex flex-col items-center">
-          {/* Enhanced Logo with glow effect */}
-          <div className="mb-4 relative">
+        {/* Logo and about us section */}
+        <div className="mb-6 space-y-6">
+          {/* Logo with glow effect */}
+          <div className="relative flex justify-center">
             <div className="absolute -inset-1 bg-gradient-to-r from-primary-500/20 to-primary-400/20 rounded-full blur-md"></div>
             <Link href="/" className="relative block">
               <div className="relative h-12 w-32 p-0.5 rounded-full bg-gradient-to-r from-gray-800 to-gray-900 flex items-center justify-center">
@@ -147,21 +129,20 @@ const FooterNavList = ({ logoImage, isMobile }) => {
             </Link>
           </div>
           
-          {/* Brief description with improved styling */}
-          <div className="text-gray-400 text-xs mb-4 text-center px-4 max-w-xs leading-relaxed ">
+          {/* Brief description */}
+          <div className="text-gray-400 text-xs text-center px-4 max-w-xs mx-auto leading-relaxed">
             {aboutUsContent.description.split(' ').slice(0, 14).join(' ')}...
           </div>
           
-          {/* Contact info with improved styling and alignment */}
-          <div className="flex flex-col items-center gap-4 w-full px-4 py-3 bg-black/20 rounded-lg backdrop-blur-sm border border-white/5">
-            <h3 className="text-white text-sm font-medium">Contact Us</h3>
-            <div className="grid grid-cols-1 gap-2 w-full">
+          {/* Contact info */}
+          <div className="mx-4 p-4 bg-black/20 rounded-xl backdrop-blur-sm border border-white/5">
+            <div className="grid grid-cols-2 gap-3">
               {aboutUsContent.contact.map((item, idx) => (
-                <div key={idx} className="flex items-center gap-3 group bg-black/30 p-2 rounded-lg">
-                  <span className="text-primary-400 bg-black/40 p-1.5 rounded-md">
+                <div key={idx} className="flex items-center gap-2 group bg-black/30 p-2 rounded-lg hover:bg-black/40 transition-all duration-300">
+                  <span className="text-primary-400 bg-black/40 p-1.5 rounded-md group-hover:bg-primary-500/20">
                     {item.icon}
                   </span>
-                  <span className="text-gray-300 text-xs">
+                  <span className="text-gray-300 text-xs group-hover:text-white">
                     {item.text}
                   </span>
                 </div>
@@ -170,10 +151,10 @@ const FooterNavList = ({ logoImage, isMobile }) => {
           </div>
         </div>
         
-        {/* Enhanced Accordion navigation */}
-        <div className="mt-2">
+        {/* Modern list navigation */}
+        <div className="mt-2 space-y-1 divide-y divide-white/5">
           {lists.map((list, idx) => (
-            <MobileAccordion 
+            <MobileList 
               key={idx}
               title={list.heading}
               icon={list.icon}
@@ -185,7 +166,7 @@ const FooterNavList = ({ logoImage, isMobile }) => {
     );
   }
 
-  // Enhanced Desktop view - optimized for full width layout
+  // Desktop view remains unchanged
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-6 md:gap-8 xl:gap-12">
       {/* About Us Section with Enhanced Logo - spans 2 columns on extra large screens */}
