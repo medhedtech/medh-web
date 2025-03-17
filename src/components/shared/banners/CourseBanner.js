@@ -72,7 +72,7 @@ function CourseBanner({
         relative z-10 
         h-full
         flex items-center
-        py-4 safe-top safe-bottom
+        py-4 pt-10 md:pt-4 safe-top safe-bottom
       ">
         <div className="
           grid grid-cols-1 lg:grid-cols-2 
@@ -98,7 +98,7 @@ function CourseBanner({
               <h1 className="
                 font-bold text-gray-900 dark:text-white 
                 tracking-tight leading-[1.1]
-                text-2xl xs:text-3xl sm:text-4xl lg:text-5xl
+                text-1xl xs:text-2xl sm:text-3xl lg:text-4xl 3xl:text-5xl
                 bg-clip-text bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-200
                 animate-neon-pulse
               ">
@@ -108,9 +108,9 @@ function CourseBanner({
                 </span>
               </h1>
               <p className="
-                text-lg sm:text-xl md:text-xl
+                text-lg sm:text-xl md:text-l
                 text-gray-600 dark:text-gray-300 
-                max-w-xl 
+                max-w-l 
                 mx-auto lg:mx-0 
                 leading-relaxed
               ">
@@ -233,7 +233,7 @@ function CourseBanner({
             animate={isLoaded ? "visible" : "hidden"}
             variants={animations.fadeInUp}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="relative h-full flex items-center"
+            className="relative h-full hidden lg:flex items-center" 
           >
             <div className="relative rounded-xl overflow-hidden shadow-xl group aspect-[4/3] lg:aspect-auto">
               <div className={`absolute inset-0 bg-gradient-to-tr ${themeClasses.gradientFrom} ${themeClasses.gradientVia} ${themeClasses.gradientTo} opacity-80 group-hover:opacity-70 transition-opacity duration-300`} />
