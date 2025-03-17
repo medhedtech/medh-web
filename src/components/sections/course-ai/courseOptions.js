@@ -59,14 +59,19 @@ function CourseOptions() {
 
   // Custom header content
   const customHeader = (
-    <div className="text-center mb-6 md:mb-8 px-2">
+    <div className="text-center mb-6 md:mb-8 px-2 pb-10">
       <span className="inline-flex items-center gap-1 md:gap-2 px-3 py-1 md:px-4 md:py-1.5 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-xs md:text-sm font-medium mb-2 md:mb-3">
         <Sparkles className="w-3 h-3 md:w-4 md:h-4" />
         Future-Ready Skills
       </span>
-      <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white pb-10">
-        AI and Data Science Courses
+      <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white pb-2 ">
+       TRANSFORM TECH INSIGHTS POWERFULLY 
       </h2>
+      <span className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">with</span>
+      <span className="text-2xl md:text-3xl lg:text-4xl font-bold text-medhgreen dark:text-medhgreen"> MEDH</span>
+      <p className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto pt-5">
+        Comprehensive Learning Path to Master Cutting-Edge Technology and Analytics
+      </p>
     </div>
   );
 
