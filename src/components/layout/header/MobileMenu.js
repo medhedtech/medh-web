@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Menu, X, ChevronRight, Search, LogOut, User, Home, Book, Bell, Settings, Info, HelpCircle, Award, Bookmark, Heart, Share2, Calendar } from 'lucide-react';
+import { Menu, X, ChevronRight, Search, LogOut, User, Home, Book, Bell, Settings, Info, HelpCircle, Award, Bookmark, Heart, Share2, Calendar, ChevronLeft, Sun, Moon, Users, GraduationCap, Briefcase, FileText, ExternalLink, Mail, Phone, MapPin, DollarSign, Globe, BarChart } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch, faUser, faSignOutAlt, faArrowLeft, faTimes, faCog, faSun, faMoon, faGraduationCap, faBookOpen, faBell, faHeart, faShareAlt, faTachometerAlt, faSignInAlt, faUserPlus } from '@fortawesome/free-solid-svg-icons';
 import MobileMenuItems from "./MobileItems";
@@ -30,7 +30,7 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
   const router = useRouter();
   const { theme, resolvedTheme, setTheme } = useTheme();
   
-  // UI state
+  // Enhanced UI state
   const [mounted, setMounted] = useState(false);
   const [isInternalOpen, setIsInternalOpen] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -41,97 +41,130 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
   const [userName, setUserName] = useState('');
   const [userRole, setUserRole] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
+  const [recentSearches, setRecentSearches] = useState([]);
+  const [quickActions, setQuickActions] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  const [menuOpacity, setMenuOpacity] = useState(0);
+  const [menuScale, setMenuScale] = useState(0.98);
   
   // Track menu sections for navigation history
   const [menuHistory, setMenuHistory] = useState([]);
   const [searchSuggestions, setSearchSuggestions] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   
-  // Handle mounting state
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-  
-  // Determine actual open state based on props or internal state
-  const isOpen = propIsOpen !== undefined ? propIsOpen : isInternalOpen;
-  
-  // Refs for accessibility and event handling
+  // Refs for enhanced interactions
   const menuRef = useRef(null);
+  const searchInputRef = useRef(null);
   const firstFocusableRef = useRef(null);
   const lastFocusableRef = useRef(null);
   const closeButtonRef = useRef(null);
   const previousFocusRef = useRef(null);
-  const searchInputRef = useRef(null);
   
-  // Check authentication status on mount
+  // Determine actual open state
+  const isOpen = propIsOpen !== undefined ? propIsOpen : isInternalOpen;
+  
+  // Handle mounting state
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const userId = localStorage.getItem("username");
-    setIsLoggedIn(!!token && !!userId);
+    setMounted(true);
     
+    // Check authentication status
+    const token = localStorage.getItem("token");
+    const userId = localStorage.getItem("userId");
+    setIsLoggedIn(!!token && !!userId);
+
     if (token && userId) {
-      // Get user name from localStorage or token
       const name = localStorage.getItem("name") || "";
       const email = localStorage.getItem("email") || "";
       setUserName(name || email?.split('@')[0] || "");
-      
-      // Get user role from localStorage
-      const role = localStorage.getItem("role") || "";
-      setUserRole(role || "");
+      setUserRole(localStorage.getItem("role") || "");
     }
-    
-    // Listen for storage changes (login/logout from other tabs)
-    const handleStorageChange = () => {
-      const newToken = localStorage.getItem("token");
-      const newUserId = localStorage.getItem("userId");
-      setIsLoggedIn(!!newToken && !!newUserId);
-    };
-    
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
+
+    // Load recent searches from localStorage
+    const savedSearches = localStorage.getItem("recentSearches");
+    if (savedSearches) {
+      setRecentSearches(JSON.parse(savedSearches).slice(0, 5));
+    }
+
+    // Set quick actions based on user role
+    setQuickActions(getQuickActions());
+
+    // Simulate notifications (replace with actual API call)
+    setNotifications([
+      { id: 1, title: "New course available", time: "2m ago" },
+      { id: 2, title: "Assignment due soon", time: "1h ago" },
+    ]);
   }, []);
   
-  // Store elements that had focus before menu opened
+  // Enhanced animation effects
   useEffect(() => {
     if (isOpen) {
-      previousFocusRef.current = document.activeElement;
+      // Stagger animations for smooth opening
+      setTimeout(() => setMenuOpacity(1), 50);
+      setTimeout(() => setMenuScale(1), 100);
+    } else {
+      setMenuOpacity(0);
+      setMenuScale(0.98);
     }
   }, [isOpen]);
   
-  // Handle menu toggle with animations
-  const openMenu = useCallback(() => {
-    if (propOnClose === undefined) {
-      setIsAnimating(true);
-      setAnimationDirection('right');
-      setIsInternalOpen(true);
-      
-      // Reset to main section when opening
-      setActiveSection('main');
-      setMenuHistory([]);
+  // Get quick actions based on user role
+  const getQuickActions = () => {
+    const baseActions = [
+      { icon: Home, label: "Home", path: "/" },
+      { icon: Book, label: "Courses", path: "/courses" },
+    ];
+
+    if (isLoggedIn) {
+      return [
+        ...baseActions,
+        { icon: Bell, label: "Notifications", path: "/notifications" },
+        { icon: Bookmark, label: "Saved", path: "/saved" },
+        { icon: Settings, label: "Settings", path: "/settings" },
+      ];
     }
-  }, [propOnClose]);
-  
-  const closeMenu = useCallback(() => {
-    if (propOnClose) {
-      propOnClose();
-    } else {
-      setIsAnimating(true);
-      setAnimationDirection('right');
-      setIsInternalOpen(false);
-      
-      // Return focus to previous element
-      if (previousFocusRef.current) {
-        previousFocusRef.current.focus();
-      }
-    }
-  }, [propOnClose]);
-  
-  // Handle animation completion
-  const handleAnimationEnd = () => {
-    setIsAnimating(false);
+
+    return baseActions;
   };
   
-  // Enhanced navigation
+  // Enhanced search functionality
+  const handleSearchChange = useCallback((e) => {
+    setSearchQuery(e.target.value);
+    setIsSearching(true);
+    
+    // Intelligent search suggestions
+    if (e.target.value.trim()) {
+      // Simulate API call for suggestions
+      setSearchSuggestions([
+        { type: 'course', title: 'React Development', path: '/courses/react' },
+        { type: 'blog', title: 'Modern Web Development', path: '/blogs/web-dev' },
+        { type: 'instructor', title: 'John Doe', path: '/instructors/john-doe' },
+      ]);
+    } else {
+      setSearchSuggestions([]);
+    }
+    
+    setIsSearching(false);
+  }, []);
+  
+  // Handle search submission
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      // Save to recent searches
+      const updatedSearches = [
+        searchQuery,
+        ...recentSearches.filter(s => s !== searchQuery)
+      ].slice(0, 5);
+      
+      setRecentSearches(updatedSearches);
+      localStorage.setItem("recentSearches", JSON.stringify(updatedSearches));
+      
+      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      closeMenu();
+    }
+  };
+  
+  // Enhanced menu navigation
   const navigateToSection = useCallback((section) => {
     setIsAnimating(true);
     setAnimationDirection('left');
@@ -150,478 +183,390 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
     }
   }, [menuHistory]);
   
-  // Accessibility - Close on ESC key
-  useEffect(() => {
-    const handleEscKey = (e) => {
-      if (e.key === 'Escape' && isOpen) {
-        closeMenu();
-      }
-    };
-    
-    document.addEventListener('keydown', handleEscKey);
-    return () => document.removeEventListener('keydown', handleEscKey);
-  }, [isOpen, closeMenu]);
-  
-  // Handle clicks outside menu to close
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target) && isOpen) {
-        // Check if the click was on an element with the attribute data-mobile-menu-toggle
-        const isToggleButton = e.target.closest('[data-mobile-menu-toggle]');
-        if (!isToggleButton) {
-          closeMenu();
-        }
-      }
-    };
-    
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isOpen, closeMenu]);
-  
-  // Focus management
-  useEffect(() => {
-    if (isOpen && closeButtonRef.current) {
-      // Focus the close button when menu opens
-      setTimeout(() => {
-        closeButtonRef.current.focus();
-      }, 100);
-    }
-  }, [isOpen]);
-  
-  // Handle tab navigation within the menu
-  useEffect(() => {
-    const handleTabKey = (e) => {
-      // Only handle tab navigation if the menu is open
-      if (!isOpen || !firstFocusableRef.current || !lastFocusableRef.current) return;
-      
-      const isTabPressed = e.key === 'Tab';
-      
-      if (!isTabPressed) return;
-      
-      if (e.shiftKey) {
-        // If shift + tab and focus is on first element, move to last
-        if (document.activeElement === firstFocusableRef.current) {
-          e.preventDefault();
-          lastFocusableRef.current.focus();
-        }
-      } else {
-        // If tab and focus is on last element, move to first
-        if (document.activeElement === lastFocusableRef.current) {
-          e.preventDefault();
-          firstFocusableRef.current.focus();
-        }
-      }
-    };
-    
-    document.addEventListener('keydown', handleTabKey);
-    return () => document.removeEventListener('keydown', handleTabKey);
-  }, [isOpen]);
-  
-  // Close mobile menu on larger screens
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 1024 && isOpen) {
-        closeMenu();
-      }
-    };
-    
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [isOpen, closeMenu]);
-
-  // Enhanced search functionality
-  const handleSearchChange = useCallback((e) => {
-    setSearchQuery(e.target.value);
-    setIsSearching(true);
-    
-    // Simulated search suggestions - replace with actual API call
-    if (e.target.value.trim()) {
-      setSearchSuggestions([
-        { type: 'course', title: 'React Development', path: '/courses/react' },
-        { type: 'blog', title: 'Modern Web Development', path: '/blogs/web-dev' },
-        { type: 'training', title: 'Corporate Training', path: '/corporate-training' }
-      ]);
-    } else {
-      setSearchSuggestions([]);
-    }
-    
-    setIsSearching(false);
-  }, []);
-
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-      closeMenu();
-    }
-  };
-
-  const handleSearchFocus = () => {
-    setSearchFocused(true);
-  };
-
-  const handleSearchBlur = () => {
-    setSearchFocused(false);
-  };
-  
-  // Handle user logout
+  // Handle logout with animation
   const handleLogout = () => {
-    // Clear all auth data
+    setIsAnimating(true);
+    
+    // Clear auth data
     localStorage.removeItem("token");
     localStorage.removeItem("userId");
     localStorage.removeItem("role");
     localStorage.removeItem("permissions");
-    localStorage.removeItem("email");
-    localStorage.removeItem("password");
-    
-    // Remove cookies if they exist
-    document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    document.cookie = "userId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     
     setIsLoggedIn(false);
     closeMenu();
-    
-    // Redirect to home
     router.push("/");
   };
   
-  // Get dashboard URL based on role
-  const getDashboardUrl = () => {
-    // Ensure userRole is a string and provide a default value
-    const roleLower = (userRole || "").toLowerCase();
+  // Enhanced close menu function
+  const closeMenu = useCallback(() => {
+    setMenuScale(0.98);
+    setMenuOpacity(0);
     
-    switch(roleLower) {
-      case "admin":
-      case "administrator":
-        return "/admin/dashboard";
-      case "instructor":
-      case "teacher":
-        return "/instructor/dashboard";
-      case "student":
-      case "learner":
-        return "/student/dashboard";
-      default:
-        return "/dashboard"; // Default dashboard
-    }
-  };
+    setTimeout(() => {
+      if (propOnClose) {
+        propOnClose();
+      } else {
+        setIsInternalOpen(false);
+      }
+    }, 200);
+  }, [propOnClose]);
   
   // No need to render until hydration is complete
   if (!mounted) return null;
   
   return (
     <>
-      {/* Mobile menu toggle button with improved spacing */}
+      {/* Enhanced mobile menu toggle */}
       {propOnClose === undefined && (
         <button
           type="button"
-          onClick={openMenu}
-          data-mobile-menu-toggle="true"
-          className="lg:hidden inline-flex items-center justify-center p-3 rounded-full text-gray-700 hover:text-gray-900 hover:bg-gray-100/80 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800/80 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-all duration-200 transform hover:scale-105"
+          onClick={() => setIsInternalOpen(true)}
+          className="lg:hidden inline-flex items-center justify-center p-3 rounded-xl
+            text-gray-700 hover:text-gray-900 hover:bg-gray-100/80 
+            dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800/80
+            focus:outline-none focus:ring-2 focus:ring-primary-500 
+            transition-all duration-200 transform hover:scale-105 active:scale-95"
           aria-expanded={isOpen}
           aria-controls="mobile-menu"
-          aria-label="Open menu"
         >
-          <span className="sr-only">Open main menu</span>
-          <Menu className="h-6 w-6" aria-hidden="true" />
+          <span className="sr-only">Open menu</span>
+          <Menu className="h-6 w-6" />
         </button>
       )}
       
-      {/* Animated mobile menu with enhanced spacing */}
+      {/* Enhanced mobile menu with glassmorphism */}
       {mounted && (
         <>
+          {/* Backdrop with blur effect */}
+          <div 
+            className={`fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[998] transition-opacity duration-300
+              ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+            onClick={closeMenu}
+            aria-hidden="true"
+          />
+
+          {/* Main menu container with enhanced animations */}
           <div
-            id="mobile-menu"
             ref={menuRef}
-            className={`fixed inset-y-0 right-0 z-[999] w-full sm:max-w-sm bg-white dark:bg-gray-900 shadow-xl overflow-hidden transition-all duration-300 ease-in-out ${
-              isOpen ? 'translate-x-0' : 'translate-x-full'
-            }`}
+            className={`fixed inset-y-0 right-0 z-[999] w-full sm:max-w-sm
+              bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl
+              shadow-2xl overflow-hidden transition-all duration-300 ease-out
+              ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
+            style={{
+              opacity: menuOpacity,
+              transform: `translateX(${isOpen ? '0' : '100%'}) scale(${menuScale})`,
+              transition: 'transform 0.3s ease-out, opacity 0.2s ease-out',
+            }}
             role="dialog"
             aria-modal="true"
-            aria-label="Main menu"
-            style={{
-              willChange: 'transform',
-              overflowY: 'auto',
-              WebkitOverflowScrolling: 'touch',
-              boxShadow: isOpen ? '-5px 0px 25px rgba(0, 0, 0, 0.2)' : 'none'
-            }}
-            onTransitionEnd={handleAnimationEnd}
           >
-            {/* Enhanced Menu Header with improved styling */}
-            <div className="sticky top-0 flex items-center justify-between bg-white/90 dark:bg-gray-900/95 backdrop-blur-md px-6 py-5 border-b border-gray-200/80 dark:border-gray-700/80 z-10">
-              {menuHistory.length > 0 ? (
-                <button
-                  type="button"
-                  className="inline-flex items-center text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200 px-4 py-2 rounded-lg hover:bg-gray-100/80 dark:hover:bg-gray-800/80"
-                  onClick={goBack}
-                  aria-label="Go back to previous menu"
-                >
-                  <FontAwesomeIcon icon={faArrowLeft} className="h-4 w-4 mr-3" />
-                  <span className="font-medium">Back</span>
-                </button>
-              ) : (
-                <div className="text-lg font-semibold bg-gradient-to-r from-primary-600 to-purple-600 bg-clip-text text-transparent px-3">
-                  Menu
+            {/* Enhanced header with animations */}
+            <div className="sticky top-0 z-50">
+              <div className="relative">
+                {/* Gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-b from-white/80 dark:from-gray-900/80 to-transparent pointer-events-none" />
+                
+                {/* Header content */}
+                <div className="relative flex items-center justify-between px-4 py-4">
+                  {menuHistory.length > 0 ? (
+                    <button
+                      onClick={goBack}
+                      className="inline-flex items-center text-gray-700 dark:text-gray-300
+                        hover:text-primary-600 dark:hover:text-primary-400
+                        transition-colors duration-200"
+                    >
+                      <ChevronLeft className="h-5 w-5 mr-1" />
+                      <span className="font-medium">Back</span>
+                    </button>
+                  ) : (
+                    <div className="text-lg font-semibold bg-gradient-to-r from-primary-600 to-purple-600 
+                      bg-clip-text text-transparent">
+                      Menu
+                    </div>
+                  )}
+
+                  {/* Close button with animation */}
+                  <button
+                    onClick={closeMenu}
+                    className="p-2 rounded-full text-gray-700 dark:text-gray-300
+                      hover:bg-gray-100 dark:hover:bg-gray-800
+                      transition-all duration-200 transform hover:scale-105 active:scale-95"
+                    ref={closeButtonRef}
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
                 </div>
-              )}
-              
-              <button
-                type="button"
-                className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white p-3 rounded-full hover:bg-gray-100/80 dark:hover:bg-gray-800/80 transition-all duration-200 transform hover:scale-105 active:scale-95"
-                onClick={closeMenu}
-                aria-label="Close menu"
-                ref={closeButtonRef}
-              >
-                <span className="sr-only">Close menu</span>
-                <FontAwesomeIcon icon={faTimes} className="h-4 w-4" aria-hidden="true" />
-              </button>
+              </div>
             </div>
 
-            {/* Enhanced Quick Search with better styling */}
-            <div className="px-6 pt-6 pb-4">
+            {/* Enhanced search section */}
+            <div className="px-4 pt-2 pb-4">
               <form onSubmit={handleSearchSubmit} className="relative">
                 <input
                   type="text"
                   ref={searchInputRef}
                   value={searchQuery}
                   onChange={handleSearchChange}
-                  onFocus={handleSearchFocus}
-                  onBlur={handleSearchBlur}
-                  placeholder="Quick search..."
-                  className={`w-full py-3.5 pl-12 pr-4 text-base text-gray-900 dark:text-white rounded-xl ${
-                    searchFocused 
-                      ? 'bg-white dark:bg-gray-800 ring-2 ring-primary-500 dark:ring-primary-400 shadow-lg border-transparent' 
-                      : 'bg-gray-100 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700'
-                  } focus:outline-none transition-all duration-300`}
-                  aria-label="Quick search"
+                  onFocus={() => setSearchFocused(true)}
+                  onBlur={() => setSearchFocused(false)}
+                  placeholder="Search courses, topics, instructors..."
+                  className={`w-full py-3 pl-11 pr-4 text-base rounded-xl
+                    transition-all duration-200
+                    ${searchFocused 
+                      ? 'bg-white dark:bg-gray-800 ring-2 ring-primary-500 shadow-lg' 
+                      : 'bg-gray-100 dark:bg-gray-800/60'}
+                    text-gray-900 dark:text-white
+                    placeholder-gray-500 dark:placeholder-gray-400
+                    focus:outline-none`}
                 />
-                <FontAwesomeIcon 
-                  icon={faSearch} 
-                  className={`absolute left-4 top-4 h-5 w-5 ${
-                    searchFocused 
-                      ? 'text-primary-500 dark:text-primary-400' 
-                      : 'text-gray-500 dark:text-gray-400'
-                  } transition-colors duration-300`} 
+                <Search className={`absolute left-3 top-3.5 h-5 w-5
+                  ${searchFocused 
+                    ? 'text-primary-500 dark:text-primary-400' 
+                    : 'text-gray-400 dark:text-gray-500'}
+                  transition-colors duration-200`}
                 />
-                <button type="submit" className="sr-only">Search</button>
               </form>
 
-              {/* Search Suggestions with enhanced styling */}
+              {/* Search suggestions with animations */}
               {searchQuery && searchSuggestions.length > 0 && (
-                <div className="absolute left-0 right-0 mt-4 px-6">
-                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-                    <div className="py-2 px-4 bg-gray-50 dark:bg-gray-800/80 border-b border-gray-200 dark:border-gray-700">
-                      <h3 className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Search Results</h3>
-                    </div>
-                    {searchSuggestions.map((suggestion, index) => (
-                      <Link
-                        key={index}
-                        href={suggestion.path}
-                        className="flex items-center px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-200 border-b border-gray-100 dark:border-gray-800 last:border-0"
-                        onClick={closeMenu}
-                      >
-                        <span className="flex-shrink-0 w-8 h-8 bg-primary-100 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-full flex items-center justify-center mr-3">
-                          {/* <FontAwesomeIcon icon={suggestion.type === 'Course' ? faGraduationCap : faFile} className="h-4 w-4" /> */}
-                        </span>
-                        <div>
-                          <span className="block text-sm font-medium text-gray-900 dark:text-white">
-                            {suggestion.title}
-                          </span>
-                          <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mt-1 block">
-                            {suggestion.type}
-                          </span>
+                <div className="mt-4 bg-white dark:bg-gray-800 rounded-xl shadow-lg
+                  border border-gray-200 dark:border-gray-700 overflow-hidden
+                  animate-fadeIn">
+                  {searchSuggestions.map((suggestion, index) => (
+                    <Link
+                      key={index}
+                      href={suggestion.path}
+                      className="flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50
+                        border-b border-gray-100 dark:border-gray-800 last:border-0
+                        transition-colors duration-200"
+                      onClick={closeMenu}
+                    >
+                      <div className="flex-shrink-0 w-10 h-10 rounded-full
+                        bg-primary-100 dark:bg-primary-900/20
+                        text-primary-600 dark:text-primary-400
+                        flex items-center justify-center mr-3">
+                        {suggestion.type === 'course' && <Book className="h-5 w-5" />}
+                        {suggestion.type === 'blog' && <FileText className="h-5 w-5" />}
+                        {suggestion.type === 'instructor' && <User className="h-5 w-5" />}
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-900 dark:text-white">
+                          {suggestion.title}
                         </div>
-                      </Link>
+                        <div className="text-sm text-gray-500 dark:text-gray-400 capitalize">
+                          {suggestion.type}
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+
+              {/* Recent searches */}
+              {!searchQuery && recentSearches.length > 0 && (
+                <div className="mt-4">
+                  <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
+                    Recent Searches
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {recentSearches.map((search, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          setSearchQuery(search);
+                          searchInputRef.current?.focus();
+                        }}
+                        className="px-3 py-1.5 text-sm rounded-lg
+                          bg-gray-100 dark:bg-gray-800
+                          text-gray-700 dark:text-gray-300
+                          hover:bg-gray-200 dark:hover:bg-gray-700
+                          transition-colors duration-200"
+                      >
+                        {search}
+                      </button>
                     ))}
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Divider with gradient effect */}
-            <div className="px-6">
-              <div className="h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent"></div>
-            </div>
-
-            {/* Mobile menu content with enhanced styling */}
-            <div 
-              className={`px-6 pb-32 pt-4 transition-all duration-300 transform ${
-                isAnimating && activeSection !== 'main'
-                  ? animationDirection === 'left' 
-                    ? '-translate-x-full' 
-                    : 'translate-x-full'
-                  : 'translate-x-0'
-              } ${activeSection !== 'main' ? 'hidden' : ''}`}
-            >
-              {/* Main section with improved styling */}
-              <div className="py-2 space-y-8">
-                {/* Primary Navigation with better styling */}
-                <nav aria-label="Primary navigation" className="space-y-1">
-                  <style jsx global>{`
-                    /* Enhance accordion styling */
-                    .accordion-container {
-                      @apply space-y-1;
-                    }
-                    
-                    .accordion-controller {
-                      @apply w-full flex justify-between items-center py-3 px-4 rounded-xl transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800/80;
-                    }
-                    
-                    .accordion-controller.active {
-                      @apply bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400;
-                    }
-                    
-                    .accordion-content {
-                      @apply space-y-1 py-2 pl-4 ml-4 mt-1 border-l-2 border-gray-200 dark:border-gray-700;
-                    }
-                    
-                    /* Enhance active item styling */
-                    .mobile-item-active {
-                      @apply border-l-2 border-primary-500 pl-2 -ml-2 text-primary-600 dark:text-primary-400;
-                    }
-                    
-                    /* Add animation to accordion content */
-                    .accordion-content {
-                      animation: slideDown 0.2s ease-out;
-                    }
-                    
-                    @keyframes slideDown {
-                      from {
-                        opacity: 0;
-                        transform: translateY(-10px);
-                      }
-                      to {
-                        opacity: 1;
-                        transform: translateY(0);
-                      }
-                    }
-                  `}</style>
-                  {isHome2Dark ? <MobileItems2 /> : <MobileMenuItems />}
-                </nav>
-                
-                {/* Section divider with subtle gradient */}
-                <div className="h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent"></div>
-                
-                {/* User Account Section with enhanced styling */}
-                <div className="pt-2">
-                  <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-4 flex items-center px-4">
-                    <span>Account</span>
-                    <span className="ml-2 h-px bg-gray-300 dark:bg-gray-700 flex-grow"></span>
-                  </h3>
-
-                  {/* Enhance account section content */}
-                  <div className="space-y-1">
-                    {isLoggedIn ? (
-                      <>
-                        {/* User profile section with improved styling */}
-                        <div className="flex items-center px-4 py-3 mb-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
-                          <div className="flex-shrink-0">
-                            <div className="h-10 w-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400">
-                              <FontAwesomeIcon icon={faUser} className="h-5 w-5" />
-                            </div>
-                          </div>
-                          <div className="ml-3">
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">{userName || 'User'}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">{userRole || 'Member'}</p>
-                          </div>
-                        </div>
-
-                        {/* Enhanced dashboard link */}
-                        <Link
-                          href={getDashboardUrl()}
-                          onClick={closeMenu}
-                          className="flex items-center px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl group transition-colors duration-200"
-                        >
-                          <FontAwesomeIcon icon={faTachometerAlt} className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-3 group-hover:text-primary-500 dark:group-hover:text-primary-400 transition-colors duration-200" />
-                          <span>Dashboard</span>
-                        </Link>
-
-                        {/* Enhanced logout button */}
-                        <button
-                          type="button"
-                          onClick={handleLogout}
-                          className="flex w-full items-center px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl group transition-colors duration-200"
-                        >
-                          <FontAwesomeIcon icon={faSignOutAlt} className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-3 group-hover:text-red-500 dark:group-hover:text-red-400 transition-colors duration-200" />
-                          <span>Sign out</span>
-                        </button>
-                      </>
-                    ) : (
-                      <div className="space-y-2 pt-2">
-                        {/* Enhanced sign in and register buttons */}
-                        <Link
-                          href="/login"
-                          onClick={closeMenu}
-                          className="flex items-center justify-center w-full px-4 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl transition-all duration-200 transform hover:scale-[1.01] active:scale-[0.99]"
-                        >
-                          <FontAwesomeIcon icon={faSignInAlt} className="h-5 w-5 mr-2" />
-                          <span>Sign in</span>
-                        </Link>
-                        
-                        <Link
-                          href="/register"
-                          onClick={closeMenu}
-                          className="flex items-center justify-center w-full px-4 py-3 mt-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl transition-all duration-200 transform hover:scale-[1.01] active:scale-[0.99]"
-                        >
-                          <FontAwesomeIcon icon={faUserPlus} className="h-5 w-5 mr-2" />
-                          <span>Register</span>
-                        </Link>
-                      </div>
-                    )}
-                  </div>
+            {/* Main menu content with sections */}
+            <div className="flex-1 overflow-y-auto overscroll-y-contain">
+              <div className="px-4 py-2">
+                {/* Quick actions grid */}
+                <div className="grid grid-cols-4 gap-4 mb-6">
+                  {quickActions.map((action, index) => (
+                    <Link
+                      key={index}
+                      href={action.path}
+                      onClick={closeMenu}
+                      className="flex flex-col items-center justify-center p-3
+                        rounded-xl bg-gray-50 dark:bg-gray-800/50
+                        hover:bg-gray-100 dark:hover:bg-gray-700/50
+                        transition-colors duration-200"
+                    >
+                      <action.icon className="h-6 w-6 mb-2 text-gray-700 dark:text-gray-300" />
+                      <span className="text-xs text-gray-600 dark:text-gray-400">
+                        {action.label}
+                      </span>
+                    </Link>
+                  ))}
                 </div>
+
+                {/* Navigation sections with enhanced styling */}
+                <nav className="grid grid-cols-4 gap-3 mt-6">
+                  {[
+                    { icon: Home, label: 'Home', path: '/', color: 'text-blue-500', bg: 'bg-blue-100 dark:bg-blue-900/20' },
+                    { icon: GraduationCap, label: 'Courses', path: '/courses', color: 'text-green-500', bg: 'bg-green-100 dark:bg-green-900/20' },
+                    { icon: Briefcase, label: 'Corporate', path: '/corporate-training-courses', color: 'text-amber-500', bg: 'bg-amber-100 dark:bg-amber-900/20' },
+                    { icon: Users, label: 'Hire Talent', path: '/hire-from-medh', color: 'text-purple-500', bg: 'bg-purple-100 dark:bg-purple-900/20' },
+                    { icon: FileText, label: 'Blog', path: '/blogs', color: 'text-pink-500', bg: 'bg-pink-100 dark:bg-pink-900/20' },
+                    { icon: Info, label: 'About Us', path: '/about-us', color: 'text-indigo-500', bg: 'bg-indigo-100 dark:bg-indigo-900/20' },
+                    { icon: Mail, label: 'Contact', path: '/contact-us', color: 'text-cyan-500', bg: 'bg-cyan-100 dark:bg-cyan-900/20' },
+                    { icon: Bell, label: 'Updates', path: '/notifications', color: 'text-red-500', bg: 'bg-red-100 dark:bg-red-900/20' }
+                  ].map((item, index) => (
+                    <Link
+                      key={index}
+                      href={item.path}
+                      onClick={closeMenu}
+                      className="relative group flex flex-col items-center justify-center p-3 rounded-xl
+                        bg-gray-50/80 dark:bg-gray-800/50
+                        hover:bg-white dark:hover:bg-gray-700/50
+                        border border-gray-200/50 dark:border-gray-700/50
+                        transition-all duration-300 transform 
+                        hover:scale-105 hover:shadow-lg"
+                    >
+                      <div className={`flex items-center justify-center w-10 h-10 
+                        rounded-xl transition-transform duration-300
+                        group-hover:-translate-y-1 ${item.bg}`}>
+                        <item.icon className={`h-5 w-5 ${item.color}`} />
+                      </div>
+                      <span className="text-xs font-medium mt-1
+                        text-gray-600 dark:text-gray-400
+                        group-hover:text-gray-900 dark:group-hover:text-white">
+                        {item.label}
+                      </span>
+                    </Link>
+                  ))}
+                </nav>
+
+                {/* User section */}
+                {isLoggedIn ? (
+                  <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center px-4 py-3 mb-4
+                      bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+                      <div className="flex-shrink-0">
+                        <div className="h-10 w-10 rounded-full
+                          bg-primary-100 dark:bg-primary-900/20
+                          text-primary-600 dark:text-primary-400
+                          flex items-center justify-center">
+                          <User className="h-5 w-5" />
+                        </div>
+                      </div>
+                      <div className="ml-3">
+                        <div className="font-medium text-gray-900 dark:text-white">
+                          {userName || 'User'}
+                        </div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400 capitalize">
+                          {userRole || 'Member'}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* User actions */}
+                    <div className="space-y-1">
+                      <Link
+                        href="/dashboard"
+                        onClick={closeMenu}
+                        className="flex items-center px-4 py-3 rounded-xl
+                          text-gray-700 dark:text-gray-300
+                          hover:bg-gray-100 dark:hover:bg-gray-800
+                          transition-colors duration-200"
+                      >
+                        <Home className="h-5 w-5 mr-3" />
+                        <span>Dashboard</span>
+                      </Link>
+
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center w-full px-4 py-3 rounded-xl
+                          text-red-600 dark:text-red-400
+                          hover:bg-red-50 dark:hover:bg-red-900/20
+                          transition-colors duration-200"
+                      >
+                        <LogOut className="h-5 w-5 mr-3" />
+                        <span>Sign Out</span>
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <div className="space-y-3">
+                      <Link
+                        href="/login"
+                        onClick={closeMenu}
+                        className="flex items-center justify-center w-full px-4 py-3
+                          bg-primary-600 hover:bg-primary-700
+                          text-white rounded-xl
+                          transition-all duration-200
+                          transform hover:scale-[1.02] active:scale-[0.98]"
+                      >
+                        Sign In
+                      </Link>
+
+                      <Link
+                        href="/register"
+                        onClick={closeMenu}
+                        className="flex items-center justify-center w-full px-4 py-3
+                          border border-gray-300 dark:border-gray-700
+                          text-gray-700 dark:text-gray-300
+                          hover:bg-gray-50 dark:hover:bg-gray-800
+                          rounded-xl
+                          transition-all duration-200
+                          transform hover:scale-[1.02] active:scale-[0.98]"
+                      >
+                        Create Account
+                      </Link>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-            
-            {/* Settings Menu Section - Hidden by default */}
-            <div 
-              className={`px-4 sm:px-5 pb-20 transition-all duration-300 transform ${
-                isAnimating && activeSection !== 'settings'
-                  ? animationDirection === 'left' 
-                    ? '-translate-x-full' 
-                    : 'translate-x-full'
-                  : 'translate-x-0'
-              } ${activeSection !== 'settings' ? 'hidden' : ''}`}
-            >
-              <div className="py-4">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4 flex items-center">
-                  <FontAwesomeIcon icon={faCog} className="h-4 w-4 mr-2 text-primary-500" />
-                  Settings
-                </h3>
-                
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-700 dark:text-gray-300 flex items-center">
-                      {resolvedTheme === 'dark' ? (
-                        <FontAwesomeIcon icon={faMoon} className="h-4 w-4 mr-2 text-purple-500" />
-                      ) : (
-                        <FontAwesomeIcon icon={faSun} className="h-4 w-4 mr-2 text-amber-500" />
-                      )}
-                      Dark Mode
-                    </span>
-                    <button 
-                      className="w-12 h-6 bg-gray-200 dark:bg-gray-700 rounded-full p-1 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                      onClick={() => {
-                        setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
-                      }}
-                    >
-                      <div className={`bg-white dark:bg-primary-500 w-4 h-4 rounded-full transform transition-transform duration-300 ${
-                        resolvedTheme === 'dark' ? 'translate-x-6' : 'translate-x-0'
-                      }`}></div>
-                    </button>
-                  </div>
-                </div>
+
+            {/* Theme toggle and settings */}
+            <div className="sticky bottom-0 z-50 w-full px-4 py-4
+              bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl
+              border-t border-gray-200 dark:border-gray-800">
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+                  className="flex items-center px-4 py-2 rounded-lg
+                    text-gray-700 dark:text-gray-300
+                    hover:bg-gray-100 dark:hover:bg-gray-800
+                    transition-colors duration-200"
+                >
+                  {resolvedTheme === 'dark' ? (
+                    <Moon className="h-5 w-5 mr-2" />
+                  ) : (
+                    <Sun className="h-5 w-5 mr-2" />
+                  )}
+                  <span>{resolvedTheme === 'dark' ? 'Dark' : 'Light'} Mode</span>
+                </button>
+
+                <Link
+                  href="/settings"
+                  onClick={closeMenu}
+                  className="p-2 rounded-lg
+                    text-gray-700 dark:text-gray-300
+                    hover:bg-gray-100 dark:hover:bg-gray-800
+                    transition-colors duration-200"
+                >
+                  <Settings className="h-5 w-5" />
+                </Link>
               </div>
             </div>
           </div>
-          
-          {/* Enhanced Backdrop */}
-          <div 
-            className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-[998] transition-all duration-300 ${
-              isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-            }`}
-            onClick={closeMenu}
-            aria-hidden="true"
-          />
         </>
       )}
     </>

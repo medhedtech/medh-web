@@ -145,7 +145,7 @@ const Hero1 = ({ isCompact = false }) => {
   // Conditionally render mobile or desktop version
   if (isMobile) {
     return (
-      <section className="relative min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 overflow-hidden">
+      <section className="relative bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 overflow-hidden">
         <HeroMobile 
           isLoaded={isLoaded} 
           featuredCourses={featuredCourses} 
