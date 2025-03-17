@@ -67,32 +67,114 @@ module.exports = {
   darkMode: "class",
   theme: {
     screens: {
-      // Breakpoint
-      xs: "320px",
-      // => @media (min-width: 320px) { ... }
-      sm: "576px",
-      // => @media (min-width: 576px) { ... }
+      // Breakpoints aligned with Medh's design system
+      'xs': "320px",     // => @media (min-width: 320px) { ... }
+      'sm': "576px",     // => @media (min-width: 576px) { ... }
+      'md': "768px",     // => @media (min-width: 768px) { ... }
+      'lg': "992px",     // => @media (min-width: 992px) { ... }
+      'xl': "1200px",    // => @media (min-width: 1200px) { ... }
+      '2xl': "1366px",   // => @media (min-width: 1366px) { ... }
+      '3xl': "1500px",   // => @media (min-width: 1500px) { ... }
+      '4xl': "1921px",   // => @media (min-width: 1920px) { ... }
 
-      md: "768px",
-      // => @media (min-width: 768px) { ... }
-
-      lg: "992px",
-      // => @media (min-width: 992px) { ... }
-
-      xl: "1200px",
-      // => @media (min-width: 1200px) { ... }
-
-      "2xl": "1366px",
-      // => @media (min-width: 1366px) { ... }
-
-      "3xl": "1500px",
-      // => @media (min-width: 1500px) { ... }
-
-      "4xl": "1921px",
-      // => @media (min-width: 1920px) { ... }
+      // Special breakpoints for specific use cases
+      'tall': { 'raw': '(min-height: 800px)' },
+      'short': { 'raw': '(max-height: 600px)' },
+      'tablet': { 'raw': '(min-width: 768px) and (max-width: 991px)' },
+      'laptop': { 'raw': '(min-width: 992px) and (max-width: 1199px)' },
+      'desktop': { 'raw': '(min-width: 1200px)' },
     },
 
     extend: {
+      // Enhanced spacing system
+      spacing: {
+        // Dynamic spacing that scales with screen size
+        'responsive-sm': 'clamp(0.5rem, 2vw, 1rem)',
+        'responsive-md': 'clamp(1rem, 3vw, 2rem)',
+        'responsive-lg': 'clamp(1.5rem, 5vw, 3rem)',
+        'responsive-xl': 'clamp(2rem, 7vw, 4rem)',
+        
+        // Percentage-based spacing
+        '1/10': '10%',
+        '2/10': '20%',
+        '3/10': '30%',
+        '4/10': '40%',
+        '6/10': '60%',
+        '7/10': '70%',
+        '8/10': '80%',
+        '9/10': '90%',
+      },
+
+      // Container sizes aligned with breakpoints
+      maxWidth: {
+        'xs': '320px',
+        'sm': '576px',
+        'md': '768px',
+        'lg': '992px',
+        'xl': '1200px',
+        '2xl': '1366px',
+        '3xl': '1500px',
+        '4xl': '1920px',
+        'content': 'min(65ch, 100% - 2rem)',
+      },
+
+      // Enhanced padding system
+      padding: {
+        'screen-safe': 'env(safe-area-inset-bottom)',
+        'responsive-x': 'clamp(1rem, 5vw, 3rem)',
+        'responsive-y': 'clamp(0.5rem, 3vh, 2rem)',
+      },
+
+      // Grid system optimized for course cards
+      gridTemplateColumns: {
+        'auto-fit': 'repeat(auto-fit, minmax(280px, 1fr))',
+        'auto-fill': 'repeat(auto-fill, minmax(280px, 1fr))',
+        'responsive': 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
+        'cards': 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))',
+      },
+
+      // Responsive font sizes for Medh's typography
+      fontSize: {
+        'fluid-sm': 'clamp(0.875rem, 1vw, 1rem)',
+        'fluid-base': 'clamp(1rem, 1.5vw, 1.125rem)',
+        'fluid-lg': 'clamp(1.125rem, 2vw, 1.25rem)',
+        'fluid-xl': 'clamp(1.25rem, 2.5vw, 1.5rem)',
+        'fluid-2xl': 'clamp(1.5rem, 3vw, 2rem)',
+        'fluid-3xl': 'clamp(1.875rem, 4vw, 2.5rem)',
+        'fluid-4xl': 'clamp(2.25rem, 5vw, 3rem)',
+      },
+
+      // Enhanced line heights
+      lineHeight: {
+        'tight': '1.1',
+        'snug': '1.25',
+        'normal': '1.5',
+        'relaxed': '1.625',
+        'loose': '2',
+        'fluid': 'clamp(1.3, 1.5vw, 1.6)',
+      },
+
+      // Enhanced animation durations
+      transitionDuration: {
+        '250': '250ms',
+        '350': '350ms',
+        '400': '400ms',
+        '600': '600ms',
+      },
+
+      // Enhanced z-index system
+      zIndex: {
+        'behind': '-1',
+        'default': '1',
+        'dropdown': '1000',
+        'sticky': '1020',
+        'fixed': '1030',
+        'modal': '1040',
+        'popover': '1050',
+        'tooltip': '1060',
+        'overlay': '1070',
+      },
+
       // colors - Updated for modern theme
       colors: {
         // Primary brand colors - Vibrant green palette
@@ -1023,6 +1105,56 @@ module.exports = {
           borderRadius: "1000px",
           opacity: "0.10",
           filter: "blur(100px)",
+        },
+      });
+    },
+
+    // Responsive container plugin
+    function ({ addComponents, theme }) {
+      addComponents({
+        '.container-responsive': {
+          width: '100%',
+          marginLeft: 'auto',
+          marginRight: 'auto',
+          paddingLeft: theme('spacing.4'),
+          paddingRight: theme('spacing.4'),
+          '@screen sm': {
+            maxWidth: theme('screens.sm'),
+            paddingLeft: theme('spacing.6'),
+            paddingRight: theme('spacing.6'),
+          },
+          '@screen md': {
+            maxWidth: theme('screens.md'),
+            paddingLeft: theme('spacing.8'),
+            paddingRight: theme('spacing.8'),
+          },
+          '@screen lg': {
+            maxWidth: theme('screens.lg'),
+          },
+          '@screen xl': {
+            maxWidth: theme('screens.xl'),
+          },
+          '@screen 2xl': {
+            maxWidth: theme('screens.2xl'),
+          },
+        },
+      });
+    },
+
+    // Safe area plugin for modern devices
+    function({ addUtilities }) {
+      addUtilities({
+        '.safe-top': {
+          paddingTop: 'env(safe-area-inset-top)',
+        },
+        '.safe-bottom': {
+          paddingBottom: 'env(safe-area-inset-bottom)',
+        },
+        '.safe-left': {
+          paddingLeft: 'env(safe-area-inset-left)',
+        },
+        '.safe-right': {
+          paddingRight: 'env(safe-area-inset-right)',
         },
       });
     },

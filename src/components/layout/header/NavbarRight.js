@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
-import CurrencySelector from "@/components/shared/currency/CurrencySelector";
+// import CurrencySelector from "@/components/shared/currency/CurrencySelector";
 
 const NavbarRight = ({ isScrolled }) => {
   const router = useRouter();
@@ -142,9 +142,9 @@ const NavbarRight = ({ isScrolled }) => {
     <div className="flex items-center space-x-2 md:space-x-4">
       <ul className="flex items-center space-x-1 md:space-x-3">
         {/* Currency Selector - Enhanced Responsiveness */}
-        <li className="hidden md:block min-w-[80px]">
+        {/* <li className="hidden md:block min-w-[80px]">
           <CurrencySelector mini={true} />
-        </li>
+        </li> */}
         
         {/* Login Button */}
         {!(isHome4 || isHome4Dark || isHome5 || isHome5Dark) && !isLoggedIn && (
