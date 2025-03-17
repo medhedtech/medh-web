@@ -160,7 +160,7 @@ const WhyMedh = () => {
                 Why Choose <span className="text-medhgreen dark:text-medhgreen">MEDH</span>?
               </h2>
               
-              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
+              <p className="text-xs sm:text-xs text-gray-600 dark:text-gray-300">
                 Empowering learners with the freedom to explore, we go beyond fundamentals, fostering critical thinking and creativity.
               </p>
             </div>

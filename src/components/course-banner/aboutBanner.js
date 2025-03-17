@@ -1,4 +1,3 @@
-"use client";
 import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
@@ -135,24 +134,6 @@ export default function AboutBanner({
               <p className="text-lg lg:text-xl" style={{ color: descriptionColor }}>
                 {description}
               </p>
-            </div>
-
-            {/* Stats Section */}
-            <div className="grid grid-cols-3 gap-6">
-              {stats.map((stat, index) => (
-                <motion.div
-                  key={index}
-                  initial="hidden"
-                  animate={isLoaded ? "visible" : "hidden"}
-                  variants={fadeInUp}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="text-center"
-                >
-                  <div className="flex justify-center mb-2">{stat.icon}</div>
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">{stat.label}</div>
-                </motion.div>
-              ))}
             </div>
 
             {/* Features Grid */}
