@@ -4,7 +4,7 @@ import DropdownCart from "./DropdownCart";
 import Link from "next/link";
 import useIsTrue from "@/hooks/useIsTrue";
 import LoginButton from "./LoginButton";
-import { ShoppingBag, ExternalLink, User, LogOut } from "lucide-react";
+import { ShoppingBag, ExternalLink, User, LogOut, Settings, ChevronDown, UserCircle, Shield, Briefcase, GraduationCap, School } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 import { apiUrls } from "@/apis";
@@ -138,6 +138,23 @@ const NavbarRight = ({ isScrolled }) => {
     }
   };
 
+  // Get role icon based on user role
+  const getRoleIcon = () => {
+    const roleLower = (userRole || "").toLowerCase();
+    
+    if (roleLower === "admin" || roleLower === "super-admin") {
+      return <Shield size={14} className="text-amber-500" />;
+    } else if (roleLower === "instructor") {
+      return <GraduationCap size={14} className="text-blue-500" />;
+    } else if (roleLower === "student") {
+      return <School size={14} className="text-green-500" />;
+    } else if (roleLower.includes("coorporate")) {
+      return <Briefcase size={14} className="text-purple-500" />;
+    } else {
+      return <UserCircle size={14} className="text-gray-500" />;
+    }
+  };
+
   return (
     <div className="flex items-center space-x-2 md:space-x-4">
       <ul className="flex items-center space-x-1 md:space-x-3">
@@ -172,20 +189,10 @@ const NavbarRight = ({ isScrolled }) => {
                 )}
               </div>
               <span className="font-medium truncate max-w-[100px]">{userName || "Account"}</span>
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                width="16" 
-                height="16" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
+              <ChevronDown 
+                size={16}
                 className={`transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}
-              >
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
+              />
             </button>
 
             {/* Enhanced Profile Dropdown */}
@@ -198,7 +205,10 @@ const NavbarRight = ({ isScrolled }) => {
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 capitalize truncate flex items-center gap-1">
                     <span className={`w-2 h-2 rounded-full ${userRole ? 'bg-green-500' : 'bg-gray-400'}`}></span>
-                    {userRole || "User"}
+                    <span className="flex items-center gap-1">
+                      {getRoleIcon()}
+                      {userRole || "User"}
+                    </span>
                   </p>
                 </div>
                 
@@ -224,21 +234,7 @@ const NavbarRight = ({ isScrolled }) => {
                       transition-colors duration-150"
                     onClick={() => setIsDropdownOpen(false)}
                   >
-                    <svg 
-                      xmlns="http://www.w3.org/2000/svg" 
-                      width="16" 
-                      height="16" 
-                      viewBox="0 0 24 24" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      strokeWidth="2" 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      className="text-gray-400 dark:text-gray-500"
-                    >
-                      <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
+                    <Settings size={16} className="text-gray-400 dark:text-gray-500" />
                     <span>Settings</span>
                   </Link>
                 </div>

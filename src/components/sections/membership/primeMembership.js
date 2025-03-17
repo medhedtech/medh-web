@@ -86,6 +86,29 @@ const PrimeMembership = () => {
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-white via-gray-50 to-white dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-16">
+      {/* Header Section */}
+      <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center max-w-4xl mx-auto mb-16"
+        >
+          <motion.span
+            whileHover={{ scale: 1.05 }}
+            className="inline-block px-6 py-2 bg-gradient-to-r from-blue-600 via-violet-600 to-fuchsia-600 text-white text-sm font-medium rounded-full mb-4 shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-violet-500/30 transition-all duration-300"
+          >
+            Premium Features
+          </motion.span>
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-violet-600 to-fuchsia-600 hover:saturate-150 transition-all duration-300">
+            Unlock Your Learning Potential {" "}
+            <p className="text-black dark:text-white">with <AnimatePresence><span className="text-medhgreen">MEDH</span></AnimatePresence></p>
+            
+          </h2>
+          <p className="text-gray-600 dark:text-gray-300 text-lg md:text-xl">
+            Experience a comprehensive learning journey with our premium membership features,
+            designed to enhance your professional growth and development
+          </p>
+        </motion.div>
       {/* Background Decorative Elements */}
       <div className="absolute inset-0">
         <div className="absolute top-0 left-0 w-2/3 h-2/3 bg-gradient-to-br from-primary-500/10 via-secondary-500/10 to-transparent rounded-full blur-3xl opacity-60 -translate-x-1/4 -translate-y-1/4"></div>
@@ -100,9 +123,6 @@ const PrimeMembership = () => {
           transition={{ duration: 0.6 }}
           className="text-center max-w-4xl mx-auto mb-16"
         >
-          <span className="inline-block px-4 py-1.5 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-sm font-medium rounded-full mb-4">
-            Membership Plans
-          </span>
           <h1 className="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white mb-6">
             Choose Your <span className="text-primary-500 dark:text-primary-400">MEDH</span> Membership
           </h1>
@@ -224,9 +244,9 @@ const PrimeMembership = () => {
           transition={{ delay: 0.6 }}
           className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-6 max-w-3xl mx-auto"
         >
-          <div className="flex items-start gap-3">
+          <div className="flex items-start">
             <AlertCircle className="w-6 h-6 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-1" />
-            <p className="text-yellow-800 dark:text-yellow-200 text-sm">
+            <p className="text-yellow-800 dark:text-yellow-200 text-sm text-center">
               Note: Only Medh&#39;s Blended Courses having &#39;Pre-Recorded Videos
               with Live Interactive Doubt Clearing Sessions&#39; would be eligible
               for these memberships.
