@@ -70,10 +70,10 @@ const SchoolBanner = () => {
                 <span className="text-sm font-semibold text-primary-600">ISO CERTIFIED</span>
               </div>
               <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white">
-                INNOVATE EDUCATION, EMPOWER STUDENTS
+               EMPOWER STUDENT SUCCESS COMPREHENSIVELY with <span className="text-medhgreen">MEDH</span>
               </h1>
               <p className="text-xl text-gray-600 dark:text-gray-300">
-                Partner with Medh for Innovative Solutions. Boost your students' skill sets and enhance their future career prospects.
+              Collaborative Platform to Enhance Educational Offerings and Future-Ready Skills
               </p>
             </motion.div>
 

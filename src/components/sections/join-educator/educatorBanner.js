@@ -38,11 +38,11 @@ const EducatorBanner = () => {
             className="space-y-8"
           >
             <motion.div variants={itemVariants} className="space-y-6">
-              <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white">
-                Join Our Team of Expert Educators
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">
+              SHAPE LEARNING FUTURES INNOVATIVELY with <span className="text-medhgreen">MEDH</span>
               </h1>
               <p className="text-xl text-gray-600 dark:text-gray-300">
-                Shape the future of education by becoming part of our innovative teaching platform
+              Join our dynamic team of educators and shape the future of education.
               </p>
             </motion.div>
 

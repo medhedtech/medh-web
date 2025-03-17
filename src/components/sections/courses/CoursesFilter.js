@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import PropTypes from "prop-types";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -26,6 +26,7 @@ import Preloader2 from "@/components/shared/others/Preloader2";
 import CategoryToggle from "@/components/shared/courses/CategoryToggle";
 import { apiUrls } from "@/apis";
 import Link from "next/link";
+import React from "react";
 
 // Dynamically import components that might cause hydration issues
 const DynamicCourseCard = dynamic(() => import("./CourseCard"), {
@@ -42,6 +43,24 @@ const fallbackCategories = {
     "Digital Marketing with Data Analytics",
   ],
   blended: [
+    "AI For Professionals",
+    "Business And Management",
+    "Career Development",
+    "Communication And Soft Skills",
+    "Data & Analytics",
+    "Environmental and Sustainability Skills",
+    "Finance & Accounts",
+    "Health & Wellness",
+    "Industry-Specific Skills",
+    "Language & Linguistic",
+    "Legal & Compliance Skills",
+    "Personal Well-Being",
+  ],
+  all: [
+    "AI and Data Science",
+    "Personality Development",
+    "Vedic Mathematics",
+    "Digital Marketing with Data Analytics",
     "AI For Professionals",
     "Business And Management",
     "Career Development",
@@ -191,6 +210,154 @@ const SimplePaginationWrapper = ({ currentPage, totalPages, onPageChange, classN
   );
 };
 
+// Memoized components for better performance
+const MemoizedCourseCard = React.memo(DynamicCourseCard);
+
+// Separate the filter dropdown into its own component for better organization
+const SortDropdown = React.memo(({ sortOrder, handleSortChange, showSortDropdown, setShowSortDropdown }) => {
+  const sortDropdownRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target)) {
+        setShowSortDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [setShowSortDropdown]);
+
+  const getSortLabel = (value) => {
+    const labels = {
+      "newest-first": "Newest First",
+      "oldest-first": "Oldest First",
+      "A-Z": "Name (A-Z)",
+      "Z-A": "Name (Z-A)",
+      "price-low-high": "Price (Low->High)",
+      "price-high-low": "Price (High->Low)",
+    };
+    return labels[value] || "Newest First";
+  };
+
+  return (
+    <div className="relative" ref={sortDropdownRef}>
+      <button
+        onClick={() => setShowSortDropdown(!showSortDropdown)}
+        className="select-modern flex items-center justify-between w-full md:w-48 px-4 py-2.5 bg-gray-50/50 dark:bg-gray-700/30 rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200"
+        aria-expanded={showSortDropdown}
+        aria-haspopup="true"
+      >
+        <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
+          {getSortLabel(sortOrder)}
+        </span>
+        {/* <ChevronDown 
+          size={16} 
+          className={`transform transition-transform duration-200 text-gray-400 dark:text-gray-500 ${showSortDropdown ? 'rotate-180' : ''}`} 
+        /> */}
+      </button>
+
+      {showSortDropdown && (
+        <div className="absolute right-0 mt-1 w-full md:w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-10" role="menu">
+          <div className="py-1">
+            {[
+              { value: "newest-first", label: "Newest First" },
+              { value: "oldest-first", label: "Oldest First" },
+              { value: "A-Z", label: "Name (A-Z)" },
+              { value: "Z-A", label: "Name (Z-A)" },
+              { value: "price-low-high", label: "Price (Low->High)" },
+              { value: "price-high-low", label: "Price (High->Low)" },
+            ].map((option) => (
+              <button
+                key={option.value}
+                onClick={() => handleSortChange(option.value)}
+                className={`${
+                  sortOrder === option.value
+                    ? "bg-gray-100 dark:bg-gray-700 text-blue-600 dark:text-blue-400"
+                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/70"
+                } block w-full text-left px-4 py-2 text-sm transition-colors duration-200`}
+                role="menuitem"
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+});
+
+// Separate the search input into its own component
+const SearchInput = React.memo(({ searchTerm, handleSearch, setSearchTerm }) => (
+  <div className="flex-grow relative">
+    <div className="relative">
+      <input
+        type="text"
+        placeholder="Search courses..."
+        value={searchTerm}
+        onChange={handleSearch}
+        className="input-modern w-full py-2 pl-10 pr-4"
+        aria-label="Search courses"
+      />
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" size={18} />
+      {searchTerm && (
+        <button
+          onClick={() => setSearchTerm("")}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
+          aria-label="Clear search"
+        >
+          <X size={16} />
+        </button>
+      )}
+    </div>
+  </div>
+));
+
+// Add a custom hook for window resize handling
+const useWindowSize = () => {
+  const [windowSize, setWindowSize] = useState({
+    width: typeof window !== 'undefined' ? window.innerWidth : 0,
+    height: typeof window !== 'undefined' ? window.innerHeight : 0,
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize(); // Initial size
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return windowSize;
+};
+
+// Add debounce utility
+const useDebounce = (value, delay) => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+};
+
 const CoursesFilter = ({
   CustomButton,
   CustomText,
@@ -210,6 +377,7 @@ const CoursesFilter = ({
   hideFilterBar = false,
   hideViewModeSwitch = false,
   hideHeader = false,
+  hideGradeFilter = false,
   forceViewMode = null,
   gridColumns = 3,
   itemsPerPage = 8,
@@ -222,43 +390,30 @@ const CoursesFilter = ({
   const searchParams = useSearchParams();
   const { getQuery, loading } = useGetQuery();
 
-  // Add responsive states similar to courseOptions.js
-  const [isMobile, setIsMobile] = useState(false);
-  const [isTablet, setIsTablet] = useState(false);
+  // Use the window size hook for responsive states
+  const { width } = useWindowSize();
+  const isMobile = width < 768;
+  const isTablet = width >= 768 && width < 1024;
   const [responsiveGridColumns, setResponsiveGridColumns] = useState(gridColumns);
 
-  // Check for screen size on client-side only
+  // Update grid columns based on screen size
   useEffect(() => {
     // Skip during SSR
     if (typeof window === 'undefined') return;
     
-    const checkScreenSize = () => {
-      const isMobileView = window.innerWidth < 768;
-      const isTabletView = window.innerWidth >= 768 && window.innerWidth < 1024;
-      
-      setIsMobile(isMobileView);
-      setIsTablet(isTabletView);
-      
-      // Update grid columns based on screen size
-      // Use passed gridColumns as a base, but adjust for mobile/tablet if it's larger than appropriate
-      if (isMobileView) {
+    const updateGridColumns = () => {
+      if (isMobile) {
         setResponsiveGridColumns(1); // Mobile: 1 column
-      } else if (isTabletView) {
+      } else if (isTablet) {
         setResponsiveGridColumns(Math.min(gridColumns, 2)); // Tablet: max 2 columns
       } else {
         setResponsiveGridColumns(gridColumns); // Desktop: use provided columns
       }
     };
     
-    // Initial check
-    checkScreenSize();
-    
-    // Add event listener for window resize
-    window.addEventListener('resize', checkScreenSize);
-    
-    // Cleanup
-    return () => window.removeEventListener('resize', checkScreenSize);
-  }, [gridColumns]);
+    // Initial update
+    updateGridColumns();
+  }, [isMobile, isTablet, gridColumns]);
 
   // Filter states
   const [selectedCategory, setSelectedCategory] = useState([]);
@@ -293,6 +448,9 @@ const CoursesFilter = ({
   const sortDropdownRef = useRef(null);
   const didInitRef = useRef(false);
   const debounceTimer = useRef(null);
+
+  // Debounce search term
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   /**
    * 1) Read URL + filterState once on mount
@@ -593,7 +751,10 @@ const CoursesFilter = ({
 
   const handlePageChange = useCallback((page) => {
     setCurrentPage(page);
-  }, []);
+    if (scrollToTop) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [scrollToTop]);
 
   /**
    * Clear all filters
@@ -810,246 +971,178 @@ const CoursesFilter = ({
     })
   };
 
+  // Memoize grid classes
+  const gridClasses = useMemo(() => getGridColumnClasses(), [responsiveGridColumns, customGridClassName]);
+
+  // Render optimized course list
+  const renderCourseList = useCallback(() => {
+    if (loading) {
+      return (
+        <div className={gridClasses}>
+          {Array.from({ length: itemsPerPage }).map((_, idx) => (
+            <div 
+              key={idx} 
+              className="animate-pulse bg-gray-200 dark:bg-gray-700 rounded-lg h-96 transition-colors duration-200"
+              role="presentation"
+            />
+          ))}
+        </div>
+      );
+    }
+
+    if (filteredCourses.length === 0) {
+      return emptyStateContent || renderNoResults();
+    }
+
+    return (
+      <div 
+        className={viewMode === "grid" ? gridClasses : "space-y-4"}
+        style={viewMode === "grid" && Object.keys(customGridStyle).length > 0 ? safeGridStyle : {}}
+      >
+        {filteredCourses.map((course) => (
+          <ErrorBoundary key={course._id || course.id}>
+            <MemoizedCourseCard 
+              course={course} 
+              viewMode={viewMode}
+              isCompact={isMobile}
+              preserveClassType={true}
+              className={viewMode === "list" ? "border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200" : ""}
+            />
+          </ErrorBoundary>
+        ))}
+      </div>
+    );
+  }, [loading, filteredCourses, viewMode, gridClasses, customGridStyle, isMobile]);
+
   return (
-    <>
-      <ErrorBoundary>
-        <section className="pb-5 relative w-full">
-          {/* Course Header - Only render if not hidden */}
-          {!hideHeader && (
-            <div className={`${activeTab !== 'all' ? tabStyles.bgColor : 'bg-gray-900 dark:bg-gray-950'} py-10 md:py-16 transition-colors duration-300 border-b ${activeTab !== 'all' ? tabStyles.borderColor : 'border-gray-800 dark:border-gray-800/40'} w-full`}>
-              <div className="container mx-auto px-4">
-                <div className="max-w-4xl mx-auto text-center text-white">
-                  <h1 className={`text-3xl md:text-4xl font-bold mb-4 ${activeTab !== 'all' ? tabStyles.textColor : 'text-white dark:text-gray-50'}`}>
-                    {categoryTitle || CustomText || "Explore Courses"}
-                  </h1>
-                  <p className="text-gray-300 dark:text-gray-300/90 text-lg transition-colors duration-300">
-                    {description ||
-                      "Discover courses to enhance your skills and advance your career."}
-                  </p>
-                </div>
+    <ErrorBoundary>
+      <section className="pb-5 relative w-full" role="region" aria-label="Course Filter">
+        {/* Course Header - Only render if not hidden */}
+        {!hideHeader && (
+          <div className={`${activeTab !== 'all' ? tabStyles.bgColor : 'bg-gray-900 dark:bg-gray-950'} py-10 md:py-16 transition-colors duration-300 border-b ${activeTab !== 'all' ? tabStyles.borderColor : 'border-gray-800 dark:border-gray-800/40'} w-full`}>
+            <div className="container mx-auto px-4">
+              <div className="max-w-4xl mx-auto text-center text-white">
+                <h1 className={`text-3xl md:text-4xl font-bold mb-4 ${activeTab !== 'all' ? tabStyles.textColor : 'text-white dark:text-gray-50'}`}>
+                  {categoryTitle || CustomText || "Explore Courses"}
+                </h1>
+                <p className="text-gray-300 dark:text-gray-300/90 text-lg transition-colors duration-300">
+                  {description ||
+                    "Discover courses to enhance your skills and advance your career."}
+                </p>
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Main Wrapper */}
-          <div className="container mx-auto px-4 -mt-8 w-full">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-gray-900/30 p-4 md:p-6 mb-8 border border-transparent dark:border-gray-700 transition-colors duration-300">
-              {/* Top Filters Row - Only render if not hidden */}
-              {!hideFilterBar && (
-                <div className="flex flex-col md:flex-row gap-4 mb-6">
-                  {/* Search Input - Only render if not hidden */}
-                  {!hideSearch && (
-                    <div className="flex-grow relative">
-                      <div className="relative">
-                        <input
-                          type="text"
-                          placeholder="Search courses..."
-                          value={searchTerm}
-                          onChange={handleSearch}
-                          className="input-modern w-full py-2 pl-10 pr-4"
-                        />
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" size={18} />
-                        {searchTerm && (
-                          <button
-                            onClick={() => setSearchTerm("")}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
-                          >
-                            <X size={16} />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Sort - Only render if not hidden */}
-                  {!hideSortOptions && (
-                    <div className="relative" ref={sortDropdownRef}>
-                      <button
-                        onClick={() => setShowSortDropdown(!showSortDropdown)}
-                        className="select-modern flex items-center justify-between w-full md:w-48"
-                      >
-                        <span className="text-sm font-medium">
-                          {
-                            {
-                              "newest-first": "Newest First",
-                              "oldest-first": "Oldest First",
-                              "A-Z": "Name (A-Z)",
-                              "Z-A": "Name (Z-A)",
-                              "price-low-high": "Price (Low->High)",
-                              "price-high-low": "Price (High->Low)",
-                            }[sortOrder] || "Newest First"
-                          }
-                        </span>
-                        <ChevronDown size={16} />
-                      </button>
-
-                      {showSortDropdown && (
-                        <div className="absolute right-0 mt-1 w-full md:w-48 card-modern z-10">
-                          <div className="py-1">
-                            <button
-                              onClick={() => handleSortChange("newest-first")}
-                              className={`${
-                                sortOrder === "newest-first"
-                                  ? "bg-gray-100 dark:bg-gray-700 text-blue-600 dark:text-blue-400"
-                                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/70"
-                              } block w-full text-left px-4 py-2 text-sm transition-colors duration-200`}
-                            >
-                              Newest First
-                            </button>
-                            <button
-                              onClick={() => handleSortChange("oldest-first")}
-                              className={`${
-                                sortOrder === "oldest-first"
-                                  ? "bg-gray-100 dark:bg-gray-700 text-blue-600 dark:text-blue-400"
-                                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/70"
-                              } block w-full text-left px-4 py-2 text-sm transition-colors duration-200`}
-                            >
-                              Oldest First
-                            </button>
-                            <button
-                              onClick={() => handleSortChange("A-Z")}
-                              className={`${
-                                sortOrder === "A-Z"
-                                  ? "bg-gray-100 dark:bg-gray-700 text-blue-600 dark:text-blue-400"
-                                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/70"
-                              } block w-full text-left px-4 py-2 text-sm transition-colors duration-200`}
-                            >
-                              Name (A-Z)
-                            </button>
-                            <button
-                              onClick={() => handleSortChange("Z-A")}
-                              className={`${
-                                sortOrder === "Z-A"
-                                  ? "bg-gray-100 dark:bg-gray-700 text-blue-600 dark:text-blue-400"
-                                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/70"
-                              } block w-full text-left px-4 py-2 text-sm transition-colors duration-200`}
-                            >
-                              Name (Z-A)
-                            </button>
-                            <button
-                              onClick={() => handleSortChange("price-low-high")}
-                              className={`${
-                                sortOrder === "price-low-high"
-                                  ? "bg-gray-100 dark:bg-gray-700 text-blue-600 dark:text-blue-400"
-                                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/70"
-                              } block w-full text-left px-4 py-2 text-sm transition-colors duration-200`}
-                            >
-                              Price (Low-&gt;High)
-                            </button>
-                            <button
-                              onClick={() => handleSortChange("price-high-low")}
-                              className={`${
-                                sortOrder === "price-high-low"
-                                  ? "bg-gray-100 dark:bg-gray-700 text-blue-600 dark:text-blue-400"
-                                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/70"
-                              } block w-full text-left px-4 py-2 text-sm transition-colors duration-200`}
-                            >
-                              Price (High-&gt;Low)
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* View Mode Switch - Only render if not hidden */}
-                  {!hideViewModeSwitch && (
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => setViewMode("grid")}
-                        className={`p-2 rounded-md transition-colors duration-200 ${
-                          viewMode === "grid"
-                            ? "bg-blue-500 dark:bg-blue-600 text-white"
-                            : "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
-                        }`}
-                      >
-                        <LayoutGrid size={20} />
-                      </button>
-                      <button
-                        onClick={() => setViewMode("list")}
-                        className={`p-2 rounded-md transition-colors duration-200 ${
-                          viewMode === "list"
-                            ? "bg-blue-500 dark:bg-blue-600 text-white"
-                            : "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
-                        }`}
-                      >
-                        <List size={20} />
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Mobile Filters Button - Only render if filters are not hidden */}
-                  {!hideFilterBar && (
+        {/* Main Wrapper with improved accessibility */}
+        <div className="container mx-auto px-4 -mt-8 w-full">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-gray-900/30 p-4 md:p-6 mb-8 border border-transparent dark:border-gray-700 transition-colors duration-300">
+            {/* Top Filters Row with improved mobile layout */}
+            {!hideFilterBar && (
+              <div className="flex flex-col md:flex-row gap-4 mb-6">
+                {!hideSearch && <SearchInput searchTerm={searchTerm} handleSearch={handleSearch} setSearchTerm={setSearchTerm} />}
+                {!hideSortOptions && <SortDropdown sortOrder={sortOrder} handleSortChange={handleSortChange} showSortDropdown={showSortDropdown} setShowSortDropdown={setShowSortDropdown} />}
+                
+                {/* View Mode Switch - Only render if not hidden */}
+                {!hideViewModeSwitch && (
+                  <div className="flex items-center space-x-2">
                     <button
-                      onClick={() => setShowFilters(!showFilters)}
-                      className="md:hidden btn-modern btn-secondary flex items-center justify-center"
+                      onClick={() => setViewMode("grid")}
+                      className={`p-2 rounded-md transition-colors duration-200 ${
+                        viewMode === "grid"
+                          ? "bg-blue-500 dark:bg-blue-600 text-white"
+                          : "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                      }`}
                     >
-                      <Filter size={18} className="mr-2" />
-                      <span>Filters</span>
+                      <LayoutGrid size={20} />
                     </button>
-                  )}
-                </div>
-              )}
-
-              {/* Active Filters - Only render if filters are not hidden */}
-              {!hideFilterBar && activeFilters.length > 0 && (
-                <div className="mb-6">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">
-                      Active Filters:
-                    </span>
-                    {activeFilters.map((f, idx) => (
-                      <div
-                        key={`${f.type}-${idx}`}
-                        className="badge badge-primary"
-                      >
-                        {f.label}
-                        <button
-                          onClick={() => removeFilter(f.type, f.value)}
-                          className="ml-2 hover:text-blue-600 dark:hover:text-blue-200 transition-colors duration-200"
-                        >
-                          <X size={14} />
-                        </button>
-                      </div>
-                    ))}
                     <button
-                      onClick={handleClearFilters}
-                      className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline ml-2 transition-colors duration-200"
+                      onClick={() => setViewMode("list")}
+                      className={`p-2 rounded-md transition-colors duration-200 ${
+                        viewMode === "list"
+                          ? "bg-blue-500 dark:bg-blue-600 text-white"
+                          : "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                      }`}
                     >
-                      Clear All
+                      <List size={20} />
                     </button>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Main Content */}
-              <div className="flex flex-col lg:flex-row gap-8">
-                {/* Sidebar - Only render if category filter is not hidden */}
-                {!hideCategoryFilter && (
-                  <div className={`lg:w-1/4 ${showFilters ? "block" : "hidden lg:block"}`}>
-                    <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg border border-transparent dark:border-gray-700 transition-colors duration-200">
-                      <div className="mb-6">
-                        <div className="flex items-center justify-between mb-4">
-                          <h3 className="font-semibold text-gray-800 dark:text-gray-200 transition-colors duration-200">Filters</h3>
-                          <button
-                            onClick={handleClearFilters}
-                            className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200"
-                          >
-                            Clear All
-                          </button>
-                        </div>
-                        {/* Categories */}
-                        {!hideCategoryFilter && (
-                          <div className="mb-6">
-                            <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-3 transition-colors duration-200">
-                              Categories
-                            </h4>
-                            
-                            {/* Live Categories */}
+                {/* Mobile Filters Button - Only render if filters are not hidden */}
+                {!hideFilterBar && (
+                  <button
+                    onClick={() => setShowFilters(!showFilters)}
+                    className="md:hidden btn-modern btn-secondary flex items-center justify-center"
+                  >
+                    <Filter size={18} className="mr-2" />
+                    <span>Filters</span>
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Active Filters - Only render if filters are not hidden */}
+            {!hideFilterBar && activeFilters.length > 0 && (
+              <div className="mb-6">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">
+                    Active Filters:
+                  </span>
+                  {activeFilters.map((f, idx) => (
+                    <div
+                      key={`${f.type}-${idx}`}
+                      className="badge badge-primary"
+                    >
+                      {f.label}
+                      <button
+                        onClick={() => removeFilter(f.type, f.value)}
+                        className="ml-2 hover:text-blue-600 dark:hover:text-blue-200 transition-colors duration-200"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    onClick={handleClearFilters}
+                    className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline ml-2 transition-colors duration-200"
+                  >
+                    Clear All
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Main content with optimized rendering */}
+            <div className="flex flex-col lg:flex-row gap-8">
+              {/* Sidebar - Only render if category filter is not hidden */}
+              {!hideCategoryFilter && (
+                <div className={`lg:w-1/4 ${showFilters ? "block" : "hidden lg:block"}`}>
+                  <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg border border-transparent dark:border-gray-700 transition-colors duration-200">
+                    <div className="mb-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="font-semibold text-gray-800 dark:text-gray-200 transition-colors duration-200">Filters</h3>
+                        <button
+                          onClick={handleClearFilters}
+                          className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200"
+                        >
+                          Clear All
+                        </button>
+                      </div>
+                      {/* Categories */}
+                      {!hideCategoryFilter && (
+                        <div className="mb-6">
+                          <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-3 transition-colors duration-200">
+                            Categories
+                          </h4>
+                          
+                          {/* Show categories based on classType */}
+                          {classType === "live" ? (
+                            // Live Course Categories
                             <div className="mb-4">
-                              <h5 className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-2 flex items-center">
-                                <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                                Live Courses
+                              <h5 className="text-sm font-medium text-rose-600 dark:text-rose-400 mb-2 flex items-center">
+                                <span className="inline-block w-2 h-2 bg-rose-500 rounded-full mr-2"></span>
+                                Live Course Categories
                               </h5>
                               <CategoryFilter
                                 categories={availableCategories?.filter(cat => fallbackCategories.live.includes(cat)) || fallbackCategories.live}
@@ -1057,12 +1150,12 @@ const CoursesFilter = ({
                                 setSelectedCategory={handleCategoryChange}
                               />
                             </div>
-                            
-                            {/* Blended Categories */}
-                            <div className="mb-2">
-                              <h5 className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-2 flex items-center">
-                                <span className="inline-block w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
-                                Blended Courses
+                          ) : classType === "blended" ? (
+                            // Blended Course Categories
+                            <div className="mb-4">
+                              <h5 className="text-sm font-medium text-indigo-600 dark:text-indigo-400 mb-2 flex items-center">
+                                <span className="inline-block w-2 h-2 bg-indigo-500 rounded-full mr-2"></span>
+                                Blended Course Categories
                               </h5>
                               <CategoryFilter
                                 categories={availableCategories?.filter(cat => fallbackCategories.blended.includes(cat)) || fallbackCategories.blended}
@@ -1070,9 +1163,40 @@ const CoursesFilter = ({
                                 setSelectedCategory={handleCategoryChange}
                               />
                             </div>
-                          </div>
-                        )}
-                        {/* Grade */}
+                          ) : (
+                            // All Categories (when classType is not specified or is "all")
+                            <>
+                              {/* Live Categories Section */}
+                              <div className="mb-4">
+                                <h5 className="text-sm font-medium text-rose-600 dark:text-rose-400 mb-2 flex items-center">
+                                  <span className="inline-block w-2 h-2 bg-rose-500 rounded-full mr-2"></span>
+                                  Live Courses
+                                </h5>
+                                <CategoryFilter
+                                  categories={availableCategories?.filter(cat => fallbackCategories.live.includes(cat)) || fallbackCategories.live}
+                                  selectedCategory={selectedCategory}
+                                  setSelectedCategory={handleCategoryChange}
+                                />
+                              </div>
+                              
+                              {/* Blended Categories Section */}
+                              <div className="mb-2">
+                                <h5 className="text-sm font-medium text-indigo-600 dark:text-indigo-400 mb-2 flex items-center">
+                                  <span className="inline-block w-2 h-2 bg-indigo-500 rounded-full mr-2"></span>
+                                  Blended Courses
+                                </h5>
+                                <CategoryFilter
+                                  categories={availableCategories?.filter(cat => fallbackCategories.blended.includes(cat)) || fallbackCategories.blended}
+                                  selectedCategory={selectedCategory}
+                                  setSelectedCategory={handleCategoryChange}
+                                />
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      )}
+                      {/* Grade - Only show if not hidden */}
+                      {!hideGradeFilter && (
                         <div className="mb-6">
                           <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-3 transition-colors duration-200">
                             Grade Level
@@ -1089,150 +1213,126 @@ const CoursesFilter = ({
                             <option value="Grade 5-6">Grade 5-6</option>
                             <option value="Grade 7-8">Grade 7-8</option>
                             <option value="Grade 9-10">Grade 9-10</option>
-                            <option value="Grade 9-10">Grade 9-10</option>
                             <option value="Grade 11-12">Grade 11-12</option>
                             <option value="UG - Graduate - Professionals">UG - Graduate - Professionals</option>
                           </select>
                         </div>
+                      )}
 
-                        {/* Features (static placeholders) */}
-                        <div className="space-y-3">
-                          <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">
-                            Course Features
-                          </h4>
-                          <div className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 transition-colors duration-200">
-                            <Zap size={16} className="text-yellow-500 dark:text-yellow-400" />
-                            <span className="text-sm">Certification Available</span>
-                          </div>
-                          <div className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 transition-colors duration-200">
-                            <BookOpen size={16} className="text-blue-500 dark:text-blue-400" />
-                            <span className="text-sm">Includes Assignments</span>
-                          </div>
-                          <div className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 transition-colors duration-200">
-                            <GraduationCap size={16} className="text-green-500 dark:text-green-400" />
-                            <span className="text-sm">Project-Based Learning</span>
-                          </div>
-                          <div className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 transition-colors duration-200">
-                            <Palette size={16} className="text-purple-500 dark:text-purple-400" />
-                            <span className="text-sm">Interactive Quizzes</span>
-                          </div>
+                      {/* Features (static placeholders) */}
+                      <div className="space-y-3">
+                        <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">
+                          Course Features
+                        </h4>
+                        <div className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 transition-colors duration-200">
+                          <Zap size={16} className="text-yellow-500 dark:text-yellow-400" />
+                          <span className="text-sm">Certification Available</span>
+                        </div>
+                        <div className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 transition-colors duration-200">
+                          <BookOpen size={16} className="text-blue-500 dark:text-blue-400" />
+                          <span className="text-sm">Includes Assignments</span>
+                        </div>
+                        <div className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 transition-colors duration-200">
+                          <GraduationCap size={16} className="text-green-500 dark:text-green-400" />
+                          <span className="text-sm">Project-Based Learning</span>
+                        </div>
+                        <div className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 transition-colors duration-200">
+                          <Palette size={16} className="text-purple-500 dark:text-purple-400" />
+                          <span className="text-sm">Interactive Quizzes</span>
                         </div>
                       </div>
                     </div>
                   </div>
-                )}
+                </div>
+              )}
 
-                {/* Content Area - Adjust width based on whether sidebar is shown */}
-                <div className={!hideCategoryFilter ? "lg:w-3/4" : "w-full"}>
-                  {/* Top row for count - Only show if filters are not hidden */}
-                  {!hideFilterBar && (
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-                      <div className="text-gray-600 dark:text-gray-300 mb-4 sm:mb-0">
-                        {coursesCountText}
-                        {showingRelated && (
-                          <button
-                            onClick={clearRelated}
-                            className="ml-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline"
-                          >
-                            Back to All Courses
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Query Error */}
-                  {queryError && (
-                    <div className="flex flex-col items-center justify-center py-12 px-4 border border-red-200 dark:border-red-900/30 rounded-lg bg-red-50 dark:bg-red-900/10 text-center">
-                      <AlertCircle size={48} className="text-red-500 dark:text-red-400 mb-4" />
-                      <h3 className="text-xl font-semibold text-red-700 dark:text-red-300 mb-2">Error Loading Courses</h3>
-                      <p className="text-red-600 dark:text-red-400 max-w-md mb-6">
-                        {queryError || "We encountered an error while loading courses. Please try again later."}
-                      </p>
-                      <button
-                        onClick={() => window.location.reload()}
-                        className="px-4 py-2 bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 text-white rounded-lg transition-colors duration-200"
-                      >
-                        Refresh Page
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Loading */}
-                  {loading ? (
-                    <div className={getGridColumnClasses()}>
-                      {Array.from({ length: itemsPerPage }).map((_, idx) => (
-                        <div key={idx} className="animate-pulse bg-gray-200 dark:bg-gray-700 rounded-lg h-96 transition-colors duration-200"></div>
-                      ))}
-                    </div>
-                  ) : filteredCourses.length > 0 ? (
-                    // Show courses with custom grid layout if in grid mode
-                    <div 
-                      className={viewMode === "grid" ? getGridColumnClasses() : "space-y-4"}
-                      style={viewMode === "grid" && Object.keys(customGridStyle).length > 0 ? safeGridStyle : {}}
-                    >
-                      {filteredCourses.map((course) => (
-                        <ErrorBoundary key={course._id || course.id}>
-                          <DynamicCourseCard 
-                            course={course} 
-                            viewMode={viewMode}
-                            isCompact={false}
-                            preserveClassType={true}
-                            className={viewMode === "list" ? "border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200" : ""}
-                          />
-                        </ErrorBoundary>
-                      ))}
-                    </div>
-                  ) : (
-                    // No results or custom empty state
-                    emptyStateContent || renderNoResults()
-                  )}
-
-                  {/* Pagination - Only show if there are multiple pages */}
-                  {totalPages > 1 && (
-                    <div className="mt-10 flex justify-center">
-                      {simplePagination ? (
-                        <SimplePaginationWrapper
-                          currentPage={currentPage}
-                          totalPages={totalPages}
-                          onPageChange={handlePageChange}
-                          className="dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
-                          simplified={true}
-                        />
-                      ) : (
-                        <Pagination
-                          currentPage={currentPage}
-                          totalPages={totalPages}
-                          onPageChange={handlePageChange}
-                          className="dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
-                        />
+              {/* Content area with optimized course list */}
+              <div className={!hideCategoryFilter ? "lg:w-3/4" : "w-full"}>
+                {/* Top row for count - Only show if filters are not hidden */}
+                {!hideFilterBar && (
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+                    <div className="text-gray-600 dark:text-gray-300 mb-4 sm:mb-0">
+                      {coursesCountText}
+                      {showingRelated && (
+                        <button
+                          onClick={clearRelated}
+                          className="ml-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline"
+                        >
+                          Back to All Courses
+                        </button>
                       )}
                     </div>
-                  )}
-
-                  {/* Bottom Action with dynamic styling */}
-                  <div className="mt-12 text-center">
-                    {CustomButton ? (
-                      <div className="inline-block">{CustomButton}</div>
-                    ) : (
-                      <Link
-                        href="/courses"
-                        className={`btn-modern ${tabStyles.buttonColor} inline-flex items-center px-6 py-3 text-white text-sm font-medium rounded-xl transition-colors shadow-sm hover:shadow-md`}
-                      >
-                        <span>View All Courses</span>
-                        <ChevronRight className="ml-2 w-5 h-5" />
-                      </Link>
-                    )}
                   </div>
+                )}
+
+                {/* Query Error */}
+                {queryError && (
+                  <div className="flex flex-col items-center justify-center py-12 px-4 border border-red-200 dark:border-red-900/30 rounded-lg bg-red-50 dark:bg-red-900/10 text-center">
+                    <AlertCircle size={48} className="text-red-500 dark:text-red-400 mb-4" />
+                    <h3 className="text-xl font-semibold text-red-700 dark:text-red-300 mb-2">Error Loading Courses</h3>
+                    <p className="text-red-600 dark:text-red-400 max-w-md mb-6">
+                      {queryError || "We encountered an error while loading courses. Please try again later."}
+                    </p>
+                    <button
+                      onClick={() => window.location.reload()}
+                      className="px-4 py-2 bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 text-white rounded-lg transition-colors duration-200"
+                    >
+                      Refresh Page
+                    </button>
+                  </div>
+                )}
+
+                {renderCourseList()}
+
+                {/* Pagination with improved accessibility */}
+                {totalPages > 1 && (
+                  <nav className="mt-10 flex justify-center" aria-label="Pagination">
+                    {simplePagination ? (
+                      <SimplePaginationWrapper
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={handlePageChange}
+                        className="dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
+                        simplified={true}
+                      />
+                    ) : (
+                      <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={handlePageChange}
+                        className="dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
+                      />
+                    )}
+                  </nav>
+                )}
+
+                {/* Bottom Action with dynamic styling */}
+                <div className="mt-12 text-center">
+                  {CustomButton ? (
+                    <div className="inline-block">{CustomButton}</div>
+                  ) : (
+                    <Link
+                      href="/courses"
+                      className={`btn-modern ${tabStyles.buttonColor} inline-flex items-center px-6 py-3 text-white text-sm font-medium rounded-xl transition-colors shadow-sm hover:shadow-md`}
+                    >
+                      <span>View All Courses</span>
+                      <ChevronRight className="ml-2 w-5 h-5" />
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>
           </div>
-        </section>
-      </ErrorBoundary>
-    </>
+        </div>
+      </section>
+    </ErrorBoundary>
   );
 };
+
+// Add display names for debugging
+SortDropdown.displayName = 'SortDropdown';
+SearchInput.displayName = 'SearchInput';
+MemoizedCourseCard.displayName = 'MemoizedCourseCard';
 
 CoursesFilter.propTypes = {
   CustomButton: PropTypes.func,
@@ -1253,6 +1353,7 @@ CoursesFilter.propTypes = {
   hideFilterBar: PropTypes.bool,
   hideViewModeSwitch: PropTypes.bool,
   hideHeader: PropTypes.bool,
+  hideGradeFilter: PropTypes.bool,
   forceViewMode: PropTypes.string,
   gridColumns: PropTypes.number,
   itemsPerPage: PropTypes.number,
