@@ -18,9 +18,12 @@ export const metadata = {
 const About = async () => {
   return (
     <PageWrapper>
-      <HeroSectionContant />
+      <div className="pt-16">
+      <HeroSectionContant/>
+      </div>
       <AboutContent />
       <AtMedh />
+      
     </PageWrapper>
   );
 };
