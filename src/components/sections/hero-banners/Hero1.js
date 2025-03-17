@@ -22,102 +22,70 @@ const HeroMobile = ({ isLoaded, featuredCourses, loading }) => {
   return (
     <div className="mobile-hero-wrapper grid grid-cols-1 gap-6 p-4">
       {/* Mobile Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <div className="h-12 w-28"></div>
       </div>
 
       {/* Main Content */}
       <div className={`transition-all duration-700 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'}`}>
         <div className="flex flex-col items-center justify-center">
-        <h1 className="text-white font-bold text-center mb-3">
-          <span className="hero-heading-text">UNLOCK YOUR POTENTIAL WITH</span>
-          <div className="relative h-[clamp(3rem,_11vw,_5rem)] max-w-[200px] mx-auto mb-4">
-            <Image
-              src={medhLogo}
-              alt="Medh Logo"
-              className=""
-              priority
-              sizes="(max-width: 630px) 280px, (max-width: 1024px) 200px, 280px"
-            />
-          </div>
-        </h1>
+          <h1 className="text-white font-bold text-center mb-3">
+            <span className="hero-heading-text">UNLOCK YOUR POTENTIAL WITH</span>
+            <div className="relative h-[clamp(3rem,_11vw,_5rem)] max-w-[200px] mx-auto mb-4">
+              <Image
+                src={medhLogo}
+                alt="Medh Logo"
+                className=""
+                priority
+                sizes="(max-width: 630px) 280px, (max-width: 1024px) 200px, 280px"
+              />
+            </div>
+          </h1>
         </div>
-        <p className="hero-paragraph-text text-center md:mt-3">
+        <p className="hero-paragraph-text text-center md:mt-3 mb-6">
           Join our expert-led professional courses and master the skills that drive industry innovation
         </p>
 
         {/* Grid Layout for Content */}
-        <div className="grid grid-cols-2 gap-3 mt-5 ">
+        <div className="grid grid-cols-2 gap-3 mt-3">
           {/* Children & Teens */}
-          <div className="bg-gradient-to-br from-primary-500/10 via-primary-400/5 to-purple-500/10 rounded-xl p-3 transition-all duration-300 hover:scale-105 border border-white/5 flex flex-col h-[120px]">
-            <div className="flex items-center mb-1.5 h-5">
-              <BookOpen className="w-4 h-4 text-primary-400 mr-1.5 flex-shrink-0" />
-              <h4 className="text-transparent bg-clip-text bg-gradient-to-r from-primary-300 to-purple-300 font-semibold text-sm truncate">Children & Teens</h4>
-            </div>
-            <p className="text-gray-300 text-xs leading-tight mb-auto line-clamp-2">Future-ready STEM education</p>
-            <div className="flex items-center justify-between text-[10px] mt-1.5 pt-1.5 border-t border-white/5 w-full">
-              <span className="text-gray-400 truncate max-w-[40%]">Ages 8-18</span>
-              <span className="bg-primary-500/20 text-primary-200 px-1.5 py-0.5 rounded-full uppercase tracking-wider whitespace-nowrap text-[9px]">Interactive</span>
-            </div>
+          <div className="bg-gradient-to-br from-primary-500/10 via-primary-400/5 to-purple-500/10 rounded-xl p-2.5 transition-all duration-300 hover:scale-105 border border-white/5 flex flex-col h-[90px] justify-center items-center text-center">
+            <BookOpen className="w-4 h-4 text-primary-400 mb-2" />
+            <h4 className="text-transparent bg-clip-text bg-gradient-to-r from-primary-300 to-purple-300 font-semibold text-[11px] leading-tight px-1">Children & Teens</h4>
           </div>
 
           {/* Professionals */}
-          <div className="bg-gradient-to-br from-secondary-500/10 via-secondary-400/5 to-blue-500/10 rounded-xl p-3 transition-all duration-300 hover:scale-105 border border-white/5 flex flex-col h-[120px]">
-            <div className="flex items-center mb-1.5 h-5">
-              <Users className="w-4 h-4 text-secondary-400 mr-1.5 flex-shrink-0" />
-              <h4 className="text-transparent bg-clip-text bg-gradient-to-r from-secondary-300 to-blue-300 font-semibold text-sm truncate">Professionals</h4>
-            </div>
-            <p className="text-gray-300 text-xs leading-tight mb-auto line-clamp-2">Industry-relevant skills</p>
-            <div className="flex items-center justify-between text-[10px] mt-1.5 pt-1.5 border-t border-white/5 w-full">
-              <span className="text-gray-400 truncate max-w-[40%]">Certifications</span>
-              <span className="bg-secondary-500/20 text-secondary-200 px-1.5 py-0.5 rounded-full uppercase tracking-wider whitespace-nowrap text-[9px]">Practical</span>
-            </div>
+          <div className="bg-gradient-to-br from-secondary-500/10 via-secondary-400/5 to-blue-500/10 rounded-xl p-2.5 transition-all duration-300 hover:scale-105 border border-white/5 flex flex-col h-[90px] justify-center items-center text-center">
+            <Users className="w-4 h-4 text-secondary-400 mb-2" />
+            <h4 className="text-transparent bg-clip-text bg-gradient-to-r from-secondary-300 to-blue-300 font-semibold text-[11px] leading-tight px-1">Professionals</h4>
           </div>
 
           {/* Homemakers */}
-          <div className="bg-gradient-to-br from-purple-500/10 via-purple-400/5 to-pink-500/10 rounded-xl p-3 transition-all duration-300 hover:scale-105 border border-white/5 flex flex-col h-[120px]">
-            <div className="flex items-center mb-1.5 h-5">
-              <Star className="w-4 h-4 text-purple-400 mr-1.5 flex-shrink-0" />
-              <h4 className="text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-pink-300 font-semibold text-sm truncate">Homemakers</h4>
-            </div>
-            <p className="text-gray-300 text-xs leading-tight mb-auto line-clamp-2">Flexible learning paths</p>
-            <div className="flex items-center justify-between text-[10px] mt-1.5 pt-1.5 border-t border-white/5 w-full">
-              <span className="text-gray-400 truncate max-w-[40%]">Flexible scheduling</span>
-              <span className="bg-purple-500/20 text-purple-200 px-1.5 py-0.5 rounded-full uppercase tracking-wider whitespace-nowrap text-[9px]">Adaptable</span>
-            </div>
+          <div className="bg-gradient-to-br from-purple-500/10 via-purple-400/5 to-pink-500/10 rounded-xl p-2.5 transition-all duration-300 hover:scale-105 border border-white/5 flex flex-col h-[90px] justify-center items-center text-center">
+            <Star className="w-4 h-4 text-purple-400 mb-2" />
+            <h4 className="text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-pink-300 font-semibold text-[11px] leading-tight px-1">Homemakers</h4>
           </div>
 
           {/* Lifelong Learners */}
-          <div className="bg-gradient-to-br from-blue-500/10 via-blue-400/5 to-teal-500/10 rounded-xl p-3 transition-all duration-300 hover:scale-105 border border-white/5 flex flex-col h-[120px]">
-            <div className="flex items-center mb-1.5 h-5">
-              <TrendingUp className="w-4 h-4 text-blue-400 mr-1.5 flex-shrink-0" />
-              <h4 className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-teal-300 font-semibold text-sm truncate">Lifelong Learners</h4>
-            </div>
-            <p className="text-gray-300 text-xs leading-tight mb-auto line-clamp-2">Continuous development</p>
-            <div className="flex items-center justify-between text-[10px] mt-1.5 pt-1.5 border-t border-white/5 w-full">
-              <span className="text-gray-400 truncate max-w-[40%]">Age-inclusive</span>
-              <span className="bg-blue-500/20 text-blue-200 px-1.5 py-0.5 rounded-full uppercase tracking-wider whitespace-nowrap text-[9px]">Continuous</span>
-            </div>
+          <div className="bg-gradient-to-br from-blue-500/10 via-blue-400/5 to-teal-500/10 rounded-xl p-2.5 transition-all duration-300 hover:scale-105 border border-white/5 flex flex-col h-[90px] justify-center items-center text-center">
+            <TrendingUp className="w-4 h-4 text-blue-400 mb-2" />
+            <h4 className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-teal-300 font-semibold text-[11px] leading-tight px-1">Lifelong Learners</h4>
           </div>
         </div>
 
         {/* Tagline moved above CTA buttons */}
-        <div className="mt-8 mb-5 text-center">
+        <div className="mt-6 mb-4 text-center">
           <h3 className="mumkinMedh text-transparent bg-clip-text bg-gradient-to-r from-primary-400 via-purple-400 to-secondary-400 text-lg font-semibold animate-text-shimmer">
             Medh Hain Toh Mumkin Hain!
           </h3>
         </div>
 
         {/* CTA Buttons */}
-        <div className="flex flex-col gap-3 mt-4">
+        <div className="flex flex-col gap-3 mt-4 mb-6 sm:mb-8">
           <Link href="/courses" className="w-full group relative inline-flex items-center justify-center py-3.5 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-xl text-sm transition-all">
             <span>Explore Courses</span>
             <ArrowRight size={16} className="ml-2" />
           </Link>
-          {/* <a href="#featured-courses" className="w-full group relative inline-flex items-center justify-center py-3.5 bg-white/10 hover:bg-white/15 text-white font-medium rounded-xl text-sm transition-all backdrop-blur-sm border border-white/10">
-            <span>Explore Courses</span>
-            <ChevronRight size={16} className="ml-2" />
-          </a> */}
         </div>
       </div>
     </div>
@@ -238,7 +206,7 @@ const Hero1 = ({ isCompact = false }) => {
                   </span>
                 </h1>
                 
-                <p className="hero-paragraph-text text-center mt-4 text-sm lg:text-base">
+                <p className="hero-paragraph-text text-center mt-4 text-xs lg:text-sm">
                   Join our expert-led professional courses and master the skills that drive industry innovation
                 </p>
               </div>
