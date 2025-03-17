@@ -83,22 +83,18 @@ const Home1 = () => {
         <div className="absolute top-0 -left-4 w-56 md:w-72 h-56 md:h-72 bg-primary-500/10 rounded-full mix-blend-multiply filter blur-xl animate-blob"></div>
         <div className="absolute top-0 -right-4 w-56 md:w-72 h-56 md:h-72 bg-secondary-500/10 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-2000"></div>
         <div className="absolute -bottom-8 left-20 w-56 md:w-72 h-56 md:h-72 bg-purple-500/10 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-4000"></div>
-        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:radial-gradient(circle_at_center,white,transparent_80%)] opacity-5"></div>
+        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:radial-gradient(circle_at_center,white,transxparent_80%)] opacity-5"></div>
       </div>
 
       {/* Hero Section with optimized height for 1366x768 */}
       <section className="w-full relative">
-        <div className={`w-full ${
-          isLaptopHeight 
-            ? 'min-h-[85vh] mt-0' 
-            : 'min-h-[90vh] mt-0'
-        }`}>
+        <div className={`w-full`}>
           <Hero1 isCompact={isLaptopHeight} />
         </div>
       </section>
 
       {/* Main Content Sections with optimized spacing for 1366x768 */}
-      <div className={`flex flex-col gap-y-4 sm:gap-y-6 md:gap-y-8 lg:gap-y-10 relative z-10 ${
+      <div className={`flex flex-col gap-y-4 sm:gap-y- md:gap-y-8 lg:gap-y-10 relative z-10 ${
         isLaptopHeight ? 'mt-0' : 'mt-0'
       }`}>
         {/* Courses Section - Optimized padding for 1366x768 */}
