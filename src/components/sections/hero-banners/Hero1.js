@@ -110,14 +110,14 @@ const HeroMobile = ({ isLoaded, featuredCourses, loading }) => {
 
         {/* CTA Buttons */}
         <div className="flex flex-col gap-3 mt-4">
-          <Link href="/contact-us" className="w-full group relative inline-flex items-center justify-center py-3.5 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-xl text-sm transition-all">
-            <span>Let's Connect</span>
+          <Link href="/courses" className="w-full group relative inline-flex items-center justify-center py-3.5 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-xl text-sm transition-all">
+            <span>Explore Courses</span>
             <ArrowRight size={16} className="ml-2" />
           </Link>
-          <a href="#featured-courses" className="w-full group relative inline-flex items-center justify-center py-3.5 bg-white/10 hover:bg-white/15 text-white font-medium rounded-xl text-sm transition-all backdrop-blur-sm border border-white/10">
+          {/* <a href="#featured-courses" className="w-full group relative inline-flex items-center justify-center py-3.5 bg-white/10 hover:bg-white/15 text-white font-medium rounded-xl text-sm transition-all backdrop-blur-sm border border-white/10">
             <span>Explore Courses</span>
             <ChevronRight size={16} className="ml-2" />
-          </a>
+          </a> */}
         </div>
       </div>
     </div>
@@ -192,19 +192,19 @@ const Hero1 = ({ isCompact = false }) => {
     <>
       <section 
         style={{ 
-          paddingTop: "var(--header-height, clamp(30px, 8vh, 50px))",
-          paddingBottom: isCompact ? "clamp(15px, 4vh, 30px)" : "var(--footer-height, clamp(30px, 8vh, 50px))"
+          paddingTop: isCompact ? "max(14px, 2vh)" : "max(16px, 3vh)",
+          paddingBottom: isCompact ? "max(12px, 2vh)" : "max(16px, 3vh)"
         }}
         className={`relative bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 dark:from-gray-950 dark:via-gray-900 dark:to-gray-800 w-full ${
-          isCompact ? 'max-h-[90vh]' : 'min-h-screen'
+          isCompact ? 'min-h-[82vh]' : 'min-h-[88vh]'
         }`}
       >
         {/* Enhanced Animated Background */}
         <div className="absolute inset-0 overflow-hidden">
-          {/* Geometric Patterns */}
-          <div className="absolute top-0 -left-4 w-[40vw] h-[40vw] bg-gradient-conic from-primary-500/40 via-purple-500/30 to-secondary-500/40 rounded-full mix-blend-overlay filter blur-3xl opacity-70 animate-spin-slow"></div>
-          <div className="absolute top-1/4 right-1/4 w-[35vw] h-[35vw] bg-gradient-conic from-secondary-500/40 via-pink-500/30 to-primary-500/40 rounded-full mix-blend-overlay filter blur-3xl opacity-70 animate-spin-slow-reverse"></div>
-          <div className="absolute bottom-0 left-1/3 w-[45vw] h-[45vw] bg-gradient-conic from-blue-500/40 via-teal-500/30 to-purple-500/40 rounded-full mix-blend-overlay filter blur-3xl opacity-70 animate-pulse-slow"></div>
+          {/* Geometric Patterns - Adjusted sizes for small laptops */}
+          <div className="absolute top-0 -left-4 w-[35vw] h-[35vw] bg-gradient-conic from-primary-500/40 via-purple-500/30 to-secondary-500/40 rounded-full mix-blend-overlay filter blur-3xl opacity-70 animate-spin-slow"></div>
+          <div className="absolute top-1/4 right-1/4 w-[30vw] h-[30vw] bg-gradient-conic from-secondary-500/40 via-pink-500/30 to-primary-500/40 rounded-full mix-blend-overlay filter blur-3xl opacity-70 animate-spin-slow-reverse"></div>
+          <div className="absolute bottom-0 left-1/3 w-[40vw] h-[40vw] bg-gradient-conic from-blue-500/40 via-teal-500/30 to-purple-500/40 rounded-full mix-blend-overlay filter blur-3xl opacity-70 animate-pulse-slow"></div>
           
           {/* Enhanced Grid Pattern */}
           <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:radial-gradient(circle_at_center,white,transparent_80%)] opacity-30"></div>
@@ -212,48 +212,45 @@ const Hero1 = ({ isCompact = false }) => {
 
         <div className="max-w-[1920px] w-full mx-auto relative z-10">
           {/* Hero Content - Centered Text */}
-          <div className={`flex flex-col items-center justify-center py-12 lg:py-20 ${
-            isCompact ? 'py-8 lg:py-12' : 'min-h-[75vh]'
+          <div className={`flex flex-col items-center justify-center ${
+            isCompact ? 'pt-14 pb-6 lg:pt-16 lg:pb-8' : 'pt-16 pb-8 lg:pt-20 lg:pb-10'
           }`}>
             {/* Hero Content - Centered */}
             <div className={`flex flex-col items-center justify-center transition-all duration-1000 transform text-center px-4 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-              {/* Live badge - similar to page.js */}
-             
-              
               {/* Main Heading - Centered */}
-              <div className={`w-full max-w-[800px] mx-auto mb-8 ${
-                isCompact ? 'mb-6' : ''
+              <div className={`w-full max-w-[700px] mx-auto ${
+                isCompact ? 'mb-4 space-y-3' : 'mb-6 space-y-4'
               }`}>
                 <h1 className="font-bold leading-tight w-full">
-                  <span className="hero-heading-text">
+                  <span className="hero-heading-text block mb-3">
                     UNLOCK YOUR POTENTIAL WITH
                   </span>
-                  <span className="block relative mx-auto mb-6">
-                    <div className="relative h-[clamp(3rem,_11vw,_5rem)] max-w-[200px] mx-auto mb-8">
+                  <span className="block relative mx-auto">
+                    <div className="relative h-[clamp(2.5rem,_9vw,_4rem)] max-w-[180px] mx-auto">
                       <Image
                         src={medhLogo}
                         alt="Medh Logo"
                         className=""
                         priority
-                        sizes="(max-width: 630px) 280px, (max-width: 1024px) 200px, 280px"
+                        sizes="(max-width: 630px) 160px, (max-width: 1024px) 180px, 200px"
                       />
                     </div>
                   </span>
                 </h1>
                 
-                <p className="hero-paragraph-text text-center md:mt-3">
+                <p className="hero-paragraph-text text-center mt-4 text-sm lg:text-base">
                   Join our expert-led professional courses and master the skills that drive industry innovation
                 </p>
               </div>
               {/* Desktop full-row version - WITH FIXED OVERFLOW ISSUES */}
-              <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 xl:gap-6 p-6 sm:p-8 ${
-                isCompact ? 'gap-3 lg:gap-4 p-4 sm:p-6' : ''
+              <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 p-3 lg:p-4 ${
+                isCompact ? 'max-w-[1400px]' : 'max-w-[1600px]'
               }`}>
                   {/* Children & Teens - Desktop Card */}
-                  <div className="flex-shrink-0 w-full max-w-[480px] snap-start group transition-transform duration-500 transform hover:scale-[1.02] active:scale-[0.98] touch-manipulation">
-                    <div className="bg-gradient-to-br from-primary-500/10 via-primary-400/5 to-purple-500/10 hover:from-primary-500/15 hover:to-purple-500/15 backdrop-blur-md border border-white/10 hover:border-white/20 rounded-2xl p-4 transition-all duration-300 h-full flex flex-col relative">
-                      <div className="absolute -right-8 -top-8 w-24 h-24 rounded-full bg-gradient-to-br from-primary-500/10 to-purple-500/10 animate-pulse-slow blur-xl"></div>
-                      <div className="absolute -left-4 -bottom-4 w-16 h-16 rounded-full bg-gradient-to-br from-pink-500/10 to-orange-500/10 animate-pulse-slower blur-lg"></div>
+                  <div className="flex-shrink-0 w-full max-w-[420px] snap-start group transition-transform duration-500 transform hover:scale-[1.02] active:scale-[0.98] touch-manipulation">
+                    <div className="bg-gradient-to-br from-primary-500/10 via-primary-400/5 to-purple-500/10 hover:from-primary-500/15 hover:to-purple-500/15 backdrop-blur-md border border-white/10 hover:border-white/20 rounded-xl p-3 lg:p-4 transition-all duration-300 h-full flex flex-col relative">
+                      <div className="absolute -right-6 -top-6 w-20 h-20 rounded-full bg-gradient-to-br from-primary-500/10 to-purple-500/10 animate-pulse-slow blur-xl"></div>
+                      <div className="absolute -left-3 -bottom-3 w-14 h-14 rounded-full bg-gradient-to-br from-pink-500/10 to-orange-500/10 animate-pulse-slower blur-lg"></div>
                       <div className="relative z-10 mb-4 bg-secondary-500/10 w-14 h-14 rounded-xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300">
                         <div className="absolute inset-0 bg-primary-500/5 rounded-xl animate-ping-slow opacity-60"></div>
                         <BookOpen className="w-6 h-6 text-primary-400 group-hover:text-primary-200 transition-colors" />
@@ -270,10 +267,10 @@ const Hero1 = ({ isCompact = false }) => {
                   </div>
                   
                   {/* Professionals - Desktop Card */}
-                  <div className="flex-shrink-0 w-full max-w-[480px] snap-start group transition-transform duration-500 transform hover:scale-[1.02] active:scale-[0.98] touch-manipulation">
-                    <div className="bg-gradient-to-br from-secondary-500/10 via-secondary-400/5 to-blue-500/10 hover:from-secondary-500/15 hover:to-blue-500/15 backdrop-blur-md border border-white/10 hover:border-white/20 rounded-2xl p-4 transition-all duration-300 h-full flex flex-col relative">
-                      <div className="absolute -right-8 -top-8 w-24 h-24 rounded-full bg-gradient-to-br from-secondary-500/10 to-blue-500/10 animate-pulse-slow blur-xl"></div>
-                      <div className="absolute -left-4 -bottom-4 w-16 h-16 rounded-full bg-gradient-to-br from-secondary-500/10 to-indigo-500/10 animate-pulse-slower blur-lg"></div>
+                  <div className="flex-shrink-0 w-full max-w-[420px] snap-start group transition-transform duration-500 transform hover:scale-[1.02] active:scale-[0.98] touch-manipulation">
+                    <div className="bg-gradient-to-br from-secondary-500/10 via-secondary-400/5 to-blue-500/10 hover:from-secondary-500/15 hover:to-blue-500/15 backdrop-blur-md border border-white/10 hover:border-white/20 rounded-xl p-3 lg:p-4 transition-all duration-300 h-full flex flex-col relative">
+                      <div className="absolute -right-6 -top-6 w-20 h-20 rounded-full bg-gradient-to-br from-secondary-500/10 to-blue-500/10 animate-pulse-slow blur-xl"></div>
+                      <div className="absolute -left-3 -bottom-3 w-14 h-14 rounded-full bg-gradient-to-br from-secondary-500/10 to-indigo-500/10 animate-pulse-slower blur-lg"></div>
                       <div className="relative z-10 mb-4 bg-secondary-500/10 w-14 h-14 rounded-xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300">
                         <div className="absolute inset-0 bg-secondary-500/5 rounded-xl animate-ping-slow opacity-60"></div>
                         <Users className="w-6 h-6 text-secondary-400 group-hover:text-secondary-200 transition-colors" />
@@ -290,10 +287,10 @@ const Hero1 = ({ isCompact = false }) => {
                   </div>
                   
                   {/* Homemakers - Desktop Card */}
-                  <div className="flex-shrink-0 w-full max-w-[480px] snap-start group transition-transform duration-500 transform hover:scale-[1.02] active:scale-[0.98] touch-manipulation">
-                    <div className="bg-gradient-to-br from-purple-500/10 via-purple-400/5 to-pink-500/10 hover:from-purple-500/15 hover:to-pink-500/15 backdrop-blur-md border border-white/10 hover:border-white/20 rounded-2xl p-4 transition-all duration-300 h-full flex flex-col relative">
-                      <div className="absolute -right-8 -top-8 w-24 h-24 rounded-full bg-gradient-to-br from-purple-500/10 to-pink-500/10 animate-pulse-slow blur-xl"></div>
-                      <div className="absolute -left-4 -bottom-4 w-16 h-16 rounded-full bg-gradient-to-br from-purple-500/10 to-rose-500/10 animate-pulse-slower blur-lg"></div>
+                  <div className="flex-shrink-0 w-full max-w-[420px] snap-start group transition-transform duration-500 transform hover:scale-[1.02] active:scale-[0.98] touch-manipulation">
+                    <div className="bg-gradient-to-br from-purple-500/10 via-purple-400/5 to-pink-500/10 hover:from-purple-500/15 hover:to-pink-500/15 backdrop-blur-md border border-white/10 hover:border-white/20 rounded-xl p-3 lg:p-4 transition-all duration-300 h-full flex flex-col relative">
+                      <div className="absolute -right-6 -top-6 w-20 h-20 rounded-full bg-gradient-to-br from-purple-500/10 to-pink-500/10 animate-pulse-slow blur-xl"></div>
+                      <div className="absolute -left-3 -bottom-3 w-14 h-14 rounded-full bg-gradient-to-br from-purple-500/10 to-rose-500/10 animate-pulse-slower blur-lg"></div>
                       <div className="relative z-10 mb-4 bg-purple-500/10 w-14 h-14 rounded-xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300">
                         <div className="absolute inset-0 bg-purple-500/5 rounded-xl animate-ping-slow opacity-60"></div>
                         <Star className="w-6 h-6 text-purple-400 group-hover:text-purple-200 transition-colors" />
@@ -310,10 +307,10 @@ const Hero1 = ({ isCompact = false }) => {
                   </div>
                   
                   {/* Lifelong Learners - Desktop Card */}
-                  <div className="flex-shrink-0 w-full max-w-[480px] snap-start group transition-transform duration-500 transform hover:scale-[1.02] active:scale-[0.98] touch-manipulation">
-                    <div className="bg-gradient-to-br from-blue-500/10 via-blue-400/5 to-teal-500/10 hover:from-blue-500/15 hover:to-teal-500/15 backdrop-blur-md border border-white/10 hover:border-white/20 rounded-2xl p-4 transition-all duration-300 h-full flex flex-col relative">
-                      <div className="absolute -right-8 -top-8 w-24 h-24 rounded-full bg-gradient-to-br from-blue-500/10 to-teal-500/10 animate-pulse-slow blur-xl"></div>
-                      <div className="absolute -left-4 -bottom-4 w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500/10 to-emerald-500/10 animate-pulse-slower blur-lg"></div>
+                  <div className="flex-shrink-0 w-full max-w-[420px] snap-start group transition-transform duration-500 transform hover:scale-[1.02] active:scale-[0.98] touch-manipulation">
+                    <div className="bg-gradient-to-br from-blue-500/10 via-blue-400/5 to-teal-500/10 hover:from-blue-500/15 hover:to-teal-500/15 backdrop-blur-md border border-white/10 hover:border-white/20 rounded-xl p-3 lg:p-4 transition-all duration-300 h-full flex flex-col relative">
+                      <div className="absolute -right-6 -top-6 w-20 h-20 rounded-full bg-gradient-to-br from-blue-500/10 to-teal-500/10 animate-pulse-slow blur-xl"></div>
+                      <div className="absolute -left-3 -bottom-3 w-14 h-14 rounded-full bg-gradient-to-br from-cyan-500/10 to-emerald-500/10 animate-pulse-slower blur-lg"></div>
                       <div className="relative z-10 mb-4 bg-blue-500/10 w-14 h-14 rounded-xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300">
                         <div className="absolute inset-0 bg-blue-500/5 rounded-xl animate-ping-slow opacity-60"></div>
                         <TrendingUp className="w-6 h-6 text-blue-400 group-hover:text-blue-200 transition-colors" />
@@ -336,34 +333,29 @@ const Hero1 = ({ isCompact = false }) => {
               </div>
             </div>
             {/* CTA Buttons for Desktop */}
-            <div className="flex flex-row gap-3 mt-8 hidden md:flex items-center justify-center">
+            <div className="flex flex-row gap-3 mt-6 lg:mt-8 hidden md:flex items-center justify-center">
               <Link 
-                href="/contact-us" 
-                className="group relative inline-flex items-center justify-center py-4 px-6 bg-gradient-to-r from-primary-500 to-secondary-500 text-white font-medium rounded-xl text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-              >
-                <span>Let's Connect</span>
-                <ArrowRight size={20} className="ml-2" />
-              </Link>
-              <a 
-                href="#featured-courses" 
-                className="group relative inline-flex items-center justify-center py-4 px-6 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 backdrop-blur-sm border border-white/10"
+                href="/courses" 
+                className="group relative inline-flex items-center justify-center py-3 px-5 lg:py-4 lg:px-6 bg-gradient-to-r from-primary-500 to-secondary-500 text-white font-medium rounded-xl text-base lg:text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
               >
                 <span>Explore Courses</span>
-                <ChevronRight size={20} className="ml-2" />
-              </a>
+                <ArrowRight size={18} className="ml-2" />
+              </Link>
             </div>
           </div>
           
-          {/* Horizontal 3D Interactive Cards Section - REMOVED OVERFLOW HIDDEN */}
-          <div className={`relative transition-all duration-1000 delay-300 transform py-12 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+          {/* Horizontal 3D Interactive Cards Section */}
+          <div className={`relative transition-all duration-1000 delay-300 transform ${
+            isCompact ? 'py-4 lg:py-6' : 'py-6 lg:py-8'
+          } ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
             <div className="flex flex-col items-center justify-center">
-              <h3 className="text-2xl md:text-3xl font-bold text-white mb-8 text-center">
+              <h3 className="text-xl md:text-2xl lg:text-3xl font-bold text-white mb-6 lg:mb-8 text-center">
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 via-purple-400 to-secondary-400">Explore Our Learning Pathways</span>
               </h3>
               
-              {/* Horizontal Card Layout - REDUCED WIDTH FOR BETTER WRAPPING */}
-              <div className="w-full max-w-[1400px] mx-auto px-4 perspective-1500">
-                <div className="flex flex-wrap justify-center gap-6 md:gap-8">
+              {/* Horizontal Card Layout - Optimized for small laptops */}
+              <div className="w-full max-w-[1200px] lg:max-w-[1400px] mx-auto px-3 lg:px-4 perspective-1500">
+                <div className="flex flex-wrap justify-center gap-4 md:gap-6">
                   {/* Course Card 1 */}
                   <div className="group relative w-full sm:w-[calc(50%-1rem)] md:w-[calc(25%-1.5rem)] bg-gradient-to-br from-primary-500/15 to-purple-500/15 backdrop-blur-xl rounded-xl p-6 sm:p-7 border border-white/10 transform transition-all duration-500 hover:scale-105 hover:-translate-y-2 hover:z-10 hover:from-primary-500/25 hover:to-purple-500/25 hover:border-white/20">
                     <div className="absolute inset-0 bg-gradient-to-r from-primary-500/30 to-purple-500/30 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>

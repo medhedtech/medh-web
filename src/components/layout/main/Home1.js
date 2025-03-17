@@ -87,13 +87,19 @@ const Home1 = () => {
       </div>
 
       {/* Hero Section with optimized height for 1366x768 */}
-      <section className="w-full relative z-10 laptop:min-h-[calc(100vh-4rem)] laptop:h-auto">
-        <Hero1 isCompact={isLaptopHeight} />
+      <section className="w-full relative">
+        <div className={`w-full ${
+          isLaptopHeight 
+            ? 'min-h-[85vh] mt-0' 
+            : 'min-h-[90vh] mt-0'
+        }`}>
+          <Hero1 isCompact={isLaptopHeight} />
+        </div>
       </section>
 
       {/* Main Content Sections with optimized spacing for 1366x768 */}
-      <div className={`flex flex-col gap-y-8 sm:gap-y-10 md:gap-y-6 lg:gap-y-13 relative z-10 ${
-        isLaptopHeight ? 'laptop:gap-y-12' : ''
+      <div className={`flex flex-col gap-y-4 sm:gap-y-6 md:gap-y-8 lg:gap-y-10 relative z-10 ${
+        isLaptopHeight ? 'mt-0' : 'mt-0'
       }`}>
         {/* Courses Section - Optimized padding for 1366x768 */}
         <section className="w-full px-3 sm:px-4 md:px-5 lg:px-6 py-4 sm:py-2 md:py-3 laptop:py-4">
@@ -110,10 +116,10 @@ const Home1 = () => {
         {/* Why Medh Section - Optimized for 1366x768 */}
         <section className="w-full bg-gradient-to-r from-gray-50/80 via-white to-gray-50/80 
           dark:from-gray-900/80 dark:via-gray-950 dark:to-gray-900/80 backdrop-blur-sm py-8 md:py-2 laptop:py-4 relative overflow-hidden">
-          <div className="max-w-[1366px] mx-auto px-3 sm:px-4 md:px-5 lg:px-6 relative z-10">
+          {/* <div className="max-w-[1366px] mx-auto px-3 sm:px-4 md:px-5 lg:px-6 relative z-10"> */}
             <WhyMedh />
-          </div>
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary-500/5 to-transparent"></div>
+          {/* </div> */}
+          {/* <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary-500/5 to-transparent"></div> */}
         </section>
 
         {/* Browse Categories Section - Optimized for 1366x768
