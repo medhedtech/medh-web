@@ -35,7 +35,8 @@ function CourseOptions() {
 
   return (
     <CoursesFilter
-      CustomText="AI and Data Science Courses"
+      CustomText="TRANSFORM TECH INSIGHTS POWERFULLY with MEDH
+"
       CustomButton={
         <div className="inline-flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm hover:shadow-md">
           Explore All AI Courses

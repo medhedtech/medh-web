@@ -282,7 +282,7 @@ h6 {
   font-weight: 800;
   letter-spacing: -0.025em;
   line-height: 1.1;
-  font-size: clamp(1.25rem, 2.5vw, 2.5rem);
+  font-size: clamp(1.25rem, 2.5vw, 1.5rem);
   color: white;
   display: block;
   margin-bottom: 1rem;

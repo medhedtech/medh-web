@@ -126,9 +126,9 @@ function CourseAiBanner() {
                 WELCOME TO MEDH
               </h2>
               <h1 className="text-4xl sm:text-4xl md:text-3xl lg:text-6xl font-bold text-gray-900 dark:text-white leading-tight">
-                <span className="block">Empowering</span>
-                <span className="block">Future Tech Leaders<span className="text-blue-500">.</span></span>
-                <span className="bg-gradient-to-r from-blue-500 to-indigo-500 bg-clip-text text-transparent">Since 2020</span>
+                <span className="block">NURTURE</span>
+                <span className="block">DREAMS SUCCEED PASSIONATEL</span>
+                <span className="text-medhgreen">with MEDH</span>
               </h1>
               <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300 leading-relaxed max-w-3xl mx-auto">
                 At Medh, we're more than just an EdTech platform. We're a community dedicated to transforming passionate learners into industry-ready professionals.
