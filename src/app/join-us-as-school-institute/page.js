@@ -18,11 +18,8 @@ function JoinSchool() {
       <KeyAdvantages />
       <AdvanceEducational />
       <Registration  pageTitle="join_as_school" />
-      <div className="bg-white">
-        <Certified />
-      </div>
+      <Certified />
       <SchoolFaq />
-      <SchoolCourceBanner />
       
     </PageWrapper>
   );

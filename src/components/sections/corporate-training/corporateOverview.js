@@ -368,7 +368,7 @@ const CorporateOverview = () => {
             transition={{ delay: 0.3 }}
             className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primaryColor via-purple-600 to-blue-600 leading-tight"
           >
-            Elevate Your Team with <span className="text-primary-500 dark:text-primary-400">Medh</span>'s Corporate Training
+            BOOST TEAM POTENTIAL DYNAMICALLY with <span className="text-medhgreen dark:text-medhgreen">Medh</span>
           </motion.h1>
           
           <motion.p 
@@ -377,7 +377,7 @@ const CorporateOverview = () => {
             transition={{ delay: 0.4 }}
             className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto text-base md:text-lg leading-relaxed"
           >
-            Unlock your organization's full potential with our meticulously crafted training programs. We align cutting-edge technology with your company's vision to deliver transformative learning experiences.
+            Strategic Skill Enhancement to Drive Organizational Growth and Exceptional Results
           </motion.p>
         </motion.div>
 

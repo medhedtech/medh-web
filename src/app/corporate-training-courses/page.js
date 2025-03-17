@@ -14,15 +14,12 @@ function CorporateTraining() {
   return (
     <PageWrapper>
       <main>
-        <section className="relative w-full">
+        <div className="pt-6">
           <CorporateBanner />
-        </section>
-        
-        <section className="relative w-full bg-gray-50 dark:bg-gray-900">
           <CorporateOverview />
           <Certified />
           <CorporateFaq />
-        </section>
+        </div>
       </main>
     </PageWrapper>
   );

@@ -99,11 +99,15 @@ const DynamicTeam = () => {
     <section className="py-20 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-[#7ECA9D] text-sm font-semibold uppercase tracking-wider block mb-3">Meet Our Team</span>
-          <h2 className="font-bold text-4xl md:text-5xl text-gray-900 dark:text-white mb-6">
-            Our Dynamic Team
+          <span className="text-[#7ECA9D] text-sm font-semibold uppercase tracking-wider block mb-3"></span>
+          <h2 className="font-bold text-2xl md:text-4xl text-gray-900 dark:text-white mb-3">
+          MEET LIVE WIRE PROFESSIONALS
           </h2>
-          <div className="h-1 w-24 bg-[#7ECA9D] mx-auto rounded-full"></div>
+          <span className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">from</span>
+          <span className="text-2xl md:text-3xl lg:text-4xl font-bold text-medhgreen dark:text-medhgreen"> MEDH</span>
+          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto pt-5">Dedicated Professionals Committed to Transforming Education and Empowering Learners
+          </p>
+          {/* <div className="h-1 w-24 bg-[#7ECA9D] mx-auto rounded-full"></div> */}
         </div>
 
         {/* Leadership Team */}
