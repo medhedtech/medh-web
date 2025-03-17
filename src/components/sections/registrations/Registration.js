@@ -340,7 +340,7 @@ const Registration = ({ showUploadField = false, pageTitle }) => {
                   </span>
                   
                   <h2 className="text-3xl lg:text-4xl font-bold text-white mb-6">
-                  CONNECT EXPLORE GROW FEARLESSLY with <span className="text-medhgreen">MEDH</span>
+                  CONNECT EXPLORE GROW with <span className="text-medhgreen">MEDH</span>
 
                   </h2>
                   
