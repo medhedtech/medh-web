@@ -101,7 +101,7 @@ function VedicCource() {
               </Link>
             }
             fixedCategory="Vedic Mathematics"
-            hideCategoryFilter={true}
+            hideCategories={true}
             hideSearch={true}
             hideSortOptions={true}
             hideFilterBar={true}
