@@ -18,7 +18,7 @@ function PersonalityDevelopment() {
   const bannerProps = {
     badge: "All Ages Welcome",
     title: "Comprehensive",
-    titleHighlight: "Personality",
+    titleHighlight: "Personality Development",
     description: "Uncover Your Untapped Potential. Perfect for Students, Professionals, and Homemakers. Unleash Your Best Self.",
     enrollmentPath: "/enrollment/personality-development",
     stats: [
