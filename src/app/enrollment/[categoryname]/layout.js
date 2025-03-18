@@ -1,4 +1,4 @@
-import { CATEGORY_MAP } from './categoryUtils';
+import { CATEGORY_MAP } from '../utils';
 
 export async function generateMetadata({ params }) {
   const { categoryname } = params;

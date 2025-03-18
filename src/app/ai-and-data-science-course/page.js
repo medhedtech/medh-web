@@ -91,7 +91,7 @@ function CourseAi() {
         </header>
 
         {/* Content with Header Offset */}
-        <main className="flex-grow">
+        <main className="flex-grow lg:pt-12">
           <AnimatedContent 
             components={{
               CourseBanner,

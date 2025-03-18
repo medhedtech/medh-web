@@ -14,10 +14,21 @@ import {
   Download as DownloadIcon,
   FileText,
   ChevronDown,
-  Award
+  Award,
+  CheckCircle,
+  Target,
+  BriefcaseBusiness,
+  Download,
+  BarChart,
+  Brain,
+  Check,
+  Banknote,
+  ArrowRight,
+  Heart
 } from 'lucide-react';
 import Image from 'next/image';
 import { toast } from 'react-hot-toast';
+import Link from 'next/link';
 
 // Course detailed sections
 import CourseNavigation from '@/components/sections/course-detailed/CourseNavigation';
@@ -477,49 +488,173 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
     return false; // Default to false if no brochures found
   };
 
-  // Get color classes based on course category
+  // Function to get category-based color classes
   const getCategoryColorClasses = () => {
-    if (!courseDetails) return {
-      color: "text-emerald-600 dark:text-emerald-400",
-      bg: "bg-emerald-50 dark:bg-emerald-900/30",
-      primaryColor: "emerald"
-    };
-
-    const category = (courseDetails.course_category || courseDetails.category || "").toLowerCase();
+    if (!courseDetails?.category) return { primaryColor: 'blue', secondaryColor: 'indigo', color: 'text-blue-500' };
     
-    // Map categories to color schemes
-    if (category.includes("mathematics") || category.includes("math")) {
-      return {
-        color: "text-amber-600 dark:text-amber-400",
-        bg: "bg-amber-50 dark:bg-amber-900/30",
-        primaryColor: "amber"
-      };
-    } else if (category.includes("ai") || category.includes("data") || category.includes("science")) {
-      return {
-        color: "text-blue-600 dark:text-blue-400",
-        bg: "bg-blue-50 dark:bg-blue-900/30",
-        primaryColor: "blue"
-      };
-    } else if (category.includes("marketing") || category.includes("business")) {
-      return {
-        color: "text-green-600 dark:text-green-400",
-        bg: "bg-green-50 dark:bg-green-900/30",
-        primaryColor: "green"
-      };
-    } else if (category.includes("personality") || category.includes("development")) {
-      return {
-        color: "text-purple-600 dark:text-purple-400",
-        bg: "bg-purple-50 dark:bg-purple-900/30",
-        primaryColor: "purple"
-      };
+    const category = courseDetails.category.toLowerCase();
+    
+    switch(category) {
+      case 'technology':
+        return { primaryColor: 'blue', secondaryColor: 'indigo', color: 'text-blue-500' };
+      case 'design':
+        return { primaryColor: 'purple', secondaryColor: 'violet', color: 'text-purple-500' };
+      case 'business':
+        return { primaryColor: 'emerald', secondaryColor: 'green', color: 'text-emerald-500' };
+      case 'marketing':
+        return { primaryColor: 'amber', secondaryColor: 'yellow', color: 'text-amber-500' };
+      case 'wellness':
+        return { primaryColor: 'rose', secondaryColor: 'pink', color: 'text-rose-500' };
+      case 'language':
+        return { primaryColor: 'teal', secondaryColor: 'cyan', color: 'text-teal-500' };
+      case 'science':
+        return { primaryColor: 'violet', secondaryColor: 'purple', color: 'text-violet-500' };
+      case 'personal development':
+        return { primaryColor: 'orange', secondaryColor: 'amber', color: 'text-orange-500' };
+      default:
+        return { primaryColor: 'blue', secondaryColor: 'indigo', color: 'text-blue-500' };
+    }
+  };
+
+  // Function to get icon based on iconName
+  const getHighlightIcon = (iconName) => {
+    const colorClass = `text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`;
+    
+    switch(iconName?.toLowerCase()) {
+      case 'target':
+        return <Target className="w-6 h-6" />;
+      case 'certificate':
+        return <Award className="w-6 h-6" />;
+      case 'briefcase':
+        return <BriefcaseBusiness className="w-6 h-6" />;
+      case 'calendar':
+        return <Calendar className="w-6 h-6" />;
+      case 'graph':
+        return <BarChart className="w-6 h-6" />;
+      case 'book':
+        return <BookOpen className="w-6 h-6" />;
+      case 'star':
+        return <Star className="w-6 h-6" />;
+      case 'check':
+        return <CheckCircle className="w-6 h-6" />;
+      case 'brain':
+        return <Brain className="w-6 h-6" />;
+      case 'sparkles':
+        return <Sparkles className="w-6 h-6" />;
+      default:
+        return <Star className="w-6 h-6" />;
+    }
+  };
+
+  // Add this improved helper function to parse course description
+  const parseDescription = (description) => {
+    if (!description) return { overview: '', sections: [] };
+
+    // Convert to string in case it's not already
+    const descText = String(description || '');
+    
+    // Identify section headers - look for keywords that might indicate a section
+    const sectionKeywords = [
+      'Benefits', 'Features', 'What You\'ll Learn', 'Learning Outcomes', 
+      'Course Objectives', 'Skills You\'ll Gain', 'Key Takeaways', 
+      'Requirements', 'Prerequisites', 'Who This Course Is For',
+      'Target Audience', 'Career Opportunities'
+    ];
+    
+    // Regular expressions for different bullet formats
+    const bulletRegexes = [
+      /^[\s]*[-–—•][\s]+(.+)$/gm, // Dash, bullet point
+      /^[\s]*\*[\s]+(.+)$/gm,     // Asterisk
+      /^[\s]*\d+\.[\s]+(.+)$/gm,  // Numbered list (1., 2., etc)
+      /^[\s]*[a-z]\.[\s]+(.+)$/gm // Lettered list (a., b., etc)
+    ];
+    
+    // Initialize result with overview as default content
+    let overview = descText.trim();
+    const sections = [];
+    
+    // Find potential section headers in the text
+    for (const keyword of sectionKeywords) {
+      const pattern = new RegExp(`\\b${keyword}\\b`, 'i');
+      const match = descText.match(pattern);
+      
+      if (match) {
+        const matchIndex = match.index;
+        const beforeSection = descText.substring(0, matchIndex).trim();
+        
+        // If this is the first section found, update overview to be the text before it
+        if (overview === descText.trim()) {
+          // Remove common headers like "Program Overview" or "About the Course"
+          overview = beforeSection
+            .replace(/^(Program|Course|About the Course|About this Course|Course Overview|Overview)[\s:]*/, '')
+            .trim();
+        }
+        
+        // Look for the next section header after this one
+        let endIndex = descText.length;
+        for (const nextKeyword of sectionKeywords) {
+          if (nextKeyword === keyword) continue;
+          
+          const nextPattern = new RegExp(`\\b${nextKeyword}\\b`, 'i');
+          const nextMatch = descText.substring(matchIndex + keyword.length).match(nextPattern);
+          
+          if (nextMatch) {
+            const nextMatchFullIndex = matchIndex + keyword.length + nextMatch.index;
+            if (nextMatchFullIndex < endIndex) {
+              endIndex = nextMatchFullIndex;
+            }
+          }
+        }
+        
+        // Extract section content
+        let sectionContent = descText.substring(matchIndex + keyword.length, endIndex).trim();
+        
+        // Parse the bullets in this section
+        const bullets = [];
+        
+        // Try all bullet formats
+        for (const regex of bulletRegexes) {
+          let bulletMatch;
+          // Reset regex lastIndex
+          regex.lastIndex = 0;
+          
+          while ((bulletMatch = regex.exec(sectionContent)) !== null) {
+            bullets.push(bulletMatch[1].trim());
+          }
+          
+          // If we found bullets, no need to check other formats
+          if (bullets.length > 0) break;
+        }
+        
+        // If no bullets found but we have content with line breaks, treat each line as a potential item
+        if (bullets.length === 0 && sectionContent.includes('\n')) {
+          const lines = sectionContent.split('\n')
+            .map(line => line.trim())
+            .filter(line => line.length > 0);
+          
+          // If we have multiple lines, treat them as bullets
+          if (lines.length > 1) {
+            bullets.push(...lines);
+          }
+        }
+        
+        // Add the section to our result
+        if (bullets.length > 0) {
+          sections.push({
+            title: keyword,
+            bullets
+          });
+        } else if (sectionContent.length > 0) {
+          // No bullets, but content exists - just add it as a text section
+          sections.push({
+            title: keyword,
+            text: sectionContent
+          });
+        }
+      }
     }
     
-    // Default emerald
-    return {
-      color: "text-emerald-600 dark:text-emerald-400",
-      bg: "bg-emerald-50 dark:bg-emerald-900/30",
-      primaryColor: "emerald"
-    };
+    return { overview, sections };
   };
 
   // Loading state
@@ -576,37 +711,127 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
 
             {/* Course description */}
             <div className="prose prose-emerald dark:prose-invert max-w-none mb-6 sm:mb-8">
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-gray-100 mb-3 sm:mb-4">
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-gray-100 mb-3 sm:mb-4 inline-flex items-center">
+                <div className={`w-1.5 h-6 ${getCategoryColorClasses().bg} mr-2 rounded-sm`}></div>
                 Course Overview
               </h3>
-              <div className="text-sm sm:text-base text-gray-600 dark:text-gray-300 leading-relaxed">
-                {(() => {
-                  // Check all possible description field names in order of preference
-                  if (courseDetails?.course_description && courseDetails.course_description !== "-") {
-                    return <p>{courseDetails.course_description}</p>;
-                  } else if (courseDetails?.description && courseDetails.description !== "-") {
-                    return <p>{courseDetails.description}</p>;
-                  } else if (courseDetails?.about && courseDetails.about !== "-") {
-                    return <p>{courseDetails.about}</p>;
-                  } else if (courseDetails?.long_description && courseDetails.long_description !== "-") {
-                    return <p>{courseDetails.long_description}</p>;
-                  } else if (courseDetails?.short_description && courseDetails.short_description !== "-") {
-                    return <p>{courseDetails.short_description}</p>;
-                  } else {
-                    // Fallback to generic description
-                    return (
-                      <p>
-                        This comprehensive {courseDetails?.course_category || courseDetails?.category || "course"} is designed to provide students with a solid foundation in the subject matter, combining theoretical knowledge with practical applications. Through interactive sessions and hands-on projects, students will develop the skills needed to excel in this field.
-                      </p>
-                    );
-                  }
-                })()}
-              </div>
+              {(() => {
+                // Get description from various possible fields
+                const description = courseDetails?.course_description || 
+                                    courseDetails?.description || 
+                                    courseDetails?.about || 
+                                    courseDetails?.long_description || 
+                                    courseDetails?.short_description || '';
+                
+                // Parse the description into overview and sections
+                const { overview, sections } = parseDescription(description);
+                
+                // Define icons for different section types
+                const sectionIcons = {
+                  'Benefits': Star,
+                  'Features': Sparkles,
+                  'What You\'ll Learn': GraduationCap,
+                  'Learning Outcomes': Award,
+                  'Course Objectives': Target,
+                  'Skills You\'ll Gain': Award,
+                  'Key Takeaways': BookOpen,
+                  'Requirements': AlertTriangle,
+                  'Prerequisites': AlertTriangle,
+                  'Who This Course Is For': Users,
+                  'Target Audience': Users,
+                  'Career Opportunities': BriefcaseBusiness
+                };
+                
+                // Default to Sparkles icon for unknown section types
+                const DefaultIcon = Sparkles;
+                
+                // Get the color classes
+                const colorClasses = getCategoryColorClasses();
+                const borderClass = `border-l-${colorClasses.primaryColor}-500 dark:border-l-${colorClasses.primaryColor}-600`;
+                
+                return (
+                  <div className="mt-4">
+                    {/* Overview section */}
+                    {overview ? (
+                      <div className={`mb-6 bg-gray-50 dark:bg-gray-800/50 p-4 sm:p-6 rounded-lg border-l-4 ${borderClass}`}>
+                        <p className="whitespace-pre-line text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed">{overview}</p>
+                      </div>
+                    ) : (
+                      <div className={`mb-6 bg-gray-50 dark:bg-gray-800/50 p-4 sm:p-6 rounded-lg border-l-4 ${borderClass}`}>
+                        <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed">
+                          This comprehensive {courseDetails?.course_category || courseDetails?.category || "course"} is designed to provide students with a solid foundation in the subject matter, combining theoretical knowledge with practical applications. Through interactive sessions and hands-on projects, students will develop the skills needed to excel in this field.
+                        </p>
+                      </div>
+                    )}
+                    
+                    {/* Render all parsed sections */}
+                    {sections.map((section, sectionIndex) => {
+                      const SectionIcon = sectionIcons[section.title] || DefaultIcon;
+                      
+                      return (
+                        <div className="mt-8" key={`section-${sectionIndex}`}>
+                          <h4 className="text-base sm:text-lg font-medium text-gray-800 dark:text-gray-100 mb-4 flex items-center">
+                            <div className={`p-1.5 rounded-full ${colorClasses.bg} mr-2`}>
+                              <SectionIcon className={`h-4 w-4 ${colorClasses.color}`} />
+                            </div>
+                            {section.title}
+                          </h4>
+                          
+                          {section.bullets ? (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                              {section.bullets.map((bullet, index) => (
+                                <div 
+                                  key={`bullet-${index}`}
+                                  className="flex items-start p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300"
+                                >
+                                  <div className={`p-2 rounded-full ${colorClasses.bg} mr-3 flex-shrink-0`}>
+                                    <CheckCircle className={`h-4 w-4 ${colorClasses.color}`} />
+                                  </div>
+                                  <p className="text-sm text-gray-700 dark:text-gray-300">{bullet}</p>
+                                </div>
+                              ))}
+                            </div>
+                          ) : section.text ? (
+                            <div className={`bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 p-4 border-l-2 ${borderClass}`}>
+                              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">{section.text}</p>
+                            </div>
+                          ) : null}
+                        </div>
+                      );
+                    })}
+                    
+                    {/* Course highlights */}
+                    {courseDetails?.highlights && courseDetails.highlights.length > 0 && !sections.some(s => s.title === 'Highlights') && (
+                      <div className="mt-8">
+                        <h4 className="text-base sm:text-lg font-medium text-gray-800 dark:text-gray-100 mb-4 flex items-center">
+                          <div className={`p-1.5 rounded-full ${colorClasses.bg} mr-2`}>
+                            <Award className={`h-4 w-4 ${colorClasses.color}`} />
+                          </div>
+                          Course Highlights
+                        </h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {courseDetails.highlights.map((highlight, index) => (
+                            <div 
+                              key={index}
+                              className="flex items-start p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300"
+                            >
+                              <div className={`p-2 rounded-full ${colorClasses.bg} mr-3 flex-shrink-0`}>
+                                <Star className={`h-4 w-4 ${colorClasses.color}`} />
+                              </div>
+                              <p className="text-sm text-gray-700 dark:text-gray-300">{highlight}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Download Brochure - Responsive design */}
             <motion.div 
-              className="bg-gradient-to-r from-emerald-50 via-green-50 to-blue-50 dark:from-emerald-900/20 dark:via-green-900/20 dark:to-blue-900/20 rounded-lg overflow-hidden shadow-md mt-6 sm:mt-8"
+              className={`bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm border border-gray-200 dark:border-gray-700 mt-8 hover:border-${getCategoryColorClasses().primaryColor}-200 dark:hover:border-${getCategoryColorClasses().primaryColor}-700 transition-colors`}
               variants={fadeIn}
               whileHover={{ y: -5, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" }}
             >
@@ -635,14 +860,14 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
                     onClick={openModal}
                     className={`flex items-center px-5 sm:px-6 py-2.5 sm:py-3 ${
                       hasBrochure() 
-                        ? "bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700" 
+                        ? `bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-500 to-${getCategoryColorClasses().primaryColor}-600 hover:from-${getCategoryColorClasses().primaryColor}-600 hover:to-${getCategoryColorClasses().primaryColor}-700` 
                         : "bg-gray-300 dark:bg-gray-600 cursor-not-allowed"
                     } text-white font-medium rounded-lg transition-all duration-300 shadow-md w-full sm:w-auto`}
                     whileHover={hasBrochure() ? { scale: 1.05 } : {}}
                     whileTap={hasBrochure() ? { scale: 0.95 } : {}}
                     disabled={!hasBrochure()}
                   >
-                    <DownloadIcon size={18} className="mr-2" />
+                    <DownloadIcon size={18} className="mr-2 text-white" />
                     {hasBrochure() ? "Download" : "Coming Soon"}
                   </motion.button>
                 </div>
@@ -663,16 +888,16 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
             key="curriculum-section"
           >
             <div className="flex items-center mb-6">
-              <div className="w-1.5 h-6 bg-gradient-to-b from-blue-400 to-indigo-500 rounded-sm mr-3"></div>
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent">
+              <div className={`w-1.5 h-6 bg-gradient-to-b from-${getCategoryColorClasses().primaryColor}-400 to-${getCategoryColorClasses().primaryColor}-500 rounded-sm mr-3`}></div>
+              <h2 className={`text-2xl font-bold bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-600 to-${getCategoryColorClasses().primaryColor}-500 bg-clip-text text-transparent`}>
                 Curriculum
               </h2>
             </div>
 
             <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden mb-8">
-              <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-700/80 px-6 py-4 border-b border-gray-200 dark:border-gray-600">
+              <div className={`bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-50 to-${getCategoryColorClasses().primaryColor}-100/30 dark:from-${getCategoryColorClasses().primaryColor}-900/20 dark:to-${getCategoryColorClasses().primaryColor}-900/10 px-6 py-4 border-b border-gray-200 dark:border-gray-600`}>
                 <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center">
-                  <GraduationCap className="w-5 h-5 mr-2 text-blue-500 dark:text-blue-400" />
+                  <GraduationCap className={`w-5 h-5 mr-2 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} />
                   Course Modules
                 </h3>
               </div>
@@ -690,7 +915,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
                           <motion.div 
                             className={`flex-shrink-0 p-2 rounded-full mr-3 sm:mr-4 ${
                               openAccordions === index 
-                                ? "bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400" 
+                                ? `bg-${getCategoryColorClasses().primaryColor}-100 dark:bg-${getCategoryColorClasses().primaryColor}-900/50 text-${getCategoryColorClasses().primaryColor}-600 dark:text-${getCategoryColorClasses().primaryColor}-400` 
                                 : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
                             }`}
                             whileHover={{ 
@@ -706,7 +931,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
                           </motion.div>
                           <span className={`text-sm sm:text-base font-medium truncate ${
                             openAccordions === index 
-                              ? "text-blue-700 dark:text-blue-400" 
+                              ? `text-${getCategoryColorClasses().primaryColor}-700 dark:text-${getCategoryColorClasses().primaryColor}-400` 
                               : "text-gray-800 dark:text-gray-200"
                           }`}>
                             {item.weekTitle}
@@ -715,7 +940,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
                         <motion.div 
                           className={`flex-shrink-0 ml-3 p-1.5 rounded-full ${
                             openAccordions === index 
-                              ? "bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400" 
+                              ? `bg-${getCategoryColorClasses().primaryColor}-100 dark:bg-${getCategoryColorClasses().primaryColor}-900/50 text-${getCategoryColorClasses().primaryColor}-600 dark:text-${getCategoryColorClasses().primaryColor}-400` 
                               : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
                           }`}
                           animate={openAccordions === index ? { rotate: 180 } : { rotate: 0 }}
@@ -734,7 +959,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
                             transition={{ duration: 0.3 }}
                             className="overflow-hidden"
                           >
-                            <div className="px-4 sm:px-6 py-4 sm:py-5 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700">
+                            <div className={`px-4 sm:px-6 py-4 sm:py-5 bg-${getCategoryColorClasses().primaryColor}-50/50 dark:bg-${getCategoryColorClasses().primaryColor}-900/10 border-t border-gray-200 dark:border-gray-700`}>
                               <div className="pl-7 sm:pl-10 space-y-3 sm:space-y-4">
                                 <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-line">
                                   {item.weekDescription}
@@ -748,8 +973,8 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
                   ))
                 ) : (
                   <div className="p-6 text-center">
-                    <div className="inline-flex items-center justify-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-full mb-4">
-                      <AlertTriangle className="h-6 w-6 text-blue-500 dark:text-blue-400" />
+                    <div className="inline-flex items-center justify-center p-3 bg-gray-50 dark:bg-gray-700 rounded-full mb-4">
+                      <AlertTriangle className={`h-6 w-6 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} />
                     </div>
                     <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
                       Curriculum Coming Soon
@@ -768,9 +993,9 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
                 className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden mb-8"
                 variants={fadeIn}
               >
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 px-4 py-3 border-b border-gray-200 dark:border-gray-600">
+                <div className={`bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-50 to-${getCategoryColorClasses().primaryColor}-50/70 dark:from-${getCategoryColorClasses().primaryColor}-900/20 dark:to-${getCategoryColorClasses().primaryColor}-900/10 px-4 py-3 border-b border-gray-200 dark:border-gray-600`}>
                   <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center">
-                    <Sparkles className="w-5 h-5 mr-2 text-blue-500 dark:text-blue-400" />
+                    <Sparkles className={`w-5 h-5 mr-2 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} />
                     Tools & Technologies
                   </h3>
                 </div>
@@ -784,12 +1009,11 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
                     {toolsTechnologies.map((tool, index) => (
                       <motion.span 
                         key={index} 
-                        className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 dark:from-blue-900/30 dark:to-indigo-900/30 dark:text-blue-300 border border-blue-100 dark:border-blue-800/30 hover:shadow-md transition-all duration-300 cursor-default"
+                        className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-50 to-${getCategoryColorClasses().primaryColor}-50/70 text-${getCategoryColorClasses().primaryColor}-700 dark:from-${getCategoryColorClasses().primaryColor}-900/30 dark:to-${getCategoryColorClasses().primaryColor}-900/20 dark:text-${getCategoryColorClasses().primaryColor}-300 border border-${getCategoryColorClasses().primaryColor}-100 dark:border-${getCategoryColorClasses().primaryColor}-800/30 hover:shadow-md transition-all duration-300 cursor-default`}
                         variants={fadeIn}
                         whileHover={{ 
                           y: -2, 
                           boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                          background: "linear-gradient(to right, #dbeafe, #e0e7ff)"
                         }}
                       >
                         {tool.name}
@@ -806,9 +1030,9 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
                 className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden mb-8"
                 variants={fadeIn}
               >
-                <div className="bg-gradient-to-r from-purple-50 to-violet-50 dark:from-purple-900/20 dark:to-violet-900/20 px-4 py-3 border-b border-gray-200 dark:border-gray-600">
+                <div className={`bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-50 to-${getCategoryColorClasses().primaryColor}-100/30 dark:from-${getCategoryColorClasses().primaryColor}-900/20 dark:to-${getCategoryColorClasses().primaryColor}-900/10 px-4 py-3 border-b border-gray-200 dark:border-gray-600`}>
                   <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center">
-                    <Star className="w-5 h-5 mr-2 text-purple-500 dark:text-purple-400" />
+                    <Star className={`w-5 h-5 mr-2 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} />
                     Bonus Modules
                   </h3>
                 </div>
@@ -817,14 +1041,14 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
                     {bonusModules.map((module, index) => (
                       <motion.li 
                         key={index} 
-                        className="flex items-start p-3 rounded-lg hover:bg-purple-50/50 dark:hover:bg-purple-900/10 transition-colors"
+                        className={`flex items-start p-3 rounded-lg hover:bg-${getCategoryColorClasses().primaryColor}-50/50 dark:hover:bg-${getCategoryColorClasses().primaryColor}-900/10 transition-colors`}
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.1 }}
                         whileHover={{ x: 5 }}
                       >
                         <motion.div 
-                          className="p-2 rounded-full bg-gradient-to-r from-purple-400 to-violet-500 text-white mr-3 mt-0.5 shadow-sm"
+                          className={`p-2 rounded-full bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-400 to-${getCategoryColorClasses().primaryColor}-500 text-white mr-3 mt-0.5 shadow-sm`}
                           whileHover={{ rotate: 15 }}
                         >
                           <BookOpen size={16} />
@@ -940,6 +1164,367 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
           </motion.section>
         );
         
+      case 'highlights':
+        return (
+          <motion.section
+            ref={highlightsRef} 
+            id="highlights" 
+            className="pb-6"
+            variants={fadeIn}
+            initial="hidden"
+            animate="visible"
+            key="highlights-section"
+          >
+            <div className="flex items-center mb-6">
+              <div className={`w-1.5 h-6 bg-gradient-to-b from-${getCategoryColorClasses().primaryColor}-400 to-${getCategoryColorClasses().primaryColor}-500 rounded-sm mr-3`}></div>
+              <h2 className={`text-2xl font-bold bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-600 to-${getCategoryColorClasses().primaryColor}-500 bg-clip-text text-transparent`}>
+                Highlights
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+              {courseDetails?.highlights && courseDetails.highlights.length > 0 ? (
+                courseDetails.highlights.map((highlight, index) => (
+                  <motion.div 
+                    key={index}
+                    className="flex bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow duration-300"
+                    variants={fadeIn}
+                    initial="hidden"
+                    animate="visible"
+                    custom={index}
+                    whileHover={{ y: -4 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <div>
+                      <span className={`flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-${getCategoryColorClasses().primaryColor}-100 to-${getCategoryColorClasses().primaryColor}-200 dark:from-${getCategoryColorClasses().primaryColor}-900/30 dark:to-${getCategoryColorClasses().primaryColor}-800/30 text-${getCategoryColorClasses().primaryColor}-600 dark:text-${getCategoryColorClasses().primaryColor}-400 mb-3 shadow-sm`}>
+                        {getHighlightIcon(highlight.iconName)}
+                      </span>
+                    </div>
+                    <div className="ml-4 flex-1">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                        {highlight.title}
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-300">
+                        {highlight.description}
+                      </p>
+                    </div>
+                  </motion.div>
+                ))
+              ) : (
+                <div className="col-span-1 md:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm text-center">
+                  <div className="inline-flex items-center justify-center p-3 bg-gray-50 dark:bg-gray-700 rounded-full mb-4">
+                    <AlertTriangle className={`h-6 w-6 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} />
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                    No Highlights Available
+                  </h3>
+                  <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto">
+                    We're working on adding highlights for this course. Check back soon for more information.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {courseDetails?.downloadBrochure && (
+              <motion.div 
+                className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden mb-8"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+              >
+                <div className={`bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-50 to-${getCategoryColorClasses().primaryColor}-50/70 dark:from-${getCategoryColorClasses().primaryColor}-900/20 dark:to-${getCategoryColorClasses().primaryColor}-900/10 px-6 py-5`}>
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-y-4">
+                    <div className="flex items-center gap-3 flex-1">
+                      <div className={`p-3 rounded-lg bg-white dark:bg-gray-700 shadow-sm text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`}>
+                        <BookOpen className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">
+                          Course Brochure
+                        </h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          Download complete course details
+                        </p>
+                      </div>
+                    </div>
+                    <Link 
+                      href={courseDetails.downloadBrochure}
+                      className={`inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-600 to-${getCategoryColorClasses().primaryColor}-500 hover:from-${getCategoryColorClasses().primaryColor}-700 hover:to-${getCategoryColorClasses().primaryColor}-600 text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-300`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Download PDF
+                    </Link>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </motion.section>
+        );
+        
+      case 'overview':
+        const { parsedOverview, benefits } = parseDescription(description);
+        
+        return (
+          <motion.section 
+            id="overview" 
+            className="pb-6"
+            variants={fadeIn}
+            initial="hidden"
+            animate="visible"
+            key="overview-section"
+          >
+            <div className="flex items-center mb-6">
+              <div className={`w-1.5 h-6 bg-gradient-to-b from-${getCategoryColorClasses().primaryColor}-400 to-${getCategoryColorClasses().primaryColor}-500 rounded-sm mr-3`}></div>
+              <h2 className={`text-2xl font-bold bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-600 to-${getCategoryColorClasses().primaryColor}-500 bg-clip-text text-transparent`}>
+                Course Overview
+              </h2>
+            </div>
+            
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 overflow-hidden mb-8 shadow-sm">
+              <div className="p-6">
+                <div className="prose dark:prose-invert max-w-none prose-headings:font-semibold prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-700 dark:prose-p:text-gray-300">
+                  {parsedOverview.map((item, index) => {
+                    if (item.type === 'paragraph') {
+                      return (
+                        <motion.p 
+                          key={index} 
+                          className="mb-4 text-gray-700 dark:text-gray-300 leading-relaxed"
+                          variants={fadeIn}
+                          transition={{ delay: index * 0.08 }}
+                        >
+                          {item.content}
+                        </motion.p>
+                      );
+                    }
+                    return null;
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {benefits && benefits.length > 0 && (
+              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 overflow-hidden mb-8 shadow-sm">
+                <div className={`bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-50 to-${getCategoryColorClasses().primaryColor}-50/70 dark:from-${getCategoryColorClasses().primaryColor}-900/20 dark:to-${getCategoryColorClasses().primaryColor}-900/10 px-6 py-4 border-b border-gray-200 dark:border-gray-600`}>
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center">
+                    <CheckCircle className={`w-5 h-5 mr-2 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} />
+                    What You'll Learn
+                  </h3>
+                </div>
+                <div className="p-6">
+                  <ul className="space-y-4">
+                    {benefits.map((benefit, index) => {
+                      if (benefit.type === 'bullet') {
+                        return (
+                          <motion.li 
+                            key={index} 
+                            className="flex gap-3"
+                            variants={fadeIn}
+                            transition={{ delay: index * 0.08 }}
+                          >
+                            <span className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center mt-0.5 bg-${getCategoryColorClasses().primaryColor}-50 dark:bg-${getCategoryColorClasses().primaryColor}-900/30`}>
+                              <Check className={`h-3.5 w-3.5 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} />
+                            </span>
+                            <span className="text-gray-700 dark:text-gray-300">
+                              {benefit.content}
+                            </span>
+                          </motion.li>
+                        );
+                      } else if (benefit.type === 'section') {
+                        return (
+                          <motion.div 
+                            key={index} 
+                            className="mt-6 mb-3"
+                            variants={fadeIn}
+                            transition={{ delay: index * 0.08 }}
+                          >
+                            <h4 className="text-base font-semibold text-gray-900 dark:text-white mb-2 flex items-center">
+                              <span className={`inline-block w-1 h-4 bg-${getCategoryColorClasses().primaryColor}-500 dark:bg-${getCategoryColorClasses().primaryColor}-400 mr-2 rounded-sm`}></span>
+                              {benefit.content}
+                            </h4>
+                          </motion.div>
+                        );
+                      }
+                      return null;
+                    })}
+                  </ul>
+                </div>
+              </div>
+            )}
+          </motion.section>
+        );
+        
+      case 'enrollment':
+        return (
+          <motion.section 
+            id="enrollment" 
+            className="pb-6"
+            variants={fadeIn}
+            initial="hidden"
+            animate="visible"
+            key="enrollment-section"
+          >
+            <div className="flex items-center mb-6">
+              <div className={`w-1.5 h-6 bg-gradient-to-b from-${getCategoryColorClasses().primaryColor}-400 to-${getCategoryColorClasses().primaryColor}-500 rounded-sm mr-3`}></div>
+              <h2 className={`text-2xl font-bold bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-600 to-${getCategoryColorClasses().primaryColor}-500 bg-clip-text text-transparent`}>
+                Enrollment Details
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+              <motion.div 
+                className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow"
+                variants={fadeIn}
+                transition={{ delay: 0.1 }}
+                whileHover={{ y: -4 }}
+              >
+                <div className={`w-12 h-12 rounded-full bg-${getCategoryColorClasses().primaryColor}-50 dark:bg-${getCategoryColorClasses().primaryColor}-900/30 flex items-center justify-center mb-4`}>
+                  <Calendar className={`h-6 w-6 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Duration</h3>
+                <p className="text-gray-600 dark:text-gray-300">{duration || 'Flexible'}</p>
+              </motion.div>
+              
+              <motion.div 
+                className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow"
+                variants={fadeIn}
+                transition={{ delay: 0.2 }}
+                whileHover={{ y: -4 }}
+              >
+                <div className={`w-12 h-12 rounded-full bg-${getCategoryColorClasses().primaryColor}-50 dark:bg-${getCategoryColorClasses().primaryColor}-900/30 flex items-center justify-center mb-4`}>
+                  <Clock className={`h-6 w-6 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Time Commitment</h3>
+                <p className="text-gray-600 dark:text-gray-300">{commitment || '10-15 hours/week'}</p>
+              </motion.div>
+              
+              <motion.div 
+                className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow"
+                variants={fadeIn}
+                transition={{ delay: 0.3 }}
+                whileHover={{ y: -4 }}
+              >
+                <div className={`w-12 h-12 rounded-full bg-${getCategoryColorClasses().primaryColor}-50 dark:bg-${getCategoryColorClasses().primaryColor}-900/30 flex items-center justify-center mb-4`}>
+                  <Banknote className={`h-6 w-6 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Price</h3>
+                <p className="text-gray-600 dark:text-gray-300">
+                  {price ? (
+                    <>
+                      {price !== originalPrice && originalPrice ? (
+                        <>
+                          <span className="inline-block bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 px-2 py-1 rounded text-sm font-medium mr-2">
+                            Save {Math.round(100 - (price / originalPrice * 100))}%
+                          </span>
+                          <span className="text-base font-bold text-gray-800 dark:text-white mr-2">₹{price.toLocaleString()}</span>
+                          <span className="text-sm text-gray-500 dark:text-gray-400 line-through">₹{originalPrice.toLocaleString()}</span>
+                        </>
+                      ) : (
+                        <span className="text-base font-bold text-gray-800 dark:text-white">₹{price.toLocaleString()}</span>
+                      )}
+                    </>
+                  ) : (
+                    'Contact for pricing'
+                  )}
+                </p>
+              </motion.div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+              <motion.div 
+                className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm"
+                variants={fadeIn}
+                transition={{ delay: 0.4 }}
+              >
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+                  <Users className={`h-5 w-5 mr-2 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} />
+                  Prerequisites
+                </h3>
+                {prerequisites && prerequisites.length > 0 ? (
+                  <ul className="space-y-2">
+                    {prerequisites.map((prereq, index) => (
+                      <motion.li 
+                        key={index} 
+                        className="flex items-start gap-3"
+                        variants={fadeIn}
+                        transition={{ delay: 0.4 + (index * 0.1) }}
+                      >
+                        <ArrowRight className={`h-4 w-4 mt-1 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400 flex-shrink-0`} />
+                        <span className="text-gray-600 dark:text-gray-300">
+                          {prereq}
+                        </span>
+                      </motion.li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-gray-600 dark:text-gray-300">No specific prerequisites required.</p>
+                )}
+              </motion.div>
+              
+              <motion.div 
+                className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm"
+                variants={fadeIn}
+                transition={{ delay: 0.5 }}
+              >
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+                  <Award className={`h-5 w-5 mr-2 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} />
+                  Certification
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 mb-4">
+                  {certification || 'Upon successful completion of the course, you will receive a verified certificate of achievement.'}
+                </p>
+                {hasCertificate && (
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-${getCategoryColorClasses().primaryColor}-50 dark:bg-${getCategoryColorClasses().primaryColor}-900/30 text-${getCategoryColorClasses().primaryColor}-700 dark:text-${getCategoryColorClasses().primaryColor}-300`}>
+                    <CheckCircle className="w-4 h-4 mr-1.5" />
+                    Industry Recognized Certificate
+                  </span>
+                )}
+              </motion.div>
+            </div>
+
+            {enrollmentDeadline && (
+              <motion.div 
+                className={`bg-${getCategoryColorClasses().primaryColor}-50 dark:bg-${getCategoryColorClasses().primaryColor}-900/10 border border-${getCategoryColorClasses().primaryColor}-100 dark:border-${getCategoryColorClasses().primaryColor}-900/20 rounded-lg p-4 mb-8 flex items-center`}
+                variants={fadeIn}
+                transition={{ delay: 0.6 }}
+              >
+                <div className={`p-2 rounded-full bg-${getCategoryColorClasses().primaryColor}-100 dark:bg-${getCategoryColorClasses().primaryColor}-900/30 mr-3`}>
+                  <Clock className={`h-5 w-5 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} />
+                </div>
+                <div>
+                  <p className="text-gray-700 dark:text-gray-300">
+                    <strong className="font-medium">Enrollment Deadline:</strong> {enrollmentDeadline}
+                  </p>
+                </div>
+              </motion.div>
+            )}
+            
+            <div className="flex flex-col md:flex-row gap-4">
+              <motion.button
+                className={`flex-1 inline-flex justify-center items-center px-6 py-3.5 bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-600 to-${getCategoryColorClasses().primaryColor}-500 hover:from-${getCategoryColorClasses().primaryColor}-700 hover:to-${getCategoryColorClasses().primaryColor}-600 text-white font-medium text-base rounded-lg shadow-sm hover:shadow-md transition-all duration-300`}
+                onClick={handleEnroll}
+                variants={fadeIn}
+                transition={{ delay: 0.7 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                Enroll Now
+              </motion.button>
+              
+              <motion.button
+                className="flex-1 md:flex-none inline-flex justify-center items-center px-6 py-3.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 font-medium text-base rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300"
+                onClick={() => toast.success("Added to wishlist!", { icon: "❤️" })}
+                variants={fadeIn}
+                transition={{ delay: 0.8 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Heart className={`w-5 h-5 mr-2 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} />
+                Add to Wishlist
+              </motion.button>
+            </div>
+          </motion.section>
+        );
+        
       default:
         return (
           <motion.div 
@@ -997,21 +1582,19 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
           />
         </div>
 
-        {/* Navigation Tabs - Static, placed right after header */}
-        <div className="sticky top-16 z-20 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
-          <div className="px-4 sm:px-6 py-3 sm:py-4 overflow-x-auto scrollbar-hide">
-            <CourseNavigation
-              activeSection={activeSection}
-              scrollToSection={scrollToSection}
-              primaryColor={getCategoryColorClasses().primaryColor}
-              showCertificate={true}
-              isMobile={true}
-            />
-          </div>
+        {/* Navigation */}
+        <div className="sticky top-16 z-40 bg-gray-50 dark:bg-gray-900 py-3 px-2 -mx-2 sm:px-0 sm:mx-0">
+          <CourseNavigation 
+            activeSection={activeSection} 
+            scrollToSection={scrollToSection} 
+            showCertificate={hasCertificate()}
+            primaryColor={getCategoryColorClasses().primaryColor}
+            categoryColorClasses={getCategoryColorClasses()}
+          />
         </div>
 
         {/* Dynamic content area based on active tab */}
-        <div className="px-4 sm:px-6 pt-6 sm:pt-8 pb-6">
+        <div className="px-4 sm:px-3 pt-3 sm:pt-8 pb-6">
           <AnimatePresence mode="wait">
             {renderActiveSection()}
           </AnimatePresence>
@@ -1043,6 +1626,8 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
           ? courseDetails.brochures[0] 
           : null}
       />
+
+      
     </motion.div>
   );
 };
