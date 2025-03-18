@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { Search, ChevronDown, HelpCircle, AlertCircle, ExternalLink, BookOpen, Clock, Building, Coins, Users } from "lucide-react";
+import { Search, ChevronDown, HelpCircle, AlertCircle, ExternalLink, BookOpen, Clock, Building, Coins, Users, Mail } from "lucide-react";
 import DOMPurify from "dompurify";
 
 export default function SchoolFaq() {
@@ -10,21 +10,21 @@ export default function SchoolFaq() {
   const [searchQuery, setSearchQuery] = useState("");
   const prefersReducedMotion = useReducedMotion();
 
-  // Theme colors - consistent with courseFaq
+  // Theme colors - consistent with project theme
   const themeColors = {
     primary: {
-      light: '#10b981', // Emerald 500
-      medium: '#059669', // Emerald 600
-      dark: '#047857', // Emerald 700
+      light: '#379392', // Primary brand color
+      medium: '#2d7978', // Darker shade
+      dark: '#236665', // Darkest shade
     },
     secondary: {
-      light: '#3b82f6', // Blue 500
-      medium: '#2563eb', // Blue 600
-      dark: '#1d4ed8', // Blue 700
+      light: '#F6B335', // Secondary brand color
+      medium: '#e5a42e', // Darker shade
+      dark: '#d49627', // Darkest shade
     }
   };
 
-  // Animation variants
+  // Animation variants with reduced motion support
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { 
@@ -69,11 +69,11 @@ export default function SchoolFaq() {
   // Function to get gradient background colors based on index
   const getGradientColors = (index) => {
     const palettes = [
-      ['#10b981', '#059669'], // Emerald to Emerald
-      ['#3b82f6', '#2563eb'], // Blue to Blue
-      ['#8b5cf6', '#7c3aed'], // Violet to Violet
-      ['#f59e0b', '#d97706'], // Amber to Amber
-      ['#ec4899', '#db2777'], // Pink to Pink
+      ['#379392', '#2d7978'], // Primary to Primary Dark
+      ['#F6B335', '#e5a42e'], // Secondary to Secondary Dark
+      ['#4B5563', '#374151'], // Gray to Gray Dark
+      ['#3B82F6', '#2563EB'], // Blue to Blue Dark
+      ['#8B5CF6', '#7C3AED'], // Purple to Purple Dark
     ];
     return palettes[index % palettes.length];
   };
@@ -183,14 +183,14 @@ export default function SchoolFaq() {
   };
 
   return (
-    <section className="w-full py-8 overflow-hidden">
+    <section className="w-full py-12 md:py-16 lg:py-20 overflow-hidden bg-gradient-to-b from-gray-50/50 via-white to-gray-50/50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="max-w-6xl mx-auto px-4"
       >
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 md:p-8">
+        <div className="bg-white dark:bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700/50 p-6 md:p-8">
           {/* Header with animated gradient */}
           <motion.div 
             initial={{ opacity: 0, y: -10 }}
@@ -199,12 +199,12 @@ export default function SchoolFaq() {
             className="flex flex-col sm:flex-row sm:items-center justify-between mb-8"
           >
             <div className="flex items-center mb-4 sm:mb-0">
-              <div className="w-1.5 h-10 bg-gradient-to-b from-emerald-400 to-emerald-600 rounded-sm mr-3"></div>
+              <div className="w-1.5 h-10 bg-gradient-to-b from-[#379392] to-[#2d7978] rounded-sm mr-3"></div>
               <div>
-                <h2 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-blue-600 dark:from-emerald-400 dark:to-blue-400">
+                <h2 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#379392] to-[#F6B335] dark:from-[#379392] dark:to-[#F6B335]">
                   Frequently Asked Questions
                 </h2>
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mt-1">
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mt-1">
                   Everything you need to know about partnering with Medh
                 </p>
               </div>
@@ -217,7 +217,7 @@ export default function SchoolFaq() {
               </div>
               <input
                 type="text"
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400 focus:border-transparent text-sm"
+                className="block w-full pl-10 pr-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#379392] dark:focus:ring-[#379392] focus:border-transparent text-sm transition-all duration-200"
                 placeholder="Search FAQs..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -248,17 +248,18 @@ export default function SchoolFaq() {
                   >
                     <div
                       className={`
-                        border dark:border-gray-700 rounded-lg shadow-sm overflow-hidden
-                        transition-all duration-200
-                        ${hoveredIndex === index ? 'shadow-md' : 'shadow-sm'}
+                        border dark:border-gray-700/50 rounded-xl overflow-hidden
+                        transition-all duration-200 backdrop-blur-sm
+                        ${hoveredIndex === index ? 'shadow-lg' : 'shadow-md'}
+                        ${openIndex === index ? 'ring-2 ring-[#379392]/20' : ''}
                       `}
                       onMouseEnter={() => setHoveredIndex(index)}
                       onMouseLeave={() => setHoveredIndex(null)}
                     >
                       <button
-                        className={`w-full flex items-center justify-between p-4 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-opacity-50 ${
+                        className={`w-full flex items-center justify-between p-4 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-[#379392] focus:ring-opacity-50 ${
                           openIndex === index 
-                            ? "bg-gradient-to-r from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-900/10" 
+                            ? "bg-gradient-to-r from-[#379392]/10 to-[#379392]/5 dark:from-[#379392]/20 dark:to-[#379392]/10" 
                             : "hover:bg-gray-50 dark:hover:bg-gray-700/50"
                         }`}
                         onClick={() => toggleFAQ(index)}
@@ -266,26 +267,32 @@ export default function SchoolFaq() {
                         aria-controls={`faq-content-${index}`}
                       >
                         <div className="flex items-center mr-2">
-                          <div className="mr-3 flex-shrink-0">
+                          <div className={`mr-3 flex-shrink-0 p-2 rounded-lg transition-colors duration-300 ${
+                            openIndex === index 
+                              ? 'bg-[#379392]/20 text-[#379392]' 
+                              : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400'
+                          }`}>
                             {getIconForQuestion(faq.question)}
                           </div>
                           <h3 className={`text-base font-medium pr-8 ${
                             openIndex === index 
-                              ? "text-emerald-700 dark:text-emerald-400" 
+                              ? "text-[#379392] dark:text-[#379392]" 
                               : "text-gray-800 dark:text-gray-200"
                           }`}>
                             {faq.question}
                           </h3>
                         </div>
-                        <div className={`flex-shrink-0 p-1 rounded-full transition-all duration-300 transform ${
-                          openIndex === index ? "rotate-180" : "rotate-0"
-                        } ${
-                          openIndex === index 
-                            ? "bg-emerald-100 dark:bg-emerald-800 text-emerald-600 dark:text-emerald-400" 
-                            : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
-                        }`}>
+                        <motion.div 
+                          animate={{ 
+                            rotate: openIndex === index ? 180 : 0,
+                            backgroundColor: openIndex === index ? 'rgba(55, 147, 146, 0.2)' : 'transparent',
+                            color: openIndex === index ? '#379392' : '#9CA3AF'
+                          }}
+                          transition={{ duration: 0.3 }}
+                          className={`flex-shrink-0 p-1.5 rounded-full`}
+                        >
                           <ChevronDown className="w-5 h-5" />
-                        </div>
+                        </motion.div>
                       </button>
                       
                       <AnimatePresence>
@@ -299,7 +306,7 @@ export default function SchoolFaq() {
                             className="overflow-hidden"
                           >
                             <div 
-                              className="p-4 bg-white dark:bg-gray-800 border-t dark:border-gray-700"
+                              className="p-4 bg-gray-50/50 dark:bg-gray-800/50 border-t dark:border-gray-700/50"
                               style={{ 
                                 borderLeft: `3px solid ${startColor}`,
                                 paddingLeft: '1.25rem'
@@ -324,16 +331,18 @@ export default function SchoolFaq() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.4 }}
-                className="p-5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-center"
+                className="p-6 bg-gray-50/50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700/50 rounded-xl text-center backdrop-blur-sm"
               >
-                <Search className="w-10 h-10 text-gray-400 mx-auto mb-3" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No matching FAQs found</h3>
+                <Search className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                  No matching FAQs found
+                </h3>
                 <p className="text-gray-600 dark:text-gray-400 mb-4">
                   We couldn't find any FAQs matching "{searchQuery}".
                 </p>
                 <button
                   onClick={() => setSearchQuery("")}
-                  className="text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 font-medium"
+                  className="text-[#379392] hover:text-[#2d7978] dark:text-[#379392] dark:hover:text-[#2d7978] font-medium transition-colors duration-200"
                 >
                   Clear search
                 </button>
@@ -346,24 +355,41 @@ export default function SchoolFaq() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="mt-8 p-5 bg-gradient-to-r from-blue-50 to-emerald-50 dark:from-blue-900/20 dark:to-emerald-900/20 rounded-lg border border-blue-100/70 dark:border-blue-800/50"
+            className="mt-8 p-6 bg-gradient-to-r from-[#379392]/10 via-white to-[#379392]/10 dark:from-[#379392]/20 dark:via-gray-800/50 dark:to-[#379392]/20 rounded-xl border border-[#379392]/20 dark:border-[#379392]/30 backdrop-blur-sm"
           >
             <p className="text-gray-700 dark:text-gray-300 flex flex-col sm:flex-row sm:items-center text-center sm:text-left">
-              <HelpCircle className="w-6 h-6 mx-auto sm:mx-0 sm:mr-3 mb-2 sm:mb-0 flex-shrink-0 text-blue-500 dark:text-blue-400" />
+              <motion.div 
+                whileHover={{ scale: 1.1, rotate: 15 }}
+                className="w-12 h-12 mx-auto sm:mx-0 sm:mr-4 mb-3 sm:mb-0 rounded-xl bg-[#379392]/20 flex items-center justify-center transform transition-transform duration-300"
+              >
+                <Mail className="w-6 h-6 text-[#379392]" />
+              </motion.div>
               <span>
                 Have more questions? Contact our support team at{" "}
                 <a 
                   href="mailto:care@medh.co" 
-                  className="font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 underline inline-flex items-center"
+                  className="font-medium text-[#379392] hover:text-[#2d7978] dark:text-[#379392] dark:hover:text-[#2d7978] underline inline-flex items-center group transition-colors duration-200"
                 >
                   care@medh.co
-                  <ExternalLink className="w-3.5 h-3.5 ml-1" />
+                  <motion.span
+                    whileHover={{ x: 5 }}
+                    className="inline-block transition-transform ml-1"
+                  >
+                    →
+                  </motion.span>
                 </a>
               </span>
             </p>
           </motion.div>
         </div>
       </motion.div>
+
+      <style jsx>{`
+        .bg-grid-pattern {
+          background-image: radial-gradient(#379392 0.5px, transparent 0.5px);
+          background-size: 16px 16px;
+        }
+      `}</style>
     </section>
   );
 }
