@@ -100,14 +100,13 @@ function CourseBanner({
                 tracking-tight leading-[1.1]
                 text-1xl xs:text-2xl sm:text-3xl lg:text-4xl 3xl:text-5xl
                 bg-clip-text bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-200
-                animate-neon-pulse
               ">
                 {title}{" "}
-                <span className={`${themeClasses.title} inline-block transform hover:scale-105 transition-all duration-300 animate-neon-pulse`}>
+                <span className={`${themeClasses.title} inline-block transform hover:scale-105 transition-all duration-300`}>
                   {titleHighlight}
                 </span>
               </h1>
-              <p className="
+              <div className="
                 text-lg sm:text-xl md:text-l
                 text-gray-600 dark:text-gray-300 
                 max-w-l 
@@ -115,7 +114,7 @@ function CourseBanner({
                 leading-relaxed
               ">
                 {description}
-              </p>
+              </div>
             </div>
 
             {/* Mobile Feature Carousel */}

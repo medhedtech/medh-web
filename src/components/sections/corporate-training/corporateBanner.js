@@ -87,11 +87,7 @@ export default function CorporateBanner() {
       badge={badge}
       title="Medh's Dynamic"
       titleHighlight="Corporate Training"
-      description={
-        <>
-          <p>Elevate your workforce's skills, motivation, and engagement to drive business growth and achieve exceptional results.</p>
-        </>
-      }
+      description="Elevate your workforce's skills, motivation, and engagement to drive business growth and achieve exceptional results."
       features={features}
       mainImage={Banner}
       studentImage={Cource}
