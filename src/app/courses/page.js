@@ -184,6 +184,25 @@ const Courses = () => {
     );
   };
 
+  // Format course duration to display as "4 Months (16 Weeks)" when both are provided
+  const formatCourseDuration = (duration) => {
+    if (!duration) return "4-8 weeks";
+    
+    // Check if duration contains both months and weeks
+    const monthsMatch = duration.match(/(\d+)\s*months?/i);
+    const weeksMatch = duration.match(/(\d+)\s*weeks?/i);
+    
+    if (monthsMatch && weeksMatch) {
+      return `${monthsMatch[1]} Months (${weeksMatch[1]} Weeks)`;
+    } else if (weeksMatch) {
+      return `${weeksMatch[1]} Weeks`;
+    } else if (monthsMatch) {
+      return `${monthsMatch[1]} Months`;
+    }
+    
+    return duration;
+  };
+
   return (
     <PageWrapper>
       <main className="min-h-screen w-full bg-gradient-to-b from-gray-50/80 via-white to-gray-50/80 dark:from-gray-900 dark:via-gray-850 dark:to-gray-900 transition-colors duration-300">
@@ -381,9 +400,19 @@ const Courses = () => {
                   description="Comprehensive Skill Development Courses Tailored for Diverse Professional Aspirations"
                   renderCourse={(course) => {
                     // Determine the class_type dynamically from course data
-                    const courseType = course.class_type?.toLowerCase() || '';
-                    const isLive = courseType.includes('live');
-                    const isBlended = courseType.includes('blend');
+                    const courseType = (course.class_type || '').toLowerCase();
+                    
+                    // More robust detection of course types
+                    const isLive = courseType.includes('live') || 
+                                  (course.format && course.format.toLowerCase().includes('live'));
+                                  
+                    const isBlended = courseType.includes('blend') || 
+                                    courseType.includes('hybrid') || 
+                                    (course.format && (
+                                      course.format.toLowerCase().includes('blend') || 
+                                      course.format.toLowerCase().includes('hybrid')
+                                    )) ||
+                                    (course.lectures_count && course.live_sessions);
                     
                     // Define type-specific properties
                     let typedProps = {};
@@ -394,7 +423,7 @@ const Courses = () => {
                         course_duration: (
                           <div className="flex items-center text-sm">
                             <Clock className="w-4 h-4 mr-1 text-rose-500" />
-                            <span>{course.course_duration || "4-8 weeks"}</span>
+                            <span>{formatCourseDuration(course.course_duration)}</span>
                           </div>
                         ),
                         no_of_Sessions: course.no_of_Sessions || 24,
@@ -407,16 +436,15 @@ const Courses = () => {
                       };
                     } else if (isBlended) {
                       // Blended course specific properties
-                      const videoCount = course.lectures_count || 20;
-                      const qnaSessions = course.live_sessions || 2;
+                      const { videoCount, qnaSessions } = getBlendedCourseSessions(course);
                       
                       typedProps = {
                         course_duration: formatBlendedLearningExperience(
                           videoCount, 
                           qnaSessions,
-                          course.course_duration
+                          formatCourseDuration(course.course_duration || course.duration)
                         ),
-                        course_duration: `${videoCount} Videos • ${qnaSessions} Q&A • ${course.course_duration || "Self-paced"}`,
+                        duration_range: `${videoCount} Videos • ${qnaSessions} Q&A • ${course.duration_range || "Self-paced"}`,
                         no_of_Sessions: course.no_of_Sessions || videoCount,
                         effort_hours: course.effort_hours || "3-5",
                         highlights: [
@@ -428,9 +456,14 @@ const Courses = () => {
                     } else {
                       // Default course properties
                       typedProps = {
-                        course_duration: course.course_duration || "4-18 months",
+                        course_duration: (
+                          <div className="flex items-center text-sm">
+                            <Clock className="w-4 h-4 mr-1 text-gray-500" />
+                            <span>{formatCourseDuration(course.course_duration)}</span>
+                          </div>
+                        ),
                         effort_hours: course.effort_hours || "4-6",
-                        no_of_Sessions: course.no_of_Sessions || 24,
+                        no_of_Sessions: course.no_of_Sessions || 24
                       };
                     }
                     
@@ -438,6 +471,12 @@ const Courses = () => {
                       ...course,
                       ...typedProps,
                       instructor: course.instructor || null,
+                      // Ensure proper class_type is set based on our detection
+                      class_type: isLive ? 'live' : (isBlended ? 'blended' : course.class_type || ''),
+                      courseType: isLive ? 'live' : (isBlended ? 'blended' : 'default'), // Additional indicator
+                      cardStyle: isLive ? 'live' : (isBlended ? 'blended' : 'default'), // Visual style indicator
+                      isLiveCourse: isLive,
+                      isBlendedCourse: isBlended,
                       highlights: typedProps.highlights || course.highlights || []
                     };
                   }}
@@ -456,15 +495,24 @@ const Courses = () => {
                     </div>
                   }
                   classType="live"
+                  showOnly={(course) => {
+                    const courseType = (course.class_type || '').toLowerCase();
+                    return courseType.includes('live') || 
+                           (course.format && course.format.toLowerCase().includes('live'));
+                  }}
                   filterState={liveCourseFilters}
                   description="Join interactive sessions with industry experts for real-time learning and direct feedback."
                   renderCourse={(course) => ({
                     ...course,
                     class_type: "live", // Always enforce live class type in this tab
+                    courseType: 'live',
+                    cardStyle: 'live',
+                    isLiveCourse: true,
+                    isBlendedCourse: false,
                     course_duration: (
                       <div className="flex items-center text-sm">
                         <Clock className="w-4 h-4 mr-1 text-rose-500" />
-                        <span>{course.course_duration || "4-8 weeks"}</span>
+                        <span>{formatCourseDuration(course.course_duration)}</span>
                       </div>
                     ),
                     effort_hours: course.effort_hours || "6-8",
@@ -498,10 +546,14 @@ const Courses = () => {
                     return {
                       ...course,
                       class_type: "blended", // Always enforce blended class type in this tab
+                      courseType: 'blended',
+                      cardStyle: 'blended',
+                      isLiveCourse: false,
+                      isBlendedCourse: true,
                       course_duration: formatBlendedLearningExperience(
                         videoCount, 
                         qnaSessions,
-                        course.duration
+                        formatCourseDuration(course.course_duration || course.duration)
                       ),
                       duration_range: `${videoCount} Videos • ${qnaSessions} Q&A • ${course.duration_range || "Self-paced"}`,
                       effort_hours: course.effort_hours || "3-5",
@@ -511,6 +563,16 @@ const Courses = () => {
                         ...(course.highlights || [])
                       ]
                     };
+                  }}
+                  showOnly={(course) => {
+                    const courseType = (course.class_type || '').toLowerCase();
+                    return courseType.includes('blend') || 
+                           courseType.includes('hybrid') || 
+                           (course.format && (
+                             course.format.toLowerCase().includes('blend') || 
+                             course.format.toLowerCase().includes('hybrid')
+                           )) ||
+                           (course.lectures_count && course.live_sessions);
                   }}
                 />
               )}
