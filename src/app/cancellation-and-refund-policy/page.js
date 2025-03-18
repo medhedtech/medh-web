@@ -11,7 +11,7 @@ export const metadata = {
 const Privacy_Cancellation = () => {
   return (
     <PageWrapper>
-      <main>
+      <main className="pt-16">
         <CancellationPolicy/>
         
       </main>
