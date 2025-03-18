@@ -29,7 +29,7 @@ export const formatPrice = (price, currencyCode = 'USD', showSymbol = true) => {
   };
   
   const symbol = currencySymbols[currencyCode] || '$';
-  const formattedPrice = typeof price === 'number' ? price.toFixed(2) : price;
+  const formattedPrice = typeof price === 'number' ? Math.round(price).toString() : price;
   
   return showSymbol ? `${symbol}${formattedPrice}` : formattedPrice;
 };

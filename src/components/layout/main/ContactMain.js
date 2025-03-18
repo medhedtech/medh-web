@@ -17,7 +17,7 @@ const ContactMain = () => {
   };
 
   return (
-    <div className="bg-gradient-to-b from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-indigo-950 min-h-screen w-full">
+    <div className="bg-gradient-to-b from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-indigo-950 min-h-screen w-full pt-6 ">
       <Head>
         <title>Connect with Medh - Your Adventure Starts Here!</title>
         <meta name="description" content="Join the Medh adventure! Reach out to us for awesome learning experiences, cool courses, and fun educational opportunities." />
@@ -47,12 +47,8 @@ const ContactMain = () => {
             
             <h1 className="text-3xl sm:text-4xl md:text-6xl xl:text-7xl font-bold mb-3 sm:mb-4 relative">
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#7ECA9D] via-teal-500 to-purple-500 dark:from-[#7ECA9D] dark:via-teal-400 dark:to-purple-400">
-                Say Hello to
+                Say Hello to <span className="relative z-10 bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-pink-500 dark:from-purple-400 dark:to-pink-400">Medh!</span>
               </span>
-              <div className="relative inline-block">
-                <span className="relative z-10 bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-pink-500 dark:from-purple-400 dark:to-pink-400"> Medh!</span>
-                <span className="absolute -bottom-1 sm:-bottom-2 left-0 w-full h-2 sm:h-3 bg-yellow-300 dark:bg-yellow-500 rounded-full opacity-70 z-0"></span>
-              </div>
             </h1>
             
             <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto text-sm sm:text-lg md:text-xl font-medium px-2">
