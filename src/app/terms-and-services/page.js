@@ -11,7 +11,7 @@ export const metadata = {
 const TermsConditions = () => {
   return (
     <PageWrapper>
-      <main>
+      <main className="pt-16">
         <TermsAndCOnsitions/>
         
       </main>
