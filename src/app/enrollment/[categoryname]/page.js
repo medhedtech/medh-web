@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Calculator, BrainCircuit, TrendingUp, UserCheck, ArrowLeft, 
-  ChevronUp, ArrowRight, Sparkles, GraduationCap, Blocks, Star,
+  ChevronUp, ArrowRight, Sparkles, GraduationCap, Blocks, Star,AlertCircle, RefreshCw,
   HelpCircle, FileBadge, BookOpen
 } from 'lucide-react';
 import Image from 'next/image';
@@ -214,9 +214,21 @@ function useDynamicCourseContent(selectedCourse, categoryInfo) {
 
 function CategoryEnrollmentPage({ params }) {
   const { categoryname } = params;
-  const normalizedCategory = useMemo(() => normalizeCategory(categoryname), [categoryname]);
-  const categoryInfo = useMemo(() => getCategoryInfo(normalizedCategory), [normalizedCategory]);
   const router = useRouter();
+  
+  // Improved: Better course ID detection with more robust parsing
+  const isCourseView = categoryname?.startsWith('course');
+  const courseId = useMemo(() => {
+    if (!isCourseView) return null;
+    
+    // Handle both /enrollment/course/COURSE_ID and /enrollment/course/COURSE_ID/any-slug formats
+    const parts = categoryname.split('/');
+    return parts.length > 1 ? parts[1] : null;
+  }, [categoryname, isCourseView]);
+  
+  // Only normalize the category if it's not a course view
+  const normalizedCategory = useMemo(() => isCourseView ? null : normalizeCategory(categoryname), [categoryname, isCourseView]);
+  const categoryInfo = useMemo(() => isCourseView ? null : getCategoryInfo(normalizedCategory), [normalizedCategory, isCourseView]);
   
   // Add states for dynamic options
   const [availableGrades, setAvailableGrades] = useState([]);
@@ -844,7 +856,7 @@ function CategoryEnrollmentPage({ params }) {
   );
 
   // If category not found
-  if (!categoryInfo) {
+  if (!categoryInfo && !isCourseView) {
     return null; // Will be redirected by useEffect
   }
 
@@ -882,11 +894,89 @@ function CategoryEnrollmentPage({ params }) {
     }
   }, [filteredCourses, selectedCourse, handleCourseSelection]);
 
+  // New: Add specific course fetch logic
+  useEffect(() => {
+    // Skip if not in course view or we don't have a courseId
+    if (!isCourseView || !courseId) return;
+    
+    setLoading(true);
+    console.log("Fetching specific course:", courseId);
+    
+    // Fetch the specific course by ID
+    const courseEndpoint = apiUrls.courses.getCoursesById(courseId);
+    
+    getQuery({
+      url: courseEndpoint,
+      onSuccess: (response) => {
+        console.log("Course response:", response);
+        
+        // Get the course data from the response
+        const courseData = response?.course || response?.data || response;
+        
+        if (!courseData || !courseData._id) {
+          console.error("Invalid course data received");
+          setError("Course not found or invalid data received");
+          setLoading(false);
+          return;
+        }
+        
+        // Process the course data
+        const processedCourse = {
+          _id: courseData._id,
+          title: courseData.course_title || "",
+          description: courseData.course_description || "",
+          long_description: courseData.course_description || "",
+          category: courseData.course_category || "",
+          grade: courseData.course_grade || "",
+          thumbnail: courseData.course_image || null,
+          course_duration: formatDuration(courseData.course_duration) || "",
+          course_duration_days: parseDuration(courseData.course_duration) || 30,
+          course_fee: courseData.course_fee || 0,
+          enrolled_students: courseData.enrolled_students || 0,
+          is_Certification: courseData.is_Certification === "Yes",
+          is_Assignments: courseData.is_Assignments === "Yes",
+          is_Projects: courseData.is_Projects === "Yes",
+          is_Quizes: courseData.is_Quizes === "Yes",
+          curriculum: Array.isArray(courseData.curriculum) ? courseData.curriculum : [],
+          highlights: courseData.highlights || [],
+          learning_outcomes: courseData.learning_outcomes || [],
+          prerequisites: courseData.prerequisites || [],
+          faqs: courseData.faqs || [],
+          no_of_Sessions: courseData.no_of_Sessions || 0,
+          status: courseData.status || "Published",
+          isFree: courseData.isFree || false,
+          hasFullDetails: true
+        };
+        
+        // Set both courses and filtered courses with just this course
+        setCourses([processedCourse]);
+        setFilteredCourses([processedCourse]);
+        
+        // Set as the selected course
+        setSelectedCourse(processedCourse);
+        setLoading(false);
+      },
+      onError: (err) => {
+        console.error("Error fetching course:", err);
+        setError(parseApiError(err) || "Failed to load course details");
+        setLoading(false);
+      }
+    });
+  }, [isCourseView, courseId, getQuery]);
+
+  // If category doesn't exist and we're not in course view, redirect to main enrollment page
+  useEffect(() => {
+    if (!normalizedCategory && !isCourseView) {
+      router.push('/enrollment');
+    }
+  }, [normalizedCategory, router, isCourseView]);
+
   return (
     <PageWrapper>
       <Toaster position="bottom-center" />
       <style jsx global>{stickyStyles}</style>
-      <div className={`relative min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 category-page`} data-category={normalizedCategory}>
+      <div className={`relative min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 category-page`} 
+           data-category={normalizedCategory || 'course-view'}>
         {/* Fixed Header */}
         <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transform-gpu">
           <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -900,10 +990,19 @@ function CategoryEnrollmentPage({ params }) {
               </button>
               <div className="flex items-center overflow-hidden">
                 <h1 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
-                  {categoryInfo?.displayName || "Course Categories"} 
+                  {isCourseView 
+                    ? (selectedCourse?.title || "Course Details") 
+                    : (categoryInfo?.displayName || "Course Categories")}
                 </h1>
-                <span className={`ml-2 px-2 py-1 text-xs font-medium ${categoryInfo?.bgClass || 'bg-blue-50 dark:bg-blue-900/30'} ${categoryInfo?.colorClass || 'text-blue-700 dark:text-blue-300'} rounded-full hidden sm:inline-block`}>
-                  Category
+                <span className={`ml-2 px-2 py-1 text-xs font-medium ${
+                    isCourseView 
+                      ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' 
+                      : (categoryInfo?.bgClass || 'bg-blue-50 dark:bg-blue-900/30')} ${
+                        isCourseView 
+                          ? '' 
+                          : (categoryInfo?.colorClass || 'text-blue-700 dark:text-blue-300')
+                      } rounded-full hidden sm:inline-block`}>
+                  {isCourseView ? "Course" : "Category"}
                 </span>
               </div>
             </div>
@@ -944,7 +1043,7 @@ function CategoryEnrollmentPage({ params }) {
               {/* Two Column Layout - Improved mobile design */}
               <div className="flex flex-col lg:flex-row gap-4 lg:gap-8" ref={mainContentRef}>
                 {/* Left Column - Dynamic Course Content */}
-                <div className="w-full lg:w-8/12 space-y-4 lg:space-y-8">
+                <div className={`w-full ${isCourseView ? 'lg:w-8/12' : 'lg:w-8/12'} space-y-4 lg:space-y-8`}>
                   {/* CourseDetailsPage integration - show dynamically based on selected course */}
                   {selectedCourse && (
                     <div className="relative z-10">
@@ -963,8 +1062,8 @@ function CategoryEnrollmentPage({ params }) {
                   <div className="lg:sticky lg:top-24 space-y-6 transition-all duration-300">
                     {/* Sticky Container with scroll behavior */}
                     <div className="sticky-sidebar max-h-[calc(100vh-120px)] overflow-y-auto pr-2 pb-4 hide-scrollbar" ref={sidebarRef}>
-                      {/* Show GradeFilter only for specific categories */}
-                      {(normalizedCategory === 'vedic-mathematics' || 
+                      {/* Only show grade filter if not in course view mode */}
+                      {!isCourseView && (normalizedCategory === 'vedic-mathematics' || 
                        normalizedCategory === 'personality-development') && (
                         <motion.div
                           initial={{ opacity: 0, y: 20 }}
@@ -984,8 +1083,8 @@ function CategoryEnrollmentPage({ params }) {
                         </motion.div>
                       )}
 
-                      {/* For AI/Data Science and Digital Marketing, just show course selection */}
-                      {(normalizedCategory === 'ai-and-data-science' || 
+                      {/* For AI/Data Science and Digital Marketing, just show course selection (if not in course view) */}
+                      {!isCourseView && (normalizedCategory === 'ai-and-data-science' || 
                        normalizedCategory === 'digital-marketing') && (
                         <motion.div
                           initial={{ opacity: 0, y: 20 }}
@@ -1006,8 +1105,8 @@ function CategoryEnrollmentPage({ params }) {
                         </motion.div>
                       )}
 
-                      {/* For other categories, show regular filter */}
-                      {!(['vedic-mathematics', 'personality-development', 'ai-and-data-science', 'digital-marketing'].includes(normalizedCategory)) && (
+                      {/* For other categories, show regular filter (if not in course view) */}
+                      {!isCourseView && !(['vedic-mathematics', 'personality-development', 'ai-and-data-science', 'digital-marketing'].includes(normalizedCategory)) && (
                         <motion.div
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
@@ -1036,7 +1135,12 @@ function CategoryEnrollmentPage({ params }) {
                         >
                           <EnrollmentDetails 
                             courseDetails={selectedCourse}
-                            categoryInfo={categoryInfo}
+                            categoryInfo={isCourseView ? {
+                              // Create a simple category info object for course view mode
+                              displayName: selectedCourse.category,
+                              colorClass: 'text-emerald-700 dark:text-emerald-300',
+                              bgClass: 'bg-emerald-50 dark:bg-emerald-900/30'
+                            } : categoryInfo}
                           />
                         </motion.div>
                       )}
