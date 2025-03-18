@@ -952,6 +952,7 @@ function CategoryEnrollmentPage({ params }) {
                       <CourseDetailsPage 
                         courseId={selectedCourse?._id} 
                         initialActiveSection={activeSection !== 'overview' ? activeSection : 'about'}
+                        faqComponent={<CourseFaq courseId={selectedCourse._id} />}
                       />
                     </div>
                   )}
