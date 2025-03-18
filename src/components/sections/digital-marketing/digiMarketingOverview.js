@@ -396,7 +396,7 @@ const DigiMarketingOverview = () => {
           viewport={{ once: true }}
           variants={fadeInUp}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="flex flex-wrap justify-center gap-3 md:gap-4 mb-8 dark:bg-gray-800" 
+          className="flex flex-wrap justify-center gap-3 md:gap-4 mb-8" 
           role="tablist"
         >
           {data.tabs.map((tab) => (
@@ -451,7 +451,7 @@ const DigiMarketingOverview = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.4 }}
-          className="mt-12 p-6 md:p-8 bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-800 dark:to-purple-800 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 border border-gray-100 dark:border-gray-700 max-w-4xl mx-auto text-center"
+          className="mt-12 p-6 md:p-8 bg-white dark:from-blue-900/30 dark:to-purple-900/30 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 border border-gray-100 dark:border-gray-700 max-w-4xl mx-auto text-center"
         >
           <h3 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-4">Ready to Master Digital Marketing?</h3>
           <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-2xl mx-auto text-sm md:text-base">
@@ -460,7 +460,7 @@ const DigiMarketingOverview = () => {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="inline-flex items-center px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-all transform hover:-translate-y-0.5 shadow-lg shadow-blue-500/25 dark:bg-blue-600 dark:hover:bg-blue-700"
+            className="inline-flex items-center px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-all transform hover:-translate-y-0.5 shadow-lg shadow-blue-500/25"
           >
             Enroll Today
             <ChevronRight className="ml-2 h-5 w-5" />
