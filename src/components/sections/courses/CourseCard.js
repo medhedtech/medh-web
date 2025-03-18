@@ -415,23 +415,23 @@ const CourseCard = ({
         if (!isNaN(value) && value > 0) {
           switch (unit) {
             case 'year':
-              durationParts.push(`${value} ${value === 1 ? 'Year' : 'Years'}`);
+              durationParts.push(`${Math.round(value)} ${Math.round(value) === 1 ? 'Year' : 'Years'}`);
               totalWeeks += value * 52;
               break;
             case 'month':
-              durationParts.push(`${value} ${value === 1 ? 'Month' : 'Months'}`);
+              durationParts.push(`${Math.round(value)} ${Math.round(value) === 1 ? 'Month' : 'Months'}`);
               totalWeeks += value * 4;
               break;
             case 'week':
-              durationParts.push(`${value} ${value === 1 ? 'Week' : 'Weeks'}`);
+              durationParts.push(`${Math.round(value)} ${Math.round(value) === 1 ? 'Week' : 'Weeks'}`);
               totalWeeks += value;
               break;
             case 'day':
-              durationParts.push(`${value} ${value === 1 ? 'Day' : 'Days'}`);
+              durationParts.push(`${Math.round(value)} ${Math.round(value) === 1 ? 'Day' : 'Days'}`);
               totalWeeks += value / 7;
               break;
             case 'hour':
-              durationParts.push(`${value} ${value === 1 ? 'Hour' : 'Hours'}`);
+              durationParts.push(`${Math.round(value)} ${Math.round(value) === 1 ? 'Hour' : 'Hours'}`);
               // Don't add to totalWeeks for hours
               break;
           }
@@ -469,23 +469,13 @@ const CourseCard = ({
       totalWeeks = weeks;
       
       // Format the primary duration display
-      if (weeks === 1) {
+      if (Math.round(weeks) === 1) {
         formattedDuration = "1 Week";
       } else if (weeks < 1) {
         const days = Math.round(weeks * 7);
         formattedDuration = `${days} ${days === 1 ? 'Day' : 'Days'}`;
-      } else if (weeks % 1 !== 0) {
-        // For fractional weeks like 1.5
-        const wholeWeeks = Math.floor(weeks);
-        const days = Math.round((weeks - wholeWeeks) * 7);
-        
-        if (days > 0) {
-          formattedDuration = `${wholeWeeks} ${wholeWeeks === 1 ? 'Week' : 'Weeks'} ${days} ${days === 1 ? 'Day' : 'Days'}`;
-        } else {
-          formattedDuration = `${weeks} Weeks`;
-        }
       } else {
-        formattedDuration = `${weeks} Weeks`;
+        formattedDuration = `${Math.round(weeks)} Weeks`;
       }
       
       // For weeks, we don't need to show equivalent weeks
@@ -496,20 +486,10 @@ const CourseCard = ({
       const months = monthMatches ? parseFloat(monthMatches[0]) : 1;
       totalWeeks = months * 4; // Approximate weeks in months
       
-      if (months === 1) {
+      if (Math.round(months) === 1) {
         formattedDuration = "1 Month";
-      } else if (months % 1 !== 0) {
-        // For fractional months
-        const wholeMonths = Math.floor(months);
-        const remainderWeeks = Math.round((months - wholeMonths) * 4); // Approximate weeks in a month
-        
-        if (remainderWeeks > 0) {
-          formattedDuration = `${wholeMonths} ${wholeMonths === 1 ? 'Month' : 'Months'} ${remainderWeeks} ${remainderWeeks === 1 ? 'Week' : 'Weeks'}`;
-        } else {
-          formattedDuration = `${months} Months`;
-        }
       } else {
-        formattedDuration = `${months} ${months === 1 ? 'Month' : 'Months'}`;
+        formattedDuration = `${Math.round(months)} Months`;
       }
       
       // Add equivalent in weeks
@@ -520,7 +500,7 @@ const CourseCard = ({
       const days = dayMatches ? parseFloat(dayMatches[0]) : 1;
       totalWeeks = days / 7;
       
-      formattedDuration = `${days} ${days === 1 ? 'Day' : 'Days'}`;
+      formattedDuration = `${Math.round(days)} ${Math.round(days) === 1 ? 'Day' : 'Days'}`;
       
       // Only show week equivalent if it's significant (more than 1 week)
       if (totalWeeks >= 1) {
@@ -532,7 +512,7 @@ const CourseCard = ({
       const hourMatches = durationLower.match(/(\d+[\.\d]*)/);
       const hours = hourMatches ? parseFloat(hourMatches[0]) : 1;
       
-      formattedDuration = `${hours} ${hours === 1 ? 'Hour' : 'Hours'}`;
+      formattedDuration = `${Math.round(hours)} ${Math.round(hours) === 1 ? 'Hour' : 'Hours'}`;
       return formattedDuration; // Don't convert hours to weeks
     }
     
@@ -808,7 +788,7 @@ const CourseCard = ({
 
   // Update card className to use dynamic styles
   return (
-    <>
+    <div className="relative">
       <div 
         ref={cardRef}
         className={`course-card ${mobileCardStyles} group relative flex flex-col h-full rounded-xl overflow-hidden 
@@ -1047,26 +1027,24 @@ const CourseCard = ({
             </div>
           </div>
         </div>
+
+        {/* Inline Download Brochure Modal overlay inside the card */}
+        {isModalOpen && (
+          <DownloadBrochureModal
+            title={course?.course_title || "Course Brochure"}
+            isOpen={isModalOpen}
+            onClose={closeModal}
+            courseTitle={course?.course_title}
+            courseId={course?._id}
+            inlineForm={true}
+          >
+            <p className="text-xs text-gray-600 mb-3">
+              Fill in your details and we'll email you the brochure from Medh.
+            </p>
+          </DownloadBrochureModal>
+        )}
       </div>
-
-      {/* Add CourseInfoTooltip component */}
-      {/* <CourseInfoTooltip 
-        course={course}
-        isVisible={showTooltip} 
-        position={tooltipPosition}
-        classType={classType}
-        hidePrice={hidePrice}
-      /> */}
-
-      {/* Download brochure modal */}
-      <DownloadBrochureModal
-        title={course?.course_title || "Course Brochure"}
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        courseTitle={course?.course_title}
-        courseId={course?._id}
-      />
-    </>
+    </div>
   );
 };
 

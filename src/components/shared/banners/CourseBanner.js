@@ -72,7 +72,7 @@ function CourseBanner({
         relative z-10 
         h-full
         flex items-center
-        py-4 pt-10 md:pt-4 safe-top safe-bottom
+        py-4 pt-0 md:pt-4 safe-top safe-bottom
       ">
         <div className="
           grid grid-cols-1 lg:grid-cols-2 
