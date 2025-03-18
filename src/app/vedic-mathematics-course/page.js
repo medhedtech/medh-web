@@ -93,7 +93,7 @@ function VedicMathematics() {
         </header>
 
         {/* Content with Header Offset */}
-        <main className="flex-grow pt-16">
+        <main className="flex-grow">
           <AnimatedContent 
             components={{
               VedicBanner,

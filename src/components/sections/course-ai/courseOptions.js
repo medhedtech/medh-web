@@ -90,7 +90,7 @@ function CourseOptions() {
           CustomText="AI and Data Science Courses"
           CustomButton={
             <Link href="/courses">
-              <div className="inline-flex items-center px-4 py-2 md:px-6 md:py-3 bg-primary-600 hover:bg-primary-700 dark:bg-primary-700 dark:hover:bg-primary-600 text-white text-xs md:text-sm font-medium rounded-lg md:rounded-xl transition-colors shadow-sm hover:shadow-md">
+              <div className="inline-flex items-center py-2 md:px-6 md:py-3 bg-primary-600 hover:bg-primary-700 dark:bg-primary-700 dark:hover:bg-primary-600 text-white text-xs md:text-sm font-medium rounded-lg md:rounded-xl transition-colors shadow-sm hover:shadow-md">
                 Explore All Courses
               </div>
             </Link>
@@ -100,6 +100,7 @@ function CourseOptions() {
           // Hide all filter UI components
           hideCategoryFilter={true}
           hideSearch={true}
+          hideGradeFilter={false}
           hideSortOptions={true}
           hideFilterBar={true}
           hideViewModeSwitch={true}
@@ -117,7 +118,7 @@ function CourseOptions() {
           // Custom empty state
           emptyStateContent={emptyStateContent}
           // Custom styling with improved mobile support
-          customGridClassName="grid gap-4 md:gap-6 lg:gap-8"
+          customGridClassName="grid gap-4 md:gap-4 lg:gap-4"
           // Pass custom style object
           customGridStyle={customGridStyle}
         />
