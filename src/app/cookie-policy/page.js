@@ -6,5 +6,9 @@ export const metadata = {
 };
 
 export default function CookiePolicy() {
-  return <CookiePolicyPage />;
+  return (
+<CookiePolicyPage />
+
+
+  );
 } 

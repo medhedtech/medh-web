@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useCookieConsent } from '@/contexts/CookieConsentContext';
 import { motion } from 'framer-motion';
+import { Check, Save } from 'lucide-react';
 
 const CookieSettings = () => {
   const {
@@ -15,6 +16,12 @@ const CookieSettings = () => {
     analytics: false,
     marketing: false,
     preferences: false,
+  });
+
+  const [saveStatus, setSaveStatus] = useState({
+    saved: false,
+    loading: false,
+    error: null
   });
 
   useEffect(() => {
@@ -31,10 +38,34 @@ const CookieSettings = () => {
       ...prev,
       [name]: checked
     }));
+
+    // Reset save status when settings change
+    if (saveStatus.saved) {
+      setSaveStatus({ saved: false, loading: false, error: null });
+    }
   };
 
   const handleSaveSettings = () => {
-    customizeCookies(settings);
+    try {
+      setSaveStatus({ saved: false, loading: true, error: null });
+      
+      // Apply cookie settings
+      customizeCookies(settings);
+      
+      // Show success message
+      setSaveStatus({ saved: true, loading: false, error: null });
+      
+      // Reset success message after 3 seconds
+      setTimeout(() => {
+        setSaveStatus(prev => ({ ...prev, saved: false }));
+      }, 3000);
+      
+      // Log to console for debugging
+      console.log('Cookie settings saved:', settings);
+    } catch (error) {
+      console.error('Error saving cookie settings:', error);
+      setSaveStatus({ saved: false, loading: false, error: 'Failed to save settings. Please try again.' });
+    }
   };
 
   return (
@@ -133,12 +164,42 @@ const CookieSettings = () => {
         </div>
       </div>
       
-      <div className="flex justify-end">
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+        {saveStatus.error && (
+          <p className="text-red-500 text-sm">{saveStatus.error}</p>
+        )}
+        
+        {saveStatus.saved && (
+          <div className="flex items-center text-green-600 dark:text-green-400">
+            <Check size={16} className="mr-1" />
+            <span className="text-sm font-medium">Settings saved successfully!</span>
+          </div>
+        )}
+        
         <button
           onClick={handleSaveSettings}
-          className="py-2.5 px-6 text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+          disabled={saveStatus.loading}
+          className={`py-2.5 px-6 text-sm font-medium rounded-md ${
+            saveStatus.loading 
+              ? 'bg-gray-400 cursor-wait' 
+              : 'bg-primary-600 hover:bg-primary-700 active:bg-primary-800'
+          } text-white transition-colors flex items-center ml-auto`}
+          aria-label="Save cookie preferences"
         >
-          Save Preferences
+          {saveStatus.loading ? (
+            <>
+              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Saving...
+            </>
+          ) : (
+            <>
+              <Save size={16} className="mr-2" />
+              Save Preferences
+            </>
+          )}
         </button>
       </div>
     </motion.div>
