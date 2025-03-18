@@ -227,6 +227,7 @@ const Home1 = () => {
             padding-left: 1.5rem;
             padding-right: 1.5rem;
           }
+
         }
 
         @media (min-width: 1367px) {
@@ -254,3 +255,4 @@ const Home1 = () => {
 };
 
 export default Home1;
+
