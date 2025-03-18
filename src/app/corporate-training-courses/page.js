@@ -14,7 +14,7 @@ function CorporateTraining() {
   return (
     <PageWrapper>
       <main>
-        <div className="pt-6">
+        <div>
           <CorporateBanner />
           <CorporateOverview />
           <Certified />

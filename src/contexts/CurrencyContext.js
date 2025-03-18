@@ -1,6 +1,7 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import Cookies from 'js-cookie';
+import axios from 'axios';
 
 // Define available currencies with their symbols and exchange rates
 // These rates would ideally be fetched from an API in production
@@ -59,11 +60,30 @@ export const CurrencyProvider = ({ children }) => {
   const [currency, setCurrency] = useState('USD'); // Default, will be updated in useEffect
   const [loading, setLoading] = useState(true);
 
-  // Set initial currency based on locale or saved preference
+  // Fetch country code based on IP
+  const fetchCountryCode = async () => {
+    try {
+      const response = await axios.get('https://ipapi.co/json/'); // Use ipapi service
+      return response.data.country;
+    } catch (error) {
+      console.error('Error fetching country code:', error);
+      return null;
+    }
+  };
+
+  // Set initial currency based on IP location or saved preference
   useEffect(() => {
-    const defaultCurrency = getDefaultCurrency();
-    setCurrency(defaultCurrency);
-    setLoading(false);
+    const setInitialCurrency = async () => {
+      const countryCode = await fetchCountryCode();
+      if (countryCode && COUNTRY_CURRENCY_MAP[countryCode]) {
+        setCurrency(COUNTRY_CURRENCY_MAP[countryCode]);
+      } else {
+        const defaultCurrency = getDefaultCurrency();
+        setCurrency(defaultCurrency);
+      }
+      setLoading(false);
+    };
+    setInitialCurrency();
   }, []);
 
   // Save currency preference when it changes
@@ -86,7 +106,7 @@ export const CurrencyProvider = ({ children }) => {
     if (price === undefined || price === null) return '';
     
     const { symbol } = CURRENCIES[currencyCode] || CURRENCIES.USD;
-    return showCurrency ? `${symbol}${Number(price).toFixed(2)}` : Number(price).toFixed(2);
+    return showCurrency ? `${symbol}${Math.round(Number(price))}` : Math.round(Number(price)).toString();
   };
 
   // Change the current currency
