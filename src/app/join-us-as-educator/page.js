@@ -16,7 +16,7 @@ import Certified from "@/components/sections/why-medh/Certified";
 function JoinEducator() {
   return (
     <PageWrapper>
-      <div className="bg-white">
+      <div>
         <EducatorBanner />
         <TechEducator />
         <MedhOffering />

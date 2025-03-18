@@ -384,7 +384,9 @@ const CoursesFilter = ({
   simplePagination = false,
   emptyStateContent = null,
   customGridClassName = "",
-  customGridStyle = {}
+  customGridStyle = {},
+  renderCourse = (course) => course,
+  hideCategories = false,
 }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -623,7 +625,7 @@ const CoursesFilter = ({
     try {
       const apiUrl = apiUrls.courses.getAllCoursesWithLimits(
         currentPage,
-        8, // items per page
+        9, // items per page
         "", // course_title
         "", // course_tag
         encodedCategory,
@@ -938,9 +940,8 @@ const CoursesFilter = ({
     }
     
     // Default responsive grid
-    let gridClass = "grid gap-6";
+    let gridClass = "grid gap-1 pb-1";
     
-    // These will run on the server with default values, and will be updated on client
     switch (responsiveGridColumns) {
       case 1:
         gridClass += " grid-cols-1";
@@ -999,20 +1000,259 @@ const CoursesFilter = ({
         className={viewMode === "grid" ? gridClasses : "space-y-4"}
         style={viewMode === "grid" && Object.keys(customGridStyle).length > 0 ? safeGridStyle : {}}
       >
-        {filteredCourses.map((course) => (
-          <ErrorBoundary key={course._id || course.id}>
-            <MemoizedCourseCard 
-              course={course} 
-              viewMode={viewMode}
-              isCompact={isMobile}
-              preserveClassType={true}
-              className={viewMode === "list" ? "border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200" : ""}
-            />
-          </ErrorBoundary>
-        ))}
+        {filteredCourses.map((course) => {
+          const enhancedCourse = renderCourse(course);
+          return (
+            <ErrorBoundary key={enhancedCourse._id}>
+              <MemoizedCourseCard 
+                course={{
+                  ...enhancedCourse,
+                  // Add header content to course card props
+                  headerContent: enhancedCourse.headerContent,
+                  // Add custom className
+                  className: enhancedCourse.className
+                }}
+                viewMode={viewMode}
+                isCompact={isMobile}
+                preserveClassType={true}
+                classType={classType || enhancedCourse.class_type}
+                className={viewMode === "list" ? "border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200" : ""}
+              />
+            </ErrorBoundary>
+          );
+        })}
       </div>
     );
-  }, [loading, filteredCourses, viewMode, gridClasses, customGridStyle, isMobile]);
+  }, [loading, filteredCourses, viewMode, gridClasses, customGridStyle, isMobile, renderCourse]);
+
+  // Function to render the sidebar
+  const renderSidebar = () => {
+    if (hideCategoryFilter) return null;
+    return (
+      <div className={`lg:w-1/4 ${showFilters ? "block" : "hidden lg:block"}`}>
+        <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg border border-transparent dark:border-gray-700 transition-colors duration-200">
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-gray-800 dark:text-gray-200 transition-colors duration-200">Filters</h3>
+              <button
+                onClick={handleClearFilters}
+                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200"
+              >
+                Clear All
+              </button>
+            </div>
+            {/* Categories */}
+            {!hideCategoryFilter && !hideCategories && (
+              <div className="mb-6">
+                <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-3 transition-colors duration-200">
+                  Categories
+                </h4>
+                {/* Show categories based on classType */}
+                {classType === "live" ? (
+                  // Live Course Categories
+                  <div className="mb-4">
+                    <h5 className="text-sm font-medium text-rose-600 dark:text-rose-400 mb-2 flex items-center">
+                      <span className="inline-block w-2 h-2 bg-rose-500 rounded-full mr-2"></span>
+                      Live Course Categories
+                    </h5>
+                    <CategoryFilter
+                      categories={availableCategories?.filter(cat => fallbackCategories.live.includes(cat)) || fallbackCategories.live}
+                      selectedCategory={selectedCategory}
+                      setSelectedCategory={handleCategoryChange}
+                    />
+                  </div>
+                ) : classType === "blended" ? (
+                  // Blended Course Categories
+                  <div className="mb-4">
+                    <h5 className="text-sm font-medium text-indigo-600 dark:text-indigo-400 mb-2 flex items-center">
+                      <span className="inline-block w-2 h-2 bg-indigo-500 rounded-full mr-2"></span>
+                      Blended Course Categories
+                    </h5>
+                    <CategoryFilter
+                      categories={availableCategories?.filter(cat => fallbackCategories.blended.includes(cat)) || fallbackCategories.blended}
+                      selectedCategory={selectedCategory}
+                      setSelectedCategory={handleCategoryChange}
+                    />
+                  </div>
+                ) : (
+                  // All Categories (when classType is not specified or is "all")
+                  <>
+                    {/* Live Categories Section */}
+                    <div className="mb-4">
+                      <h5 className="text-sm font-medium text-rose-600 dark:text-rose-400 mb-2 flex items-center">
+                        <span className="inline-block w-2 h-2 bg-rose-500 rounded-full mr-2"></span>
+                        Live Courses
+                      </h5>
+                      <CategoryFilter
+                        categories={availableCategories?.filter(cat => fallbackCategories.live.includes(cat)) || fallbackCategories.live}
+                        selectedCategory={selectedCategory}
+                        setSelectedCategory={handleCategoryChange}
+                      />
+                    </div>
+                    {/* Blended Categories Section */}
+                    <div className="mb-2">
+                      <h5 className="text-sm font-medium text-indigo-600 dark:text-indigo-400 mb-2 flex items-center">
+                        <span className="inline-block w-2 h-2 bg-indigo-500 rounded-full mr-2"></span>
+                        Blended Courses
+                      </h5>
+                      <CategoryFilter
+                        categories={availableCategories?.filter(cat => fallbackCategories.blended.includes(cat)) || fallbackCategories.blended}
+                        selectedCategory={selectedCategory}
+                        setSelectedCategory={handleCategoryChange}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+            {/* Grade - Only show if not hidden */}
+            {!hideGradeFilter && (
+              <div className="mb-6">
+                <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-3 transition-colors duration-200">
+                  Grade Level
+                </h4>
+                <div className="space-y-2">
+                  {[
+                    "Preschool",
+                    "Grade 1-2",
+                    "Grade 3-4",
+                    "Grade 5-6",
+                    "Grade 7-8",
+                    "Grade 9-10",
+                    "Grade 11-12",
+                    "UG - Graduate - Professionals"
+                  ].map((grade) => (
+                    <label key={grade} className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        name="grade"
+                        value={grade}
+                        checked={selectedGrade === grade}
+                        onChange={() => handleGradeChange(grade)}
+                        className="form-radio text-primary-600 dark:text-primary-400"
+                      />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">
+                        {grade}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+            {/* Features (static placeholders) */}
+            <div className="space-y-3">
+              <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">
+                Course Features
+              </h4>
+              <div className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 transition-colors duration-200">
+                <Zap size={16} className="text-yellow-500 dark:text-yellow-400" />
+                <span className="text-sm">Certification Available</span>
+              </div>
+              <div className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 transition-colors duration-200">
+                <BookOpen size={16} className="text-blue-500 dark:text-blue-400" />
+                <span className="text-sm">Includes Assignments</span>
+              </div>
+              <div className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 transition-colors duration-200">
+                <GraduationCap size={16} className="text-green-500 dark:text-green-400" />
+                <span className="text-sm">Project-Based Learning</span>
+              </div>
+              <div className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 transition-colors duration-200">
+                <Palette size={16} className="text-purple-500 dark:text-purple-400" />
+                <span className="text-sm">Interactive Quizzes</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Function to render the main content area
+  const renderMainContent = () => {
+    return (
+      <div className={!hideCategoryFilter ? "lg:w-3/4" : "w-full"}>
+        {/* Top row for count - Only show if filters are not hidden */}
+        {!hideFilterBar && (
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+            <div className="text-gray-600 dark:text-gray-300 mb-4 sm:mb-0 flex items-center gap-3 bg-white dark:bg-gray-800/80 px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700">
+              <span className="text-lg font-semibold text-primary-600 dark:text-primary-400">
+                {totalItems}
+              </span>
+              <span className="text-sm">
+                {showingRelated ? 'Related Courses Found' : 
+                totalItems === 1 ? 'Course Matches Your Criteria' : 
+                'Courses Match Your Criteria'}
+              </span>
+              {showingRelated && (
+                <button
+                  onClick={clearRelated}
+                  className="ml-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline text-sm"
+                >
+                  Back to All
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Query Error */}
+        {queryError && (
+          <div className="flex flex-col items-center justify-center py-12 px-4 border border-red-200 dark:border-red-900/30 rounded-lg bg-red-50 dark:bg-red-900/10 text-center">
+            <AlertCircle size={48} className="text-red-500 dark:text-red-400 mb-4" />
+            <h3 className="text-xl font-semibold text-red-700 dark:text-red-300 mb-2">Error Loading Courses</h3>
+            <p className="text-red-600 dark:text-red-400 max-w-md mb-6">
+              {queryError || "We encountered an error while loading courses. Please try again later."}
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 text-white rounded-lg transition-colors duration-200"
+            >
+              Refresh Page
+            </button>
+          </div>
+        )}
+
+        {renderCourseList()}
+
+        {/* Pagination with improved accessibility */}
+        {totalPages > 1 && (
+          <nav className="mt-10 flex justify-center" aria-label="Pagination">
+            {simplePagination ? (
+              <SimplePaginationWrapper
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+                className="dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
+                simplified={true}
+              />
+            ) : (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+                className="dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
+              />
+            )}
+          </nav>
+        )}
+
+        {/* Bottom Action with dynamic styling */}
+        <div className="mt-12 text-center">
+          {CustomButton ? (
+            <div className="inline-block">{CustomButton}</div>
+          ) : (
+            <Link
+              href="/courses"
+              className={`btn-modern ${tabStyles.buttonColor} inline-flex items-center px-6 py-3 text-white text-sm font-medium rounded-xl transition-colors shadow-sm hover:shadow-md`}
+            >
+              <span>View All Courses</span>
+              <ChevronRight className="ml-2 w-5 h-5" />
+            </Link>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <ErrorBoundary>
@@ -1035,8 +1275,8 @@ const CoursesFilter = ({
         )}
 
         {/* Main Wrapper with improved accessibility */}
-        <div className="container mx-auto px-4 -mt-8 w-full">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-gray-900/30 p-4 md:p-6 mb-8 border border-transparent dark:border-gray-700 transition-colors duration-300">
+        <div className="container mx-auto px-4 -mt-3 w-full">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg dark:shadow-gray-900/30 p-4 md:p-6 mb-8 border border-transparent dark:border-gray-700 transition-colors duration-300">
             {/* Top Filters Row with improved mobile layout */}
             {!hideFilterBar && (
               <div className="flex flex-col md:flex-row gap-4 mb-6">
@@ -1115,216 +1355,42 @@ const CoursesFilter = ({
 
             {/* Main content with optimized rendering */}
             <div className="flex flex-col lg:flex-row gap-8">
-              {/* Sidebar - Only render if category filter is not hidden */}
-              {!hideCategoryFilter && (
-                <div className={`lg:w-1/4 ${showFilters ? "block" : "hidden lg:block"}`}>
-                  <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg border border-transparent dark:border-gray-700 transition-colors duration-200">
-                    <div className="mb-6">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="font-semibold text-gray-800 dark:text-gray-200 transition-colors duration-200">Filters</h3>
-                        <button
-                          onClick={handleClearFilters}
-                          className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200"
-                        >
-                          Clear All
-                        </button>
-                      </div>
-                      {/* Categories */}
-                      {!hideCategoryFilter && (
-                        <div className="mb-6">
-                          <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-3 transition-colors duration-200">
-                            Categories
-                          </h4>
-                          
-                          {/* Show categories based on classType */}
-                          {classType === "live" ? (
-                            // Live Course Categories
-                            <div className="mb-4">
-                              <h5 className="text-sm font-medium text-rose-600 dark:text-rose-400 mb-2 flex items-center">
-                                <span className="inline-block w-2 h-2 bg-rose-500 rounded-full mr-2"></span>
-                                Live Course Categories
-                              </h5>
-                              <CategoryFilter
-                                categories={availableCategories?.filter(cat => fallbackCategories.live.includes(cat)) || fallbackCategories.live}
-                                selectedCategory={selectedCategory}
-                                setSelectedCategory={handleCategoryChange}
-                              />
-                            </div>
-                          ) : classType === "blended" ? (
-                            // Blended Course Categories
-                            <div className="mb-4">
-                              <h5 className="text-sm font-medium text-indigo-600 dark:text-indigo-400 mb-2 flex items-center">
-                                <span className="inline-block w-2 h-2 bg-indigo-500 rounded-full mr-2"></span>
-                                Blended Course Categories
-                              </h5>
-                              <CategoryFilter
-                                categories={availableCategories?.filter(cat => fallbackCategories.blended.includes(cat)) || fallbackCategories.blended}
-                                selectedCategory={selectedCategory}
-                                setSelectedCategory={handleCategoryChange}
-                              />
-                            </div>
-                          ) : (
-                            // All Categories (when classType is not specified or is "all")
-                            <>
-                              {/* Live Categories Section */}
-                              <div className="mb-4">
-                                <h5 className="text-sm font-medium text-rose-600 dark:text-rose-400 mb-2 flex items-center">
-                                  <span className="inline-block w-2 h-2 bg-rose-500 rounded-full mr-2"></span>
-                                  Live Courses
-                                </h5>
-                                <CategoryFilter
-                                  categories={availableCategories?.filter(cat => fallbackCategories.live.includes(cat)) || fallbackCategories.live}
-                                  selectedCategory={selectedCategory}
-                                  setSelectedCategory={handleCategoryChange}
-                                />
-                              </div>
-                              
-                              {/* Blended Categories Section */}
-                              <div className="mb-2">
-                                <h5 className="text-sm font-medium text-indigo-600 dark:text-indigo-400 mb-2 flex items-center">
-                                  <span className="inline-block w-2 h-2 bg-indigo-500 rounded-full mr-2"></span>
-                                  Blended Courses
-                                </h5>
-                                <CategoryFilter
-                                  categories={availableCategories?.filter(cat => fallbackCategories.blended.includes(cat)) || fallbackCategories.blended}
-                                  selectedCategory={selectedCategory}
-                                  setSelectedCategory={handleCategoryChange}
-                                />
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      )}
-                      {/* Grade - Only show if not hidden */}
-                      {!hideGradeFilter && (
-                        <div className="mb-6">
-                          <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-3 transition-colors duration-200">
-                            Grade Level
-                          </h4>
-                          <select
-                            value={selectedGrade}
-                            onChange={(e) => handleGradeChange(e.target.value)}
-                            className="select-modern"
-                          >
-                            <option value="">All Grades</option>
-                            <option value="Preschool">Pre-school</option>
-                            <option value="Grade 1-2">Grade 1-2</option>
-                            <option value="Grade 3-4">Grade 3-4</option>
-                            <option value="Grade 5-6">Grade 5-6</option>
-                            <option value="Grade 7-8">Grade 7-8</option>
-                            <option value="Grade 9-10">Grade 9-10</option>
-                            <option value="Grade 11-12">Grade 11-12</option>
-                            <option value="UG - Graduate - Professionals">UG - Graduate - Professionals</option>
-                          </select>
-                        </div>
-                      )}
-
-                      {/* Features (static placeholders) */}
-                      <div className="space-y-3">
-                        <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">
-                          Course Features
-                        </h4>
-                        <div className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 transition-colors duration-200">
-                          <Zap size={16} className="text-yellow-500 dark:text-yellow-400" />
-                          <span className="text-sm">Certification Available</span>
-                        </div>
-                        <div className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 transition-colors duration-200">
-                          <BookOpen size={16} className="text-blue-500 dark:text-blue-400" />
-                          <span className="text-sm">Includes Assignments</span>
-                        </div>
-                        <div className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 transition-colors duration-200">
-                          <GraduationCap size={16} className="text-green-500 dark:text-green-400" />
-                          <span className="text-sm">Project-Based Learning</span>
-                        </div>
-                        <div className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 transition-colors duration-200">
-                          <Palette size={16} className="text-purple-500 dark:text-purple-400" />
-                          <span className="text-sm">Interactive Quizzes</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Content area with optimized course list */}
-              <div className={!hideCategoryFilter ? "lg:w-3/4" : "w-full"}>
-                {/* Top row for count - Only show if filters are not hidden */}
-                {!hideFilterBar && (
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-                    <div className="text-gray-600 dark:text-gray-300 mb-4 sm:mb-0">
-                      {coursesCountText}
-                      {showingRelated && (
-                        <button
-                          onClick={clearRelated}
-                          className="ml-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline"
-                        >
-                          Back to All Courses
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Query Error */}
-                {queryError && (
-                  <div className="flex flex-col items-center justify-center py-12 px-4 border border-red-200 dark:border-red-900/30 rounded-lg bg-red-50 dark:bg-red-900/10 text-center">
-                    <AlertCircle size={48} className="text-red-500 dark:text-red-400 mb-4" />
-                    <h3 className="text-xl font-semibold text-red-700 dark:text-red-300 mb-2">Error Loading Courses</h3>
-                    <p className="text-red-600 dark:text-red-400 max-w-md mb-6">
-                      {queryError || "We encountered an error while loading courses. Please try again later."}
-                    </p>
-                    <button
-                      onClick={() => window.location.reload()}
-                      className="px-4 py-2 bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 text-white rounded-lg transition-colors duration-200"
-                    >
-                      Refresh Page
-                    </button>
-                  </div>
-                )}
-
-                {renderCourseList()}
-
-                {/* Pagination with improved accessibility */}
-                {totalPages > 1 && (
-                  <nav className="mt-10 flex justify-center" aria-label="Pagination">
-                    {simplePagination ? (
-                      <SimplePaginationWrapper
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        onPageChange={handlePageChange}
-                        className="dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
-                        simplified={true}
-                      />
-                    ) : (
-                      <Pagination
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        onPageChange={handlePageChange}
-                        className="dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
-                      />
-                    )}
-                  </nav>
-                )}
-
-                {/* Bottom Action with dynamic styling */}
-                <div className="mt-12 text-center">
-                  {CustomButton ? (
-                    <div className="inline-block">{CustomButton}</div>
-                  ) : (
-                    <Link
-                      href="/courses"
-                      className={`btn-modern ${tabStyles.buttonColor} inline-flex items-center px-6 py-3 text-white text-sm font-medium rounded-xl transition-colors shadow-sm hover:shadow-md`}
-                    >
-                      <span>View All Courses</span>
-                      <ChevronRight className="ml-2 w-5 h-5" />
-                    </Link>
-                  )}
-                </div>
-              </div>
+              {renderSidebar()}
+              {renderMainContent()}
             </div>
           </div>
         </div>
       </section>
+
+      {/* Update course card styling in the component's CSS */}
+      <style jsx>{`
+        .course-card {
+          position: relative;
+          transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+          border-radius: 0.75rem;
+          overflow: hidden;
+          background: white;
+          border: 1px solid rgba(209, 213, 219, 0.3);
+          dark:bg-gray-800;
+          dark:border-gray-700;
+        }
+
+        .course-card:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+          dark:shadow-gray-900/30;
+        }
+
+        .live-course {
+          border-left-color: #ef4444;
+          dark:border-left-color: #dc2626;
+        }
+
+        .blended-course {
+          border-left-color: #379392;
+          dark:border-left-color: #2d7978;
+        }
+      `}</style>
     </ErrorBoundary>
   );
 };
@@ -1360,7 +1426,9 @@ CoursesFilter.propTypes = {
   simplePagination: PropTypes.bool,
   emptyStateContent: PropTypes.node,
   customGridClassName: PropTypes.string,
-  customGridStyle: PropTypes.object
+  customGridStyle: PropTypes.object,
+  renderCourse: PropTypes.func,
+  hideCategories: PropTypes.bool,
 };
 
 export default CoursesFilter;

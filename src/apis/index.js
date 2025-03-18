@@ -1,7 +1,5 @@
-// export const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL; //live instance URL
-export const apiBaseUrl = "http://localhost:8080/api/v1"; // local URL
-// Dynamically determine API base URL according to project standards
-// export const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
+export const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL; //live instance URL
+// export const apiBaseUrl = "http://localhost:8080/api/v1"; // local URL
 
 // Shared utility functions for API URL construction
 const apiUtils = {
@@ -205,7 +203,6 @@ export const apiUrls = {
           }
         }
       });
-
       // Handle course grade if provided
       if (course_grade?.trim()) {
         queryParams.append('course_grade', course_grade.trim());
@@ -958,6 +955,89 @@ export const apiUrls = {
   },
   brouchers: {
     /**
+     * Create a new brochure
+     * @param {Object} broucherData - Brochure data to be created
+     * @returns {string} The brochure creation API URL
+     */
+    createBrouchers: "/broucher",
+    
+    /**
+     * Get all brochures with filtering options
+     * @param {Object} options - Query parameters
+     * @param {number} [options.page=1] - Page number
+     * @param {number} [options.limit=10] - Items per page
+     * @param {string} [options.search=""] - Search term
+     * @returns {string} The brochure list API URL
+     */
+    getAllBrouchers: (options = {}) => {
+      const { page = 1, limit = 10, search = "" } = options;
+      
+      const queryParams = new URLSearchParams();
+      queryParams.append('page', page);
+      queryParams.append('limit', limit);
+      
+      if (search && search.trim() !== '') {
+        queryParams.append('search', search.trim());
+      }
+      
+      return `/broucher?${queryParams.toString()}`;
+    },
+    
+    /**
+     * Get a specific brochure by ID
+     * @param {string} id - Brochure ID
+     * @returns {string} The brochure detail API URL
+     */
+    getBroucherById: (id) => {
+      if (!id) throw new Error('Brochure ID is required');
+      return `/broucher/${id}`;
+    },
+    
+    /**
+     * Update a brochure by ID
+     * @param {string} id - Brochure ID to update
+     * @returns {string} The brochure update API URL
+     */
+    updateBroucher: (id) => {
+      if (!id) throw new Error('Brochure ID is required');
+      return `/broucher/${id}`;
+    },
+    
+    /**
+     * Delete a brochure by ID
+     * @param {string} id - Brochure ID to delete
+     * @returns {string} The brochure deletion API URL
+     */
+    deleteBroucher: (id) => {
+      if (!id) throw new Error('Brochure ID is required');
+      return `/broucher/${id}`;
+    },
+    
+    /**
+     * Download a brochure by course ID
+     * @param {string} courseId - Course ID
+     * @param {Object} [userData] - User data for POST request
+     * @returns {Object|string} The brochure download API URL or request config
+     */
+    downloadBrochure: (courseId, userData = null) => {
+      if (!courseId) throw new Error('Course ID is required');
+      
+      // If userData is provided, return both URL and data for a POST request
+      if (userData) {
+        return {
+          url: `/broucher/download/${courseId}`,
+          data: {
+            ...userData,
+            course_id: courseId
+          }
+        };
+      }
+      
+      // Otherwise just return the URL for a GET request
+      return `/broucher/download/${courseId}`;
+    },
+    
+    /**
      * Request a brochure download based on either course_id or brochure_id
      * @param {Object} options - Request parameters
      * @param {string} [options.brochure_id] - Brochure ID (optional if course_id is provided)
@@ -1037,38 +1117,7 @@ export const apiUrls = {
           }
         }
       };
-    },
-    
-    /**
-     * Get all brochures with filtering options
-     * @param {Object} options - Query parameters
-     * @param {number} [options.page=1] - Page number
-     * @param {number} [options.limit=10] - Items per page
-     * @param {string} [options.search=""] - Search term
-     * @returns {string} The brochure list API URL
-     */
-    getAllBrouchers: (options = {}) => {
-      const { page = 1, limit = 10, search = "" } = options;
-      
-      const queryParams = new URLSearchParams();
-      queryParams.append('page', page);
-      queryParams.append('limit', limit);
-      
-      if (search && search.trim() !== '') {
-        queryParams.append('search', search.trim());
-      }
-      
-      return `/broucher/get?${queryParams.toString()}`;
-    },
-    
-    /**
-     * Get a specific brochure by ID
-     * @param {string} id - Brochure ID
-     * @returns {string} The brochure detail API URL
-     */
-    getBroucherById: (id) => {
-      if (!id) throw new Error('Brochure ID is required');
-      return `/broucher/get/${id}`;
     }
   }
 };
+

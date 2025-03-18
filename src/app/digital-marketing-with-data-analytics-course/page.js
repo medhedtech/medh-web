@@ -35,7 +35,7 @@ function DigitalMarketing() {
         </header>
 
         {/* Content with Header Offset */}
-        <main className="flex-grow pt-16">
+        <main className="flex-grow">
           <AnimatedContent 
             components={{
               DigiMarketingBanner,

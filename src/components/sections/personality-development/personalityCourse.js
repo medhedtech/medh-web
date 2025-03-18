@@ -101,10 +101,11 @@ function PersonalityDevelopmentCourses() {
               </Link>
             }
             fixedCategory="Personality Development"
-            hideCategoryFilter={true}
+            hideCategories={true}
             hideSearch={true}
             hideSortOptions={true}
-            hideFilterBar={true}
+            // hideFilterBar={true}
+            // hideGradeFilter={false}
             hideViewModeSwitch={true}
             hideHeader={true}
             forceViewMode="grid"
