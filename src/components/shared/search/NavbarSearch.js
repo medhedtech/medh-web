@@ -248,6 +248,7 @@ const NavbarSearch = ({
               onKeyDown={handleKeyDown}
               onFocus={() => setHasFocus(true)}
               placeholder={isImmersive ? "What do you want to learn?" : "Search courses, lessons..."}
+              suppressHydrationWarning
               className={`
                 w-full h-full pl-10 pr-8
                 ${isScrolled && !isImmersive ? "text-sm" : "text-base"}
