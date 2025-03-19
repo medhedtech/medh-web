@@ -98,22 +98,22 @@ export default function CourseView() {
   
   // Error component
   const ErrorDisplay = () => (
-    <div className="max-w-3xl mx-auto px-4 py-10 text-center">
-      <div className="bg-red-50 dark:bg-red-900/10 rounded-xl p-8 border border-red-200 dark:border-red-800 shadow-sm">
-        <div className="mb-6 flex justify-center">
-          <div className="rounded-full bg-red-100 dark:bg-red-800/30 p-3">
-            <AlertCircle className="h-8 w-8 text-red-600 dark:text-red-400" />
+    <div className="max-w-3xl mx-auto px-3 sm:px-4 py-6 sm:py-10 text-center">
+      <div className="bg-red-50 dark:bg-red-900/10 rounded-xl p-5 sm:p-8 border border-red-200 dark:border-red-800 shadow-sm">
+        <div className="mb-4 sm:mb-6 flex justify-center">
+          <div className="rounded-full bg-red-100 dark:bg-red-800/30 p-2 sm:p-3">
+            <AlertCircle className="h-6 w-6 sm:h-8 sm:w-8 text-red-600 dark:text-red-400" />
           </div>
         </div>
-        <h2 className="text-2xl font-semibold text-red-600 dark:text-red-400 mb-3">
+        <h2 className="text-xl sm:text-2xl font-semibold text-red-600 dark:text-red-400 mb-2 sm:mb-3">
           Failed to load course
         </h2>
-        <p className="text-gray-600 dark:text-gray-300 mb-6">
+        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mb-4 sm:mb-6">
           {error}
         </p>
         <button 
           onClick={() => window.location.reload()}
-          className="px-5 py-2.5 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors inline-flex items-center"
+          className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors inline-flex items-center text-sm sm:text-base"
         >
           <RefreshCw className="h-4 w-4 mr-2" />
           Try Again
@@ -127,7 +127,7 @@ export default function CourseView() {
       <Toaster position="bottom-center" />
       <div className="relative min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 category-page" data-category="course-view">
         {/* Fixed Header */}
-        <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transform-gpu">
+        <header className="fixed top-0 left-0 right-0 z-30 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transform-gpu">
           <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
             <div className="flex items-center space-x-2 sm:space-x-4 overflow-hidden">
               <button 
@@ -154,24 +154,24 @@ export default function CourseView() {
         </header>
 
         {/* Content with Header Offset */}
-        <main className="flex-grow pt-20 sm:pt-24">
+        <main className="flex-grow pt-16 sm:pt-20 md:pt-24 relative z-10">
           {loading ? (
             <div className="flex items-center justify-center min-h-[60vh]">
               <div className="text-center">
-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500 mb-4"></div>
-                <p className="text-lg text-gray-600 dark:text-gray-300">Loading course details...</p>
+                <div className="inline-block animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-t-2 border-b-2 border-emerald-500 mb-3 sm:mb-4"></div>
+                <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300">Loading course details...</p>
               </div>
             </div>
           ) : error ? (
             <ErrorDisplay />
           ) : (
-            <div className="container mx-auto px-4">
-              <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
+            <div className="container mx-auto px-3 sm:px-4">
+              <div className="flex flex-col lg:flex-row gap-5 lg:gap-8">
                 {/* Left Column - Course Content */}
                 <div className="w-full lg:w-8/12 space-y-4 lg:space-y-8">
                   {/* Course Details */}
                   {course && (
-                    <div className="relative z-10">
+                    <div className="relative z-20">
                       <CourseDetailsPage 
                         courseId={course._id} 
                         initialActiveSection={activeSection}
@@ -183,7 +183,7 @@ export default function CourseView() {
                 
                 {/* Right Column - Enrollment Details */}
                 <div className="w-full lg:w-4/12 mb-8 lg:mb-0">
-                  <div className="lg:sticky lg:top-24 space-y-6">
+                  <div className="lg:sticky lg:top-24 space-y-5 sm:space-y-6 relative z-20">
                     {/* Enrollment Details */}
                     {course && (
                       <motion.div
@@ -203,13 +203,13 @@ export default function CourseView() {
                     )}
                     
                     {/* Mobile Action Button */}
-                    <div className="fixed bottom-0 left-0 right-0 z-50 p-3 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 lg:hidden">
+                    <div className="fixed bottom-0 left-0 right-0 z-40 p-3 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 lg:hidden">
                       <button 
                         onClick={() => {
                           // Handle enrollment action
                           toast.success("Enrollment feature coming soon!");
                         }} 
-                        className="w-full py-3 px-4 rounded-lg font-medium text-white transition-all bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700"
+                        className="w-full py-3 px-4 rounded-lg font-medium text-white transition-all bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-sm sm:text-base"
                       >
                         Enroll Now
                       </button>
