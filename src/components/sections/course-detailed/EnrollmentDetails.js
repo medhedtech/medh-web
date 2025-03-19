@@ -42,8 +42,8 @@ const SuccessModal = ({ isOpen, onClose, courseTitle, navigateToCourse }) => {
       <div className="bg-white rounded-lg p-12 w-11/12 max-w-md">
         <div className="flex justify-center mb-6">
           <svg
-            width="64"
-            height="63"
+            width="64px"
+            height="64px"
             viewBox="0 0 64 63"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
@@ -235,7 +235,7 @@ const EnrollmentDetails = ({
     };
   }, [enrollmentType, activePricing, calculateFinalPrice, formatPrice]);
 
-  // Subscribe to course after successful payment
+  // Subscribe to course after successful subscription
   const subscribeCourse = async (studentId, courseId, amount, paymentResponse = {}) => {
     try {
       const token = localStorage.getItem('token');
@@ -243,26 +243,8 @@ const EnrollmentDetails = ({
         throw new Error('No authentication token found');
       }
 
-      // First verify the payment status
-      const verifyPaymentResponse = await fetch('/api/verify-payment', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          payment_id: paymentResponse.razorpay_payment_id,
-          payment_signature: paymentResponse.razorpay_signature,
-          payment_order_id: paymentResponse.razorpay_order_id
-        })
-      });
-
-      if (!verifyPaymentResponse.ok) {
-        throw new Error('Payment verification failed');
-      }
-
-      // Make API call to subscribe to the course
-      const response = await fetch(apiUrls.enrollment.markCourseAsCompleted, {
+      // Make API call to subscribe to the course using the correct endpoint
+      const response = await fetch('/api/students/enrollments/subscribe', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -272,71 +254,31 @@ const EnrollmentDetails = ({
           student_id: studentId,
           course_id: courseId,
           amount: amount,
-          payment_details: {
-            payment_id: paymentResponse.razorpay_payment_id,
-            payment_signature: paymentResponse.razorpay_signature,
-            payment_order_id: paymentResponse.razorpay_order_id,
-            payment_method: 'razorpay',
-            currency: activePricing.currency || 'USD',
-            amount: amount
-          },
+          payment_id: paymentResponse.razorpay_payment_id || '',
+          payment_signature: paymentResponse.razorpay_signature || '',
+          payment_order_id: paymentResponse.razorpay_order_id || '',
+          payment_method: 'razorpay',
+          currency: activePricing.currency || 'USD',
           enrollment_type: enrollmentType,
           status: 'success'
         })
       });
 
-      const responseData = await response.json();
-
       if (!response.ok) {
-        // Check if payment needs to be refunded
-        if (response.status === 400 || response.status === 409) {
-          // Initiate refund if subscription fails
-          await initiateRefund(paymentResponse.razorpay_payment_id);
-        }
-        throw new Error(responseData.message || 'Unable to complete subscription');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Subscription failed');
       }
 
+      const data = await response.json();
+      
       // Call enrollCourse API after successful subscription
       await enrollCourse(studentId, courseId);
       
-      return responseData;
+      return data;
     } catch (error) {
       console.error("Error in subscribing course:", error);
-      // Show more specific error message to user
-      const errorMessage = error.message === 'Payment verification failed' 
-        ? "Payment verification failed. Please contact support."
-        : "Unable to complete enrollment. Please try again.";
-      
-      toast.error(errorMessage);
+      toast.error(error.message || "Subscription failed. Please try again.");
       throw error;
-    }
-  };
-
-  // Initiate refund if subscription fails
-  const initiateRefund = async (paymentId) => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token || !paymentId) return;
-
-      const response = await fetch('/api/refund-payment', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          payment_id: paymentId
-        })
-      });
-
-      if (!response.ok) {
-        console.error('Refund initiation failed');
-        toast.error('Unable to process refund automatically. Our team will contact you.');
-      } else {
-        toast.success('Payment will be refunded to your account.');
-      }
-    } catch (error) {
-      console.error('Refund error:', error);
     }
   };
 
@@ -348,10 +290,8 @@ const EnrollmentDetails = ({
         throw new Error('No authentication token found');
       }
 
-      // Determine the correct API endpoint based on enrollment type
-      const enrollmentEndpoint = enrollmentType === 'individual' 
-        ? apiUrls.Students.createStudent
-        : apiUrls.corporateStudent.createCorporateStudent;
+      // Use the correct API endpoint for enrollment
+      const enrollmentEndpoint = `/api/students/${enrollmentType === 'individual' ? '' : 'corporate/'}enroll`;
 
       // Make API call to enroll in the course
       const response = await fetch(enrollmentEndpoint, {
@@ -372,19 +312,20 @@ const EnrollmentDetails = ({
         })
       });
 
-      const responseData = await response.json();
-
       if (!response.ok) {
-        throw new Error(responseData.message || 'Unable to complete enrollment');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Enrollment failed');
       }
+
+      const data = await response.json();
 
       // Track enrollment progress
       await trackEnrollmentProgress(studentId, courseId);
 
       setIsSuccessModalOpen(true);
-      toast.success("Successfully enrolled in the course!");
+      console.log("Student enrolled successfully!");
       
-      return responseData;
+      return data;
     } catch (error) {
       console.error("Error enrolling course:", error);
       toast.error(error.message || "Error enrolling in the course. Please try again!");
@@ -421,10 +362,8 @@ const EnrollmentDetails = ({
       const token = localStorage.getItem('token');
       if (!token || !studentId || !courseId) return false;
 
-      // Get enrollments based on enrollment type
-      const enrollmentsEndpoint = enrollmentType === 'individual'
-        ? apiUrls.enrollment.getEnrolledCourseByStudentId(studentId)
-        : apiUrls.corporateStudent.getCorporateStudentEnrollments(studentId);
+      // Use the correct API endpoint for checking enrollment status
+      const enrollmentsEndpoint = `/api/students/${enrollmentType === 'individual' ? '' : 'corporate/'}enrollments/${studentId}`;
 
       const response = await fetch(enrollmentsEndpoint, {
         headers: {
@@ -448,8 +387,9 @@ const EnrollmentDetails = ({
       const token = localStorage.getItem('token');
       if (!token || !studentId) return [];
 
+      // Use the correct API endpoint for upcoming meetings
       const response = await fetch(
-        apiUrls.enrollment.getUpcomingMeetingsForStudent(studentId),
+        `/api/students/enrollments/upcoming-meetings/${studentId}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -556,12 +496,12 @@ const EnrollmentDetails = ({
 
       // Configure Razorpay options
       const options = {
-        key: "rzp_test_Rz8NSLJbl4LBA5", // Replace with your actual key in production
-        amount: paymentDetails.amountInINR, // Amount in paise
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_Rz8NSLJbl4LBA5",
+        amount: paymentDetails.amountInINR,
         currency: paymentDetails.paymentCurrency,
         name: courseDetails?.course_title || "Course Enrollment",
         description: `Payment for ${courseDetails?.course_title || "Course"} (${enrollmentType} enrollment)`,
-        image: "https://medh.education/path-to-your-logo.png", // Replace with your actual logo URL
+        image: "/images/logo.png", // Use local image path instead of external URL
         handler: async function (response) {
           toast.success("Payment Successful!");
           
@@ -728,6 +668,12 @@ const EnrollmentDetails = ({
             <div className="flex justify-between items-center">
               <span className="text-gray-600 dark:text-gray-400 text-sm">Duration</span>
               <span className="font-medium text-gray-900 dark:text-white">{duration}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600 dark:text-gray-400 text-sm">Grade</span>
+              <span className="font-medium text-gray-900 dark:text-white">
+                {courseDetails?.grade}
+              </span>
             </div>
             
             {/* {enrollmentType === 'batch' && (
