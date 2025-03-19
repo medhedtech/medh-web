@@ -11,6 +11,9 @@ import { toast } from 'react-hot-toast';
 import { apiUrls } from '@/apis';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { isFreePrice } from '@/utils/priceUtils';
+import axios from 'axios';
+import useGetQuery from "@/hooks/getQuery.hook";
+import usePostQuery from "@/hooks/postQuery.hook";
 
 // Error Boundary Component
 const ErrorFallback = ({ error, resetErrorBoundary }) => (
@@ -93,6 +96,8 @@ const EnrollmentDetails = ({
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
   const { convertPrice, formatPrice: formatCurrencyPrice, currencyCode, exchangeRate } = useCurrency();
+  const { getQuery } = useGetQuery();
+  const { postQuery, loading: postLoading } = usePostQuery();
 
   // Check login status on component mount
   useEffect(() => {
@@ -235,72 +240,18 @@ const EnrollmentDetails = ({
     };
   }, [enrollmentType, activePricing, calculateFinalPrice, formatPrice]);
 
-  // Subscribe to course after successful subscription
-  const subscribeCourse = async (studentId, courseId, amount, paymentResponse = {}) => {
+  // Enroll in course after successful payment
+  const enrollCourse = async (studentId, courseId, paymentResponse = {}) => {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
         throw new Error('No authentication token found');
       }
 
-      // Make API call to subscribe to the course using the correct endpoint
-      const response = await fetch('/api/students/enrollments/subscribe', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          student_id: studentId,
-          course_id: courseId,
-          amount: amount,
-          payment_id: paymentResponse.razorpay_payment_id || '',
-          payment_signature: paymentResponse.razorpay_signature || '',
-          payment_order_id: paymentResponse.razorpay_order_id || '',
-          payment_method: 'razorpay',
-          currency: activePricing.currency || 'USD',
-          enrollment_type: enrollmentType,
-          status: 'success'
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Subscription failed');
-      }
-
-      const data = await response.json();
-      
-      // Call enrollCourse API after successful subscription
-      await enrollCourse(studentId, courseId);
-      
-      return data;
-    } catch (error) {
-      console.error("Error in subscribing course:", error);
-      toast.error(error.message || "Subscription failed. Please try again.");
-      throw error;
-    }
-  };
-
-  // Enroll in course after successful subscription
-  const enrollCourse = async (studentId, courseId) => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-
-      // Use the correct API endpoint for enrollment
-      const enrollmentEndpoint = `/api/students/${enrollmentType === 'individual' ? '' : 'corporate/'}enroll`;
-
-      // Make API call to enroll in the course
-      const response = await fetch(enrollmentEndpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
+      // Use postQuery to call the enrolled courses API
+      const response = await postQuery({
+        url: apiUrls?.enrolledCourses?.createEnrolledCourse,
+        postData: {
           student_id: studentId,
           course_id: courseId,
           enrollment_type: enrollmentType,
@@ -308,16 +259,19 @@ const EnrollmentDetails = ({
           payment_status: 'completed',
           enrollment_date: new Date().toISOString(),
           course_progress: 0,
-          status: 'active'
-        })
+          status: 'active',
+          // Include payment details if provided
+          payment_details: paymentResponse ? {
+            payment_id: paymentResponse.razorpay_payment_id || '',
+            payment_signature: paymentResponse.razorpay_signature || '',
+            payment_order_id: paymentResponse.razorpay_order_id || '',
+            payment_method: 'razorpay',
+            amount: getFinalPrice(),
+            currency: currencyCode,
+            payment_date: new Date().toISOString()
+          } : null
+        }
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Enrollment failed');
-      }
-
-      const data = await response.json();
 
       // Track enrollment progress
       await trackEnrollmentProgress(studentId, courseId);
@@ -325,7 +279,7 @@ const EnrollmentDetails = ({
       setIsSuccessModalOpen(true);
       console.log("Student enrolled successfully!");
       
-      return data;
+      return response;
     } catch (error) {
       console.error("Error enrolling course:", error);
       toast.error(error.message || "Error enrolling in the course. Please try again!");
@@ -339,15 +293,18 @@ const EnrollmentDetails = ({
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      // Get the appropriate progress tracking endpoint
+      // Use getQuery for tracking progress
       const progressEndpoint = enrollmentType === 'individual'
-        ? apiUrls.enrollment.getStudentCourseProgress(studentId, courseId)
-        : apiUrls.corporateStudent.getCorporateStudentProgress(studentId, courseId);
+        ? `/api/students/enrollments/progress/${studentId}/${courseId}`
+        : `/api/corporate/enrollments/progress/${studentId}/${courseId}`;
 
-      await fetch(progressEndpoint, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`
+      await getQuery({
+        url: progressEndpoint,
+        onSuccess: (data) => {
+          console.log("Progress tracking successful:", data);
+        },
+        onFail: (error) => {
+          console.error("Error tracking progress:", error);
         }
       });
     } catch (error) {
@@ -362,19 +319,24 @@ const EnrollmentDetails = ({
       const token = localStorage.getItem('token');
       if (!token || !studentId || !courseId) return false;
 
-      // Use the correct API endpoint for checking enrollment status
-      const enrollmentsEndpoint = `/api/students/${enrollmentType === 'individual' ? '' : 'corporate/'}enrollments/${studentId}`;
+      // Use getQuery for checking enrollment
+      const endpoint = enrollmentType === 'individual'
+        ? `/api/enrolled-courses/student/${studentId}`
+        : `/api/corporate/enrollments/${studentId}`;
 
-      const response = await fetch(enrollmentsEndpoint, {
-        headers: {
-          'Authorization': `Bearer ${token}`
+      let isEnrolled = false;
+      
+      await getQuery({
+        url: endpoint,
+        onSuccess: (data) => {
+          isEnrolled = Array.isArray(data) && data.some(enrollment => enrollment.course_id === courseId);
+        },
+        onFail: (error) => {
+          console.error("Error checking enrollment status:", error);
         }
       });
 
-      if (!response.ok) return false;
-
-      const enrollments = await response.json();
-      return enrollments.some(enrollment => enrollment.course_id === courseId);
+      return isEnrolled;
     } catch (error) {
       console.error("Error checking enrollment status:", error);
       return false;
@@ -387,19 +349,20 @@ const EnrollmentDetails = ({
       const token = localStorage.getItem('token');
       if (!token || !studentId) return [];
 
-      // Use the correct API endpoint for upcoming meetings
-      const response = await fetch(
-        `/api/students/enrollments/upcoming-meetings/${studentId}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
+      // Use getQuery for upcoming meetings
+      const endpoint = `/api/enrolled-courses/get-upcoming-meetings/${studentId}`;
+      let meetings = [];
+      
+      await getQuery({
+        url: endpoint,
+        onSuccess: (data) => {
+          meetings = data || [];
+        },
+        onFail: (error) => {
+          console.error("Error fetching upcoming meetings:", error);
         }
-      );
+      });
 
-      if (!response.ok) return [];
-
-      const meetings = await response.json();
       return meetings;
     } catch (error) {
       console.error("Error fetching upcoming meetings:", error);
@@ -505,11 +468,10 @@ const EnrollmentDetails = ({
         handler: async function (response) {
           toast.success("Payment Successful!");
           
-          // Call subscription API after successful payment
-          await subscribeCourse(
+          // Call enrollment API directly with payment details
+          await enrollCourse(
             userId, 
             courseDetails._id, 
-            paymentDetails.originalPrice, 
             response
           );
         },
