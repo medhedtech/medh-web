@@ -58,29 +58,64 @@ const CounterStudent = () => {
     if (studentId) {
       const fetchCounts = async () => {
         try {
-          const enrollResponse = await getQuery({
-            url: `${apiUrls?.EnrollCourse?.getCountByStudentId}/${studentId}`,
-          });
-          const membershipResponse = await getQuery({
-            url: `${apiUrls?.Membership?.getSelfPackedCount}/${studentId}`,
-          });
+          // Log the student ID being used
+          console.log("Fetching counts for student ID:", studentId);
+          
+          // Create proper API URL for enrollment counts
+          const enrollmentCountsUrl = `/enroll/getCount/${studentId}`;
+          
+          // Log the URL being used
+          console.log("Enrollment counts URL:", enrollmentCountsUrl);
 
-          const liveCourses = enrollResponse?.liveCoursesCount || 0;
-          const selfPacedCourses = membershipResponse?.totalSelfPacedMemberships || 0;
-
-          setCounts({
-            enrolledCourses: liveCourses + selfPacedCourses,
-            liveCourses,
-            selfPacedCourses,
+          // Fetch enrollment data using the getQuery hook
+          await getQuery({
+            url: enrollmentCountsUrl,
+            onSuccess: (data) => {
+              console.log("Enrollment counts response:", data);
+              
+              // Extract data from the response using correct property names
+              const totalEnrollments = data?.totalEnrollments || 0;
+              const liveCourses = data?.liveCoursesCount || 0;
+              const selfPacedCourses = data?.selfPackedCourses || 0;
+              
+              // Update the counts with data from response
+              console.log("Setting counts:", { 
+                enrolledCourses: totalEnrollments,
+                liveCourses,
+                selfPacedCourses
+              });
+              
+              setCounts({
+                enrolledCourses: totalEnrollments,
+                liveCourses,
+                selfPacedCourses,
+              });
+            },
+            onFail: (error) => {
+              console.error("Failed to fetch enrollment counts:", error);
+              
+              // Set default values if the API fails
+              setCounts({
+                enrolledCourses: 0,
+                liveCourses: 0,
+                selfPacedCourses: 0,
+              });
+            }
           });
         } catch (error) {
           console.error("Failed to fetch counts:", error);
+          // Set default values in case of error
+          setCounts({
+            enrolledCourses: 0,
+            liveCourses: 0,
+            selfPacedCourses: 0,
+          });
         }
       };
 
       fetchCounts();
     }
-  }, [studentId]);
+  }, [studentId, getQuery]);
 
   // Prepare dashboard data with enhanced styling and modern gradients
   const dashboardCounts = [
