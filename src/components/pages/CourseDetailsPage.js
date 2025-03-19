@@ -660,16 +660,16 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
   // Loading state
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-[50vh] py-20">
+      <div className="flex justify-center items-center min-h-[50vh] py-10 sm:py-20">
         <div className="relative">
           <Preloader />
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: [0, 1, 0] }}
             transition={{ repeat: Infinity, duration: 2, times: [0, 0.5, 1] }}
-            className="absolute -top-10 -right-10"
+            className="absolute -top-8 sm:-top-10 -right-8 sm:-right-10"
           >
-            <Sparkles className="w-8 h-8 text-emerald-400" />
+            <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-400" />
           </motion.div>
         </div>
       </div>
@@ -751,49 +751,74 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
                 
                 return (
                   <div className="mt-4">
-                    {/* Overview section */}
+                    {/* Overview section with improved styling */}
                     {overview ? (
-                      <div className={`mb-6 bg-gray-50 dark:bg-gray-800/50 p-4 sm:p-6 rounded-lg border-l-4 ${borderClass}`}>
+                      <div className={`mb-8 bg-gradient-to-r from-${colorClasses.primaryColor}-50/70 to-${colorClasses.primaryColor}-50/20 dark:from-${colorClasses.primaryColor}-900/20 dark:to-${colorClasses.primaryColor}-900/10 p-5 sm:p-6 rounded-xl border border-${colorClasses.primaryColor}-100 dark:border-${colorClasses.primaryColor}-800/30 shadow-sm`}>
+                        <div className="flex items-start sm:items-center mb-4">
+                          <div className={`flex-shrink-0 p-2 rounded-full bg-${colorClasses.primaryColor}-100 dark:bg-${colorClasses.primaryColor}-900/50 mr-3 shadow-sm`}>
+                            <BookOpen className={`h-5 w-5 text-${colorClasses.primaryColor}-500 dark:text-${colorClasses.primaryColor}-400`} />
+                          </div>
+                          <h4 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100">
+                            About This Course
+                          </h4>
+                        </div>
                         <p className="whitespace-pre-line text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed">{overview}</p>
                       </div>
                     ) : (
-                      <div className={`mb-6 bg-gray-50 dark:bg-gray-800/50 p-4 sm:p-6 rounded-lg border-l-4 ${borderClass}`}>
+                      <div className={`mb-8 bg-gradient-to-r from-${colorClasses.primaryColor}-50/70 to-${colorClasses.primaryColor}-50/20 dark:from-${colorClasses.primaryColor}-900/20 dark:to-${colorClasses.primaryColor}-900/10 p-5 sm:p-6 rounded-xl border border-${colorClasses.primaryColor}-100 dark:border-${colorClasses.primaryColor}-800/30 shadow-sm`}>
+                        <div className="flex items-start sm:items-center mb-4">
+                          <div className={`flex-shrink-0 p-2 rounded-full bg-${colorClasses.primaryColor}-100 dark:bg-${colorClasses.primaryColor}-900/50 mr-3 shadow-sm`}>
+                            <BookOpen className={`h-5 w-5 text-${colorClasses.primaryColor}-500 dark:text-${colorClasses.primaryColor}-400`} />
+                          </div>
+                          <h4 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100">
+                            About This Course
+                          </h4>
+                        </div>
                         <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed">
                           This comprehensive {courseDetails?.course_category || courseDetails?.category || "course"} is designed to provide students with a solid foundation in the subject matter, combining theoretical knowledge with practical applications. Through interactive sessions and hands-on projects, students will develop the skills needed to excel in this field.
                         </p>
                       </div>
                     )}
                     
-                    {/* Render all parsed sections */}
+                    {/* Render all parsed sections with improved styling */}
                     {sections.map((section, sectionIndex) => {
                       const SectionIcon = sectionIcons[section.title] || DefaultIcon;
                       
+                      // Special styling for Benefits and similar sections
+                      const isBenefitsSection = ['Benefits', 'What You\'ll Learn', 'Learning Outcomes', 'Key Takeaways'].includes(section.title);
+                      
                       return (
-                        <div className="mt-8" key={`section-${sectionIndex}`}>
-                          <h4 className="text-base sm:text-lg font-medium text-gray-800 dark:text-gray-100 mb-4 flex items-center">
-                            <div className={`p-1.5 rounded-full ${colorClasses.bg} mr-2`}>
-                              <SectionIcon className={`h-4 w-4 ${colorClasses.color}`} />
+                        <div className={`mt-8 ${isBenefitsSection ? 'animate-fadeIn' : ''}`} key={`section-${sectionIndex}`}>
+                          <div className={`flex items-center mb-5 ${isBenefitsSection ? 'bg-gradient-to-r from-' + colorClasses.primaryColor + '-50 to-transparent dark:from-' + colorClasses.primaryColor + '-900/20 dark:to-transparent p-3 rounded-lg' : ''}`}>
+                            <div className={`p-2 rounded-lg ${isBenefitsSection ? 'bg-' + colorClasses.primaryColor + '-100 dark:bg-' + colorClasses.primaryColor + '-900/30' : 'bg-gray-100 dark:bg-gray-800'} mr-3 shadow-sm`}>
+                              <SectionIcon className={`h-5 w-5 ${colorClasses.color}`} />
                             </div>
-                            {section.title}
-                          </h4>
+                            <h4 className={`text-lg sm:text-xl font-bold ${isBenefitsSection ? 'text-' + colorClasses.primaryColor + '-700 dark:text-' + colorClasses.primaryColor + '-400' : 'text-gray-800 dark:text-gray-100'}`}>
+                              {section.title}
+                            </h4>
+                          </div>
                           
                           {section.bullets ? (
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                               {section.bullets.map((bullet, index) => (
-                                <div 
+                                <motion.div 
                                   key={`bullet-${index}`}
-                                  className="flex items-start p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300"
+                                  className={`flex items-start p-3 sm:p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md hover:border-${colorClasses.primaryColor}-200 dark:hover:border-${colorClasses.primaryColor}-700/50 transition-all duration-300`}
+                                  initial={{ opacity: 0, y: 10 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{ delay: index * 0.05 }}
+                                  whileHover={{ y: -2 }}
                                 >
-                                  <div className={`p-2 rounded-full ${colorClasses.bg} mr-3 flex-shrink-0`}>
-                                    <CheckCircle className={`h-4 w-4 ${colorClasses.color}`} />
+                                  <div className={`p-2 rounded-full bg-${colorClasses.primaryColor}-100 dark:bg-${colorClasses.primaryColor}-900/30 mr-3 flex-shrink-0`}>
+                                    <Check className={`h-4 w-4 ${colorClasses.color}`} />
                                   </div>
-                                  <p className="text-sm text-gray-700 dark:text-gray-300">{bullet}</p>
-                                </div>
+                                  <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300">{bullet}</p>
+                                </motion.div>
                               ))}
                             </div>
                           ) : section.text ? (
-                            <div className={`bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 p-4 border-l-2 ${borderClass}`}>
-                              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">{section.text}</p>
+                            <div className={`bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 p-4 sm:p-5 border-l-2 ${borderClass} shadow-sm`}>
+                              <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 whitespace-pre-line">{section.text}</p>
                             </div>
                           ) : null}
                         </div>
@@ -802,24 +827,31 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
                     
                     {/* Course highlights */}
                     {courseDetails?.highlights && courseDetails.highlights.length > 0 && !sections.some(s => s.title === 'Highlights') && (
-                      <div className="mt-8">
-                        <h4 className="text-base sm:text-lg font-medium text-gray-800 dark:text-gray-100 mb-4 flex items-center">
-                          <div className={`p-1.5 rounded-full ${colorClasses.bg} mr-2`}>
-                            <Award className={`h-4 w-4 ${colorClasses.color}`} />
+                      <div className="mt-10 pt-6 border-t border-gray-100 dark:border-gray-800">
+                        <div className="flex items-center mb-5 bg-gradient-to-r from-amber-50 to-transparent dark:from-amber-900/20 dark:to-transparent p-3 rounded-lg">
+                          <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/30 mr-3 shadow-sm">
+                            <Star className="h-5 w-5 text-amber-500 dark:text-amber-400" />
                           </div>
-                          Course Highlights
-                        </h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <h4 className="text-lg sm:text-xl font-bold text-amber-700 dark:text-amber-400">
+                            Course Highlights
+                          </h4>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                           {courseDetails.highlights.map((highlight, index) => (
-                            <div 
+                            <motion.div 
                               key={index}
-                              className="flex items-start p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300"
+                              className="flex items-start p-3 sm:p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md hover:border-amber-200 dark:hover:border-amber-700/50 transition-all duration-300"
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: index * 0.05 }}
+                              whileHover={{ y: -2 }}
                             >
-                              <div className={`p-2 rounded-full ${colorClasses.bg} mr-3 flex-shrink-0`}>
-                                <Star className={`h-4 w-4 ${colorClasses.color}`} />
+                              <div className="p-2 rounded-full bg-amber-100 dark:bg-amber-900/30 mr-3 flex-shrink-0">
+                                <Star className="h-4 w-4 text-amber-500 dark:text-amber-400" />
                               </div>
-                              <p className="text-sm text-gray-700 dark:text-gray-300">{highlight}</p>
-                            </div>
+                              <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300">{highlight}</p>
+                            </motion.div>
                           ))}
                         </div>
                       </div>
@@ -887,17 +919,17 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
             animate="visible"
             key="curriculum-section"
           >
-            <div className="flex items-center mb-6">
-              <div className={`w-1.5 h-6 bg-gradient-to-b from-${getCategoryColorClasses().primaryColor}-400 to-${getCategoryColorClasses().primaryColor}-500 rounded-sm mr-3`}></div>
-              <h2 className={`text-2xl font-bold bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-600 to-${getCategoryColorClasses().primaryColor}-500 bg-clip-text text-transparent`}>
+            <div className="flex items-center mb-4 sm:mb-6">
+              <div className={`w-1.5 h-6 bg-gradient-to-b from-${getCategoryColorClasses().primaryColor}-400 to-${getCategoryColorClasses().primaryColor}-500 rounded-sm mr-2 sm:mr-3`}></div>
+              <h2 className={`text-xl sm:text-2xl font-bold bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-600 to-${getCategoryColorClasses().primaryColor}-500 bg-clip-text text-transparent`}>
                 Curriculum
               </h2>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden mb-8">
-              <div className={`bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-50 to-${getCategoryColorClasses().primaryColor}-100/30 dark:from-${getCategoryColorClasses().primaryColor}-900/20 dark:to-${getCategoryColorClasses().primaryColor}-900/10 px-6 py-4 border-b border-gray-200 dark:border-gray-600`}>
-                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center">
-                  <GraduationCap className={`w-5 h-5 mr-2 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} />
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden mb-6 sm:mb-8">
+              <div className={`bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-50 to-${getCategoryColorClasses().primaryColor}-100/30 dark:from-${getCategoryColorClasses().primaryColor}-900/20 dark:to-${getCategoryColorClasses().primaryColor}-900/10 px-3 sm:px-4 py-2.5 sm:py-3 border-b border-gray-200 dark:border-gray-600`}>
+                <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center">
+                  <GraduationCap className={`w-4 h-4 sm:w-5 sm:h-5 mr-2 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} />
                   Course Modules
                 </h3>
               </div>
@@ -907,13 +939,13 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
                   curriculum.map((item, index) => (
                     <div key={index} className="transition-all duration-200">
                       <motion.button
-                        className="w-full px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                        className="w-full px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                         onClick={() => toggleAccordion(index)}
                         whileTap={{ scale: 0.98 }}
                       >
                         <div className="flex items-center flex-1 min-w-0">
                           <motion.div 
-                            className={`flex-shrink-0 p-2 rounded-full mr-3 sm:mr-4 ${
+                            className={`flex-shrink-0 p-1.5 sm:p-2 rounded-full mr-2 sm:mr-4 ${
                               openAccordions === index 
                                 ? `bg-${getCategoryColorClasses().primaryColor}-100 dark:bg-${getCategoryColorClasses().primaryColor}-900/50 text-${getCategoryColorClasses().primaryColor}-600 dark:text-${getCategoryColorClasses().primaryColor}-400` 
                                 : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
@@ -924,12 +956,12 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
                             }}
                           >
                             {openAccordions === index ? (
-                              <BookOpen size={18} />
+                              <BookOpen size={16} className="sm:w-[18px] sm:h-[18px]" />
                             ) : (
-                              <Calendar size={18} />
+                              <Calendar size={16} className="sm:w-[18px] sm:h-[18px]" />
                             )}
                           </motion.div>
-                          <span className={`text-sm sm:text-base font-medium truncate ${
+                          <span className={`text-xs sm:text-sm md:text-base font-medium truncate ${
                             openAccordions === index 
                               ? `text-${getCategoryColorClasses().primaryColor}-700 dark:text-${getCategoryColorClasses().primaryColor}-400` 
                               : "text-gray-800 dark:text-gray-200"
@@ -938,7 +970,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
                           </span>
                         </div>
                         <motion.div 
-                          className={`flex-shrink-0 ml-3 p-1.5 rounded-full ${
+                          className={`flex-shrink-0 ml-2 sm:ml-3 p-1 sm:p-1.5 rounded-full ${
                             openAccordions === index 
                               ? `bg-${getCategoryColorClasses().primaryColor}-100 dark:bg-${getCategoryColorClasses().primaryColor}-900/50 text-${getCategoryColorClasses().primaryColor}-600 dark:text-${getCategoryColorClasses().primaryColor}-400` 
                               : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
@@ -946,7 +978,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
                           animate={openAccordions === index ? { rotate: 180 } : { rotate: 0 }}
                           transition={{ duration: 0.3 }}
                         >
-                          <ChevronDown size={16} />
+                          <ChevronDown size={14} className="sm:w-4 sm:h-4" />
                         </motion.div>
                       </motion.button>
                       
@@ -959,9 +991,9 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
                             transition={{ duration: 0.3 }}
                             className="overflow-hidden"
                           >
-                            <div className={`px-4 sm:px-6 py-4 sm:py-5 bg-${getCategoryColorClasses().primaryColor}-50/50 dark:bg-${getCategoryColorClasses().primaryColor}-900/10 border-t border-gray-200 dark:border-gray-700`}>
-                              <div className="pl-7 sm:pl-10 space-y-3 sm:space-y-4">
-                                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-line">
+                            <div className={`px-3 sm:px-6 py-3 sm:py-5 bg-${getCategoryColorClasses().primaryColor}-50/50 dark:bg-${getCategoryColorClasses().primaryColor}-900/10 border-t border-gray-200 dark:border-gray-700`}>
+                              <div className="pl-6 sm:pl-10 space-y-2 sm:space-y-4">
+                                <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-line">
                                   {item.weekDescription}
                                 </p>
                               </div>
@@ -972,14 +1004,14 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
                     </div>
                   ))
                 ) : (
-                  <div className="p-6 text-center">
-                    <div className="inline-flex items-center justify-center p-3 bg-gray-50 dark:bg-gray-700 rounded-full mb-4">
-                      <AlertTriangle className={`h-6 w-6 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} />
+                  <div className="p-4 sm:p-6 text-center">
+                    <div className="inline-flex items-center justify-center p-2 sm:p-3 bg-gray-50 dark:bg-gray-700 rounded-full mb-3 sm:mb-4">
+                      <AlertTriangle className={`h-5 w-5 sm:h-6 sm:w-6 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} />
                     </div>
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                    <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-2">
                       Curriculum Coming Soon
                     </h3>
-                    <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto">
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto">
                       Our team is finalizing the curriculum details. Check back soon for a complete breakdown of course modules.
                     </p>
                   </div>
@@ -990,18 +1022,18 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
             {/* Tools & Technologies Section */}
             {toolsTechnologies && toolsTechnologies.length > 0 && (
               <motion.div 
-                className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden mb-8"
+                className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden mb-6 sm:mb-8"
                 variants={fadeIn}
               >
-                <div className={`bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-50 to-${getCategoryColorClasses().primaryColor}-50/70 dark:from-${getCategoryColorClasses().primaryColor}-900/20 dark:to-${getCategoryColorClasses().primaryColor}-900/10 px-4 py-3 border-b border-gray-200 dark:border-gray-600`}>
-                  <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center">
-                    <Sparkles className={`w-5 h-5 mr-2 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} />
+                <div className={`bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-50 to-${getCategoryColorClasses().primaryColor}-50/70 dark:from-${getCategoryColorClasses().primaryColor}-900/20 dark:to-${getCategoryColorClasses().primaryColor}-900/10 px-3 sm:px-4 py-2.5 sm:py-3 border-b border-gray-200 dark:border-gray-600`}>
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center">
+                    <Sparkles className={`w-4 h-4 sm:w-5 sm:h-5 mr-2 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} />
                     Tools & Technologies
                   </h3>
                 </div>
-                <div className="p-4">
+                <div className="p-3 sm:p-4">
                   <motion.div 
-                    className="flex flex-wrap gap-2"
+                    className="flex flex-wrap gap-1.5 sm:gap-2"
                     variants={staggerContainer}
                     initial="hidden"
                     animate="visible"
@@ -1009,7 +1041,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
                     {toolsTechnologies.map((tool, index) => (
                       <motion.span 
                         key={index} 
-                        className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-50 to-${getCategoryColorClasses().primaryColor}-50/70 text-${getCategoryColorClasses().primaryColor}-700 dark:from-${getCategoryColorClasses().primaryColor}-900/30 dark:to-${getCategoryColorClasses().primaryColor}-900/20 dark:text-${getCategoryColorClasses().primaryColor}-300 border border-${getCategoryColorClasses().primaryColor}-100 dark:border-${getCategoryColorClasses().primaryColor}-800/30 hover:shadow-md transition-all duration-300 cursor-default`}
+                        className={`inline-flex items-center px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-50 to-${getCategoryColorClasses().primaryColor}-50/70 text-${getCategoryColorClasses().primaryColor}-700 dark:from-${getCategoryColorClasses().primaryColor}-900/30 dark:to-${getCategoryColorClasses().primaryColor}-900/20 dark:text-${getCategoryColorClasses().primaryColor}-300 border border-${getCategoryColorClasses().primaryColor}-100 dark:border-${getCategoryColorClasses().primaryColor}-800/30 hover:shadow-md transition-all duration-300 cursor-default`}
                         variants={fadeIn}
                         whileHover={{ 
                           y: -2, 
@@ -1027,36 +1059,36 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
             {/* Bonus Modules Section */}
             {bonusModules && bonusModules.length > 0 && (
               <motion.div 
-                className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden mb-8"
+                className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden mb-6 sm:mb-8"
                 variants={fadeIn}
               >
-                <div className={`bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-50 to-${getCategoryColorClasses().primaryColor}-100/30 dark:from-${getCategoryColorClasses().primaryColor}-900/20 dark:to-${getCategoryColorClasses().primaryColor}-900/10 px-4 py-3 border-b border-gray-200 dark:border-gray-600`}>
-                  <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center">
-                    <Star className={`w-5 h-5 mr-2 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} />
+                <div className={`bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-50 to-${getCategoryColorClasses().primaryColor}-100/30 dark:from-${getCategoryColorClasses().primaryColor}-900/20 dark:to-${getCategoryColorClasses().primaryColor}-900/10 px-3 sm:px-4 py-2.5 sm:py-3 border-b border-gray-200 dark:border-gray-600`}>
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center">
+                    <Star className={`w-4 h-4 sm:w-5 sm:h-5 mr-2 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} />
                     Bonus Modules
                   </h3>
                 </div>
-                <div className="p-4">
-                  <ul className="space-y-3">
+                <div className="p-3 sm:p-4">
+                  <ul className="space-y-2 sm:space-y-3">
                     {bonusModules.map((module, index) => (
                       <motion.li 
                         key={index} 
-                        className={`flex items-start p-3 rounded-lg hover:bg-${getCategoryColorClasses().primaryColor}-50/50 dark:hover:bg-${getCategoryColorClasses().primaryColor}-900/10 transition-colors`}
+                        className={`flex items-start p-2 sm:p-3 rounded-lg hover:bg-${getCategoryColorClasses().primaryColor}-50/50 dark:hover:bg-${getCategoryColorClasses().primaryColor}-900/10 transition-colors`}
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.1 }}
                         whileHover={{ x: 5 }}
                       >
                         <motion.div 
-                          className={`p-2 rounded-full bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-400 to-${getCategoryColorClasses().primaryColor}-500 text-white mr-3 mt-0.5 shadow-sm`}
+                          className={`p-1.5 sm:p-2 rounded-full bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-400 to-${getCategoryColorClasses().primaryColor}-500 text-white mr-2 sm:mr-3 mt-0.5 shadow-sm`}
                           whileHover={{ rotate: 15 }}
                         >
-                          <BookOpen size={16} />
+                          <BookOpen size={14} className="sm:w-4 sm:h-4" />
                         </motion.div>
                         <div>
-                          <h4 className="font-medium text-gray-800 dark:text-gray-200">{module.title}</h4>
+                          <h4 className="text-sm sm:text-base font-medium text-gray-800 dark:text-gray-200">{module.title}</h4>
                           {module.description && (
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 leading-relaxed">
+                            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1 leading-relaxed">
                               {module.description}
                             </p>
                           )}
@@ -1548,7 +1580,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
       initial="hidden"
       animate="visible"
       variants={staggerContainer}
-      className="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-8"
+      className="max-w-6xl mx-auto px-3 sm:px-4 py-3 sm:py-4 md:py-8"
     >
       <motion.div 
         variants={fadeIn}
@@ -1559,7 +1591,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
           variants={fadeIn}
           initial="hidden"
           animate="visible"
-          className="mb-4 sm:mb-6"
+          className="mb-3 sm:mb-4 md:mb-6"
         >
           <CourseHeader 
             title={courseDetails?.course_title}
@@ -1572,7 +1604,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
         </motion.div>
 
         {/* Mobile Stats - Visible only on mobile */}
-        <div className="block sm:hidden px-4 mb-4">
+        <div className="block sm:hidden px-3 sm:px-4 mb-3 sm:mb-4">
           <CourseStats 
             duration={formatDuration(courseDetails)}
             students="75+" 
@@ -1583,7 +1615,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
         </div>
 
         {/* Navigation */}
-        <div className="sticky top-16 z-40 bg-gray-50 dark:bg-gray-900 py-3 px-2 -mx-2 sm:px-0 sm:mx-0">
+        <div className="sticky top-16 z-40 bg-gray-50 dark:bg-gray-900 py-2 sm:py-3 px-1 sm:px-2 -mx-1 sm:-mx-2 md:px-0 md:mx-0">
           <CourseNavigation 
             activeSection={activeSection} 
             scrollToSection={scrollToSection} 
@@ -1594,7 +1626,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
         </div>
 
         {/* Dynamic content area based on active tab */}
-        <div className="px-4 sm:px-3 pt-3 sm:pt-8 pb-6">
+        <div className="px-3 sm:px-4 pt-3 sm:pt-6 md:pt-8 pb-4 sm:pb-6">
           <AnimatePresence mode="wait">
             {renderActiveSection()}
           </AnimatePresence>
@@ -1604,13 +1636,13 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
       {/* Mobile Action Button - Fixed at bottom for enrollment */}
       <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-3 z-40 flex justify-between items-center shadow-lg">
         <div className="flex flex-col">
-          <span className="text-sm text-gray-600 dark:text-gray-400">Course Fee</span>
-          <span className="text-lg font-bold text-gray-900 dark:text-white">
+          <span className="text-xs text-gray-600 dark:text-gray-400">Course Fee</span>
+          <span className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
             {courseDetails?.course_fee ? `₹${courseDetails.course_fee}` : 'Free'}
           </span>
         </div>
         <button 
-          className="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-green-600 text-white font-medium rounded-lg shadow-md"
+          className="px-4 sm:px-6 py-2 sm:py-2.5 bg-gradient-to-r from-emerald-500 to-green-600 text-white text-sm font-medium rounded-lg shadow-md"
           onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })}
         >
           Enroll Now
