@@ -1118,6 +1118,188 @@ export const apiUrls = {
         }
       };
     }
+  },
+  enrolledCourses: {
+    /**
+     * Create a new enrolled course
+     * @returns {string} The enrolled course creation API URL
+     */
+    createEnrolledCourse: "/enroll/create",
+    
+    /**
+     * Get all enrolled courses with filtering options
+     * @param {Object} options - Query parameters
+     * @param {number} [options.page=1] - Page number
+     * @param {number} [options.limit=10] - Items per page
+     * @param {string} [options.search=""] - Search term
+     * @returns {string} The enrolled courses list API URL
+     */
+    getAllEnrolledCourses: (options = {}) => {
+      const { page = 1, limit = 10, search = "", sort_by = "createdAt", sort_order = "desc" } = options;
+      
+      const queryParams = new URLSearchParams();
+      queryParams.append('page', page);
+      queryParams.append('limit', limit);
+      
+      if (search && search.trim() !== '') {
+        queryParams.append('search', search.trim());
+      }
+      
+      apiUtils.appendParam('sort_by', sort_by, queryParams);
+      apiUtils.appendParam('sort_order', sort_order, queryParams);
+      
+      return `/enroll/get?${queryParams.toString()}`;
+    },
+    
+    /**
+     * Get a specific enrolled course by ID
+     * @param {string} id - Enrolled course ID
+     * @returns {string} The enrolled course detail API URL
+     */
+    getEnrolledCourseById: (id) => {
+      if (!id) throw new Error('Enrolled course ID is required');
+      return `/enroll/get/${id}`;
+    },
+    
+    /**
+     * Get enrollment counts for a student
+     * @param {string} studentId - Student ID
+     * @returns {string} The enrollment counts API URL
+     */
+    getEnrollmentCountsByStudentId: (studentId) => {
+      if (!studentId) throw new Error('Student ID is required');
+      return `/enroll/getCount/${studentId}`;
+    },
+    
+    /**
+     * Update an enrolled course
+     * @param {string} id - Enrolled course ID
+     * @returns {string} The enrolled course update API URL
+     */
+    updateEnrolledCourse: (id) => {
+      if (!id) throw new Error('Enrolled course ID is required');
+      return `/enroll/update/${id}`;
+    },
+    
+    /**
+     * Delete an enrolled course
+     * @param {string} id - Enrolled course ID
+     * @returns {string} The enrolled course deletion API URL
+     */
+    deleteEnrolledCourse: (id) => {
+      if (!id) throw new Error('Enrolled course ID is required');
+      return `/enroll/delete/${id}`;
+    },
+    
+    /**
+     * Get enrolled courses by student ID
+     * @param {string} studentId - Student ID
+     * @param {Object} options - Query parameters
+     * @param {number} [options.page=1] - Page number
+     * @param {number} [options.limit=10] - Items per page
+     * @param {string} [options.status=""] - Filter by enrollment status
+     * @returns {string} The enrolled courses by student API URL
+     */
+    getEnrolledCourseByStudentId: (studentId, options = {}) => {
+      if (!studentId) throw new Error('Student ID is required');
+      
+      const { page = 1, limit = 10, status = "" } = options;
+      
+      const queryParams = new URLSearchParams();
+      queryParams.append('page', page);
+      queryParams.append('limit', limit);
+      
+      if (status) {
+        queryParams.append('status', status);
+      }
+      
+      return `/enrolled-courses/student/${studentId}?${queryParams.toString()}`;
+    },
+    
+    /**
+     * Get enrolled students by course ID
+     * @param {string} courseId - Course ID
+     * @param {Object} options - Query parameters
+     * @param {number} [options.page=1] - Page number
+     * @param {number} [options.limit=10] - Items per page
+     * @returns {string} The enrolled students by course API URL
+     */
+    getEnrolledStudentsByCourseId: (courseId, options = {}) => {
+      if (!courseId) throw new Error('Course ID is required');
+      
+      const { page = 1, limit = 10 } = options;
+      
+      const queryParams = new URLSearchParams();
+      queryParams.append('page', page);
+      queryParams.append('limit', limit);
+      
+      return `/enrolled-courses/course/${courseId}?${queryParams.toString()}`;
+    },
+    
+    /**
+     * Get upcoming meetings for a student
+     * @param {string} studentId - Student ID
+     * @param {Object} options - Query parameters
+     * @param {number} [options.limit=10] - Number of meetings to return
+     * @returns {string} The upcoming meetings API URL
+     */
+    getUpcomingMeetingsForStudent: (studentId, options = {}) => {
+      if (!studentId) throw new Error('Student ID is required');
+      
+      const { limit = 10 } = options;
+      
+      const queryParams = new URLSearchParams();
+      queryParams.append('limit', limit);
+      
+      return `/enrolled-courses/get-upcoming-meetings/${studentId}?${queryParams.toString()}`;
+    },
+    
+    /**
+     * Mark a course as completed
+     * @returns {string} The mark course as completed API URL
+     */
+    markCourseAsCompleted: "/enrolled-courses/mark-completed",
+    
+    /**
+     * Get all students with their enrolled courses
+     * @param {Object} options - Query parameters
+     * @param {number} [options.page=1] - Page number
+     * @param {number} [options.limit=10] - Items per page
+     * @param {string} [options.search=""] - Search term
+     * @returns {string} The students with enrolled courses API URL
+     */
+    getAllStudentsWithEnrolledCourses: (options = {}) => {
+      const { page = 1, limit = 10, search = "" } = options;
+      
+      const queryParams = new URLSearchParams();
+      queryParams.append('page', page);
+      queryParams.append('limit', limit);
+      
+      if (search && search.trim() !== '') {
+        queryParams.append('search', search.trim());
+      }
+      
+      return `/enrolled-courses/get-enrolled-students?${queryParams.toString()}`;
+    },
+    
+    /**
+     * Watch a video from an enrolled course
+     * @param {Object} options - Query parameters
+     * @param {string} [options.courseId] - Course ID
+     * @param {string} [options.videoId] - Video ID
+     * @param {string} [options.studentId] - Student ID
+     * @returns {string} The watch video API URL
+     */
+    watchVideo: (options = {}) => {
+      const { courseId, videoId, studentId } = options;
+      
+      const queryParams = new URLSearchParams();
+      apiUtils.appendParam('courseId', courseId, queryParams);
+      apiUtils.appendParam('videoId', videoId, queryParams);
+      apiUtils.appendParam('studentId', studentId, queryParams);
+      
+      return `/enrolled-courses/watch?${queryParams.toString()}`;
+    }
   }
 };
 
