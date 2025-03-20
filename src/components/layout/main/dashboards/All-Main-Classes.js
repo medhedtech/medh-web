@@ -113,9 +113,9 @@ const UpComingClass = () => {
                 <Image
                   src={classItem?.courseDetails?.course_image || class2}
                   alt={classItem?.title || "Class"}
-                  layout="fill"
-                  objectFit="cover"
-                  className="rounded-l-xl transition-transform transform hover:scale-110"
+                  fill
+                  className="object-cover rounded-l-xl transition-transform transform hover:scale-110"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
               </div>
 
