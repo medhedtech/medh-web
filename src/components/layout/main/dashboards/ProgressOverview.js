@@ -1,31 +1,21 @@
-import React from "react";
+"use client";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import CourseCard from "./CourseCard";
-import progress1 from "@/assets/images/dashbord/progress1.png";
-import progress2 from "@/assets/images/dashbord/progress2.png";
 import { ChevronRight, Zap } from "lucide-react";
+import useGetQuery from "@/hooks/getQuery.hook";
+import Image from "next/image";
 
 const ProgressOverview = () => {
-  const courses = [
-    {
-      id: 1,
-      title: "Web Development",
-      instructor: "John Doe",
-      progress: 40,
-      image: progress1,
-      lastAccessed: "2 days ago",
-      nextMilestone: "Complete JavaScript Basics",
-    },
-    {
-      id: 2,
-      title: "Java Full Stack",
-      instructor: "John Doe",
-      progress: 70,
-      image: progress2,
-      lastAccessed: "1 day ago",
-      nextMilestone: "Spring Boot Project",
-    },
-  ];
+  const { getQuery } = useGetQuery();
+  const [studentData, setStudentData] = useState({
+    recentActivity: [],
+    progress: {
+      averageProgress: 0,
+      coursesInProgress: 0,
+      coursesCompleted: 0
+    }
+  });
+  const [studentId, setStudentId] = useState(null);
 
   // Animation variants
   const containerVariants = {
@@ -47,6 +37,55 @@ const ProgressOverview = () => {
       x: 0,
       transition: { duration: 0.5 }
     }
+  };
+
+  // Fetch student data
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const student_id = localStorage.getItem("userId");
+      if (student_id) {
+        setStudentId(student_id);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (studentId) {
+      const fetchStudentData = async () => {
+        try {
+          await getQuery({
+            url: `/enroll/getCount/${studentId}`,
+            onSuccess: (response) => {
+              if (response?.data) {
+                const { recent_activity, progress } = response.data;
+                setStudentData({
+                  recentActivity: recent_activity || [],
+                  progress: {
+                    averageProgress: progress.averageProgress || 0,
+                    coursesInProgress: progress.coursesInProgress || 0,
+                    coursesCompleted: progress.coursesCompleted || 0
+                  }
+                });
+              }
+            },
+            onFail: (error) => {
+              console.error("Failed to fetch student data:", error);
+            }
+          });
+        } catch (error) {
+          console.error("Error fetching student data:", error);
+        }
+      };
+
+      fetchStudentData();
+    }
+  }, [studentId, getQuery]);
+
+  // Helper function to get status color
+  const getStatusColor = (status, payment_status) => {
+    if (payment_status === "pending") return "text-yellow-500";
+    if (status === "active") return "text-green-500";
+    return "text-gray-500";
   };
 
   return (
@@ -80,11 +119,11 @@ const ProgressOverview = () => {
 
       <motion.div 
         variants={containerVariants}
-        className="grid grid-cols-1 md:grid-cols-2 gap-6"
+        className="grid grid-cols-1 gap-6"
       >
-        {courses.map((course) => (
+        {studentData.recentActivity.map((course) => (
           <motion.div
-            key={course.id}
+            key={course.course_id}
             variants={itemVariants}
             className="group relative bg-white dark:bg-gray-800/50 backdrop-blur-lg rounded-3xl shadow-lg hover:shadow-xl transition-all duration-500 overflow-hidden border border-gray-100 dark:border-gray-700/50"
           >
@@ -94,50 +133,38 @@ const ProgressOverview = () => {
             >
               <div 
                 className="h-full bg-gradient-to-r from-primary-500 to-primary-600 dark:from-primary-400 dark:to-primary-500 transition-all duration-700"
-                style={{ width: `${course.progress}%` }}
+                style={{ width: `${course.progress || 0}%` }}
               />
             </div>
 
             <div className="p-6 relative">
-              {/* Course content */}
               <div className="flex items-start gap-4">
-                <div className="w-20 h-20 rounded-2xl overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-gray-700">
-                  <img 
-                    src={course.image.src} 
-                    alt={course.title}
-                    className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
-                  />
-                </div>
-                
                 <div className="flex-grow">
                   <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-1 group-hover:text-primary-500 dark:group-hover:text-primary-400 transition-colors duration-300">
-                    {course.title}
+                    {course.course_title}
                   </h3>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">
-                    Instructor: {course.instructor}
-                  </p>
                   
-                  {/* Progress details */}
+                  {/* Course details */}
                   <div className="space-y-2">
                     <div className="flex justify-between items-center text-sm">
-                      <span className="text-gray-600 dark:text-gray-400">Progress</span>
-                      <span className="font-semibold text-primary-600 dark:text-primary-400">
-                        {course.progress}%
+                      <span className="text-gray-600 dark:text-gray-400">Course Type</span>
+                      <span className="font-medium text-primary-600 dark:text-primary-400">
+                        {course.class_type}
                       </span>
                     </div>
                     
                     <div className="flex justify-between items-center text-sm">
-                      <span className="text-gray-500 dark:text-gray-400">Last accessed:</span>
-                      <span className="text-gray-700 dark:text-gray-300">{course.lastAccessed}</span>
+                      <span className="text-gray-500 dark:text-gray-400">Progress</span>
+                      <span className="font-medium text-primary-600 dark:text-primary-400">
+                        {course.progress || 0}%
+                      </span>
                     </div>
                     
-                    <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Next milestone:
-                        <span className="ml-1 font-medium text-gray-900 dark:text-white">
-                          {course.nextMilestone}
-                        </span>
-                      </p>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-500 dark:text-gray-400">Status</span>
+                      <span className={`font-medium ${getStatusColor(course.status, course.payment_status)}`}>
+                        {course.payment_status === "pending" ? "Payment Pending" : course.status}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -146,6 +173,17 @@ const ProgressOverview = () => {
           </motion.div>
         ))}
       </motion.div>
+
+      {studentData.recentActivity.length === 0 && (
+        <motion.div
+          variants={itemVariants}
+          className="text-center py-8"
+        >
+          <p className="text-gray-600 dark:text-gray-400">
+            No recent activity found. Start exploring courses to begin your learning journey!
+          </p>
+        </motion.div>
+      )}
     </motion.div>
   );
 };
