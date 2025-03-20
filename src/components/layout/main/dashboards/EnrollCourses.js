@@ -7,6 +7,14 @@ import { apiUrls } from "@/apis";
 import { motion, AnimatePresence } from "framer-motion";
 import { BookOpen, ChevronRight, Loader, Search } from "lucide-react";
 
+// Helper function to get the auth token
+const getAuthToken = () => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('token');
+  }
+  return null;
+};
+
 const EnrollCourses = () => {
   const router = useRouter();
   const [enrollCourses, setEnrollCourses] = useState([]);
@@ -14,7 +22,8 @@ const EnrollCourses = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isHovered, setIsHovered] = useState(null);
   const [error, setError] = useState(null);
-  const { getQuery, loading } = useGetQuery();
+  const [loading, setLoading] = useState(false);
+  const { getQuery } = useGetQuery();
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -46,51 +55,86 @@ const EnrollCourses = () => {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedUserId = localStorage.getItem("userId");
-      if (!storedUserId) {
-        setError("User not authenticated. Please log in.");
+      const token = getAuthToken();
+      
+      if (!storedUserId || !token) {
+        setError("Please log in to view your enrolled courses.");
         return;
       }
+      
       setStudentId(storedUserId);
     }
   }, []);
 
   const fetchEnrolledCourses = async (id) => {
     try {
+      setLoading(true);
+      setError(null);
+      
+      const token = getAuthToken();
+      
+      if (!token) {
+        setError("Authentication token not found. Please log in again.");
+        setLoading(false);
+        return;
+      }
+      
+      const headers = {
+        'x-access-token': token,
+        'Content-Type': 'application/json'
+      };
+      
+      const paymentApiUrl = apiUrls.payment.getStudentPayments(id, { 
+        page: 1, 
+        limit: 4 // Only fetch 4 items since we're displaying a limited set
+      });
+      
       await getQuery({
-        url: `${apiUrls?.EnrollCourse?.getEnrolledCoursesByStudentId}/${id}`,
-        onSuccess: (data) => {
-          if (!Array.isArray(data)) {
-            throw new Error("Invalid data format received from server");
+        url: paymentApiUrl,
+        headers,
+        onSuccess: (response) => {
+          let courses = [];
+          
+          if (response?.success && response?.data?.enrollments) {
+            const enrollments = response.data.enrollments || [];
+            
+            courses = enrollments
+              .map((enrollment) => {
+                const course = enrollment.course_id;
+                if (!course) return null;
+                
+                return {
+                  ...course,
+                  _id: course._id || enrollment.course_id?._id,
+                  progress: enrollment.course_progress || 0,
+                  last_accessed: enrollment.last_accessed_at || enrollment.updatedAt || null,
+                  completion_status: enrollment.is_completed ? "completed" : "in_progress",
+                  enrollment_id: enrollment._id
+                };
+              })
+              .filter(Boolean);
           }
-
-          const courses = data
-            .map((enrollment) => {
-              const course = enrollment.course_id;
-              if (!course) return null;
-
-              return {
-                ...course,
-                progress: enrollment.progress || 0,
-                last_accessed: enrollment.last_accessed || null,
-                completion_status: enrollment.completion_status || "in_progress"
-              };
-            })
-            .filter(Boolean)
-            .slice(0, 4);
-
+          
           setEnrollCourses(courses);
           setError(null);
+          setLoading(false);
         },
-        onFail: (error) => {
-          console.error("Failed to fetch enrolled courses:", error);
-          setError("Failed to fetch your enrolled courses. Please try again.");
-          setEnrollCourses([]);
+        onError: (error) => {
+          if (error?.response?.status === 401) {
+            setError("Your session has expired. Please log in again.");
+          } else if (error?.response?.status === 404) {
+            setEnrollCourses([]);
+            setError(null);
+          } else {
+            setError("Failed to load enrolled courses. Please try again later.");
+          }
+          
+          setLoading(false);
         },
       });
     } catch (error) {
-      console.error("Error in fetchEnrolledCourses:", error);
       setError("An unexpected error occurred. Please try again later.");
-      setEnrollCourses([]);
+      setLoading(false);
     }
   };
 

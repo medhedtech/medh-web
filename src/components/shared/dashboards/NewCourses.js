@@ -4,21 +4,24 @@ import CourseCard from "./CourseCard";
 import { useRouter } from "next/navigation";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
+import usePostQuery from "@/hooks/postQuery.hook"; 
 import { motion, AnimatePresence } from "framer-motion";
 import { BookOpen, Search, ChevronRight, Loader2, AlertCircle, Filter } from "lucide-react";
 import { toast } from "react-toastify";
 
-const NewCourses = () => {
+const RelatedCourses = () => {
   const router = useRouter();
   const [courses, setCourses] = useState([]);
   const [filteredCourses, setFilteredCourses] = useState([]);
-  const { getQuery, loading } = useGetQuery();
+  const { getQuery, loading: getLoading } = useGetQuery();
+  const { postQuery, loading: postLoading } = usePostQuery();
   const [searchTitle, setSearchTitle] = useState("");
   const [limit] = useState(4);
-  const [page] = useState(1);
   const [minFee, setMinFee] = useState("");
   const [maxFee, setMaxFee] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -44,27 +47,112 @@ const NewCourses = () => {
   };
 
   useEffect(() => {
-    const fetchCourses = () => {
+    fetchRelatedCourses();
+  }, []);
+
+  const fetchRelatedCourses = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Get current user's enrolled courses IDs
       const user_id = localStorage.getItem("userId");
-      getQuery({
-        url: apiUrls?.courses?.getNewCourses({
-          page,
-          limit,
-          course_tag: "Live",
-          status: "Published",
-          user_id,
-        }),
-        onSuccess: (res) => {
-          setCourses(res?.courses || []);
-        },
-        onFail: (err) => {
-          console.error("Error fetching courses:", err);
-          toast.error("Failed to fetch courses. Please try again.");
-        },
+      const token = localStorage.getItem("token");
+      
+      if (!user_id || !token) {
+        setError("Please log in to view personalized course recommendations.");
+        setLoading(false);
+        return;
+      }
+      
+      const headers = {
+        'x-access-token': token,
+        'Content-Type': 'application/json'
+      };
+      
+      // First get the user's enrolled courses to extract IDs
+      const paymentsUrl = apiUrls.payment.getStudentPayments(user_id, { 
+        page: 1, 
+        limit: 5 // Only need a few courses to find related ones
       });
-    };
-    fetchCourses();
-  }, [page, limit]);
+      
+      await getQuery({
+        url: paymentsUrl,
+        headers,
+        onSuccess: async (response) => {
+          let enrolledCourseIds = [];
+          
+          if (response?.success && response?.data?.enrollments) {
+            // Extract course IDs from enrollments
+            enrolledCourseIds = response.data.enrollments
+              .map(enrollment => enrollment.course_id?._id)
+              .filter(Boolean);
+          }
+          
+          if (enrolledCourseIds.length === 0) {
+            // If no enrolled courses, get new courses instead
+            getNewCourses();
+            return;
+          }
+          
+          // Now fetch related courses based on enrolled course IDs
+          const relatedCoursesRequest = apiUrls.courses.getAllRelatedCourses(
+            enrolledCourseIds, 
+            limit
+          );
+          
+          await postQuery({
+            url: relatedCoursesRequest.url,
+            data: relatedCoursesRequest.data,
+            headers,
+            onSuccess: (relatedData) => {
+              const relatedCourses = relatedData?.courses || relatedData || [];
+              setCourses(relatedCourses);
+              setLoading(false);
+            },
+            onError: (error) => {
+              console.error("Error fetching related courses:", error);
+              setError("Failed to fetch course recommendations. Showing new courses instead.");
+              getNewCourses();
+            }
+          });
+        },
+        onError: (error) => {
+          console.error("Error fetching user enrollments:", error);
+          setError("Failed to fetch your enrolled courses. Showing new courses instead.");
+          getNewCourses();
+        }
+      });
+    } catch (error) {
+      console.error("Exception in fetchRelatedCourses:", error);
+      setError("An error occurred. Showing new courses instead.");
+      getNewCourses();
+    }
+  };
+
+  // Fallback to get new courses if related courses cannot be fetched
+  const getNewCourses = async () => {
+    const user_id = localStorage.getItem("userId");
+    
+    await getQuery({
+      url: apiUrls.courses.getNewCourses({
+        page: 1,
+        limit,
+        course_tag: "Live",
+        status: "Published",
+        user_id,
+      }),
+      onSuccess: (res) => {
+        setCourses(res?.courses || []);
+        setLoading(false);
+      },
+      onError: (err) => {
+        console.error("Error fetching new courses:", err);
+        setError("Failed to fetch courses. Please try again.");
+        setLoading(false);
+      },
+    });
+  };
 
   useEffect(() => {
     const applyFilter = () => {
@@ -96,7 +184,7 @@ const NewCourses = () => {
     setSearchTitle("");
   };
 
-  if (loading) {
+  if (loading || getLoading || postLoading) {
     return (
       <div className="min-h-[400px] flex items-center justify-center">
         <motion.div
@@ -132,7 +220,7 @@ const NewCourses = () => {
               <BookOpen className="w-6 h-6 text-primary-500 dark:text-primary-400" />
             </div>
             <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 dark:text-white">
-              Enroll in New Course
+              Recommended Courses
             </h2>
           </motion.div>
 
@@ -171,7 +259,7 @@ const NewCourses = () => {
               variants={itemVariants}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              href="/dashboards/student-enroll-new-courses"
+              href="/dashboards/recommended-courses"
               className="inline-flex items-center gap-2 text-primary-500 hover:text-primary-600 font-medium transition-colors"
             >
               View All
@@ -179,6 +267,17 @@ const NewCourses = () => {
             </motion.a>
           </div>
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400"
+          >
+            {error}
+          </motion.div>
+        )}
 
         {/* Filter Section */}
         <AnimatePresence>
@@ -275,4 +374,4 @@ const NewCourses = () => {
   );
 };
 
-export default NewCourses;
+export default RelatedCourses;
