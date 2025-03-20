@@ -1,8 +1,7 @@
-
-import PageWrapper from "@/components/shared/wrappers/PageWrapper";
-import lessons from "@/../public/fakedata/lessons.json";
-import LessonMain from "@/components/layout/main/LessonMain";
+import { redirect } from 'next/navigation';
 import { notFound } from "next/navigation";
+import lessons from "@/../public/fakedata/lessons.json";
+
 export async function generateMetadata({ params }) {
   const { id } = lessons?.find(({ id }) => id == params.id) || { id: 1 };
   return {
@@ -14,22 +13,21 @@ export async function generateMetadata({ params }) {
     } | Medh - Education LMS Template`,
   };
 }
+
 const Lesson = ({ params }) => {
   const { id } = params;
   const isExistLesson = lessons?.find(({ id: id1 }) => id1 === parseInt(id));
+  
   if (!isExistLesson) {
     notFound();
   }
-  return (
-    <PageWrapper>
-      <main>
-        <LessonMain id={params?.id} />
-        
-      </main>
-    </PageWrapper>
-  );
+  
+  // Redirect to the new integrated lessons page
+  redirect(`/integrated-lessons/${id}`);
 };
+
 export async function generateStaticParams() {
   return lessons?.map(({ id }) => ({ id: id.toString() }));
 }
+
 export default Lesson;

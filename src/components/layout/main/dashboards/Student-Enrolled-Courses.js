@@ -6,15 +6,24 @@ import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, BookOpen, Loader2, Search } from "lucide-react";
-import { toast } from "react-toastify";
+
+// Helper function to get the auth token
+const getAuthToken = () => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('token');
+  }
+  return null;
+};
 
 const StudentEnrollCourses = () => {
   const router = useRouter();
   const [enrollCourses, setEnrollCourses] = useState([]);
-  const { getQuery, loading } = useGetQuery();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [studentId, setStudentId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [isHovered, setIsHovered] = useState(null);
+  const { getQuery } = useGetQuery();
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -42,34 +51,101 @@ const StudentEnrollCourses = () => {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedUserId = localStorage.getItem("userId");
+      const token = getAuthToken();
+      
+      if (!storedUserId || !token) {
+        setError("Please log in to view your enrolled courses.");
+        return;
+      }
+      
       setStudentId(storedUserId);
     }
   }, []);
 
   useEffect(() => {
     if (studentId) {
-      getQuery({
-        url: `${apiUrls?.EnrollCourse?.getEnrolledCoursesByStudentId}/${studentId}`,
-        onSuccess: (data) => {
-          const courses = data
-            .map((enrollment) => enrollment.course_id)
-            .filter((course) => course);
-          setEnrollCourses(courses);
-        },
-        onFail: (error) => {
-          console.error("Failed to fetch enrolled courses:", error);
-          toast.error("Failed to fetch enrolled courses. Please try again.");
-        },
-      });
+      fetchEnrolledCourses(studentId);
     }
   }, [studentId]);
+
+  const fetchEnrolledCourses = async (id) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const token = getAuthToken();
+      
+      if (!token) {
+        setError("Authentication token not found. Please log in again.");
+        setLoading(false);
+        return;
+      }
+      
+      const headers = {
+        'x-access-token': token,
+        'Content-Type': 'application/json'
+      };
+      
+      const paymentApiUrl = apiUrls.payment.getStudentPayments(id, { 
+        page: 1,
+        limit: 20 // Show more courses on the full page view
+      });
+      
+      await getQuery({
+        url: paymentApiUrl,
+        headers,
+        onSuccess: (response) => {
+          let courses = [];
+          
+          if (response?.success && response?.data?.enrollments) {
+            const enrollments = response.data.enrollments || [];
+            
+            courses = enrollments
+              .map((enrollment) => {
+                const course = enrollment.course_id;
+                if (!course) return null;
+                
+                return {
+                  ...course,
+                  _id: course._id || enrollment.course_id?._id,
+                  progress: enrollment.course_progress || 0,
+                  last_accessed: enrollment.last_accessed_at || enrollment.updatedAt || null,
+                  completion_status: enrollment.is_completed ? "completed" : "in_progress",
+                  enrollment_id: enrollment._id
+                };
+              })
+              .filter(Boolean);
+          }
+          
+          setEnrollCourses(courses);
+          setError(null);
+          setLoading(false);
+        },
+        onError: (error) => {
+          if (error?.response?.status === 401) {
+            setError("Your session has expired. Please log in again.");
+          } else if (error?.response?.status === 404) {
+            setEnrollCourses([]);
+            setError(null);
+          } else {
+            setError("Failed to load enrolled courses. Please try again later.");
+          }
+          
+          setLoading(false);
+        },
+      });
+    } catch (error) {
+      setError("An unexpected error occurred. Please try again later.");
+      setLoading(false);
+    }
+  };
 
   const handleCardClick = (id) => {
     router.push(`/dashboards/my-courses/${id}`);
   };
 
   const filteredCourses = enrollCourses.filter(course => 
-    course.course_title.toLowerCase().includes(searchTerm.toLowerCase())
+    course.course_title?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -123,6 +199,17 @@ const StudentEnrollCourses = () => {
             />
           </motion.div>
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400"
+          >
+            {error}
+          </motion.div>
+        )}
 
         {/* Courses Grid */}
         {loading ? (
@@ -191,7 +278,9 @@ const StudentEnrollCourses = () => {
                     title={course.course_title}
                     image={course.course_image}
                     isLive={course.course_tag === "Live"}
-                    progress={40}
+                    progress={course.progress}
+                    lastAccessed={course.last_accessed}
+                    status={course.completion_status}
                     onClick={() => handleCardClick(course._id)}
                     isHovered={isHovered === course._id}
                   />
