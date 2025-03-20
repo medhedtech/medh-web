@@ -1,5 +1,5 @@
 import HeroPrimary from "@/components/sections/hero-banners/HeroPrimary";
-import LessonCourseMaterialsPrimary from "@/components/sections/lesson-course-materialsMain/LessonCourseMaterialsPrimary";
+import LessonCourseMaterialsPrimary from "@/components/sections/lesson-course-materials/LessonCourseMaterialsPrimary";
 
 const LessonCourseMaterialsMain = () => {
   return (
