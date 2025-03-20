@@ -390,9 +390,9 @@ const CoursesPrimary = ({ isNotSidebar, isList, card }) => {
                                     priority={false}
                                     src={image}
                                     alt={title}
-                                    layout="fill"
-                                    objectFit="cover"
-                                    className="transition-transform group-hover:scale-105"
+                                    fill
+                                    className="object-cover"
+                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                   />
                                 </div>
                                 <div className="flex-1 min-w-0">

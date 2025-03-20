@@ -12,9 +12,13 @@ import Image from "next/image";
 const CounterStudent = () => {
   const { getQuery } = useGetQuery();
   const [counts, setCounts] = useState({
-    enrolledCourses: 0,
+    totalCourses: 0,
+    activeCourses: 0,
+    completedCourses: 0,
+    averageProgress: 0,
     liveCourses: 0,
-    selfPacedCourses: 0,
+    blendedCourses: 0,
+    selfPacedCourses: 0
   });
   const [studentId, setStudentId] = useState(null);
   const [isVisible, setIsVisible] = useState(false);
@@ -58,57 +62,49 @@ const CounterStudent = () => {
     if (studentId) {
       const fetchCounts = async () => {
         try {
-          // Log the student ID being used
           console.log("Fetching counts for student ID:", studentId);
-          
-          // Create proper API URL for enrollment counts
           const enrollmentCountsUrl = `/enroll/getCount/${studentId}`;
           
-          // Log the URL being used
-          console.log("Enrollment counts URL:", enrollmentCountsUrl);
-
-          // Fetch enrollment data using the getQuery hook
           await getQuery({
             url: enrollmentCountsUrl,
-            onSuccess: (data) => {
-              console.log("Enrollment counts response:", data);
-              
-              // Extract data from the response using correct property names
-              const totalEnrollments = data?.totalEnrollments || 0;
-              const liveCourses = data?.liveCoursesCount || 0;
-              const selfPacedCourses = data?.selfPackedCourses || 0;
-              
-              // Update the counts with data from response
-              console.log("Setting counts:", { 
-                enrolledCourses: totalEnrollments,
-                liveCourses,
-                selfPacedCourses
-              });
-              
-              setCounts({
-                enrolledCourses: totalEnrollments,
-                liveCourses,
-                selfPacedCourses,
-              });
+            onSuccess: (response) => {
+              if (response?.data) {
+                const { counts, progress } = response.data;
+                
+                setCounts({
+                  totalCourses: counts.total || 0,
+                  activeCourses: counts.active || 0,
+                  completedCourses: counts.completed || 0,
+                  averageProgress: progress.averageProgress || 0,
+                  liveCourses: counts.byCourseType.live || 0,
+                  blendedCourses: counts.byCourseType.blended || 0,
+                  selfPacedCourses: counts.byCourseType.selfPaced || 0
+                });
+              }
             },
             onFail: (error) => {
               console.error("Failed to fetch enrollment counts:", error);
-              
-              // Set default values if the API fails
               setCounts({
-                enrolledCourses: 0,
+                totalCourses: 0,
+                activeCourses: 0,
+                completedCourses: 0,
+                averageProgress: 0,
                 liveCourses: 0,
-                selfPacedCourses: 0,
+                blendedCourses: 0,
+                selfPacedCourses: 0
               });
             }
           });
         } catch (error) {
           console.error("Failed to fetch counts:", error);
-          // Set default values in case of error
           setCounts({
-            enrolledCourses: 0,
+            totalCourses: 0,
+            activeCourses: 0,
+            completedCourses: 0,
+            averageProgress: 0,
             liveCourses: 0,
-            selfPacedCourses: 0,
+            blendedCourses: 0,
+            selfPacedCourses: 0
           });
         }
       };
@@ -117,33 +113,33 @@ const CounterStudent = () => {
     }
   }, [studentId, getQuery]);
 
-  // Prepare dashboard data with enhanced styling and modern gradients
+  // Update dashboard data with new metrics
   const dashboardCounts = [
     {
-      name: "Enrolled Courses",
+      name: "Total Courses",
       image: counter1,
-      data: counts.enrolledCourses,
-      description: "Total courses you've enrolled in",
+      data: counts.totalCourses,
+      description: "Total enrolled courses",
       gradient: "from-[#FF6B6B] to-[#FF8E53]",
       hoverGradient: "hover:from-[#FF8E53] hover:to-[#FF6B6B]",
       iconBg: "bg-red-50 dark:bg-red-900/20",
       numberColor: "text-[#FF6B6B] dark:text-[#FF8E53]"
     },
     {
-      name: "Live Courses",
+      name: "Live & Blended",
       image: counter2,
-      data: counts.liveCourses,
-      description: "Interactive live sessions",
+      data: counts.liveCourses + counts.blendedCourses,
+      description: "Interactive courses",
       gradient: "from-[#4E65FF] to-[#92EFFD]",
       hoverGradient: "hover:from-[#92EFFD] hover:to-[#4E65FF]",
       iconBg: "bg-blue-50 dark:bg-blue-900/20",
       numberColor: "text-[#4E65FF] dark:text-[#92EFFD]"
     },
     {
-      name: "Self-paced Courses",
+      name: "Course Progress",
       image: counter3,
-      data: counts.selfPacedCourses,
-      description: "Learn at your own pace",
+      data: `${counts.averageProgress}%`,
+      description: "Average completion rate",
       gradient: "from-[#00C853] to-[#69F0AE]",
       hoverGradient: "hover:from-[#69F0AE] hover:to-[#00C853]",
       iconBg: "bg-green-50 dark:bg-green-900/20",
@@ -226,9 +222,8 @@ const CounterStudent = () => {
                       <Image
                         src={item.image}
                         alt={item.name}
-                        layout="fill"
-                        objectFit="contain"
-                        className="transform group-hover:scale-110 transition-transform duration-500"
+                        fill
+                        className="object-contain transform group-hover:scale-110 transition-transform duration-500"
                       />
                     </div>
                   </div>
