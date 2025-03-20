@@ -275,7 +275,7 @@ export const apiUrls = {
     getCourseById: (id, studentId = "") => {
       const queryParams = new URLSearchParams();
       if (studentId) apiUtils.appendParam('studentId', studentId, queryParams);
-      return `/courses/get/${id}${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+      return `/courses/${id}${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
     },
     getCoorporateCourseById: (id, coorporateId = "") => {
       const queryParams = new URLSearchParams();

@@ -17,6 +17,10 @@ import CategorySelect from "./CategorySelect";
 import SelectMultipleCourses from "./SelectMultipleCourses";
 import Tooltip from "@/components/shared/others/Tooltip";
 import Cookies from "js-cookie";
+import CurriculumBuilder from './CurriculumBuilder';
+import QuizBuilder from './QuizBuilder';
+import AssignmentBuilder from './AssignmentBuilder';
+import ResourceBuilder from './ResourceBuilder';
 
 // Optimized validation schema (removed validations for online_sessions and course_mode)
 const schema = yup.object({
@@ -435,155 +439,195 @@ const AddCourse = () => {
     }
   };
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (formData) => {
     try {
-      // Format the efforts per week
-      const formattedEffortsPerWeek = `${data.min_hours_per_week} - ${data.max_hours_per_week} hours / week`;
+      // Format efforts per week if not already formatted
+      const formattedEffortsPerWeek = formData.efforts_per_Week || 
+        `${formData.min_hours_per_week} - ${formData.max_hours_per_week} hours / week`;
 
-      // Format prices for API - remove id which is only for UI
-      const formattedPrices = prices.map(({ id, ...priceData }) => priceData);
+      // Process curriculum if provided
+      const processedCurriculum = curriculumWeeks.map(week => {
+        // Process sections within each week
+        const processedSections = week.sections.map(section => ({
+          id: section.id,
+          title: section.title,
+          description: section.description,
+          order: section.order,
+          lessons: section.lessons.map(lesson => ({
+            id: lesson.id,
+            title: lesson.title,
+            description: lesson.description,
+            content: lesson.content,
+            duration: lesson.duration,
+            order: lesson.order,
+            videoUrl: lesson.videoUrl,
+            resources: lesson.resources.map(resource => ({
+              id: resource.id,
+              title: resource.title,
+              description: resource.description,
+              fileUrl: resource.fileUrl,
+              filename: resource.filename,
+              mimeType: resource.mimeType,
+              size: resource.size
+            }))
+          })),
+          assignments: section.assignments.map(assignment => ({
+            id: assignment.id,
+            title: assignment.title,
+            description: assignment.description,
+            dueDate: assignment.dueDate,
+            maxScore: assignment.maxScore,
+            instructions: assignment.instructions,
+            resources: assignment.resources.map(resource => ({
+              id: resource.id,
+              title: resource.title,
+              fileUrl: resource.fileUrl
+            }))
+          })),
+          quizzes: section.quizzes.map(quiz => ({
+            id: quiz.id,
+            title: quiz.title,
+            description: quiz.description,
+            duration: quiz.duration,
+            questions: quiz.questions.map(question => ({
+              id: question.id,
+              question: question.question,
+              options: question.options,
+              correctAnswer: question.correctAnswer,
+              explanation: question.explanation
+            }))
+          })),
+          resources: section.resources.map(resource => ({
+            id: resource.id,
+            title: resource.title,
+            type: resource.type,
+            url: resource.url,
+            description: resource.description,
+            size_mb: resource.size_mb,
+            pages: resource.pages,
+            upload_date: resource.upload_date
+          }))
+        }));
 
-      // Derive online sessions details from the "No. of Sessions" and "Session Duration" fields.
-      const derivedOnlineSessions = {
-        count: data.no_of_Sessions,
-        duration: data.session_duration,
-      };
-      
-      // Validate curriculum weeks
-      if (curriculumWeeks.length > 0) {
-        const invalidWeeks = curriculumWeeks.filter(
-          week => !week.weekTitle.trim() || !week.weekDescription.trim()
-        );
-        
-        if (invalidWeeks.length > 0) {
-          const emptyFields = [];
-          if (invalidWeeks.some(week => !week.weekTitle.trim())) emptyFields.push("title");
-          if (invalidWeeks.some(week => !week.weekDescription.trim())) emptyFields.push("description");
-          
-          toast.error(
-            `Please fill in all curriculum week ${emptyFields.join(" and ")}s. All fields are required.`, 
-            {
-              position: "top-right",
-              autoClose: 5000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-            }
-          );
-          return;
-        }
-      }
+        return {
+          id: week.id,
+          weekTitle: week.weekTitle,
+          weekDescription: week.weekDescription,
+          topics: week.topics || [],
+          sections: processedSections
+        };
+      });
 
-      // Format curriculum to match the schema structure
-      const formattedCurriculum = curriculumWeeks.map(week => ({
-        weekTitle: week.weekTitle.trim(),
-        weekDescription: week.weekDescription.trim(),
-        topics: [week.weekDescription.trim()], // Convert description to topics array
-        resources: [] // Initialize empty resources array
+      // Format tools and technologies if provided
+      const processedTools = toolsTechnologies.map(tool => ({
+        name: tool.name,
+        category: tool.category || 'other',
+        description: tool.description || '',
+        logo_url: tool.logo_url || ''
       }));
 
-      // Format FAQs to ensure they match the schema structure
-      const formattedFaqs = faqs.map(faq => ({
-        question: faq.question.trim(),
-        answer: faq.answer.trim()
+      // Format bonus modules if provided
+      const processedBonusModules = bonusModules.map(module => ({
+        title: module.title,
+        description: module.description || '',
+        resources: module.resources || []
       }));
 
-      // Format benefits text to ensure proper bullet points
-      const formattedBenefits = data.benefits
-        .split('\n')
-        .map(benefit => benefit.trim())
-        .filter(benefit => benefit)
-        .map(benefit => benefit.startsWith('•') ? benefit : `• ${benefit}`)
-        .join('\n');
+      // Format FAQs if provided
+      const processedFaqs = faqs.map(faq => ({
+        question: faq.question,
+        answer: faq.answer
+      }));
 
-      // Format program overview to ensure proper paragraphs
-      const formattedOverview = data.program_overview
-        .split('\n\n')
-        .map(para => para.trim())
-        .filter(para => para)
-        .join('\n\n');
-
-      // Note: toolsTechnologies and bonusModules are already formatted in their respective handlers
+      // Format prices if provided
+      const processedPrices = prices.map(({ id, ...price }) => ({
+        currency: price.currency,
+        individual: price.individual || 0,
+        batch: price.batch || 0,
+        min_batch_size: price.min_batch_size || 2,
+        max_batch_size: price.max_batch_size || 10,
+        early_bird_discount: price.early_bird_discount || 0,
+        group_discount: price.group_discount || 0,
+        is_active: price.is_active !== false
+      }));
 
       const postData = {
-        ...data,
-        program_overview: formattedOverview,
-        benefits: formattedBenefits,
+        ...formData,
+        course_tag: formData.category_type === "Free" ? "Free" : (formData.course_tag || "Live"),
+        course_description: {
+          program_overview: formData.program_overview,
+          benefits: formData.benefits
+        },
+        curriculum: processedCurriculum,
+        tools_technologies: processedTools,
+        bonus_modules: processedBonusModules,
+        faqs: processedFaqs,
+        prices: processedPrices,
         efforts_per_Week: formattedEffortsPerWeek,
+        isFree: formData.category_type === "Free",
         course_videos: courseVideos || [],
         brochures: pdfBrochures || [],
         course_image: thumbnailImage || "",
         resource_videos: resourceVideos || [],
         resource_pdfs: resourcePdfs || [],
-        curriculum: formattedCurriculum,
-        related_courses: selectedCourses || [],
-        tools_technologies: toolsTechnologies,
-        bonus_modules: bonusModules,
-        faqs: formattedFaqs,
-        prices: formattedPrices,
-        createdAt: new Date().toISOString(),
-        category_type: data.category_type,
-        course_category: data.course_category, // Fix: Use the correct category from form data
-        class_type: data.class_type,
-        course_mode: data.category_type,
-        online_sessions: derivedOnlineSessions,
-        isFree: data.category_type === "Free"
+        related_courses: selectedCourses || []
       };
 
-      const loadingToastId = toast.loading("Submitting course...");
+      const loadingToastId = toast.loading("Creating course...");
       try {
-        localStorage.setItem("courseData", JSON.stringify(postData));
         await postQuery({
-          url: `${apiUrls?.courses?.createCourse}`,
+          url: apiUrls?.courses?.createCourse,
           postData,
           onSuccess: (response) => {
-            localStorage.removeItem("courseData");
-            reset();
-            // Clear file upload states
-            setCourseVideos([]);
-            setPdfBrochures([]);
-            setThumbnailImage(null);
             toast.update(loadingToastId, {
-              render: `Course "${data.course_title}" added successfully!`,
+              render: `Course "${formData.course_title}" created successfully!`,
               type: "success",
               isLoading: false,
               autoClose: 3000,
             });
             
-            // Add a second toast with more details
             setTimeout(() => {
               toast.success("You can view and edit the course in the courses list.", {
                 position: "top-right",
                 autoClose: 5000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
               });
             }, 500);
+            
+            // Clear form and state
+            reset();
+            setCourseVideos([]);
+            setPdfBrochures([]);
+            setThumbnailImage(null);
+            setCurriculumWeeks([]);
+            setToolsTechnologies([]);
+            setBonusModules([]);
+            setFaqs([]);
+            setPrices([{ 
+              id: 1, 
+              currency: "USD", 
+              individual: "", 
+              batch: "", 
+              min_batch_size: 2,
+              max_batch_size: 10,
+              early_bird_discount: 0,
+              group_discount: 0
+            }]);
             
             router.push("/dashboards/admin-add-data");
           },
           onError: (error) => {
-            // Log detailed error information for debugging
             console.error("API Error:", error?.response?.data);
-            
-            // Extract error information
             const errorData = error?.response?.data;
-            let errorMessage = "Failed to add course. Please try again.";
+            let errorMessage = "Failed to create course. Please try again.";
             
-            // Handle specific error cases with user-friendly messages
             if (errorData?.error) {
               if (typeof errorData.error === 'object') {
-                // Handle validation errors
                 const validationErrors = Object.entries(errorData.error);
                 if (validationErrors.length > 0) {
                   const [field, message] = validationErrors[0];
                   errorMessage = `${message} (${field})`;
                   
-                  // Special handling for common errors
-                  if (field.includes('curriculum_weeks')) {
+                  if (field.includes('curriculum')) {
                     errorMessage = `Curriculum error: ${message}`;
                   } else if (field.includes('course_fee')) {
                     errorMessage = `Course fee error: ${message}`;
@@ -608,7 +652,7 @@ const AddCourse = () => {
         });
       } catch (error) {
         toast.update(loadingToastId, {
-          render: "Failed to submit course. Please try again.",
+          render: "Failed to create course. Please try again.",
           type: "error",
           isLoading: false,
           autoClose: 5000,
@@ -616,8 +660,6 @@ const AddCourse = () => {
       }
     } catch (error) {
       console.error("Form submission error:", error);
-      
-      // Provide more specific error messages based on the error type
       let errorMessage = "An unexpected error occurred. Please try again.";
       
       if (error?.message) {
@@ -633,10 +675,6 @@ const AddCourse = () => {
       toast.error(errorMessage, {
         position: "top-right",
         autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
       });
     }
   };
@@ -1540,70 +1578,117 @@ const AddCourse = () => {
           </div>
           {/* Curriculum Section */}
           <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl shadow-sm mt-6">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold">Course Curriculum</h3>
-              <button
-                type="button"
-                onClick={() => {
-                  setCurriculumWeeks([...curriculumWeeks, { weekTitle: "", weekDescription: "" }]);
-                }}
-                className="flex items-center gap-2 text-customGreen hover:text-green-700"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-                Add Week
-              </button>
-            </div>
-            <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-              Add the curriculum structure week by week. Each week should have a title and a detailed description of what will be covered.
-            </p>
-            <div className="space-y-4">
-              {curriculumWeeks.map((week, index) => (
-                <div key={index} className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow-sm">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="flex-1 mr-4">
-                      <label className="block text-sm font-medium mb-2">Week Title</label>
-                      <input
-                        type="text"
-                        placeholder="Week Title (e.g., Weeks 1-2: Introduction)"
-                        className="w-full p-2 border rounded-lg"
-                        value={week.weekTitle}
-                        onChange={(e) => {
-                          const updated = [...curriculumWeeks];
-                          updated[index].weekTitle = e.target.value;
-                          setCurriculumWeeks(updated);
-                        }}
-                      />
+            <CurriculumBuilder
+              curriculum={curriculumWeeks}
+              onChange={(updatedCurriculum) => {
+                setCurriculumWeeks(updatedCurriculum);
+              }}
+            />
+          </div>
+          {/* Quizzes Section */}
+          <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl shadow-sm mt-6">
+            <h3 className="text-xl font-semibold mb-6">Course Quizzes</h3>
+            {curriculumWeeks?.map((week, weekIndex) => 
+              week?.sections?.map((section, sectionIndex) => 
+                section?.quizzes?.map((quiz, quizIndex) => (
+                  <div key={quiz?.id || `quiz-${weekIndex}-${sectionIndex}-${quizIndex}`} className="mb-6">
+                    <div className="mb-2 text-sm text-gray-500">
+                      Week {weekIndex + 1} - {section?.title || 'Untitled Section'}
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const updated = curriculumWeeks.filter((_, i) => i !== index);
-                        setCurriculumWeeks(updated);
+                    <QuizBuilder
+                      quiz={quiz || {
+                        id: `quiz-${weekIndex}-${sectionIndex}-${quizIndex}`,
+                        title: '',
+                        description: '',
+                        duration: '',
+                        questions: []
                       }}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
+                      onChange={(updatedQuiz) => {
+                        const updatedCurriculum = [...(curriculumWeeks || [])];
+                        if (!updatedCurriculum[weekIndex]) {
+                          updatedCurriculum[weekIndex] = { sections: [] };
+                        }
+                        if (!updatedCurriculum[weekIndex].sections[sectionIndex]) {
+                          updatedCurriculum[weekIndex].sections[sectionIndex] = { quizzes: [] };
+                        }
+                        if (!updatedCurriculum[weekIndex].sections[sectionIndex].quizzes) {
+                          updatedCurriculum[weekIndex].sections[sectionIndex].quizzes = [];
+                        }
+                        updatedCurriculum[weekIndex].sections[sectionIndex].quizzes[quizIndex] = updatedQuiz;
+                        setCurriculumWeeks(updatedCurriculum);
+                      }}
+                    />
                   </div>
-                  <label className="block text-sm font-medium mb-2">Week Description</label>
-                  <textarea
-                    placeholder="Enter week description (detailed content of what will be covered)"
-                    rows="4"
-                    className="w-full p-2 border rounded-lg"
-                    value={week.weekDescription}
-                    onChange={(e) => {
-                      const updated = [...curriculumWeeks];
-                      updated[index].weekDescription = e.target.value;
-                      setCurriculumWeeks(updated);
+                )) || []
+              ) || []
+            ) || []}
+          </div>
+          {/* Assignments Section */}
+          <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl shadow-sm mt-6">
+            <h3 className="text-xl font-semibold mb-6">Course Assignments</h3>
+            {curriculumWeeks?.map((week, weekIndex) => 
+              week?.sections?.map((section, sectionIndex) => 
+                section?.assignments?.map((assignment, assignmentIndex) => (
+                  <div key={assignment?.id || `assignment-${weekIndex}-${sectionIndex}-${assignmentIndex}`} className="mb-6">
+                    <div className="mb-2 text-sm text-gray-500">
+                      Week {weekIndex + 1} - {section?.title || 'Untitled Section'}
+                    </div>
+                    <AssignmentBuilder
+                      assignment={assignment || {
+                        id: `assignment-${weekIndex}-${sectionIndex}-${assignmentIndex}`,
+                        title: '',
+                        description: '',
+                        dueDate: '',
+                        maxScore: '',
+                        instructions: '',
+                        resources: []
+                      }}
+                      onChange={(updatedAssignment) => {
+                        const updatedCurriculum = [...(curriculumWeeks || [])];
+                        if (!updatedCurriculum[weekIndex]) {
+                          updatedCurriculum[weekIndex] = { sections: [] };
+                        }
+                        if (!updatedCurriculum[weekIndex].sections[sectionIndex]) {
+                          updatedCurriculum[weekIndex].sections[sectionIndex] = { assignments: [] };
+                        }
+                        if (!updatedCurriculum[weekIndex].sections[sectionIndex].assignments) {
+                          updatedCurriculum[weekIndex].sections[sectionIndex].assignments = [];
+                        }
+                        updatedCurriculum[weekIndex].sections[sectionIndex].assignments[assignmentIndex] = updatedAssignment;
+                        setCurriculumWeeks(updatedCurriculum);
+                      }}
+                    />
+                  </div>
+                )) || []
+              ) || []
+            ) || []}
+          </div>
+          {/* Resources Section */}
+          <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl shadow-sm mt-6">
+            <h3 className="text-xl font-semibold mb-6">Course Resources</h3>
+            {curriculumWeeks?.map((week, weekIndex) => 
+              week?.sections?.map((section, sectionIndex) => (
+                <div key={`${week?.id || weekIndex}-${section?.id || sectionIndex}`} className="mb-6">
+                  <div className="mb-2 text-sm text-gray-500">
+                    Week {weekIndex + 1} - {section?.title || 'Untitled Section'}
+                  </div>
+                  <ResourceBuilder
+                    resources={section?.resources || []}
+                    onChange={(updatedResources) => {
+                      const updatedCurriculum = [...(curriculumWeeks || [])];
+                      if (!updatedCurriculum[weekIndex]) {
+                        updatedCurriculum[weekIndex] = { sections: [] };
+                      }
+                      if (!updatedCurriculum[weekIndex].sections[sectionIndex]) {
+                        updatedCurriculum[weekIndex].sections[sectionIndex] = { resources: [] };
+                      }
+                      updatedCurriculum[weekIndex].sections[sectionIndex].resources = updatedResources;
+                      setCurriculumWeeks(updatedCurriculum);
                     }}
                   />
                 </div>
-              ))}
-            </div>
+              )) || []
+            ) || []}
           </div>
           {/* Tools & Technologies Section */}
           <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl shadow-sm mt-6">
