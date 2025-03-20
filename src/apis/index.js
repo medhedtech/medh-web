@@ -161,313 +161,151 @@ export const apiUrls = {
       // Initialize query parameters
       const queryParams = new URLSearchParams();
       
-      // Add validated pagination and sorting parameters
-      Object.entries(sanitizedParams).forEach(([key, value]) => {
-        queryParams.append(key, value);
-      });
-
-      // Handle search parameters with proper validation
-      if (search?.trim()) {
-        // If general search is provided, use it as primary search parameter
-        queryParams.append('search', search.trim());
-      } else if (course_title?.trim()) {
-        // Use course title as fallback search parameter
-        queryParams.append('course_title', course_title.trim());
-      }
-
-      // Handle status with validation
-      const validStatuses = ['Published', 'Draft', 'Archived'];
-      if (status && validStatuses.includes(status)) {
-        queryParams.append('status', status);
-      }
-
-      // Handle array parameters with proper validation
-      const arrayParams = [
-        { key: 'course_tag', value: course_tag },
-        { key: 'course_category', value: course_category },
-        { key: 'category', value: category },
-        { key: 'class_type', value: class_type },
-        { key: 'category_type', value: category_type }
-      ];
-
-      arrayParams.forEach(({ key, value }) => {
-        if (value) {
-          if (Array.isArray(value)) {
-            // Filter out empty values and join with commas
-            const validValues = value.filter(item => item?.toString().trim()).map(item => item.toString().trim());
-            if (validValues.length > 0) {
-              apiUtils.appendArrayParam(key, validValues, queryParams);
-            }
-          } else if (typeof value === 'string' && value.trim()) {
-            apiUtils.appendArrayParam(key, value.trim(), queryParams);
-          }
-        }
-      });
-      // Handle course grade if provided
-      if (course_grade?.trim()) {
-        queryParams.append('course_grade', course_grade.trim());
-      }
-
-      // Handle course fee with range support
-      if (course_fee) {
-        if (typeof course_fee === 'object') {
-              // Handle range object format
-          if (course_fee.min !== undefined) queryParams.append('course_fee_min', course_fee.min);
-          if (course_fee.max !== undefined) queryParams.append('course_fee_max', course_fee.max);
-        } else if (!isNaN(parseFloat(course_fee))) {
-          // Handle direct numeric value
-          queryParams.append('course_fee', parseFloat(course_fee));
-        }
-      }
-
-      // Handle course duration with special parsing for format like "0 months 2 weeks"
-      if (course_duration) {
-        if (typeof course_duration === 'object') {
-          // Handle range object format
-          if (course_duration.min !== undefined) queryParams.append('course_duration_min', course_duration.min);
-          if (course_duration.max !== undefined) queryParams.append('course_duration_max', course_duration.max);
-        } else if (typeof course_duration === 'string') {
-          // Parse duration string format like "0 months 2 weeks"
-          queryParams.append('course_duration', course_duration.trim());
-        }
-      }
-
-      // Handle categorical filters
-      const categoricalFilters = {
-        course_type,
-        skill_level,
-        language
-      };
-
-      Object.entries(categoricalFilters).forEach(([key, value]) => {
-        if (value?.toString().trim()) {
-          queryParams.append(key, value.toString().trim());
-        }
-      });
-
-      // Handle additional filters from filters object
-      if (filters && typeof filters === 'object') {
-        // Handle certification, assignments, projects, quizzes filters
-        const booleanFilters = [
-          { param: 'is_Certification', value: filters.certification },
-          { param: 'is_Assignments', value: filters.assignments },
-          { param: 'is_Projects', value: filters.projects },
-          { param: 'is_Quizes', value: filters.quizzes }
-        ];
-        
-        booleanFilters.forEach(({ param, value }) => {
-          if (value !== undefined) {
-            const boolValue = typeof value === 'string' ? value : (value ? 'Yes' : 'No');
-            queryParams.append(param, boolValue);
-          }
-        });
-
-        // Handle effort per week filter
-        if (filters.effortPerWeek) {
-          if (typeof filters.effortPerWeek === 'object') {
-            if (filters.effortPerWeek.min !== undefined) {
-              queryParams.append('min_hours_per_week', filters.effortPerWeek.min);
-            }
-            if (filters.effortPerWeek.max !== undefined) {
-              queryParams.append('max_hours_per_week', filters.effortPerWeek.max);
-            }
-          }
-        }
-
-        // Handle session count filter
-        if (filters.noOfSessions !== undefined) {
-          queryParams.append('no_of_Sessions', filters.noOfSessions);
-        }
-
-        // Handle price filters with currency support
-        if (filters.priceRange) {
-          if (filters.priceRange.min !== undefined) {
-            queryParams.append('price_min', filters.priceRange.min);
-          }
-          if (filters.priceRange.max !== undefined) {
-            queryParams.append('price_max', filters.priceRange.max);
-          }
-          if (filters.priceRange.currency) {
-            queryParams.append('price_currency', filters.priceRange.currency);
-          }
-        }
-
-        // Handle features array
-        if (filters.features?.length) {
-          apiUtils.appendArrayParam('features', filters.features, queryParams);
-        }
-
-        // Handle tools and technologies
-        if (filters.tools?.length) {
-          apiUtils.appendArrayParam('tools_technologies', filters.tools, queryParams);
-        }
-
-        // Handle date range filters
-        if (filters.dateRange) {
-          if (filters.dateRange.start) queryParams.append('date_start', filters.dateRange.start);
-          if (filters.dateRange.end) queryParams.append('date_end', filters.dateRange.end);
-        }
-
-        // Handle free courses filter
-        if (filters.isFree !== undefined) {
-          queryParams.append('isFree', filters.isFree ? 'true' : 'false');
-        }
-      }
-
-      return `/courses/search?${queryParams.toString()}`;
-    },
-    getNewCourses: (
-      page = 1,
-      limit = 10,
-      course_tag = "",
-      status = "Published",
-      search = "",
-      user_id = "",
-      sort_by = "createdAt",
-      sort_order = "desc",
-      class_type = ""
-
-      
-    ) => {
-      // Use the shared URLSearchParams approach for consistent URL building
-      const queryParams = new URLSearchParams();
-      
-      // Add pagination parameters
+      // Add pagination and sorting
       queryParams.append('page', page);
       queryParams.append('limit', limit);
+      queryParams.append('sort_by', sort_by);
+      queryParams.append('sort_order', sort_order);
       
-      // Add filtering parameters if provided
+      // Add search and filters
+      apiUtils.appendParam('search', search, queryParams);
+      apiUtils.appendParam('status', status, queryParams);
+      apiUtils.appendParam('course_title', course_title, queryParams);
+      apiUtils.appendArrayParam('course_tag', course_tag, queryParams);
+      apiUtils.appendArrayParam('course_category', course_category, queryParams);
+      apiUtils.appendArrayParam('category', category, queryParams);
+      apiUtils.appendArrayParam('class_type', class_type, queryParams);
+      apiUtils.appendParam('course_grade', course_grade, queryParams);
+      apiUtils.appendParam('course_type', course_type, queryParams);
+      apiUtils.appendParam('skill_level', skill_level, queryParams);
+      apiUtils.appendParam('language', language, queryParams);
+      apiUtils.appendParam('category_type', category_type, queryParams);
+      
+      // Handle course duration and fee
+      if (course_duration) {
+        if (typeof course_duration === 'object') {
+          apiUtils.appendParam('course_duration_min', course_duration.min, queryParams);
+          apiUtils.appendParam('course_duration_max', course_duration.max, queryParams);
+        } else {
+          apiUtils.appendParam('course_duration', course_duration, queryParams);
+        }
+      }
+      
+      if (course_fee) {
+        if (typeof course_fee === 'object') {
+          apiUtils.appendParam('course_fee_min', course_fee.min, queryParams);
+          apiUtils.appendParam('course_fee_max', course_fee.max, queryParams);
+        } else {
+          apiUtils.appendParam('course_fee', course_fee, queryParams);
+        }
+      }
+      
+      // Handle additional filters
+      if (filters) {
+        if (filters.certification !== undefined) apiUtils.appendParam('is_Certification', filters.certification ? 'Yes' : 'No', queryParams);
+        if (filters.assignments !== undefined) apiUtils.appendParam('is_Assignments', filters.assignments ? 'Yes' : 'No', queryParams);
+        if (filters.projects !== undefined) apiUtils.appendParam('is_Projects', filters.projects ? 'Yes' : 'No', queryParams);
+        if (filters.quizzes !== undefined) apiUtils.appendParam('is_Quizes', filters.quizzes ? 'Yes' : 'No', queryParams);
+        
+        if (filters.effortPerWeek) {
+          apiUtils.appendParam('min_hours_per_week', filters.effortPerWeek.min, queryParams);
+          apiUtils.appendParam('max_hours_per_week', filters.effortPerWeek.max, queryParams);
+        }
+        
+        apiUtils.appendParam('no_of_Sessions', filters.noOfSessions, queryParams);
+        apiUtils.appendArrayParam('features', filters.features, queryParams);
+        apiUtils.appendArrayParam('tools_technologies', filters.tools, queryParams);
+        
+        if (filters.dateRange) {
+          apiUtils.appendParam('date_start', filters.dateRange.start, queryParams);
+          apiUtils.appendParam('date_end', filters.dateRange.end, queryParams);
+        }
+        
+        apiUtils.appendParam('isFree', filters.isFree, queryParams);
+      }
+      
+      return `/courses/search?${queryParams.toString()}`;
+    },
+    getNewCourses: (options = {}) => {
+      const {
+        page = 1,
+        limit = 10,
+        course_tag = "",
+        status = "Published",
+        search = "",
+        user_id = "",
+        sort_by = "createdAt",
+        sort_order = "desc",
+        class_type = ""
+      } = options;
+      
+      const queryParams = new URLSearchParams();
+      
+      apiUtils.appendParam('page', page, queryParams);
+      apiUtils.appendParam('limit', limit, queryParams);
       apiUtils.appendParam('status', status, queryParams);
       apiUtils.appendParam('search', search, queryParams);
       apiUtils.appendParam('user_id', user_id, queryParams);
-      
-      // Handle array parameters
       apiUtils.appendArrayParam('course_tag', course_tag, queryParams);
       apiUtils.appendArrayParam('class_type', class_type, queryParams);
-      
-      // Add sorting parameters
       apiUtils.appendParam('sort_by', sort_by, queryParams);
       apiUtils.appendParam('sort_order', sort_order, queryParams);
       
       return `/courses/new?${queryParams.toString()}`;
     },
-    getCourseNames: "/courses/course-names",
     getCourseTitles: (options = {}) => {
       const { status = "", course_category = "", class_type = "" } = options;
-      
-      // Initialize URLSearchParams
       const queryParams = new URLSearchParams();
       
-      // Add filter parameters
       apiUtils.appendParam('status', status, queryParams);
       apiUtils.appendArrayParam('course_category', course_category, queryParams);
       apiUtils.appendArrayParam('class_type', class_type, queryParams);
       
       return `/courses/course-names?${queryParams.toString()}`;
     },
-    getAllRelatedCourses: "/courses/related-courses",
-    getAllRelatedCoursesWithParams: (courseIds = [], limit = 6) => {
-      // Create URL including the endpoint and parameters
+    getAllRelatedCourses: (courseIds = [], limit = 6) => {
       const queryParams = new URLSearchParams();
+      if (limit) queryParams.append('limit', limit);
       
-      // Add limit parameter if provided
-      if (limit) {
-        queryParams.append('limit', limit);
-      }
-      
-      // The API expects course_ids in the POST body, not in the URL
-      // This function returns an object with both the URL and course_ids for use in the POST request
       return {
         url: `/courses/related-courses${queryParams.toString() ? '?' + queryParams.toString() : ''}`,
         data: { course_ids: courseIds }
       };
     },
-    filterCourses: (options = {}) => {
-      const {
-        page = 1,
-        limit = 10,
-        search = "",
-        course_category = "",
-        category_type = "",
-        status = "Published",
-        price_range = "",
-        course_tag = "",
-        class_type = "",
-        sort_by = "createdAt",
-        sort_order = "desc",
-        min_duration = "",
-        max_duration = "",
-        certification = "",
-        has_assignments = "",
-        has_projects = "",
-        has_quizzes = "",
-        exclude_ids = []
-      } = options;
-
-      // Initialize URLSearchParams
-      const queryParams = new URLSearchParams();
-      
-      // Add pagination parameters
-      queryParams.append('page', page);
-      queryParams.append('limit', limit);
-      
-      // Add search parameter
-      apiUtils.appendParam('search', search, queryParams);
-      
-      // Add array parameters with support for arrays or comma-separated strings
-      apiUtils.appendArrayParam('course_category', course_category, queryParams);
-      apiUtils.appendArrayParam('category_type', category_type, queryParams);
-      apiUtils.appendArrayParam('course_tag', course_tag, queryParams);
-      apiUtils.appendArrayParam('class_type', class_type, queryParams);
-      
-      // Add filter parameters
-      apiUtils.appendParam('status', status, queryParams);
-      apiUtils.appendParam('price_range', price_range, queryParams);
-      apiUtils.appendParam('min_duration', min_duration, queryParams);
-      apiUtils.appendParam('max_duration', max_duration, queryParams);
-      
-      // Add feature filters
-      apiUtils.appendParam('certification', certification, queryParams);
-      apiUtils.appendParam('has_assignments', has_assignments, queryParams);
-      apiUtils.appendParam('has_projects', has_projects, queryParams);
-      apiUtils.appendParam('has_quizzes', has_quizzes, queryParams);
-      
-      // Add sorting parameters
-      apiUtils.appendParam('sort_by', sort_by, queryParams);
-      apiUtils.appendParam('sort_order', sort_order, queryParams);
-      
-      // Handle excluded course IDs
-      if (exclude_ids && exclude_ids.length > 0) {
-        apiUtils.appendArrayParam('exclude_ids', exclude_ids, queryParams);
-      }
-      
-      return `/courses/search?${queryParams.toString()}`;
-    },
     getCourseById: (id, studentId = "") => {
       const queryParams = new URLSearchParams();
-      
-      if (studentId) {
-        apiUtils.appendParam('studentId', studentId, queryParams);
-      }
-      
+      if (studentId) apiUtils.appendParam('studentId', studentId, queryParams);
       return `/courses/get/${id}${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
     },
-    getCoorporateCourseByid: (id, coorporateId = "") => {
+    getCoorporateCourseById: (id, coorporateId = "") => {
       const queryParams = new URLSearchParams();
-      
-      if (coorporateId) {
-        apiUtils.appendParam('coorporateId', coorporateId, queryParams);
-      }
-      
+      if (coorporateId) apiUtils.appendParam('coorporateId', coorporateId, queryParams);
       return `/courses/get-coorporate/${id}${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
     },
-    getRecorderVideosForUser: (studentId) => `/courses/recorded-videos/${studentId}`,
+    getRecordedVideosForUser: (studentId) => `/courses/recorded-videos/${studentId}`,
     createCourse: "/courses/create",
     updateCourse: (id) => `/courses/update/${id}`,
     toggleCourseStatus: (id) => `/courses/toggle-status/${id}`,
-    addRecordedVideos: (id) => `/courses/recorded-videos/${id}`,
+    updateRecordedVideos: (id) => `/courses/recorded-videos/${id}`,
     deleteCourse: (id) => `/courses/delete/${id}`,
     softDeleteCourse: (id) => `/courses/soft-delete/${id}`,
+    getCourseSections: (courseId) => `/courses/${courseId}/sections`,
+    getCourseLessons: (courseId) => `/courses/${courseId}/lessons`,
+    getLessonDetails: (courseId, lessonId) => `/courses/${courseId}/lessons/${lessonId}`,
+    getCourseProgress: (courseId) => `/courses/${courseId}/progress`,
+    markLessonComplete: (courseId, lessonId) => `/courses/${courseId}/lessons/${lessonId}/complete`,
+    getCourseAssignments: (courseId) => `/courses/${courseId}/assignments`,
+    submitAssignment: (courseId, assignmentId) => `/courses/${courseId}/assignments/${assignmentId}/submit`,
+    getCourseQuizzes: (courseId) => `/courses/${courseId}/quizzes`,
+    submitQuiz: (courseId, quizId) => `/courses/${courseId}/quizzes/${quizId}/submit`,
+    getQuizResults: (courseId, quizId) => `/courses/${courseId}/quizzes/${quizId}/results`,
+    getLessonResources: (courseId, lessonId) => `/courses/${courseId}/lessons/${lessonId}/resources`,
+    downloadResource: (courseId, lessonId, resourceId) => 
+      `/courses/${courseId}/lessons/${lessonId}/resources/${resourceId}/download`,
+    uploadFile: "/courses/upload",
+    uploadMultipleFiles: "/courses/upload-multiple",
+    addLessonNote: (courseId, lessonId) => `/courses/${courseId}/lessons/${lessonId}/notes`,
+    addLessonBookmark: (courseId, lessonId) => `/courses/${courseId}/lessons/${lessonId}/bookmarks`,
   },
   upload: {
     uploadImage: "/upload/uploadImage",
@@ -533,25 +371,6 @@ export const apiUrls = {
     deleteEnrollWebsiteForm: "/enroll-form/delete",
   },
   Blogs: {
-    /**
-     * Get all blogs with pagination and filtering options
-     * @param {Object} options - Query options
-     * @param {number} [options.page=1] - Page number
-     * @param {number} [options.limit=10] - Items per page
-     * @param {string} [options.search=""] - Search term for title/content
-     * @param {string} [options.sort_by="createdAt"] - Sort field
-     * @param {string} [options.sort_order="desc"] - Sort direction (asc/desc)
-     * @param {string} [options.status="published"] - Blog status
-     * @param {Array|string} [options.category=""] - Blog categories
-     * @param {Array|string} [options.tags=""] - Blog tags
-     * @param {string} [options.author=""] - Filter by author ID
-     * @param {Object} [options.date_range={}] - Date range filter
-     * @param {string} [options.date_range.start=""] - Start date
-     * @param {string} [options.date_range.end=""] - End date
-     * @param {boolean} [options.with_content=false] - Include full content in response
-     * @param {boolean} [options.count_only=false] - Return only count of matching blogs
-     * @returns {string} The constructed API URL
-     */
     getAllBlogs: (options = {}) => {
       const {
         page = 1,
@@ -569,51 +388,33 @@ export const apiUrls = {
         exclude_ids = []
       } = options;
       
-      // Initialize URLSearchParams
       const queryParams = new URLSearchParams();
       
-      // Add pagination parameters
       queryParams.append('page', page);
       queryParams.append('limit', limit);
       
-      // Add filtering parameters
       apiUtils.appendParam('search', search, queryParams);
       apiUtils.appendParam('status', status, queryParams);
       apiUtils.appendParam('author', author, queryParams);
       
-      // Add array parameters
       apiUtils.appendArrayParam('category', category, queryParams);
       apiUtils.appendArrayParam('tags', tags, queryParams);
       
-      // Add date range filters
       if (date_range && Object.keys(date_range).length > 0) {
         apiUtils.appendParam('date_start', date_range.start, queryParams);
         apiUtils.appendParam('date_end', date_range.end, queryParams);
       }
       
-      // Add sorting parameters
       apiUtils.appendParam('sort_by', sort_by, queryParams);
       apiUtils.appendParam('sort_order', sort_order, queryParams);
       
-      // Add content options
       apiUtils.appendParam('with_content', with_content ? 'true' : 'false', queryParams);
       apiUtils.appendParam('count_only', count_only ? 'true' : 'false', queryParams);
       
-      // Add excluded blog IDs
       apiUtils.appendArrayParam('exclude_ids', exclude_ids, queryParams);
       
       return `/blogs/get${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
     },
-
-    /**
-     * Get featured or popular blogs with limit
-     * @param {Object} options - Query options
-     * @param {number} [options.limit=6] - Number of blogs to return
-     * @param {string} [options.type="featured"] - Type of blogs (featured, popular, recent)
-     * @param {boolean} [options.with_content=false] - Include full content in response
-     * @param {Array|string} [options.category=""] - Optional category filter
-     * @returns {string} The constructed API URL
-     */
     getFeaturedBlogs: (options = {}) => {
       const { 
         limit = 6, 
@@ -634,17 +435,6 @@ export const apiUrls = {
       
       return `/blogs/featured?${queryParams.toString()}`;
     },
-    
-    /**
-     * Get related blogs based on current blog
-     * @param {Object} options - Query options
-     * @param {string|number} options.blogId - Current blog ID
-     * @param {number} [options.limit=3] - Number of related blogs to return
-     * @param {Array|string} [options.tags=""] - Specific tags to match
-     * @param {Array|string} [options.category=""] - Optional category filter
-     * @param {boolean} [options.with_content=false] - Include full content in response
-     * @returns {string} The constructed API URL
-     */
     getRelatedBlogs: (options = {}) => {
       const { 
         blogId, 
@@ -664,13 +454,6 @@ export const apiUrls = {
       
       return `/blogs/related/${blogId}?${queryParams.toString()}`;
     },
-    
-    /**
-     * Get a blog by ID with format matching the fake data structure
-     * @param {string|number} id - Blog ID
-     * @param {boolean} incrementViews - Whether to increment view count
-     * @returns {string} The blog API URL
-     */
     getBlogById: (id, incrementViews = true) => {
       if (!id) throw new Error('Blog ID is required');
       
@@ -679,49 +462,16 @@ export const apiUrls = {
       
       return `/blogs/get/${id}?${queryParams.toString()}`;
     },
-    
-    /**
-     * Create a new blog
-     * @returns {string} The blog creation API URL
-     */
     createBlog: "/blogs/create",
-    
-    /**
-     * Update an existing blog
-     * @param {string|number} id - Blog ID to update
-     * @returns {string} The blog update API URL
-     */
     updateBlog: (id) => {
       if (!id) throw new Error('Blog ID is required');
       return `/blogs/update/${id}`;
     },
-    
-    /**
-     * Delete a blog
-     * @param {string|number} id - Blog ID to delete
-     * @returns {string} The blog deletion API URL
-     */
     deleteBlog: (id) => {
       if (!id) throw new Error('Blog ID is required');
       return `/blogs/delete/${id}`;
     },
-    
-    /**
-     * Get all blog categories
-     * @returns {string} The blog categories API URL
-     */
     getBlogCategories: "/blogs/categories",
-    
-    /**
-     * Get blogs by category
-     * @param {string|number} categoryId - Category ID
-     * @param {Object} options - Query options
-     * @param {number} [options.page=1] - Page number
-     * @param {number} [options.limit=10] - Items per page
-     * @param {string} [options.sort_by="createdAt"] - Sort field
-     * @param {string} [options.sort_order="desc"] - Sort direction (asc/desc)
-     * @returns {string} The constructed API URL
-     */
     getBlogsByCategory: (categoryId, options = {}) => {
       if (!categoryId) throw new Error('Category ID is required');
       
@@ -735,25 +485,10 @@ export const apiUrls = {
       
       return `/blogs/category/${categoryId}?${queryParams.toString()}`;
     },
-    
-    /**
-     * Get blog analytics
-     * @param {string|number} blogId - Blog ID
-     * @returns {string} The blog analytics API URL
-     */
     getBlogAnalytics: (blogId) => {
       if (!blogId) throw new Error('Blog ID is required');
       return `/blogs/analytics/${blogId}`;
     },
-    
-    /**
-     * Log user interaction with a blog
-     * @param {Object} options - Interaction data
-     * @param {string|number} options.blogId - Blog ID
-     * @param {string} options.action - Interaction type (view, like, share, comment)
-     * @param {string} [options.userId=""] - User ID if authenticated
-     * @returns {Object} Request config for POST request
-     */
     logBlogInteraction: (options = {}) => {
       const { blogId, action, userId = "" } = options;
       
@@ -775,16 +510,6 @@ export const apiUrls = {
         }
       };
     },
-
-    /**
-     * Get trending or popular blogs for a specific period
-     * @param {Object} options - Query options
-     * @param {string} [options.period="week"] - Time period (day, week, month, year)
-     * @param {number} [options.limit=5] - Number of blogs to return
-     * @param {Array|string} [options.category=""] - Optional category filter
-     * @param {Array|string} [options.tags=""] - Optional tags filter
-     * @returns {string} The constructed API URL
-     */
     getTrendingBlogs: (options = {}) => {
       const { 
         period = "week", 
@@ -801,13 +526,6 @@ export const apiUrls = {
       
       return `/blogs/trending?${queryParams.toString()}`;
     },
-
-    /**
-     * Get blog stats and metrics
-     * @param {Object} options - Query options
-     * @param {string} [options.period="all"] - Time period to analyze (day, week, month, year, all)
-     * @returns {string} The blog stats API URL
-     */
     getBlogStats: (options = {}) => {
       const { period = "all" } = options;
       
@@ -816,17 +534,6 @@ export const apiUrls = {
       
       return `/blogs/stats?${queryParams.toString()}`;
     },
-
-    /**
-     * Search blogs with advanced filtering
-     * @param {Object} options - Search options
-     * @param {string} options.query - Search query
-     * @param {number} [options.limit=10] - Number of results to return
-     * @param {Array|string} [options.fields=["title","content"]] - Fields to search in
-     * @param {Array|string} [options.category=""] - Category filter
-     * @param {Array|string} [options.tags=""] - Tags filter
-     * @returns {string} The constructed API URL
-     */
     searchBlogs: (options = {}) => {
       const { 
         query = "", 
@@ -847,14 +554,6 @@ export const apiUrls = {
       
       return `/blogs/search?${queryParams.toString()}`;
     },
-
-    /**
-     * Generate static paths for pre-rendering blog detail pages
-     * This mimics the behavior of generateStaticParams in Next.js
-     * @param {Object} options - Query options
-     * @param {number} [options.limit=100] - Maximum number of blogs to return IDs for
-     * @returns {string} The static paths API URL
-     */
     getStaticBlogPaths: (options = {}) => {
       const { limit = 100 } = options;
       
@@ -864,17 +563,6 @@ export const apiUrls = {
       
       return `/blogs/paths?${queryParams.toString()}`;
     },
-
-    /**
-     * Get blog comments
-     * @param {string|number} blogId - Blog ID
-     * @param {Object} options - Query options
-     * @param {number} [options.page=1] - Page number
-     * @param {number} [options.limit=10] - Items per page
-     * @param {string} [options.sort_by="createdAt"] - Sort field
-     * @param {string} [options.sort_order="desc"] - Sort direction (asc/desc)
-     * @returns {string} The blog comments API URL
-     */
     getBlogComments: (blogId, options = {}) => {
       if (!blogId) throw new Error('Blog ID is required');
       
@@ -888,24 +576,10 @@ export const apiUrls = {
       
       return `/blogs/comments/${blogId}?${queryParams.toString()}`;
     },
-
-    /**
-     * Add a comment to a blog
-     * @param {string|number} blogId - Blog ID
-     * @returns {string} The blog comment API URL
-     */
     addBlogComment: (blogId) => {
       if (!blogId) throw new Error('Blog ID is required');
       return `/blogs/comments/${blogId}`;
     },
-
-    /**
-     * Get recent blog posts for widgets
-     * @param {Object} options - Query options
-     * @param {number} [options.limit=5] - Number of recent posts to return
-     * @param {boolean} [options.with_image=true] - Include image URLs in response
-     * @returns {string} The recent posts API URL
-     */
     getRecentPosts: (options = {}) => {
       const { limit = 5, with_image = true } = options;
       
@@ -917,14 +591,6 @@ export const apiUrls = {
       
       return `/blogs/recent?${queryParams.toString()}`;
     },
-
-    /**
-     * Get blog tags
-     * @param {Object} options - Query options
-     * @param {number} [options.limit=20] - Number of tags to return
-     * @param {boolean} [options.with_count=true] - Include post count with each tag
-     * @returns {string} The blog tags API URL
-     */
     getBlogTags: (options = {}) => {
       const { limit = 20, with_count = true } = options;
       
@@ -933,7 +599,7 @@ export const apiUrls = {
       queryParams.append('with_count', with_count ? 'true' : 'false');
       
       return `/blogs/tags?${queryParams.toString()}`;
-    }
+    },
   },
   certificate: {
     getAllCertificate: "/certificates/get",
@@ -954,21 +620,7 @@ export const apiUrls = {
     getCountByInstructorId: "/track-sessions/get",
   },
   brouchers: {
-    /**
-     * Create a new brochure
-     * @param {Object} broucherData - Brochure data to be created
-     * @returns {string} The brochure creation API URL
-     */
     createBrouchers: "/broucher",
-    
-    /**
-     * Get all brochures with filtering options
-     * @param {Object} options - Query parameters
-     * @param {number} [options.page=1] - Page number
-     * @param {number} [options.limit=10] - Items per page
-     * @param {string} [options.search=""] - Search term
-     * @returns {string} The brochure list API URL
-     */
     getAllBrouchers: (options = {}) => {
       const { page = 1, limit = 10, search = "" } = options;
       
@@ -982,47 +634,21 @@ export const apiUrls = {
       
       return `/broucher?${queryParams.toString()}`;
     },
-    
-    /**
-     * Get a specific brochure by ID
-     * @param {string} id - Brochure ID
-     * @returns {string} The brochure detail API URL
-     */
     getBroucherById: (id) => {
       if (!id) throw new Error('Brochure ID is required');
       return `/broucher/${id}`;
     },
-    
-    /**
-     * Update a brochure by ID
-     * @param {string} id - Brochure ID to update
-     * @returns {string} The brochure update API URL
-     */
     updateBroucher: (id) => {
       if (!id) throw new Error('Brochure ID is required');
       return `/broucher/${id}`;
     },
-    
-    /**
-     * Delete a brochure by ID
-     * @param {string} id - Brochure ID to delete
-     * @returns {string} The brochure deletion API URL
-     */
     deleteBroucher: (id) => {
       if (!id) throw new Error('Brochure ID is required');
       return `/broucher/${id}`;
     },
-    
-    /**
-     * Download a brochure by course ID
-     * @param {string} courseId - Course ID
-     * @param {Object} [userData] - User data for POST request
-     * @returns {Object|string} The brochure download API URL or request config
-     */
     downloadBrochure: (courseId, userData = null) => {
       if (!courseId) throw new Error('Course ID is required');
       
-      // If userData is provided, return both URL and data for a POST request
       if (userData) {
         return {
           url: `/broucher/download/${courseId}`,
@@ -1033,21 +659,8 @@ export const apiUrls = {
         };
       }
       
-      // Otherwise just return the URL for a GET request
       return `/broucher/download/${courseId}`;
     },
-    
-    /**
-     * Request a brochure download based on either course_id or brochure_id
-     * @param {Object} options - Request parameters
-     * @param {string} [options.brochure_id] - Brochure ID (optional if course_id is provided)
-     * @param {string} [options.course_id] - Course ID (optional if brochure_id is provided)
-     * @param {string} options.full_name - User's full name
-     * @param {string} options.email - User's email address
-     * @param {string} options.phone_number - User's phone number
-     * @param {string} options.country_code - Country code for phone number
-     * @returns {Object} Request config with URL and data
-     */
     requestBroucher: (options = {}) => {
       const { 
         brochure_id, 
@@ -1063,7 +676,6 @@ export const apiUrls = {
         throw new Error("Either brochure_id or course_id must be provided");
       }
       
-      // Prioritize course_id for the URL path as per the API design
       const idToUse = course_id || brochure_id;
       
       return {
@@ -1073,22 +685,10 @@ export const apiUrls = {
           email,
           phone_number,
           country_code,
-          // Only include brochure_id in the body if different from the URL param and it exists
           ...(brochure_id && course_id ? { brochure_id } : {})
         }
       };
     },
-    
-    /**
-     * Track brochure download events
-     * @param {Object} options - Tracking parameters
-     * @param {string} [options.brochure_id] - Brochure ID (optional if course_id is provided)
-     * @param {string} [options.course_id] - Course ID (optional if brochure_id is provided)
-     * @param {string} options.user_id - User ID for tracking
-     * @param {string} options.source - Source page or referrer
-     * @param {Object} [options.metadata] - Additional tracking metadata
-     * @returns {Object} Request config with URL and data
-     */
     trackBroucherDownload: (options = {}) => {
       const { 
         brochure_id, 
@@ -1120,20 +720,7 @@ export const apiUrls = {
     }
   },
   enrolledCourses: {
-    /**
-     * Create a new enrolled course
-     * @returns {string} The enrolled course creation API URL
-     */
     createEnrolledCourse: "/enroll/create",
-    
-    /**
-     * Get all enrolled courses with filtering options
-     * @param {Object} options - Query parameters
-     * @param {number} [options.page=1] - Page number
-     * @param {number} [options.limit=10] - Items per page
-     * @param {string} [options.search=""] - Search term
-     * @returns {string} The enrolled courses list API URL
-     */
     getAllEnrolledCourses: (options = {}) => {
       const { page = 1, limit = 10, search = "", sort_by = "createdAt", sort_order = "desc" } = options;
       
@@ -1150,56 +737,22 @@ export const apiUrls = {
       
       return `/enroll/get?${queryParams.toString()}`;
     },
-    
-    /**
-     * Get a specific enrolled course by ID
-     * @param {string} id - Enrolled course ID
-     * @returns {string} The enrolled course detail API URL
-     */
     getEnrolledCourseById: (id) => {
       if (!id) throw new Error('Enrolled course ID is required');
       return `/enroll/get/${id}`;
     },
-    
-    /**
-     * Get enrollment counts for a student
-     * @param {string} studentId - Student ID
-     * @returns {string} The enrollment counts API URL
-     */
     getEnrollmentCountsByStudentId: (studentId) => {
       if (!studentId) throw new Error('Student ID is required');
       return `/enroll/getCount/${studentId}`;
     },
-    
-    /**
-     * Update an enrolled course
-     * @param {string} id - Enrolled course ID
-     * @returns {string} The enrolled course update API URL
-     */
     updateEnrolledCourse: (id) => {
       if (!id) throw new Error('Enrolled course ID is required');
       return `/enroll/update/${id}`;
     },
-    
-    /**
-     * Delete an enrolled course
-     * @param {string} id - Enrolled course ID
-     * @returns {string} The enrolled course deletion API URL
-     */
     deleteEnrolledCourse: (id) => {
       if (!id) throw new Error('Enrolled course ID is required');
       return `/enroll/delete/${id}`;
     },
-    
-    /**
-     * Get enrolled courses by student ID
-     * @param {string} studentId - Student ID
-     * @param {Object} options - Query parameters
-     * @param {number} [options.page=1] - Page number
-     * @param {number} [options.limit=10] - Items per page
-     * @param {string} [options.status=""] - Filter by enrollment status
-     * @returns {string} The enrolled courses by student API URL
-     */
     getEnrolledCourseByStudentId: (studentId, options = {}) => {
       if (!studentId) throw new Error('Student ID is required');
       
@@ -1213,17 +766,8 @@ export const apiUrls = {
         queryParams.append('status', status);
       }
       
-      return `/enrolled-courses/student/${studentId}?${queryParams.toString()}`;
+      return `/enroll/student/${studentId}?${queryParams.toString()}`;
     },
-    
-    /**
-     * Get enrolled students by course ID
-     * @param {string} courseId - Course ID
-     * @param {Object} options - Query parameters
-     * @param {number} [options.page=1] - Page number
-     * @param {number} [options.limit=10] - Items per page
-     * @returns {string} The enrolled students by course API URL
-     */
     getEnrolledStudentsByCourseId: (courseId, options = {}) => {
       if (!courseId) throw new Error('Course ID is required');
       
@@ -1233,16 +777,8 @@ export const apiUrls = {
       queryParams.append('page', page);
       queryParams.append('limit', limit);
       
-      return `/enrolled-courses/course/${courseId}?${queryParams.toString()}`;
+      return `/enroll/course/${courseId}?${queryParams.toString()}`;
     },
-    
-    /**
-     * Get upcoming meetings for a student
-     * @param {string} studentId - Student ID
-     * @param {Object} options - Query parameters
-     * @param {number} [options.limit=10] - Number of meetings to return
-     * @returns {string} The upcoming meetings API URL
-     */
     getUpcomingMeetingsForStudent: (studentId, options = {}) => {
       if (!studentId) throw new Error('Student ID is required');
       
@@ -1251,23 +787,9 @@ export const apiUrls = {
       const queryParams = new URLSearchParams();
       queryParams.append('limit', limit);
       
-      return `/enrolled-courses/get-upcoming-meetings/${studentId}?${queryParams.toString()}`;
+      return `/enroll/get-upcoming-meetings/${studentId}?${queryParams.toString()}`;
     },
-    
-    /**
-     * Mark a course as completed
-     * @returns {string} The mark course as completed API URL
-     */
-    markCourseAsCompleted: "/enrolled-courses/mark-completed",
-    
-    /**
-     * Get all students with their enrolled courses
-     * @param {Object} options - Query parameters
-     * @param {number} [options.page=1] - Page number
-     * @param {number} [options.limit=10] - Items per page
-     * @param {string} [options.search=""] - Search term
-     * @returns {string} The students with enrolled courses API URL
-     */
+    markCourseAsCompleted: "/enroll/mark-completed",
     getAllStudentsWithEnrolledCourses: (options = {}) => {
       const { page = 1, limit = 10, search = "" } = options;
       
@@ -1279,17 +801,8 @@ export const apiUrls = {
         queryParams.append('search', search.trim());
       }
       
-      return `/enrolled-courses/get-enrolled-students?${queryParams.toString()}`;
+      return `/enroll/get-enrolled-students?${queryParams.toString()}`;
     },
-    
-    /**
-     * Watch a video from an enrolled course
-     * @param {Object} options - Query parameters
-     * @param {string} [options.courseId] - Course ID
-     * @param {string} [options.videoId] - Video ID
-     * @param {string} [options.studentId] - Student ID
-     * @returns {string} The watch video API URL
-     */
     watchVideo: (options = {}) => {
       const { courseId, videoId, studentId } = options;
       
@@ -1300,6 +813,166 @@ export const apiUrls = {
       
       return `/enrolled-courses/watch?${queryParams.toString()}`;
     }
+  },
+  payment: {
+    processPayment: "/payments/process",
+    getStudentPayments: (studentId, options = {}) => {
+      if (!studentId) throw new Error('Student ID is required');
+      
+      const { page = 1, limit = 10, payment_type = "" } = options;
+      
+      const queryParams = new URLSearchParams();
+      queryParams.append('page', page);
+      queryParams.append('limit', limit);
+      
+      if (payment_type) {
+        queryParams.append('payment_type', payment_type);
+      }
+      
+      return `/payments/student/${studentId}?${queryParams.toString()}`;
+    },
+    getPaymentById: (paymentType, paymentId) => {
+      if (!paymentType) throw new Error('Payment type is required');
+      if (!paymentId) throw new Error('Payment ID is required');
+      
+      return `/payments/${paymentType}/${paymentId}`;
+    },
+    getPaymentStats: (options = {}) => {
+      const { period = "month" } = options;
+      
+      const queryParams = new URLSearchParams();
+      queryParams.append('period', period);
+      
+      return `/payments/stats?${queryParams.toString()}`;
+    },
+    generateReceipt: (paymentType, paymentId) => {
+      if (!paymentType) throw new Error('Payment type is required');
+      if (!paymentId) throw new Error('Payment ID is required');
+      
+      return `/payments/receipt/${paymentType}/${paymentId}`;
+    },
+    resendReceiptEmail: (paymentType, paymentId) => {
+      if (!paymentType) throw new Error('Payment type is required');
+      if (!paymentId) throw new Error('Payment ID is required');
+      
+      return `/payments/receipt/${paymentType}/${paymentId}/email`;
+    },
+    getStudentReceipts: (studentId, options = {}) => {
+      if (!studentId) throw new Error('Student ID is required');
+      
+      const { page = 1, limit = 10 } = options;
+      
+      const queryParams = new URLSearchParams();
+      queryParams.append('page', page);
+      queryParams.append('limit', limit);
+      
+      return `/payments/receipts/student/${studentId}?${queryParams.toString()}`;
+    }
+  }
+};
+
+// Expected response structures
+export const apiResponseStructures = {
+  course: {
+    _id: "string",
+    title: "string",
+    description: "string",
+    instructor: {
+      _id: "string",
+      name: "string",
+      avatar: "string"
+    },
+    sections: [{
+      _id: "string",
+      title: "string",
+      order: "number",
+      duration: "string",
+      lessons: [{
+        _id: "string",
+        title: "string",
+        type: "video|document",
+        duration: "string",
+        video_url: "string",
+        content_url: "string",
+        is_completed: "boolean",
+        resources: [{
+          _id: "string",
+          title: "string",
+          type: "string",
+          url: "string"
+        }]
+      }]
+    }],
+    progress: {
+      completed_lessons: "number",
+      total_lessons: "number",
+      percentage: "number"
+    }
+  },
+  
+  assignment: {
+    _id: "string",
+    title: "string",
+    description: "string",
+    total_marks: "number",
+    due_date: "string",
+    submission_count: "number",
+    attachments: [{
+      _id: "string",
+      filename: "string",
+      url: "string"
+    }]
+  },
+  
+  quiz: {
+    _id: "string",
+    title: "string",
+    duration: "string",
+    total_questions: "number",
+    attempts_allowed: "number",
+    questions: [{
+      _id: "string",
+      text: "string",
+      type: "multiple_choice|single_choice",
+      options: [{
+        _id: "string",
+        text: "string"
+      }]
+    }]
+  },
+  
+  quizResult: {
+    quiz_id: "string",
+    score: "number",
+    total_marks: "number",
+    correct_answers: "number",
+    total_questions: "number",
+    completion_time: "string",
+    status: "pass|fail",
+    attempt_number: "number",
+    submitted_at: "string"
+  }
+};
+
+// API request structures
+export const apiRequestStructures = {
+  submitAssignment: {
+    email: "string",
+    content: "string",
+    files: "File[]"
+  },
+  
+  submitQuiz: {
+    answers: [{
+      question_id: "string",
+      selected_options: "string[]"
+    }],
+    time_taken: "string"
+  },
+  
+  markLessonComplete: {
+    completion_time: "string",
+    notes: "string?"
   }
 };
 
