@@ -15,49 +15,22 @@ import { useState, useEffect } from 'react';
  * // Check if device is in dark mode
  * const isDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
  */
-export function useMediaQuery(query) {
-  // Default to false on server-side
+export const useMediaQuery = (query) => {
   const [matches, setMatches] = useState(false);
-  
+
   useEffect(() => {
-    // Only run on client-side
-    if (typeof window === 'undefined') return;
-    
-    // Check if window.matchMedia is available
-    if (!window.matchMedia) {
-      console.warn('window.matchMedia is not available in this browser');
-      return;
+    if (typeof window !== 'undefined') {
+      const media = window.matchMedia(query);
+      setMatches(media.matches);
+
+      const listener = (e) => setMatches(e.matches);
+      media.addEventListener('change', listener);
+
+      return () => media.removeEventListener('change', listener);
     }
-    
-    // Create media query list
-    const mediaQuery = window.matchMedia(query);
-    
-    // Set initial value
-    setMatches(mediaQuery.matches);
-    
-    // Create handler function
-    const handleChange = (event) => {
-      setMatches(event.matches);
-    };
-    
-    // Add listener with compatibility for older browsers
-    if (mediaQuery.addEventListener) {
-      mediaQuery.addEventListener('change', handleChange);
-    } else {
-      // Older browsers support (e.g. Safari < 14)
-      mediaQuery.addListener(handleChange);
-    }
-    
-    // Cleanup
-    return () => {
-      if (mediaQuery.removeEventListener) {
-        mediaQuery.removeEventListener('change', handleChange);
-      } else {
-        // Older browsers support
-        mediaQuery.removeListener(handleChange);
-      }
-    };
   }, [query]);
-  
+
   return matches;
-} 
+};
+
+export default useMediaQuery; 
