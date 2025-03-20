@@ -206,19 +206,23 @@ const IntegratedLessonsPage = () => {
   }, [availableCourses]);
   
   // Filter courses based on search query and category
-  const filteredEnrolledCourses = enrolledCourses.filter(course => {
-    const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                       course.description?.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredEnrolledCourses = enrolledCourses?.filter(course => {
+    if (!course) return false;
+    
+    const matchesSearch = (course.title?.toLowerCase() || '').includes(searchQuery?.toLowerCase() || '') || 
+                         (course.description?.toLowerCase() || '').includes(searchQuery?.toLowerCase() || '');
     const matchesCategory = selectedCategory === "All" || course.category === selectedCategory;
     return matchesSearch && matchesCategory;
-  });
+  }) || [];
   
-  const filteredAvailableCourses = availableCourses.filter(course => {
-    const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                       course.description?.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredAvailableCourses = availableCourses?.filter(course => {
+    if (!course) return false;
+    
+    const matchesSearch = (course.title?.toLowerCase() || '').includes(searchQuery?.toLowerCase() || '') || 
+                         (course.description?.toLowerCase() || '').includes(searchQuery?.toLowerCase() || '');
     const matchesCategory = selectedCategory === "All" || course.category === selectedCategory;
     return matchesSearch && matchesCategory;
-  });
+  }) || [];
   
   return (
     <PageWrapper>
