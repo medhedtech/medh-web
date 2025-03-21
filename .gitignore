@@ -35,8 +35,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# API configuration
-src/apis/index.js
 
 .vercel
 .env
