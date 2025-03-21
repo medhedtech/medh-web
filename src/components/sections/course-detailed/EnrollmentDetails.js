@@ -321,8 +321,8 @@ const EnrollmentDetails = ({
 
       // Use getQuery for checking enrollment
       const endpoint = enrollmentType === 'individual'
-        ? `/api/enrolled-courses/student/${studentId}`
-        : `/api/corporate/enrollments/${studentId}`;
+        ? `/enroll-courses/student/${studentId}`
+        : `/enroll-courses/corporate/${studentId}`;
 
       let isEnrolled = false;
       
@@ -350,7 +350,7 @@ const EnrollmentDetails = ({
       if (!token || !studentId) return [];
 
       // Use getQuery for upcoming meetings
-      const endpoint = `/api/enrolled-courses/get-upcoming-meetings/${studentId}`;
+      const endpoint = `/enroll/get-upcoming-meetings/${studentId}`;
       let meetings = [];
       
       await getQuery({

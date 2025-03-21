@@ -1,13 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { apiUrls } from '@/apis';
 import useGetQuery from './getQuery.hook';
 import { toast } from 'react-toastify';
 
-// Types for the course data structure
+// ----------------------
+// Type Definitions
+// ----------------------
+
 interface CourseWeek {
   weekTitle: string;
   weekDescription: string;
   sections: CourseSection[];
+  id?: string;
+  _id?: string;
 }
 
 interface CourseSection {
@@ -17,6 +22,8 @@ interface CourseSection {
   lessons: LessonData[];
   assignments?: AssignmentData[];
   quizzes?: QuizData[];
+  id?: string;
+  _id?: string;
 }
 
 interface ResourceFile {
@@ -26,10 +33,12 @@ interface ResourceFile {
   filename: string;
   mimeType: string;
   size: number;
+  url?: string;
 }
 
-interface LessonData {
+export interface LessonData {
   _id?: string;
+  id?: string;
   title: string;
   description: string;
   content: string;
@@ -38,12 +47,13 @@ interface LessonData {
   videoUrl?: string;
   resources?: ResourceFile[];
   is_completed?: boolean;
+  completed?: boolean;
   completion_date?: string;
   type?: string;
-  weekTitle: string;
-  sectionTitle: string;
-  assignments: AssignmentData[];
-  quizzes: QuizData[];
+  weekTitle?: string;
+  sectionTitle?: string;
+  assignments?: AssignmentData[];
+  quizzes?: QuizData[];
 }
 
 interface CoursePrice {
@@ -67,7 +77,7 @@ interface CourseMeta {
   lastUpdated: string;
 }
 
-interface CourseData {
+export interface CourseData {
   _id: string;
   course_category: string;
   course_title: string;
@@ -137,24 +147,86 @@ interface ApiResponse {
   data: CourseData;
 }
 
-interface AssignmentData {
+export interface AssignmentData {
   email: string;
   content: string;
   files?: File[];
 }
 
-interface CompletionData {
+export interface CompletionData {
   completed_at: string;
   duration?: number;
 }
 
-interface QuizData {
+export interface QuizData {
   answers: Record<string, any>;
   duration?: number;
   score?: number;
 }
 
-export const useCourseLesson = (courseId: string, lessonId: string) => {
+// ----------------------
+// Helper Functions
+// ----------------------
+
+// Searches the curriculum to find the current lesson and attaches week and section titles.
+const findLessonInCurriculum = (
+  curriculum: CourseWeek[],
+  lessonId: string
+): LessonData | undefined => {
+  if (!lessonId) return undefined;
+  
+  for (const week of curriculum) {
+    for (const section of week.sections) {
+      const lesson = section.lessons.find((l) => (l._id === lessonId || l.id === lessonId));
+      if (lesson) {
+        return {
+          ...lesson,
+          weekTitle: week.weekTitle,
+          sectionTitle: section.title,
+          assignments: section.assignments || [],
+          quizzes: section.quizzes || [],
+        };
+      }
+    }
+  }
+  return undefined;
+};
+
+// Ensures resources have the expected url property for compatibility
+const normalizeResources = (resources: ResourceFile[] | undefined): ResourceFile[] | undefined => {
+  if (!resources) return undefined;
+  
+  return resources.map(resource => ({
+    ...resource,
+    url: resource.url || resource.fileUrl
+  }));
+};
+
+// Process curriculum data to ensure compatibility with LessonAccordion
+const processCurriculumData = (curriculum: CourseWeek[]): CourseWeek[] => {
+  if (!curriculum) return [];
+  
+  return curriculum.map(week => ({
+    ...week,
+    id: week.id || week._id,
+    sections: week.sections.map(section => ({
+      ...section,
+      id: section.id || section._id,
+      lessons: section.lessons.map(lesson => ({
+        ...lesson,
+        id: lesson.id || lesson._id,
+        completed: lesson.is_completed || lesson.completed,
+        resources: normalizeResources(lesson.resources)
+      }))
+    }))
+  }));
+};
+
+// ----------------------
+// Main Hook
+// ----------------------
+
+export const useCourseLesson = (courseId: string, lessonId: string = '') => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
   const [courseData, setCourseData] = useState<CourseData | null>(null);
@@ -162,17 +234,18 @@ export const useCourseLesson = (courseId: string, lessonId: string) => {
   const [retryCount, setRetryCount] = useState<number>(0);
   const [getLoading, setGetLoading] = useState<boolean>(false);
   const [postLoading, setPostLoading] = useState<boolean>(false);
-  
+
   const { getQuery } = useGetQuery();
-  
-  const handleRetry = () => {
-    setRetryCount(prev => prev + 1);
+
+  // Increment retry count and reset error/loading states
+  const handleRetry = useCallback(() => {
+    setRetryCount((prev) => prev + 1);
     setError(null);
     setLoading(true);
-  };
-  
-  // Helper function to get auth token
-  const getAuthToken = (): string => {
+  }, []);
+
+  // Retrieve auth token from local storage
+  const getAuthToken = useCallback((): string => {
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -181,231 +254,218 @@ export const useCourseLesson = (courseId: string, lessonId: string) => {
       return token;
     }
     return '';
-  };
+  }, []);
 
-  // Helper function to handle API errors
-  const handleApiError = (error: any) => {
+  // Centralized API error handling
+  const handleApiError = useCallback((error: any): Error => {
     console.error("API Error:", error);
-    
-    // Check if it's a network error (no response at all)
     if (error.message === 'Network Error' || (!error.response && !error.success)) {
       return new Error('Network Error: Please check your internet connection');
     }
-
-    // If we have a response with success: true, this is not an error
-    if (error.success === true && error.data) {
-      return null;
-    }
-
-    // Handle different HTTP status codes
     const statusMessages: Record<number, string> = {
       401: 'Session Expired: Please log in again to continue',
-      403: 'Access Denied: You don\'t have permission to access this content',
+      403: "Access Denied: You don't have permission to access this content",
       404: 'Content Not Found: The requested lesson could not be found',
       500: 'Server Error: Our servers are experiencing issues. Please try again later'
     };
-
-    const message = error.response?.status ? statusMessages[error.response.status] : 
-                   error.response?.data?.message || 
-                   error.message ||
-                   'An unexpected error occurred';
-
+    const status = error.response?.status;
+    const message =
+      (status && statusMessages[status]) ||
+      error.response?.data?.message ||
+      error.message ||
+      'An unexpected error occurred';
     return new Error(message);
-  };
-  
-  // Mark lesson as complete
-  const markLessonComplete = async (completionData: CompletionData): Promise<boolean> => {
+  }, []);
+
+  // Mark the current lesson as complete
+  const markLessonComplete = useCallback(async (completionData: CompletionData): Promise<boolean> => {
+    if (!lessonId) {
+      toast.error('No lesson selected to mark as complete');
+      return false;
+    }
+    
     try {
       setPostLoading(true);
       const token = getAuthToken();
-      
       const headers = {
         'x-access-token': token,
         'Content-Type': 'application/json'
       };
-      
+
       const response = await getQuery({
         url: apiUrls.courses.markLessonComplete(courseId, lessonId),
-        config: {
-          method: 'POST',
-          headers,
-          data: completionData
-        }
+        config: { method: 'POST', headers, data: completionData }
       });
 
       if (response?.success) {
-        setLessonData(prev => ({
-          ...prev!,
-          is_completed: true,
-          completion_date: completionData.completed_at
-        }));
+        setLessonData((prev) => prev ? { ...prev, is_completed: true, completed: true, completion_date: completionData.completed_at } : prev);
+        
+        // Also update the course curriculum data to reflect the completion
+        setCourseData(prevCourseData => {
+          if (!prevCourseData) return null;
+          
+          const updatedCurriculum = prevCourseData.curriculum.map(week => ({
+            ...week,
+            sections: week.sections.map(section => ({
+              ...section,
+              lessons: section.lessons.map(lesson => 
+                (lesson._id === lessonId || lesson.id === lessonId) 
+                  ? { ...lesson, is_completed: true, completed: true, completion_date: completionData.completed_at }
+                  : lesson
+              )
+            }))
+          }));
+          
+          return {
+            ...prevCourseData,
+            curriculum: updatedCurriculum
+          };
+        });
+        
         toast.success('Lesson marked as complete!');
         return true;
       }
-      
       throw new Error("Failed to mark lesson as complete");
-    } catch (error) {
-      const processedError = handleApiError(error);
+    } catch (err: any) {
+      const processedError = handleApiError(err);
       toast.error(processedError.message);
       throw processedError;
     } finally {
       setPostLoading(false);
     }
-  };
-  
-  // Submit assignment
-  const submitAssignment = async (assignmentData: AssignmentData) => {
+  }, [apiUrls, courseId, lessonId, getQuery, getAuthToken, handleApiError]);
+
+  // Submit assignment data
+  const submitAssignment = useCallback(async (assignmentData: AssignmentData) => {
+    if (!lessonId) {
+      toast.error('No lesson selected to submit assignment');
+      return false;
+    }
+    
     try {
       setPostLoading(true);
       const token = getAuthToken();
-      
       const headers = {
         'x-access-token': token,
         'Content-Type': 'multipart/form-data'
       };
-      
       const formData = new FormData();
       formData.append('email', assignmentData.email);
       formData.append('content', assignmentData.content);
       if (assignmentData.files) {
-        assignmentData.files.forEach(file => {
-          formData.append('files', file);
-        });
+        assignmentData.files.forEach(file => formData.append('files', file));
       }
-      
       const response = await getQuery({
         url: apiUrls.courses.submitAssignment(courseId, lessonId),
-        config: {
-          method: 'POST',
-          headers,
-          data: formData
-        }
+        config: { method: 'POST', headers, data: formData }
       });
-
       if (response?.success) {
         toast.success("Assignment submitted successfully!");
         return response.data;
       }
-      
       throw new Error("Failed to submit assignment");
-    } catch (error) {
-      const processedError = handleApiError(error);
+    } catch (err: any) {
+      const processedError = handleApiError(err);
       toast.error(processedError.message);
       throw processedError;
     } finally {
       setPostLoading(false);
     }
-  };
-  
-  // Submit quiz
-  const submitQuiz = async (quizData: QuizData) => {
+  }, [apiUrls, courseId, lessonId, getQuery, getAuthToken, handleApiError]);
+
+  // Submit quiz data
+  const submitQuiz = useCallback(async (quizData: QuizData) => {
+    if (!lessonId) {
+      toast.error('No lesson selected to submit quiz');
+      return false;
+    }
+    
     try {
       setPostLoading(true);
       const token = getAuthToken();
-      
       const headers = {
         'x-access-token': token,
         'Content-Type': 'application/json'
       };
-      
       const response = await getQuery({
         url: apiUrls.courses.submitQuiz(courseId, lessonId),
-        config: {
-          method: 'POST',
-          headers,
-          data: quizData
-        }
+        config: { method: 'POST', headers, data: quizData }
       });
-
       if (response?.success) {
         toast.success("Quiz submitted successfully!");
         return response.data;
       }
-      
       throw new Error("Failed to submit quiz");
-    } catch (error) {
-      const processedError = handleApiError(error);
+    } catch (err: any) {
+      const processedError = handleApiError(err);
       toast.error(processedError.message);
       throw processedError;
     } finally {
       setPostLoading(false);
     }
-  };
-  
-  // Fetch course and lesson data
+  }, [apiUrls, courseId, lessonId, getQuery, getAuthToken, handleApiError]);
+
+  // Fetch course data and extract the current lesson from the curriculum
   useEffect(() => {
     const fetchData = async () => {
+      if (!courseId) return;
+      
       try {
         setLoading(true);
         setGetLoading(true);
         setError(null);
-        
+
         const token = getAuthToken();
         const headers = {
           'x-access-token': token,
           'Content-Type': 'application/json'
         };
-        
-        // Fetch course data
+
+        // Get the student ID from localStorage if available
+        const studentId = localStorage.getItem('studentId') || '';
+
+        // Use the updated API endpoint with student ID if available
         const response: ApiResponse = await getQuery({
-          url: apiUrls.courses.getCourseById(courseId),
+          url: apiUrls.courses.getCourseById(courseId, studentId),
           config: { headers }
         });
 
-        if (response?.success && response?.data) {
-          setCourseData(response.data);
+        if (response?.success && response.data) {
+          // Process curriculum for compatibility with components
+          const processedData = {
+            ...response.data,
+            curriculum: processCurriculumData(response.data.curriculum)
+          };
           
-          // Find the current lesson in the curriculum structure
-          let currentLesson: LessonData | undefined;
-          let currentWeek: any;
-          let currentSection: any;
+          setCourseData(processedData);
           
-          // Iterate through weeks and sections to find the lesson
-          for (const week of response.data.curriculum) {
-            for (const section of week.sections) {
-              const lesson = section.lessons.find(l => l._id === lessonId);
-              if (lesson) {
-                currentLesson = {
-                  ...lesson,
-                  weekTitle: week.weekTitle,
-                  sectionTitle: section.title,
-                  assignments: section.assignments,
-                  quizzes: section.quizzes
-                };
-                currentWeek = week;
-                currentSection = section;
-                break;
-              }
+          // Only look for lesson if lessonId is provided
+          if (lessonId) {
+            const currentLesson = findLessonInCurriculum(processedData.curriculum, lessonId);
+            if (currentLesson) {
+              // Ensure resources have the correct format
+              currentLesson.resources = normalizeResources(currentLesson.resources);
+              setLessonData(currentLesson);
+              return;
             }
-            if (currentLesson) break;
+            throw new Error('Lesson not found in this course. Please check the lesson ID and try again.');
           }
-          
-          if (currentLesson) {
-            setLessonData(currentLesson);
-            return;
-          }
-          
-          throw new Error('Lesson not found in this course. Please check the lesson ID and try again.');
+        } else {
+          throw new Error('Invalid server response');
         }
-        
-        throw new Error('Invalid server response');
-      } catch (error) {
-        const processedError = handleApiError(error);
-        if (processedError) {
-          setError(processedError);
-          toast.error(processedError.message);
-        }
+      } catch (err: any) {
+        const processedError = handleApiError(err);
+        setError(processedError);
+        toast.error(processedError.message);
       } finally {
         setLoading(false);
         setGetLoading(false);
       }
     };
-    
-    if (courseId && lessonId) {
-      fetchData();
-    }
-  }, [courseId, lessonId, retryCount]);
-  
+
+    fetchData();
+  }, [courseId, lessonId, retryCount, getQuery, getAuthToken, handleApiError]);
+
   return {
     loading,
     error,
@@ -416,8 +476,8 @@ export const useCourseLesson = (courseId: string, lessonId: string) => {
     submitAssignment,
     submitQuiz,
     getLoading,
-    postLoading
+    postLoading,
   };
 };
 
-export default useCourseLesson; 
+export default useCourseLesson;

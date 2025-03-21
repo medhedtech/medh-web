@@ -1,3 +1,5 @@
+import { formatDistanceToNow as formatDistanceToNowFn } from 'date-fns';
+
 export const formatDuration = (minutes) => {
   if (!minutes) return "0 min";
   if (minutes < 60) return `${minutes} min`;
@@ -57,4 +59,9 @@ export const formatDurationFromSeconds = (seconds) => {
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = Math.floor(seconds % 60);
   return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+};
+
+export const formatDistanceToNow = (date) => {
+  if (!date) return "";
+  return formatDistanceToNowFn(new Date(date), { addSuffix: true });
 }; 
