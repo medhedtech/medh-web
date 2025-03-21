@@ -380,7 +380,7 @@ const LoginForm = () => {
                     <span className="ml-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                       I accept the{" "}
                       <a
-                        href="/terms-and-conditions"
+                        href="/terms-and-services"
                         className="text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300 underline"
                       >
                         terms of use
