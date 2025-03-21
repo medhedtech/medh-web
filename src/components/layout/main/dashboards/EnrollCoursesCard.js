@@ -2,7 +2,20 @@ import React from "react";
 import Image from "next/image";
 import AiMl from "@/assets/images/courses/Ai&Ml.jpeg";
 import { motion } from "framer-motion";
-import { Clock, CheckCircle, PlayCircle } from "lucide-react";
+import { 
+  Clock, 
+  CheckCircle, 
+  PlayCircle, 
+  Calendar,
+  CreditCard,
+  BookOpen,
+  GraduationCap,
+  Users,
+  AlertCircle,
+  BookmarkCheck,
+  PenTool,
+  BrainCircuit
+} from "lucide-react";
 
 const EnrollCoursesCard = ({ 
   title, 
@@ -12,7 +25,22 @@ const EnrollCoursesCard = ({
   lastAccessed, 
   status, 
   onClick,
-  isHovered 
+  isHovered,
+  paymentStatus,
+  remainingTime,
+  completionCriteria,
+  completedLessons = [],
+  totalLessons = 0,
+  enrollmentType,
+  learningPath,
+  batchSize,
+  completedAssignments = [],
+  completedQuizzes = [],
+  is_certified,
+  notes = [],
+  bookmarks = [],
+  assignment_submissions = [],
+  quiz_submissions = []
 }) => {
   const displayImage = image || AiMl;
 
@@ -22,8 +50,23 @@ const EnrollCoursesCard = ({
         return 'bg-green-500';
       case 'in_progress':
         return 'bg-yellow-500';
-      default:
+      case 'not_started':
         return 'bg-blue-500';
+      default:
+        return 'bg-gray-500';
+    }
+  };
+
+  const getPaymentStatusColor = (status) => {
+    switch (status) {
+      case 'completed':
+        return 'text-green-500';
+      case 'pending':
+        return 'text-yellow-500';
+      case 'failed':
+        return 'text-red-500';
+      default:
+        return 'text-gray-500';
     }
   };
 
@@ -47,6 +90,13 @@ const EnrollCoursesCard = ({
     return lastAccessed.toLocaleDateString();
   };
 
+  // Calculate completion requirements
+  const hasMetProgress = progress >= (completionCriteria?.required_progress || 100);
+  const hasMetAssignments = !completionCriteria?.required_assignments || 
+    (completedAssignments && completedAssignments.length > 0);
+  const hasMetQuizzes = !completionCriteria?.required_quizzes || 
+    (completedQuizzes && completedQuizzes.length > 0);
+
   return (
     <motion.div
       onClick={onClick}
@@ -61,13 +111,20 @@ const EnrollCoursesCard = ({
         </div>
       </div>
 
-      {/* Live indicator */}
-      {isLive && (
-        <div className="absolute top-2 left-2 z-10 flex items-center space-x-1 bg-black/50 px-2 py-1 rounded-full">
-          <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-          <span className="text-xs font-medium text-white">Live</span>
-        </div>
-      )}
+      {/* Live/Self-paced Badge */}
+      <div className="absolute top-2 left-2 z-10 flex items-center space-x-1 bg-black/50 px-2 py-1 rounded-full">
+        {isLive ? (
+          <>
+            <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+            <span className="text-xs font-medium text-white">Live</span>
+          </>
+        ) : (
+          <>
+            <BookOpen className="w-3 h-3 text-white" />
+            <span className="text-xs font-medium text-white">Self-paced</span>
+          </>
+        )}
+      </div>
 
       {/* Course Image */}
       <div className="relative w-full h-48 group">
@@ -113,22 +170,119 @@ const EnrollCoursesCard = ({
           </div>
         </div>
 
-        {/* Last Accessed */}
-        <div className="mt-3 flex items-center text-xs text-gray-500 dark:text-gray-400">
-          <Clock className="w-4 h-4 mr-1" />
-          <span>Last accessed: {formatLastAccessed(lastAccessed)}</span>
+        {/* Course Stats */}
+        <div className="mt-3 space-y-2 text-xs text-gray-500 dark:text-gray-400">
+          {/* Last Accessed */}
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4" />
+            <span>Last accessed: {formatLastAccessed(lastAccessed)}</span>
+          </div>
+
+          {/* Payment Status */}
+          <div className="flex items-center gap-2">
+            <CreditCard className={`w-4 h-4 ${getPaymentStatusColor(paymentStatus)}`} />
+            <span className={getPaymentStatusColor(paymentStatus)}>
+              Payment: {paymentStatus.charAt(0).toUpperCase() + paymentStatus.slice(1)}
+            </span>
+          </div>
+
+          {/* Remaining Time */}
+          {remainingTime && (
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
+              <span>{remainingTime}</span>
+            </div>
+          )}
+
+          {/* Enrollment Type & Batch Size */}
+          <div className="flex items-center gap-2">
+            <Users className="w-4 h-4" />
+            <span className="capitalize">
+              {enrollmentType} {enrollmentType === 'batch' && batchSize ? `(${batchSize} students)` : 'enrollment'}
+            </span>
+          </div>
+
+          {/* Learning Path */}
+          <div className="flex items-center gap-2">
+            <GraduationCap className="w-4 h-4" />
+            <span className="capitalize">{learningPath} learning</span>
+          </div>
+
+          {/* Progress Stats */}
+          <div className="grid grid-cols-2 gap-2">
+            {/* Lessons Progress */}
+            <div className="flex items-center gap-1">
+              <BookOpen className="w-4 h-4" />
+              <span>{completedLessons.length}/{totalLessons} lessons</span>
+            </div>
+
+            {/* Assignments Progress */}
+            {completionCriteria?.required_assignments && (
+              <div className="flex items-center gap-1">
+                <PenTool className="w-4 h-4" />
+                <span>{completedAssignments.length} assignments</span>
+              </div>
+            )}
+
+            {/* Quizzes Progress */}
+            {completionCriteria?.required_quizzes && (
+              <div className="flex items-center gap-1">
+                <BrainCircuit className="w-4 h-4" />
+                <span>{completedQuizzes.length} quizzes</span>
+              </div>
+            )}
+
+            {/* Notes & Bookmarks */}
+            <div className="flex items-center gap-1">
+              <BookmarkCheck className="w-4 h-4" />
+              <span>{notes.length + bookmarks.length} saved items</span>
+            </div>
+          </div>
+
+          {/* Completion Requirements Alert */}
+          {!status === 'completed' && (completionCriteria?.required_assignments || completionCriteria?.required_quizzes) && (
+            <div className="flex items-start gap-2 mt-2 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+              <AlertCircle className="w-4 h-4 text-yellow-500 shrink-0 mt-0.5" />
+              <div className="text-xs">
+                <p className="font-medium text-yellow-700 dark:text-yellow-400">Completion Requirements:</p>
+                <ul className="mt-1 list-disc list-inside text-yellow-600 dark:text-yellow-500">
+                  {completionCriteria?.required_progress && !hasMetProgress && (
+                    <li>Complete {completionCriteria.required_progress}% of course content</li>
+                  )}
+                  {completionCriteria?.required_assignments && !hasMetAssignments && (
+                    <li>Submit required assignments</li>
+                  )}
+                  {completionCriteria?.required_quizzes && !hasMetQuizzes && (
+                    <li>Complete required quizzes</li>
+                  )}
+                </ul>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Continue Learning Button */}
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="mt-3 w-full py-2 px-4 bg-primary-500 hover:bg-primary-600 text-white rounded-lg font-medium flex items-center justify-center gap-2 transition-colors"
+          className={`mt-4 w-full py-2 px-4 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors ${
+            paymentStatus === 'pending'
+              ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
+              : status === 'completed'
+                ? 'bg-green-500 hover:bg-green-600 text-white'
+                : 'bg-primary-500 hover:bg-primary-600 text-white'
+          }`}
+          disabled={paymentStatus === 'pending'}
         >
-          {status === 'completed' ? (
+          {paymentStatus === 'pending' ? (
+            <>
+              <CreditCard className="w-4 h-4" />
+              Complete Payment
+            </>
+          ) : status === 'completed' ? (
             <>
               <CheckCircle className="w-4 h-4" />
-              Review Course
+              {is_certified ? 'View Certificate' : 'Review Course'}
             </>
           ) : (
             <>

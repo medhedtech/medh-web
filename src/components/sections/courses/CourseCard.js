@@ -54,7 +54,8 @@ const useResponsiveText = (text, maxLength = {xs: 60, sm: 80, md: 120, lg: 180})
     }
   }, []);
   
-  if (!text) return "";
+  // Return empty string if text is undefined or not a string
+  if (!text || typeof text !== 'string') return "";
   
   let limit = maxLength.lg;
   if (windowWidth < 640) limit = maxLength.xs;
