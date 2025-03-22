@@ -1,12 +1,21 @@
 // middleware.js
-import jwtDecode from "jwt-decode";
 import { NextResponse } from "next/server";
 import { protectedRoutes } from "./protectedRoutes";
+import { getToken } from "next-auth/jwt";
 
-// Helper to check if the user is authenticated
-function isAuthenticated(req) {
-  const token = req.cookies.get("token")?.value;
-  return !!token;
+// Helper to check if the user is authenticated (works with both NextAuth and custom JWT)
+async function isAuthenticated(req) {
+  // First try NextAuth token
+  const token = await getToken({ 
+    req, 
+    secret: process.env.NEXTAUTH_SECRET 
+  });
+  
+  if (token) return true;
+  
+  // Fall back to our custom token implementation
+  const customToken = req.cookies.get("token")?.value;
+  return !!customToken;
 }
 
 // Security headers for better performance and security
@@ -33,11 +42,11 @@ const securityHeaders = {
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=(self), interest-cohort=()'
 };
 
-export function middleware(request) {
+export async function middleware(request) {
   const path = request.nextUrl.pathname;
   const isLoginPage = path === "/login" || path === "/signup" || path === "/forgot-password";
   const isPublicPage = !protectedRoutes.some((route) => path.startsWith(route));
-  const isAuthenticated_ = isAuthenticated(request);
+  const isAuthenticated_ = await isAuthenticated(request);
 
   // Handle authentication redirects
   if (isLoginPage && isAuthenticated_) {
