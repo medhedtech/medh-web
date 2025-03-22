@@ -306,8 +306,15 @@ export const apiUrls = {
       `/courses/${courseId}/lessons/${lessonId}/resources/${resourceId}/download`,
     uploadFile: "/courses/upload",
     uploadMultipleFiles: "/courses/upload-multiple",
+    getLessonNotes: (courseId: string, lessonId: string): string => `/courses/${courseId}/lessons/${lessonId}/notes`,
     addLessonNote: (courseId: string, lessonId: string): string => `/courses/${courseId}/lessons/${lessonId}/notes`,
-    addLessonBookmark: (courseId: string, lessonId: string): string => `/courses/${courseId}/lessons/${lessonId}/bookmarks`
+    updateNote: (courseId: string, lessonId: string, noteId: string): string => `/courses/${courseId}/lessons/${lessonId}/notes/${noteId}`,
+    deleteNote: (courseId: string, lessonId: string, noteId: string): string => `/courses/${courseId}/lessons/${lessonId}/notes/${noteId}`,
+    getLessonBookmarks: (courseId: string, lessonId: string): string => `/courses/${courseId}/lessons/${lessonId}/bookmarks`,
+    addLessonBookmark: (courseId: string, lessonId: string): string => `/courses/${courseId}/lessons/${lessonId}/bookmarks`,
+    updateBookmark: (courseId: string, lessonId: string, bookmarkId: string): string => `/courses/${courseId}/lessons/${lessonId}/bookmarks/${bookmarkId}`,
+    deleteBookmark: (courseId: string, lessonId: string, bookmarkId: string): string => `/courses/${courseId}/lessons/${lessonId}/bookmarks/${bookmarkId}`,
+    downloadBrochure: (courseId: string): string => `/courses/broucher/download/${courseId}`
   },
   upload: {
     uploadImage: "/upload/uploadImage",
