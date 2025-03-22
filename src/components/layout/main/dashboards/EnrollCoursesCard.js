@@ -2,6 +2,7 @@ import React from "react";
 import Image from "next/image";
 import AiMl from "@/assets/images/courses/Ai&Ml.jpeg";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { 
   Clock, 
   CheckCircle, 
@@ -40,8 +41,10 @@ const EnrollCoursesCard = ({
   notes = [],
   bookmarks = [],
   assignment_submissions = [],
-  quiz_submissions = []
+  quiz_submissions = [],
+  courseId
 }) => {
+  const router = useRouter();
   const displayImage = image || AiMl;
 
   const getStatusColor = (status) => {
@@ -97,9 +100,36 @@ const EnrollCoursesCard = ({
   const hasMetQuizzes = !completionCriteria?.required_quizzes || 
     (completedQuizzes && completedQuizzes.length > 0);
 
+  // Handle click on the card
+  const handleCardClick = () => {
+    if (onClick) {
+      onClick();
+    }
+  };
+
+  // Handle click on the button
+  const handleButtonClick = (e) => {
+    e.stopPropagation(); // Prevent card click event from firing
+    
+    const id = courseId || (onClick && onClick.toString().match(/\/([^\/]+)'\)/) ? onClick.toString().match(/\/([^\/]+)'\)/)[1] : null);
+    
+    if (id) {
+      if (paymentStatus === 'pending') {
+        // Navigate to payment completion page
+        router.push(`/payment/${id}`);
+      } else if (status === 'completed' && is_certified) {
+        // Navigate to certificate view
+        router.push(`/certificate/${id}`);
+      } else {
+        // Navigate to integrated lessons page
+        router.push(`/integrated-lessons/${id}`);
+      }
+    }
+  };
+
   return (
     <motion.div
-      onClick={onClick}
+      onClick={handleCardClick}
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
       className="relative max-w-xs rounded-lg overflow-hidden border border-gray-200 bg-white dark:bg-gray-800 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-200"
@@ -240,7 +270,7 @@ const EnrollCoursesCard = ({
           </div>
 
           {/* Completion Requirements Alert */}
-          {!status === 'completed' && (completionCriteria?.required_assignments || completionCriteria?.required_quizzes) && (
+          {status !== 'completed' && (completionCriteria?.required_assignments || completionCriteria?.required_quizzes) && (
             <div className="flex items-start gap-2 mt-2 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
               <AlertCircle className="w-4 h-4 text-yellow-500 shrink-0 mt-0.5" />
               <div className="text-xs">
@@ -263,6 +293,7 @@ const EnrollCoursesCard = ({
 
         {/* Continue Learning Button */}
         <motion.button
+          onClick={handleButtonClick}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           className={`mt-4 w-full py-2 px-4 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors ${
