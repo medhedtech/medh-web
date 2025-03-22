@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, BookOpen, Loader2, Search } from "lucide-react";
+import { ArrowLeft, BookOpen, Loader2, Search, AlertCircle } from "lucide-react";
 
 // Helper function to get the auth token
 const getAuthToken = () => {
@@ -13,6 +13,23 @@ const getAuthToken = () => {
     return localStorage.getItem('token');
   }
   return null;
+};
+
+// Helper function to calculate remaining time
+const calculateRemainingTime = (expiryDate) => {
+  if (!expiryDate) return null;
+  const now = new Date();
+  const expiry = new Date(expiryDate);
+  const diffTime = expiry - now;
+  
+  if (diffTime <= 0) return 'Expired';
+  
+  const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  if (days > 30) {
+    const months = Math.floor(days / 30);
+    return `${months} month${months > 1 ? 's' : ''} remaining`;
+  }
+  return `${days} day${days > 1 ? 's' : ''} remaining`;
 };
 
 const StudentEnrollCourses = () => {
@@ -94,27 +111,78 @@ const StudentEnrollCourses = () => {
       await getQuery({
         url: paymentApiUrl,
         headers,
-        onSuccess: (response) => {
+        onSuccess: async (response) => {
           let courses = [];
           
           if (response?.success && response?.data?.enrollments) {
             const enrollments = response.data.enrollments || [];
             
-            courses = enrollments
-              .map((enrollment) => {
-                const course = enrollment.course_id;
-                if (!course) return null;
+            // Process enrollments and fetch course details
+            const processedEnrollments = await Promise.all(
+              enrollments.map(async (enrollment) => {
+                if (!enrollment.course_id) return null;
                 
-                return {
-                  ...course,
-                  _id: course._id || enrollment.course_id?._id,
-                  progress: enrollment.course_progress || 0,
-                  last_accessed: enrollment.last_accessed_at || enrollment.updatedAt || null,
-                  completion_status: enrollment.is_completed ? "completed" : "in_progress",
-                  enrollment_id: enrollment._id
-                };
+                try {
+                  // Fetch course details
+                  const courseResponse = await getQuery({
+                    url: apiUrls.courses.getCourseById(enrollment.course_id),
+                    headers,
+                  });
+                  
+                  const courseData = courseResponse?.course || courseResponse?.data || courseResponse;
+                  
+                  if (!courseData || !courseData._id) return null;
+                  
+                  // Calculate completion status based on criteria
+                  const completionCriteria = enrollment.completion_criteria || {
+                    required_progress: 100,
+                    required_assignments: true,
+                    required_quizzes: true
+                  };
+                  
+                  let status = 'not_started';
+                  if (enrollment.is_completed) {
+                    status = 'completed';
+                  } else if (enrollment.progress > 0 || enrollment.completed_lessons?.length > 0) {
+                    status = 'in_progress';
+                  }
+                  
+                  // Get remaining time
+                  const remainingTime = calculateRemainingTime(enrollment.expiry_date);
+                  
+                  // Combine course data with enrollment data
+                  return {
+                    _id: courseData._id,
+                    course_title: courseData.course_title,
+                    course_description: courseData.course_description,
+                    course_image: courseData.course_image,
+                    course_category: courseData.course_category,
+                    course_grade: courseData.course_grade,
+                    course_fee: courseData.course_fee,
+                    lessons: courseData.curriculum || [],
+                    progress: enrollment.progress || 0,
+                    last_accessed: enrollment.last_accessed || enrollment.updatedAt,
+                    completion_status: status,
+                    enrollment_id: enrollment._id,
+                    payment_status: enrollment.payment_status,
+                    is_self_paced: enrollment.is_self_paced,
+                    expiry_date: enrollment.expiry_date,
+                    remaining_time: remainingTime,
+                    completion_criteria: completionCriteria,
+                    completed_lessons: enrollment.completed_lessons || [],
+                    completed_assignments: enrollment.completed_assignments || [],
+                    completed_quizzes: enrollment.completed_quizzes || [],
+                    enrollment_type: enrollment.enrollment_type,
+                    learning_path: enrollment.learning_path
+                  };
+                } catch (error) {
+                  console.error(`Error fetching course details for enrollment ${enrollment._id}:`, error);
+                  return null;
+                }
               })
-              .filter(Boolean);
+            );
+            
+            courses = processedEnrollments.filter(Boolean);
           }
           
           setEnrollCourses(courses);
@@ -205,8 +273,9 @@ const StudentEnrollCourses = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400"
+            className="mb-6 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 flex items-center gap-2"
           >
+            <AlertCircle className="w-5 h-5" />
             {error}
           </motion.div>
         )}
@@ -232,33 +301,22 @@ const StudentEnrollCourses = () => {
             <div className="p-4 rounded-full bg-primary-50 dark:bg-primary-900/20 mb-4">
               <BookOpen className="w-8 h-8 text-primary-500 dark:text-primary-400" />
             </div>
-            {searchTerm ? (
-              <>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                  No courses found
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-6">
-                  Try adjusting your search term to find what you're looking for.
-                </p>
-              </>
-            ) : (
-              <>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                  No Enrolled Courses Yet
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-6">
-                  Start your learning journey by enrolling in our courses.
-                </p>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => router.push('/courses')}
-                  className="px-6 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors"
-                >
-                  Browse Courses
-                </motion.button>
-              </>
-            )}
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+              {searchTerm ? "No matching courses found" : "No Enrolled Courses Yet"}
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md">
+              {searchTerm 
+                ? "Try adjusting your search terms or view all courses"
+                : "Start your learning journey by enrolling in our courses. We have a wide range of options to choose from."}
+            </p>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => router.push('/courses')}
+              className="px-6 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors"
+            >
+              Browse Courses
+            </motion.button>
           </motion.div>
         ) : (
           <motion.div 
@@ -277,12 +335,20 @@ const StudentEnrollCourses = () => {
                   <EnrollCoursesCard
                     title={course.course_title}
                     image={course.course_image}
-                    isLive={course.course_tag === "Live"}
+                    isLive={!course.is_self_paced}
                     progress={course.progress}
                     lastAccessed={course.last_accessed}
                     status={course.completion_status}
                     onClick={() => handleCardClick(course._id)}
                     isHovered={isHovered === course._id}
+                    paymentStatus={course.payment_status}
+                    remainingTime={course.remaining_time}
+                    completionCriteria={course.completion_criteria}
+                    completedLessons={course.completed_lessons?.length || 0}
+                    totalLessons={course.lessons?.length || 0}
+                    enrollmentType={course.enrollment_type}
+                    learningPath={course.learning_path}
+                    courseId={course._id}
                   />
                 </motion.div>
               ))}

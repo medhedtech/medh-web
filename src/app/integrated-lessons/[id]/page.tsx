@@ -428,7 +428,9 @@ const CourseIntroduction = ({
               Program Overview
             </h2>
             <div className="prose dark:prose-invert max-w-none text-gray-600 dark:text-gray-300 leading-relaxed">
-              <p>{courseData.course_description?.program_overview || "This comprehensive course is designed to give you a solid foundation in this subject area."}</p>
+              <p>{typeof courseData.course_description?.program_overview === 'object' 
+                ? JSON.stringify(courseData.course_description?.program_overview) 
+                : courseData.course_description?.program_overview || "This comprehensive course is designed to give you a solid foundation in this subject area."}</p>
             </div>
           </section>
           
