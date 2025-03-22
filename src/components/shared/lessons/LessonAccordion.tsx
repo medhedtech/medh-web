@@ -29,7 +29,22 @@ import {
   X,
   PanelLeftClose,
   ArrowLeftRight,
-  Sidebar
+  Sidebar,
+  Bookmark,
+  BookmarkPlus,
+  Star,
+  MoreHorizontal,
+  Calendar,
+  Briefcase,
+  Award,
+  TrendingUp,
+  Zap,
+  Tag,
+  Info,
+  Filter,
+  ShieldCheck,
+  Library,
+  Navigation
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { apiUrls } from "@/apis";
@@ -89,6 +104,15 @@ interface CourseData {
   curriculum: Week[];
 }
 
+interface Bookmark {
+  id: string | number;
+  lessonId: string;
+  time?: number;
+  label: string;
+  createdAt: string;
+  thumbnailUrl?: string;
+}
+
 interface LessonAccordionProps {
   currentLessonId: string;
   courseData: CourseData;
@@ -98,6 +122,11 @@ interface LessonAccordionProps {
   onSearchChange?: (term: string) => void;
   autoExpandCurrent?: boolean;
   isCollapsible?: boolean;
+  bookmarks?: Bookmark[];
+  onBookmarkSelect?: (bookmark: Bookmark) => void;
+  onBookmarkRemove?: (bookmarkId: string | number) => void;
+  showBookmarks?: boolean;
+  currentProgress?: number;
 }
 
 const ItemTypeIcon: React.FC<{ type?: string; status?: string; className?: string }> = ({ type, status, className = "w-4 h-4" }) => {
@@ -169,7 +198,12 @@ const LessonAccordion: React.FC<LessonAccordionProps> = ({
   searchTerm = "",
   onSearchChange = () => {},
   autoExpandCurrent = true,
-  isCollapsible = false
+  isCollapsible = false,
+  bookmarks = [],
+  onBookmarkSelect,
+  onBookmarkRemove,
+  showBookmarks = false,
+  currentProgress = 0,
 }) => {
   const [expandedWeeks, setExpandedWeeks] = useState<Set<number>>(new Set());
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
@@ -177,6 +211,10 @@ const LessonAccordion: React.FC<LessonAccordionProps> = ({
     { lesson: Lesson; weekIndex: number; sectionIndex: number; weekTitle: string; sectionTitle: string }[]
   >([]);
   const [isAccordionCollapsed, setIsAccordionCollapsed] = useState(false);
+  const [showBookmarkSection, setShowBookmarkSection] = useState(showBookmarks);
+  const [bookmarkFilter, setBookmarkFilter] = useState("all");
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [showQuickFilters, setShowQuickFilters] = useState(false);
 
   // Auto-expand week/section containing the current lesson
   useEffect(() => {
@@ -255,6 +293,54 @@ const LessonAccordion: React.FC<LessonAccordionProps> = ({
     });
     return total > 0 ? Math.round((completed / total) * 100) : 0;
   }, [courseData]);
+
+  // Bookmark section toggle
+  const toggleBookmarkSection = useCallback(() => {
+    setShowBookmarkSection(!showBookmarkSection);
+  }, [showBookmarkSection]);
+
+  // Filter bookmarks by category or timeframe
+  const filteredBookmarks = useMemo(() => {
+    if (bookmarkFilter === "all") return bookmarks;
+    
+    // Additional filtering logic based on bookmarkFilter value
+    // For example: recent, by module, etc.
+    if (bookmarkFilter === "recent") {
+      return [...bookmarks].sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      ).slice(0, 5);
+    }
+    
+    return bookmarks;
+  }, [bookmarks, bookmarkFilter]);
+
+  // Group lessons by categories for quick filtering
+  const lessonCategories = useMemo(() => {
+    const categories = new Set<string>();
+    courseData?.curriculum?.forEach(week => {
+      week.sections.forEach(section => {
+        section.lessons.forEach(lesson => {
+          if (lesson.type) categories.add(lesson.type);
+        });
+      });
+    });
+    return Array.from(categories);
+  }, [courseData]);
+
+  const handleCategoryFilter = (category: string | null) => {
+    setActiveCategory(category);
+    // If a category is selected, expand all weeks to show filtered content
+    if (category) {
+      const allWeekIndices = courseData?.curriculum.map((_, index) => index) || [];
+      setExpandedWeeks(new Set(allWeekIndices));
+    }
+  };
+
+  // Filter lessons by type if a category is selected
+  const shouldShowLesson = (lesson: Lesson) => {
+    if (!activeCategory) return true;
+    return lesson.type === activeCategory;
+  };
 
   const renderWeekHeader = useCallback((week: Week, weekIndex: number) => {
     let totalLessons = 0, completedLessons = 0;
@@ -363,10 +449,17 @@ const LessonAccordion: React.FC<LessonAccordionProps> = ({
     // Use _id if available
     const lessonId = lesson._id || lesson.id;
     if (!lessonId) return null;
+    
+    // Skip rendering if this lesson doesn't match the active category filter
+    if (!shouldShowLesson(lesson)) return null;
+    
     const isActive = lessonId === currentLessonId;
     const isCompleted = lesson.is_completed;
     const isLocked = lesson.status === ITEM_STATUS.LOCKED;
     const isPreview = lesson.isPreview;
+    
+    // Check if this lesson has any bookmarks
+    const hasBookmarks = bookmarks.some(bookmark => bookmark.lessonId === lessonId);
 
     return (
       <motion.div
@@ -413,6 +506,11 @@ const LessonAccordion: React.FC<LessonAccordionProps> = ({
                   Preview
                 </span>
               )}
+              {hasBookmarks && (
+                <span className="w-4 h-4 flex-shrink-0">
+                  <Bookmark className="w-full h-full text-yellow-500" />
+                </span>
+              )}
             </div>
             {lesson.description && (
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
@@ -444,7 +542,7 @@ const LessonAccordion: React.FC<LessonAccordionProps> = ({
                 {lesson.resources.map((resource, index) => (
                   <a
                     key={index}
-                    href={resource.url}
+                    href={resource.url || resource.fileUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-primaryColor/10 hover:text-primaryColor transition-colors"
@@ -459,7 +557,7 @@ const LessonAccordion: React.FC<LessonAccordionProps> = ({
         </button>
       </motion.div>
     );
-  }, [currentLessonId, onLessonSelect]);
+  }, [currentLessonId, onLessonSelect, bookmarks, activeCategory]);
 
   const SearchResults = () => {
     if (!searchResults.length) {
@@ -521,6 +619,102 @@ const LessonAccordion: React.FC<LessonAccordionProps> = ({
     );
   };
 
+  const renderBookmarkSection = () => {
+    if (!showBookmarkSection) return null;
+    
+    return (
+      <div className="border-b border-gray-200 dark:border-gray-700/50">
+        <div className="p-4 bg-yellow-50/50 dark:bg-yellow-900/10">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-gray-800 dark:text-white flex items-center">
+              <Bookmark className="w-4 h-4 mr-2 text-yellow-500" />
+              My Bookmarks
+            </h3>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setBookmarkFilter("all")}
+                className={`text-xs px-2 py-1 rounded-md transition-colors ${
+                  bookmarkFilter === "all" 
+                    ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200" 
+                    : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
+                }`}
+              >
+                All
+              </button>
+              <button
+                onClick={() => setBookmarkFilter("recent")}
+                className={`text-xs px-2 py-1 rounded-md transition-colors ${
+                  bookmarkFilter === "recent" 
+                    ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200" 
+                    : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
+                }`}
+              >
+                Recent
+              </button>
+            </div>
+          </div>
+          
+          {filteredBookmarks.length > 0 ? (
+            <div className="space-y-2 max-h-64 overflow-y-auto pr-1 custom-scrollbar">
+              {filteredBookmarks.map((bookmark) => (
+                <motion.div
+                  key={bookmark.id}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-start gap-2 p-2 bg-white dark:bg-gray-800/50 rounded-lg hover:bg-yellow-50 dark:hover:bg-yellow-900/10 cursor-pointer group"
+                  onClick={() => onBookmarkSelect?.(bookmark)}
+                >
+                  {bookmark.thumbnailUrl && (
+                    <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden flex-shrink-0">
+                      <img 
+                        src={bookmark.thumbnailUrl} 
+                        alt="" 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate group-hover:text-yellow-700 dark:group-hover:text-yellow-300">
+                      {bookmark.label}
+                    </h4>
+                    {bookmark.time !== undefined && (
+                      <div className="text-xs text-gray-500">
+                        {formatTime(bookmark.time)}
+                      </div>
+                    )}
+                  </div>
+                  {onBookmarkRemove && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onBookmarkRemove(bookmark.id);
+                      }}
+                      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full"
+                    >
+                      <X className="w-3 h-3 text-gray-500" />
+                    </button>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-4">
+              <div className="w-10 h-10 mx-auto mb-2 flex items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-900/30">
+                <Bookmark className="w-5 h-5 text-yellow-500" />
+              </div>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                No bookmarks yet
+              </p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                Add bookmarks while watching videos
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   const renderCourseProgress = () => (
     <div className={clsx(
       "sticky top-0 z-10 bg-white/80 dark:bg-gray-800/80 border-b border-gray-200 dark:border-gray-700/50 backdrop-blur-sm",
@@ -548,26 +742,135 @@ const LessonAccordion: React.FC<LessonAccordionProps> = ({
           </span>
         </div>
         
-        {isCollapsible && (
-          <button
-            onClick={toggleAccordionCollapse}
-            className="flex items-center justify-center p-1 rounded-md bg-gray-100 hover:bg-gray-200 dark:bg-gray-700/50 dark:hover:bg-gray-700 transition-colors"
-            aria-label={isAccordionCollapsed ? "Expand course content" : "Collapse course content"}
-          >
-            {isAccordionCollapsed ? (
-              <ArrowLeftRight className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-            ) : (
-              <PanelLeftClose className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-            )}
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {showBookmarks && !isAccordionCollapsed && (
+            <button
+              onClick={toggleBookmarkSection}
+              className={`p-1.5 rounded-md transition-colors ${
+                showBookmarkSection 
+                  ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' 
+                  : 'bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-400'
+              }`}
+              aria-label="Toggle bookmarks"
+              title="Toggle bookmarks"
+            >
+              <Bookmark className="w-4 h-4" />
+            </button>
+          )}
+          
+          {!isAccordionCollapsed && lessonCategories.length > 0 && (
+            <div className="relative">
+              <button
+                onClick={() => setShowQuickFilters(!showQuickFilters)}
+                className={`p-1.5 rounded-md transition-colors ${
+                  activeCategory
+                    ? 'bg-primaryColor/10 text-primaryColor' 
+                    : 'bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-400'
+                }`}
+                aria-label="Filter by content type"
+                title="Filter by content type"
+              >
+                <Filter className="w-4 h-4" />
+              </button>
+              
+              <AnimatePresence>
+                {showQuickFilters && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute top-full right-0 mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20 min-w-[150px]"
+                  >
+                    <div className="p-2 space-y-1">
+                      <button
+                        onClick={() => {
+                          handleCategoryFilter(null);
+                          setShowQuickFilters(false);
+                        }}
+                        className={`w-full text-left px-3 py-1.5 rounded-md text-sm ${
+                          !activeCategory
+                            ? 'bg-primaryColor/10 text-primaryColor'
+                            : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                        }`}
+                      >
+                        All Content
+                      </button>
+                      {lessonCategories.map(category => (
+                        <button
+                          key={category}
+                          onClick={() => {
+                            handleCategoryFilter(category);
+                            setShowQuickFilters(false);
+                          }}
+                          className={`w-full text-left px-3 py-1.5 rounded-md text-sm flex items-center ${
+                            activeCategory === category
+                              ? 'bg-primaryColor/10 text-primaryColor'
+                              : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                          }`}
+                        >
+                          <ItemTypeIcon type={category} className="w-4 h-4 mr-2" />
+                          {category.charAt(0).toUpperCase() + category.slice(1)}
+                        </button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
+          
+          {isCollapsible && (
+            <button
+              onClick={toggleAccordionCollapse}
+              className="flex items-center justify-center p-1.5 rounded-md bg-gray-100 hover:bg-gray-200 dark:bg-gray-700/50 dark:hover:bg-gray-700 transition-colors"
+              aria-label={isAccordionCollapsed ? "Expand course content" : "Collapse course content"}
+            >
+              {isAccordionCollapsed ? (
+                <ArrowLeftRight className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+              ) : (
+                <PanelLeftClose className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+              )}
+            </button>
+          )}
+        </div>
       </div>
       
       {!isAccordionCollapsed && (
         <>
           <div className="px-4 pb-2">
-            <ProgressBar progress={totalProgress} animate showTooltip />
+            <div className="relative">
+              <ProgressBar progress={totalProgress} animate showTooltip />
+              
+              {currentProgress > 0 && currentProgress < 100 && (
+                <div 
+                  className="absolute top-0 h-2.5 flex items-center"
+                  style={{ left: `${currentProgress}%` }}
+                >
+                  <div className="w-4 h-4 rounded-full bg-white dark:bg-gray-800 border-2 border-primaryColor transform -translate-x-1/2 shadow-sm"></div>
+                </div>
+              )}
+            </div>
           </div>
+          
+          {activeCategory && (
+            <div className="px-4 py-2 bg-primaryColor/5 border-y border-primaryColor/10 dark:border-primaryColor/30 mb-1">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ItemTypeIcon type={activeCategory} className="w-4 h-4 text-primaryColor" />
+                  <span className="text-sm font-medium text-primaryColor">
+                    {activeCategory.charAt(0).toUpperCase() + activeCategory.slice(1)} content only
+                  </span>
+                </div>
+                <button
+                  onClick={() => handleCategoryFilter(null)}
+                  className="text-xs text-primaryColor hover:text-primaryColor/70"
+                >
+                  Clear
+                </button>
+              </div>
+            </div>
+          )}
+          
           <div className="px-4 pb-4">
             <div className="relative">
               <input
@@ -649,6 +952,10 @@ const LessonAccordion: React.FC<LessonAccordionProps> = ({
   return (
     <div className={`h-full flex flex-col ${className}`}>
       {renderCourseProgress()}
+      
+      {/* Render bookmark section if enabled */}
+      {!isAccordionCollapsed && showBookmarks && renderBookmarkSection()}
+      
       <div className="flex-1 overflow-y-auto">
         {searchTerm ? (
           <SearchResults />
