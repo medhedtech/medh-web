@@ -103,7 +103,7 @@ const EnrollCourses = () => {
       
       const paymentApiUrl = apiUrls.payment.getStudentPayments(id, { 
         page: 1, 
-        limit: 10 // Only fetch 4 items since we're displaying a limited set
+        limit: 100 // Only fetch 4 items since we're displaying a limited set
       });
       
       await getQuery({
@@ -360,6 +360,7 @@ const EnrollCourses = () => {
                   totalLessons={course.lessons?.length || 0}
                   enrollmentType={course.enrollment_type}
                   learningPath={course.learning_path}
+                  courseId={course._id}
                 />
               </motion.div>
             ))}
