@@ -58,7 +58,7 @@ function CourseRelated({ categoryName, courseId, relatedCourses, courseTitle }) 
     console.log("Fetching details for current course:", courseId);
     
     // Fix: Use a proper URL path for getCourse from apiUrls
-    const courseDetailsUrl = `${apiBaseUrl}/courses/get/${courseId}`;
+    const courseDetailsUrl = `${apiBaseUrl}/courses/${courseId}`;
     
     getQuery({
       url: courseDetailsUrl,
