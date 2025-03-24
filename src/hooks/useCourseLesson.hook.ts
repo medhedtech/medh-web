@@ -10,7 +10,9 @@ import { toast } from 'react-toastify';
 interface CourseWeek {
   weekTitle: string;
   weekDescription: string;
-  sections: CourseSection[];
+  sections?: CourseSection[];
+  topics?: string[];
+  resources?: ResourceFile[];
   id?: string;
   _id?: string;
 }
@@ -57,6 +59,7 @@ export interface LessonData {
 }
 
 interface CoursePrice {
+  _id?: { $oid: string } | string;
   currency: string;
   individual: number;
   batch: number;
@@ -69,25 +72,29 @@ interface CoursePrice {
 
 interface CourseMeta {
   views: number;
-  ratings: {
+  ratings?: {
     average: number;
     count: number;
   };
-  enrollments: number;
-  lastUpdated: string;
+  enrollments?: number;
+  lastUpdated?: string;
+}
+
+interface MongoDBDate {
+  $date: string;
 }
 
 export interface CourseData {
-  _id: string;
+  _id: string | { $oid: string };
   course_category: string;
   course_title: string;
-  course_tag: string;
+  course_tag?: string;
   no_of_Sessions: number;
   course_duration: string;
   session_duration: string;
-  course_description: {
-    program_overview: string;
-    benefits: string;
+  course_description: string | {
+    program_overview?: string;
+    benefits?: string;
   };
   category: string;
   course_fee: number;
@@ -96,6 +103,8 @@ export interface CourseData {
   brochures: string[];
   status: string;
   isFree: boolean;
+  assigned_instructor?: { $oid: string };
+  specifications?: any;
   course_image: string;
   course_grade: string;
   resource_videos: string[];
@@ -103,22 +112,22 @@ export interface CourseData {
     title: string;
     url: string;
     description: string;
-    size_mb: number;
-    pages: number;
-    upload_date: string;
+    size_mb?: number;
+    pages?: number;
+    upload_date?: string;
   }[];
   curriculum: CourseWeek[];
-  faqs: {
+  faqs?: {
     question: string;
     answer: string;
   }[];
-  tools_technologies: {
+  tools_technologies?: {
     name: string;
     category: string;
     description: string;
     logo_url: string;
   }[];
-  bonus_modules: {
+  bonus_modules?: {
     title: string;
     description: string;
     resources: {
@@ -136,10 +145,14 @@ export interface CourseData {
   is_Projects: string;
   is_Quizes: string;
   related_courses: string[];
-  min_hours_per_week: number;
-  max_hours_per_week: number;
-  category_type: string;
+  min_hours_per_week?: number;
+  max_hours_per_week?: number;
+  category_type?: string;
   meta: CourseMeta;
+  createdAt?: MongoDBDate;
+  updatedAt?: MongoDBDate;
+  unique_key?: string;
+  __v?: number;
 }
 
 interface ApiResponse {
@@ -167,6 +180,49 @@ export interface QuizData {
 // ----------------------
 // Helper Functions
 // ----------------------
+
+// Normalize MongoDB ObjectId to string
+const normalizeObjectId = (id: string | { $oid: string }): string => {
+  if (typeof id === 'string') return id;
+  return id.$oid;
+};
+
+// Normalize course description to handle both string and object formats
+const normalizeCourseDescription = (description: string | { program_overview?: string; benefits?: string }): {
+  program_overview: string;
+  benefits: string;
+} => {
+  if (typeof description === 'string') {
+    return {
+      program_overview: description,
+      benefits: description
+    };
+  }
+  return {
+    program_overview: description.program_overview || '',
+    benefits: description.benefits || ''
+  };
+};
+
+// Normalize course data to ensure consistent format
+const normalizeCourseData = (data: CourseData): CourseData => {
+  return {
+    ...data,
+    _id: normalizeObjectId(data._id),
+    course_description: normalizeCourseDescription(data.course_description),
+    curriculum: data.curriculum || [],
+    prices: data.prices?.map(price => ({
+      ...price,
+      _id: price._id ? normalizeObjectId(price._id) : undefined
+    })) || [],
+    meta: {
+      views: data.meta?.views || 0,
+      ratings: data.meta?.ratings || { average: 0, count: 0 },
+      enrollments: data.meta?.enrollments || 0,
+      lastUpdated: data.meta?.lastUpdated || data.updatedAt?.$date || new Date().toISOString()
+    }
+  };
+};
 
 // Searches the curriculum to find the current lesson and attaches week and section titles.
 const findLessonInCurriculum = (
@@ -206,20 +262,49 @@ const normalizeResources = (resources: ResourceFile[] | undefined): ResourceFile
 const processCurriculumData = (curriculum: CourseWeek[]): CourseWeek[] => {
   if (!curriculum) return [];
   
-  return curriculum.map(week => ({
-    ...week,
-    id: week.id || week._id,
-    sections: week.sections.map(section => ({
-      ...section,
-      id: section.id || section._id,
-      lessons: section.lessons.map(lesson => ({
-        ...lesson,
-        id: lesson.id || lesson._id,
-        completed: lesson.is_completed || lesson.completed,
-        resources: normalizeResources(lesson.resources)
-      }))
-    }))
-  }));
+  return curriculum.map(week => {
+    // Convert topics-based structure to sections-based structure if needed
+    let sections: CourseSection[] = [];
+    
+    if (week.topics && !week.sections) {
+      // Create a single section from topics
+      sections = [{
+        title: week.weekTitle,
+        description: week.weekDescription,
+        order: 1,
+        lessons: [{
+          title: week.weekTitle,
+          description: week.weekDescription,
+          content: week.topics.join('\n\n'),
+          duration: 60, // Default duration in minutes
+          order: 1,
+          id: week._id,
+          _id: week._id,
+          resources: week.resources || []
+        }],
+        id: week._id,
+        _id: week._id
+      }];
+    } else if (week.sections) {
+      // Use existing sections structure
+      sections = week.sections.map(section => ({
+        ...section,
+        id: section.id || section._id,
+        lessons: section.lessons.map(lesson => ({
+          ...lesson,
+          id: lesson.id || lesson._id,
+          completed: lesson.is_completed || lesson.completed,
+          resources: normalizeResources(lesson.resources)
+        }))
+      }));
+    }
+
+    return {
+      ...week,
+      id: week.id || week._id,
+      sections: sections
+    };
+  });
 };
 
 // ----------------------
@@ -421,29 +506,28 @@ export const useCourseLesson = (courseId: string, lessonId: string = '') => {
           'Content-Type': 'application/json'
         };
 
-        // Get the student ID from localStorage if available
         const studentId = localStorage.getItem('studentId') || '';
 
-        // Use the updated API endpoint with student ID if available
         const response: ApiResponse = await getQuery({
           url: apiUrls.courses.getCourseById(courseId, studentId),
           config: { headers }
         });
 
         if (response?.success && response.data) {
-          // Process curriculum for compatibility with components
+          // First normalize the course data
+          const normalizedData = normalizeCourseData(response.data);
+          
+          // Then process curriculum for compatibility with components
           const processedData = {
-            ...response.data,
-            curriculum: processCurriculumData(response.data.curriculum)
+            ...normalizedData,
+            curriculum: processCurriculumData(normalizedData.curriculum)
           };
           
           setCourseData(processedData);
           
-          // Only look for lesson if lessonId is provided
           if (lessonId) {
             const currentLesson = findLessonInCurriculum(processedData.curriculum, lessonId);
             if (currentLesson) {
-              // Ensure resources have the correct format
               currentLesson.resources = normalizeResources(currentLesson.resources);
               setLessonData(currentLesson);
               return;
