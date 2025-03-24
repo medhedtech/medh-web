@@ -40,7 +40,8 @@ import {
   Calendar,
   ChevronUp,
   ChevronDown,
-  X
+  X,
+  Clock
 } from 'lucide-react';
 import useCourseLesson from '@/hooks/useCourseLesson.hook';
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
@@ -61,6 +62,17 @@ import { formatDistanceToNow } from 'date-fns';
 const MarkdownEditor = dynamic(() => import('@/components/shared/MarkdownEditor'), { 
   ssr: false,
   loading: () => <div className="h-64 w-full bg-gray-50 dark:bg-gray-800 animate-pulse rounded-xl"></div>
+});
+
+// Import components for different lesson types
+const QuizComponent = dynamic(() => import('@/components/shared/lessons/QuizComponent'), {
+  ssr: false,
+  loading: () => <div className="h-full w-full bg-gray-50 dark:bg-gray-800 animate-pulse rounded-xl p-6">Loading Quiz...</div>
+});
+
+const AssessmentComponent = dynamic(() => import('@/components/shared/lessons/AssessmentComponent'), {
+  ssr: false,
+  loading: () => <div className="h-full w-full bg-gray-50 dark:bg-gray-800 animate-pulse rounded-xl p-6">Loading Assignment...</div>
 });
 
 // Helper function to handle YouTube URLs
@@ -121,6 +133,9 @@ const IntegratedLessonPage = () => {
     getLoading,
     postLoading,
   } = useCourseLesson(courseId, lessonId);
+
+  // Determine lesson type
+  const lessonType = lessonData?.lessonType || 'video'; // Default to video if not specified
 
   // Find adjacent lessons for navigation
   const findAdjacentLessons = (curriculum) => {
@@ -311,54 +326,98 @@ const IntegratedLessonPage = () => {
           )}
           
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow">
-            {/* Video Player Section */}
-            <div className="aspect-video bg-gray-900 rounded-t-xl overflow-hidden">
-              {(lessonData?.videoUrl || lessonData?.video_url) ? (
-                <VideoPlayer
-                  src={formatVideoUrl(lessonData.videoUrl || lessonData.video_url)}
-                  poster={lessonData.thumbnailUrl || `${(lessonData.videoUrl || lessonData.video_url).split('.')[0]}.jpg`}
-                  autoplay={false}
-                  bookmarks={videoBookmarks}
-                  onBookmark={handleAddVideoBookmark}
-                  onEnded={() => {
-                    // Automatically mark lesson as complete when video ends
-                    if (lessonData && !lessonData.is_completed && !lessonData.completed) {
+            {/* Lesson Content Area - Render based on lesson type */}
+            {lessonType === 'video' && (
+              <div className="aspect-video bg-gray-900 rounded-t-xl overflow-hidden">
+                {(lessonData?.videoUrl || lessonData?.video_url) ? (
+                  <VideoPlayer
+                    src={formatVideoUrl(lessonData.videoUrl || lessonData.video_url)}
+                    poster={lessonData.thumbnailUrl || `${(lessonData.videoUrl || lessonData.video_url).split('.')[0]}.jpg`}
+                    autoplay={false}
+                    bookmarks={videoBookmarks}
+                    onBookmark={handleAddVideoBookmark}
+                    onEnded={() => {
+                      // Automatically mark lesson as complete when video ends
+                      if (lessonData && !lessonData.is_completed && !lessonData.completed) {
+                        markLessonComplete({
+                          completed_at: new Date().toISOString()
+                        });
+                      }
+                      
+                      // Auto-navigate to next lesson if available
+                      if (nextLesson) {
+                        setTimeout(() => {
+                          router.push(`/integrated-lessons/${courseId}/lecture/${nextLesson._id || nextLesson.id}`);
+                        }, 1500);
+                      }
+                    }}
+                    onError={() => {
+                      toast.error("Failed to load video. Please try again.");
+                    }}
+                  />
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full bg-gray-900 text-white/70 p-6">
+                    <Video className="w-16 h-16 mb-4 opacity-60" />
+                    <h3 className="text-lg font-medium mb-2">No Video Available</h3>
+                    <p className="text-sm text-center max-w-md">
+                      This lesson doesn't have a video. Please check the content in the Overview tab below 
+                      or continue to the next lesson.
+                    </p>
+                    {nextLesson && (
+                      <button
+                        onClick={() => router.push(`/integrated-lessons/${courseId}/lecture/${nextLesson._id || nextLesson.id}`)}
+                        className="mt-6 px-4 py-2 bg-primaryColor hover:bg-primaryColor/90 text-white rounded-md flex items-center transition-colors"
+                      >
+                        Go to Next Lesson
+                        <ChevronRight className="w-4 h-4 ml-2" />
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {lessonType === 'quiz' && (
+              <div className="rounded-t-xl overflow-hidden bg-gray-50 dark:bg-gray-800/50 p-6">
+                <div className="flex items-center mb-4">
+                  <FileQuestion className="w-8 h-8 text-primaryColor mr-3" />
+                  <h2 className="text-xl font-bold">Quiz: {lessonData?.title}</h2>
+                </div>
+                <QuizComponent 
+                  quizId={lessonData?.quiz_id} 
+                  lessonId={lessonId}
+                  courseId={courseId}
+                  meta={lessonData?.meta || {}}
+                  onComplete={(result) => {
+                    if (result.passed && !lessonData.is_completed && !lessonData.completed) {
                       markLessonComplete({
-                        completed_at: new Date().toISOString()
+                        completed_at: new Date().toISOString(),
+                        quiz_score: result.score
                       });
                     }
-                    
-                    // Auto-navigate to next lesson if available
-                    if (nextLesson) {
-                      setTimeout(() => {
-                        router.push(`/integrated-lessons/${courseId}/lecture/${nextLesson._id || nextLesson.id}`);
-                      }, 1500);
-                    }
-                  }}
-                  onError={() => {
-                    toast.error("Failed to load video. Please try again.");
                   }}
                 />
-              ) : (
-                <div className="flex flex-col items-center justify-center h-full bg-gray-900 text-white/70 p-6">
-                  <Video className="w-16 h-16 mb-4 opacity-60" />
-                  <h3 className="text-lg font-medium mb-2">No Video Available</h3>
-                  <p className="text-sm text-center max-w-md">
-                    This lesson doesn't have a video. Please check the content in the Overview tab below 
-                    or continue to the next lesson.
-                  </p>
-                  {nextLesson && (
-                    <button
-                      onClick={() => router.push(`/integrated-lessons/${courseId}/lecture/${nextLesson._id || nextLesson.id}`)}
-                      className="mt-6 px-4 py-2 bg-primaryColor hover:bg-primaryColor/90 text-white rounded-md flex items-center transition-colors"
-                    >
-                      Go to Next Lesson
-                      <ChevronRight className="w-4 h-4 ml-2" />
-                    </button>
-                  )}
+              </div>
+            )}
+            
+            {lessonType === 'assessment' && (
+              <div className="rounded-t-xl overflow-hidden bg-gray-50 dark:bg-gray-800/50 p-6">
+                <div className="flex items-center mb-4">
+                  <FileBox className="w-8 h-8 text-primaryColor mr-3" />
+                  <h2 className="text-xl font-bold">Assignment: {lessonData?.title}</h2>
                 </div>
-              )}
-            </div>
+                <AssessmentComponent 
+                  assignmentId={lessonData?.assignment_id}
+                  lessonId={lessonId}
+                  courseId={courseId}
+                  meta={lessonData?.meta || {}}
+                  onSubmit={(submission) => {
+                    // Mark assignment as submitted but not completed until graded
+                    toast.success("Assignment submitted successfully!");
+                  }}
+                />
+              </div>
+            )}
 
             {/* Lesson Content */}
             <div className="p-8">
@@ -399,13 +458,14 @@ const IntegratedLessonPage = () => {
                   transition={{ duration: 0.2 }}
                   className="py-6"
                 >
-                  {activeTab === "Overview" && <OverviewTab lessonData={lessonData} />}
+                  {activeTab === "Overview" && <OverviewTab lessonData={lessonData} lessonType={lessonType} />}
                   {activeTab === "Resources" && <ResourcesTab resources={lessonData?.resources || []} />}
                   {activeTab === "Notes" && (
                     <NotesTab 
                       lessonId={lessonId} 
                       bookmarks={videoBookmarks}
                       formatTime={formatTime}
+                      lessonType={lessonType}
                     />
                   )}
                   {activeTab === "Discussion" && (
@@ -540,11 +600,74 @@ const IntegratedLessonPage = () => {
 };
 
 // Tab Components
-const OverviewTab = ({ lessonData }) => (
+const OverviewTab = ({ lessonData, lessonType = 'video' }) => (
   <div className="space-y-6">
     <div className="prose dark:prose-invert max-w-none">
       {lessonData?.content || lessonData?.description || "An introduction to the evolution and concept of quantum computing."}
     </div>
+
+    {/* Display specific information based on lesson type */}
+    {lessonType === 'quiz' && lessonData?.meta && (
+      <div className="bg-blue-50 dark:bg-blue-900/10 rounded-xl p-4 mb-4">
+        <h3 className="text-lg font-medium mb-2 text-blue-800 dark:text-blue-300">Quiz Information</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {lessonData.meta.time_limit && (
+            <div className="flex items-start gap-2">
+              <Clock className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-medium text-blue-800 dark:text-blue-300">Time Limit</p>
+                <p className="text-sm text-blue-700/70 dark:text-blue-300/70">{lessonData.meta.time_limit} minutes</p>
+              </div>
+            </div>
+          )}
+          {lessonData.meta.passing_score && (
+            <div className="flex items-start gap-2">
+              <CheckCircle className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-medium text-blue-800 dark:text-blue-300">Passing Score</p>
+                <p className="text-sm text-blue-700/70 dark:text-blue-300/70">{lessonData.meta.passing_score}%</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    )}
+
+    {lessonType === 'assessment' && lessonData?.meta && (
+      <div className="bg-blue-50 dark:bg-blue-900/10 rounded-xl p-4 mb-4">
+        <h3 className="text-lg font-medium mb-2 text-blue-800 dark:text-blue-300">Assignment Information</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {lessonData.meta.due_date && (
+            <div className="flex items-start gap-2">
+              <Calendar className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-medium text-blue-800 dark:text-blue-300">Due Date</p>
+                <p className="text-sm text-blue-700/70 dark:text-blue-300/70">
+                  {new Date(lessonData.meta.due_date).toLocaleDateString(undefined, {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </p>
+              </div>
+            </div>
+          )}
+          {lessonData.meta.max_score && (
+            <div className="flex items-start gap-2">
+              <Target className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-medium text-blue-800 dark:text-blue-300">Maximum Score</p>
+                <p className="text-sm text-blue-700/70 dark:text-blue-300/70">{lessonData.meta.max_score} points</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    )}
+
     {lessonData?.learning_objectives?.length > 0 && (
       <div>
         <h3 className="text-lg font-medium mb-4 flex items-center">
@@ -591,13 +714,19 @@ const ResourcesTab = ({ resources }) => (
                   resource.type === "pdf" && "bg-red-50 dark:bg-red-900/20",
                   resource.type === "video" && "bg-blue-50 dark:bg-blue-900/20",
                   resource.type === "code" && "bg-purple-50 dark:bg-purple-900/20",
-                  resource.type === "link" && "bg-green-50 dark:bg-green-900/20"
+                  (resource.type === "link" || resource.type === "url") && "bg-green-50 dark:bg-green-900/20",
+                  resource.type === "quiz" && "bg-yellow-50 dark:bg-yellow-900/20",
+                  resource.type === "assignment" && "bg-orange-50 dark:bg-orange-900/20",
+                  (!resource.type || resource.type === "other") && "bg-gray-100 dark:bg-gray-700"
                 )}
               >
                 {resource.type === "pdf" && <FileText className="w-6 h-6 text-red-500" />}
                 {resource.type === "video" && <Video className="w-6 h-6 text-blue-500" />}
                 {resource.type === "code" && <Code2 className="w-6 h-6 text-purple-500" />}
-                {resource.type === "link" && <Link2 className="w-6 h-6 text-green-500" />}
+                {(resource.type === "link" || resource.type === "url") && <Link2 className="w-6 h-6 text-green-500" />}
+                {resource.type === "quiz" && <FileQuestion className="w-6 h-6 text-yellow-500" />}
+                {resource.type === "assignment" && <FileBox className="w-6 h-6 text-orange-500" />}
+                {(!resource.type || resource.type === "other") && <FileText className="w-6 h-6 text-gray-500" />}
               </div>
             </div>
             <div className="ml-4 flex-1">
@@ -616,20 +745,29 @@ const ResourcesTab = ({ resources }) => (
               )}
               <div className="mt-3 flex items-center gap-4">
                 <motion.a
-                  href={resource.url || resource.fileUrl}
+                  href={resource.url || resource.fileUrl || "#"}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center text-sm text-primaryColor hover:text-primaryColor/80"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  {resource.type === "link" ? "Visit Resource" : "Download"}
+                  {resource.type === "link" || resource.type === "url" ? "Visit Resource" : 
+                   resource.type === "quiz" ? "Start Quiz" :
+                   resource.type === "assignment" ? "View Assignment" :
+                   "Download"}
                   <ExternalLink className="w-4 h-4 ml-1" />
                 </motion.a>
                 {resource.size && (
                   <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
                     <FileBox className="w-4 h-4 mr-1" />
                     {resource.size}
+                  </span>
+                )}
+                {resource.duration && (
+                  <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
+                    <Clock className="w-4 h-4 mr-1" />
+                    {resource.duration}
                   </span>
                 )}
               </div>
@@ -646,7 +784,7 @@ const ResourcesTab = ({ resources }) => (
   </div>
 );
 
-const NotesTab = ({ lessonId, bookmarks = [], formatTime }) => {
+const NotesTab = ({ lessonId, bookmarks = [], formatTime, lessonType = 'video' }) => {
   const [notes, setNotes] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isPreview, setIsPreview] = useState(false);
@@ -751,84 +889,112 @@ const NotesTab = ({ lessonId, bookmarks = [], formatTime }) => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {/* Bookmarks sidebar */}
-        <div className="md:col-span-1">
-          <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="font-medium text-gray-800 dark:text-gray-200 flex items-center">
-                <Bookmark className="w-4 h-4 mr-1.5 text-yellow-500" />
-                Video Bookmarks
-              </h4>
-              <button
-                onClick={() => setShowBookmarkList(!showBookmarkList)}
-                className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-              >
-                {showBookmarkList ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              </button>
+        {/* Bookmarks sidebar - only show for video lessons */}
+        {lessonType === 'video' && (
+          <div className="md:col-span-1">
+            <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-medium text-gray-800 dark:text-gray-200 flex items-center">
+                  <Bookmark className="w-4 h-4 mr-1.5 text-yellow-500" />
+                  Video Bookmarks
+                </h4>
+                <button
+                  onClick={() => setShowBookmarkList(!showBookmarkList)}
+                  className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                >
+                  {showBookmarkList ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </button>
+              </div>
+              
+              <AnimatePresence>
+                {showBookmarkList && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="overflow-hidden"
+                  >
+                    {bookmarks.length > 0 ? (
+                      <div className="space-y-2">
+                        {bookmarks.map((bookmark) => (
+                          <motion.div
+                            key={bookmark.id}
+                            className={`p-2 rounded-lg cursor-pointer transition-colors ${
+                              activeTimestamp === bookmark.id
+                                ? 'bg-primaryColor/20 border border-primaryColor/40'
+                                : 'bg-white dark:bg-gray-700/30 hover:bg-gray-100 dark:hover:bg-gray-700/50'
+                            }`}
+                            onClick={() => insertBookmarkReference(bookmark)}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                          >
+                            <div className="flex items-center gap-2">
+                              <div className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 font-mono text-xs px-2 py-1 rounded-md">
+                                {formatTime(bookmark.time)}
+                              </div>
+                              <span className="text-sm truncate flex-1">{bookmark.label}</span>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-4 text-gray-500 dark:text-gray-400 text-sm">
+                        No bookmarks yet. Add some while watching the video!
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
             
-            <AnimatePresence>
-              {showBookmarkList && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="overflow-hidden"
-                >
-                  {bookmarks.length > 0 ? (
-                    <div className="space-y-2">
-                      {bookmarks.map((bookmark) => (
-                        <motion.div
-                          key={bookmark.id}
-                          className={`p-2 rounded-lg cursor-pointer transition-colors ${
-                            activeTimestamp === bookmark.id
-                              ? 'bg-primaryColor/20 border border-primaryColor/40'
-                              : 'bg-white dark:bg-gray-700/30 hover:bg-gray-100 dark:hover:bg-gray-700/50'
-                          }`}
-                          onClick={() => insertBookmarkReference(bookmark)}
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          <div className="flex items-center gap-2">
-                            <div className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 font-mono text-xs px-2 py-1 rounded-md">
-                              {formatTime(bookmark.time)}
-                            </div>
-                            <span className="text-sm truncate flex-1">{bookmark.label}</span>
-                          </div>
-                        </motion.div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-4 text-gray-500 dark:text-gray-400 text-sm">
-                      No bookmarks yet. Add some while watching the video!
-                    </div>
-                  )}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-          
-          <div className="mt-4 bg-blue-50 dark:bg-blue-900/10 rounded-xl p-4">
-            <div className="flex items-start gap-2">
-              <HelpCircle className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
-              <div>
-                <h5 className="font-medium text-blue-800 dark:text-blue-400 text-sm mb-1">Markdown Support</h5>
-                <p className="text-xs text-blue-700/70 dark:text-blue-300/70">
-                  You can use Markdown to format your notes. Click on any bookmark to add a reference to it.
-                </p>
+            <div className="mt-4 bg-blue-50 dark:bg-blue-900/10 rounded-xl p-4">
+              <div className="flex items-start gap-2">
+                <HelpCircle className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h5 className="font-medium text-blue-800 dark:text-blue-400 text-sm mb-1">Markdown Support</h5>
+                  <p className="text-xs text-blue-700/70 dark:text-blue-300/70">
+                    You can use Markdown to format your notes. 
+                    {lessonType === 'video' && "Click on any bookmark to add a reference to it."}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* Notes editor/preview */}
-        <div className="md:col-span-3">
+        {/* Placeholder for non-video lessons */}
+        {lessonType !== 'video' && (
+          <div className="hidden md:block md:col-span-1">
+            <div className="bg-blue-50 dark:bg-blue-900/10 rounded-xl p-4">
+              <div className="flex items-start gap-2">
+                <HelpCircle className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h5 className="font-medium text-blue-800 dark:text-blue-400 text-sm mb-1">Study Tips</h5>
+                  <p className="text-xs text-blue-700/70 dark:text-blue-300/70">
+                    {lessonType === 'quiz' 
+                      ? 'Take detailed notes on key concepts to help prepare for this quiz.' 
+                      : 'Document your process and ideas for this assignment here.'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Notes editor/preview - span fewer columns for video content */}
+        <div className={lessonType === 'video' ? "md:col-span-3" : "md:col-span-4"}>
           {!isPreview ? (
             <MarkdownEditor
-        value={notes}
-        onChange={handleNotesChange}
+              value={notes}
+              onChange={handleNotesChange}
               height="70vh"
-              placeholder="Take notes for this lesson using Markdown..."
+              placeholder={`Take notes for this ${
+                lessonType === 'quiz' 
+                  ? 'quiz' 
+                  : lessonType === 'assessment' 
+                    ? 'assignment' 
+                    : 'lesson'
+              } using Markdown...`}
             />
           ) : (
             <div className="prose dark:prose-invert prose-sm sm:prose-base max-w-none bg-white dark:bg-gray-800/50 p-6 rounded-xl min-h-[70vh] overflow-auto">

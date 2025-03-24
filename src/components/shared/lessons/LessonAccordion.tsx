@@ -44,7 +44,9 @@ import {
   Filter,
   ShieldCheck,
   Library,
-  Navigation
+  Navigation,
+  ExternalLink,
+  Code
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { apiUrls } from "@/apis";
@@ -56,9 +58,13 @@ import clsx from "clsx";
 const ITEM_TYPES = {
   VIDEO: "video",
   QUIZ: "quiz",
-  ASSIGNMENT: "assignment",
+  ASSESSMENT: "assessment",
   DOCUMENT: "document",
   PRACTICE: "practice",
+  ARTICLE: "article",
+  LINK: "link",
+  TEXT: "text",
+  CODE: "code"
 };
 
 const ITEM_STATUS = {
@@ -137,12 +143,28 @@ const ItemTypeIcon: React.FC<{ type?: string; status?: string; className?: strin
   const icons: Record<string, React.ElementType> = {
     [ITEM_TYPES.VIDEO]: Video,
     [ITEM_TYPES.QUIZ]: FileQuestion,
-    [ITEM_TYPES.ASSIGNMENT]: ClipboardList,
+    [ITEM_TYPES.ASSESSMENT]: ClipboardList,
     [ITEM_TYPES.PRACTICE]: CheckSquare,
     [ITEM_TYPES.DOCUMENT]: FileBox,
+    [ITEM_TYPES.ARTICLE]: FileText,
+    [ITEM_TYPES.LINK]: ExternalLink,
+    [ITEM_TYPES.TEXT]: FileText,
+    [ITEM_TYPES.CODE]: Code
   };
 
-  const Icon = icons[type || ""] || FileText;
+  // Convert to lowercase for case-insensitive matching
+  const lowerType = (type || "").toLowerCase();
+  
+  // Find the right icon by checking if the type contains any of our recognized types
+  let Icon = FileText; // Default icon
+  
+  for (const [key, value] of Object.entries(ITEM_TYPES)) {
+    if (lowerType === value || lowerType.includes(value)) {
+      Icon = icons[value];
+      break;
+    }
+  }
+  
   return <Icon className={className} />;
 };
 
@@ -458,6 +480,9 @@ const LessonAccordion: React.FC<LessonAccordionProps> = ({
     const isLocked = lesson.status === ITEM_STATUS.LOCKED;
     const isPreview = lesson.isPreview;
     
+    // Determine lesson type (default to "video" if not specified)
+    const lessonType = lesson.type || lesson.lessonType || "video";
+    
     // Check if this lesson has any bookmarks
     const hasBookmarks = bookmarks.some(bookmark => bookmark.lessonId === lessonId);
 
@@ -493,7 +518,7 @@ const LessonAccordion: React.FC<LessonAccordionProps> = ({
             ) : isLocked ? (
               <Lock className="w-3 h-3 text-gray-400" />
             ) : (
-              <Play className="w-3 h-3 text-primaryColor" />
+              <ItemTypeIcon type={lessonType} className="w-3 h-3 text-primaryColor" />
             )}
           </div>
           <div className="flex-1 text-left min-w-0">
@@ -511,6 +536,19 @@ const LessonAccordion: React.FC<LessonAccordionProps> = ({
                   <Bookmark className="w-full h-full text-yellow-500" />
                 </span>
               )}
+              
+              {/* Display lesson type badge */}
+              {lessonType && lessonType !== "video" && (
+                <span className={`px-2 py-0.5 rounded-full text-xs font-medium 
+                  ${lessonType === "quiz" 
+                    ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400" 
+                    : lessonType === "assessment" || lessonType === "assignment"
+                    ? "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400"
+                    : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
+                  }`}>
+                  {lessonType.charAt(0).toUpperCase() + lessonType.slice(1)}
+                </span>
+              )}
             </div>
             {lesson.description && (
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
@@ -524,16 +562,32 @@ const LessonAccordion: React.FC<LessonAccordionProps> = ({
                   {formatDuration(lesson.duration)}
                 </span>
               )}
-              {lesson.type && (
+              {lessonType && (
                 <span className="flex items-center">
-                  <ItemTypeIcon type={lesson.type} className="w-3.5 h-3.5 mr-1" />
-                  {lesson.type.charAt(0).toUpperCase() + lesson.type.slice(1)}
+                  <ItemTypeIcon type={lessonType} className="w-3.5 h-3.5 mr-1" />
+                  {lessonType.charAt(0).toUpperCase() + lessonType.slice(1)}
                 </span>
               )}
               {lesson.meta?.presenter && (
                 <span className="flex items-center">
                   <Users className="w-3.5 h-3.5 mr-1" />
                   {lesson.meta.presenter}
+                </span>
+              )}
+              
+              {/* Show passing score for quizzes */}
+              {lessonType === "quiz" && lesson.meta?.passing_score && (
+                <span className="flex items-center">
+                  <CheckSquare className="w-3.5 h-3.5 mr-1" />
+                  Pass: {lesson.meta.passing_score}%
+                </span>
+              )}
+              
+              {/* Show due date for assignments */}
+              {(lessonType === "assessment" || lessonType === "assignment") && lesson.meta?.due_date && (
+                <span className="flex items-center">
+                  <Calendar className="w-3.5 h-3.5 mr-1" />
+                  Due: {new Date(lesson.meta.due_date).toLocaleDateString()}
                 </span>
               )}
             </div>
@@ -557,7 +611,7 @@ const LessonAccordion: React.FC<LessonAccordionProps> = ({
         </button>
       </motion.div>
     );
-  }, [currentLessonId, onLessonSelect, bookmarks, activeCategory]);
+  }, [currentLessonId, onLessonSelect, bookmarks, activeCategory, shouldShowLesson, formatDuration]);
 
   const SearchResults = () => {
     if (!searchResults.length) {
