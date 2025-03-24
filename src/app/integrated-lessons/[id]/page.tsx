@@ -12,10 +12,6 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { formatDuration, formatDate, formatDistanceToNow } from "@/utils/format";
 import useCourseLesson from "@/hooks/useCourseLesson.hook";
-import VideoPlayer from '@/components/shared/lessons/VideoPlayer';
-import PageWrapper from "@/components/shared/wrappers/PageWrapper";
-import LessonAccordion from "@/components/shared/lessons/LessonAccordion";
-import ErrorDisplay from "@/components/shared/ErrorDisplay";
 import Image from "next/image";
 
 // Import icons from lucide-react
