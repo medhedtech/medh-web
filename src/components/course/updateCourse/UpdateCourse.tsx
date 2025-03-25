@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
+import { useRouter, useParams } from 'next/navigation';
+import { toast } from 'react-toastify';
 import { ICourseFormData } from '@/types/course.types';
 import StepProgress from '@/components/shared/StepProgress';
 import CourseOverview from '@/components/course/steps/CourseOverview';
@@ -15,10 +17,11 @@ import ResourcePDFs from '@/components/course/steps/ResourcePDFs';
 import ToolsTechnologies from '@/components/course/steps/ToolsTechnologies';
 import BonusModules from '@/components/course/steps/BonusModules';
 import RelatedCourses from '@/components/course/steps/RelatedCourses';
-import { toast } from 'react-toastify';
 import { apiUrls } from "@/apis";
 import usePostQuery from "@/hooks/postQuery.hook";
+import usePutQuery from "@/hooks/putQuery.hook";
 import useGetQuery from "@/hooks/getQuery.hook";
+import axios from 'axios';
 
 const formSteps = [
   {
@@ -83,12 +86,13 @@ const formSteps = [
   }
 ];
 
+// Reuse the same schema as AddCourse.tsx
 const schema = yup.object().shape({
   course_category: yup.string().required('Course category is required'),
   course_subcategory: yup.string(),
   course_title: yup.string().required('Course title is required'),
   course_subtitle: yup.string(),
-  course_tag: yup.string(),
+  class_type: yup.string(),
   course_level: yup.string(),
   language: yup.string(),
   subtitle_languages: yup.array().of(yup.string()),
@@ -157,14 +161,7 @@ const schema = yup.object().shape({
               order: yup.number(),
               lessonType: yup.string(),
               isPreview: yup.boolean(),
-              meta: yup.object().shape({
-                presenter: yup.string(),
-                transcript: yup.string(),
-                time_limit: yup.string(),
-                passing_score: yup.number(),
-                due_date: yup.string(),
-                max_score: yup.number()
-              }),
+              meta: yup.object(),
               resources: yup.array().of(
                 yup.object().shape({
                   id: yup.string(),
@@ -200,12 +197,6 @@ const schema = yup.object().shape({
       answer: yup.string()
     })
   ),
-  final_evaluation: yup.object().shape({
-    final_quizzes: yup.array().of(yup.string()),
-    final_assessments: yup.array().of(yup.string()),
-    certification: yup.string().nullable(),
-    final_faqs: yup.array().of(yup.string())
-  }),
   tools_technologies: yup.array().of(
     yup.object().shape({
       name: yup.string(),
@@ -237,11 +228,11 @@ const schema = yup.object().shape({
     enrollments: yup.number(),
     lastUpdated: yup.string()
   }),
-  status: yup.string().default('draft'),
-  isFree: yup.boolean().default(false),
+  status: yup.string(),
+  isFree: yup.boolean(),
   specifications: yup.string().nullable(),
   course_grade: yup.string(),
-  class_type: yup.string(),
+  course_tag: yup.string(),
   is_Certification: yup.string(),
   is_Assignments: yup.string(),
   is_Projects: yup.string(),
@@ -250,14 +241,22 @@ const schema = yup.object().shape({
   related_courses: yup.array().of(yup.string())
 });
 
-const AddCourse = () => {
+const UpdateCourse: React.FC = () => {
+  const router = useRouter();
+  const params = useParams<{ courseId: string }>();
+  const courseId = params?.courseId;
+
   const [currentStep, setCurrentStep] = useState(1);
   const [courseImage, setCourseImage] = useState<string | null>(null);
   const [categories, setCategories] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [validationMessage, setValidationMessage] = useState<string>('');
+  const [isCourseLoaded, setIsCourseLoaded] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  
   const { postQuery } = usePostQuery();
+  const { putQuery } = usePutQuery();
   const { getQuery } = useGetQuery();
 
   const {
@@ -314,6 +313,7 @@ const AddCourse = () => {
     }
   });
 
+  // Fetch categories when component mounts
   useEffect(() => {
     const fetchCategories = async () => {
       setIsLoading(true);
@@ -327,14 +327,7 @@ const AddCourse = () => {
           }
         });
         
-        console.log("Categories API response:", JSON.stringify(response, null, 2));
-        
         if (response?.data) {
-          // Handle different possible response structures
-          // The API might return data in different formats:
-          // 1. response.data (direct array)
-          // 2. response.data.data (nested array)
-          // 3. response.data with success and data properties
           let categoriesData = [];
           
           if (Array.isArray(response.data)) {
@@ -345,17 +338,13 @@ const AddCourse = () => {
             categoriesData = response.data.data;
           }
           
-          console.log("Raw categories data:", JSON.stringify(categoriesData, null, 2));
-          
-          // Filter out any invalid items and map to the expected format
           const formattedCategories = categoriesData
-            .filter(cat => cat && (cat._id || cat.id) && (cat.category_name || cat.name)) // Ensure valid data
+            .filter(cat => cat && (cat._id || cat.id) && (cat.category_name || cat.name))
             .map(cat => ({
               id: cat._id || cat.id || '',
               name: cat.category_name || cat.name || 'Unnamed Category'
             }));
           
-          console.log("Formatted categories:", formattedCategories);
           setCategories(formattedCategories);
           
           if (formattedCategories.length === 0) {
@@ -375,6 +364,95 @@ const AddCourse = () => {
 
     fetchCategories();
   }, [getQuery]);
+
+  // Fetch course data when component mounts
+  useEffect(() => {
+    const fetchCourseData = async () => {
+      if (!courseId) {
+        toast.error('Course ID is missing');
+        router.push('/dashboards/admin-courses');
+        return;
+      }
+
+      setIsLoading(true);
+      setError(null);
+      
+      try {
+        const response = await getQuery({
+          url: apiUrls.courses.getCourseById(courseId as string),
+          onSuccess: () => {},
+          onError: () => {
+            console.error("Error fetching course data");
+            toast.error('Failed to load course data. Please try again.');
+            setError('Failed to load course data');
+          }
+        });
+
+        if (response?.data) {
+          const courseData = response.data;
+          
+          console.log("Fetched course data:", courseData);
+          console.log("class_type from API:", courseData.class_type);
+          
+          // Ensure curriculum data is properly initialized
+          if (courseData.curriculum && Array.isArray(courseData.curriculum)) {
+            courseData.curriculum = courseData.curriculum.map(week => ({
+              ...week,
+              liveClasses: week.liveClasses || [],
+              lessons: week.lessons || [],
+              topics: week.topics || [],
+              sections: (week.sections || []).map(section => ({
+                ...section,
+                lessons: section.lessons || [],
+                resources: section.resources || []
+              }))
+            }));
+          } else {
+            courseData.curriculum = [];
+          }
+          
+          // Set form data with the course data
+          Object.keys(courseData).forEach(key => {
+            if (key in schema.fields) {
+              setValue(key as any, courseData[key]);
+            }
+          });
+
+          // Handle nested objects
+          if (courseData.course_description) {
+            Object.keys(courseData.course_description).forEach(key => {
+              setValue(`course_description.${key}` as any, courseData.course_description[key]);
+            });
+          }
+          
+          // Explicitly set class_type to ensure it's properly handled
+          if (courseData.class_type) {
+            console.log("Setting class_type directly:", courseData.class_type);
+            setValue('class_type', courseData.class_type);
+          }
+
+          // Set course image
+          if (courseData.course_image) {
+            setCourseImage(courseData.course_image);
+          }
+
+          setIsCourseLoaded(true);
+          toast.success('Course data loaded successfully');
+        } else {
+          toast.error('Failed to load course data');
+        }
+      } catch (error) {
+        console.error("Error in fetchCourseData:", error);
+        toast.error('Failed to load course data. Please check your connection.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (courseId) {
+      fetchCourseData();
+    }
+  }, [courseId, getQuery, setValue, router]);
 
   useEffect(() => {
     const hash = window.location.hash.slice(1);
@@ -415,7 +493,6 @@ const AddCourse = () => {
                 shouldDirty: true,
                 shouldTouch: true
               });
-              // Re-validate the current step to clear any image-related validation messages
               await checkStepValidation(currentStep);
               toast.success('Image uploaded successfully');
             },
@@ -441,31 +518,22 @@ const AddCourse = () => {
 
   const handleStepSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('%c Form Submission Started ', 'background: #34D399; color: white; padding: 2px 5px; border-radius: 2px;');
     
     try {
       const isValid = await checkStepValidation(currentStep);
-      console.log('%c Validation Result ', 'background: #34D399; color: white; padding: 2px 5px; border-radius: 2px;', isValid);
       
       if (!isValid) {
-        console.log('%c Validation Failed ', 'background: #EF4444; color: white; padding: 2px 5px; border-radius: 2px;');
         return;
       }
 
       if (currentStep === formSteps.length) {
-        console.log('%c Final Step - Submitting Form ', 'background: #34D399; color: white; padding: 2px 5px; border-radius: 2px;');
-        
         // Get all form values
         const values = watch();
-        console.log('%c Current Form Values ', 'background: #3B82F6; color: white; padding: 2px 5px; border-radius: 2px;');
-        console.log(JSON.stringify(values, null, 2));
 
         // Validate all fields before submission
         const isFormValid = await trigger();
-        console.log('%c Final Form Validation ', 'background: #34D399; color: white; padding: 2px 5px; border-radius: 2px;', isFormValid);
 
         if (!isFormValid) {
-          console.log('%c Form Validation Failed ', 'background: #EF4444; color: white; padding: 2px 5px; border-radius: 2px;');
           const errorFields = Object.keys(errors);
           setValidationMessage(`Please check the following fields: ${errorFields.join(', ')}`);
           return;
@@ -479,7 +547,6 @@ const AddCourse = () => {
           return;
         }
       } else {
-        console.log('%c Moving to Next Step ', 'background: #34D399; color: white; padding: 2px 5px; border-radius: 2px;');
         nextStep();
       }
     } catch (error) {
@@ -492,7 +559,6 @@ const AddCourse = () => {
     try {
       setIsSubmitting(true);
       setValidationMessage('');
-      console.group('%c Course Creation Data ', 'background: #3B82F6; color: white; padding: 2px 5px; border-radius: 2px;');
 
       // Validate required fields first
       if (!data.course_title || !data.course_category || !data.class_type || !data.course_image) {
@@ -505,27 +571,21 @@ const AddCourse = () => {
         throw new Error(`Required fields are missing: ${missingFields.join(', ')}`);
       }
 
-      // Generate unique key and slug
-      const uniqueKey = crypto.randomUUID();
-      const slug = data.course_title.toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, '');
-
       // Format the curriculum data with proper structure
       const formattedCurriculum = data.curriculum?.map(week => ({
-        id: week.id || `week_${crypto.randomUUID()}`,
+        id: week.id,
         weekTitle: week.weekTitle,
         weekDescription: week.weekDescription,
         topics: week.topics || [],
         sections: week.sections?.map(section => ({
-          id: section.id || `section_${crypto.randomUUID()}`,
+          id: section.id,
           title: section.title,
           description: section.description,
           order: section.order,
           resources: section.resources || [],
           lessons: section.lessons?.map(lesson => {
             const baseLesson = {
-              id: lesson.id || `lesson_${crypto.randomUUID()}`,
+              id: lesson.id,
               title: lesson.title,
               description: lesson.description,
               order: lesson.order,
@@ -576,7 +636,7 @@ const AddCourse = () => {
         course_category: data.course_category,
         course_subcategory: data.course_subcategory,
         course_level: data.course_level,
-        class_type: data.class_type || 'regular',
+        class_type: data.class_type ,
         course_grade: data.course_grade,
         language: data.language || 'English',
         subtitle_languages: data.subtitle_languages || [],
@@ -589,8 +649,6 @@ const AddCourse = () => {
         is_Quizes: data.is_Quizes || 'Yes',
         course_image: data.course_image,
         assigned_instructor: data.assigned_instructor || null,
-        unique_key: uniqueKey,
-        slug: slug,
         course_description: {
           program_overview: data.course_description?.program_overview?.trim(),
           benefits: data.course_description?.benefits?.trim(),
@@ -642,37 +700,19 @@ const AddCourse = () => {
         no_of_Sessions: Number(data.no_of_Sessions) || 0,
         session_duration: data.session_duration?.trim(),
         isFree: Boolean(data.isFree),
-        meta: {
-          ratings: {
-            average: 0,
-            count: 0
-          },
-          views: 0,
-          enrollments: 0,
-          lastUpdated: new Date().toISOString()
-        },
         prices: data.prices || []
       };
 
-      // Log the data
-      console.log('%c API Request Details ', 'background: #3B82F6; color: white; padding: 2px 5px; border-radius: 2px;');
-      console.log('URL:', apiUrls.courses.createCourse);
-      console.log('Data:', JSON.stringify(courseData, null, 2));
-
-      // Make the API call
-      const response = await postQuery({
-        url: apiUrls.courses.createCourse,
-        postData: courseData,
+      // Make the API call to update the course
+      const response = await putQuery({
+        url: apiUrls.courses.updateCourse(courseId as string),
+        putData: courseData,
         onSuccess: (response) => {
-          console.log('%c API Success Response ', 'background: #34D399; color: white; padding: 2px 5px; border-radius: 2px;', response);
-          toast.success(`Course "${courseData.course_title}" created successfully!`);
-          reset();
-          setCurrentStep(1);
-          window.location.hash = formSteps[0].hash;
+          toast.success(`Course "${courseData.course_title}" updated successfully!`);
+          router.push('/dashboards/admin-courses');
         },
         onError: (error) => {
-          console.log('%c API Error Response ', 'background: #EF4444; color: white; padding: 2px 5px; border-radius: 2px;', error);
-          const errorMessage = error?.response?.data?.message || 'Failed to create course';
+          const errorMessage = error?.response?.data?.message || 'Failed to update course';
           toast.error(errorMessage);
           setValidationMessage(errorMessage);
           throw new Error(errorMessage);
@@ -682,11 +722,9 @@ const AddCourse = () => {
       if (!response) {
         throw new Error('No response from server');
       }
-
-      console.groupEnd();
     } catch (error) {
       console.error("Form submission error:", error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to create course';
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update course';
       toast.error(errorMessage);
       setValidationMessage(errorMessage);
       throw error;
@@ -704,8 +742,8 @@ const AddCourse = () => {
       const missingFields = currentStepData.requiredFields
         .filter(field => {
           const error = field.includes('.')
-            ? errors[field.split('.')[0]]?.[field.split('.')[1]]
-            : errors[field];
+            ? errors[field.split('.')[0] as keyof typeof errors]?.[field.split('.')[1]]
+            : errors[field as keyof typeof errors];
           return error;
         })
         .map(field => field.split('.').pop())
@@ -847,9 +885,25 @@ const AddCourse = () => {
     }
   };
 
+  if (isLoading && !isCourseLoaded) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex justify-center items-center">
+        <div className="flex flex-col items-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-customGreen"></div>
+          <p className="mt-4 text-gray-600">Loading course data...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">Update Course</h1>
+          <p className="text-gray-600">Edit your course details using the form below</p>
+        </div>
+
         <StepProgress
           currentStep={currentStep}
           totalSteps={formSteps.length}
@@ -857,13 +911,6 @@ const AddCourse = () => {
         />
 
         <div className="mt-8 bg-white rounded-lg shadow-lg p-6">
-          {isLoading && currentStep === 1 && (
-            <div className="flex justify-center items-center py-10">
-              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-customGreen"></div>
-              <p className="ml-3 text-gray-600">Loading categories...</p>
-            </div>
-          )}
-          
           <form onSubmit={handleStepSubmit}>
             {renderStep()}
 
@@ -897,12 +944,12 @@ const AddCourse = () => {
                 {isSubmitting ? (
                   <div className="flex items-center">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Submitting...
+                    Updating...
                   </div>
                 ) : currentStep < formSteps.length ? (
                   'Next'
                 ) : (
-                  'Submit'
+                  'Update Course'
                 )}
               </button>
             </div>
@@ -913,4 +960,4 @@ const AddCourse = () => {
   );
 };
 
-export default AddCourse; 
+export default UpdateCourse; 
