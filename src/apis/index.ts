@@ -116,6 +116,26 @@ export const apiUtils = {
 };
 
 export const apiUrls = {
+  categories: {
+    getAllCategories: "/categories/getAll",
+    createCategory: "/categories/create",
+    getCategoryById: (id: string): string => {
+      if (!id) throw new Error('Category ID is required');
+      return `/categories/get/${id}`;
+    },
+    updateCategory: (id: string): string => {
+      if (!id) throw new Error('Category ID is required');
+      return `/categories/update/${id}`;
+    },
+    deleteCategory: (id: string): string => {
+      if (!id) throw new Error('Category ID is required');
+      return `/categories/delete/${id}`;
+    },
+    getRelatedCourses: (id: string): string => {
+      if (!id) throw new Error('Category ID is required');
+      return `/categories/related-courses/${id}`;
+    }
+  },
   faqs: {
     getAllFaqs: "/faqs/getAll",
     getFaqsByCategory: "/faqs/category",

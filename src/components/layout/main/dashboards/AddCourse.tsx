@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -73,7 +73,7 @@ const schema = yup.object().shape({
   language: yup.string().required('Language is required'),
   subtitle_languages: yup.array().of(yup.string()),
   course_image: yup.string().required('Course image is required'),
-  assigned_instructor: yup.string().required('Assigned instructor is required'),
+  // assigned_instructor: yup.string().required('Assigned instructor is required'),
   course_slug: yup.string(),
   course_description: yup.object().shape({
     program_overview: yup.string().required('Program overview is required'),
@@ -217,6 +217,8 @@ const AddCourse = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [courseImage, setCourseImage] = useState<string | null>(null);
   const [categories, setCategories] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const { postQuery } = usePostQuery();
   const { getQuery } = useGetQuery();
 
@@ -225,9 +227,10 @@ const AddCourse = () => {
     handleSubmit,
     setValue,
     formState: { errors },
-    watch
+    watch,
+    control
   } = useForm<ICourseFormData>({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(schema) as any,
     mode: 'onChange',
     defaultValues: {
       status: 'draft',
@@ -252,22 +255,62 @@ const AddCourse = () => {
     }
   });
 
-  // Fetch categories on component mount
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchCategories = async () => {
+      setIsLoading(true);
       try {
         const response = await getQuery({
-          url: '/api/categories',
+          url: apiUrls.categories.getAllCategories,
           onSuccess: () => {},
           onError: () => {
-            toast.error('Failed to load categories');
+            console.error("Error fetching categories");
+            toast.error('Failed to load categories. Please try again.');
           }
         });
+        
+        console.log("Categories API response:", JSON.stringify(response, null, 2));
+        
         if (response?.data) {
-          setCategories(response.data);
+          // Handle different possible response structures
+          // The API might return data in different formats:
+          // 1. response.data (direct array)
+          // 2. response.data.data (nested array)
+          // 3. response.data with success and data properties
+          let categoriesData = [];
+          
+          if (Array.isArray(response.data)) {
+            categoriesData = response.data;
+          } else if (response.data.data && Array.isArray(response.data.data)) {
+            categoriesData = response.data.data;
+          } else if (response.data.success && Array.isArray(response.data.data)) {
+            categoriesData = response.data.data;
+          }
+          
+          console.log("Raw categories data:", JSON.stringify(categoriesData, null, 2));
+          
+          // Filter out any invalid items and map to the expected format
+          const formattedCategories = categoriesData
+            .filter(cat => cat && (cat._id || cat.id) && (cat.category_name || cat.name)) // Ensure valid data
+            .map(cat => ({
+              id: cat._id || cat.id || '',
+              name: cat.category_name || cat.name || 'Unnamed Category'
+            }));
+          
+          console.log("Formatted categories:", formattedCategories);
+          setCategories(formattedCategories);
+          
+          if (formattedCategories.length === 0) {
+            toast.warning('No valid categories found. Please add categories first.');
+          }
+        } else {
+          console.error("No data received from categories API");
+          toast.error('No categories found. Please check the API.');
         }
       } catch (error) {
-        toast.error('Failed to load categories');
+        console.error("Error in fetchCategories:", error);
+        toast.error('Failed to load categories. Please check your connection.');
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -276,11 +319,17 @@ const AddCourse = () => {
 
   const handleImageUpload = async (file: File) => {
     try {
+      if (!file) {
+        toast.error('Please select a valid image file');
+        return;
+      }
+      
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = async () => {
         const base64 = reader.result?.toString().split(',')[1];
         if (base64) {
+          setIsLoading(true);
           const postData = { base64String: base64, fileType: "image" };
           await postQuery({
             url: apiUrls?.upload?.uploadImage,
@@ -288,20 +337,31 @@ const AddCourse = () => {
             onSuccess: (data) => {
               setCourseImage(data?.data);
               setValue('course_image', data?.data);
+              toast.success('Image uploaded successfully');
             },
             onError: (error) => {
+              console.error("Image upload error:", error);
               toast.error('Image upload failed. Please try again.');
             },
           });
+          setIsLoading(false);
         }
       };
+      
+      reader.onerror = () => {
+        toast.error('Failed to read image file');
+        setIsLoading(false);
+      };
     } catch (error) {
+      console.error("Error in handleImageUpload:", error);
       toast.error('Failed to upload image');
+      setIsLoading(false);
     }
   };
 
   const onSubmit = async (data: ICourseFormData) => {
     try {
+      setIsSubmitting(true);
       await postQuery({
         url: apiUrls?.courses?.createCourse,
         postData: data,
@@ -310,11 +370,15 @@ const AddCourse = () => {
           // Redirect or handle success
         },
         onError: (error) => {
-          toast.error(error?.response?.data?.message || 'Failed to create course');
+          console.error("Course creation error:", error);
+          toast.error(error?.response?.data?.message || 'Failed to create course. Please check your inputs.');
         },
       });
     } catch (error) {
-      toast.error('Failed to create course');
+      console.error("Error in onSubmit:", error);
+      toast.error('Failed to create course. Please try again later.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -322,10 +386,10 @@ const AddCourse = () => {
     const formState = {
       errors,
       isDirty: false,
-      isLoading: false,
+      isLoading,
       isSubmitted: false,
       isSubmitSuccessful: false,
-      isSubmitting: false,
+      isSubmitting,
       isValid: false,
       isValidating: false,
       submitCount: 0,
@@ -346,6 +410,7 @@ const AddCourse = () => {
             categories={categories}
             onImageUpload={handleImageUpload}
             courseImage={courseImage}
+            control={control}
           />
         );
       case 2:
@@ -455,6 +520,13 @@ const AddCourse = () => {
         />
 
         <div className="mt-8 bg-white rounded-lg shadow-lg p-6">
+          {isLoading && currentStep === 1 && (
+            <div className="flex justify-center items-center py-10">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-customGreen"></div>
+              <p className="ml-3 text-gray-600">Loading categories...</p>
+            </div>
+          )}
+          
           <form onSubmit={handleSubmit(onSubmit)}>
             {renderStep()}
 
@@ -463,7 +535,8 @@ const AddCourse = () => {
                 <button
                   type="button"
                   onClick={prevStep}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                  disabled={isSubmitting}
                 >
                   Previous
                 </button>
@@ -472,16 +545,25 @@ const AddCourse = () => {
                 <button
                   type="button"
                   onClick={nextStep}
-                  className="ml-auto px-4 py-2 bg-customGreen text-white rounded-md text-sm font-medium hover:bg-green-600"
+                  className="ml-auto px-4 py-2 bg-customGreen text-white rounded-md text-sm font-medium hover:bg-green-600 disabled:opacity-50"
+                  disabled={isSubmitting}
                 >
                   Next
                 </button>
               ) : (
                 <button
                   type="submit"
-                  className="ml-auto px-4 py-2 bg-customGreen text-white rounded-md text-sm font-medium hover:bg-green-600"
+                  className="ml-auto px-4 py-2 bg-customGreen text-white rounded-md text-sm font-medium hover:bg-green-600 disabled:opacity-50"
+                  disabled={isSubmitting}
                 >
-                  Submit
+                  {isSubmitting ? (
+                    <div className="flex items-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Submitting...
+                    </div>
+                  ) : (
+                    'Submit'
+                  )}
                 </button>
               )}
             </div>
