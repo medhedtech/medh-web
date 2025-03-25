@@ -306,7 +306,7 @@ export const apiUrls = {
     },
     getRecordedVideosForUser: (studentId: string): string => `/courses/recorded-videos/${studentId}`,
     createCourse: "/courses/create",
-    updateCourse: (id: string): string => `/courses/update/${id}`,
+    updateCourse: (id: string): string => `/courses/${id}`,
     toggleCourseStatus: (id: string): string => `/courses/toggle-status/${id}`,
     updateRecordedVideos: (id: string): string => `/courses/recorded-videos/${id}`,
     deleteCourse: (id: string): string => `/courses/delete/${id}`,
