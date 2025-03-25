@@ -176,9 +176,11 @@ const AddInstructor = () => {
     setSearchTerm("");
   };
 
-  const filteredCourses = courses?.filter((course) => 
-    (course.course_title || '').toLowerCase().includes((searchTerm || '').toLowerCase())
-  );
+  const filteredCourses = Array.isArray(courses) 
+    ? courses.filter((course) => 
+        (course.course_title || '').toLowerCase().includes((searchTerm || '').toLowerCase())
+      )
+    : [];
 
   useEffect(() => {
     const fetchCourseNames = async () => {
@@ -186,17 +188,29 @@ const AddInstructor = () => {
         await getQuery({
           url: apiUrls?.courses?.getAllCourses,
           onSuccess: (data) => {
-            setCourses(data);
+            // Ensure courses is always an array
+            if (Array.isArray(data)) {
+              setCourses(data);
+            } else if (data && Array.isArray(data.courses)) {
+              setCourses(data.courses);
+            } else if (data && data.data && Array.isArray(data.data)) {
+              setCourses(data.data);
+            } else {
+              console.warn('API returned non-array data for courses:', data);
+              setCourses([]);
+            }
           },
           onFail: (err) => {
             console.error(
               "API error:",
               err instanceof Error ? err.message : err
             );
+            setCourses([]);
           },
         });
       } catch (error) {
         console.error("Failed to fetch courses:", error);
+        setCourses([]);
       }
     };
 
