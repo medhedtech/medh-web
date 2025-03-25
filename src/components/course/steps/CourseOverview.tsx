@@ -1,9 +1,12 @@
-import React from 'react';
-import { UseFormRegister, UseFormSetValue, FormState } from 'react-hook-form';
+import React, { useState, useEffect } from 'react';
+import { UseFormRegister, UseFormSetValue, FormState, Controller, Control } from 'react-hook-form';
 import { ICourseFormData } from '@/types/course.types';
 import FileUpload from '@/components/shared/FileUpload';
 import Select from '@/components/shared/Select';
 import Input from '@/components/shared/Input';
+import { apiUrls } from '@/apis';
+import useGetQuery from '@/hooks/getQuery.hook';
+import { toast } from 'react-toastify';
 
 interface CourseOverviewProps {
   register: UseFormRegister<ICourseFormData>;
@@ -12,11 +15,23 @@ interface CourseOverviewProps {
   categories: { id: string; name: string }[];
   onImageUpload: (file: File) => Promise<void>;
   courseImage: string | null;
+  control: Control<ICourseFormData>;
 }
 
 const courseLevels = ['Beginner', 'Intermediate', 'Advanced'];
 const languages = ['English', 'Spanish', 'French', 'German', 'Chinese', 'Japanese'];
-const courseTags = ['Live', 'Pre-Recorded', 'Hybrid', 'Free'];
+const courseTags = ['Live', 'Blended', 'Free'];
+const courseGrades = [
+  'All Levels',
+  'Preschool',
+  'Grade 1-2',
+  'Grade 3-4',
+  'Grade 5-6',
+  'Grade 7-8',
+  'Grade 9-10',
+  'Grade 11-12',
+  'UG - Graduate - Professionals'
+];
 
 const CourseOverview: React.FC<CourseOverviewProps> = ({
   register,
@@ -24,19 +39,102 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({
   formState: { errors },
   categories,
   onImageUpload,
-  courseImage
+  courseImage,
+  control
 }) => {
+  const [instructors, setInstructors] = useState<Array<any>>([]);
+  const [isLoadingInstructors, setIsLoadingInstructors] = useState<boolean>(false);
+  const { getQuery } = useGetQuery();
+
+  // Fetch instructors on component mount
+  useEffect(() => {
+    const fetchInstructors = async () => {
+      setIsLoadingInstructors(true);
+      try {
+        const response = await getQuery({
+          url: apiUrls.Instructor.getAllInstructors,
+          onSuccess: () => {},
+          onError: () => {
+            console.error("Error fetching instructors");
+            toast.error('Failed to load instructors. Please try again.');
+          }
+        });
+        
+        console.log("Instructors API response:", JSON.stringify(response, null, 2));
+        
+        let instructorsData = [];
+        
+        // Handle different response formats
+        if (Array.isArray(response)) {
+          instructorsData = response;
+        } else if (response?.data && Array.isArray(response.data)) {
+          instructorsData = response.data;
+        } else if (response?.instructors && Array.isArray(response.instructors)) {
+          instructorsData = response.instructors;
+        } else if (response?.results && Array.isArray(response.results)) {
+          instructorsData = response.results;
+        }
+        
+        // Validate and normalize instructor data
+        const validInstructors = instructorsData
+          .filter(instructor => instructor && (instructor._id || instructor.id))
+          .map(instructor => ({
+            id: instructor._id || instructor.id,
+            name: instructor.full_name || 
+                  `${instructor.firstName || instructor.first_name || ''} ${instructor.lastName || instructor.last_name || ''}`.trim() || 
+                  instructor.name || 
+                  instructor.email
+          }));
+          
+        console.log("Processed instructors:", validInstructors);
+        setInstructors(validInstructors);
+        
+      } catch (error) {
+        console.error("Error in fetchInstructors:", error);
+        toast.error('Failed to load instructors. Please check your connection.');
+      } finally {
+        setIsLoadingInstructors(false);
+      }
+    };
+
+    fetchInstructors();
+  }, [getQuery]);
+
+  const categoryOptions = Array.isArray(categories) && categories.length > 0 
+    ? categories
+        .filter(cat => cat && typeof cat === 'object' && cat.id && cat.name)
+        .map(cat => ({ value: cat.id, label: cat.name }))
+    : [{ value: '', label: 'No categories available' }];
+    
+  const instructorOptions = Array.isArray(instructors) && instructors.length > 0
+    ? instructors
+        .filter(instructor => instructor && instructor.id && instructor.name)
+        .map(instructor => ({ value: instructor.id, label: instructor.name }))
+    : [{ value: '', label: isLoadingInstructors ? 'Loading instructors...' : 'No instructors available' }];
+    
+  const tagOptions = courseTags.map(tag => ({ value: tag, label: tag }));
+  const levelOptions = courseLevels.map(level => ({ value: level, label: level }));
+  const gradeOptions = courseGrades.map(grade => ({ value: grade, label: grade }));
+  const languageOptions = languages.map(lang => ({ value: lang, label: lang }));
+  
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">Course Overview & General Info</h2>
       
       {/* Course Category */}
-      <Select
-        label="Course Category"
-        options={categories.map(cat => ({ value: cat.id, label: cat.name }))}
-        {...register('course_category')}
-        error={errors.course_category?.message}
-        required
+      <Controller
+        name="course_category"
+        control={control}
+        render={({ field }) => (
+          <Select
+            label="Course Category"
+            options={categoryOptions}
+            error={errors.course_category?.message}
+            required
+            onChange={option => field.onChange(option?.value || '')}
+            value={categoryOptions.find(option => option.value === field.value) || null}
+          />
+        )}
       />
 
       {/* Course Subcategory */}
@@ -64,39 +162,69 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({
       />
 
       {/* Course Tag */}
-      <Select
-        label="Course Tag"
-        options={courseTags.map(tag => ({ value: tag, label: tag }))}
-        {...register('course_tag')}
-        error={errors.course_tag?.message}
-        required
+      <Controller
+        name="course_tag"
+        control={control}
+        render={({ field }) => (
+          <Select
+            label="Course Tag"
+            options={tagOptions}
+            error={errors.course_tag?.message}
+            required
+            onChange={option => field.onChange(option?.value || '')}
+            value={tagOptions.find(option => option.value === field.value) || null}
+          />
+        )}
       />
 
       {/* Course Level */}
-      <Select
-        label="Course Level"
-        options={courseLevels.map(level => ({ value: level, label: level }))}
-        {...register('course_level')}
-        error={errors.course_level?.message}
-        required
+      <Controller
+        name="course_grade"
+        control={control}
+        render={({ field }) => (
+          <Select
+            label="Course Grade"
+            options={gradeOptions}
+            error={errors.course_grade?.message}
+            required
+            onChange={option => field.onChange(option?.value || '')}
+            value={gradeOptions.find(option => option.value === field.value) || null}
+          />
+        )}
       />
 
       {/* Language */}
-      <Select
-        label="Language"
-        options={languages.map(lang => ({ value: lang, label: lang }))}
-        {...register('language')}
-        error={errors.language?.message}
-        required
+      <Controller
+        name="language"
+        control={control}
+        render={({ field }) => (
+          <Select
+            label="Language"
+            options={languageOptions}
+            error={errors.language?.message}
+            required
+            onChange={option => field.onChange(option?.value || '')}
+            value={languageOptions.find(option => option.value === field.value) || null}
+          />
+        )}
       />
 
       {/* Subtitle Languages */}
-      <Select
-        label="Subtitle Languages"
-        options={languages.map(lang => ({ value: lang, label: lang }))}
-        isMulti
-        {...register('subtitle_languages')}
-        error={errors.subtitle_languages?.message}
+      <Controller
+        name="subtitle_languages"
+        control={control}
+        render={({ field }) => (
+          <Select
+            label="Subtitle Languages"
+            options={languageOptions}
+            isMulti
+            error={errors.subtitle_languages?.message}
+            onChange={options => field.onChange(options ? options.map(opt => opt.value) : [])}
+            value={languageOptions.filter(option => 
+              field.value && Array.isArray(field.value) && field.value.includes(option.value)
+            )}
+          />
+        )}
       />
 
       {/* Course Image */}
@@ -110,11 +238,19 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({
       />
 
       {/* Assigned Instructor */}
-      <Input
-        label="Assigned Instructor"
-        {...register('assigned_instructor')}
-        error={errors.assigned_instructor?.message}
-        required
+      <Controller
+        name="assigned_instructor"
+        control={control}
+        render={({ field }) => (
+          <Select
+            label="Assigned Instructor"
+            options={instructorOptions}
+            error={errors.assigned_instructor?.message}
+            required
+            onChange={option => field.onChange(option?.value || '')}
+            value={instructorOptions.find(option => option.value === field.value) || null}
+          />
+        )}
       />
     </div>
   );

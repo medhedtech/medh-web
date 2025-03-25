@@ -18,7 +18,19 @@ interface SelectProps {
 }
 
 const Select = forwardRef<any, SelectProps>(
-  ({ label, options, error, required, isMulti = false, ...props }, ref) => {
+  ({ label, options = [], error, required, isMulti = false, ...props }, ref) => {
+    // Ensure options are valid
+    const validOptions = Array.isArray(options) 
+      ? options.filter(
+          opt => opt && typeof opt === 'object' && 'value' in opt && 'label' in opt
+        ) 
+      : [];
+    
+    // Provide a fallback option if no valid options exist
+    const safeOptions = validOptions.length > 0 
+      ? validOptions 
+      : [{ value: '', label: 'No options available' }];
+
     return (
       <div className="space-y-2">
         <label className="block text-sm font-medium">
@@ -27,7 +39,7 @@ const Select = forwardRef<any, SelectProps>(
         </label>
         <ReactSelect
           ref={ref}
-          options={options}
+          options={safeOptions}
           isMulti={isMulti}
           className={`react-select-container ${error ? 'react-select-error' : ''}`}
           classNamePrefix="react-select"
