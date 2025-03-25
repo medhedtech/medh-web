@@ -55,7 +55,7 @@ const schema = yup.object({
   course_subcategory: yup.string().required('Course subcategory is required'),
   course_title: yup.string().required('Course title is required'),
   course_subtitle: yup.string().required('Course subtitle is required'),
-  course_tag: yup.string().required('Course tag is required'),
+  course_tag: yup.string(),
   course_level: yup.string().required('Course level is required'),
   language: yup.string().required('Language is required'),
   subtitle_languages: yup.array().of(yup.string()),
