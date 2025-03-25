@@ -88,7 +88,6 @@ const CourseDescription: React.FC<CourseDescriptionProps> = ({
       <div className="space-y-4">
         <label className="block">
           <span className="text-gray-700 font-medium">Benefits</span>
-          <span className="text-red-500 ml-1">*</span>
           <textarea
             {...register('course_description.benefits')}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-customGreen focus:ring-customGreen"
@@ -104,7 +103,7 @@ const CourseDescription: React.FC<CourseDescriptionProps> = ({
       {/* Learning Objectives */}
       <div className="space-y-4">
         <div className="flex justify-between items-center">
-          <span className="text-gray-700 font-medium">Learning Objectives<span className="text-red-500 ml-1">*</span></span>
+          <span className="text-gray-700 font-medium">Learning Objectives</span>
           <button
             type="button"
             onClick={() => addArrayItem(objectives, setObjectives)}
@@ -141,7 +140,7 @@ const CourseDescription: React.FC<CourseDescriptionProps> = ({
       {/* Course Requirements */}
       <div className="space-y-4">
         <div className="flex justify-between items-center">
-          <span className="text-gray-700 font-medium">Course Requirements<span className="text-red-500 ml-1">*</span></span>
+          <span className="text-gray-700 font-medium">Course Requirements</span>
           <button
             type="button"
             onClick={() => addArrayItem(requirements, setRequirements)}
@@ -178,7 +177,7 @@ const CourseDescription: React.FC<CourseDescriptionProps> = ({
       {/* Target Audience */}
       <div className="space-y-4">
         <div className="flex justify-between items-center">
-          <span className="text-gray-700 font-medium">Target Audience<span className="text-red-500 ml-1">*</span></span>
+          <span className="text-gray-700 font-medium">Target Audience</span>
           <button
             type="button"
             onClick={() => addArrayItem(audience, setAudience)}

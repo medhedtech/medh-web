@@ -20,7 +20,12 @@ interface CourseOverviewProps {
 
 const courseLevels = ['Beginner', 'Intermediate', 'Advanced'];
 const languages = ['English', 'Spanish', 'French', 'German', 'Chinese', 'Japanese'];
-const courseTags = ['Live', 'Blended', 'Free'];
+const classTypes = [
+  "Live Courses",
+  "Blended Courses",
+  "Free Courses",
+  "Self-paced"
+];
 const courseGrades = [
   'All Levels',
   'Preschool',
@@ -102,8 +107,8 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({
 
   const categoryOptions = Array.isArray(categories) && categories.length > 0 
     ? categories
-        .filter(cat => cat && typeof cat === 'object' && cat.id && cat.name)
-        .map(cat => ({ value: cat.id, label: cat.name }))
+        .filter(cat => cat && typeof cat === 'object' && cat.name)
+        .map(cat => ({ value: cat.name, label: cat.name }))
     : [{ value: '', label: 'No categories available' }];
     
   const instructorOptions = Array.isArray(instructors) && instructors.length > 0
@@ -112,7 +117,7 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({
         .map(instructor => ({ value: instructor.id, label: instructor.name }))
     : [{ value: '', label: isLoadingInstructors ? 'Loading instructors...' : 'No instructors available' }];
     
-  const tagOptions = courseTags.map(tag => ({ value: tag, label: tag }));
+  const classTypeOptions = classTypes.map(type => ({ value: type, label: type }));
   const levelOptions = courseLevels.map(level => ({ value: level, label: level }));
   const gradeOptions = courseGrades.map(grade => ({ value: grade, label: grade }));
   const languageOptions = languages.map(lang => ({ value: lang, label: lang }));
@@ -142,7 +147,6 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({
         label="Course Subcategory"
         {...register('course_subcategory')}
         error={errors.course_subcategory?.message}
-        required
       />
 
       {/* Course Title */}
@@ -158,23 +162,25 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({
         label="Course Subtitle"
         {...register('course_subtitle')}
         error={errors.course_subtitle?.message}
-        required
       />
 
-      {/* Course Tag */}
+      {/* Class Type */}
       <Controller
-        name="course_tag"
+        name="class_type"
         control={control}
-        render={({ field }) => (
-          <Select
-            label="Course Tag"
-            options={tagOptions}
-            error={errors.course_tag?.message}
-            required
-            onChange={option => field.onChange(option?.value || '')}
-            value={tagOptions.find(option => option.value === field.value) || null}
-          />
-        )}
+        render={({ field }) => {
+          console.log("class_type value:", field.value); // Debug log to see the actual value
+          return (
+            <Select
+              label="Class Type"
+              options={classTypeOptions}
+              error={errors.class_type?.message}
+              required
+              onChange={option => field.onChange(option?.value || '')}
+              value={classTypeOptions.find(option => option.value === field.value) || null}
+            />
+          );
+        }}
       />
 
       {/* Course Level */}
@@ -186,7 +192,6 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({
             label="Course Grade"
             options={gradeOptions}
             error={errors.course_grade?.message}
-            required
             onChange={option => field.onChange(option?.value || '')}
             value={gradeOptions.find(option => option.value === field.value) || null}
           />
@@ -202,7 +207,6 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({
             label="Language"
             options={languageOptions}
             error={errors.language?.message}
-            required
             onChange={option => field.onChange(option?.value || '')}
             value={languageOptions.find(option => option.value === field.value) || null}
           />
@@ -246,7 +250,6 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({
             label="Assigned Instructor"
             options={instructorOptions}
             error={errors.assigned_instructor?.message}
-            required
             onChange={option => field.onChange(option?.value || '')}
             value={instructorOptions.find(option => option.value === field.value) || null}
           />
