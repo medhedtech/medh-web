@@ -1747,7 +1747,7 @@ const ListOfCourse = () => {
   };
 
   const editCourse = (id) => {
-    window.open(`admin-updateCourse/${id}`);
+    window.open(`/dashboards/admin-updateCourse/${id}`);
   };
 
   const viewCourse = (id) => {

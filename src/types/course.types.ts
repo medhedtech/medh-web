@@ -13,9 +13,11 @@ export interface IResourcePDF {
   title: string;
   url: string;
   description: string;
-  size_mb: number;
-  pages: number;
-  upload_date: string;
+  size_mb?: number;
+  pages?: number;
+  upload_date?: string;
+  type?: string;
+  category?: string;
 }
 
 export interface ILessonResource {
@@ -26,29 +28,38 @@ export interface ILessonResource {
   description?: string;
 }
 
-export interface IBaseLesson {
+export type MaterialType = 'pdf' | 'document' | 'presentation' | 'code' | 'other';
+
+export interface IMaterial {
+  title: string;
+  url: string;
+  type: MaterialType;
+}
+
+export type LessonType = 'video' | 'quiz' | 'assessment';
+
+export interface IBaseLessonFields {
   id: string;
   title: string;
-  description?: string;
+  description: string;
   order: number;
   isPreview: boolean;
   meta: Record<string, any>;
   resources: ILessonResource[];
-  lessonType: 'video' | 'quiz' | 'assessment';
 }
 
-export interface IVideoLesson extends IBaseLesson {
+export interface IVideoLesson extends IBaseLessonFields {
   lessonType: 'video';
   video_url: string;
   duration: string;
 }
 
-export interface IQuizLesson extends IBaseLesson {
+export interface IQuizLesson extends IBaseLessonFields {
   lessonType: 'quiz';
   quiz_id: string;
 }
 
-export interface IAssessmentLesson extends IBaseLesson {
+export interface IAssessmentLesson extends IBaseLessonFields {
   lessonType: 'assessment';
   assignment_id: string;
 }
@@ -74,7 +85,22 @@ export interface ICurriculumWeek {
   weekNumber: number;
   weekTitle: string;
   weekDescription: string;
+  topics: string[];
   sections: ISection[];
+  liveClasses: ILiveClass[];
+  lessons: ILesson[];
+}
+
+export interface ILiveClass {
+  title: string;
+  description?: string;
+  scheduledDate: Date;
+  duration: number;
+  meetingLink?: string;
+  instructor?: string;
+  recordingUrl?: string;
+  isRecorded: boolean;
+  materials: IMaterial[];
 }
 
 export interface IFAQ {
@@ -126,8 +152,8 @@ export interface ICourseFormData {
   brochures: string[];
   status: string;
   isFree: boolean;
-  assigned_instructor: string;
-  specifications: string;
+  assigned_instructor: string | null;
+  specifications: string | null;
   course_image: string;
   course_grade: string;
   resource_pdfs: IResourcePDF[];
@@ -145,4 +171,21 @@ export interface ICourseFormData {
   min_hours_per_week: number;
   max_hours_per_week: number;
   category_type: string;
+  unique_key?: string;
+  slug?: string;
+  final_evaluation: {
+    final_quizzes: string[];
+    final_assessments: string[];
+    certification: string | null;
+    final_faqs: string[];
+  };
+  meta: {
+    ratings: {
+      average: number;
+      count: number;
+    };
+    views: number;
+    enrollments: number;
+    lastUpdated: string;
+  };
 } 
