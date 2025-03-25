@@ -1,10 +1,19 @@
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { UseFormRegister, UseFormSetValue, FormState } from 'react-hook-form';
-import { ICourseFormData } from '@/types/course.types';
-import { PlusCircle, MinusCircle, Search } from 'lucide-react';
+import { ICourseFormData, IRelatedCourse } from '@/types/course.types';
+import { PlusCircle, MinusCircle, Search, ChevronDown, X } from 'lucide-react';
 import { toast } from 'react-toastify';
-import { apiUrls } from "@/apis";
+import { apiUrls, apiBaseUrl } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
+
+interface Course {
+  _id: string;
+  title: string;
+  instructor: string;
+  category: string;
+  level: string;
+  rating?: number;
+}
 
 interface RelatedCoursesProps {
   register: UseFormRegister<ICourseFormData>;
@@ -15,20 +24,7 @@ interface RelatedCoursesProps {
   watch: any;
 }
 
-interface Course {
-  id: string;
-  title: string;
-  instructor: string;
-  category: string;
-  level: string;
-  rating?: number;
-}
-
-interface RelatedCourse {
-  course_id: string;
-  relationship_type: 'prerequisite' | 'complementary' | 'advanced' | 'series';
-  description: string;
-}
+type RelatedCourse = IRelatedCourse;
 
 const RELATIONSHIP_TYPES = [
   { value: 'prerequisite', label: 'Prerequisite Course' },
@@ -37,58 +33,171 @@ const RELATIONSHIP_TYPES = [
   { value: 'series', label: 'Part of Series' }
 ];
 
+interface CourseResponse {
+  courses: Course[];
+}
+
+interface GetQueryParams {
+  url: string;
+  onSuccess: (response: APIResponse) => void;
+  onError: () => void;
+}
+
 const RelatedCourses: React.FC<RelatedCoursesProps> = ({
   register,
   setValue,
   formState: { errors },
   watch
 }) => {
-  const [searchQuery, setSearchQuery] = React.useState('');
-  const [searchResults, setSearchResults] = React.useState<Course[]>([]);
-  const [selectedCourses, setSelectedCourses] = React.useState<RelatedCourse[]>([]);
-  const [isSearching, setIsSearching] = React.useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<Course[]>([]);
+  const [selectedCourses, setSelectedCourses] = useState<RelatedCourse[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [allCourses, setAllCourses] = useState<Course[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
 
   const { getQuery } = useGetQuery();
+
+  // Fetch all courses on component mount
+  useEffect(() => {
+    const fetchAllCourses = async () => {
+      setIsSearching(true);
+      try {
+        const url = apiUrls.courses.getAllCoursesWithLimits(
+          1,
+          100,
+          undefined,
+          undefined,
+          undefined,
+          'active',
+          undefined,
+          undefined,
+          undefined,
+          {},
+          undefined,
+          undefined,
+          undefined,
+          'rating',
+          'desc'
+        );
+
+        const response = await getQuery({
+          url: url,
+          onSuccess: () => {},
+          onError: () => {
+            toast.error('Failed to fetch courses');
+            setAllCourses([]);
+            setSearchResults([]);
+          }
+        });
+
+        if (response?.courses) {
+          setAllCourses(response.courses);
+          setSearchResults(response.courses);
+        } else {
+          setAllCourses([]);
+          setSearchResults([]);
+        }
+      } catch (error) {
+        toast.error('Failed to fetch courses');
+        setAllCourses([]);
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    };
+
+    fetchAllCourses();
+  }, [getQuery]);
+
+  // Fetch search results with filters
+  const fetchSearchResults = useCallback(async (query: string) => {
+    if (!query.trim()) {
+      setSearchResults(allCourses);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const url = apiUrls.courses.getAllCoursesWithLimits(
+        1,
+        10,
+        query,
+        undefined,
+        undefined,
+        'active',
+        query,
+        undefined,
+        undefined,
+        {},
+        undefined,
+        undefined,
+        undefined,
+        'rating',
+        'desc'
+      );
+
+      const response = await getQuery({
+        url: url,
+        onSuccess: () => {},
+        onError: () => {
+          toast.error('Failed to fetch courses');
+          setSearchResults([]);
+        }
+      });
+
+      if (response?.courses) {
+        setSearchResults(response.courses);
+      } else {
+        setSearchResults([]);
+      }
+    } catch (error) {
+      toast.error('Failed to fetch courses');
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  }, [getQuery, allCourses]);
+
+  // Handle search input changes with debouncing
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!searchQuery.trim()) {
+        setSearchResults(allCourses);
+      } else {
+        fetchSearchResults(searchQuery);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery, fetchSearchResults, allCourses]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const dropdown = document.getElementById('course-search-dropdown');
+      if (dropdown && !dropdown.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    setIsOpen(true);
+  };
 
   // Update form data whenever selected courses change
   React.useEffect(() => {
     setValue('related_courses', selectedCourses);
   }, [selectedCourses, setValue]);
 
-  const searchCourses = async (query: string) => {
-    if (query.length < 3) {
-      setSearchResults([]);
-      return;
-    }
-
-    setIsSearching(true);
-    try {
-      await getQuery({
-        url: `${apiUrls?.course?.search}?query=${encodeURIComponent(query)}`,
-        onSuccess: (data) => {
-          setSearchResults(data?.data || []);
-        },
-        onError: (error) => {
-          toast.error('Failed to search courses');
-          setSearchResults([]);
-        },
-      });
-    } catch (error) {
-      toast.error('Failed to search courses');
-      setSearchResults([]);
-    } finally {
-      setIsSearching(false);
-    }
-  };
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value;
-    setSearchQuery(query);
-    searchCourses(query);
-  };
-
   const addCourse = (course: Course) => {
-    if (selectedCourses.some((c) => c.course_id === course.id)) {
+    if (selectedCourses.some((c) => c.course_id === course._id)) {
       toast.warning('This course is already added');
       return;
     }
@@ -96,7 +205,7 @@ const RelatedCourses: React.FC<RelatedCoursesProps> = ({
     setSelectedCourses([
       ...selectedCourses,
       {
-        course_id: course.id,
+        course_id: course._id,
         relationship_type: 'complementary',
         description: ''
       }
@@ -133,53 +242,98 @@ const RelatedCourses: React.FC<RelatedCoursesProps> = ({
       </div>
 
       <div className="space-y-6">
-        <div className="relative">
+        <div className="relative" id="course-search-dropdown">
           <label className="block text-sm font-medium text-gray-700">Search Courses</label>
-          <div className="mt-1 relative rounded-md shadow-sm">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={handleSearchChange}
-              className="block w-full pl-10 rounded-md border-gray-300 shadow-sm focus:border-customGreen focus:ring-customGreen"
-              placeholder="Search by course title..."
-            />
-          </div>
-
-          {isSearching && (
-            <div className="absolute z-10 mt-1 w-full bg-white rounded-md shadow-lg">
-              <div className="p-4 text-sm text-gray-500">Searching...</div>
-            </div>
-          )}
-
-          {!isSearching && searchResults.length > 0 && (
-            <div className="absolute z-10 mt-1 w-full bg-white rounded-md shadow-lg">
-              <ul className="max-h-60 overflow-auto py-1">
-                {searchResults.map((course) => (
-                  <li
-                    key={course.id}
-                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                    onClick={() => addCourse(course)}
+          <div className="mt-1 relative">
+            <div className="relative w-full">
+              <div
+                className="w-full bg-white border border-gray-300 rounded-md shadow-sm px-3 py-2 cursor-text"
+                onClick={() => setIsOpen(true)}
+              >
+                <div className="flex items-center">
+                  <Search className="h-5 w-5 text-gray-400 mr-2" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    className="flex-1 outline-none border-none p-0 focus:ring-0 text-sm"
+                    placeholder="Search by course title, category, or instructor..."
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setIsOpen(!isOpen)}
+                    className="ml-2 text-gray-400 hover:text-gray-600"
                   >
-                    <div className="flex justify-between">
-                      <div>
-                        <div className="font-medium">{course.title}</div>
-                        <div className="text-sm text-gray-500">
-                          by {course.instructor} • {course.category}
-                        </div>
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {course.level}
-                        {course.rating && ` • ${course.rating}★`}
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+                    {isOpen ? (
+                      <X className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+              </div>
             </div>
-          )}
+
+            {isOpen && (
+              <div className="absolute z-10 mt-1 w-full bg-white rounded-md shadow-lg border border-gray-200">
+                {isSearching && (
+                  <div className="p-4 text-sm text-gray-500">
+                    <div className="flex items-center justify-center space-x-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-customGreen"></div>
+                      <span>Loading courses...</span>
+                    </div>
+                  </div>
+                )}
+
+                {!isSearching && (searchResults.length > 0 || (!searchQuery && allCourses.length > 0)) && (
+                  <ul className="max-h-60 overflow-auto py-1">
+                    {(searchQuery ? searchResults : allCourses).map((course) => (
+                      <li
+                        key={course._id}
+                        className="px-4 py-2 hover:bg-gray-50 cursor-pointer transition-colors duration-150"
+                        onClick={() => {
+                          addCourse(course);
+                          setIsOpen(false);
+                        }}
+                      >
+                        <div className="flex justify-between">
+                          <div>
+                            <div className="font-medium text-gray-900">{course.title}</div>
+                            <div className="text-sm text-gray-500">
+                              by {course.instructor} • {course.category}
+                            </div>
+                          </div>
+                          <div className="text-sm text-gray-500 flex items-center space-x-2">
+                            <span className="px-2 py-1 bg-gray-100 rounded-full text-xs">
+                              {course.level}
+                            </span>
+                            {course.rating && (
+                              <span className="flex items-center">
+                                <span className="text-yellow-400">★</span>
+                                <span className="ml-1">{course.rating}</span>
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {!isSearching && searchQuery && searchResults.length === 0 && (
+                  <div className="p-4 text-sm text-gray-500 text-center">
+                    No courses found matching "{searchQuery}"
+                  </div>
+                )}
+
+                {!isSearching && !searchQuery && allCourses.length === 0 && (
+                  <div className="p-4 text-sm text-gray-500 text-center">
+                    No courses available
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         {selectedCourses.map((course, index) => (
