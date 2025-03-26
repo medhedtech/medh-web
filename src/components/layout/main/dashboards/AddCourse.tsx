@@ -564,6 +564,64 @@ const AddCourse = () => {
                 return baseLesson;
             }
           }) || []
+        })) || [],
+        // Add direct lessons from the week level
+        lessons: week.lessons?.map(lesson => {
+          const baseLesson = {
+            id: lesson.id || `lesson_direct_${crypto.randomUUID()}`,
+            title: lesson.title,
+            description: lesson.description,
+            order: lesson.order,
+            lessonType: lesson.lessonType,
+            isPreview: lesson.isPreview || false,
+            meta: {
+              ...lesson.meta,
+              presenter: lesson.meta?.presenter || null,
+              transcript: lesson.meta?.transcript || null,
+              time_limit: lesson.meta?.time_limit || null,
+              passing_score: lesson.meta?.passing_score || null,
+              due_date: lesson.meta?.due_date || null,
+              max_score: lesson.meta?.max_score || null
+            },
+            resources: lesson.resources || []
+          };
+
+          switch (lesson.lessonType) {
+            case 'video':
+              return {
+                ...baseLesson,
+                video_url: lesson.video_url,
+                duration: lesson.duration
+              };
+            case 'quiz':
+              return {
+                ...baseLesson,
+                quiz_id: lesson.quiz_id
+              };
+            case 'assessment':
+              return {
+                ...baseLesson,
+                assignment_id: lesson.assignment_id
+              };
+            default:
+              return baseLesson;
+          }
+        }) || [],
+        // Add live classes from the week level
+        liveClasses: week.liveClasses?.map(liveClass => ({
+          title: liveClass.title,
+          description: liveClass.description || '',
+          scheduledDate: liveClass.scheduledDate,
+          duration: liveClass.duration,
+          meetingLink: liveClass.meetingLink || '',
+          instructor: liveClass.instructor || '',
+          recordingUrl: liveClass.recordingUrl || '',
+          isRecorded: liveClass.isRecorded,
+          materials: liveClass.materials?.map(material => ({
+            title: material.title,
+            url: material.url,
+            type: material.type
+          })) || []
         })) || []
       })) || [];
 

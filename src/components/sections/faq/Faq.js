@@ -11,9 +11,10 @@ import { AlertTriangle, Search, Filter, RefreshCw } from "lucide-react";
 
 const Faq = () => {
   const [faqs, setFaqs] = useState([]);
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState(['all']);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [loading, setLoading] = useState(true);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredFaqs, setFilteredFaqs] = useState([]);
@@ -80,12 +81,20 @@ const Faq = () => {
   // Fetch categories
   useEffect(() => {
     const fetchCategories = async () => {
+      setCategoriesLoading(true);
       try {
         const response = await axios.get(`${apiBaseUrl}${apiUrls.faqs.getAllCategories}`);
-        setCategories(response.data.categories);
+        if (response.data?.categories && Array.isArray(response.data.categories)) {
+          setCategories(['all', ...response.data.categories]);
+        } else {
+          setCategories(['all']);
+        }
       } catch (err) {
         console.error("Error fetching categories:", err);
         setError("Failed to load categories. Please try again later.");
+        setCategories(['all']);
+      } finally {
+        setCategoriesLoading(false);
       }
     };
 
@@ -199,92 +208,63 @@ const Faq = () => {
           <p className="text-gray-700 dark:text-gray-300 max-w-3xl mx-auto">
             Find answers to your questions about our courses, payment options, and more.
           </p>
-        </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-30px">
-          {/* Title section */}
-          <div className="lg:col-start-1 lg:col-span-2" data-aos="fade-up">
-            <div className="lg:-rotate-90 lg:translate-y-3/4 relative hidden lg:block">
-              <motion.h4 
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 0.5, x: 0 }}
-                transition={{ duration: 0.7, delay: 0.2 }}
-                className="text-size-150 lg:text-size-140 2xl:text-size-200 text-lightGrey dark:text-blackColor-dark opacity-50 uppercase font-bold leading-[1]"
-              >
-                faq
-              </motion.h4>
+          <div className="mt-8">
+            {/* Search Bar */}
+            <div className="relative max-w-xl mx-auto mb-8">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={handleSearch}
+                placeholder="Search FAQs..."
+                className="w-full px-4 py-3 pl-12 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-all duration-200"
+              />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />
             </div>
-          </div>
 
-          {/* Main content area */}
-          <div className="lg:col-start-3 lg:col-span-10">
-            {/* Search and filter area */}
-            <motion.div 
+            {/* Category Filters */}
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="mb-8 space-y-4"
+              transition={{ delay: 0.2 }}
+              className="flex justify-center mb-8"
             >
-              {/* Search input */}
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  type="text"
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
-                  placeholder="Search FAQs..."
-                  value={searchQuery}
-                  onChange={handleSearch}
-                />
-              </div>
-
-              {/* Category selection */}
-              <div className="flex flex-wrap gap-3 items-center">
-                <div className="flex items-center mr-2 text-gray-600 dark:text-gray-300">
-                  <Filter size={16} className="mr-2" />
-                  <span>Filter by:</span>
-                </div>
+              <div className="flex flex-wrap gap-2 justify-center items-center">
                 <AnimatePresence mode="wait">
-                  <motion.button
-                    key="all"
-                    variants={buttonVariants}
-                    initial="idle"
-                    whileHover="hover"
-                    whileTap="tap"
-                    onClick={() => handleCategoryChange("all")}
-                    className={`px-4 py-2 rounded-md transition-all duration-200 ${
-                      selectedCategory === "all"
-                        ? "bg-blue-500 text-white shadow-md"
-                        : "bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200"
-                    }`}
-                    style={{ 
-                      borderBottom: selectedCategory === "all" ? `3px solid ${getCategoryColor('all')}` : 'none'
-                    }}
-                  >
-                    All
-                  </motion.button>
-                  
-                  {categories.map((category) => (
-                    <motion.button
-                      key={category}
-                      variants={buttonVariants}
-                      initial="idle"
-                      whileHover="hover"
-                      whileTap="tap"
-                      onClick={() => handleCategoryChange(category)}
-                      className={`px-4 py-2 rounded-md transition-all duration-200 ${
-                        selectedCategory === category
-                          ? "bg-blue-500 text-white shadow-md"
-                          : "bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200"
-                      }`}
-                      style={{ 
-                        borderBottom: selectedCategory === category ? `3px solid ${getCategoryColor(category)}` : 'none'
-                      }}
-                    >
-                      {category}
-                    </motion.button>
-                  ))}
+                  {/* Show loading skeleton for categories */}
+                  {categoriesLoading ? (
+                    <div className="flex gap-2">
+                      {[1, 2, 3, 4].map((i) => (
+                        <div
+                          key={i}
+                          className="h-10 w-24 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse"
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <>
+                      {categories.map((category) => (
+                        <motion.button
+                          key={category}
+                          variants={buttonVariants}
+                          initial="idle"
+                          whileHover="hover"
+                          whileTap="tap"
+                          onClick={() => handleCategoryChange(category)}
+                          className={`px-4 py-2 rounded-md transition-all duration-200 ${
+                            selectedCategory === category
+                              ? "bg-blue-500 text-white shadow-md"
+                              : "bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200"
+                          }`}
+                          style={{ 
+                            borderBottom: selectedCategory === category ? `3px solid ${getCategoryColor(category)}` : 'none'
+                          }}
+                        >
+                          {category.charAt(0).toUpperCase() + category.slice(1)}
+                        </motion.button>
+                      ))}
+                    </>
+                  )}
                 </AnimatePresence>
               </div>
             </motion.div>
@@ -386,7 +366,7 @@ const Faq = () => {
               </motion.div>
             )}
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
