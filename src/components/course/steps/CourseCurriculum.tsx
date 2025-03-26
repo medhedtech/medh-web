@@ -184,7 +184,16 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
       setValue('curriculum', [initialWeek]);
       setWeeks([initialWeek]);
     } else {
-      setWeeks(currentCurriculum);
+      // Ensure all weeks have properly initialized sections, lessons and liveClasses arrays
+      const formattedWeeks = currentCurriculum.map(week => ({
+        ...week,
+        sections: week.sections || [],
+        lessons: week.lessons || [],
+        liveClasses: week.liveClasses || []
+      }));
+      
+      setWeeks(formattedWeeks);
+      setValue('curriculum', formattedWeeks);
     }
   }, []);
 
@@ -612,15 +621,16 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
     };
     
     updatedWeeks[weekIndex].liveClasses.push(newLiveClass);
+    setValue('curriculum', updatedWeeks);
     setWeeks(updatedWeeks);
   };
 
   // Remove live class
   const removeLiveClass = (weekIndex: number, liveClassIndex: number) => {
     const updatedWeeks = [...weeks];
-    updatedWeeks[weekIndex].liveClasses = updatedWeeks[weekIndex].liveClasses.filter(
-      (_, index) => index !== liveClassIndex
-    );
+    updatedWeeks[weekIndex].liveClasses = 
+      updatedWeeks[weekIndex].liveClasses.filter((_, index) => index !== liveClassIndex);
+    setValue('curriculum', updatedWeeks);
     setWeeks(updatedWeeks);
   };
 
@@ -632,11 +642,11 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
     value: any
   ) => {
     const updatedWeeks = [...weeks];
-    const liveClass = updatedWeeks[weekIndex].liveClasses[liveClassIndex];
     updatedWeeks[weekIndex].liveClasses[liveClassIndex] = {
-      ...liveClass,
+      ...updatedWeeks[weekIndex].liveClasses[liveClassIndex],
       [field]: value
     };
+    setValue('curriculum', updatedWeeks);
     setWeeks(updatedWeeks);
   };
 
@@ -646,10 +656,11 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
     const newMaterial: IMaterial = {
       title: '',
       url: '',
-      type: 'other' as MaterialType
+      type: 'pdf'
     };
     
     updatedWeeks[weekIndex].liveClasses[liveClassIndex].materials.push(newMaterial);
+    setValue('curriculum', updatedWeeks);
     setWeeks(updatedWeeks);
   };
 
@@ -660,6 +671,7 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
       updatedWeeks[weekIndex].liveClasses[liveClassIndex].materials.filter(
         (_, index) => index !== materialIndex
       );
+    setValue('curriculum', updatedWeeks);
     setWeeks(updatedWeeks);
   };
 
@@ -672,11 +684,9 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
     value: string
   ) => {
     const updatedWeeks = [...weeks];
-    const material = updatedWeeks[weekIndex].liveClasses[liveClassIndex].materials[materialIndex];
-    updatedWeeks[weekIndex].liveClasses[liveClassIndex].materials[materialIndex] = {
-      ...material,
-      [field]: value
-    };
+    updatedWeeks[weekIndex].liveClasses[liveClassIndex].materials[materialIndex][field] = 
+      value as any;
+    setValue('curriculum', updatedWeeks);
     setWeeks(updatedWeeks);
   };
 
@@ -726,6 +736,7 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
     }
     
     week.lessons.push(newLesson);
+    setValue('curriculum', updatedWeeks);
     setWeeks(updatedWeeks);
   };
 
@@ -749,6 +760,7 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
       });
     }
     
+    setValue('curriculum', updatedWeeks);
     setWeeks(updatedWeeks);
   };
 
@@ -796,6 +808,7 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
         (lesson as any)[commonField] = value;
       }
       
+      setValue('curriculum', updatedWeeks);
       setWeeks(updatedWeeks);
     }
   };

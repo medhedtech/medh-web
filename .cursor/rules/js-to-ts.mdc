@@ -1,0 +1,46 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+I have a Next.js project written in JavaScript, and I need to convert it to TypeScript. Please follow my naming convention rules and ensure that the overall code structure remains unchanged. The guidelines to follow are:
+
+	Naming Conventions & Code Structure:
+		•	Directories & Files:
+	•	Use lowercase with dashes for directories (e.g., components/auth-wizard).
+	•	Do not alter the existing file structure or folder hierarchy.
+	•	Exports:
+	•	Use named exports for components.
+	•	Component & Variable Naming:
+	•	Use descriptive variable names that clearly indicate their purpose (e.g., isLoading, hasError).
+
+	TypeScript Conversion Requirements:
+		1.	Strict Type Enforcement:
+	•	Convert all code to TypeScript, ensuring a strict tsconfig.json configuration.
+	•	Replace all PropTypes with TypeScript interfaces.
+	2.	Next.js-Specific Conventions:
+	•	Utilize Next.js-specific types (e.g., NextPage, GetStaticProps, GetServerSideProps) for pages and data fetching methods.
+	•	Ensure compatibility with Next.js App Router for versions >5.8.2.
+	3.	Code Conversion Guidelines:
+	•	Convert file extensions from .js to .tsx (for JSX-containing files) or .ts (for plain TypeScript files).
+	•	Maintain the existing code structure and only modify the code to include type annotations, interfaces, and explicit return types.
+	•	Avoid any restructuring of directories or file contents; only apply changes necessary for TypeScript.
+	4.	Performance and Modern Practices:
+	•	Favor functional components and declarative JSX.
+	•	Use modern React and Next.js patterns, ensuring minimal use of 'use client' unless absolutely necessary.
+	•	Optimize code for performance by using server components and dynamic loading where applicable.
+
+	Example Conversion:
+
+	Convert the following JavaScript Next.js page to TypeScript, ensuring that the original code structure and naming conventions are preserved:	Converted Code Requirements:
+		•	Use the NextPage type for the component.
+	•	Define an interface for the component props.
+	•	Replace getInitialProps with the modern data fetching method (if applicable) or ensure proper typing.
+	•	Do not change the directory or file naming structure.
+	•	Follow my naming conventions: use lowercase with dashes for directories and named exports for components.
+
+	Please provide the complete conversion for this example, along with detailed explanations for each change, showing how the naming conventions and TypeScript best practices were applied without altering the code’s original structure.
+
+⸻
+
+This prompt ensures that your unique naming conventions are strictly followed and that the conversion process retains the original code organization while incorporating the necessary TypeScript enhancements.
