@@ -1246,7 +1246,7 @@ const ListOfCourse = () => {
     
     try {
       await postQuery({
-        url: `${apiUrls?.courses?.toggleCourseStatus}/${id}`,
+        url: `${apiUrls.courses.toggleCourseStatus}/${id}`,
         postData: {},
         onSuccess: (response) => {
           const updatedStatus = response?.course?.status;
@@ -1392,22 +1392,151 @@ const ListOfCourse = () => {
   }, []);
 
   const fetchInstructors = async (retryCount = 0) => {
+    const loadingToastId = toast.loading("Loading instructors...");
+    const maxRetries = 3;
+
     try {
+      // Try primary instructor endpoint first
       await getQuery({
-        url: apiUrls.Instructor.getAllInstructors,
-        onSuccess: (res) => {
-          setInstructors(res.data);
+        url: apiUrls?.Instructor?.getAllInstructors,
+        onSuccess: (response) => {
+          const instructorsData = response?.data || [];
+          
+          if (Array.isArray(instructorsData) && instructorsData.length > 0) {
+            // Process and normalize instructor data
+            const instructorsMap = {};
+            const namesMap = {};
+            
+            instructorsData.forEach(instructor => {
+              const normalizedInstructor = {
+                _id: instructor._id || instructor.id,
+                full_name: instructor.full_name || 
+                          `${instructor.firstName || instructor.first_name || ''} ${instructor.lastName || instructor.last_name || ''}`.trim(),
+                email: instructor.email,
+                expertise: instructor.expertise,
+                instructor_image: instructor.instructor_image,
+                status: instructor.status,
+                ...instructor
+              };
+              
+              instructorsMap[normalizedInstructor._id] = normalizedInstructor;
+              namesMap[normalizedInstructor._id] = normalizedInstructor.full_name;
+            });
+            
+            setInstructors(instructorsMap);
+            setInstructorNames(namesMap);
+            
+            toast.update(loadingToastId, {
+              render: `${instructorsData.length} instructors loaded successfully`,
+              type: "success",
+              isLoading: false,
+              autoClose: 2000,
+            });
+          } else {
+            throw new Error("Invalid instructor data format");
+          }
         },
-        onFail: (err) => {
-          console.error("Failed to fetch instructors:", err);
-          toast.error("Could not fetch instructors");
-        },
+        onFail: async (error) => {
+          console.error("Primary instructor endpoint failed:", error);
+          
+          // Try fallback endpoint
+          if (retryCount < maxRetries) {
+            await tryFallbackInstructorEndpoint(retryCount + 1, loadingToastId);
+          } else {
+            throw new Error("All instructor endpoints failed");
+          }
+        }
       });
-    } catch (err) {
-      console.error("Error fetching instructors:", err);
-      toast.error("Could not fetch instructors");
+    } catch (error) {
+      console.error("Error fetching instructors:", error);
+      handleInstructorFetchError(error, loadingToastId);
     }
   };
+
+  // Add new helper functions for instructor fetching
+  const tryFallbackInstructorEndpoint = async (retryCount, loadingToastId) => {
+    try {
+      // Try alternative endpoints in order
+      const fallbackEndpoints = [
+        apiUrls?.instructors?.getAllInstructors
+      ].filter(Boolean);
+
+      for (const endpoint of fallbackEndpoints) {
+        try {
+          await getQuery({
+            url: endpoint,
+            onSuccess: (response) => {
+              const instructorsData = response?.data || response || [];
+              
+              if (Array.isArray(instructorsData) && instructorsData.length > 0) {
+                const instructorsMap = {};
+                const namesMap = {};
+                
+                instructorsData.forEach(instructor => {
+                  const normalizedInstructor = {
+                    _id: instructor._id || instructor.id,
+                    full_name: instructor.full_name || 
+                              `${instructor.firstName || instructor.first_name || ''} ${instructor.lastName || instructor.last_name || ''}`.trim(),
+                    email: instructor.email,
+                    expertise: instructor.expertise,
+                    instructor_image: instructor.instructor_image,
+                    status: instructor.status,
+                    ...instructor
+                  };
+                  
+                  instructorsMap[normalizedInstructor._id] = normalizedInstructor;
+                  namesMap[normalizedInstructor._id] = normalizedInstructor.full_name;
+                });
+                
+                setInstructors(instructorsMap);
+                setInstructorNames(namesMap);
+                
+                toast.update(loadingToastId, {
+                  render: `${instructorsData.length} instructors loaded (fallback)`,
+                  type: "success",
+                  isLoading: false,
+                  autoClose: 2000,
+                });
+                
+                return true; // Successfully loaded instructors
+              }
+            },
+            onFail: (error) => {
+              console.warn(`Fallback endpoint ${endpoint} failed:`, error);
+              return false;
+            }
+          });
+        } catch (error) {
+          console.warn(`Error with fallback endpoint ${endpoint}:`, error);
+        }
+      }
+      
+      throw new Error("All fallback endpoints failed");
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const handleInstructorFetchError = (error, loadingToastId) => {
+    console.error("Final instructor fetch error:", error);
+    
+    // Update UI to show error
+    toast.update(loadingToastId, {
+      render: "Failed to load instructors. Please try again later.",
+      type: "error",
+      isLoading: false,
+      autoClose: 3000,
+    });
+    
+    // Set empty states to prevent undefined errors
+    setInstructors({});
+    setInstructorNames({});
+  };
+
+  // Add new useEffect hook to load instructors when component mounts
+  useEffect(() => {
+    fetchInstructors();
+  }, []);
 
   // Special debugging function to log API URLs
   const logApiEndpoints = () => {
