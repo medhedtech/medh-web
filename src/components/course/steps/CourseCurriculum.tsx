@@ -1178,6 +1178,7 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           },
+          withCredentials: true, // Add this line
           onUploadProgress: (progressEvent) => {
             const progress = Math.round(
               (progressEvent.loaded * 100) / (progressEvent.total || 0)
