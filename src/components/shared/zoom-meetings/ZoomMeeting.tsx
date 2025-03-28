@@ -1,3 +1,4 @@
+'use client'
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
@@ -38,6 +39,7 @@ const departmentColors = {
 export const ZoomMeeting = ({ meeting }: ZoomMeetingProps) => {
   const [meetingStatus, setMeetingStatus] = useState<ZoomMeetingStatus>("not_started");
   const [isJoining, setIsJoining] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const { zoomClient, isInitialized } = useZoomClient();
 
   const {
@@ -54,17 +56,23 @@ export const ZoomMeeting = ({ meeting }: ZoomMeetingProps) => {
     joinUrl
   } = meeting;
 
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   // Get background color based on department
   const depColor = Object.entries(departmentColors).find(
     ([_, dept]) => dept === department
   )?.[0] || "bg-secondaryColor";
 
   useEffect(() => {
+    if (!isMounted) return;
+
     const checkMeetingStatus = async () => {
-      if (!zoomMeetingId || !isInitialized) return;
+      if (!zoomMeetingId || !isInitialized || !zoomClient) return;
       
       try {
-        const status = await zoomClient?.getMeetingStatus(zoomMeetingId);
+        const status = await zoomClient.getMeetingStatus(zoomMeetingId);
         setMeetingStatus(status || "not_started");
       } catch (error) {
         console.error("Failed to fetch meeting status:", error);
@@ -76,17 +84,17 @@ export const ZoomMeeting = ({ meeting }: ZoomMeetingProps) => {
     // Poll for status updates every minute
     const interval = setInterval(checkMeetingStatus, 60000);
     return () => clearInterval(interval);
-  }, [zoomMeetingId, isInitialized, zoomClient]);
+  }, [zoomMeetingId, isInitialized, isMounted, zoomClient]);
 
   const handleJoinMeeting = async () => {
-    if (!joinUrl) {
-      toast.error("Join URL not available");
+    if (!joinUrl || !zoomMeetingId || !isInitialized || !zoomClient) {
+      toast.error("Meeting information not available or Zoom not initialized");
       return;
     }
 
     setIsJoining(true);
     try {
-      await zoomClient?.joinMeeting({
+      await zoomClient.joinMeeting({
         meetingNumber: zoomMeetingId,
         joinUrl: joinUrl,
       });
@@ -110,8 +118,7 @@ export const ZoomMeeting = ({ meeting }: ZoomMeetingProps) => {
               width={400}
               height={225}
               className="w-full transition-all duration-300 group-hover:scale-110"
-              placeholder="blur"
-              blurDataURL={image}
+              placeholder="empty"
             />
           </Link>
           <div className="absolute left-0 top-1 flex justify-between w-full items-center px-2">

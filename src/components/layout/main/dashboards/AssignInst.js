@@ -287,7 +287,7 @@ const AssignInstructor = () => {
             ...course,
             course_title: course.course_title || 'Untitled Course',
             course_duration: course.course_duration || 'Not specified',
-            status: course.status || 'draft',
+            status: course.status || 'Upcoming',
             created_at: course.created_at || course.createdAt || new Date().toISOString(),
             _id: course._id || course.id
           }));

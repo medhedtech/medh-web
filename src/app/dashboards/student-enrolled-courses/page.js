@@ -3,7 +3,7 @@ import DashboardContainer from "@/components/shared/containers/DashboardContaine
 
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 import ProtectedPage from "@/app/protectedRoutes";
-
+import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 export const metadata = {
   title: "Student Enrolled Courses | Medh - Education LMS Template",
   description: "Student Enrolled Courses | Medh - Education LMS Template",
@@ -11,17 +11,18 @@ export const metadata = {
 
 const Student_Enrolled_Courses = () => {
   return (
+    <PageWrapper>
     <ProtectedPage>
       <main>
         <DashboardContainer>
-          <div>
-            <HeadingDashboard />
-          </div>
+          <div className="py-12">
           <StudentEnrolledCoursesMain />
+          </div>
         </DashboardContainer>
         
       </main>
     </ProtectedPage>
+    </PageWrapper>
   );
 };
 

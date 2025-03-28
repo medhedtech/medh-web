@@ -34,10 +34,26 @@ const apiInstance = () => {
   api.interceptors.request.use(
     (config) => {
       try {
-        const accessToken = localStorage.getItem('token');
-        if (accessToken) {
-          config.headers['x-access-token'] = accessToken;
+        // Try to get token from localStorage first, then sessionStorage
+        let accessToken = localStorage.getItem('token');
+        
+        // If no token in localStorage, check sessionStorage
+        if (!accessToken) {
+          accessToken = sessionStorage.getItem('token');
         }
+        
+        if (accessToken) {
+          // Add both header formats to support different backend expectations
+          config.headers['Authorization'] = `Bearer ${accessToken}`;
+          config.headers['x-access-token'] = accessToken;
+          
+          if (isDevelopment) {
+            logger.log('Auth token found and applied to request');
+          }
+        } else if (isDevelopment) {
+          logger.log('No auth token found in storage - request may fail if authentication is required');
+        }
+        
         // Log request details only in development
         if (isDevelopment) {
           logger.log('REQUEST', config);
@@ -74,11 +90,22 @@ const apiInstance = () => {
         if (isDevelopment) {
           logger.log('RESPONSE_ERROR', detail);
         }
-        // Example: Handle token invalidation or specific server error codes
-        // if (detail === 'Invalid Token') {
-        //   clearStorage();
-        //   // Optionally redirect to login page, etc.
-        // }
+        
+        // Handle authentication errors
+        if (error.response.status === 401) {
+          // Optionally redirect to login page or handle token refresh
+          // For now, just log the error
+          if (isDevelopment) {
+            logger.log('Authentication error - you may need to log in again');
+          }
+          
+          // Example: Dispatch an event that can be caught by auth components
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('auth:error', { 
+              detail: { status: 401, message: 'Authentication required' }
+            }));
+          }
+        }
       } else {
         // If no response, e.g. network error
         if (isDevelopment) {
