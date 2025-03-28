@@ -561,7 +561,8 @@ export default function UpdateCourse() {
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = async () => {
-          const base64 = reader.result.split(",")[1];
+          // Use the complete data URL instead of splitting it
+          const base64 = reader.result;
           const postData = { base64String: base64, fileType: "image" };
           await postQuery({
             url: apiUrls?.upload?.uploadImage,

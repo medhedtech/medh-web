@@ -97,7 +97,7 @@ export interface ILiveClass {
   scheduledDate: Date;
   duration: number;
   meetingLink?: string;
-  instructor?: string;
+  instructor?: string | null;
   recordingUrl?: string;
   isRecorded: boolean;
   materials: IMaterial[];
@@ -188,4 +188,59 @@ export interface ICourseFormData {
     enrollments: number;
     lastUpdated: string;
   };
+}
+
+export interface ICourseResource {
+  title: string;
+  type: string;
+  url: string;
+}
+
+export interface ICourseLesson {
+  title: string;
+  type: 'video' | 'document';
+  duration?: string;
+  video_url?: string;
+  content_url?: string;
+  resources?: ICourseResource[];
+}
+
+export interface ICourseSection {
+  title: string;
+  order: number;
+  lessons?: ICourseLesson[];
+}
+
+export interface ICourseMetadata {
+  last_updated: string;
+  version: string;
+  [key: string]: any;
+}
+
+export interface IUpdateCourseData {
+  course_title: string;
+  course_subtitle?: string;
+  course_description?: string;
+  course_category: string;
+  course_subcategory?: string;
+  class_type: string;
+  course_grade: string;
+  language: string;
+  subtitle_languages?: string[];
+  course_image?: string;
+  assigned_instructor: string | null;
+  course_duration?: number;
+  course_fee?: number;
+  is_certification?: boolean;
+  is_assignments?: boolean;
+  is_projects?: boolean;
+  is_quizzes?: boolean;
+  min_hours_per_week?: number;
+  max_hours_per_week?: number;
+  no_of_sessions?: number;
+  features?: string[];
+  tools_technologies?: string[];
+  status?: 'Draft' | 'Published' | 'Archived';
+  sections?: ICourseSection[];
+  metadata?: ICourseMetadata;
 } 

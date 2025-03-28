@@ -13,6 +13,7 @@ import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { formatDuration, formatDate, formatDistanceToNow } from "@/utils/format";
 import useCourseLesson from "@/hooks/useCourseLesson.hook";
 import Image from "next/image";
+import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 
 // Import icons from lucide-react
 import {
@@ -1439,6 +1440,7 @@ const IntegratedLesson: React.FC<IntegratedLessonProps> = ({ params }) => {
 
   // Only show CourseIntroduction component
     return (
+      <PageWrapper> 
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {loading ? (
         <LoadingState />
@@ -1471,6 +1473,7 @@ const IntegratedLesson: React.FC<IntegratedLessonProps> = ({ params }) => {
         </div>
       )}
     </div>
+    </PageWrapper>
     );
 };
 

@@ -110,8 +110,7 @@ const Home1 = () => {
         </section>
 
         {/* Why Medh Section - Optimized for 1366x768 */}
-        <section className="w-full bg-gradient-to-r from-gray-50/80 via-white to-gray-50/80 
-          dark:from-gray-900/80 dark:via-gray-950 dark:to-gray-900/80 backdrop-blur-sm py-8 md:py-2 laptop:py-4 relative overflow-hidden">
+        <section className="w-full bg-gradient-to-r from-gray-50/80 via-white to-gray-50/80 dark:from-gray-900/80 dark:via-gray-950 dark:to-gray-900/80 backdrop-blur-sm py-8 md:py-2 laptop:py-4 relative overflow-hidden">
           {/* <div className="max-w-[1366px] mx-auto px-3 sm:px-4 md:px-5 lg:px-6 relative z-10"> */}
             <WhyMedh />
           {/* </div> */}
@@ -126,8 +125,7 @@ const Home1 = () => {
         </section> */}
 
         {/* Join Medh Section - Optimized for 1366x768 */}
-        <section className="w-full bg-gradient-to-r from-primary-50/90 via-white to-primary-50/90 
-          dark:from-gray-900/90 dark:via-gray-950 dark:to-gray-900/90 backdrop-blur-sm py-8 md:py-5 laptop:py-6 relative overflow-hidden">
+        <section className="w-full bg-gradient-to-r from-primary-50/90 via-white to-primary-50/90 dark:from-gray-900/90 dark:via-gray-950 dark:to-gray-900/90 backdrop-blur-sm py-8 md:py-5 laptop:py-6 relative overflow-hidden">
           <div className="max-w-[1366px] mx-auto px-3 sm:px-4 md:px-5 lg:px-6 relative z-10">
             <JoinMedh />
           </div>
@@ -136,8 +134,7 @@ const Home1 = () => {
 
 
         {/* Hire Section - Optimized for 1366x768 */}
-        <section className="w-full bg-gradient-to-r from-gray-50/90 via-white to-gray-50/90 
-          dark:from-gray-900/90 dark:via-gray-950 dark:to-gray-900/90 backdrop-blur-sm py-8 md:py-5 laptop:py-6 relative overflow-hidden">
+        <section className="w-full bg-gradient-to-r from-gray-50/90 via-white to-gray-50/90 dark:from-gray-900/90 dark:via-gray-950 dark:to-gray-900/90 backdrop-blur-sm py-8 md:py-5 laptop:py-6 relative overflow-hidden">
           <div className="max-w-[1366px] mx-auto px-3 sm:px-4 md:px-5 lg:px-6 relative z-10">
             <Hire />
           </div>

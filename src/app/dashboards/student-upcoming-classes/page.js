@@ -1,5 +1,5 @@
 import ProtectedPage from "@/app/protectedRoutes";
-import StudentUpcomigClasses from "@/components/layout/main/dashboards/Student-Upcoming-Classes";
+import StudentUpcomigClasses from "@/components/layout/main/dashboards/StudentUpcomingClasses";
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 

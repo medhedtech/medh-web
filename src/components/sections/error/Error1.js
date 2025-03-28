@@ -215,8 +215,9 @@ const Error1 = () => {
 
   // Create glow particles
   const createGlowParticles = (x, y) => {
+    const timestamp = Date.now();
     const particles = Array.from({ length: 15 }, (_, i) => ({
-      id: Date.now() + i,
+      id: `${timestamp}_${Math.random()}_${i}`,
       x,
       y,
       angle: (Math.PI * 2 * i) / 15,

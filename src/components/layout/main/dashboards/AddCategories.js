@@ -47,7 +47,7 @@ const AddCategories = ({ selectedCategory }) => {
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = async () => {
-          const base64 = reader.result.split(",")[1];
+          const base64 = reader.result;
           const postData = { base64String: base64, fileType: "image" };
 
           await postQuery({
