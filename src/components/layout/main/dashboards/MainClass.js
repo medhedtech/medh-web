@@ -1,7 +1,6 @@
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 import React from "react";
 import MyMainClass from "./MyMainClass";
-import RecordedClass from "./RecordedClass";
 import UpComingClass from "./UpComingClass";
 import LiveDemoClass from "./LiveDemoClass";
 
@@ -11,10 +10,9 @@ const MainClass = () => {
       <div className="px-10">
         <HeadingDashboard />
       </div>
-      {/* <MyMainClass /> */}
+      <MyMainClass /> 
       <LiveDemoClass />
       <UpComingClass />
-      {/* <RecordedClass /> */}
     </div>
   );
 };
