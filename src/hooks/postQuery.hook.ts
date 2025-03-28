@@ -2,17 +2,28 @@ import { useState } from 'react';
 import apiClient from '../apis/apiClient';
 import apiWithAuth from '../utils/apiWithAuth';
 import { getAuthToken } from '../utils/auth';
+import { AxiosResponse } from 'axios';
 
 const headers = {
   'Content-Type': 'application/json',
 };
 
-const usePostQuery = () => {
-  const [loading, setLoading] = useState(false);
-  const [data, setData] = useState();
-  const [error, setError] = useState();
+interface PostQueryParams {
+  url: string;
+  onSuccess?: (data: any) => void;
+  onFail?: (error: any) => void;
+  postData: any;
+  headers?: Record<string, string>;
+  requireAuth?: boolean;
+  debug?: boolean;
+}
 
-  const postQuery = async (params) => {
+const usePostQuery = () => {
+  const [loading, setLoading] = useState<boolean>(false);
+  const [data, setData] = useState<any>();
+  const [error, setError] = useState<any>();
+
+  const postQuery = async (params: PostQueryParams) => {
     const {
       url,
       onSuccess = () => {
@@ -39,8 +50,6 @@ const usePostQuery = () => {
     }
     
     try {
-      const api = requireAuth ? apiWithAuth : apiClient;
-      
       // Custom headers merged with auth headers
       const mergedHeaders = {
         ...headers,
@@ -51,19 +60,25 @@ const usePostQuery = () => {
         console.log('Request Headers:', mergedHeaders);
       }
       
-      const { data: apiData = {} } = requireAuth
-        ? await api.post(url, postData, { 
-            headers: mergedHeaders 
-          })
-        : await apiClient.post(url, postData, {
-            headers: mergedHeaders,
-          });
+      let apiData: any = {};
+      
+      if (requireAuth) {
+        const response: AxiosResponse = await apiWithAuth.post(url, postData, { 
+          headers: mergedHeaders 
+        });
+        apiData = response.data || {};
+      } else {
+        const response: AxiosResponse = await apiClient.post(url, postData, {
+          headers: mergedHeaders,
+        });
+        apiData = response.data || {};
+      }
       
       setData(apiData);
       await onSuccess(apiData);
       console.log(apiData, 'postQuery-success');
       return apiData;
-    } catch (err) {
+    } catch (err: any) {
       if (debug) {
         console.error('Request failed with error:', err);
         console.error('Error response:', err.response?.data);
@@ -73,7 +88,7 @@ const usePostQuery = () => {
       onFail(err);
       console.log(err, 'postQuery-fail');
       setError(err);
-      setData();
+      setData(undefined);
     } finally {
       setLoading(false);
     }

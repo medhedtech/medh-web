@@ -41,3 +41,6 @@ next-env.d.ts
 .cursor/rules/medh.mdc
 src/apis/index.js
 src/apis/index.js
+
+# postman collection
+/postman/
