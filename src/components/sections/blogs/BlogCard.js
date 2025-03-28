@@ -3,6 +3,7 @@ import Image from "next/image";
 import React, { useState, useRef, useEffect } from "react";
 import { ArrowRight, Calendar, Clock, User, ExternalLink, BookOpen, Tag, EyeIcon, Heart, ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from 'next/navigation';
 
 const BlogCard = ({ 
   blog = {},
@@ -17,6 +18,7 @@ const BlogCard = ({
   tags = [],
   excerpt
 }) => {
+  const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
@@ -27,7 +29,7 @@ const BlogCard = ({
   const blogId = blog._id || id;
   const blogTitle = blog.title || title;
   const blogImage = blog.featured_image || imageSrc || "/images/blog/blog_1.png";
-  const blogAuthor = blog.author || author;
+  const blogAuthor = typeof blog.author === 'object' ? blog.author.name : (blog.author || author);
   const blogDate = blog.createdAt ? new Date(blog.createdAt).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
@@ -39,16 +41,18 @@ const BlogCard = ({
   const blogExcerpt = blog.excerpt || excerpt || "Discover valuable insights in this article...";
   
   useEffect(() => {
-    const checkMobile = () => {
+    const checkIfMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
     
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
+    // Initial check
+    checkIfMobile();
     
-    return () => {
-      window.removeEventListener('resize', checkMobile);
-    };
+    // Add event listener for window resize
+    window.addEventListener('resize', checkIfMobile);
+    
+    // Cleanup
+    return () => window.removeEventListener('resize', checkIfMobile);
   }, []);
   
   const handleMouseEnter = () => {
@@ -66,12 +70,32 @@ const BlogCard = ({
   const handleImageLoad = () => setIsImageLoaded(true);
   const handleImageError = () => setIsImageError(true);
   
-  const handleCardClick = (e) => {
-    // Only trigger this on mobile and not when clicking the button
-    if (isMobile && !e.target.closest('button') && !e.target.closest('a')) {
-      router.push(`/blogs/${blogId}`);
+  const handleCardClick = (e, blogId) => {
+    try {
+      // Only trigger this on mobile and not when clicking the button, link, or other interactive elements
+      if (isMobile && 
+          !e.target.closest('button') && 
+          !e.target.closest('a') && 
+          !e.target.closest('input') &&
+          !e.target.closest('[role="button"]')) {
+        e.preventDefault();
+        router.push(`/blogs/${blogId}`);
+      }
+    } catch (error) {
+      console.error('Error navigating to blog:', error);
+      // Fallback to regular link navigation
+      window.location.href = `/blogs/${blogId}`;
     }
   };
+  
+  // Add error boundary for the entire component
+  if (!blog) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
+        <p className="text-gray-500 dark:text-gray-400">Blog post not available</p>
+      </div>
+    );
+  }
   
   return (
     <div 
@@ -79,7 +103,7 @@ const BlogCard = ({
       className={`bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 h-full flex flex-col group relative ${isMobile ? 'active:scale-[0.98]' : ''}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      onClick={isMobile ? handleCardClick : undefined}
+      onClick={(e) => handleCardClick(e, blogId)}
     >
       {/* Image container with overlay effect */}
       <div className="relative overflow-hidden aspect-[16/9]">

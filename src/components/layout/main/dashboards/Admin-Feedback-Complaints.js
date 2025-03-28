@@ -7,7 +7,7 @@ import Preloader from "@/components/shared/others/Preloader";
 import { toast } from "react-toastify";
 import useDeleteQuery from "@/hooks/deleteQuery.hook";
 import usePostQuery from "@/hooks/postQuery.hook";
-import { FaTimes, FaSearch, FaCalendarAlt } from "react-icons/fa";
+import { FaTimes, FaSearch, FaCalendarAlt, FaEdit, FaTrash } from "react-icons/fa";
 import { Loader } from "lucide-react";
 import DatePicker from "react-datepicker";
 
@@ -38,6 +38,12 @@ export default function AdminFeedbackComplaints() {
 
   // Fetch data from API
   const fetchData = async (url, setState) => {
+    if (!url) {
+      console.error("URL is undefined");
+      toast.error("Invalid API endpoint");
+      return;
+    }
+
     try {
       await getQuery({
         url,
@@ -59,10 +65,11 @@ export default function AdminFeedbackComplaints() {
             toast.error("Invalid data format received");
           }
         },
-        onFail: () => {
+        onError: (error) => {
+          console.error("Error fetching data:", error);
           setState([]);
-          toast.error("Failed to fetch data");
-        },
+          toast.error(error?.message || "Failed to fetch data");
+        }
       });
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -72,13 +79,37 @@ export default function AdminFeedbackComplaints() {
   };
 
   useEffect(() => {
-    fetchData(apiUrls.feedbacks.getAllFeedbacks, setFeedbacks);
-    fetchData(apiUrls.feedbacks.getAllComplaints, setComplaints);
-    fetchData(apiUrls.feedbacks.getAllInstructorFeedbacks, setInstructorFeedbacks);
+    // Check if API endpoints are defined
+    if (!apiUrls?.feedbacks?.getAllFeedbacks) {
+      console.error("Feedback API endpoints are not defined");
+      toast.error("API configuration error");
+      return;
+    }
+
+    // Fetch initial data
+    const fetchInitialData = async () => {
+      try {
+        await Promise.all([
+          fetchData(apiUrls.feedbacks.getAllFeedbacks, setFeedbacks),
+          fetchData(apiUrls.feedbacks.getAllComplaints, setComplaints),
+          fetchData(apiUrls.feedbacks.getAllInstructorFeedbacks, setInstructorFeedbacks)
+        ]);
+      } catch (error) {
+        console.error("Error fetching initial data:", error);
+        toast.error("Failed to load some data");
+      }
+    };
+
+    fetchInitialData();
   }, []);
 
   // Handle delete action
   const handleDelete = async (url, id, fetchUrl, setState) => {
+    if (!url || !id) {
+      toast.error("Invalid delete request");
+      return;
+    }
+
     if (!window.confirm("Are you sure you want to delete this item?")) return;
 
     try {
@@ -88,10 +119,10 @@ export default function AdminFeedbackComplaints() {
           toast.success(res?.message || "Deleted successfully");
           fetchData(fetchUrl, setState);
         },
-        onFail: (error) => {
-          toast.error("Failed to delete");
+        onError: (error) => {
+          toast.error(error?.message || "Failed to delete");
           console.error("Delete failed:", error);
-        },
+        }
       });
     } catch (error) {
       toast.error("Something went wrong!");
@@ -107,6 +138,11 @@ export default function AdminFeedbackComplaints() {
 
   // Handle form submission for status update
   const handleUpdateStatus = async () => {
+    if (!editComplaint?._id) {
+      toast.error("Invalid complaint selected");
+      return;
+    }
+
     if (!newStatus) {
       toast.error("Please select a valid status");
       return;
@@ -114,16 +150,16 @@ export default function AdminFeedbackComplaints() {
 
     try {
       await postQuery({
-        url: `${apiUrls.feedbacks.updateComplaintStatus}/${editComplaint}`,
-        postData: { status: newStatus },
+        url: apiUrls.feedbacks.updateFeedback(editComplaint._id),
+        data: { status: newStatus },
         onSuccess: () => {
           toast.success("Complaint status updated successfully");
           fetchData(apiUrls.feedbacks.getAllComplaints, setComplaints);
           setEditComplaint(null);
         },
-        onFail: () => {
-          toast.error("Failed to update complaint status");
-        },
+        onError: (error) => {
+          toast.error(error?.message || "Failed to update complaint status");
+        }
       });
     } catch (error) {
       console.error("Error updating status:", error);
@@ -201,8 +237,8 @@ export default function AdminFeedbackComplaints() {
       Header: "Type",
       accessor: "feedback_for",
       Cell: ({ value }) => value ? (
-        <div className="text-emerald-600 dark:text-emerald-400 font-medium">
-          {value}
+        <div className="text-emerald-600 dark:text-emerald-400 font-medium capitalize">
+          {value.toLowerCase()}
         </div>
       ) : null,
       show: type !== "complaints"
@@ -210,7 +246,7 @@ export default function AdminFeedbackComplaints() {
     {
       Header: "Status",
       accessor: "status",
-      Cell: ({ value }) => {
+      Cell: ({ value, row }) => {
         if (!value || type !== "complaints") return null;
 
         const statusFormatted = value.charAt(0).toUpperCase() + value.slice(1);
@@ -221,16 +257,25 @@ export default function AdminFeedbackComplaints() {
             case "in-progress":
               return "bg-yellow-500 text-white";
             case "open":
-              return "bg-gray-500 text-white";
+              return "bg-blue-500 text-white";
             default:
               return "bg-gray-300 text-black";
           }
         };
 
         return (
-          <span className={`px-2 py-1 rounded-md font-semibold ${getStatusStyles(value)}`}>
-            {statusFormatted}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className={`px-2 py-1 rounded-md font-semibold ${getStatusStyles(value)}`}>
+              {statusFormatted}
+            </span>
+            <button
+              onClick={() => handleEdit(row.original)}
+              className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+              title="Change Status"
+            >
+              <FaEdit size={16} />
+            </button>
+          </div>
         );
       },
       show: type === "complaints"
@@ -249,41 +294,34 @@ export default function AdminFeedbackComplaints() {
       accessor: "actions",
       Cell: ({ row }) => (
         <div className="flex items-center gap-2">
-          {type === "complaints" && (
-            <button
-              onClick={() => handleEdit(row.original._id)}
-              className="px-3 py-1.5 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/30 rounded-lg transition-colors font-medium"
-            >
-              Edit
-            </button>
-          )}
           <button
             onClick={() => handleDelete(
-              type === "complaints"
-                ? apiUrls.feedbacks.deleteComplaint
-                : type === "instructor_feedbacks"
-                ? apiUrls.feedbacks.deleteInstructorFeedback
-                : apiUrls.feedbacks.deleteFeedback,
+              type === "complaints" 
+                ? apiUrls.feedbacks.deleteFeedback(row.original._id)
+                : type === "instructor" 
+                  ? apiUrls.feedbacks.deleteFeedback(row.original._id)
+                  : apiUrls.feedbacks.deleteFeedback(row.original._id),
               row.original._id,
-              type === "complaints"
+              type === "complaints" 
                 ? apiUrls.feedbacks.getAllComplaints
-                : type === "instructor_feedbacks"
-                ? apiUrls.feedbacks.getAllInstructorFeedbacks
-                : apiUrls.feedbacks.getAllFeedbacks,
-              type === "complaints"
+                : type === "instructor"
+                  ? apiUrls.feedbacks.getAllInstructorFeedbacks
+                  : apiUrls.feedbacks.getAllFeedbacks,
+              type === "complaints" 
                 ? setComplaints
-                : type === "instructor_feedbacks"
-                ? setInstructorFeedbacks
-                : setFeedbacks
+                : type === "instructor"
+                  ? setInstructorFeedbacks
+                  : setFeedbacks
             )}
-            className="px-3 py-1.5 text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-900/30 rounded-lg transition-colors font-medium"
+            className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+            title="Delete"
           >
-            Delete
+            <FaTrash size={16} />
           </button>
         </div>
       )
     }
-  ];
+  ].filter(column => column.show !== false);
 
   return (
     <div className="bg-gray-50 dark:bg-gray-900 min-h-screen p-6 space-y-8">

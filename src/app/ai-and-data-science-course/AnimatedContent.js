@@ -12,6 +12,7 @@ function AnimatedContent({ components, exploreJourneyProps, bannerProps }) {
       exploreJourneyProps={exploreJourneyProps}
       bannerProps={bannerProps}
       courseType="ai-data-science"
+      disableScrollToTop={true}
     />
   );
 }

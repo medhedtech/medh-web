@@ -190,8 +190,7 @@ const BrandHero = () => {
                   Begin Your Adventure
                   <Rocket className="w-5 h-5 transform group-hover:translate-x-1 transition-transform" />
                 </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 
-                  transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000">
+                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000">
                 </div>
               </Link>
             </div>
