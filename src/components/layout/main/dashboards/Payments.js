@@ -10,11 +10,29 @@ import { apiUrls } from "@/apis";
 import Preloader from "@/components/shared/others/Preloader";
 import usePostQuery from "@/hooks/postQuery.hook";
 import { FiDownload, FiMail, FiEye, FiCalendar } from "react-icons/fi";
-import { FaReceipt, FaChartLine, FaFilter } from "react-icons/fa";
+import { FaReceipt, FaChartLine, FaFilter, FaSort } from "react-icons/fa";
 import { MdOutlineReceiptLong } from "react-icons/md";
 import { IoMdClose } from "react-icons/io";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { motion } from "framer-motion";
+import { 
+  BookOpen, 
+  CheckCircle, 
+  Clock, 
+  ChevronLeft, 
+  ChevronRight, 
+  XCircle,
+  Calendar,
+  DollarSign,
+  Users,
+  Activity,
+  Tag
+} from "lucide-react";
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import { useTheme } from 'next-themes';
+import { toast } from 'react-hot-toast';
 
 // Auth helper function to get token - using x-access-token format
 const getAuthToken = () => {
@@ -122,6 +140,23 @@ const PaymentTable = () => {
   
   const { getQuery } = useGetQuery();
   const { postQuery } = usePostQuery();
+
+  // Add currency conversion rates (you may want to fetch these from an API in production)
+  const currencyRates = {
+    USD: 1,
+    INR: 0.012 // Example rate: 1 INR = 0.012 USD
+  };
+
+  // Helper function to format currency
+  const formatCurrency = (amount, currency = 'USD') => {
+    const formatter = new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+    return formatter.format(amount);
+  };
 
   // Fetch user ID and authentication token on component mount
   useEffect(() => {
@@ -303,12 +338,22 @@ const PaymentTable = () => {
     const enrollments = data.enrollments || [];
     const subscriptions = data.subscriptions || [];
     
-    // Calculate total spent
-    const totalEnrollmentSpent = enrollments.reduce((total, enrollment) => 
-      total + (enrollment.course_id?.course_fee || 0), 0);
+    // Calculate total spent with currency conversion
+    const totalEnrollmentSpent = enrollments.reduce((total, enrollment) => {
+      const amount = enrollment.course_id?.course_fee || 0;
+      const currency = enrollment.payment_details?.currency || 'USD';
+      // Convert to USD if different currency
+      const amountInUSD = amount * (currencyRates[currency] || 1);
+      return total + amountInUSD;
+    }, 0);
     
-    const totalSubscriptionSpent = subscriptions.reduce((total, subscription) => 
-      total + (subscription.amount || 0), 0);
+    const totalSubscriptionSpent = subscriptions.reduce((total, subscription) => {
+      const amount = subscription.amount || 0;
+      const currency = subscription.currency || 'USD';
+      // Convert to USD if different currency
+      const amountInUSD = amount * (currencyRates[currency] || 1);
+      return total + amountInUSD;
+    }, 0);
     
     const totalSpent = totalEnrollmentSpent + totalSubscriptionSpent;
     
@@ -316,7 +361,7 @@ const PaymentTable = () => {
     const allDates = [
       ...enrollments.map(e => e.enrollment_date || e.createdAt),
       ...subscriptions.map(s => s.start_date || s.createdAt)
-    ].filter(date => date); // Remove undefined dates
+    ].filter(date => date);
     
     const lastPaymentDate = allDates.length > 0 
       ? new Date(Math.max(...allDates.map(date => new Date(date).getTime()))).toISOString() 
@@ -452,64 +497,149 @@ const PaymentTable = () => {
     setShowAdvancedFilters(false);
   };
 
-  // Generate receipt for a payment
-  const handleGenerateReceipt = (payment) => {
-    setLoading(true);
-    
-    // Get fresh token for x-access-token header
-    const token = getAuthToken();
-    
-    if (!token) {
-      console.error("Token not found when trying to generate receipt");
-      setAuthError(true);
-      setLoading(false);
-      return;
+  // Update the generatePDFReceipt function
+  const generatePDFReceipt = async (payment) => {
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      
+      // Add header with company info
+      doc.setFontSize(20);
+      doc.setTextColor(44, 62, 80);
+      doc.text('MEDH', 15, 20);
+      
+      // Add receipt title and info
+      doc.setFontSize(24);
+      doc.setTextColor(44, 62, 80);
+      doc.text('RECEIPT', pageWidth - 70, 30);
+      
+      // Add receipt number and date
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
+      doc.text(`Receipt #: ${payment.orderId?.substring(0, 8) || 'N/A'}`, pageWidth - 70, 40);
+      doc.text(`Date: ${new Date(payment.joinDate).toLocaleDateString()}`, pageWidth - 70, 45);
+      
+      // Add company info
+      doc.setFontSize(10);
+      doc.setTextColor(70, 70, 70);
+      doc.text('Medh Education Technologies', 15, 50);
+      doc.text('123 Education Street', 15, 55);
+      doc.text('Bangalore, Karnataka 560001', 15, 60);
+      doc.text('India', 15, 65);
+      doc.text('GST: 29AABCU9603R1ZJ', 15, 70);
+      
+      // Add line
+      doc.setDrawColor(220, 220, 220);
+      doc.line(15, 80, pageWidth - 15, 80);
+      
+      // Add student info
+      doc.setFontSize(12);
+      doc.setTextColor(44, 62, 80);
+      doc.text('Billed To:', 15, 95);
+      doc.setFontSize(10);
+      doc.setTextColor(70, 70, 70);
+      doc.text(payment.studentName || 'Student Name', 15, 105);
+      
+      // Add payment details table
+      const tableData = [
+        [
+          payment.course || 'Course Name',
+          `${payment.currency === 'INR' ? '₹' : '$'}${parseFloat(payment.price || 0).toFixed(2)}`
+        ]
+      ];
+      
+      doc.autoTable({
+        startY: 120,
+        head: [['Description', 'Amount']],
+        body: tableData,
+        theme: 'grid',
+        headStyles: {
+          fillColor: [66, 139, 202],
+          textColor: [255, 255, 255],
+          fontSize: 10
+        },
+        styles: {
+          fontSize: 9,
+          cellPadding: 5
+        },
+        columnStyles: {
+          0: { cellWidth: 130 },
+          1: { cellWidth: 30, halign: 'right' }
+        }
+      });
+      
+      // Get the final Y position after the table
+      const finalY = doc.lastAutoTable.finalY + 10;
+      
+      // Add total
+      doc.setFontSize(10);
+      doc.setTextColor(44, 62, 80);
+      doc.text('Subtotal:', pageWidth - 80, finalY);
+      doc.text(`${payment.currency === 'INR' ? '₹' : '$'}${parseFloat(payment.price || 0).toFixed(2)}`, pageWidth - 30, finalY, { align: 'right' });
+      doc.text('Tax:', pageWidth - 80, finalY + 7);
+      doc.text('0.00', pageWidth - 30, finalY + 7, { align: 'right' });
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'bold');
+      doc.text('Total:', pageWidth - 80, finalY + 15);
+      doc.text(`${payment.currency === 'INR' ? '₹' : '$'}${parseFloat(payment.price || 0).toFixed(2)}`, pageWidth - 30, finalY + 15, { align: 'right' });
+      
+      // Add payment info
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'normal');
+      doc.text(`Payment Method: ${payment.paymentMethod || 'N/A'}`, 15, finalY + 30);
+      doc.text(`Transaction ID: ${payment.transactionId || 'N/A'}`, 15, finalY + 37);
+      doc.text(`Status: ${payment.status || 'N/A'}`, 15, finalY + 44);
+      
+      // Add footer
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.text('This is a computer generated receipt and does not require a signature.', pageWidth/2, pageHeight - 20, { align: 'center' });
+      
+      return doc;
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      throw new Error('Failed to generate receipt');
     }
-    
-    // Add headers with x-access-token instead of Authorization
-    const headers = {
-      'x-access-token': token,
-      'Content-Type': 'application/json'
-    };
-    
-    postQuery({
-      url: apiUrls.payment.generateReceipt(payment.paymentType, payment.id),
-      headers,
-      onSuccess: (response) => {
-        if (response?.success) {
-          // Update the payment in the list with the new receipt URL
-          const updatedPayments = payments.map(p => 
-            p.id === payment.id 
-              ? { ...p, receiptUrl: response.data.receipt_url } 
-              : p
-          );
-          setPayments(updatedPayments);
-          filterAndSortData();
-          
-          // Show receipt in modal
-          setSelectedPayment({
-            ...payment,
-            receiptUrl: response.data.receipt_url
-          });
-          setShowReceiptModal(true);
-        } else {
-          console.error("Failed to generate receipt:", response?.message);
-        }
-        setLoading(false);
-      },
-      onFail: (error) => {
-        console.error("Error generating receipt:", error);
-        
-        // Check if error is authentication related
-        if (error?.response?.status === 401 || 
-            error?.message?.includes("Authentication failed") || 
-            error?.message?.includes("token")) {
-          setAuthError(true);
-        }
-        
-        setLoading(false);
-      }
-    });
+  };
+
+  // Update the handleGenerateReceipt function
+  const handleGenerateReceipt = async (payment) => {
+    try {
+      setLoading(true);
+      
+      // Generate PDF
+      const doc = await generatePDFReceipt(payment);
+      
+      // Save the PDF
+      const pdfBlob = doc.output('blob');
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      
+      // Update the payment with the receipt URL
+      const updatedPayments = payments.map(p => 
+        p.id === payment.id 
+          ? { ...p, receiptUrl: pdfUrl } 
+          : p
+      );
+      setPayments(updatedPayments);
+      
+      // Update filtered payments
+      filterAndSortData();
+      
+      // Show receipt in modal
+      setSelectedPayment({
+        ...payment,
+        receiptUrl: pdfUrl
+      });
+      setShowReceiptModal(true);
+      
+      toast.success('Receipt generated successfully!');
+    } catch (error) {
+      console.error('Error generating receipt:', error);
+      toast.error('Failed to generate receipt. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Resend receipt email
@@ -574,203 +704,300 @@ const PaymentTable = () => {
       Header: "Order ID", 
       accessor: "orderId", 
       width: 100,
+      icon: <FaReceipt className="w-4 h-4" />,
       render: (row) => (
-        <span className="font-medium text-sm">
-          {row.orderId.substring(0, 8)}...
-        </span>
+        <div className="font-medium space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-900 dark:text-white font-mono">
+              {row.orderId.substring(0, 8)}...
+            </span>
+          </div>
+          <span className="block text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+            <Calendar className="w-3.5 h-3.5" />
+            {new Date(row.joinDate).toLocaleDateString()}
+          </span>
+        </div>
       )
     },
     { 
       Header: "Course", 
       accessor: "course", 
       width: 180,
+      icon: <BookOpen className="w-4 h-4" />,
       render: (row) => (
-        <div className="max-w-[180px] truncate" title={row.course}>
-          <p className="font-medium">{row.course}</p>
-          {row.is_self_paced !== undefined && (
-            <span className={`text-xs px-2 py-0.5 rounded-full ${row.is_self_paced ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>
-              {row.is_self_paced ? 'Self-paced' : 'Scheduled'}
-            </span>
-          )}
-          {row.batch_size > 1 && (
-            <span className="text-xs ml-1 px-2 py-0.5 rounded-full bg-green-100 text-green-800">
-              Batch: {row.batch_size}
-            </span>
-          )}
+        <div className="max-w-[180px] space-y-1.5" title={row.course}>
+          <p className="font-medium text-gray-900 dark:text-white truncate">
+            {row.course}
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {row.is_self_paced !== undefined && (
+              <span className={`text-xs px-2 py-0.5 rounded-full flex items-center gap-1 ${
+                row.is_self_paced 
+                  ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400' 
+                  : 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
+              }`}>
+                {row.is_self_paced ? (
+                  <>
+                    <Clock className="w-3 h-3" />
+                    Self-paced
+                  </>
+                ) : (
+                  <>
+                    <Calendar className="w-3 h-3" />
+                    Scheduled
+                  </>
+                )}
+              </span>
+            )}
+            {row.batch_size > 1 && (
+              <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400 flex items-center gap-1">
+                <Users className="w-3 h-3" />
+                {row.batch_size}
+              </span>
+            )}
+          </div>
         </div>
-      )
-    },
-    { 
-      Header: "Date", 
-      accessor: "joinDate", 
-      width: 120,
-      render: (row) => (
-        <span className="text-sm">
-          {new Date(row.joinDate).toLocaleDateString()}
-        </span>
       )
     },
     {
       Header: "Price",
       accessor: "price",
-      width: 100,
+      width: 120,
+      icon: <DollarSign className="w-4 h-4" />,
       render: (row) => {
         const currency = row.currency || 'USD';
         const currencySymbol = currency === 'INR' ? '₹' : '$';
-        return `${currencySymbol}${parseFloat(row.price).toFixed(2)}`;
+        return (
+          <div className="font-medium space-y-1">
+            <span className="text-gray-900 dark:text-white flex items-center gap-1">
+              {currencySymbol}{parseFloat(row.price).toFixed(2)}
+            </span>
+            <span className="block text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+              <Activity className="w-3.5 h-3.5" />
+              {row.paymentMethod || 'Card'}
+            </span>
+          </div>
+        );
       }
     },
     {
       Header: "Type",
       accessor: "paymentType",
       width: 120,
+      icon: <Tag className="w-4 h-4" />,
       render: (row) => (
-        <div className="rounded-md px-3 py-1 bg-blue-50 text-blue-600 text-sm">
-          {row.paymentType === "subscription" ? "Subscription" : "Enrollment"}
+        <div className="flex items-center gap-2">
+          <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${
+            row.paymentType === "subscription"
+              ? "bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400"
+              : "bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400"
+          }`}>
+            {row.paymentType === "subscription" ? (
+              <>
+                <MdOutlineReceiptLong className="w-4 h-4" />
+                Subscription
+              </>
+            ) : (
+              <>
+                <BookOpen className="w-4 h-4" />
+                Enrollment
+              </>
+            )}
+          </span>
         </div>
       )
     },
     {
       Header: "Status",
       accessor: "status",
+      icon: <Activity className="w-4 h-4" />,
       render: (row) => {
         const statusLower = row.status.toLowerCase();
-        let statusClass = "";
+        let statusConfig = {
+          icon: null,
+          className: ""
+        };
         
         if (statusLower === "completed" || statusLower === "success" || statusLower === "active") {
-          statusClass = "bg-[#D9F2D9] text-[#3AA438]";
+          statusConfig = {
+            icon: <CheckCircle className="w-4 h-4" />,
+            className: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400"
+          };
         } else if (statusLower === "pending") {
-          statusClass = "bg-[#FFF0D9] text-[#FFA927]";
+          statusConfig = {
+            icon: <Clock className="w-4 h-4" />,
+            className: "bg-amber-100 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400"
+          };
         } else {
-          statusClass = "bg-[#FAD2D2] text-[#D9534F]";
+          statusConfig = {
+            icon: <XCircle className="w-4 h-4" />,
+            className: "bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400"
+          };
         }
         
         return (
-          <div className="flex justify-center items-center">
-            <div
-              className={`rounded-md font-normal px-3 py-1 text-sm ${statusClass}`}
-            >
+          <div className="flex justify-center">
+            <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${statusConfig.className}`}>
+              {statusConfig.icon}
               {row.status.charAt(0).toUpperCase() + row.status.slice(1).toLowerCase()}
-            </div>
+            </span>
           </div>
         );
       },
-      width: 100,
+      width: 120,
     },
     {
       Header: "Expiry",
       accessor: "expiryDate",
-      width: 100,
+      width: 120,
+      icon: <Calendar className="w-4 h-4" />,
       render: (row) => (
-        <span className="text-sm">
-          {row.expiryDate ? new Date(row.expiryDate).toLocaleDateString() : "N/A"}
-        </span>
+        <div className="text-sm">
+          {row.expiryDate ? (
+            <div className="flex items-center gap-1.5 text-gray-700 dark:text-gray-300">
+              <Calendar className="w-4 h-4" />
+              {new Date(row.expiryDate).toLocaleDateString()}
+            </div>
+          ) : (
+            <span className="text-gray-400 dark:text-gray-500 flex items-center gap-1.5">
+              <Clock className="w-4 h-4" />
+              N/A
+            </span>
+          )}
+        </div>
       )
     },
     {
       Header: "Action",
       accessor: "actions",
+      width: 180,
       render: (row) => (
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-2 items-center justify-end">
           {row.receiptUrl ? (
             <>
-              <a
+              <motion.a
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 href={row.receiptUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                download={`receipt-${row.orderId?.substring(0, 8) || 'download'}.pdf`}
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-primary hover:text-primary-dark"
                 title="Download Receipt"
               >
-                <FiDownload className="text-primary" />
-              </a>
-              <button
+                <FiDownload className="w-5 h-5" />
+              </motion.a>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => handleViewReceipt(row)}
-                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-blue-600 hover:text-blue-700"
                 title="View Receipt"
               >
-                <FiEye className="text-blue-600" />
-              </button>
-              <button
+                <FiEye className="w-5 h-5" />
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => handleResendReceipt(row)}
-                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-emerald-600 hover:text-emerald-700"
                 title="Email Receipt"
+                disabled={isResendingReceipt}
               >
-                <FiMail className="text-green-600" />
-              </button>
+                <FiMail className="w-5 h-5" />
+              </motion.button>
             </>
           ) : (
-            <>
-              <button
-                onClick={() => handleViewReceipt(row)}
-                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-                title="View Details"
-              >
-                <FiEye className="text-blue-600" />
-              </button>
-              <button
-                onClick={() => handleGenerateReceipt(row)}
-                className="px-3 py-1 bg-primary text-white rounded-md flex items-center gap-1 text-sm"
-                disabled={!['completed', 'success', 'active'].includes(row.status.toLowerCase())}
-              >
-                <MdOutlineReceiptLong />
-                Receipt
-              </button>
-            </>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => handleGenerateReceipt(row)}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg transition-colors ${
+                ['completed', 'success', 'active'].includes(row.status?.toLowerCase())
+                  ? 'bg-primary text-white hover:bg-primary/90'
+                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+              }`}
+              disabled={!['completed', 'success', 'active'].includes(row.status?.toLowerCase())}
+            >
+              <MdOutlineReceiptLong className="w-5 h-5" />
+              Generate
+            </motion.button>
           )}
         </div>
       ),
-      width: 180,
     },
   ];
 
   // Pagination UI
   const renderPagination = () => {
     return (
-      <div className="flex justify-between items-center mt-4 px-6 py-2">
-        <div>
-          <span className="text-sm text-gray-600">
-            Showing {Math.min((page - 1) * limit + 1, filteredPayments.length)} to {Math.min(page * limit, filteredPayments.length)} of {filteredPayments.length} entries
-          </span>
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 px-6 py-4 border-t border-gray-100 dark:border-gray-700/50">
+        <div className="text-sm text-gray-600 dark:text-gray-400">
+          Showing {Math.min((page - 1) * limit + 1, filteredPayments.length)} to {Math.min(page * limit, filteredPayments.length)} of {filteredPayments.length} entries
         </div>
-        <div className="flex space-x-2">
-          <button
-            onClick={() => setPage(prev => Math.max(1, prev - 1))}
-            disabled={page === 1}
-            className={`px-3 py-1 rounded ${page === 1 ? 'bg-gray-200 text-gray-500' : 'bg-primary text-white'}`}
-          >
-            Previous
-          </button>
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
-            <button
-              key={pageNum}
-              onClick={() => setPage(pageNum)}
-              className={`px-3 py-1 rounded ${pageNum === page ? 'bg-primary text-white' : 'bg-gray-200'}`}
+        
+        <div className="flex items-center gap-2">
+          <div className="flex items-center">
+            <select
+              value={limit}
+              onChange={(e) => {
+                setLimit(Number(e.target.value));
+                setPage(1);
+              }}
+              className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50"
             >
-              {pageNum}
-            </button>
-          ))}
-          <button
-            onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
-            disabled={page === totalPages}
-            className={`px-3 py-1 rounded ${page === totalPages ? 'bg-gray-200 text-gray-500' : 'bg-primary text-white'}`}
-          >
-            Next
-          </button>
-        </div>
-        <div>
-          <select
-            value={limit}
-            onChange={(e) => {
-              setLimit(Number(e.target.value));
-              setPage(1);
-            }}
-            className="border rounded px-2 py-1"
-          >
-            <option value={10}>10 per page</option>
-            <option value={25}>25 per page</option>
-            <option value={50}>50 per page</option>
-            <option value={100}>100 per page</option>
-          </select>
+              <option value={10}>10 per page</option>
+              <option value={25}>25 per page</option>
+              <option value={50}>50 per page</option>
+              <option value={100}>100 per page</option>
+            </select>
+          </div>
+
+          <nav className="flex items-center gap-1">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setPage(prev => Math.max(1, prev - 1))}
+              disabled={page === 1}
+              className={`p-2 rounded-lg transition-colors ${
+                page === 1
+                  ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+              aria-label="Previous page"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </motion.button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
+              <motion.button
+                key={pageNum}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setPage(pageNum)}
+                className={`min-w-[2.5rem] h-10 rounded-lg text-sm font-medium transition-colors ${
+                  pageNum === page
+                    ? 'bg-primary text-white'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                {pageNum}
+              </motion.button>
+            ))}
+
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={page === totalPages}
+              className={`p-2 rounded-lg transition-colors ${
+                page === totalPages
+                  ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+              aria-label="Next page"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </motion.button>
+          </nav>
         </div>
       </div>
     );
@@ -779,73 +1006,128 @@ const PaymentTable = () => {
   // Payment statistics UI
   const renderPaymentStatistics = () => {
     return (
-      <div className="bg-white rounded-lg p-4 mb-6 shadow-sm">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold text-gray-800">Payment Summary</h2>
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-lg rounded-2xl p-6 mb-8 shadow-lg border border-gray-100 dark:border-gray-700/50"
+      >
+        <div className="flex justify-between items-center mb-6">
+          <div className="space-y-1">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
+              Payment Summary
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Overview of your financial activity
+            </p>
+          </div>
           <button 
             onClick={() => setShowStatistics(!showStatistics)}
-            className="text-sm text-primary"
+            className="px-4 py-2 rounded-xl bg-gray-50 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200"
           >
             {showStatistics ? 'Hide' : 'Show'} Statistics
           </button>
         </div>
         
         {showStatistics && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-500">Total Spent</p>
-                  <p className="text-xl font-bold text-gray-800">${paymentStats.totalSpent.toFixed(2)}</p>
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.2 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+          >
+            <motion.div 
+              whileHover={{ scale: 1.02 }}
+              className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-900/20 dark:to-blue-800/10 p-6 border border-blue-100 dark:border-blue-800/30"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-400/10 dark:bg-blue-400/5 rounded-full blur-2xl transform translate-x-10 -translate-y-10"></div>
+              <div className="relative">
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-sm font-medium text-blue-600 dark:text-blue-400">Total Spent</p>
+                  <div className="p-2 rounded-xl bg-blue-100 dark:bg-blue-900/50">
+                    <FaChartLine className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  </div>
                 </div>
-                <div className="bg-blue-100 p-2 rounded-full">
-                  <FaChartLine className="text-blue-600" size={20} />
-                </div>
+                <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
+                  {formatCurrency(paymentStats.totalSpent)}
+                </h3>
+                <p className="text-sm text-blue-600/60 dark:text-blue-400/60">
+                  Lifetime spending
+                </p>
               </div>
-            </div>
-            
-            <div className="bg-green-50 p-4 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-500">Total Payments</p>
-                  <p className="text-xl font-bold text-gray-800">{paymentStats.totalPayments}</p>
+            </motion.div>
+
+            <motion.div 
+              whileHover={{ scale: 1.02 }}
+              className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-900/20 dark:to-emerald-800/10 p-6 border border-emerald-100 dark:border-emerald-800/30"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-400/10 dark:bg-emerald-400/5 rounded-full blur-2xl transform translate-x-10 -translate-y-10"></div>
+              <div className="relative">
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">Total Payments</p>
+                  <div className="p-2 rounded-xl bg-emerald-100 dark:bg-emerald-900/50">
+                    <FaReceipt className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                  </div>
                 </div>
-                <div className="bg-green-100 p-2 rounded-full">
-                  <FaReceipt className="text-green-600" size={20} />
-                </div>
+                <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
+                  {paymentStats.totalPayments}
+                </h3>
+                <p className="text-sm text-emerald-600/60 dark:text-emerald-400/60">
+                  Successful transactions
+                </p>
               </div>
-            </div>
-            
-            <div className="bg-purple-50 p-4 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-500">Last Payment</p>
-                  <p className="text-xl font-bold text-gray-800">
-                    {paymentStats.lastPaymentDate 
-                      ? new Date(paymentStats.lastPaymentDate).toLocaleDateString() 
-                      : 'N/A'}
-                  </p>
+            </motion.div>
+
+            <motion.div 
+              whileHover={{ scale: 1.02 }}
+              className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-900/20 dark:to-purple-800/10 p-6 border border-purple-100 dark:border-purple-800/30"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-purple-400/10 dark:bg-purple-400/5 rounded-full blur-2xl transform translate-x-10 -translate-y-10"></div>
+              <div className="relative">
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-sm font-medium text-purple-600 dark:text-purple-400">Last Payment</p>
+                  <div className="p-2 rounded-xl bg-purple-100 dark:bg-purple-900/50">
+                    <FiCalendar className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                  </div>
                 </div>
-                <div className="bg-purple-100 p-2 rounded-full">
-                  <FiCalendar className="text-purple-600" size={20} />
-                </div>
+                <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
+                  {paymentStats.lastPaymentDate 
+                    ? new Date(paymentStats.lastPaymentDate).toLocaleDateString(undefined, {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                      })
+                    : 'N/A'}
+                </h3>
+                <p className="text-sm text-purple-600/60 dark:text-purple-400/60">
+                  Most recent transaction
+                </p>
               </div>
-            </div>
-            
-            <div className="bg-yellow-50 p-4 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-500">Active Subscriptions</p>
-                  <p className="text-xl font-bold text-gray-800">{paymentStats.activeSubscriptions}</p>
+            </motion.div>
+
+            <motion.div 
+              whileHover={{ scale: 1.02 }}
+              className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-900/20 dark:to-amber-800/10 p-6 border border-amber-100 dark:border-amber-800/30"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-amber-400/10 dark:bg-amber-400/5 rounded-full blur-2xl transform translate-x-10 -translate-y-10"></div>
+              <div className="relative">
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-sm font-medium text-amber-600 dark:text-amber-400">Active Subscriptions</p>
+                  <div className="p-2 rounded-xl bg-amber-100 dark:bg-amber-900/50">
+                    <MdOutlineReceiptLong className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                  </div>
                 </div>
-                <div className="bg-yellow-100 p-2 rounded-full">
-                  <MdOutlineReceiptLong className="text-yellow-600" size={20} />
-                </div>
+                <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
+                  {paymentStats.activeSubscriptions}
+                </h3>
+                <p className="text-sm text-amber-600/60 dark:text-amber-400/60">
+                  Current subscriptions
+                </p>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         )}
-      </div>
+      </motion.div>
     );
   };
 
@@ -871,28 +1153,37 @@ const PaymentTable = () => {
               </div>
               
               <div className="flex justify-between mt-4">
-                <a
+                <motion.a
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   href={selectedPayment.receiptUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-4 py-2 bg-primary text-white rounded-md flex items-center gap-2"
+                  download={`receipt-${selectedPayment.orderId?.substring(0, 8) || 'download'}.pdf`}
+                  className="px-4 py-2 bg-primary text-white rounded-lg flex items-center gap-2 hover:bg-primary/90 transition-colors"
                 >
-                  <FiDownload /> Download Receipt
-                </a>
+                  <FiDownload className="w-4 h-4" /> Download Receipt
+                </motion.a>
                 
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => handleResendReceipt(selectedPayment)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md flex items-center gap-2"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors"
                   disabled={isResendingReceipt}
                 >
-                  <FiMail /> {isResendingReceipt ? 'Sending...' : 'Email Receipt'}
-                </button>
+                  <FiMail className="w-4 h-4" /> 
+                  {isResendingReceipt ? 'Sending...' : 'Email Receipt'}
+                </motion.button>
               </div>
               
               {resendSuccess && (
-                <div className="mt-2 p-2 bg-green-50 text-green-600 rounded-md text-center">
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-2 p-3 bg-green-50 text-green-600 rounded-lg text-center flex items-center justify-center gap-2"
+                >
+                  <CheckCircle className="w-4 h-4" />
                   Receipt email sent successfully!
-                </div>
+                </motion.div>
               )}
             </div>
           ) : (
@@ -1094,6 +1385,24 @@ const PaymentTable = () => {
     );
   };
 
+  // Add new animation variants
+  const tableVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: { duration: 0.4 }
+    }
+  };
+
+  const filterVariants = {
+    hidden: { opacity: 0, y: -20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.3 }
+    }
+  };
+
   if (authError) {
     return (
       <div className="flex flex-col items-center justify-center py-12 px-4">
@@ -1122,173 +1431,235 @@ const PaymentTable = () => {
 
   return (
     <div className="flex items-start justify-center md:px-12 w-full font-Open">
-      <div className="w-full bg-white dark:bg-inherit rounded-lg shadow-sm">
-        <h1 className="text-size-32 px-6 py-4 dark:text-white">Payments</h1>
+      <div className="w-full bg-white/50 dark:bg-gray-800/50 backdrop-blur-lg rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700/50">
+        <div className="p-6 border-b border-gray-100 dark:border-gray-700/50">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
+            Payments
+          </h1>
+        </div>
         
-        {/* Payment Statistics Dashboard */}
+        {/* Payment Statistics */}
         {renderPaymentStatistics()}
         
         {/* Payment Tabs */}
-        <div className="flex border-b border-gray-200 mb-4 px-6">
-          <button
-            className={`py-2 px-4 font-medium text-sm ${
-              activeTab === "all" 
-                ? "border-b-2 border-primary text-primary" 
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-            onClick={() => handleTabChange("all")}
-          >
-            All Payments
-          </button>
-          <button
-            className={`py-2 px-4 font-medium text-sm ${
-              activeTab === "enrollments" 
-                ? "border-b-2 border-primary text-primary" 
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-            onClick={() => handleTabChange("enrollments")}
-          >
-            Enrollments
-          </button>
-          <button
-            className={`py-2 px-4 font-medium text-sm ${
-              activeTab === "subscriptions" 
-                ? "border-b-2 border-primary text-primary" 
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-            onClick={() => handleTabChange("subscriptions")}
-          >
-            Subscriptions
-          </button>
-        </div>
-        
-        {/* Advanced Filters */}
-        {renderAdvancedFilters()}
-        
-        {/* Filter Controls */}
-        <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4 space-y-4 md:space-y-0 px-6">
-          <div className="relative w-full md:w-1/3">
-            <span className="absolute inset-y-0 left-4 flex items-center text-[#666666]">
-              <SearchIcon fill="#666666" />
-            </span>
-            <input
-              type="text"
-              placeholder="Search by Course, Price or Order ID"
-              className="w-full pl-10 pr-4 py-2 border border-[#666666] dark:bg-inherit text-[#666666] rounded-[10px] focus:outline-none focus:ring-2"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-
-          <div className="flex space-x-2 justify-center md:justify-start">
-            <div className="relative">
-              <button
-                onClick={() => handleDropdownToggle("filter")}
-                className="px-6 py-2 border border-[#666666] text-[#666666] rounded-[10px] flex items-center space-x-1"
-              >
-                <BiFilterAlt />
-                <span className="pl-1">Filter</span>
-              </button>
-
-              {openDropdown === "filter" && (
-                <div className="absolute z-10 bg-white shadow-lg p-4 rounded-md w-48">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                    <select
-                      className="w-full p-2 border rounded-md"
-                      value={selectedStatus}
-                      onChange={(e) => handleFilterSelection(e.target.value)}
-                    >
-                      <option value="">All</option>
-                      <option value="success">Success</option>
-                      <option value="pending">Pending</option>
-                      <option value="failed">Failed</option>
-                    </select>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="relative">
-              <button
-                onClick={() => handleDropdownToggle("sort")}
-                className="px-6 py-2 border border-[#666666] text-[#666666] rounded-[10px] flex items-center space-x-1"
-              >
-                <span>Sort</span>
-              </button>
-
-              {openDropdown === "sort" && (
-                <div className="absolute z-10 bg-white shadow-lg p-4 rounded-md w-48">
-                  <button
-                    onClick={() => handleSortSelection("newToOld")}
-                    className="block w-full text-left px-2 py-1 rounded hover:bg-gray-100"
-                  >
-                    Date: New to Old
-                  </button>
-                  <button
-                    onClick={() => handleSortSelection("oldToNew")}
-                    className="block w-full text-left px-2 py-1 rounded hover:bg-gray-100"
-                  >
-                    Date: Old to New
-                  </button>
-                  <button
-                    onClick={() => handleSortSelection("highToLow")}
-                    className="block w-full text-left px-2 py-1 rounded hover:bg-gray-100"
-                  >
-                    Price: High to Low
-                  </button>
-                  <button
-                    onClick={() => handleSortSelection("lowToHigh")}
-                    className="block w-full text-left px-2 py-1 rounded hover:bg-gray-100"
-                  >
-                    Price: Low to High
-                  </button>
-                </div>
-              )}
-            </div>
-            
-            <button
-              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              className="px-6 py-2 border border-[#666666] text-[#666666] rounded-[10px] flex items-center space-x-1"
+        <div className="px-6 mb-6">
+          <div className="flex space-x-2 p-1 bg-gray-100/50 dark:bg-gray-700/50 rounded-xl">
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
+                activeTab === "all" 
+                  ? "bg-white dark:bg-gray-800 text-primary shadow-sm" 
+                  : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+              }`}
+              onClick={() => handleTabChange("all")}
             >
-              <FaFilter />
-              <span className="pl-1">Advanced</span>
-            </button>
+              All Payments
+            </motion.button>
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
+                activeTab === "enrollments" 
+                  ? "bg-white dark:bg-gray-800 text-primary shadow-sm" 
+                  : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+              }`}
+              onClick={() => handleTabChange("enrollments")}
+            >
+              Enrollments
+            </motion.button>
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
+                activeTab === "subscriptions" 
+                  ? "bg-white dark:bg-gray-800 text-primary shadow-sm" 
+                  : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+              }`}
+              onClick={() => handleTabChange("subscriptions")}
+            >
+              Subscriptions
+            </motion.button>
           </div>
         </div>
+
+        {/* Advanced Filters */}
+        <motion.div
+          variants={filterVariants}
+          initial="hidden"
+          animate={showAdvancedFilters ? "visible" : "hidden"}
+          className="px-6"
+        >
+          {renderAdvancedFilters()}
+        </motion.div>
         
-        {/* Payment Table */}
-        {loading && payments.length > 0 ? (
-          <div className="flex justify-center py-10">
-            <Preloader />
-          </div>
-        ) : filteredPayments.length === 0 ? (
-          <div className="text-center py-10">
-            <FaReceipt size={48} className="mx-auto text-gray-300 mb-4" />
-            <p className="text-gray-500">No payment records found</p>
-            <p className="text-sm text-gray-400 mt-2">Try adjusting your filters or search criteria</p>
-          </div>
-        ) : (
-          <>
-            <MyTable columns={columns} data={filteredPayments.slice((page - 1) * limit, page * limit)} />
-            {renderPagination()}
-          </>
-        )}
-        
+        {/* Search and Filters */}
+        <div className="p-6 space-y-4">
+          <motion.div 
+            variants={filterVariants}
+            initial="hidden"
+            animate="visible"
+            className="flex flex-col md:flex-row items-center gap-4"
+          >
+            <div className="relative w-full md:w-1/3">
+              <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                <SearchIcon className="w-5 h-5 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search by Course, Price or Order ID"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all duration-200"
+              />
+            </div>
+
+            <div className="flex items-center gap-3">
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="relative"
+              >
+                <button
+                  onClick={() => handleDropdownToggle("filter")}
+                  className="px-6 py-3 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600/50 transition-all duration-200 flex items-center gap-2"
+                >
+                  <BiFilterAlt className="w-5 h-5" />
+                  <span>Filter</span>
+                </button>
+
+                {openDropdown === "filter" && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="absolute z-20 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700"
+                  >
+                    <div className="p-4">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Status
+                      </label>
+                      <select
+                        className="w-full p-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                        value={selectedStatus}
+                        onChange={(e) => handleFilterSelection(e.target.value)}
+                      >
+                        <option value="">All Statuses</option>
+                        <option value="success">Success</option>
+                        <option value="pending">Pending</option>
+                        <option value="failed">Failed</option>
+                      </select>
+                    </div>
+                  </motion.div>
+                )}
+              </motion.div>
+
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="relative"
+              >
+                <button
+                  onClick={() => handleDropdownToggle("sort")}
+                  className="px-6 py-3 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600/50 transition-all duration-200 flex items-center gap-2"
+                >
+                  <FaSort className="w-5 h-5" />
+                  <span>Sort</span>
+                </button>
+
+                {openDropdown === "sort" && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="absolute right-0 z-20 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700"
+                  >
+                    <div className="py-2">
+                      {[
+                        { label: "Date: New to Old", value: "newToOld" },
+                        { label: "Date: Old to New", value: "oldToNew" },
+                        { label: "Price: High to Low", value: "highToLow" },
+                        { label: "Price: Low to High", value: "lowToHigh" }
+                      ].map((option) => (
+                        <button
+                          key={option.value}
+                          onClick={() => handleSortSelection(option.value)}
+                          className={`w-full px-4 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150 ${
+                            sortOrder === option.value
+                              ? "text-primary bg-primary/5"
+                              : "text-gray-700 dark:text-gray-200"
+                          }`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </motion.div>
+
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                className="px-6 py-3 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600/50 transition-all duration-200 flex items-center gap-2"
+              >
+                <FaFilter className="w-5 h-5" />
+                <span>Advanced</span>
+              </motion.button>
+            </div>
+          </motion.div>
+
+          {/* Table Section */}
+          <motion.div
+            variants={tableVariants}
+            initial="hidden"
+            animate="visible"
+            className="bg-white dark:bg-gray-800/50 rounded-xl shadow-sm overflow-hidden"
+          >
+            {loading && payments.length > 0 ? (
+              <div className="flex justify-center items-center min-h-[400px]">
+                <Preloader />
+              </div>
+            ) : filteredPayments.length === 0 ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex flex-col items-center justify-center min-h-[400px] text-center p-8"
+              >
+                <div className="w-16 h-16 mb-6 rounded-full bg-gray-100 dark:bg-gray-700/50 flex items-center justify-center">
+                  <FaReceipt className="w-8 h-8 text-gray-400" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                  No Payments Found
+                </h3>
+                <p className="text-gray-500 dark:text-gray-400 max-w-md">
+                  We couldn't find any payments matching your criteria. Try adjusting your filters or search terms.
+                </p>
+              </motion.div>
+            ) : (
+              <>
+                <MyTable columns={columns} data={filteredPayments.slice((page - 1) * limit, page * limit)} />
+                {renderPagination()}
+              </>
+            )}
+          </motion.div>
+        </div>
+
         {/* Receipt Modal */}
         {renderReceiptModal()}
 
+        {/* Debug Mode */}
         {debugMode && (
-          <div className="mt-4 border border-red-300 p-3 rounded-md bg-red-50">
-            <p className="font-medium text-red-800 mb-2">Debug Information:</p>
-            <div className="bg-white p-2 rounded text-xs font-mono overflow-auto max-h-32">
-              <p>User ID: {localStorage.getItem("userId") || "Not found"}</p>
-              <p>Token: {localStorage.getItem("token") ? "Found in localStorage" : "Not found in localStorage"}</p>
-              <p>Header Format: Using 'x-access-token' header (not 'Authorization')</p>
-              <p>Token Preview: {localStorage.getItem("token") ? `${localStorage.getItem("token").substring(0, 20)}...` : "N/A"}</p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="m-6 border border-red-200 dark:border-red-800/30 p-4 rounded-xl bg-red-50/50 dark:bg-red-900/10"
+          >
+            <p className="font-medium text-red-800 dark:text-red-400 mb-2">Debug Information:</p>
+            <div className="bg-white dark:bg-gray-800 p-3 rounded-lg text-xs font-mono overflow-auto max-h-32">
+              <p className="text-gray-700 dark:text-gray-300">User ID: {localStorage.getItem("userId") || "Not found"}</p>
+              <p className="text-gray-700 dark:text-gray-300">Token: {localStorage.getItem("token") ? "Found in localStorage" : "Not found in localStorage"}</p>
+              <p className="text-gray-700 dark:text-gray-300">Header Format: Using 'x-access-token' header (not 'Authorization')</p>
+              <p className="text-gray-700 dark:text-gray-300">Token Preview: {localStorage.getItem("token") ? `${localStorage.getItem("token").substring(0, 20)}...` : "N/A"}</p>
             </div>
-            <p className="text-xs mt-2 text-red-600">Press Alt+Shift+D to toggle debug mode</p>
-          </div>
+            <p className="text-xs mt-2 text-red-600 dark:text-red-400">Press Alt+Shift+D to toggle debug mode</p>
+          </motion.div>
         )}
       </div>
     </div>

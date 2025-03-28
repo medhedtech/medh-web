@@ -75,6 +75,129 @@ const AssessmentComponent = dynamic(() => import('@/components/shared/lessons/As
   loading: () => <div className="h-full w-full bg-gray-50 dark:bg-gray-800 animate-pulse rounded-xl p-6">Loading Assignment...</div>
 });
 
+// Update interfaces at the top of the file
+interface Lesson {
+  _id?: string;
+  id?: string;
+  title: string;
+  description?: string;
+  order?: number;
+  lessonType: 'video' | 'quiz' | 'assessment';
+  isPreview?: boolean;
+  meta?: LessonMeta;
+  resources?: any[];
+  video_url?: string;
+  videoUrl?: string;
+  thumbnailUrl?: string;
+  quiz_id?: string;
+  assignment_id?: string;
+  is_completed?: boolean;
+  completed?: boolean;
+  duration?: string | number;
+}
+
+interface LessonData {
+  _id: string;
+  id?: string;
+  title: string;
+  description?: string;
+  lessonType: 'video' | 'quiz' | 'assessment';
+  videoUrl?: string;
+  video_url?: string;
+  thumbnailUrl?: string;
+  is_completed?: boolean;
+  completed?: boolean;
+  meta?: {
+    presenter?: string;
+    transcript?: string;
+    time_limit?: number;
+    passing_score?: number;
+    due_date?: string;
+    max_score?: number;
+  };
+}
+
+interface LessonMeta {
+  presenter?: string | null;
+  transcript?: string | null;
+  time_limit?: number | null;
+  passing_score?: number | null;
+  due_date?: string | null;
+  max_score?: number | null;
+}
+
+interface Section {
+  id?: string;
+  title: string;
+  description?: string;
+  lessons: Lesson[];
+}
+
+interface CourseSection extends Omit<Section, 'id'> {
+  id?: string;
+}
+
+interface Week {
+  id?: string;
+  weekTitle: string;
+  weekDescription?: string;
+  sections?: Section[];
+  lessons?: Lesson[];
+  topics?: string[];
+}
+
+interface CourseWeek extends Omit<Week, 'sections'> {
+  sections?: CourseSection[];
+}
+
+interface VideoBookmark {
+  id: string;
+  time: number;
+  label: string;
+}
+
+interface CourseData {
+  _id: string;
+  course_title: string;
+  curriculum: Week[];
+}
+
+interface Comment {
+  id: number;
+  text: string;
+  author: {
+    id: string;
+    name: string;
+    avatar: string;
+    role: string;
+  };
+  timestamp: string;
+  likes: number;
+  replies: Comment[];
+  liked?: boolean;
+}
+
+interface NotesTabProps {
+  lessonId: string;
+  bookmarks: VideoBookmark[];
+  formatTime: (seconds: number) => string;
+  lessonType: string;
+}
+
+interface CompletionData {
+  completed_at: string;
+  quiz_score?: number;
+}
+
+// Add interface for progress data
+interface LessonProgress {
+  lessonId: string;
+  courseId: string;
+  progress: number;
+  currentTime: number;
+  updatedAt: string;
+}
+
 // Helper function to handle YouTube URLs
 const formatVideoUrl = (url) => {
   if (!url) return null;
@@ -114,14 +237,15 @@ const formatVideoUrl = (url) => {
 const IntegratedLessonPage = () => {
   const router = useRouter();
   const params = useParams();
-  const courseId = params.id;
-  const lessonId = params.lessonId;
+  const courseId = params?.id as string;
+  const lessonId = params?.lessonId as string;
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("Overview");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const [videoBookmarks, setVideoBookmarks] = useState([]);
+  const [videoBookmarks, setVideoBookmarks] = useState<VideoBookmark[]>([]);
+  const [savedProgress, setSavedProgress] = useState<LessonProgress | null>(null);
   
   const {
     loading,
@@ -135,35 +259,54 @@ const IntegratedLessonPage = () => {
   } = useCourseLesson(courseId, lessonId);
 
   // Determine lesson type
-  const lessonType = lessonData?.lessonType || 'video'; // Default to video if not specified
+  const lessonType = (lessonData as LessonData)?.lessonType || 'video';
 
-  // Find adjacent lessons for navigation
-  const findAdjacentLessons = (curriculum) => {
-    if (!curriculum || !lessonId) return { prevLesson: null, nextLesson: null };
-
-    // Flatten the curriculum structure into a single array of lessons
-    const allLessons = curriculum?.flatMap(week => 
-      week.sections?.flatMap(section => 
-        section.lessons || []
-      ) || []
-    ) || [];
-
-    // Find the current lesson index
-    const currentIndex = allLessons.findIndex(lesson => (lesson._id || lesson.id) === lessonId);
-
-    let prevLesson = null;
-    let nextLesson = null;
-
-    if (currentIndex !== -1) {
-      if (currentIndex > 0) {
-        prevLesson = allLessons[currentIndex - 1];
-      }
-      if (currentIndex < allLessons.length - 1) {
-        nextLesson = allLessons[currentIndex + 1];
+  // Load saved progress when component mounts
+  useEffect(() => {
+    if (lessonId) {
+      try {
+        const savedProgressData = localStorage.getItem(`lesson-progress-${lessonId}`);
+        if (savedProgressData) {
+          const progress = JSON.parse(savedProgressData);
+          setSavedProgress(progress);
+        }
+      } catch (error) {
+        console.error('Error loading saved progress:', error);
       }
     }
+  }, [lessonId]);
 
-    return { prevLesson, nextLesson };
+  // Update findAdjacentLessons function
+  const findAdjacentLessons = (curriculum: CourseWeek[]): { prevLesson: Lesson | null; nextLesson: Lesson | null } => {
+    if (!curriculum || !lessonId) return { prevLesson: null, nextLesson: null };
+
+    const allLessons: Lesson[] = [];
+    
+    // Flatten curriculum into a single array of lessons
+    curriculum.forEach(week => {
+      if (week.lessons) {
+        allLessons.push(...week.lessons);
+      }
+      if (week.sections) {
+        week.sections.forEach(section => {
+          if (section.lessons) {
+            allLessons.push(...section.lessons);
+          }
+        });
+      }
+    });
+
+    // Find current lesson index
+    const currentIndex = allLessons.findIndex(lesson => 
+      lesson._id === lessonId || lesson.id === lessonId
+    );
+
+    if (currentIndex === -1) return { prevLesson: null, nextLesson: null };
+
+    return {
+      prevLesson: currentIndex > 0 ? allLessons[currentIndex - 1] : null,
+      nextLesson: currentIndex < allLessons.length - 1 ? allLessons[currentIndex + 1] : null
+    };
   };
 
   // Notify user of errors
@@ -182,9 +325,9 @@ const IntegratedLessonPage = () => {
     findAdjacentLessons(courseData.curriculum) : 
     { prevLesson: null, nextLesson: null };
 
-  // Handle lesson selection
-  const handleLessonSelect = (lesson) => {
-    const selectedLessonId = lesson._id || lesson.id;
+  // Update the handleLessonSelect function
+  const handleLessonSelect = (lesson: Lesson) => {
+    const selectedLessonId = lesson._id?.$oid || lesson._id || lesson.id;
     if (!selectedLessonId) {
       console.error('Invalid lesson selected:', lesson);
       return;
@@ -329,32 +472,70 @@ const IntegratedLessonPage = () => {
             {/* Lesson Content Area - Render based on lesson type */}
             {lessonType === 'video' && (
               <div className="aspect-video bg-gray-900 rounded-t-xl overflow-hidden">
-                {(lessonData?.videoUrl || lessonData?.video_url) ? (
-                  <VideoPlayer
-                    src={formatVideoUrl(lessonData.videoUrl || lessonData.video_url)}
-                    poster={lessonData.thumbnailUrl || `${(lessonData.videoUrl || lessonData.video_url).split('.')[0]}.jpg`}
-                    autoplay={false}
-                    bookmarks={videoBookmarks}
-                    onBookmark={handleAddVideoBookmark}
-                    onEnded={() => {
-                      // Automatically mark lesson as complete when video ends
-                      if (lessonData && !lessonData.is_completed && !lessonData.completed) {
-                        markLessonComplete({
-                          completed_at: new Date().toISOString()
-                        });
-                      }
-                      
-                      // Auto-navigate to next lesson if available
-                      if (nextLesson) {
-                        setTimeout(() => {
-                          router.push(`/integrated-lessons/${courseId}/lecture/${nextLesson._id || nextLesson.id}`);
-                        }, 1500);
-                      }
-                    }}
-                    onError={() => {
-                      toast.error("Failed to load video. Please try again.");
-                    }}
-                  />
+                {(lessonData as LessonData).videoUrl || (lessonData as LessonData).video_url ? (
+                  <div className="relative">
+                    {savedProgress && savedProgress.progress < 90 && (
+                      <div className="absolute top-4 right-4 z-10 bg-black/80 text-white px-3 py-2 rounded-lg text-sm flex items-center space-x-2">
+                        <RefreshCw className="w-4 h-4" />
+                        <span>Resuming from {Math.floor(savedProgress.progress)}%</span>
+                      </div>
+                    )}
+                    <VideoPlayer
+                      src={formatVideoUrl(lessonData?.videoUrl || lessonData?.video_url)}
+                      poster={lessonData?.thumbnailUrl || (lessonData?.videoUrl || lessonData?.video_url ? `${(lessonData.videoUrl || lessonData.video_url).split('.')[0]}.jpg` : undefined)}
+                      autoplay={false}
+                      bookmarks={videoBookmarks}
+                      onBookmark={handleAddVideoBookmark}
+                      initialTime={savedProgress?.currentTime}
+                      onProgress={(progress: number, currentTime: number) => {
+                        // Save progress every 5 seconds to avoid too frequent updates
+                        if (Math.floor(currentTime) % 5 === 0) {
+                          // Save progress to backend
+                          try {
+                            const progressData = {
+                              lessonId,
+                              courseId,
+                              progress,
+                              currentTime,
+                              updatedAt: new Date().toISOString()
+                            };
+                            
+                            // Store progress in localStorage as backup
+                            localStorage.setItem(
+                              `lesson-progress-${lessonId}`, 
+                              JSON.stringify(progressData)
+                            );
+
+                            // Mark as complete if progress is >= 90%
+                            if (progress >= 90 && !lessonData.is_completed && !lessonData.completed) {
+                              markLessonComplete({
+                                completed_at: new Date().toISOString()
+                              });
+                            }
+                          } catch (error) {
+                            console.error('Error saving progress:', error);
+                          }
+                        }
+                      }}
+                      onEnded={() => {
+                        if (lessonData && !lessonData.is_completed && !lessonData.completed) {
+                          markLessonComplete({
+                            completed_at: new Date().toISOString()
+                          });
+                        }
+                        
+                        if (nextLesson) {
+                          setTimeout(() => {
+                            const nextId = nextLesson._id?.$oid || nextLesson._id || nextLesson.id;
+                            router.push(`/integrated-lessons/${courseId}/lecture/${nextId}`);
+                          }, 1500);
+                        }
+                      }}
+                      onError={() => {
+                        toast.error("Failed to load video. Please try again.");
+                      }}
+                    />
+                  </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center h-full bg-gray-900 text-white/70 p-6">
                     <Video className="w-16 h-16 mb-4 opacity-60" />
@@ -482,7 +663,7 @@ const IntegratedLessonPage = () => {
               <div className="flex items-center justify-between pt-6 border-t border-gray-200 dark:border-gray-700">
                 {prevLesson ? (
                   <button
-                    onClick={() => router.push(`/integrated-lessons/${courseId}/lecture/${prevLesson._id || prevLesson.id}`)}
+                    onClick={() => router.push(`/integrated-lessons/${courseId}/lecture/${prevLesson._id?.$oid || prevLesson._id || prevLesson.id}`)}
                     className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 transition-colors"
                   >
                     <ChevronLeft className="w-4 h-4 mr-2" />
@@ -494,7 +675,7 @@ const IntegratedLessonPage = () => {
 
                 {nextLesson && (
                   <button
-                    onClick={() => router.push(`/integrated-lessons/${courseId}/lecture/${nextLesson._id || nextLesson.id}`)}
+                    onClick={() => router.push(`/integrated-lessons/${courseId}/lecture/${nextLesson._id?.$oid || nextLesson._id || nextLesson.id}`)}
                     className="inline-flex items-center px-4 py-2 text-sm font-medium bg-primaryColor text-white rounded-md hover:bg-primaryColor/90 transition-colors"
                   >
                     Next Lesson
@@ -535,7 +716,7 @@ const IntegratedLessonPage = () => {
               </button>
             </div>
           )}
-          <div className="h-full overflow-y-auto pb-20">
+          <div className="h-full overflow-y-auto pt-16 pb-20">
             <LessonAccordion
               currentLessonId={lessonId}
               courseData={courseData}
@@ -784,7 +965,7 @@ const ResourcesTab = ({ resources }) => (
   </div>
 );
 
-const NotesTab = ({ lessonId, bookmarks = [], formatTime, lessonType = 'video' }) => {
+const NotesTab: React.FC<NotesTabProps> = ({ lessonId, bookmarks = [], formatTime, lessonType = 'video' }) => {
   const [notes, setNotes] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isPreview, setIsPreview] = useState(false);
@@ -866,21 +1047,21 @@ const NotesTab = ({ lessonId, bookmarks = [], formatTime, lessonType = 'video' }
             className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
               isPreview 
                 ? 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200' 
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
             }`}
           >
             {isPreview ? 'Edit' : 'Preview'}
           </button>
           <button
             onClick={downloadNotes}
-            className="p-1.5 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+            className="p-1.5 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
             title="Download notes as markdown"
           >
             <Download className="w-4 h-4" />
           </button>
           <button
             onClick={resetNotes}
-            className="p-1.5 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-500 dark:hover:text-red-400"
+            className="p-1.5 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-500 dark:hover:text-red-400"
             title="Clear all notes"
           >
             <Trash2 className="w-4 h-4" />
@@ -1012,7 +1193,7 @@ const NotesTab = ({ lessonId, bookmarks = [], formatTime, lessonType = 'video' }
 };
 
 const DiscussionTab = ({ lessonId, courseId, lessonTitle }) => {
-  const [comments, setComments] = useState([]);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [replyTo, setReplyTo] = useState(null);

@@ -8,24 +8,27 @@ import { toast } from 'react-toastify';
 // ----------------------
 
 interface CourseWeek {
-  weekTitle: string;
-  weekDescription: string;
-  sections?: CourseSection[];
-  topics?: string[];
-  resources?: ResourceFile[];
   id?: string;
   _id?: string;
+  weekTitle: string;
+  weekDescription?: string;
+  sections?: CourseSection[];
+  lessons?: LessonData[];
+  topics?: string[];
+  liveClasses?: any[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface CourseSection {
+  id?: string;
+  _id?: string;
   title: string;
-  description: string;
-  order: number;
+  description?: string;
+  order?: number;
   lessons: LessonData[];
   assignments?: AssignmentData[];
   quizzes?: QuizData[];
-  id?: string;
-  _id?: string;
 }
 
 interface ResourceFile {
@@ -39,23 +42,31 @@ interface ResourceFile {
 }
 
 export interface LessonData {
-  _id?: string;
   id?: string;
+  _id?: string;
   title: string;
-  description: string;
-  content: string;
-  duration: number;
-  order: number;
-  videoUrl?: string;
+  description?: string;
+  order?: number;
+  lessonType?: 'video' | 'quiz' | 'assessment';
+  isPreview?: boolean;
+  meta?: {
+    presenter?: string | null;
+    transcript?: string | null;
+    time_limit?: number | null;
+    passing_score?: number | null;
+    due_date?: string | null;
+    max_score?: number | null;
+  };
   resources?: ResourceFile[];
-  is_completed?: boolean;
+  video_url?: string;
+  videoUrl?: string;
+  duration?: string | number;
   completed?: boolean;
-  completion_date?: string;
-  type?: string;
+  is_completed?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
   weekTitle?: string;
   sectionTitle?: string;
-  assignments?: AssignmentData[];
-  quizzes?: QuizData[];
 }
 
 interface CoursePrice {
@@ -224,27 +235,78 @@ const normalizeCourseData = (data: CourseData): CourseData => {
   };
 };
 
-// Searches the curriculum to find the current lesson and attaches week and section titles.
+// Update findLessonInCurriculum function to handle both section and lesson IDs
 const findLessonInCurriculum = (
   curriculum: CourseWeek[],
-  lessonId: string
+  targetId: string
 ): LessonData | undefined => {
-  if (!lessonId) return undefined;
+  if (!targetId) return undefined;
+
+  console.log('Finding content with ID:', targetId);
   
   for (const week of curriculum) {
-    for (const section of week.sections) {
-      const lesson = section.lessons.find((l) => (l._id === lessonId || l.id === lessonId));
-      if (lesson) {
+    // First check if the week has this ID
+    if (week._id === targetId || week.id === targetId) {
+      console.log('Found matching week:', week);
+      // If week has direct lessons, return the first one
+      const weekLessons = week.lessons || [];
+      if (weekLessons.length > 0) {
+        const firstLesson = weekLessons[0];
         return {
-          ...lesson,
+          ...firstLesson,
           weekTitle: week.weekTitle,
-          sectionTitle: section.title,
-          assignments: section.assignments || [],
-          quizzes: section.quizzes || [],
+          sectionTitle: week.weekTitle
         };
       }
     }
+
+    // Check direct lessons in the week
+    const weekLessons = week.lessons || [];
+    for (const lesson of weekLessons) {
+      if (lesson._id === targetId || lesson.id === targetId) {
+        console.log('Found lesson in week:', lesson);
+        return {
+          ...lesson,
+          weekTitle: week.weekTitle,
+          sectionTitle: week.weekTitle
+        };
+      }
+    }
+
+    // Check sections
+    const sections = week.sections || [];
+    for (const section of sections) {
+      // Check if this is the target section
+      if (section._id === targetId || section.id === targetId) {
+        console.log('Found matching section:', section);
+        // If section has lessons, return the first one
+        const sectionLessons = section.lessons || [];
+        if (sectionLessons.length > 0) {
+          const firstLesson = sectionLessons[0];
+          return {
+            ...firstLesson,
+            weekTitle: week.weekTitle,
+            sectionTitle: section.title
+          };
+        }
+      }
+
+      // Check lessons within the section
+      const sectionLessons = section.lessons || [];
+      for (const lesson of sectionLessons) {
+        if (lesson._id === targetId || lesson.id === targetId) {
+          console.log('Found lesson in section:', lesson);
+          return {
+            ...lesson,
+            weekTitle: week.weekTitle,
+            sectionTitle: section.title
+          };
+        }
+      }
+    }
   }
+
+  console.log('No matching content found in curriculum');
   return undefined;
 };
 
@@ -258,52 +320,51 @@ const normalizeResources = (resources: ResourceFile[] | undefined): ResourceFile
   }));
 };
 
-// Process curriculum data to ensure compatibility with LessonAccordion
+// Update processCurriculumData function to handle the API response structure
 const processCurriculumData = (curriculum: CourseWeek[]): CourseWeek[] => {
   if (!curriculum) return [];
   
   return curriculum.map(week => {
-    // Convert topics-based structure to sections-based structure if needed
-    let sections: CourseSection[] = [];
-    
-    if (week.topics && !week.sections) {
-      // Create a single section from topics
-      sections = [{
-        title: week.weekTitle,
-        description: week.weekDescription,
-        order: 1,
-        lessons: [{
-          title: week.weekTitle,
-          description: week.weekDescription,
-          content: week.topics.join('\n\n'),
-          duration: 60, // Default duration in minutes
-          order: 1,
-          id: week._id,
-          _id: week._id,
-          resources: week.resources || []
-        }],
-        id: week._id,
-        _id: week._id
-      }];
-    } else if (week.sections) {
-      // Use existing sections structure
-      sections = week.sections.map(section => ({
-        ...section,
-        id: section.id || section._id,
-        lessons: section.lessons.map(lesson => ({
-          ...lesson,
-          id: lesson.id || lesson._id,
-          completed: lesson.is_completed || lesson.completed,
-          resources: normalizeResources(lesson.resources)
-        }))
-      }));
-    }
+    // Process direct lessons
+    const processedLessons = (week.lessons || []).map(lesson => ({
+      ...lesson,
+      id: lesson.id || lesson._id,
+      lessonType: lesson.lessonType || 'video', // Default to video if not specified
+      completed: lesson.is_completed || lesson.completed,
+      resources: normalizeResources(lesson.resources)
+    }));
+
+    // Process sections and their lessons
+    const processedSections = (week.sections || []).map(section => ({
+      ...section,
+      id: section.id || section._id,
+      lessons: (section.lessons || []).map(lesson => ({
+        ...lesson,
+        id: lesson.id || lesson._id,
+        lessonType: lesson.lessonType || 'video', // Default to video if not specified
+        completed: lesson.is_completed || lesson.completed,
+        resources: normalizeResources(lesson.resources)
+      }))
+    }));
 
     return {
       ...week,
       id: week.id || week._id,
-      sections: sections
+      lessons: processedLessons,
+      sections: processedSections
     };
+  });
+};
+
+// Update hasLessons check to handle the API response structure
+const hasLessonsInCurriculum = (curriculum: CourseWeek[]): boolean => {
+  return curriculum.some(week => {
+    const hasWeekLessons = Array.isArray(week.lessons) && week.lessons.length > 0;
+    const hasSectionLessons = Array.isArray(week.sections) && 
+      week.sections.some(section => 
+        Array.isArray(section.lessons) && section.lessons.length > 0
+      );
+    return hasWeekLessons || hasSectionLessons;
   });
 };
 
@@ -391,7 +452,14 @@ export const useCourseLesson = (courseId: string, lessonId: string = '') => {
           
           const updatedCurriculum = prevCourseData.curriculum.map(week => ({
             ...week,
-            sections: week.sections.map(section => ({
+            // Update lessons in the week if they exist
+            lessons: week.lessons?.map(lesson => 
+              (lesson._id === lessonId || lesson.id === lessonId) 
+                ? { ...lesson, is_completed: true, completed: true, completion_date: completionData.completed_at }
+                : lesson
+            ),
+            // Update lessons in sections if they exist
+            sections: week.sections?.map(section => ({
               ...section,
               lessons: section.lessons.map(lesson => 
                 (lesson._id === lessonId || lesson.id === lessonId) 
@@ -514,10 +582,7 @@ export const useCourseLesson = (courseId: string, lessonId: string = '') => {
         });
 
         if (response?.success && response.data) {
-          // First normalize the course data
           const normalizedData = normalizeCourseData(response.data);
-          
-          // Then process curriculum for compatibility with components
           const processedData = {
             ...normalizedData,
             curriculum: processCurriculumData(normalizedData.curriculum)
@@ -526,13 +591,23 @@ export const useCourseLesson = (courseId: string, lessonId: string = '') => {
           setCourseData(processedData);
           
           if (lessonId) {
+            console.log('Searching for lesson:', lessonId);
+            console.log('Curriculum structure:', JSON.stringify(processedData.curriculum, null, 2));
+            
             const currentLesson = findLessonInCurriculum(processedData.curriculum, lessonId);
+            
+            console.log('Found lesson:', currentLesson);
+            
             if (currentLesson) {
               currentLesson.resources = normalizeResources(currentLesson.resources);
               setLessonData(currentLesson);
-              return;
+            } else {
+              if (!hasLessonsInCurriculum(processedData.curriculum)) {
+                throw new Error('No lessons found in this course. The course curriculum may be empty.');
+              } else {
+                throw new Error(`Lesson with ID ${lessonId} not found in this course. Please check the lesson ID and try again.`);
+              }
             }
-            throw new Error('Lesson not found in this course. Please check the lesson ID and try again.');
           }
         } else {
           throw new Error('Invalid server response');

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, BookOpen, Loader2, Search, AlertCircle } from "lucide-react";
+import { ArrowLeft, BookOpen, Loader2, Search, AlertCircle, Calendar, Clock, CheckCircle2 } from "lucide-react";
 
 // Helper function to get the auth token
 const getAuthToken = () => {
@@ -40,15 +40,20 @@ const StudentEnrollCourses = () => {
   const [studentId, setStudentId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [isHovered, setIsHovered] = useState(null);
+  const [abortController, setAbortController] = useState(null);
   const { getQuery } = useGetQuery();
 
+  // Constants
+  const MAX_RETRIES = 3;
+  const RETRY_DELAY = 1000;
+  const BATCH_SIZE = 3;
+
+  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
+      transition: { staggerChildren: 0.1 }
     }
   };
 
@@ -65,6 +70,18 @@ const StudentEnrollCourses = () => {
     }
   };
 
+  // Cleanup function for aborting pending requests
+  useEffect(() => {
+    return () => {
+      if (abortController) {
+        abortController.abort();
+      }
+    };
+  }, [abortController]);
+
+  const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+  // Effect to initialize studentId
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedUserId = localStorage.getItem("userId");
@@ -79,11 +96,21 @@ const StudentEnrollCourses = () => {
     }
   }, []);
 
+  // Effect to fetch courses when studentId is available
   useEffect(() => {
     if (studentId) {
       fetchEnrolledCourses(studentId);
     }
   }, [studentId]);
+
+  // Clean up function when component unmounts
+  useEffect(() => {
+    return () => {
+      setEnrollCourses([]);
+      setError(null);
+      setLoading(false);
+    };
+  }, []);
 
   const fetchEnrolledCourses = async (id) => {
     try {
@@ -103,54 +130,58 @@ const StudentEnrollCourses = () => {
         'Content-Type': 'application/json'
       };
       
+      // Log the payments API URL being called
       const paymentApiUrl = apiUrls.payment.getStudentPayments(id, { 
         page: 1,
         limit: 20 // Show more courses on the full page view
       });
+      console.log(`Fetching enrollments from: ${paymentApiUrl}`);
       
       await getQuery({
         url: paymentApiUrl,
         headers,
+        validateStatus: (status) => {
+          return status === 200; // Only treat 200 as success
+        },
         onSuccess: async (response) => {
-          let courses = [];
+          if (!response?.success || !response?.data?.enrollments) {
+            console.warn('Invalid enrollment response structure:', response);
+            setError("Unable to load enrollment data. Please try again later.");
+            setLoading(false);
+            return;
+          }
+
+          const enrollments = response.data.enrollments;
+          console.log('Fetched enrollments:', enrollments.length);
           
-          if (response?.success && response?.data?.enrollments) {
-            const enrollments = response.data.enrollments || [];
+          if (enrollments.length === 0) {
+            setEnrollCourses([]);
+            setLoading(false);
+            return;
+          }
+
+          // Process enrollments in batches
+          const processedEnrollments = [];
+          for (let i = 0; i < enrollments.length; i += BATCH_SIZE) {
+            const batch = enrollments.slice(i, i + BATCH_SIZE);
+            console.log(`Processing batch ${Math.floor(i/BATCH_SIZE) + 1} of ${Math.ceil(enrollments.length/BATCH_SIZE)}`);
             
-            // Process enrollments and fetch course details
-            const processedEnrollments = await Promise.all(
-              enrollments.map(async (enrollment) => {
-                if (!enrollment.course_id) return null;
+            const batchResults = await Promise.all(
+              batch.map(async (enrollment) => {
+                if (!enrollment.course_id) {
+                  console.warn('Missing course_id in enrollment:', enrollment._id);
+                  return null;
+                }
                 
                 try {
-                  // Fetch course details
-                  const courseResponse = await getQuery({
-                    url: apiUrls.courses.getCourseById(enrollment.course_id),
-                    headers,
-                  });
-                  
-                  const courseData = courseResponse?.course || courseResponse?.data || courseResponse;
-                  
-                  if (!courseData || !courseData._id) return null;
-                  
-                  // Calculate completion status based on criteria
-                  const completionCriteria = enrollment.completion_criteria || {
-                    required_progress: 100,
-                    required_assignments: true,
-                    required_quizzes: true
-                  };
-                  
-                  let status = 'not_started';
-                  if (enrollment.is_completed) {
-                    status = 'completed';
-                  } else if (enrollment.progress > 0 || enrollment.completed_lessons?.length > 0) {
-                    status = 'in_progress';
+                  const courseData = await fetchCourseWithRetry(enrollment.course_id, enrollment, headers);
+                  if (!courseData) {
+                    console.warn(`No course data returned for enrollment ${enrollment._id}`);
+                    return null;
                   }
                   
-                  // Get remaining time
-                  const remainingTime = calculateRemainingTime(enrollment.expiry_date);
+                  console.log(`Successfully fetched course data for enrollment ${enrollment._id}: ${courseData.course_title}`);
                   
-                  // Combine course data with enrollment data
                   return {
                     _id: courseData._id,
                     course_title: courseData.course_title,
@@ -162,13 +193,18 @@ const StudentEnrollCourses = () => {
                     lessons: courseData.curriculum || [],
                     progress: enrollment.progress || 0,
                     last_accessed: enrollment.last_accessed || enrollment.updatedAt,
-                    completion_status: status,
+                    completion_status: enrollment.is_completed ? 'completed' : 
+                      (enrollment.progress > 0 || enrollment.completed_lessons?.length > 0) ? 'in_progress' : 'not_started',
                     enrollment_id: enrollment._id,
                     payment_status: enrollment.payment_status,
                     is_self_paced: enrollment.is_self_paced,
                     expiry_date: enrollment.expiry_date,
-                    remaining_time: remainingTime,
-                    completion_criteria: completionCriteria,
+                    remaining_time: calculateRemainingTime(enrollment.expiry_date),
+                    completion_criteria: enrollment.completion_criteria || {
+                      required_progress: 100,
+                      required_assignments: true,
+                      required_quizzes: true
+                    },
                     completed_lessons: enrollment.completed_lessons || [],
                     completed_assignments: enrollment.completed_assignments || [],
                     completed_quizzes: enrollment.completed_quizzes || [],
@@ -182,14 +218,33 @@ const StudentEnrollCourses = () => {
               })
             );
             
-            courses = processedEnrollments.filter(Boolean);
+            const validResults = batchResults.filter(Boolean);
+            console.log(`Batch ${Math.floor(i/BATCH_SIZE) + 1} results: ${validResults.length} valid courses`);
+            processedEnrollments.push(...validResults);
+            
+            // Add a small delay between batches
+            if (i + BATCH_SIZE < enrollments.length) {
+              await sleep(500);
+            }
           }
           
-          setEnrollCourses(courses);
-          setError(null);
+          console.log('Final processed courses:', processedEnrollments.length);
+          setEnrollCourses(processedEnrollments);
+          
+          if (processedEnrollments.length === 0) {
+            setError("Unable to load your enrolled courses. Please try again later.");
+          } else {
+            setError(null);
+          }
           setLoading(false);
         },
         onError: (error) => {
+          console.error('Error fetching enrollments:', {
+            status: error.response?.status,
+            message: error.message,
+            url: error.config?.url
+          });
+          
           if (error?.response?.status === 401) {
             setError("Your session has expired. Please log in again.");
           } else if (error?.response?.status === 404) {
@@ -198,11 +253,11 @@ const StudentEnrollCourses = () => {
           } else {
             setError("Failed to load enrolled courses. Please try again later.");
           }
-          
           setLoading(false);
         },
       });
     } catch (error) {
+      console.error("Unexpected error in fetchEnrolledCourses:", error);
       setError("An unexpected error occurred. Please try again later.");
       setLoading(false);
     }
@@ -215,6 +270,78 @@ const StudentEnrollCourses = () => {
   const filteredCourses = enrollCourses.filter(course => 
     course.course_title?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const fetchCourseWithRetry = async (courseId, enrollment, headers, attempt = 1) => {
+    try {
+      // Create new AbortController for this request
+      const controller = new AbortController();
+      setAbortController(controller);
+
+      // Ensure courseId is properly formatted
+      if (!courseId || typeof courseId !== 'string') {
+        console.warn(`Invalid course ID format: ${courseId}`);
+        return null;
+      }
+
+      // Log the API URL being called
+      const courseUrl = apiUrls.courses.getCourseById(courseId);
+      console.log(`Fetching course data from: ${courseUrl}`);
+
+      const courseResponse = await getQuery({
+        url: courseUrl,
+        headers,
+        signal: controller.signal,
+        validateStatus: (status) => {
+          return status === 200; // Only treat 200 as success
+        }
+      });
+      
+      // Clear the controller after successful request
+      setAbortController(null);
+      
+      // Check for null response
+      if (!courseResponse) {
+        console.warn(`Null response received for course ID: ${courseId}`);
+        return null;
+      }
+      
+      // Extract course data, checking both possible response formats
+      const courseData = courseResponse?.course || courseResponse?.data;
+      
+      if (!courseData || !courseData._id) {
+        console.warn(`Invalid course data structure received for course ID: ${courseId}`, courseData);
+        return null;
+      }
+      
+      return courseData;
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        console.log('Request was aborted');
+        return null;
+      }
+
+      // Handle 404 errors specifically
+      if (error.response?.status === 404) {
+        console.warn(`Course not found (404) for ID: ${courseId}`);
+        return null;
+      }
+      
+      // Log other types of errors
+      console.error(`Error fetching course ${courseId}:`, {
+        status: error.response?.status,
+        message: error.message,
+        url: error.config?.url
+      });
+      
+      if (attempt < MAX_RETRIES) {
+        console.log(`Retrying fetch for course ${courseId}, attempt ${attempt + 1}`);
+        await sleep(RETRY_DELAY * attempt);
+        return fetchCourseWithRetry(courseId, enrollment, headers, attempt + 1);
+      }
+      
+      return null; // Return null instead of throwing to prevent cascade failures
+    }
+  };
 
   return (
     <motion.div 
