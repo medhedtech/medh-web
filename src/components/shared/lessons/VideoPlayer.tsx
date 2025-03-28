@@ -1,10 +1,24 @@
 'use client';
 
-import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { Play, Pause, Volume2, VolumeX, Maximize, SkipBack, SkipForward, RefreshCcw, AlertCircle, FileText, Bookmark, BookmarkPlus } from 'lucide-react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { 
+  Play, Pause, Volume2, VolumeX, Maximize, SkipBack, SkipForward, 
+  RefreshCcw, AlertCircle, FileText, Bookmark, BookmarkPlus,
+  Settings, Type, Download, PictureInPicture, Subtitles
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  VideoPlayerProps, 
+  Bookmark as BookmarkType, 
+  YouTubePlayer,
+  VideoAnalyticsTracker as IVideoAnalyticsTracker,
+  VideoInteractionType
+} from './types';
+import { VideoEncryption } from '../../../utils/video-encryption';
+import { VideoAnalyticsTracker } from '../../../utils/video-analytics';
+import { TranscriptionManager } from '../../../utils/video-transcription';
 
-const VideoPlayer = ({
+const VideoPlayer: React.FC<VideoPlayerProps> = ({
   src,
   poster,
   autoplay = false,
@@ -15,102 +29,226 @@ const VideoPlayer = ({
   onError,
   onBookmark,
   bookmarks = [],
+  initialTime = 0,
+  isPreview = false,
+  encryptionKey,
+  allowDownload = false,
+  transcriptions = [],
+  chapters = [],
+  drm
 }) => {
-  const videoRef = useRef(null);
-  const progressRef = useRef(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [volume, setVolume] = useState(1);
-  const [isMuted, setIsMuted] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showControls, setShowControls] = useState(true);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const controlsTimeoutRef = useRef(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [showBookmarkModal, setShowBookmarkModal] = useState(false);
-  const [bookmarkLabel, setBookmarkLabel] = useState('');
-  const [ytPlayer, setYtPlayer] = useState(null);
-  const ytPlayerContainerRef = useRef(null);
-  const [isYoutubeReady, setIsYoutubeReady] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const progressRef = useRef<HTMLDivElement>(null);
+  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const ytPlayerContainerRef = useRef<HTMLDivElement>(null);
+  const [ytPlayer, setYtPlayer] = useState<YouTubePlayer | null>(null);
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [progress, setProgress] = useState<number>(0);
+  const [volume, setVolume] = useState<number>(1);
+  const [isMuted, setIsMuted] = useState<boolean>(false);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const [showControls, setShowControls] = useState<boolean>(true);
+  const [currentTime, setCurrentTime] = useState<number>(0);
+  const [duration, setDuration] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [hasError, setHasError] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>('');
+  const [showBookmarkModal, setShowBookmarkModal] = useState<boolean>(false);
+  const [bookmarkLabel, setBookmarkLabel] = useState<string>('');
+  const [isYoutubeReady, setIsYoutubeReady] = useState<boolean>(false);
+  const [showTranscript, setShowTranscript] = useState<boolean>(false);
+  const [currentTranscript, setCurrentTranscript] = useState<string>('');
+  const [selectedQuality, setSelectedQuality] = useState<string>(quality);
+  const [showSettings, setShowSettings] = useState<boolean>(false);
+  const [isPiPActive, setIsPiPActive] = useState<boolean>(false);
+  const [availableQualities, setAvailableQualities] = useState<string[]>(['auto']);
+  const [currentChapter, setCurrentChapter] = useState<number>(0);
+  const [isYouTubeEmbed] = useState<boolean>(src?.includes('youtube.com/embed/') || false);
 
-  // Handle video playback
-  const togglePlay = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-      } else {
-        setIsLoading(true);
-        videoRef.current.play()
-          .then(() => {
-            setIsLoading(false);
-          })
-          .catch(error => {
-            // Handle playback errors (like autoplay policy)
-            console.error("Playback error:", error);
-            setIsLoading(false);
-            setIsPlaying(false);
-          });
-      }
-      setIsPlaying(!isPlaying);
+  const videoEncryption = useMemo(() => VideoEncryption.getInstance(), []);
+  const analyticsTracker = useMemo(() => VideoAnalyticsTracker.getInstance('/api/analytics') as IVideoAnalyticsTracker, []);
+  const transcriptionManager = useMemo(() => TranscriptionManager.getInstance(), []);
+
+  // Initialize video protection
+  useEffect(() => {
+    if (!isPreview && encryptionKey) {
+      videoEncryption.setEncryptionConfig({
+        key: encryptionKey,
+        iv: window.crypto.getRandomValues(new Uint8Array(16)).toString(),
+        algorithm: 'AES-256-CBC'
+      });
+      videoEncryption.enableScreenProtection();
     }
-  };
+
+    if (drm) {
+      videoEncryption.setDRMConfig(drm);
+    }
+  }, [encryptionKey, drm, isPreview]);
+
+  // Initialize analytics
+  useEffect(() => {
+    if (!isPreview) {
+      analyticsTracker.startSession(window.localStorage.getItem('userId') || 'anonymous');
+      return () => analyticsTracker.endSession();
+    }
+  }, [isPreview]);
+
+  // Initialize transcriptions
+  useEffect(() => {
+    const loadTranscriptions = async () => {
+      for (const transcription of transcriptions) {
+        await transcriptionManager.loadTranscription(
+          transcription.language,
+          transcription.url
+        );
+      }
+    };
+
+    if (transcriptions.length > 0) {
+      loadTranscriptions();
+    }
+  }, [transcriptions]);
+
+  // Handle video playback with analytics
+  const togglePlay = useCallback(() => {
+    if (!videoRef.current) return;
+
+    if (isPlaying) {
+      videoRef.current.pause();
+      analyticsTracker.trackInteraction('pause', currentTime);
+    } else {
+      setIsLoading(true);
+      videoRef.current.play()
+        .then(() => {
+          setIsLoading(false);
+          analyticsTracker.trackInteraction('play', currentTime);
+        })
+        .catch(error => {
+          console.error("Playback error:", error);
+          setIsLoading(false);
+          setIsPlaying(false);
+          setHasError(true);
+          setErrorMessage("Failed to play video. Please try again.");
+          onError?.(error);
+        });
+    }
+    setIsPlaying(!isPlaying);
+  }, [isPlaying, currentTime, onError]);
+
+  // Handle quality changes
+  const handleQualityChange = useCallback((newQuality: string) => {
+    setSelectedQuality(newQuality);
+    analyticsTracker.trackInteraction('quality', newQuality);
+    
+    // Implement quality switching logic here
+    // This will depend on your video hosting/streaming service
+  }, []);
+
+  // Handle Picture-in-Picture
+  const togglePiP = useCallback(async () => {
+    try {
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture();
+        setIsPiPActive(false);
+      } else if (videoRef.current) {
+        await videoRef.current.requestPictureInPicture();
+        setIsPiPActive(true);
+      }
+    } catch (error) {
+      console.error('PiP error:', error);
+      setErrorMessage('Picture-in-Picture mode is not supported in your browser.');
+    }
+  }, []);
+
+  // Handle chapter navigation
+  const handleChapterChange = useCallback((chapterIndex: number) => {
+    if (!videoRef.current || chapterIndex >= chapters.length) return;
+    
+    const chapter = chapters[chapterIndex];
+    videoRef.current.currentTime = chapter.startTime;
+    setCurrentChapter(chapterIndex);
+    analyticsTracker.trackInteraction('seek', chapter.startTime);
+  }, [chapters]);
+
+  // Handle transcription updates
+  useEffect(() => {
+    const handleTimeUpdate = () => {
+      if (!videoRef.current) return;
+      
+      const currentSegment = transcriptionManager.findSegmentAtTime(
+        videoRef.current.currentTime
+      );
+      
+      if (currentSegment) {
+        setCurrentTranscript(currentSegment.text);
+      }
+    };
+
+    if (videoRef.current) {
+      videoRef.current.addEventListener('timeupdate', handleTimeUpdate);
+    }
+
+    return () => {
+      if (videoRef.current) {
+        videoRef.current.removeEventListener('timeupdate', handleTimeUpdate);
+      }
+    };
+  }, []);
+
+  // Handle mute toggle
+  const toggleMute = useCallback(() => {
+    if (!videoRef.current) return;
+
+    const newMutedState = !isMuted;
+    videoRef.current.muted = newMutedState;
+    setIsMuted(newMutedState);
+    
+    if (newMutedState) {
+      setVolume(0);
+    } else {
+      setVolume(1);
+      videoRef.current.volume = 1;
+    }
+
+    analyticsTracker.trackInteraction('volume', newMutedState ? 0 : 1);
+  }, [isMuted, analyticsTracker]);
 
   // Handle volume changes
-  const handleVolumeChange = (e) => {
+  const handleVolumeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseFloat(e.target.value);
     setVolume(value);
+    
     if (videoRef.current) {
       videoRef.current.volume = value;
       setIsMuted(value === 0);
     }
-  };
 
-  // Handle mute toggle
-  const toggleMute = () => {
-    if (videoRef.current) {
-      videoRef.current.muted = !isMuted;
-      setIsMuted(!isMuted);
-      if (!isMuted) {
-        setVolume(0);
+    analyticsTracker.trackInteraction('volume', value);
+  }, [analyticsTracker]);
+
+  // Handle fullscreen with proper typing
+  const toggleFullscreen = useCallback(async () => {
+    try {
+      if (!document.fullscreenElement) {
+        const container = isYouTubeEmbed
+          ? document.querySelector('.youtube-player-wrapper')
+          : videoRef.current;
+
+        if (container instanceof HTMLElement) {
+          await container.requestFullscreen();
+          setIsFullscreen(true);
+        }
       } else {
-        setVolume(1);
+        await document.exitFullscreen();
+        setIsFullscreen(false);
       }
+    } catch (error) {
+      console.error('Fullscreen error:', error);
+      setErrorMessage('Fullscreen mode is not supported in your browser.');
     }
-  };
+  }, [isYouTubeEmbed]);
 
-  // Handle fullscreen
-  const toggleFullscreen = () => {
-    let container = null;
-    
-    if (isYouTubeEmbed) {
-      // Get the stable wrapper element rather than the iframe directly
-      const wrapper = document.querySelector('.youtube-player-wrapper');
-      container = wrapper || null;
-    } else {
-      container = videoRef.current;
-    }
-      
-    if (!document.fullscreenElement) {
-      if (container && typeof container.requestFullscreen === 'function') {
-        container.requestFullscreen().catch(err => {
-          console.error(`Error attempting to enable fullscreen: ${err.message}`);
-        });
-      setIsFullscreen(true);
-      }
-    } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen().catch(err => {
-          console.error(`Error attempting to exit fullscreen: ${err.message}`);
-        });
-      setIsFullscreen(false);
-      }
-    }
-  };
-
-  // Handle progress updates
+  // Handle video playback
   const handleTimeUpdate = () => {
     if (videoRef.current) {
       const progress = (videoRef.current.currentTime / videoRef.current.duration) * 100;
@@ -250,9 +388,6 @@ const VideoPlayer = ({
     src.startsWith('data:')
   );
   
-  // Check if the source is a YouTube embed
-  const isYouTubeEmbed = src && src.includes('youtube.com/embed/');
-
   // Handle adding bookmarks
   const handleAddBookmark = useCallback(() => {
     if (videoRef.current) {
@@ -292,132 +427,89 @@ const VideoPlayer = ({
     }
   };
 
-  // YouTube API Integration 
+  // Initialize YouTube player
   useEffect(() => {
-    if (!isYouTubeEmbed) return;
+    if (!isYouTubeEmbed || !isYoutubeReady) return;
+
+    const container = document.getElementById('youtube-player-container');
+    if (!container) return;
+
+    // Extract YouTube video ID
+    const videoId = src.split('/').pop()?.split('?')[0];
+    if (!videoId) return;
 
     // Load YouTube API if not already loaded
-    if (!window.YT) {
+    if (typeof window.YT === 'undefined') {
       const tag = document.createElement('script');
       tag.src = 'https://www.youtube.com/iframe_api';
       const firstScriptTag = document.getElementsByTagName('script')[0];
-      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-      
+      if (firstScriptTag?.parentNode) {
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+      }
+
       window.onYouTubeIframeAPIReady = () => {
         setIsYoutubeReady(true);
       };
-    } else {
-      setIsYoutubeReady(true);
+      return;
     }
-    
-    // Clean up function to handle component unmounting
-    return () => {
-      if (ytPlayer && typeof ytPlayer.destroy === 'function') {
-        try {
-          ytPlayer.destroy();
-        } catch (e) {
-          console.error("Error destroying YouTube player:", e);
+
+    // Create YouTube player
+    const player = new window.YT.Player('youtube-player-container', {
+      videoId,
+      playerVars: {
+        controls: 0,
+        showinfo: 0,
+        rel: 0,
+        modestbranding: 1,
+        iv_load_policy: 3,
+        fs: 0
+      },
+      events: {
+        onReady: (event) => {
+          setYtPlayer(event.target);
+          setIsLoading(false);
+          setDuration(event.target.getDuration());
+          if (autoplay) {
+            event.target.playVideo();
+            setIsPlaying(true);
+          }
+        },
+        onStateChange: (event) => {
+          switch(event.data) {
+            case window.YT.PlayerState.ENDED:
+              setIsPlaying(false);
+              onEnded?.();
+              break;
+            case window.YT.PlayerState.PLAYING:
+              setIsPlaying(true);
+              setIsLoading(false);
+              break;
+            case window.YT.PlayerState.PAUSED:
+              setIsPlaying(false);
+              break;
+            case window.YT.PlayerState.BUFFERING:
+              setIsLoading(true);
+              break;
+          }
+        },
+        onError: (event) => {
+          setHasError(true);
+          setErrorMessage("Failed to load YouTube video");
+          setIsLoading(false);
+          onError?.(event);
         }
+      }
+    });
+
+    // Clean up function
+    return () => {
+      try {
+        player.destroy();
+      } catch (e) {
+        console.error("Error destroying YouTube player:", e);
       }
     };
-  }, [isYouTubeEmbed]);
-
-  useEffect(() => {
-    if (!isYouTubeEmbed || !isYoutubeReady) return;
-    
-    // Skip initialization if element doesn't exist
-    const container = document.getElementById('youtube-player-container');
-    if (!container) return;
-    
-    // Extract YouTube video ID
-    const videoId = src.split('/').pop().split('?')[0];
-    
-    try {
-      // Clean up any existing player first
-      if (ytPlayer) {
-        ytPlayer.destroy();
-        setYtPlayer(null);
-      }
-      
-      // Create a fresh player instance
-      const player = new window.YT.Player(container, {
-        videoId: videoId,
-        playerVars: {
-          controls: 0,
-          showinfo: 0,
-          rel: 0,
-          modestbranding: 1,
-          iv_load_policy: 3,
-          fs: 0
-        },
-        events: {
-          onReady: (event) => {
-            setYtPlayer(event.target);
-            setIsLoading(false);
-            setDuration(event.target.getDuration());
-            if (autoplay) {
-              event.target.playVideo();
-              setIsPlaying(true);
-            }
-          },
-          onStateChange: (event) => {
-            // Update state based on YouTube player state
-            switch(event.data) {
-              case 0: // ended
-                setIsPlaying(false);
-                onEnded?.();
-                break;
-              case 1: // playing
-                setIsPlaying(true);
-                setIsLoading(false);
-                break;
-              case 2: // paused
-                setIsPlaying(false);
-                break;
-              case 3: // buffering
-                setIsLoading(true);
-                break;
-            }
-          },
-          onError: (event) => {
-            setHasError(true);
-            setErrorMessage("Failed to load YouTube video");
-            setIsLoading(false);
-            onError?.(event);
-          }
-        }
-      });
-      
-      // Update progress for YouTube
-      const progressInterval = setInterval(() => {
-        if (player && typeof player.getCurrentTime === 'function' && typeof player.getDuration === 'function') {
-          try {
-            const currentTime = player.getCurrentTime();
-            const duration = player.getDuration();
-            const progress = (currentTime / duration) * 100;
-            setProgress(progress);
-            setCurrentTime(currentTime);
-            onProgress?.(progress, currentTime);
-          } catch (error) {
-            console.error("Error updating YouTube progress:", error);
-          }
-        }
-      }, 500);
-      
-      return () => {
-        clearInterval(progressInterval);
-        if (player && player.destroy) {
-          player.destroy();
-        }
-      };
-    } catch (error) {
-      console.error("YouTube player initialization error:", error);
-      setIsLoading(false);
-      setHasError(true);
-      setErrorMessage("Failed to initialize YouTube player");
-      onError?.(error);
-    }
-  }, [isYouTubeEmbed, isYoutubeReady, src, autoplay, onEnded, onError, onProgress]);
+  }, [isYouTubeEmbed, isYoutubeReady, src, autoplay, onEnded, onError]);
 
   // Override play/pause functionality for YouTube
   const toggleYTPlay = useCallback(() => {
@@ -439,6 +531,45 @@ const VideoPlayer = ({
       togglePlay();
     }
   }, [isYouTubeEmbed, ytPlayer, toggleYTPlay, togglePlay]);
+
+  // Handle initial time seeking
+  useEffect(() => {
+    if (initialTime && initialTime > 0) {
+      if (isYouTubeEmbed && ytPlayer) {
+        ytPlayer.seekTo(initialTime);
+      } else if (videoRef.current) {
+        videoRef.current.currentTime = initialTime;
+      }
+    }
+  }, [initialTime, isYouTubeEmbed, ytPlayer]);
+
+  // Handle metadata loaded
+  const handleMetadataLoaded = useCallback(() => {
+    if (!videoRef.current) return;
+    
+    setDuration(videoRef.current.duration);
+    setIsLoading(false);
+
+    // Set initial time if provided
+    if (initialTime > 0) {
+      videoRef.current.currentTime = initialTime;
+    }
+
+    // Set initial playback speed
+    videoRef.current.playbackRate = playbackSpeed;
+  }, [initialTime, playbackSpeed]);
+
+  // Add event listeners
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.addEventListener('loadedmetadata', handleMetadataLoaded);
+    
+    return () => {
+      video.removeEventListener('loadedmetadata', handleMetadataLoaded);
+    };
+  }, [handleMetadataLoaded]);
 
   if (!isValidUrl && !hasError) {
     return (
@@ -624,22 +755,7 @@ const VideoPlayer = ({
                         max="1"
                         step="0.1"
                         value={volume}
-                        onChange={(e) => {
-                          const value = parseFloat(e.target.value);
-                          setVolume(value);
-                          if (isYouTubeEmbed && ytPlayer) {
-                            ytPlayer.setVolume(value * 100);
-                            setIsMuted(value === 0);
-                            if (value === 0) {
-                              ytPlayer.mute();
-                            } else if (isMuted) {
-                              ytPlayer.unMute();
-                            }
-                          } else if (videoRef.current) {
-                            videoRef.current.volume = value;
-                            setIsMuted(value === 0);
-                          }
-                        }}
+                        onChange={handleVolumeChange}
                         className="w-20 h-1 bg-white/20 appearance-none rounded-full [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full"
                       />
                     </div>
@@ -706,7 +822,7 @@ const VideoPlayer = ({
   }
 
   return (
-    <div className="relative group">
+    <div className="relative w-full h-full bg-black video-player-container">
       {isLoading && (
         <div className="absolute inset-0 bg-gray-900 flex items-center justify-center z-10">
           <motion.div
@@ -734,10 +850,7 @@ const VideoPlayer = ({
           setIsLoading(false);
           onError?.(e);
         }}
-        onLoadedMetadata={() => {
-          setDuration(videoRef.current.duration);
-          setIsLoading(false);
-        }}
+        onLoadedMetadata={handleMetadataLoaded}
         onLoadedData={() => {
           setIsLoading(false);
         }}
@@ -933,6 +1046,152 @@ const VideoPlayer = ({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* New features UI */}
+      <div className="absolute top-4 right-4 flex gap-2">
+        {/* Quality selector */}
+        <button
+          onClick={() => setShowSettings(!showSettings)}
+          className="p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+        >
+          <Settings className="w-5 h-5" />
+        </button>
+
+        {/* Transcription toggle */}
+        {transcriptions.length > 0 && (
+          <button
+            onClick={() => setShowTranscript(!showTranscript)}
+            className="p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+          >
+            <Subtitles className="w-5 h-5" />
+          </button>
+        )}
+
+        {/* PiP toggle */}
+        <button
+          onClick={togglePiP}
+          className="p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+        >
+          <PictureInPicture className="w-5 h-5" />
+        </button>
+
+        {/* Download button (only for preview videos) */}
+        {(isPreview || allowDownload) && (
+          <button
+            onClick={() => {
+              const link = document.createElement('a');
+              link.href = src;
+              link.download = 'video.mp4';
+              link.click();
+            }}
+            className="p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+          >
+            <Download className="w-5 h-5" />
+          </button>
+        )}
+      </div>
+
+      {/* Settings panel */}
+      <AnimatePresence>
+        {showSettings && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="absolute top-16 right-4 bg-black/90 rounded-lg p-4 w-64"
+          >
+            <h3 className="text-white font-medium mb-2">Settings</h3>
+            
+            {/* Quality selection */}
+            <div className="mb-4">
+              <label className="text-white/70 text-sm block mb-1">Quality</label>
+              <select
+                value={selectedQuality}
+                onChange={(e) => handleQualityChange(e.target.value)}
+                className="w-full bg-white/10 text-white p-2 rounded"
+              >
+                {availableQualities.map(q => (
+                  <option key={q} value={q}>{q}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Playback speed */}
+            <div className="mb-4">
+              <label className="text-white/70 text-sm block mb-1">Speed</label>
+              <select
+                value={playbackSpeed}
+                onChange={(e) => {
+                  const speed = parseFloat(e.target.value);
+                  if (videoRef.current) {
+                    videoRef.current.playbackRate = speed;
+                  }
+                  analyticsTracker.trackInteraction('speed', speed);
+                }}
+                className="w-full bg-white/10 text-white p-2 rounded"
+              >
+                {[0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2].map(speed => (
+                  <option key={speed} value={speed}>{speed}x</option>
+                ))}
+              </select>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Transcription panel */}
+      <AnimatePresence>
+        {showTranscript && (
+          <motion.div
+            initial={{ opacity: 0, x: 300 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 300 }}
+            className="absolute top-0 right-0 bottom-0 w-80 bg-black/90 p-4 overflow-y-auto"
+          >
+            <h3 className="text-white font-medium mb-4 flex items-center">
+              <Type className="w-5 h-5 mr-2" />
+              Transcription
+            </h3>
+            
+            {/* Language selector */}
+            <select
+              value={transcriptionManager.getCurrentLanguage()}
+              onChange={(e) => transcriptionManager.setLanguage(e.target.value)}
+              className="w-full bg-white/10 text-white p-2 rounded mb-4"
+            >
+              {transcriptionManager.getAvailableLanguages().map(lang => (
+                <option key={lang} value={lang}>{lang}</option>
+              ))}
+            </select>
+
+            {/* Current transcript */}
+            <div className="text-white/90 text-sm leading-relaxed">
+              {currentTranscript}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Chapter markers */}
+      {chapters.length > 0 && (
+        <div className="absolute bottom-16 left-0 right-0 px-4">
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            {chapters.map((chapter, index) => (
+              <button
+                key={chapter.id}
+                onClick={() => handleChapterChange(index)}
+                className={`px-3 py-1 rounded text-sm whitespace-nowrap ${
+                  currentChapter === index
+                    ? 'bg-primaryColor text-white'
+                    : 'bg-white/10 text-white/70 hover:bg-white/20'
+                }`}
+              >
+                {chapter.title}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
