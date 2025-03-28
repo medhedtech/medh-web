@@ -245,7 +245,7 @@ const HomeCourseSection = ({
         getQuery({
           url: apiUrls?.courses?.getAllCoursesWithLimits(
             1, // page
-            8, // limit to 8 courses (4x2 grid)
+            "", // limit to 8 courses (4x2 grid)
             "", // course_title
             "", // course_tag
             "", // course_category
