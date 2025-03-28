@@ -6,6 +6,8 @@ import DashboardContainer from "@/components/shared/containers/DashboardContaine
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 
 import ProtectedPage from "@/app/protectedRoutes";
+import PageWrapper from "@/components/shared/wrappers/PageWrapper";
+
 
 const StudentCertificate = () => {
   const [showCertificate, setShowCertificate] = useState(false);
@@ -16,12 +18,11 @@ const StudentCertificate = () => {
   };
 
   return (
-    <ProtectedPage>
+    <ProtectedPage >
+      <PageWrapper>
       <main>
-        <DashboardContainer>
-          <div>
-            <HeadingDashboard />
-          </div>
+        <DashboardContainer> 
+        <div className="py-24">
           {showCertificate ? (
             <div className="px-6 pb-4">
               <ViewCertificate certificateUrl={certificateurl} />
@@ -32,9 +33,11 @@ const StudentCertificate = () => {
               setCertificateUrl={setCertificateUrl}
             />
           )}
-          
+          </div>
         </DashboardContainer>
       </main>
+
+      </PageWrapper>
     </ProtectedPage>
   );
 };

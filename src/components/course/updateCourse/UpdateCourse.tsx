@@ -1,11 +1,11 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useRouter, useParams } from 'next/navigation';
 import { toast } from 'react-toastify';
-import { ICourseFormData } from '@/types/course.types';
+import { ICourseFormData, IUpdateCourseData } from '@/types/course.types';
 import StepProgress from '@/components/shared/StepProgress';
 import CourseOverview from '@/components/course/steps/CourseOverview';
 import CourseDescription from '@/components/course/steps/CourseDescription';
@@ -22,6 +22,49 @@ import usePostQuery from "@/hooks/postQuery.hook";
 import usePutQuery from "@/hooks/putQuery.hook";
 import useGetQuery from "@/hooks/getQuery.hook";
 import axios from 'axios';
+import { storeExternalToken } from '@/utils/auth';
+import { apiConfig, endpoints } from '@/config/api';
+
+interface CategoryData {
+  _id?: string;
+  id?: string;
+  category_name?: string;
+  name?: string;
+}
+
+interface FormattedCategory {
+  id: string;
+  name: string;
+}
+
+interface FormattedInstructor {
+  id: string;
+  name: string;
+}
+
+interface CourseDescription {
+  program_overview: string;
+  benefits: string;
+  learning_objectives: string[];
+  course_requirements: string[];
+  target_audience: string[];
+}
+
+interface Tool {
+  name: string;
+  category: string;
+  description: string;
+  logo_url: string;
+}
+
+interface CourseData {
+  course_title: string;
+  course_description: CourseDescription;
+  assigned_instructor?: string;  // Optional field
+  category?: string;  // Optional field
+  tools: Tool[];
+  // ... other fields ...
+}
 
 const formSteps = [
   {
@@ -88,27 +131,27 @@ const formSteps = [
 
 // Reuse the same schema as AddCourse.tsx
 const schema = yup.object().shape({
-  course_category: yup.string().required('Course category is required'),
+  course_category: yup.string(),
   course_subcategory: yup.string(),
-  course_title: yup.string().required('Course title is required'),
+  course_title: yup.string(),
   course_subtitle: yup.string(),
   class_type: yup.string(),
   course_level: yup.string(),
   language: yup.string(),
   subtitle_languages: yup.array().of(yup.string()),
-  course_image: yup.string().required('Course image is required'),
+  course_image: yup.string(),
   assigned_instructor: yup.string().nullable(),
   course_slug: yup.string(),
   unique_key: yup.string(),
   course_description: yup.object().shape({
-    program_overview: yup.string().required('Program overview is required'),
+    program_overview: yup.string(),
     benefits: yup.string(),
     learning_objectives: yup.array().of(yup.string()),
     course_requirements: yup.array().of(yup.string()),
     target_audience: yup.array().of(yup.string())
   }),
   no_of_Sessions: yup.number(),
-  course_duration: yup.string().required('Course duration is required'),
+  course_duration: yup.string(),
   session_duration: yup.string(),
   min_hours_per_week: yup.number(),
   max_hours_per_week: yup.number(),
@@ -116,11 +159,11 @@ const schema = yup.object().shape({
   course_fee: yup.number(),
   prices: yup.array().of(
     yup.object().shape({
-      currency: yup.string().required('Currency is required'),
-      individual: yup.number().required('Individual price is required'),
-      batch: yup.number().required('Batch price is required'),
-      min_batch_size: yup.number().required('Minimum batch size is required'),
-      max_batch_size: yup.number().required('Maximum batch size is required'),
+      currency: yup.string(),
+      individual: yup.number(),
+      batch: yup.number(),
+      min_batch_size: yup.number(),
+      max_batch_size: yup.number(),
       early_bird_discount: yup.number(),
       group_discount: yup.number(),
       is_active: yup.boolean()
@@ -248,7 +291,8 @@ const UpdateCourse: React.FC = () => {
 
   const [currentStep, setCurrentStep] = useState(1);
   const [courseImage, setCourseImage] = useState<string | null>(null);
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<FormattedCategory[]>([]);
+  const [instructors, setInstructors] = useState<FormattedInstructor[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [validationMessage, setValidationMessage] = useState<string>('');
@@ -272,7 +316,7 @@ const UpdateCourse: React.FC = () => {
     resolver: yupResolver(schema) as any,
     mode: 'onChange',
     defaultValues: {
-      status: 'draft',
+      status: 'Upcoming',
       isFree: false,
       specifications: null,
       course_grade: '',
@@ -318,32 +362,22 @@ const UpdateCourse: React.FC = () => {
     const fetchCategories = async () => {
       setIsLoading(true);
       try {
-        const response = await getQuery({
-          url: apiUrls.categories.getAllCategories,
-          onSuccess: () => {},
-          onError: () => {
-            console.error("Error fetching categories");
-            toast.error('Failed to load categories. Please try again.');
-          }
-        });
-        
+        const response = await axios.get(`${apiConfig.apiUrl}/categories`);
         if (response?.data) {
-          let categoriesData = [];
+          const categoriesData = response.data;
+          let formattedCategories: FormattedCategory[] = [];
           
-          if (Array.isArray(response.data)) {
-            categoriesData = response.data;
-          } else if (response.data.data && Array.isArray(response.data.data)) {
-            categoriesData = response.data.data;
-          } else if (response.data.success && Array.isArray(response.data.data)) {
-            categoriesData = response.data.data;
-          }
-          
-          const formattedCategories = categoriesData
-            .filter(cat => cat && (cat._id || cat.id) && (cat.category_name || cat.name))
-            .map(cat => ({
+          if (Array.isArray(categoriesData)) {
+            formattedCategories = categoriesData.map(cat => ({
               id: cat._id || cat.id || '',
               name: cat.category_name || cat.name || 'Unnamed Category'
             }));
+          } else if (categoriesData.data && Array.isArray(categoriesData.data)) {
+            formattedCategories = categoriesData.data.map((cat: CategoryData) => ({
+              id: cat._id || cat.id || '',
+              name: cat.category_name || cat.name || 'Unnamed Category'
+            }));
+          }
           
           setCategories(formattedCategories);
           
@@ -363,7 +397,42 @@ const UpdateCourse: React.FC = () => {
     };
 
     fetchCategories();
-  }, [getQuery]);
+  }, []);
+
+  // Fetch instructors when component mounts
+  useEffect(() => {
+    const fetchInstructors = async () => {
+      setIsLoading(true);
+      try {
+        const response = await axios.get(`${apiConfig.apiUrl}/instructors`);
+        if (response?.data) {
+          const instructorsData = response.data;
+          let formattedInstructors: FormattedInstructor[] = [];
+          
+          if (Array.isArray(instructorsData)) {
+            formattedInstructors = instructorsData.map(instructor => ({
+              id: instructor._id || instructor.id || '',
+              name: instructor.name || 'Unnamed Instructor'
+            }));
+          } else if (instructorsData.data && Array.isArray(instructorsData.data)) {
+            formattedInstructors = instructorsData.data.map((instructor: any) => ({
+              id: instructor._id || instructor.id || '',
+              name: instructor.name || 'Unnamed Instructor'
+            }));
+          }
+          
+          setInstructors(formattedInstructors);
+        }
+      } catch (error) {
+        console.error('Failed to fetch instructors:', error);
+        toast.error('Failed to load instructors');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchInstructors();
+  }, []);
 
   // Fetch course data when component mounts
   useEffect(() => {
@@ -380,9 +449,11 @@ const UpdateCourse: React.FC = () => {
       try {
         const response = await getQuery({
           url: apiUrls.courses.getCourseById(courseId as string),
-          onSuccess: () => {},
-          onError: () => {
-            console.error("Error fetching course data");
+          onSuccess: (response) => {
+            console.log('Course data fetched successfully:', response);
+          },
+          onFail: (error) => {
+            console.error("Error fetching course data:", error);
             toast.error('Failed to load course data. Please try again.');
             setError('Failed to load course data');
           }
@@ -390,26 +461,6 @@ const UpdateCourse: React.FC = () => {
 
         if (response?.data) {
           const courseData = response.data;
-          
-          console.log("Fetched course data:", courseData);
-          console.log("class_type from API:", courseData.class_type);
-          
-          // Ensure curriculum data is properly initialized
-          if (courseData.curriculum && Array.isArray(courseData.curriculum)) {
-            courseData.curriculum = courseData.curriculum.map(week => ({
-              ...week,
-              liveClasses: week.liveClasses || [],
-              lessons: week.lessons || [],
-              topics: week.topics || [],
-              sections: (week.sections || []).map(section => ({
-                ...section,
-                lessons: section.lessons || [],
-                resources: section.resources || []
-              }))
-            }));
-          } else {
-            courseData.curriculum = [];
-          }
           
           // Set form data with the course data
           Object.keys(courseData).forEach(key => {
@@ -423,12 +474,6 @@ const UpdateCourse: React.FC = () => {
             Object.keys(courseData.course_description).forEach(key => {
               setValue(`course_description.${key}` as any, courseData.course_description[key]);
             });
-          }
-          
-          // Explicitly set class_type to ensure it's properly handled
-          if (courseData.class_type) {
-            console.log("Setting class_type directly:", courseData.class_type);
-            setValue('class_type', courseData.class_type);
           }
 
           // Set course image
@@ -454,19 +499,42 @@ const UpdateCourse: React.FC = () => {
     }
   }, [courseId, getQuery, setValue, router]);
 
+  // Update the hash change effect to prevent page reload
   useEffect(() => {
-    const hash = window.location.hash.slice(1);
-    const stepIndex = formSteps.findIndex(step => step.hash === hash);
-    if (stepIndex !== -1) {
-      setCurrentStep(stepIndex + 1);
-    } else if (!hash) {
+    const handleHashChange = (e: HashChangeEvent) => {
+      e.preventDefault();
+      const hash = window.location.hash.slice(1);
+      const stepIndex = formSteps.findIndex(step => step.hash === hash);
+      if (stepIndex !== -1) {
+        setCurrentStep(stepIndex + 1);
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    
+    // Set initial hash if none exists
+    if (!window.location.hash) {
       window.location.hash = formSteps[0].hash;
+    } else {
+      // Handle initial hash
+      const hash = window.location.hash.slice(1);
+      const stepIndex = formSteps.findIndex(step => step.hash === hash);
+      if (stepIndex !== -1) {
+        setCurrentStep(stepIndex + 1);
+      }
     }
+
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
   }, []);
 
-  useEffect(() => {
-    window.location.hash = formSteps[currentStep - 1].hash;
-  }, [currentStep]);
+  // Update hash without causing reload
+  const updateHash = (hash: string) => {
+    history.pushState(null, '', `#${hash}`);
+    // Manually trigger hashchange event
+    window.dispatchEvent(new HashChangeEvent('hashchange'));
+  };
 
   const handleImageUpload = async (file: File) => {
     try {
@@ -474,34 +542,63 @@ const UpdateCourse: React.FC = () => {
         toast.error('Please select a valid image file');
         return;
       }
+
+      // Validate file type
+      const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+      if (!validTypes.includes(file.type)) {
+        toast.error('Please upload a valid image file (JPEG, PNG, or WebP)');
+        return;
+      }
+
+      // Validate file size (5MB limit)
+      const maxSize = 10000 * 1024 * 1024; // 5MB in bytes
+      if (file.size > maxSize) {
+        toast.error('Image size should be less than 5MB');
+        return;
+      }
+
+      // Compress image before uploading
+      const compressedFile = await compressImage(file);
       
       const reader = new FileReader();
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(compressedFile);
       reader.onload = async () => {
         const base64 = reader.result?.toString().split(',')[1];
         if (base64) {
           setIsLoading(true);
-          const postData = { base64String: base64, fileType: "image" };
-          await postQuery({
-            url: apiUrls?.upload?.uploadImage,
-            postData,
-            onSuccess: async (data) => {
-              const imageUrl = data?.data;
-              setCourseImage(imageUrl);
-              setValue('course_image', imageUrl, {
-                shouldValidate: true,
-                shouldDirty: true,
-                shouldTouch: true
-              });
-              await checkStepValidation(currentStep);
-              toast.success('Image uploaded successfully');
-            },
-            onError: (error) => {
-              console.error("Image upload error:", error);
-              toast.error('Image upload failed. Please try again.');
-            },
-          });
-          setIsLoading(false);
+          try {
+            const postData = { base64String: base64, fileType: "image" };
+            const response = await postQuery({
+              url: apiUrls?.upload?.uploadImage,
+              postData,
+              onSuccess: async (data) => {
+                const imageUrl = data?.data;
+                setCourseImage(imageUrl);
+                setValue('course_image', imageUrl, {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                  shouldTouch: true
+                });
+                await checkStepValidation(currentStep);
+                toast.success('Image uploaded successfully');
+              },
+              onError: (error) => {
+                console.error("Image upload error:", error);
+                if (error?.response?.status === 413) {
+                  toast.error('Image size is too large. Please try a smaller image or compress it further.');
+                } else if (error?.message === 'Network Error') {
+                  toast.error('Network error. Please check your connection and try again.');
+                } else {
+                  toast.error(error?.response?.data?.message || 'Image upload failed. Please try again.');
+                }
+                throw error;
+              },
+            });
+          } catch (error) {
+            console.error("API call error:", error);
+          } finally {
+            setIsLoading(false);
+          }
         }
       };
       
@@ -516,8 +613,126 @@ const UpdateCourse: React.FC = () => {
     }
   };
 
+  // Add image compression utility
+  const compressImage = async (file: File): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          // Max dimensions
+          const MAX_WIDTH = 1920;
+          const MAX_HEIGHT = 1080;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          // Compress with quality 0.7 (70% of original)
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                const compressedFile = new File([blob], file.name, {
+                  type: file.type,
+                  lastModified: Date.now(),
+                });
+                resolve(compressedFile);
+              } else {
+                reject(new Error('Failed to compress image'));
+              }
+            },
+            file.type,
+            0.7
+          );
+        };
+        img.onerror = () => {
+          reject(new Error('Failed to load image'));
+        };
+      };
+      reader.onerror = () => {
+        reject(new Error('Failed to read file'));
+      };
+    });
+  };
+
+  // Add these functions after the useEffect hooks and before handleStepSubmit
+  const saveFormDataToLocalStorage = (data: any) => {
+    try {
+      localStorage.setItem(`course_form_${courseId}`, JSON.stringify(data));
+    } catch (error) {
+      console.error('Error saving to localStorage:', error);
+    }
+  };
+
+  const loadFormDataFromLocalStorage = () => {
+    try {
+      const savedData = localStorage.getItem(`course_form_${courseId}`);
+      if (savedData) {
+        const parsedData = JSON.parse(savedData);
+        Object.keys(parsedData).forEach(key => {
+          setValue(key as any, parsedData[key]);
+        });
+      }
+    } catch (error) {
+      console.error('Error loading from localStorage:', error);
+    }
+  };
+
+  // Load saved form data when component mounts
+  useEffect(() => {
+    if (courseId && isCourseLoaded) {
+      loadFormDataFromLocalStorage();
+    }
+  }, [courseId, isCourseLoaded]);
+
+  // Store the token from the URL or header if available
+  useEffect(() => {
+    // Function to parse URL parameters
+    const getQueryParam = (name: string): string | null => {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(name);
+    };
+
+    // Try to get token from URL
+    const tokenFromUrl = getQueryParam('token');
+    if (tokenFromUrl) {
+      storeExternalToken(tokenFromUrl);
+    }
+
+    // Check if there's a token passed directly in the request
+    const token = getQueryParam('x-access-token') || getQueryParam('access_token');
+    if (token) {
+      storeExternalToken(token);
+    }
+    
+    // Fix for the course_tag linter error by properly setting it if undefined
+    setValue('course_tag', '');
+  }, [setValue]);
+
+  // Update the navigation functions to use localStorage
   const handleStepSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const formData = watch();
     
     try {
       const isValid = await checkStepValidation(currentStep);
@@ -526,11 +741,11 @@ const UpdateCourse: React.FC = () => {
         return;
       }
 
-      if (currentStep === formSteps.length) {
-        // Get all form values
-        const values = watch();
+      // Save form data to localStorage
+      saveFormDataToLocalStorage(formData);
 
-        // Validate all fields before submission
+      if (currentStep === formSteps.length) {
+        const values = watch();
         const isFormValid = await trigger();
 
         if (!isFormValid) {
@@ -539,9 +754,10 @@ const UpdateCourse: React.FC = () => {
           return;
         }
 
-        // Submit the form
         try {
           await onSubmit(values);
+          // Clear localStorage after successful submission
+          localStorage.removeItem(`course_form_${courseId}`);
         } catch (submitError) {
           console.error('Form submission failed:', submitError);
           return;
@@ -555,14 +771,18 @@ const UpdateCourse: React.FC = () => {
     }
   };
 
-  const onSubmit = async (data: ICourseFormData) => {
+  const onSubmit = async (data: ICourseFormData, event?: React.BaseSyntheticEvent) => {
     try {
+      if (event) {
+        event.preventDefault();
+      }
+      
       setIsSubmitting(true);
       setValidationMessage('');
 
       // Validate required fields first
       if (!data.course_title || !data.course_category || !data.class_type || !data.course_image) {
-        const missingFields = [];
+        const missingFields: string[] = [];
         if (!data.course_title) missingFields.push('Course Title');
         if (!data.course_category) missingFields.push('Course Category');
         if (!data.class_type) missingFields.push('Class Type');
@@ -571,157 +791,80 @@ const UpdateCourse: React.FC = () => {
         throw new Error(`Required fields are missing: ${missingFields.join(', ')}`);
       }
 
-      // Format the curriculum data with proper structure
-      const formattedCurriculum = data.curriculum?.map(week => ({
-        id: week.id,
-        weekTitle: week.weekTitle,
-        weekDescription: week.weekDescription,
-        topics: week.topics || [],
-        sections: week.sections?.map(section => ({
-          id: section.id,
-          title: section.title,
-          description: section.description,
-          order: section.order,
-          resources: section.resources || [],
-          lessons: section.lessons?.map(lesson => {
-            const baseLesson = {
-              id: lesson.id,
-              title: lesson.title,
-              description: lesson.description,
-              order: lesson.order,
-              lessonType: lesson.lessonType,
-              isPreview: lesson.isPreview || false,
-              meta: {
-                ...lesson.meta,
-                presenter: lesson.meta?.presenter || null,
-                transcript: lesson.meta?.transcript || null,
-                time_limit: lesson.meta?.time_limit || null,
-                passing_score: lesson.meta?.passing_score || null,
-                due_date: lesson.meta?.due_date || null,
-                max_score: lesson.meta?.max_score || null
-              },
-              resources: lesson.resources || []
-            };
-
-            switch (lesson.lessonType) {
-              case 'video':
-                return {
-                  ...baseLesson,
-                  video_url: lesson.video_url,
-                  duration: lesson.duration
-                };
-              case 'quiz':
-                return {
-                  ...baseLesson,
-                  quiz_id: lesson.quiz_id
-                };
-              case 'assessment':
-                return {
-                  ...baseLesson,
-                  assignment_id: lesson.assignment_id
-                };
-              default:
-                return baseLesson;
-            }
-          }) || []
-        })) || []
-      })) || [];
-
       // Format the course data
       const courseData = {
-        status: data.status || 'draft',
-        course_title: data.course_title?.trim(),
-        course_subtitle: data.course_subtitle?.trim(),
-        course_tag: data.course_tag,
-        course_category: data.course_category,
-        course_subcategory: data.course_subcategory,
-        course_level: data.course_level,
-        class_type: data.class_type ,
-        course_grade: data.course_grade,
+        status: data.status || 'Draft',
+        course_title: data.course_title?.trim() || '',
+        course_subtitle: data.course_subtitle?.trim() || '',
+        course_tag: data.course_tag?.trim() || '',
+        course_category: data.course_category || null,
+        course_subcategory: data.course_subcategory || null,
+        class_type: data.class_type || 'regular',
+        course_grade: data.course_grade || null,
         language: data.language || 'English',
-        subtitle_languages: data.subtitle_languages || [],
+        subtitle_languages: data.subtitle_languages?.filter(Boolean) || [],
         category_type: data.category_type || 'Paid',
-        course_duration: data.course_duration,
-        course_fee: Number(data.course_fee) || 0,
-        is_Certification: data.is_Certification || 'Yes',
-        is_Assignments: data.is_Assignments || 'Yes',
-        is_Projects: data.is_Projects || 'Yes',
-        is_Quizes: data.is_Quizes || 'Yes',
         course_image: data.course_image,
         assigned_instructor: data.assigned_instructor || null,
-        course_description: {
-          program_overview: data.course_description?.program_overview?.trim(),
-          benefits: data.course_description?.benefits?.trim(),
-          learning_objectives: data.course_description?.learning_objectives?.filter(Boolean) || [],
-          course_requirements: data.course_description?.course_requirements?.filter(Boolean) || [],
-          target_audience: data.course_description?.target_audience?.filter(Boolean) || []
-        },
-        curriculum: formattedCurriculum,
-        resource_pdfs: (data.resource_pdfs || [])?.map(pdf => ({
-          title: pdf.title?.trim(),
-          url: pdf.url,
-          description: pdf.description?.trim(),
-          size_mb: Number(pdf.size_mb) || 0,
-          pages: Number(pdf.pages) || 0,
-          upload_date: pdf.upload_date || new Date().toISOString()
-        })),
-        tools_technologies: (data.tools_technologies || [])?.map(tool => ({
-          name: tool.name?.trim(),
-          category: tool.category?.trim(),
-          description: tool.description?.trim(),
-          logo_url: tool.logo_url
-        })),
-        bonus_modules: (data.bonus_modules || [])?.map(module => ({
-          title: module.title?.trim(),
-          description: module.description?.trim(),
-          resources: (module.resources || [])?.map(resource => ({
-            title: resource.title?.trim(),
-            type: resource.type,
-            url: resource.url,
-            description: resource.description?.trim()
-          }))
-        })),
-        faqs: (data.faqs || [])?.map(faq => ({
-          question: faq.question?.trim(),
-          answer: faq.answer?.trim()
-        })),
-        final_evaluation: {
-          final_quizzes: data.final_evaluation?.final_quizzes || [],
-          final_assessments: data.final_evaluation?.final_assessments || [],
-          certification: data.final_evaluation?.certification || null,
-          final_faqs: data.final_evaluation?.final_faqs || []
-        },
-        related_courses: data.related_courses || [],
-        brochures: data.brochures || [],
-        specifications: data.specifications?.trim() || null,
-        efforts_per_Week: data.efforts_per_Week?.trim(),
+        course_description: data.course_description,
+        course_duration: Number(data.course_duration) || 0,
+        course_fee: Number(data.course_fee) || 0,
+        is_certification: data.is_Certification === 'Yes',
+        is_assignments: data.is_Assignments === 'Yes',
+        is_projects: data.is_Projects === 'Yes',
+        is_quizzes: data.is_Quizes === 'Yes',
         min_hours_per_week: Number(data.min_hours_per_week) || 0,
         max_hours_per_week: Number(data.max_hours_per_week) || 0,
-        no_of_Sessions: Number(data.no_of_Sessions) || 0,
-        session_duration: data.session_duration?.trim(),
+        no_of_sessions: Number(data.no_of_Sessions) || 0,
+        session_duration: data.session_duration || null,
         isFree: Boolean(data.isFree),
-        prices: data.prices || []
+        specifications: data.specifications || null,
+        efforts_per_Week: data.efforts_per_Week || null,
+        curriculum: formatCurriculum(data.curriculum || []),
+        resource_pdfs: data.resource_pdfs || [],
+        tools_technologies: data.tools_technologies || [],
+        bonus_modules: data.bonus_modules || [],
+        faqs: data.faqs || [],
+        meta: {
+          ratings: {
+            average: Number(data.meta?.ratings?.average) || 0,
+            count: Number(data.meta?.ratings?.count) || 0
+          },
+          views: Number(data.meta?.views) || 0,
+          enrollments: Number(data.meta?.enrollments) || 0,
+          lastUpdated: new Date().toISOString()
+        },
+        prices: data.prices || [],
+        related_courses: data.related_courses?.filter(Boolean)?.map(id => id || null) || []
       };
 
       // Make the API call to update the course
+      const courseUpdateUrl = `${apiConfig.apiUrl}${endpoints.courses.update(courseId as string)}`;
+      
       const response = await putQuery({
-        url: apiUrls.courses.updateCourse(courseId as string),
+        url: courseUpdateUrl,
         putData: courseData,
+        requireAuth: true,
+        debug: true,
         onSuccess: (response) => {
+          console.log('API Success Response:', response);
           toast.success(`Course "${courseData.course_title}" updated successfully!`);
           router.push('/dashboards/admin-courses');
         },
-        onError: (error) => {
+        onFail: (error) => {
+          console.error('API Error:', error);
           const errorMessage = error?.response?.data?.message || 'Failed to update course';
           toast.error(errorMessage);
           setValidationMessage(errorMessage);
-          throw new Error(errorMessage);
+          throw error;
         },
       });
 
       if (!response) {
         throw new Error('No response from server');
       }
+
+      return response;
     } catch (error) {
       console.error("Form submission error:", error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to update course';
@@ -755,6 +898,121 @@ const UpdateCourse: React.FC = () => {
     
     setValidationMessage('');
     return true;
+  };
+
+  // Helper function to format a lesson
+  const formatLesson = (lesson: any, isDirect = false) => {
+    const baseLesson = {
+      id: lesson.id || `lesson_${isDirect ? 'direct_' : ''}${crypto.randomUUID()}`,
+      title: lesson.title?.trim() || '',
+      description: lesson.description?.trim() || '',
+      order: lesson.order || 0,
+      lessonType: lesson.lessonType || 'video',
+      isPreview: lesson.isPreview || false,
+      meta: {
+        presenter: lesson.meta?.presenter || null,
+        transcript: lesson.meta?.transcript || null,
+        time_limit: lesson.meta?.time_limit || null,
+        passing_score: lesson.meta?.passing_score || null,
+        due_date: lesson.meta?.due_date || null,
+        max_score: lesson.meta?.max_score || null
+      },
+      resources: (lesson.resources || []).map((resource: any) => ({
+        id: resource.id || crypto.randomUUID(),
+        title: resource.title?.trim() || '',
+        url: resource.url || '',
+        type: resource.type || '',
+        description: resource.description?.trim() || ''
+      }))
+    };
+
+    switch (lesson.lessonType) {
+      case 'video':
+        return {
+          ...baseLesson,
+          video_url: lesson.video_url?.trim() || '',
+          duration: lesson.duration?.trim() || ''
+        };
+      case 'quiz':
+        return {
+          ...baseLesson,
+          quiz_id: lesson.quiz_id || ''
+        };
+      case 'assessment':
+        return {
+          ...baseLesson,
+          assignment_id: lesson.assignment_id || ''
+        };
+      default:
+        return baseLesson;
+    }
+  };
+
+  // Helper function to format curriculum data
+  const formatCurriculum = (curriculum: any[] = []) => {
+    return curriculum.map(week => {
+      // Filter out invalid lessons from sections
+      const validSections = (week.sections || []).map((section: any) => ({
+        id: section.id || crypto.randomUUID(),
+        title: section.title?.trim() || '',
+        description: section.description?.trim() || '',
+        order: section.order || 0,
+        resources: (section.resources || []).map((resource: any) => ({
+          id: resource.id || crypto.randomUUID(),
+          title: resource.title?.trim() || '',
+          url: resource.url || '',
+          type: resource.type || '',
+          description: resource.description?.trim() || ''
+        })),
+        lessons: (section.lessons || [])
+          .filter((lesson: any) => {
+            if (!lesson.title?.trim()) return false;
+            if (lesson.lessonType === 'video' && !lesson.video_url?.trim()) return false;
+            return true;
+          })
+          .map((lesson: any) => formatLesson(lesson))
+      }));
+
+      // Filter out sections with no valid lessons
+      const filteredSections = validSections.filter(section => section.lessons.length > 0);
+
+      // Filter out invalid direct lessons
+      const validDirectLessons = (week.lessons || [])
+        .filter((lesson: any) => {
+          if (!lesson.title?.trim()) return false;
+          if (lesson.lessonType === 'video' && !lesson.video_url?.trim()) return false;
+          return true;
+        })
+        .map((lesson: any) => formatLesson(lesson, true));
+
+      return {
+        id: week.id || crypto.randomUUID(),
+        weekTitle: week.weekTitle?.trim() || '',
+        weekDescription: week.weekDescription?.trim() || '',
+        topics: (week.topics || []).filter(Boolean).map((topic: string) => topic.trim()),
+        sections: filteredSections,
+        lessons: validDirectLessons,
+        liveClasses: (week.liveClasses || []).map((liveClass: any) => ({
+          title: liveClass.title?.trim() || '',
+          description: liveClass.description?.trim() || '',
+          scheduledDate: liveClass.scheduledDate || new Date().toISOString(),
+          duration: Number(liveClass.duration) || 0,
+          meetingLink: liveClass.meetingLink?.trim() || '',
+          instructor: liveClass.instructor?.trim() || null,
+          recordingUrl: liveClass.recordingUrl?.trim() || '',
+          isRecorded: Boolean(liveClass.isRecorded),
+          materials: (liveClass.materials || []).map((material: any) => ({
+            title: material.title?.trim() || '',
+            url: material.url || '',
+            type: material.type || 'document',
+            description: material.description?.trim() || ''
+          }))
+        }))
+      };
+    }).filter(week => {
+      // Filter out weeks with no valid sections or direct lessons
+      return (week.sections && week.sections.length > 0) || (week.lessons && week.lessons.length > 0);
+    });
   };
 
   const renderStep = () => {
@@ -873,16 +1131,40 @@ const UpdateCourse: React.FC = () => {
     }
   };
 
-  const nextStep = () => {
+  const nextStep = async () => {
+    const formData = watch();
+    saveFormDataToLocalStorage(formData);
+    
     if (currentStep < formSteps.length) {
-      setCurrentStep(currentStep + 1);
+      updateHash(formSteps[currentStep].hash);
     }
   };
 
-  const prevStep = () => {
+  const prevStep = async () => {
+    const formData = watch();
+    saveFormDataToLocalStorage(formData);
+    
     if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
+      updateHash(formSteps[currentStep - 2].hash);
     }
+  };
+
+  const handleStepClick = async (stepIndex: number) => {
+    const formData = watch();
+    
+    const isCurrentStepValid = await checkStepValidation(currentStep);
+    if (!isCurrentStepValid) {
+      toast.warning('Please complete the current step before navigating');
+      return;
+    }
+
+    saveFormDataToLocalStorage(formData);
+    updateHash(formSteps[stepIndex - 1].hash);
+  };
+
+  const isStepClickable = (stepIndex: number) => {
+    // Allow clicking on completed steps or the next available step
+    return stepIndex <= currentStep;
   };
 
   if (isLoading && !isCourseLoaded) {
@@ -897,61 +1179,60 @@ const UpdateCourse: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Update Course</h1>
-          <p className="text-gray-600">Edit your course details using the form below</p>
+    <div className="container mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold">Update Course</h1>
         </div>
 
-        <StepProgress
-          currentStep={currentStep}
-          totalSteps={formSteps.length}
-          steps={formSteps}
-        />
-
-        <div className="mt-8 bg-white rounded-lg shadow-lg p-6">
-          <form onSubmit={handleStepSubmit}>
-            {renderStep()}
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <form 
+            onSubmit={handleSubmit(
+              (data) => onSubmit(data),
+              (errors) => {
+                console.error('Form validation errors:', errors);
+                const errorFields = Object.keys(errors);
+                setValidationMessage(`Please check the following fields: ${errorFields.join(', ')}`);
+              }
+            )} 
+            className="space-y-6"
+          >
+            <div className="grid grid-cols-1 gap-6">
+              {renderStep()}
+            </div>
 
             {validationMessage && (
-              <div className="mt-4 p-3 bg-red-50 text-red-700 rounded-md">
+              <div className="mt-4 text-red-600">
                 {validationMessage}
               </div>
             )}
 
-            <div className="mt-8 flex justify-between">
-              {currentStep > 1 && (
+            <div className="mt-6 flex justify-end space-x-4">
+              <button
+                type="button"
+                onClick={prevStep}
+                className="px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200"
+                disabled={currentStep === 1}
+              >
+                Previous
+              </button>
+              <button
+                type="button"
+                onClick={nextStep}
+                className="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                disabled={currentStep === formSteps.length}
+              >
+                Next
+              </button>
+              {currentStep === formSteps.length && (
                 <button
-                  type="button"
-                  onClick={prevStep}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  type="submit"
+                  className="px-4 py-2 text-white bg-green-600 rounded-md hover:bg-green-700"
                   disabled={isSubmitting}
                 >
-                  Previous
+                  {isSubmitting ? 'Updating...' : 'Update Course'}
                 </button>
               )}
-              <button
-                type="submit"
-                className={`ml-auto px-4 py-2 rounded-md text-sm font-medium ${
-                  validationMessage
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-customGreen hover:bg-green-600'
-                } text-white disabled:opacity-50 disabled:cursor-not-allowed`}
-                disabled={isSubmitting || !!validationMessage}
-                title={validationMessage || (isSubmitting ? 'Processing...' : '')}
-              >
-                {isSubmitting ? (
-                  <div className="flex items-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Updating...
-                  </div>
-                ) : currentStep < formSteps.length ? (
-                  'Next'
-                ) : (
-                  'Update Course'
-                )}
-              </button>
             </div>
           </form>
         </div>
@@ -960,4 +1241,4 @@ const UpdateCourse: React.FC = () => {
   );
 };
 
-export default UpdateCourse; 
+export default UpdateCourse;

@@ -3,7 +3,6 @@ import React, { useEffect, useRef, useState } from "react";
 import { FaCalendarAlt, FaClock, FaRegCalendarAlt } from "react-icons/fa";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import TimePicker from "rc-time-picker";
 import "rc-time-picker/assets/index.css";
 import "@/assets/css/popup.css";
 import usePostQuery from "@/hooks/postQuery.hook";
@@ -18,6 +17,35 @@ import moment from "moment";
 import { FaShare } from "react-icons/fa";
 import Image from "next/image";
 import PaginationComponent from "@/components/shared/pagination-latest";
+import dynamic from 'next/dynamic';
+
+// Client-side only TimePicker component using MUI
+const MUITimePicker = dynamic(
+  () => import('@mui/x-date-pickers').then((mod) => {
+    const { LocalizationProvider, TimePicker } = mod;
+    const { AdapterMoment } = require('@mui/x-date-pickers/AdapterMoment');
+    
+    return function TimePickerWrapper({ value, onChange }) {
+      return (
+        <LocalizationProvider dateAdapter={AdapterMoment}>
+          <TimePicker
+            value={value}
+            onChange={onChange}
+            slotProps={{ 
+              textField: { 
+                placeholder: "Select Time",
+                className: "w-full p-2 rounded-lg",
+                style: { height: "50px", fontSize: "16px" }
+              } 
+            }}
+            format="hh:mm a"
+          />
+        </LocalizationProvider>
+      );
+    };
+  }),
+  { ssr: false, loading: () => <div className="h-[50px] w-full bg-gray-200 animate-pulse rounded-lg"></div> }
+);
 
 // Validation Schema
 const schema = yup.object({
@@ -863,15 +891,9 @@ const OnlineMeeting = () => {
                       Time
                       <span className="text-red-500 ml-1">*</span>
                     </label>
-                    <TimePicker
+                    <MUITimePicker
                       value={selectedTime}
                       onChange={handleTimeChange}
-                      showSecond={false}
-                      use12Hours
-                      format="h:mm a"
-                      placeholder="Select Time"
-                      className="w-full p-2 rounded-lg custom-timepicker"
-                      style={{ height: "50px", fontSize: "16px" }}
                     />
                     {errors?.time && (
                       <p className="text-red-500 text-xs">

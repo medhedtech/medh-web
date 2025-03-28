@@ -477,7 +477,7 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
                     {/* User actions */}
                     <div className="space-y-1">
                       <Link
-                        href="/dashboard"
+                        href="/dashboards"
                         onClick={closeMenu}
                         className="flex items-center px-4 py-3 rounded-xl
                           text-gray-700 dark:text-gray-300

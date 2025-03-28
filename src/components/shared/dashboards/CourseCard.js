@@ -34,11 +34,12 @@ const CourseCard = ({
   return (
     <motion.div
       onClick={onClick}
-      className="group cursor-pointer bg-white dark:bg-gray-800 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 hover:shadow-lg dark:hover:shadow-gray-800/30 transition-all duration-300"
-      whileHover={{ y: -4 }}
+      className="group relative bg-white dark:bg-gray-800/50 backdrop-blur-lg rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 dark:border-gray-700/50"
+      whileHover={{ scale: 1.02, y: -5 }}
+      whileTap={{ scale: 0.98 }}
       layout
     >
-      <div className="relative overflow-hidden aspect-video">
+      <div className="relative w-full aspect-[16/9] overflow-hidden">
         <motion.div
           variants={imageVariants}
           whileHover="hover"
@@ -52,63 +53,70 @@ const CourseCard = ({
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         </motion.div>
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        <div className="absolute top-3 left-3 flex gap-2">
-          <span className="px-2.5 py-1 text-xs font-medium bg-white/90 dark:bg-gray-800/90 text-primary-600 dark:text-primary-400 rounded-full flex items-center gap-1.5">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <div className="absolute top-4 left-4 z-10">
+          <div className="px-4 py-1.5 rounded-full text-xs font-medium backdrop-blur-md bg-white/90 dark:bg-gray-800/90 text-primary-600 dark:text-primary-400 flex items-center gap-2">
             <Tag className="w-3 h-3" />
-            {course_tag}
-          </span>
+            <span>{course_tag}</span>
+          </div>
         </div>
       </div>
 
-      <div className="p-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-            <Clock className="w-4 h-4" />
-            <span>{duration}</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-            <Users className="w-4 h-4" />
-            <span>{students}</span>
-          </div>
-        </div>
-
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white line-clamp-2 min-h-[3.5rem]">
-          {course_title}
-        </h3>
-
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
-            <div className="flex">
-              {ratingStars.map((starClass, index) => (
-                <Star
-                  key={index}
-                  className={`w-4 h-4 ${starClass}`}
-                  fill="currentColor"
-                />
-              ))}
+      <div className="p-6 space-y-6">
+        {/* Course Stats */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-3 backdrop-blur-sm">
+            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+              <Clock className="w-4 h-4 text-primary-500" />
+              <span>{duration}</span>
             </div>
-            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-              {rating} {reviews > 0 && `(${reviews})`}
-            </span>
           </div>
-          
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="text-lg font-bold text-primary-500 dark:text-primary-400"
-          >
-            ${course_fee}
-          </motion.div>
+          <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-3 backdrop-blur-sm">
+            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+              <Users className="w-4 h-4 text-primary-500" />
+              <span>{students}</span>
+            </div>
+          </div>
         </div>
 
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          className="w-full mt-2 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors text-sm font-medium"
-        >
-          Enroll Now
-        </motion.button>
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white line-clamp-2 group-hover:text-primary-500 dark:group-hover:text-primary-400 transition-colors">
+            {course_title}
+          </h3>
+
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="flex">
+                {ratingStars.map((starClass, index) => (
+                  <Star
+                    key={index}
+                    className={`w-4 h-4 ${starClass}`}
+                    fill="currentColor"
+                  />
+                ))}
+              </div>
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                {rating} {reviews > 0 && `(${reviews})`}
+              </span>
+            </div>
+            
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="text-lg font-bold bg-gradient-to-r from-primary-500 to-primary-600 bg-clip-text text-transparent"
+            >
+              ${course_fee}
+            </motion.div>
+          </div>
+
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="w-full py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl transition-all duration-300 text-sm font-medium shadow-lg shadow-primary-500/20 hover:shadow-xl hover:shadow-primary-500/30"
+          >
+            Enroll Now
+          </motion.button>
+        </div>
       </div>
     </motion.div>
   );

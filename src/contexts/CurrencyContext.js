@@ -27,77 +27,134 @@ const COUNTRY_CURRENCY_MAP = {
 // Create context
 const CurrencyContext = createContext();
 
+// Default currency mappings
+const CURRENCY_MAPPINGS = {
+  IN: { code: 'INR', symbol: '₹' },
+  US: { code: 'USD', symbol: '$' },
+  GB: { code: 'GBP', symbol: '£' },
+  EU: { code: 'EUR', symbol: '€' },
+  // Add more currency mappings as needed
+};
+
+// Default currency if everything fails
+const DEFAULT_CURRENCY = { code: 'USD', symbol: '$' };
+
 export const CurrencyProvider = ({ children }) => {
-  // Get default currency from cookie or based on user's locale
-  const getDefaultCurrency = () => {
-    // First check if user has a saved preference
-    const savedCurrency = Cookies.get('preferredCurrency');
-    if (savedCurrency && CURRENCIES[savedCurrency]) {
-      return savedCurrency;
-    }
-
-    // If no saved preference, try to detect based on locale
-    try {
-      // Use navigator.language to get user's locale
-      if (typeof window !== 'undefined') {
-        const userLocale = navigator.language || navigator.userLanguage;
-        // Extract country code from locale (e.g., 'en-US' -> 'US')
-        const countryCode = userLocale.split('-')[1];
-        
-        // Get currency for country or default to USD
-        if (countryCode && COUNTRY_CURRENCY_MAP[countryCode]) {
-          return COUNTRY_CURRENCY_MAP[countryCode];
-        }
-      }
-    } catch (error) {
-      console.error("Error detecting locale:", error);
-    }
-
-    // Default to USD if detection fails
-    return 'USD';
-  };
-
-  const [currency, setCurrency] = useState('USD'); // Default, will be updated in useEffect
+  const [currency, setCurrency] = useState(DEFAULT_CURRENCY);
   const [loading, setLoading] = useState(true);
 
-  // Fetch country code based on IP
   const fetchCountryCode = async () => {
     try {
-      const response = await axios.get('https://ipapi.co/json/'); // Use ipapi service
+      // First try the primary API
+      const response = await axios.get('/api/proxy/ipapi', {
+        timeout: 5000 // 5 second timeout
+      });
       return response.data.country;
-    } catch (error) {
-      console.error('Error fetching country code:', error);
-      return null;
+    } catch (primaryError) {
+      console.error('Error fetching from primary API:', primaryError);
+      
+      try {
+        // Fallback to a secondary API
+        const fallbackResponse = await axios.get('https://api.ipapi.com/check', {
+          timeout: 5000,
+          params: {
+            access_key: process.env.NEXT_PUBLIC_IPAPI_KEY // Make sure to add this to your env variables
+          }
+        });
+        return fallbackResponse.data.country_code;
+      } catch (fallbackError) {
+        console.error('Error fetching from fallback API:', fallbackError);
+        
+        // If both APIs fail, try to get from browser
+        try {
+          const browserLocale = navigator.language || navigator.userLanguage;
+          const countryCode = browserLocale.split('-')[1];
+          if (countryCode && countryCode.length === 2) {
+            return countryCode;
+          }
+        } catch (browserError) {
+          console.error('Error getting browser locale:', browserError);
+        }
+        
+        // If all methods fail, return default
+        return 'US';
+      }
     }
   };
 
-  // Set initial currency based on IP location or saved preference
-  useEffect(() => {
-    const setInitialCurrency = async () => {
-      const countryCode = await fetchCountryCode();
-      if (countryCode && COUNTRY_CURRENCY_MAP[countryCode]) {
-        setCurrency(COUNTRY_CURRENCY_MAP[countryCode]);
-      } else {
-        const defaultCurrency = getDefaultCurrency();
-        setCurrency(defaultCurrency);
+  const getCurrencyForCountry = (countryCode) => {
+    // Check if we have a mapping for this country
+    if (CURRENCY_MAPPINGS[countryCode]) {
+      return CURRENCY_MAPPINGS[countryCode];
+    }
+    
+    // If no mapping found, return default currency
+    return DEFAULT_CURRENCY;
+  };
+
+  const setInitialCurrency = async () => {
+    try {
+      setLoading(true);
+      
+      // Try to get stored currency first
+      const storedCurrency = localStorage.getItem('preferredCurrency');
+      if (storedCurrency) {
+        try {
+          // Try to parse as JSON first
+          const parsedCurrency = JSON.parse(storedCurrency);
+          setCurrency(parsedCurrency);
+        } catch (parseError) {
+          // If parsing fails, treat it as a currency code string
+          const currencyCode = storedCurrency;
+          const newCurrency = Object.values(CURRENCY_MAPPINGS).find(
+            curr => curr.code === currencyCode
+          ) || DEFAULT_CURRENCY;
+          setCurrency(newCurrency);
+        }
+        setLoading(false);
+        return;
       }
+
+      // If no stored currency, fetch country and set currency
+      const countryCode = await fetchCountryCode();
+      const newCurrency = getCurrencyForCountry(countryCode);
+      
+      // Store the currency preference
+      localStorage.setItem('preferredCurrency', JSON.stringify(newCurrency));
+      setCurrency(newCurrency);
+    } catch (error) {
+      console.error('Error setting initial currency:', error);
+      // Fallback to default currency
+      setCurrency(DEFAULT_CURRENCY);
+    } finally {
       setLoading(false);
-    };
+    }
+  };
+
+  // Function to manually change currency
+  const changeCurrency = (newCurrencyCode) => {
+    try {
+      const newCurrency = Object.values(CURRENCY_MAPPINGS).find(
+        curr => curr.code === newCurrencyCode
+      ) || DEFAULT_CURRENCY;
+      
+      localStorage.setItem('preferredCurrency', JSON.stringify(newCurrency));
+      setCurrency(newCurrency);
+    } catch (error) {
+      console.error('Error changing currency:', error);
+      // If error, keep current currency
+    }
+  };
+
+  useEffect(() => {
     setInitialCurrency();
   }, []);
-
-  // Save currency preference when it changes
-  useEffect(() => {
-    if (!loading) {
-      Cookies.set('preferredCurrency', currency, { expires: 365 });
-    }
-  }, [currency, loading]);
 
   // Convert price from USD to selected currency
   const convertPrice = (priceInUSD, toCurrency = currency) => {
     if (!priceInUSD) return 0;
     
-    const rate = CURRENCIES[toCurrency]?.rate || 1;
+    const rate = CURRENCY_MAPPINGS[toCurrency]?.rate || 1;
     return (priceInUSD * rate).toFixed(2);
   };
 
@@ -107,13 +164,6 @@ export const CurrencyProvider = ({ children }) => {
     
     const { symbol } = CURRENCIES[currencyCode] || CURRENCIES.USD;
     return showCurrency ? `${symbol}${Math.round(Number(price))}` : Math.round(Number(price)).toString();
-  };
-
-  // Change the current currency
-  const changeCurrency = (newCurrency) => {
-    if (CURRENCIES[newCurrency]) {
-      setCurrency(newCurrency);
-    }
   };
 
   // Get all available currencies
