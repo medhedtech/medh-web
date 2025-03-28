@@ -3,17 +3,18 @@ import PlacementForm from "@/components/layout/main/dashboards/PlacementForm";
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 import React from "react";
-
+import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 const ApplyForPlacement = () => {
   return (
+    <PageWrapper>
     <ProtectedPage>
       <DashboardContainer>
-        <div className="px-8">
-          <HeadingDashboard />
+        <div className="py-12">
+          <PlacementForm />
         </div>
-        <PlacementForm />
       </DashboardContainer>
     </ProtectedPage>
+    </PageWrapper>
   );
 };
 

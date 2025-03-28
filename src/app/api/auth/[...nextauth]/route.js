@@ -2,7 +2,7 @@ import NextAuth from "next-auth/next";
 import CredentialsProvider from "next-auth/providers/credentials";
 
 // Your NextAuth configuration
-export const authOptions = {
+const authOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -52,9 +52,12 @@ export const authOptions = {
       return session;
     }
   },
-  secret: process.env.NEXTAUTH_SECRET || "your-fallback-secret-for-development",
+  secret: process.env.NEXTAUTH_SECRET || "mynewjwtsecretkeytoken",
   debug: process.env.NODE_ENV === "development",
 };
 
+// Create the auth handlers
 const handler = NextAuth(authOptions);
+
+// Export the GET and POST handlers
 export { handler as GET, handler as POST }; 

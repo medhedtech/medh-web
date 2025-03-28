@@ -9,6 +9,7 @@ import api from "@/utils/api";
 import Preloader from "@/components/shared/others/Preloader";
 import UsersTableStudent from "./StudentManagement";
 import { UserIcon, EnvelopeIcon } from "@heroicons/react/24/outline";
+import useAuth from '@/hooks/useAuth';
 
 // Validation Schema - Memoized
 const schema = yup.object({
