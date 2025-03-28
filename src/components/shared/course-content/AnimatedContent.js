@@ -52,12 +52,6 @@ function AnimatedContent({
     // Gradient colors for the CTA section
     ctaGradientColors = ["blue-500/10", "indigo-500/10", "purple-500/10"],
     
-    // Accent color for the scroll-to-top button
-    accentColor = "primary-500",
-    
-    // Hover accent color for the scroll-to-top button
-    hoverAccentColor = "primary-600",
-    
     // Spring animation settings
     springAnimation = {
       type: "spring",
@@ -69,39 +63,12 @@ function AnimatedContent({
 
   // State management
   const [isLoaded, setIsLoaded] = useState(false);
-  const [showScrollTop, setShowScrollTop] = useState(false);
   const prefersReducedMotion = useReducedMotion();
   const mainRef = useRef(null);
 
-  // Optimized scroll handler with RAF for better performance
-  const handleScroll = useCallback(() => {
-    // Use requestAnimationFrame for smooth visual updates
-    requestAnimationFrame(() => {
-      setShowScrollTop(window.scrollY > 500);
-    });
-  }, []);
-
   useEffect(() => {
     setIsLoaded(true);
-
-    // Throttle scroll events for smoother response
-    let ticking = false;
-    const throttledScrollHandler = () => {
-      if (!ticking) {
-        ticking = true;
-        requestAnimationFrame(() => {
-          handleScroll();
-          ticking = false;
-        });
-      }
-    };
-    
-    window.addEventListener('scroll', throttledScrollHandler, { passive: true });
-    
-    return () => {
-      window.removeEventListener('scroll', throttledScrollHandler);
-    };
-  }, [handleScroll]);
+  }, []);
 
   // Animation variants with hardware acceleration hints
   const fadeInUp = {
@@ -115,14 +82,6 @@ function AnimatedContent({
       y: 0,
       transition: springAnimation
     }
-  };
-
-  // Smooth scrolling with optimized performance
-  const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
   };
 
   // Reusable motion section props
@@ -209,23 +168,6 @@ function AnimatedContent({
           <ThemeController />
         </div>
       )}
-
-      {/* Scroll to Top Button */}
-      <AnimatePresence>
-        {showScrollTop && (
-          <motion.button
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            transition={{ duration: 0.2 }}
-            className={`fixed bottom-4 right-4 bg-${accentColor} hover:bg-${hoverAccentColor} text-white p-2.5 rounded-full shadow-lg z-50 transform-gpu hover:scale-110 active:scale-95 focus:outline-none focus:ring-2 focus:ring-${accentColor} focus:ring-offset-2`}
-            onClick={scrollToTop}
-            aria-label="Scroll to top"
-          >
-            <ArrowUpCircle className="h-5 w-5" />
-          </motion.button>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

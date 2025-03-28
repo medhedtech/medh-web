@@ -21,13 +21,18 @@ import { setCookie } from "nookies";
 import { useEffect, useState, useCallback } from "react";
 import NavbarLogo from "@/components/layout/header/NavbarLogo";
 
-const SidebarDashboard = () => {
+const SidebarDashboard = ({ children }) => {
   const pathname = usePathname();
   const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  const partOfPathNaem = pathname.split("/")[2].split("-")[0];
-  const partOfPathNaem2 = pathname.split("/")[2].split("-")[1];
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const partOfPathNaem = pathname.split("/")[2]?.split("-")[0] || '';
+  const partOfPathNaem2 = pathname.split("/")[2]?.split("-")[1] || '';
   const isAdmin = partOfPathNaem === "admin";
   const isInstructor = partOfPathNaem === "instructor";
   let isCorporate = partOfPathNaem === "coorporate";
@@ -60,8 +65,6 @@ const SidebarDashboard = () => {
       setRole(roleFromStorage);
     }
   }, []);
-
-  console.log("permissions", permissions);
 
   const adminItems = [
     {
@@ -1353,15 +1356,44 @@ const SidebarDashboard = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
-  const closeMobileMenu = () => {
+  const closeMobileMenu = useCallback(() => {
     setIsMobileMenuOpen(false);
-  };
+  }, []);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    closeMobileMenu();
+  }, [pathname, closeMobileMenu]);
+
+  // Handle escape key to close mobile menu
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        closeMobileMenu();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [closeMobileMenu]);
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobileMenuOpen]);
 
   // Sidebar content component to avoid duplication
   const SidebarContent = () => (
     <div className="h-full flex flex-col">
-      <div className="p-4 md:p-6 border-b border-gray-200 dark:border-gray-800">
-        <NavbarLogo />
+      <div className="p-4 md:p-10 border-b border-gray-200 dark:border-gray-800">
+        {/* <NavbarLogo /> */}
       </div>
 
       <nav className="flex-1 overflow-y-auto">
@@ -1446,12 +1478,22 @@ const SidebarDashboard = () => {
     </div>
   );
 
+  if (!mounted) return null;
+
   return (
-    <>
+    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Desktop Sidebar */}
+      <aside className="hidden md:block w-72 min-h-screen bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800">
+        <div className="sticky top-0 h-screen">
+          <SidebarContent />
+        </div>
+      </aside>
+
       {/* Mobile Menu Button */}
       <button
         onClick={toggleMobileMenu}
-        className="fixed top-4 right-4 z-50 md:hidden p-2 rounded-lg bg-white dark:bg-gray-800 shadow-lg"
+        className="fixed top-4 right-4 z-50 md:hidden p-2 rounded-lg bg-white dark:bg-gray-800 shadow-lg transition-transform duration-200 hover:scale-105"
+        aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
       >
         {isMobileMenuOpen ? (
           <MdClose className="w-6 h-6" />
@@ -1460,27 +1502,37 @@ const SidebarDashboard = () => {
         )}
       </button>
 
-      {/* Desktop Sidebar */}
-      <aside className="hidden md:block w-72 min-h-screen bg-white dark:bg-gray-900 shadow-xl">
-        <SidebarContent />
-      </aside>
-
       {/* Mobile Sidebar */}
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-40 md:hidden">
-          {/* Backdrop */}
-          <div 
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={closeMobileMenu}
-          />
-          
-          {/* Sidebar */}
-          <aside className="fixed inset-y-0 left-0 w-72 bg-white dark:bg-gray-900 shadow-xl">
-            <SidebarContent />
-          </aside>
+      <div 
+        className={`fixed inset-0 z-40 md:hidden transition-opacity duration-300 ${
+          isMobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
+      >
+        {/* Backdrop */}
+        <div 
+          className={`fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300 ${
+            isMobileMenuOpen ? 'opacity-100' : 'opacity-0'
+          }`}
+          onClick={closeMobileMenu}
+        />
+        
+        {/* Sidebar */}
+        <aside 
+          className={`fixed inset-y-0 left-0 w-72 bg-white dark:bg-gray-900 shadow-xl transform transition-transform duration-300 ease-in-out ${
+            isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+        >
+          <SidebarContent />
+        </aside>
+      </div>
+
+      {/* Main Content */}
+      <main className="flex-1 min-w-0 overflow-hidden">
+        <div className="container mx-auto px-4 py-8">
+          {children}
         </div>
-      )}
-    </>
+      </main>
+    </div>
   );
 };
 

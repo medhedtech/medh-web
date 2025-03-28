@@ -30,15 +30,19 @@ const FileUpload: React.FC<FileUploadProps> = ({
 
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-medium">
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
         {label}
-        {required && <span className="text-red-500 ml-1">*</span>}
+        {required && <span className="text-red-500 dark:text-red-400 ml-1">*</span>}
       </label>
       <div
         {...getRootProps()}
         className={`border-2 rounded-lg p-4 transition-all duration-300 relative 
-          ${currentFile ? "border-green-500 bg-green-50" : "border-dashed border-gray-300 hover:border-gray-400"}
-          ${error ? "border-red-500" : ""}
+          ${currentFile 
+            ? "border-primary-500 dark:border-primary-400 bg-primary-50 dark:bg-primary-900/20" 
+            : "border-dashed border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500"
+          }
+          ${error ? "border-red-500 dark:border-red-400" : ""}
+          ${isDragActive ? "bg-blue-50 dark:bg-blue-900/10" : ""}
         `}
       >
         <input {...getInputProps()} />
@@ -56,7 +60,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
                   e.stopPropagation();
                   onFileSelect(null as any);
                 }}
-                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                className="absolute -top-2 -right-2 bg-red-500 dark:bg-red-600 text-white rounded-full p-1 hover:bg-red-600 dark:hover:bg-red-700 transition-colors"
               >
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/>
@@ -65,23 +69,23 @@ const FileUpload: React.FC<FileUploadProps> = ({
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center">
-              <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+              <svg className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" stroke="currentColor" fill="none" viewBox="0 0 48 48">
                 <path d="M28 8H12a4 4 0 00-4 4v20m0 0v4a4 4 0 004 4h20a4 4 0 004-4V28m-4-4l5-5m0 0l-5-5m5 5H28" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              <div className="mt-4 flex text-sm leading-6 text-gray-600">
-                <span className="relative cursor-pointer rounded-md bg-white font-semibold text-blue-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-blue-600 focus-within:ring-offset-2 hover:text-blue-500">
+              <div className="mt-4 flex text-sm leading-6 text-gray-600 dark:text-gray-400">
+                <span className="relative cursor-pointer rounded-md bg-white dark:bg-gray-700 font-semibold text-primary-600 dark:text-primary-400 focus-within:outline-none focus-within:ring-2 focus-within:ring-primary-500 dark:focus-within:ring-primary-400 focus-within:ring-offset-2 hover:text-primary-500 dark:hover:text-primary-300">
                   Upload a file
                 </span>
                 <p className="pl-1">or drag and drop</p>
               </div>
-              <p className="text-xs text-gray-500 mt-2">
+              <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
                 {accept.split(',').map(type => type.replace('/*', '')).join(', ')} files only
               </p>
             </div>
           )}
         </div>
       </div>
-      {error && <p className="text-red-500 text-xs">{error}</p>}
+      {error && <p className="text-red-500 dark:text-red-400 text-xs">{error}</p>}
     </div>
   );
 };

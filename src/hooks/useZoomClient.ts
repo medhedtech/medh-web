@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ZoomMtg } from '@zoomus/websdk';
-import { ZoomClient, ZoomClientConfig, ZoomMeetingDetails, ZoomMeetingStatus } from '@/types/zoom';
+import { ZoomMeetingDetails, ZoomMeetingStatus, ZoomClient, ZoomClientConfig } from '@/types/zoom';
 
 const ZOOM_CONFIG: ZoomClientConfig = {
   apiKey: process.env.NEXT_PUBLIC_ZOOM_API_KEY || '',
@@ -12,44 +11,49 @@ const ZOOM_CONFIG: ZoomClientConfig = {
 export const useZoomClient = () => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const [ZoomMtg, setZoomMtg] = useState<any>(null);
 
   useEffect(() => {
-    const initializeZoom = async () => {
-      try {
-        ZoomMtg.setZoomJSLib('https://source.zoom.us/2.18.0/lib', '/av');
-        ZoomMtg.preLoadWasm();
-        ZoomMtg.prepareWebSDK();
-        
-        await ZoomMtg.init({
-          leaveUrl: window.location.origin,
-          success: () => {
-            setIsInitialized(true);
-            console.log('Zoom initialized successfully');
-          },
-          error: (err: any) => {
-            setError(new Error(err.toString()));
-            console.error('Failed to initialize Zoom:', err);
-          }
-        });
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error('Failed to initialize Zoom'));
-        console.error('Failed to initialize Zoom:', err);
-      }
-    };
-
-    if (!isInitialized && !error) {
-      initializeZoom();
+    // Only import and initialize Zoom on the client side
+    if (typeof window !== 'undefined' && !isInitialized && !error) {
+      import('@zoomus/websdk').then(({ ZoomMtg: ZoomMtgModule }) => {
+        setZoomMtg(ZoomMtgModule);
+        initializeZoom(ZoomMtgModule);
+      }).catch(err => {
+        setError(err instanceof Error ? err : new Error('Failed to load Zoom SDK'));
+        console.error('Failed to load Zoom SDK:', err);
+      });
     }
-
-    return () => {
-      // Cleanup if needed
-    };
   }, [isInitialized, error]);
+
+  const initializeZoom = async (ZoomMtgInstance: any) => {
+    try {
+      ZoomMtgInstance.setZoomJSLib('https://source.zoom.us/2.18.0/lib', '/av');
+      ZoomMtgInstance.preLoadWasm();
+      ZoomMtgInstance.prepareWebSDK();
+      
+      await ZoomMtgInstance.init({
+        leaveUrl: window.location.origin,
+        success: () => {
+          setIsInitialized(true);
+          console.log('Zoom initialized successfully');
+        },
+        error: (err: any) => {
+          setError(new Error(err.toString()));
+          console.error('Failed to initialize Zoom:', err);
+        }
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Failed to initialize Zoom'));
+      console.error('Failed to initialize Zoom:', err);
+    }
+  };
 
   const zoomClient: ZoomClient = {
     isInitialized,
     
     init: async (config: ZoomClientConfig) => {
+      if (!ZoomMtg) throw new Error('Zoom SDK not loaded');
       try {
         await ZoomMtg.init({
           ...config,
@@ -82,7 +86,7 @@ export const useZoomClient = () => {
     },
 
     joinMeeting: async ({ meetingNumber, joinUrl, password }: ZoomMeetingDetails) => {
-      if (!isInitialized) {
+      if (!isInitialized || !ZoomMtg) {
         throw new Error('Zoom client not initialized');
       }
 
@@ -129,7 +133,7 @@ export const useZoomClient = () => {
     },
 
     leaveMeeting: async () => {
-      if (!isInitialized) {
+      if (!isInitialized || !ZoomMtg) {
         throw new Error('Zoom client not initialized');
       }
 

@@ -173,101 +173,158 @@ const RecordedSessions = () => {
       variants={containerVariants}
       className="container mx-auto p-8"
     >
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-        <motion.div 
-          variants={itemVariants}
-          className="flex items-center gap-3"
-        >
-          <div className="p-3 rounded-xl bg-primary-50 dark:bg-primary-900/20">
-            <Video className="w-6 h-6 text-primary-500 dark:text-primary-400" />
-          </div>
-          <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 dark:text-white">
-            Your Recorded Sessions
-          </h2>
-        </motion.div>
+      <div className="relative">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 bg-gradient-to-r from-primary-500/5 to-primary-600/5 dark:from-primary-500/[0.03] dark:to-primary-600/[0.03] rounded-3xl" />
+        
+        <div className="relative space-y-8">
+          {/* Header Section */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <motion.div 
+              variants={itemVariants}
+              className="flex items-center gap-4"
+            >
+              <div className="p-3.5 rounded-2xl bg-gradient-to-br from-primary-500/10 to-primary-600/10 dark:from-primary-500/[0.07] dark:to-primary-600/[0.07] border border-primary-500/10 dark:border-primary-500/[0.05]">
+                <Video className="w-7 h-7 text-primary-500 dark:text-primary-400" />
+              </div>
+              <div>
+                <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 dark:text-white">
+                  Your Recorded Sessions
+                </h2>
+                <p className="text-gray-600 dark:text-gray-400 mt-1">
+                  Access your recorded course sessions anytime
+                </p>
+              </div>
+            </motion.div>
 
-        <div className="flex flex-col sm:flex-row items-center gap-4">
-          {/* Search Bar */}
-          <motion.div 
-            variants={itemVariants}
-            className="relative w-full sm:w-64"
-          >
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              type="text"
-              placeholder="Search sessions..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all duration-200"
-            />
-          </motion.div>
-
-          {/* View All Link */}
-          <motion.a
-            variants={itemVariants}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            href="/dashboards/access-recorded-sessions"
-            className="inline-flex items-center gap-2 text-primary-500 hover:text-primary-600 font-medium transition-colors"
-          >
-            View All
-            <ChevronRight className="w-4 h-4" />
-          </motion.a>
-        </div>
-      </div>
-
-      <AnimatePresence mode="wait">
-        {filteredSessions.length > 0 ? (
-          <motion.div
-            variants={containerVariants}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
-          >
-            {filteredSessions.map((course, index) => (
-              <motion.div
-                key={course?._id}
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              {/* Search Bar */}
+              <motion.div 
                 variants={itemVariants}
-                layout
-                whileHover={{ y: -5 }}
-                transition={{ type: "spring", stiffness: 300 }}
+                className="relative w-full sm:w-72"
               >
-                <RecordedCard
-                  course_title={course?.course_title}
-                  course_tag={course?.course_tag || "Recorded Session"}
-                  course_image={course?.course_image}
-                  onClick={() => handleCardClick(course?._id)}
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Search className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search sessions..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all duration-200"
                 />
               </motion.div>
-            ))}
-          </motion.div>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="flex flex-col items-center justify-center text-center py-12 bg-gray-50 dark:bg-gray-800/50 rounded-2xl"
-          >
-            <div className="p-4 rounded-full bg-primary-50 dark:bg-primary-900/20 mb-4">
-              <BookOpenCheck className="w-8 h-8 text-primary-500 dark:text-primary-400" />
+
+              {/* View All Link */}
+              <motion.a
+                variants={itemVariants}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                href="/dashboards/access-recorded-sessions"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 font-medium hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors"
+              >
+                View All
+                <ChevronRight className="w-4 h-4" />
+              </motion.a>
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-              {searchTerm ? "No sessions found" : "No recorded sessions available"}
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto mb-6">
-              {searchTerm 
-                ? "Try adjusting your search term to find what you're looking for."
-                : "You don't have any recorded sessions available from your enrolled courses yet."}
-            </p>
-            <button
-              onClick={() => router.push('/courses')}
-              className="px-6 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors"
-            >
-              Browse Courses
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+
+          {/* Loading State */}
+          {isLoading && (
+            <div className="min-h-[400px] flex items-center justify-center">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                className="flex items-center gap-3 p-4 rounded-2xl bg-white dark:bg-gray-800/50 backdrop-blur-lg shadow-lg"
+              >
+                <Loader2 className="w-6 h-6 text-primary-500" />
+                <span className="text-gray-600 dark:text-gray-400 font-medium">Loading recorded sessions...</span>
+              </motion.div>
+            </div>
+          )}
+
+          {/* Error State */}
+          {error && (
+            <div className="min-h-[400px] flex items-center justify-center p-8">
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex flex-col items-center text-center max-w-md p-8 rounded-2xl bg-white dark:bg-gray-800/50 backdrop-blur-lg shadow-lg"
+              >
+                <div className="p-4 rounded-full bg-red-50 dark:bg-red-900/20 mb-4">
+                  <AlertCircle className="w-8 h-8 text-red-500 dark:text-red-400" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                  {error}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">
+                  We couldn't load your recorded sessions. Please try refreshing the page or logging in again.
+                </p>
+                <button 
+                  onClick={() => window.location.reload()}
+                  className="px-6 py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl transition-all duration-300 shadow-lg shadow-primary-500/20 hover:shadow-xl hover:shadow-primary-500/30"
+                >
+                  Refresh Page
+                </button>
+              </motion.div>
+            </div>
+          )}
+
+          {/* Sessions Grid */}
+          <AnimatePresence mode="wait">
+            {!isLoading && !error && (
+              filteredSessions.length > 0 ? (
+                <motion.div
+                  variants={containerVariants}
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+                >
+                  {filteredSessions.map((course, index) => (
+                    <motion.div
+                      key={course?._id}
+                      variants={itemVariants}
+                      layout
+                      whileHover={{ y: -5 }}
+                      transition={{ type: "spring", stiffness: 300 }}
+                    >
+                      <RecordedCard
+                        course_title={course?.course_title}
+                        course_tag={course?.course_tag || "Recorded Session"}
+                        course_image={course?.course_image}
+                        onClick={() => handleCardClick(course?._id)}
+                      />
+                    </motion.div>
+                  ))}
+                </motion.div>
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="flex flex-col items-center justify-center text-center py-16 bg-white dark:bg-gray-800/50 backdrop-blur-lg rounded-2xl shadow-lg"
+                >
+                  <div className="p-4 rounded-full bg-primary-50 dark:bg-primary-900/20 mb-4">
+                    <BookOpenCheck className="w-8 h-8 text-primary-500 dark:text-primary-400" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                    {searchTerm ? "No sessions found" : "No recorded sessions available"}
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto mb-6">
+                    {searchTerm 
+                      ? "Try adjusting your search term to find what you're looking for."
+                      : "You don't have any recorded sessions available from your enrolled courses yet."}
+                  </p>
+                  <button
+                    onClick={() => router.push('/courses')}
+                    className="px-6 py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl transition-all duration-300 shadow-lg shadow-primary-500/20 hover:shadow-xl hover:shadow-primary-500/30"
+                  >
+                    Browse Courses
+                  </button>
+                </motion.div>
+              )
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
     </motion.div>
   );
 };

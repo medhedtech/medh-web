@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -19,6 +19,19 @@ import { toast } from 'react-toastify';
 import { apiUrls } from "@/apis";
 import usePostQuery from "@/hooks/postQuery.hook";
 import useGetQuery from "@/hooks/getQuery.hook";
+import ThemeController from '@/components/shared/others/ThemeController';
+import { storeExternalToken } from '@/utils/auth';
+import { debounce } from 'lodash';
+import { createPortal } from 'react-dom';
+
+// Type definition for category item to fix TypeScript errors
+interface CategoryItem {
+  _id?: string;
+  id?: string;
+  category_name?: string;
+  name?: string;
+  [key: string]: any;
+}
 
 const formSteps = [
   {
@@ -237,7 +250,7 @@ const schema = yup.object().shape({
     enrollments: yup.number(),
     lastUpdated: yup.string()
   }),
-  status: yup.string().default('draft'),
+  status: yup.string().default('Upcoming'),
   isFree: yup.boolean().default(false),
   specifications: yup.string().nullable(),
   course_grade: yup.string(),
@@ -250,30 +263,193 @@ const schema = yup.object().shape({
   related_courses: yup.array().of(yup.string())
 });
 
+// Add constants
+const STORAGE_KEY = 'medh_course_draft';
+const STORAGE_TYPE_KEY = 'medh_storage_type';
+
+// Add a utility for storage access
+const storageUtil = {
+  getItem: (key: string): string | null => {
+    try {
+      // Check if we've already determined the storage type
+      const storageType = localStorage.getItem(STORAGE_TYPE_KEY) || sessionStorage.getItem(STORAGE_TYPE_KEY);
+      
+      if (storageType === 'localStorage') {
+        return localStorage.getItem(key);
+      } else if (storageType === 'sessionStorage') {
+        return sessionStorage.getItem(key);
+      }
+      
+      // Try localStorage first
+      try {
+        const value = localStorage.getItem(key);
+        if (value !== null) {
+          localStorage.setItem(STORAGE_TYPE_KEY, 'localStorage');
+          return value;
+        }
+      } catch (e) {
+        console.warn('localStorage not available, falling back to sessionStorage');
+      }
+      
+      // Try sessionStorage if localStorage fails
+      try {
+        const value = sessionStorage.getItem(key);
+        if (value !== null) {
+          sessionStorage.setItem(STORAGE_TYPE_KEY, 'sessionStorage');
+          return value;
+        }
+      } catch (e) {
+        console.warn('sessionStorage also not available');
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error accessing storage:', error);
+      return null;
+    }
+  },
+  
+  setItem: (key: string, value: string): boolean => {
+    try {
+      // Check if we've already determined the storage type
+      const storageType = localStorage.getItem(STORAGE_TYPE_KEY) || sessionStorage.getItem(STORAGE_TYPE_KEY);
+      
+      if (storageType === 'localStorage') {
+        localStorage.setItem(key, value);
+        return true;
+      } else if (storageType === 'sessionStorage') {
+        sessionStorage.setItem(key, value);
+        return true;
+      }
+      
+      // Try localStorage first
+      try {
+        localStorage.setItem(key, value);
+        localStorage.setItem(STORAGE_TYPE_KEY, 'localStorage');
+        return true;
+      } catch (e) {
+        console.warn('localStorage not available, falling back to sessionStorage');
+      }
+      
+      // Try sessionStorage if localStorage fails
+      try {
+        sessionStorage.setItem(key, value);
+        sessionStorage.setItem(STORAGE_TYPE_KEY, 'sessionStorage');
+        return true;
+      } catch (e) {
+        console.warn('sessionStorage also not available');
+        return false;
+      }
+    } catch (error) {
+      console.error('Error setting item in storage:', error);
+      return false;
+    }
+  },
+  
+  removeItem: (key: string): void => {
+    try {
+      // Try to remove from both storage types
+      try {
+        localStorage.removeItem(key);
+      } catch (e) {
+        console.warn('Error removing from localStorage');
+      }
+      
+      try {
+        sessionStorage.removeItem(key);
+      } catch (e) {
+        console.warn('Error removing from sessionStorage');
+      }
+    } catch (error) {
+      console.error('Error removing item from storage:', error);
+    }
+  }
+};
+
+// Create a navigation confirmation modal component
+const NavigationModal = ({ 
+  isOpen, 
+  onCancel, 
+  onContinue,
+  onSaveAndContinue
+}: {
+  isOpen: boolean;
+  onCancel: () => void;
+  onContinue: () => void;
+  onSaveAndContinue: () => void;
+}) => {
+  if (!isOpen || typeof document === 'undefined') return null;
+  
+  return createPortal(
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6 shadow-xl">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
+          Unsaved Changes
+        </h3>
+        <p className="text-gray-600 dark:text-gray-400 mb-6">
+          You have unsaved changes. What would you like to do?
+        </p>
+        <div className="flex flex-col sm:flex-row gap-3 justify-end">
+          <button 
+            onClick={onCancel}
+            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+          >
+            Return to Form
+          </button>
+          <button 
+            onClick={onSaveAndContinue}
+            className="px-4 py-2 border border-customGreen rounded-md text-sm font-medium text-customGreen hover:bg-green-50 dark:hover:bg-gray-700"
+          >
+            Save & Continue
+          </button>
+          <button 
+            onClick={onContinue}
+            className="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700"
+          >
+            Discard Changes
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+};
+
 const AddCourse = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [courseImage, setCourseImage] = useState<string | null>(null);
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<Array<{id: string, name: string}>>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [validationMessage, setValidationMessage] = useState<string>('');
+  const [lastSaved, setLastSaved] = useState<string | null>(null);
+  const [isDraftSaving, setIsDraftSaving] = useState<boolean>(false);
+  const [hasSavedDraft, setHasSavedDraft] = useState<boolean>(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
+  const [showNavigationModal, setShowNavigationModal] = useState<boolean>(false);
+  const [pendingNavigation, setPendingNavigation] = useState<(() => void) | null>(null);
+  
   const { postQuery } = usePostQuery();
   const { getQuery } = useGetQuery();
+  
+  // Reference to track if the form was submitted successfully
+  const formSubmittedSuccessfully = useRef(false);
 
   const {
     register,
     handleSubmit,
     setValue,
-    formState: { errors },
+    formState: { errors, isDirty, dirtyFields },
     watch,
     control,
     reset,
-    trigger
+    trigger,
+    getValues
   } = useForm<ICourseFormData>({
     resolver: yupResolver(schema) as any,
     mode: 'onChange',
     defaultValues: {
-      status: 'draft',
+      status: 'Draft',
       isFree: false,
       specifications: null,
       course_grade: '',
@@ -314,6 +490,172 @@ const AddCourse = () => {
     }
   });
 
+  // Watch form values for auto-save
+  const formValues = watch();
+
+  // Load saved draft on component mount
+  useEffect(() => {
+    const loadSavedDraft = async () => {
+      try {
+        const savedDraft = storageUtil.getItem(STORAGE_KEY);
+        if (savedDraft) {
+          const parsedDraft = JSON.parse(savedDraft);
+          
+          // Set saved values
+          Object.entries(parsedDraft).forEach(([key, value]) => {
+            // Skip the image field as we handle it separately
+            if (key !== 'course_image') {
+              setValue(key as any, value as any);
+            }
+          });
+          
+          // Handle course image separately
+          if (parsedDraft.course_image) {
+            setCourseImage(parsedDraft.course_image);
+            setValue('course_image', parsedDraft.course_image);
+          }
+          
+          setHasSavedDraft(true);
+          setLastSaved(new Date().toLocaleString());
+          
+          toast.info('Loaded your saved draft');
+        }
+      } catch (error) {
+        console.error('Error loading saved draft:', error);
+        toast.error('Failed to load saved draft');
+      }
+    };
+    
+    loadSavedDraft();
+  }, [setValue]);
+
+  // Handle navigation with pending state
+  const handleNavigation = (navigateAction: () => void) => {
+    if (hasUnsavedChanges) {
+      setPendingNavigation(() => navigateAction);
+      setShowNavigationModal(true);
+    } else {
+      navigateAction();
+    }
+  };
+
+  // Handle navigation confirmation
+  const handleNavigationContinue = () => {
+    setShowNavigationModal(false);
+    if (pendingNavigation) {
+      pendingNavigation();
+      setPendingNavigation(null);
+    }
+  };
+
+  // Handle save and navigation confirmation
+  const handleSaveAndContinue = async () => {
+    await handleSaveDraft();
+    handleNavigationContinue();
+  };
+
+  // Implement auto-save with debounce
+  const saveDraft = useCallback(
+    debounce(async (data: ICourseFormData) => {
+      try {
+        setIsDraftSaving(true);
+        
+        // Save to storage
+        const saveSuccess = storageUtil.setItem(STORAGE_KEY, JSON.stringify(data));
+        
+        if (saveSuccess) {
+          // Update last saved timestamp
+          const now = new Date();
+          setLastSaved(now.toLocaleString());
+          setHasSavedDraft(true);
+          setHasUnsavedChanges(false);
+          
+          console.log('Draft auto-saved at', now.toLocaleString());
+        } else {
+          console.warn('Failed to auto-save draft');
+        }
+      } catch (error) {
+        console.error('Error saving draft:', error);
+      } finally {
+        setIsDraftSaving(false);
+      }
+    }, 2000), // 2 second debounce
+    []
+  );
+
+  // Auto-save when form values change
+  useEffect(() => {
+    if (isDirty) {
+      setHasUnsavedChanges(true);
+      saveDraft(getValues());
+    }
+  }, [formValues, isDirty, saveDraft, getValues]);
+
+  // Set up beforeunload event handler to prevent accidental page closing
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges && !formSubmittedSuccessfully.current) {
+        // Standard for modern browsers
+        e.preventDefault();
+        // For older browsers
+        const message = 'You have unsaved changes. Are you sure you want to leave?';
+        e.returnValue = message;
+        return message;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [hasUnsavedChanges]);
+
+  // Save draft manually
+  const handleSaveDraft = async () => {
+    try {
+      setIsDraftSaving(true);
+      
+      // Get current form values
+      const currentValues = getValues();
+      
+      // Save to storage
+      const saveSuccess = storageUtil.setItem(STORAGE_KEY, JSON.stringify(currentValues));
+      
+      if (saveSuccess) {
+        // Update last saved timestamp
+        const now = new Date();
+        setLastSaved(now.toLocaleString());
+        setHasSavedDraft(true);
+        setHasUnsavedChanges(false);
+        
+        toast.success('Draft saved successfully');
+      } else {
+        toast.error('Failed to save draft. Storage might be unavailable.');
+      }
+    } catch (error) {
+      console.error('Error saving draft:', error);
+      toast.error('Failed to save draft');
+    } finally {
+      setIsDraftSaving(false);
+    }
+  };
+
+  // Clear saved draft
+  const clearSavedDraft = () => {
+    if (window.confirm('Are you sure you want to clear your saved draft? This cannot be undone.')) {
+      storageUtil.removeItem(STORAGE_KEY);
+      setHasSavedDraft(false);
+      setLastSaved(null);
+      setHasUnsavedChanges(false);
+      toast.info('Draft cleared');
+      
+      // Reset form to initial state
+      reset();
+      setCourseImage(null);
+    }
+  };
+
   useEffect(() => {
     const fetchCategories = async () => {
       setIsLoading(true);
@@ -321,7 +663,7 @@ const AddCourse = () => {
         const response = await getQuery({
           url: apiUrls.categories.getAllCategories,
           onSuccess: () => {},
-          onError: () => {
+          onFail: () => {
             console.error("Error fetching categories");
             toast.error('Failed to load categories. Please try again.');
           }
@@ -331,11 +673,7 @@ const AddCourse = () => {
         
         if (response?.data) {
           // Handle different possible response structures
-          // The API might return data in different formats:
-          // 1. response.data (direct array)
-          // 2. response.data.data (nested array)
-          // 3. response.data with success and data properties
-          let categoriesData = [];
+          let categoriesData: CategoryItem[] = [];
           
           if (Array.isArray(response.data)) {
             categoriesData = response.data;
@@ -390,6 +728,35 @@ const AddCourse = () => {
     window.location.hash = formSteps[currentStep - 1].hash;
   }, [currentStep]);
 
+  // Store the token from the URL or header if available
+  useEffect(() => {
+    // Function to parse URL parameters
+    const getQueryParam = (name: string): string | null => {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(name);
+    };
+
+    // Try to get token from URL
+    const tokenFromUrl = getQueryParam('token');
+    if (tokenFromUrl) {
+      storeExternalToken(tokenFromUrl);
+    }
+
+    // Check if there's a token in request headers (like from x-access-token shown in the error)
+    // This is for when the token is passed directly rather than via URL
+    if (typeof window !== 'undefined') {
+      const storedToken = localStorage.getItem('token') || sessionStorage.getItem('token');
+      // If we don't have a token stored already, use the one from the request
+      if (!storedToken && window.location.hash.includes('access-token')) {
+        // Extract token from hash if present in format #access-token=xyz
+        const hashMatch = window.location.hash.match(/access-token=([^&]*)/);
+        if (hashMatch && hashMatch[1]) {
+          storeExternalToken(hashMatch[1]);
+        }
+      }
+    }
+  }, []);
+
   const handleImageUpload = async (file: File) => {
     try {
       if (!file) {
@@ -419,7 +786,7 @@ const AddCourse = () => {
               await checkStepValidation(currentStep);
               toast.success('Image uploaded successfully');
             },
-            onError: (error) => {
+            onFail: (error) => {
               console.error("Image upload error:", error);
               toast.error('Image upload failed. Please try again.');
             },
@@ -472,12 +839,7 @@ const AddCourse = () => {
         }
 
         // Submit the form
-        try {
-          await onSubmit(values);
-        } catch (submitError) {
-          console.error('Form submission failed:', submitError);
-          return;
-        }
+        await onSubmit(values);
       } else {
         console.log('%c Moving to Next Step ', 'background: #34D399; color: white; padding: 2px 5px; border-radius: 2px;');
         nextStep();
@@ -496,7 +858,7 @@ const AddCourse = () => {
 
       // Validate required fields first
       if (!data.course_title || !data.course_category || !data.class_type || !data.course_image) {
-        const missingFields = [];
+        const missingFields: string[] = [];
         if (!data.course_title) missingFields.push('Course Title');
         if (!data.course_category) missingFields.push('Course Category');
         if (!data.class_type) missingFields.push('Class Type');
@@ -505,139 +867,81 @@ const AddCourse = () => {
         throw new Error(`Required fields are missing: ${missingFields.join(', ')}`);
       }
 
+      // Validate curriculum if it exists
+      if (data.curriculum && data.curriculum.length > 0) {
+        let hasEmptyTitles = false;
+        let hasEmptyVideoUrls = false;
+        
+        // Check sections for empty titles or video URLs
+        data.curriculum.forEach((week, weekIndex) => {
+          if (week.sections) {
+            week.sections.forEach((section, sectionIndex) => {
+              if (section.lessons) {
+                section.lessons.forEach((lesson, lessonIndex) => {
+                  if (!lesson.title?.trim()) {
+                    hasEmptyTitles = true;
+                    console.warn(`Empty lesson title at Week ${weekIndex + 1}, Section ${sectionIndex + 1}, Lesson ${lessonIndex + 1}`);
+                  }
+                  
+                  if (lesson.lessonType === 'video' && !lesson.video_url?.trim()) {
+                    hasEmptyVideoUrls = true;
+                    console.warn(`Empty video URL at Week ${weekIndex + 1}, Section ${sectionIndex + 1}, Lesson ${lessonIndex + 1}`);
+                  }
+                });
+              }
+            });
+          }
+          
+          // Check direct lessons for empty titles or video URLs
+          if (week.lessons) {
+            week.lessons.forEach((lesson, lessonIndex) => {
+              if (!lesson.title?.trim()) {
+                hasEmptyTitles = true;
+                console.warn(`Empty direct lesson title at Week ${weekIndex + 1}, Lesson ${lessonIndex + 1}`);
+              }
+              
+              if (lesson.lessonType === 'video' && !lesson.video_url?.trim()) {
+                hasEmptyVideoUrls = true;
+                console.warn(`Empty direct lesson video URL at Week ${weekIndex + 1}, Lesson ${lessonIndex + 1}`);
+              }
+            });
+          }
+        });
+        
+        if (hasEmptyTitles || hasEmptyVideoUrls) {
+          let errorMessage = '';
+          if (hasEmptyTitles) errorMessage += 'Some lessons are missing titles. ';
+          if (hasEmptyVideoUrls) errorMessage += 'Some video lessons are missing video URLs. ';
+          errorMessage += 'Please fill in all required fields or remove incomplete lessons.';
+          
+          // Show as a toast to make it more visible
+          toast.error(errorMessage);
+          
+          // Also set as validation message
+          setValidationMessage(errorMessage);
+          throw new Error(errorMessage);
+        }
+      }
+
       // Generate unique key and slug
       const uniqueKey = crypto.randomUUID();
       const slug = data.course_title.toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)/g, '');
 
-      // Format the curriculum data with proper structure
-      const formattedCurriculum = data.curriculum?.map(week => ({
-        id: week.id || `week_${crypto.randomUUID()}`,
-        weekTitle: week.weekTitle,
-        weekDescription: week.weekDescription,
-        topics: week.topics || [],
-        sections: week.sections?.map(section => ({
-          id: section.id || `section_${crypto.randomUUID()}`,
-          title: section.title,
-          description: section.description,
-          order: section.order,
-          resources: section.resources || [],
-          lessons: section.lessons?.map(lesson => {
-            const baseLesson = {
-              id: lesson.id || `lesson_${crypto.randomUUID()}`,
-              title: lesson.title,
-              description: lesson.description,
-              order: lesson.order,
-              lessonType: lesson.lessonType,
-              isPreview: lesson.isPreview || false,
-              meta: {
-                ...lesson.meta,
-                presenter: lesson.meta?.presenter || null,
-                transcript: lesson.meta?.transcript || null,
-                time_limit: lesson.meta?.time_limit || null,
-                passing_score: lesson.meta?.passing_score || null,
-                due_date: lesson.meta?.due_date || null,
-                max_score: lesson.meta?.max_score || null
-              },
-              resources: lesson.resources || []
-            };
-
-            switch (lesson.lessonType) {
-              case 'video':
-                return {
-                  ...baseLesson,
-                  video_url: lesson.video_url,
-                  duration: lesson.duration
-                };
-              case 'quiz':
-                return {
-                  ...baseLesson,
-                  quiz_id: lesson.quiz_id
-                };
-              case 'assessment':
-                return {
-                  ...baseLesson,
-                  assignment_id: lesson.assignment_id
-                };
-              default:
-                return baseLesson;
-            }
-          }) || []
-        })) || [],
-        // Add direct lessons from the week level
-        lessons: week.lessons?.map(lesson => {
-          const baseLesson = {
-            id: lesson.id || `lesson_direct_${crypto.randomUUID()}`,
-            title: lesson.title,
-            description: lesson.description,
-            order: lesson.order,
-            lessonType: lesson.lessonType,
-            isPreview: lesson.isPreview || false,
-            meta: {
-              ...lesson.meta,
-              presenter: lesson.meta?.presenter || null,
-              transcript: lesson.meta?.transcript || null,
-              time_limit: lesson.meta?.time_limit || null,
-              passing_score: lesson.meta?.passing_score || null,
-              due_date: lesson.meta?.due_date || null,
-              max_score: lesson.meta?.max_score || null
-            },
-            resources: lesson.resources || []
-          };
-
-          switch (lesson.lessonType) {
-            case 'video':
-              return {
-                ...baseLesson,
-                video_url: lesson.video_url,
-                duration: lesson.duration
-              };
-            case 'quiz':
-              return {
-                ...baseLesson,
-                quiz_id: lesson.quiz_id
-              };
-            case 'assessment':
-              return {
-                ...baseLesson,
-                assignment_id: lesson.assignment_id
-              };
-            default:
-              return baseLesson;
-          }
-        }) || [],
-        // Add live classes from the week level
-        liveClasses: week.liveClasses?.map(liveClass => ({
-          title: liveClass.title,
-          description: liveClass.description || '',
-          scheduledDate: liveClass.scheduledDate,
-          duration: liveClass.duration,
-          meetingLink: liveClass.meetingLink || '',
-          instructor: liveClass.instructor || '',
-          recordingUrl: liveClass.recordingUrl || '',
-          isRecorded: liveClass.isRecorded,
-          materials: liveClass.materials?.map(material => ({
-            title: material.title,
-            url: material.url,
-            type: material.type
-          })) || []
-        })) || []
-      })) || [];
-
-      // Format the course data
+      // Make a deep copy of the form data to avoid reference issues
       const courseData = {
-        status: data.status || 'draft',
+        status: data.status || 'Upcoming',
         course_title: data.course_title?.trim(),
-        course_subtitle: data.course_subtitle?.trim(),
-        course_tag: data.course_tag,
+        course_subtitle: data.course_subtitle?.trim() || '',
+        course_tag: data.class_type,
         course_category: data.course_category,
-        course_subcategory: data.course_subcategory,
-        course_level: data.course_level,
+        course_subcategory: data.course_subcategory || '',
+        course_level: data.course_level || '',
         class_type: data.class_type || 'regular',
-        course_grade: data.course_grade,
+        course_grade: data.course_grade || '',
         language: data.language || 'English',
-        subtitle_languages: data.subtitle_languages || [],
+        subtitle_languages: [...(data.subtitle_languages || [])],
         category_type: data.category_type || 'Paid',
         course_duration: data.course_duration,
         course_fee: Number(data.course_fee) || 0,
@@ -650,55 +954,26 @@ const AddCourse = () => {
         unique_key: uniqueKey,
         slug: slug,
         course_description: {
-          program_overview: data.course_description?.program_overview?.trim(),
-          benefits: data.course_description?.benefits?.trim(),
-          learning_objectives: data.course_description?.learning_objectives?.filter(Boolean) || [],
-          course_requirements: data.course_description?.course_requirements?.filter(Boolean) || [],
-          target_audience: data.course_description?.target_audience?.filter(Boolean) || []
+          program_overview: data.course_description?.program_overview?.trim() || '',
+          benefits: data.course_description?.benefits?.trim() || '',
+          learning_objectives: (data.course_description?.learning_objectives?.filter(Boolean) || []),
+          course_requirements: (data.course_description?.course_requirements?.filter(Boolean) || []),
+          target_audience: (data.course_description?.target_audience?.filter(Boolean) || [])
         },
-        curriculum: formattedCurriculum,
-        resource_pdfs: (data.resource_pdfs || [])?.map(pdf => ({
-          title: pdf.title?.trim(),
-          url: pdf.url,
-          description: pdf.description?.trim(),
-          size_mb: Number(pdf.size_mb) || 0,
-          pages: Number(pdf.pages) || 0,
-          upload_date: pdf.upload_date || new Date().toISOString()
-        })),
-        tools_technologies: (data.tools_technologies || [])?.map(tool => ({
-          name: tool.name?.trim(),
-          category: tool.category?.trim(),
-          description: tool.description?.trim(),
-          logo_url: tool.logo_url
-        })),
-        bonus_modules: (data.bonus_modules || [])?.map(module => ({
-          title: module.title?.trim(),
-          description: module.description?.trim(),
-          resources: (module.resources || [])?.map(resource => ({
-            title: resource.title?.trim(),
-            type: resource.type,
-            url: resource.url,
-            description: resource.description?.trim()
-          }))
-        })),
-        faqs: (data.faqs || [])?.map(faq => ({
-          question: faq.question?.trim(),
-          answer: faq.answer?.trim()
-        })),
-        final_evaluation: {
-          final_quizzes: data.final_evaluation?.final_quizzes || [],
-          final_assessments: data.final_evaluation?.final_assessments || [],
-          certification: data.final_evaluation?.certification || null,
-          final_faqs: data.final_evaluation?.final_faqs || []
-        },
-        related_courses: data.related_courses || [],
-        brochures: data.brochures || [],
+        curriculum: formatCurriculum(data.curriculum || []),
+        resource_pdfs: formatResourcePdfs(data.resource_pdfs || []),
+        tools_technologies: formatToolsTechnologies(data.tools_technologies || []),
+        bonus_modules: formatBonusModules(data.bonus_modules || []),
+        faqs: formatFaqs(data.faqs || []),
+        final_evaluation: formatFinalEvaluation(data.final_evaluation),
+        related_courses: [...(data.related_courses || [])],
+        brochures: [...(data.brochures || [])],
         specifications: data.specifications?.trim() || null,
-        efforts_per_Week: data.efforts_per_Week?.trim(),
+        efforts_per_Week: data.efforts_per_Week?.trim() || '',
         min_hours_per_week: Number(data.min_hours_per_week) || 0,
         max_hours_per_week: Number(data.max_hours_per_week) || 0,
         no_of_Sessions: Number(data.no_of_Sessions) || 0,
-        session_duration: data.session_duration?.trim(),
+        session_duration: data.session_duration?.trim() || '',
         isFree: Boolean(data.isFree),
         meta: {
           ratings: {
@@ -709,7 +984,7 @@ const AddCourse = () => {
           enrollments: 0,
           lastUpdated: new Date().toISOString()
         },
-        prices: data.prices || []
+        prices: [...(data.prices || [])]
       };
 
       // Log the data
@@ -721,9 +996,22 @@ const AddCourse = () => {
       const response = await postQuery({
         url: apiUrls.courses.createCourse,
         postData: courseData,
+        requireAuth: true,
+        debug: true,
         onSuccess: (response) => {
           console.log('%c API Success Response ', 'background: #34D399; color: white; padding: 2px 5px; border-radius: 2px;', response);
+          
+          // Mark form as successfully submitted to bypass beforeunload warning
+          formSubmittedSuccessfully.current = true;
+          
           toast.success(`Course "${courseData.course_title}" created successfully!`);
+          
+          // Clear the saved draft
+          storageUtil.removeItem(STORAGE_KEY);
+          setHasSavedDraft(false);
+          setLastSaved(null);
+          setHasUnsavedChanges(false);
+          
           reset();
           setCurrentStep(1);
           window.location.hash = formSteps[0].hash;
@@ -751,6 +1039,172 @@ const AddCourse = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Helper functions to format arrays and avoid reference issues
+  const formatCurriculum = (curriculum: any[] = []) => {
+    return curriculum.map(week => {
+      // Filter out invalid lessons from sections
+      const validSections = (week.sections || []).map((section: any) => ({
+        id: section.id || `section_${crypto.randomUUID()}`,
+        title: section.title || '',
+        description: section.description || '',
+        order: section.order || 0,
+        resources: [...(section.resources || [])],
+        lessons: (section.lessons || [])
+          .filter((lesson: any) => {
+            // Filter out lessons with empty titles
+            if (!lesson.title?.trim()) {
+              return false;
+            }
+            
+            // For video lessons, ensure they have a valid video URL
+            if (lesson.lessonType === 'video' && !lesson.video_url?.trim()) {
+              return false;
+            }
+            
+            return true;
+          })
+          .map((lesson: any) => formatLesson(lesson))
+      }));
+      
+      // Filter out sections with no valid lessons
+      const filteredSections = validSections.filter(section => section.lessons.length > 0);
+      
+      // Filter out invalid direct lessons
+      const validDirectLessons = (week.lessons || [])
+        .filter((lesson: any) => {
+          // Filter out lessons with empty titles
+          if (!lesson.title?.trim()) {
+            return false;
+          }
+          
+          // For video lessons, ensure they have a valid video URL
+          if (lesson.lessonType === 'video' && !lesson.video_url?.trim()) {
+            return false;
+          }
+          
+          return true;
+        })
+        .map((lesson: any) => formatLesson(lesson, true));
+      
+      return {
+        id: week.id || `week_${crypto.randomUUID()}`,
+        weekTitle: week.weekTitle || '',
+        weekDescription: week.weekDescription || '',
+        topics: [...(week.topics || [])],
+        sections: filteredSections,
+        lessons: validDirectLessons,
+        liveClasses: (week.liveClasses || []).map((liveClass: any) => ({
+          title: liveClass.title || '',
+          description: liveClass.description || '',
+          scheduledDate: liveClass.scheduledDate || new Date().toISOString(),
+          duration: liveClass.duration || 0,
+          meetingLink: liveClass.meetingLink || '',
+          instructor: liveClass.instructor || '',
+          recordingUrl: liveClass.recordingUrl || '',
+          isRecorded: liveClass.isRecorded || false,
+          materials: (liveClass.materials || []).map((material: any) => ({
+            title: material.title || '',
+            url: material.url || '',
+            type: material.type || 'document'
+          }))
+        }))
+      };
+    }).filter(week => {
+      // Filter out weeks with no valid sections or direct lessons
+      return (week.sections && week.sections.length > 0) || (week.lessons && week.lessons.length > 0);
+    });
+  };
+
+  const formatLesson = (lesson: any, isDirect = false) => {
+    const baseLesson = {
+      id: lesson.id || `lesson_${isDirect ? 'direct_' : ''}${crypto.randomUUID()}`,
+      title: lesson.title?.trim() || '',
+      description: lesson.description?.trim() || '',
+      order: lesson.order || 0,
+      lessonType: lesson.lessonType || 'video',
+      isPreview: lesson.isPreview || false,
+      meta: {
+        presenter: lesson.meta?.presenter || null,
+        transcript: lesson.meta?.transcript || null,
+        time_limit: lesson.meta?.time_limit || null,
+        passing_score: lesson.meta?.passing_score || null,
+        due_date: lesson.meta?.due_date || null,
+        max_score: lesson.meta?.max_score || null
+      },
+      resources: [...(lesson.resources || [])]
+    };
+
+    switch (lesson.lessonType) {
+      case 'video':
+        return {
+          ...baseLesson,
+          video_url: lesson.video_url?.trim() || '',
+          duration: lesson.duration?.trim() || ''
+        };
+      case 'quiz':
+        return {
+          ...baseLesson,
+          quiz_id: lesson.quiz_id || ''
+        };
+      case 'assessment':
+        return {
+          ...baseLesson,
+          assignment_id: lesson.assignment_id || ''
+        };
+      default:
+        return baseLesson;
+    }
+  };
+
+  const formatResourcePdfs = (pdfs: any[] = []) => {
+    return pdfs.map(pdf => ({
+      title: pdf.title?.trim() || '',
+      url: pdf.url || '',
+      description: pdf.description?.trim() || '',
+      size_mb: Number(pdf.size_mb) || 0,
+      pages: Number(pdf.pages) || 0,
+      upload_date: pdf.upload_date || new Date().toISOString()
+    }));
+  };
+
+  const formatToolsTechnologies = (tools: any[] = []) => {
+    return tools.map(tool => ({
+      name: tool.name?.trim() || '',
+      category: tool.category?.trim() || '',
+      description: tool.description?.trim() || '',
+      logo_url: tool.logo_url || ''
+    }));
+  };
+
+  const formatBonusModules = (modules: any[] = []) => {
+    return modules.map(module => ({
+      title: module.title?.trim() || '',
+      description: module.description?.trim() || '',
+      resources: (module.resources || []).map((resource: any) => ({
+        title: resource.title?.trim() || '',
+        type: resource.type || '',
+        url: resource.url || '',
+        description: resource.description?.trim() || ''
+      }))
+    }));
+  };
+
+  const formatFaqs = (faqs: any[] = []) => {
+    return faqs.map(faq => ({
+      question: faq.question?.trim() || '',
+      answer: faq.answer?.trim() || ''
+    }));
+  };
+
+  const formatFinalEvaluation = (finalEval: any = {}) => {
+    return {
+      final_quizzes: [...(finalEval?.final_quizzes || [])],
+      final_assessments: [...(finalEval?.final_assessments || [])],
+      certification: finalEval?.certification || null,
+      final_faqs: [...(finalEval?.final_faqs || [])]
+    };
   };
 
   const checkStepValidation = async (step: number): Promise<boolean> => {
@@ -894,39 +1348,161 @@ const AddCourse = () => {
   };
 
   const nextStep = () => {
-    if (currentStep < formSteps.length) {
-      setCurrentStep(currentStep + 1);
-    }
+    const goToNextStep = () => {
+      if (currentStep < formSteps.length) {
+        setCurrentStep(currentStep + 1);
+      }
+    };
+    
+    handleNavigation(goToNextStep);
   };
 
   const prevStep = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
+    const goToPrevStep = () => {
+      if (currentStep > 1) {
+        setCurrentStep(currentStep - 1);
+      }
+    };
+    
+    handleNavigation(goToPrevStep);
+  };
+
+  const handleStepClick = async (stepIndex: number) => {
+    // If trying to navigate to the current step, do nothing
+    if (stepIndex === currentStep) {
+      return;
     }
+    
+    // Save current step data before navigation (only for validation)
+    const isCurrentStepValid = await checkStepValidation(currentStep);
+    if (!isCurrentStepValid) {
+      toast.warning('Please complete the current step before navigating');
+      return;
+    }
+    
+    const goToStep = () => {
+      setCurrentStep(stepIndex);
+    };
+    
+    handleNavigation(goToStep);
+  };
+
+  // Define isStepClickable that was accidentally removed
+  const isStepClickable = (stepIndex: number) => {
+    // Allow clicking on completed steps or the next available step
+    return stepIndex <= currentStep;
+  };
+
+  // Helper function for exit to dashboard
+  const exitToDashboard = () => {
+    const goToDashboard = () => {
+      formSubmittedSuccessfully.current = true; // Prevent beforeunload warning
+      window.location.href = '/instructor/dashboard';
+    };
+    
+    handleNavigation(goToDashboard);
+  };
+
+  // Add auto-draft saving indication
+  const DraftSavingIndicator = () => {
+    if (isDraftSaving) {
+      return (
+        <span className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-customGreen mr-2"></div>
+          Auto-saving...
+        </span>
+      );
+    }
+    
+    if (hasUnsavedChanges) {
+      return (
+        <span className="text-sm text-amber-500 dark:text-amber-400 flex items-center">
+          <span className="mr-2">●</span>
+          Unsaved changes
+        </span>
+      );
+    }
+    
+    if (hasSavedDraft && lastSaved) {
+      return (
+        <span className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
+          <span className="text-green-500 mr-2">✓</span>
+          Saved: {lastSaved}
+        </span>
+      );
+    }
+    
+    return null;
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 transition-colors duration-300">
+      {/* Navigation confirmation modal */}
+      <NavigationModal 
+        isOpen={showNavigationModal}
+        onCancel={() => setShowNavigationModal(false)}
+        onContinue={handleNavigationContinue}
+        onSaveAndContinue={handleSaveAndContinue}
+      />
+    
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-6 flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Add New Course</h1>
+            <p className="text-gray-600 dark:text-gray-400">Create a new course using the form below</p>
+          </div>
+          <div className="flex items-center space-x-4">
+            <DraftSavingIndicator />
+            <button
+              type="button"
+              onClick={handleSaveDraft}
+              className="px-4 py-2 border border-customGreen rounded-md text-sm font-medium text-customGreen bg-white dark:bg-gray-700 hover:bg-green-50 dark:hover:bg-gray-600 transition-colors duration-300"
+              disabled={isDraftSaving || isSubmitting}
+            >
+              {isDraftSaving ? 'Saving...' : 'Save Draft'}
+            </button>
+            {hasSavedDraft && (
+              <button
+                type="button"
+                onClick={clearSavedDraft}
+                className="px-4 py-2 border border-red-300 dark:border-red-700 rounded-md text-sm font-medium text-red-500 dark:text-red-400 bg-white dark:bg-gray-700 hover:bg-red-50 dark:hover:bg-gray-600 transition-colors duration-300"
+                disabled={isDraftSaving || isSubmitting}
+              >
+                Clear Draft
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={exitToDashboard}
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-300"
+              disabled={isSubmitting}
+            >
+              Exit
+            </button>
+          </div>
+        </div>
+
         <StepProgress
           currentStep={currentStep}
           totalSteps={formSteps.length}
           steps={formSteps}
+          onStepClick={handleStepClick}
+          isStepClickable={isStepClickable}
         />
 
-        <div className="mt-8 bg-white rounded-lg shadow-lg p-6">
+        <div className="mt-8 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 transition-colors duration-300">
           {isLoading && currentStep === 1 && (
             <div className="flex justify-center items-center py-10">
-              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-customGreen"></div>
-              <p className="ml-3 text-gray-600">Loading categories...</p>
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-500 dark:border-primary-400"></div>
+              <p className="ml-3 text-gray-600 dark:text-gray-400">Loading categories...</p>
             </div>
           )}
           
-          <form onSubmit={handleStepSubmit}>
+          <form onSubmit={handleStepSubmit} id="course-form">
             {renderStep()}
 
             {validationMessage && (
-              <div className="mt-4 p-3 bg-red-50 text-red-700 rounded-md">
+              <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-md">
                 {validationMessage}
               </div>
             )}
@@ -936,37 +1512,55 @@ const AddCourse = () => {
                 <button
                   type="button"
                   onClick={prevStep}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-300"
                   disabled={isSubmitting}
                 >
                   Previous
                 </button>
               )}
-              <button
-                type="submit"
-                className={`ml-auto px-4 py-2 rounded-md text-sm font-medium ${
-                  validationMessage
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-customGreen hover:bg-green-600'
-                } text-white disabled:opacity-50 disabled:cursor-not-allowed`}
-                disabled={isSubmitting || !!validationMessage}
-                title={validationMessage || (isSubmitting ? 'Processing...' : '')}
-              >
-                {isSubmitting ? (
-                  <div className="flex items-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Submitting...
-                  </div>
-                ) : currentStep < formSteps.length ? (
-                  'Next'
-                ) : (
-                  'Submit'
+              <div className="flex items-center space-x-4">
+                {currentStep === formSteps.length && hasSavedDraft && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleSaveDraft().then(() => exitToDashboard());
+                    }}
+                    className="px-4 py-2 border border-customGreen rounded-md text-sm font-medium text-customGreen bg-white dark:bg-gray-700 hover:bg-green-50 dark:hover:bg-gray-600 transition-colors duration-300"
+                    disabled={isDraftSaving || isSubmitting}
+                  >
+                    Save as Draft & Exit
+                  </button>
                 )}
-              </button>
+                <button
+                  type="submit"
+                  form="course-form"
+                  className={`ml-auto px-4 py-2 rounded-md text-sm font-medium ${
+                    validationMessage
+                      ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed'
+                      : 'bg-primary-500 hover:bg-primary-600 dark:bg-primary-400 dark:hover:bg-primary-500'
+                  } text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-300`}
+                  disabled={isSubmitting || !!validationMessage}
+                  title={validationMessage || (isSubmitting ? 'Processing...' : '')}
+                >
+                  {isSubmitting ? (
+                    <div className="flex items-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Submitting...
+                    </div>
+                  ) : currentStep < formSteps.length ? (
+                    'Next'
+                  ) : (
+                    'Submit'
+                  )}
+                </button>
+              </div>
             </div>
           </form>
         </div>
       </div>
+      
+      {/* Theme controller */}
+      <ThemeController position="fixed" />
     </div>
   );
 };

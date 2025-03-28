@@ -15,7 +15,8 @@ import {
   AlertCircle,
   BookmarkCheck,
   PenTool,
-  BrainCircuit
+  BrainCircuit,
+  ChevronRight
 } from "lucide-react";
 
 const EnrollCoursesCard = ({ 
@@ -130,195 +131,148 @@ const EnrollCoursesCard = ({
   return (
     <motion.div
       onClick={handleCardClick}
-      whileHover={{ scale: 1.02 }}
+      whileHover={{ scale: 1.02, y: -5 }}
       whileTap={{ scale: 0.98 }}
-      className="relative max-w-xs rounded-lg overflow-hidden border border-gray-200 bg-white dark:bg-gray-800 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-200"
+      className="group relative bg-white dark:bg-gray-800/50 backdrop-blur-lg rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 dark:border-gray-700/50"
     >
-      {/* Status Badge */}
-      <div className="absolute top-2 right-2 z-10">
-        <div className={`px-2 py-1 rounded-full text-xs font-medium text-white ${getStatusColor(status)}`}>
-          {status === 'completed' ? 'Completed' : status === 'in_progress' ? 'In Progress' : 'Not Started'}
-        </div>
-      </div>
-
-      {/* Live/Self-paced Badge */}
-      <div className="absolute top-2 left-2 z-10 flex items-center space-x-1 bg-black/50 px-2 py-1 rounded-full">
-        {isLive ? (
-          <>
-            <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-            <span className="text-xs font-medium text-white">Live</span>
-          </>
-        ) : (
-          <>
-            <BookOpen className="w-3 h-3 text-white" />
-            <span className="text-xs font-medium text-white">Self-paced</span>
-          </>
-        )}
-      </div>
-
-      {/* Course Image */}
-      <div className="relative w-full h-48 group">
+      {/* Course Image Container */}
+      <div className="relative w-full aspect-[16/9] overflow-hidden">
         <Image
           src={displayImage}
           alt={title || "Course thumbnail"}
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           priority={false}
-          className="object-cover transition-transform duration-300 group-hover:scale-105"
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
           onError={(e) => {
             e.currentTarget.src = AiMl.src;
           }}
         />
-        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
-          <PlayCircle className="w-12 h-12 text-white opacity-75 hover:opacity-100 transition-opacity" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+        {/* Status Badge */}
+        <div className="absolute top-4 right-4 z-10">
+          <div className={`px-4 py-1.5 rounded-full text-xs font-medium backdrop-blur-md flex items-center gap-2 ${
+            status === 'completed' 
+              ? 'bg-green-500/90 text-white' 
+              : status === 'in_progress' 
+                ? 'bg-primary-500/90 text-white' 
+                : 'bg-gray-500/90 text-white'
+          }`}>
+            <span className={`w-2 h-2 rounded-full ${
+              status === 'completed' 
+                ? 'bg-white' 
+                : status === 'in_progress'
+                  ? 'bg-white animate-pulse'
+                  : 'bg-white'
+            }`} />
+            {status === 'completed' ? 'Completed' : status === 'in_progress' ? 'In Progress' : 'Not Started'}
+          </div>
+        </div>
+
+        {/* Live/Self-paced Badge */}
+        <div className="absolute top-4 left-4 z-10">
+          <div className="px-4 py-1.5 rounded-full text-xs font-medium backdrop-blur-md bg-black/50 text-white flex items-center gap-2">
+            {isLive ? (
+              <>
+                <span className="w-2 h-2 bg-red-500 rounded-full animate-ping absolute"></span>
+                <span className="w-2 h-2 bg-red-500 rounded-full relative"></span>
+                <span>Live Course</span>
+              </>
+            ) : (
+              <>
+                <BookOpen className="w-3 h-3" />
+                <span>Self-paced</span>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Course Title on Image */}
+        <div className="absolute bottom-0 left-0 right-0 p-6">
+          <h3 className="text-xl font-semibold text-white mb-2 line-clamp-2 group-hover:text-primary-200 transition-colors">
+            {title}
+          </h3>
         </div>
       </div>
 
       {/* Course Content */}
-      <div className="p-4">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2 line-clamp-2">{title}</h3>
-
+      <div className="p-6 space-y-6">
         {/* Progress Section */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-300">
-            <span>Progress</span>
-            <span className="font-medium">{progress}%</span>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-gray-600 dark:text-gray-400">Course Progress</span>
+            <span className="font-semibold text-primary-500">{progress}%</span>
           </div>
-          <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+          <div className="w-full h-2.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}
               transition={{ duration: 0.5, ease: "easeOut" }}
               className={`h-full rounded-full ${
                 progress === 100 
-                  ? 'bg-green-500' 
-                  : progress > 50 
-                    ? 'bg-primary-500' 
-                    : 'bg-yellow-500'
+                  ? 'bg-gradient-to-r from-green-400 to-green-500' 
+                  : 'bg-gradient-to-r from-primary-400 to-primary-500'
               }`}
             />
           </div>
         </div>
 
-        {/* Course Stats */}
-        <div className="mt-3 space-y-2 text-xs text-gray-500 dark:text-gray-400">
-          {/* Last Accessed */}
-          <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4" />
-            <span>Last accessed: {formatLastAccessed(lastAccessed)}</span>
-          </div>
-
-          {/* Payment Status */}
-          <div className="flex items-center gap-2">
-            <CreditCard className={`w-4 h-4 ${getPaymentStatusColor(paymentStatus)}`} />
-            <span className={getPaymentStatusColor(paymentStatus)}>
-              Payment: {paymentStatus.charAt(0).toUpperCase() + paymentStatus.slice(1)}
-            </span>
-          </div>
-
-          {/* Remaining Time */}
-          {remainingTime && (
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              <span>{remainingTime}</span>
+        {/* Course Stats Grid */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Lessons Progress */}
+          <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-4 backdrop-blur-sm">
+            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-1">
+              <BookOpen className="w-4 h-4 text-primary-500" />
+              <span>Lessons</span>
             </div>
-          )}
-
-          {/* Enrollment Type & Batch Size */}
-          <div className="flex items-center gap-2">
-            <Users className="w-4 h-4" />
-            <span className="capitalize">
-              {enrollmentType} {enrollmentType === 'batch' && batchSize ? `(${batchSize} students)` : 'enrollment'}
-            </span>
+            <p className="text-lg font-semibold text-gray-900 dark:text-white">
+              {completedLessons.length}/{totalLessons}
+            </p>
           </div>
 
-          {/* Learning Path */}
-          <div className="flex items-center gap-2">
-            <GraduationCap className="w-4 h-4" />
-            <span className="capitalize">{learningPath} learning</span>
+          {/* Time Remaining */}
+          <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-4 backdrop-blur-sm">
+            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-1">
+              <Calendar className="w-4 h-4 text-primary-500" />
+              <span>Remaining</span>
+            </div>
+            <p className="text-sm font-medium text-gray-900 dark:text-white line-clamp-1">
+              {remainingTime || 'No limit'}
+            </p>
           </div>
-
-          {/* Progress Stats */}
-          <div className="grid grid-cols-2 gap-2">
-            {/* Lessons Progress */}
-            <div className="flex items-center gap-1">
-              <BookOpen className="w-4 h-4" />
-              <span>{completedLessons.length}/{totalLessons} lessons</span>
-            </div>
-
-            {/* Assignments Progress */}
-            {completionCriteria?.required_assignments && (
-              <div className="flex items-center gap-1">
-                <PenTool className="w-4 h-4" />
-                <span>{completedAssignments.length} assignments</span>
-              </div>
-            )}
-
-            {/* Quizzes Progress */}
-            {completionCriteria?.required_quizzes && (
-              <div className="flex items-center gap-1">
-                <BrainCircuit className="w-4 h-4" />
-                <span>{completedQuizzes.length} quizzes</span>
-              </div>
-            )}
-
-            {/* Notes & Bookmarks */}
-            <div className="flex items-center gap-1">
-              <BookmarkCheck className="w-4 h-4" />
-              <span>{notes.length + bookmarks.length} saved items</span>
-            </div>
-          </div>
-
-          {/* Completion Requirements Alert */}
-          {status !== 'completed' && (completionCriteria?.required_assignments || completionCriteria?.required_quizzes) && (
-            <div className="flex items-start gap-2 mt-2 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-              <AlertCircle className="w-4 h-4 text-yellow-500 shrink-0 mt-0.5" />
-              <div className="text-xs">
-                <p className="font-medium text-yellow-700 dark:text-yellow-400">Completion Requirements:</p>
-                <ul className="mt-1 list-disc list-inside text-yellow-600 dark:text-yellow-500">
-                  {completionCriteria?.required_progress && !hasMetProgress && (
-                    <li>Complete {completionCriteria.required_progress}% of course content</li>
-                  )}
-                  {completionCriteria?.required_assignments && !hasMetAssignments && (
-                    <li>Submit required assignments</li>
-                  )}
-                  {completionCriteria?.required_quizzes && !hasMetQuizzes && (
-                    <li>Complete required quizzes</li>
-                  )}
-                </ul>
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* Continue Learning Button */}
+        {/* Action Button */}
         <motion.button
           onClick={handleButtonClick}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className={`mt-4 w-full py-2 px-4 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors ${
+          className={`w-full py-4 px-6 rounded-2xl font-medium flex items-center justify-center gap-3 transition-all duration-300 ${
             paymentStatus === 'pending'
-              ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
+              ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-white hover:shadow-lg hover:shadow-yellow-500/25'
               : status === 'completed'
-                ? 'bg-green-500 hover:bg-green-600 text-white'
-                : 'bg-primary-500 hover:bg-primary-600 text-white'
+                ? 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:shadow-lg hover:shadow-green-500/25'
+                : 'bg-gradient-to-r from-primary-500 to-primary-600 text-white hover:shadow-lg hover:shadow-primary-500/25'
           }`}
-          disabled={paymentStatus === 'pending'}
         >
           {paymentStatus === 'pending' ? (
             <>
-              <CreditCard className="w-4 h-4" />
-              Complete Payment
+              <CreditCard className="w-5 h-5" />
+              <span>Complete Payment</span>
+              <ChevronRight className="w-5 h-5" />
             </>
           ) : status === 'completed' ? (
             <>
-              <CheckCircle className="w-4 h-4" />
-              {is_certified ? 'View Certificate' : 'Review Course'}
+              <CheckCircle className="w-5 h-5" />
+              <span>{is_certified ? 'View Certificate' : 'Review Course'}</span>
+              <ChevronRight className="w-5 h-5" />
             </>
           ) : (
             <>
-              <PlayCircle className="w-4 h-4" />
-              Continue Learning
+              <PlayCircle className="w-5 h-5" />
+              <span>Continue Learning</span>
+              <ChevronRight className="w-5 h-5" />
             </>
           )}
         </motion.button>

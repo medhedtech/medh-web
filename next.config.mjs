@@ -52,43 +52,51 @@ const nextConfig = {
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     unoptimized: true,
   },
-  // Suppress punycode warning
   webpack: (config, { isServer }) => {
     if (!isServer) {
+      // Client-side specific configurations
       config.resolve.fallback = {
         ...config.resolve.fallback,
         punycode: false,
+        stream: false,
+        buffer: false,
       };
-    }
-    
-    // Add optimization for production builds
-    if (process.env.NODE_ENV === 'production') {
-      // Optimize CSS
-      const optimization = config.optimization || {};
-      config.optimization = {
-        ...optimization,
-        runtimeChunk: 'single',
-        splitChunks: {
-          chunks: 'all',
-          maxInitialRequests: Infinity,
-          minSize: 20000,
-          cacheGroups: {
-            vendor: {
-              test: /[\\/]node_modules[\\/]/,
-              name(module) {
-                // Get the name of the package
-                const match = module.context ? module.context.match(/[\\/]node_modules[\\/](.*?)([\\/]|$)/) : null;
-                // Return a nice package name or a default if match is null
-                return match ? `npm.${match[1].replace('@', '')}` : 'npm.vendor';
+      
+      // Apply optimizations for production builds
+      if (process.env.NODE_ENV === 'production') {
+        // Use standard optimization settings
+        config.optimization = {
+          ...config.optimization,
+          runtimeChunk: {
+            name: 'runtime',
+          },
+          splitChunks: {
+            chunks: 'all',
+            cacheGroups: {
+              vendor: {
+                name: 'vendors',
+                test: /[\\/]node_modules[\\/]/,
+                priority: -10,
+                reuseExistingChunk: true,
+              },
+              default: {
+                minChunks: 2,
+                priority: -20,
+                reuseExistingChunk: true,
               },
             },
           },
-        },
-      };
+        };
+      }
+    } else {
+      // Server-side specific configurations
+      config.output.globalObject = 'globalThis';
     }
     
     return config;
   },
+  // Reduce build output size
+  productionBrowserSourceMaps: false,
 };
 
 export default nextConfig;
