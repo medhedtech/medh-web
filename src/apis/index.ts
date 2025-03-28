@@ -201,6 +201,9 @@ export const apiUrls = {
     verfiySystemPassword: "/auth//verify-temp-password",
     resetPassword: "/auth/reset-password"
   },
+  adminDashboard: {
+    getDashboardCount: "/dashboard/admin-dashboard-count"
+  },
   courses: {
     getAllCourses: "/courses/get",
     getAllCoursesWithLimits: (params: ICourseQueryParams = {}): string => {
