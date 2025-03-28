@@ -1,5 +1,5 @@
 import ProtectedPage from "@/app/protectedRoutes";
-import Access_Recorded_Sessions_Instructor from "@/components/layout/main/dashboards/Access_Instructor_Recorded_essions";
+import Access_Recorded_Sessions_Instructor from "@/components/layout/main/dashboards/Access_Instructor_Recorded_Sessions";
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
 
 import React from "react";

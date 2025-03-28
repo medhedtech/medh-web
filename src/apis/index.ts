@@ -425,15 +425,24 @@ export const apiUrls = {
     uploadDocument: "/upload/base64"
   },
   onlineMeeting: {
-    createMeeting: "/online-meeting/create",
-    getAllMeetings: "/online-meeting/get",
-    getMeetingDetails: "/online-meeting/get/:id",
-    updateMeeting: "/online-meeting/update/:id",
-    deleteMeeting: "/online-meeting/delete/:id",
-    getMeetingByStudentId: "/online-meeting/student",
-    getMeetingsByInstructorId: "/online-meeting/upcoming-classes",
-    getOngoingMeetingsByinstrcutorId: "/online-meeting/ongoing-classes",
-    getAllMeetingsForAllEmployeees: "/online-meeting/all-employee-meetings"
+    createMeeting: "/online-meetings/create",
+    getAllMeetings: "/online-meetings/get",
+    getMeetingDetails: "/online-meetings/get/:id",
+    updateMeeting: "/online-meetings/update/:id",
+    deleteMeeting: "/online-meetings/delete/:id",
+    getMeetingByStudentId: "/online-meetings/student",
+    getMeetingsByInstructorId: "/online-meetings/upcoming-classes",
+    getOngoingMeetingsByinstrcutorId: "/online-meetings/ongoing-classes",
+    getAllMeetingsForAllEmployeees: "/online-meetings/all-employee-meetings",
+    getUpcomingMeetingsForStudent: (studentId: string, options: { showAllUpcoming?: boolean } = {}): string => {
+      if (!studentId) throw new Error('Student ID is required');
+      const queryParams = new URLSearchParams();
+      if (options.showAllUpcoming) {
+        queryParams.append('show_all_upcoming', 'true');
+      }
+      const queryString = queryParams.toString();
+      return `/online-meeting/student/${studentId}${queryString ? `?${queryString}` : ''}`;
+    }
   },
   Instructor: {
     getAllInstructors: "/auth/get-all-instrucors",
@@ -452,16 +461,16 @@ export const apiUrls = {
     toggleCoorporateStatus: "/auth/toggle-coorporate-status"
   },
   feedbacks: {
-    getAllFeedbacks: "/feedbacks/all",
-    getAllComplaints: "/feedbacks/complaints",
-    getAllInstructorFeedbacks: "/feedbacks/instructor",
-    createFeedback: "/feedbacks/create",
-    createComplaint: "/feedbacks/create-complaint",
-    createInstructorFeedback: "/feedbacks/create-instructor",
-    updateFeedback: (id: string): string => `/feedbacks/update/${id}`,
-    deleteFeedback: (id: string): string => `/feedbacks/delete/${id}`,
-    getFeedbackById: (id: string): string => `/feedbacks/get/${id}`,
-    getComplaintById: (id: string): string => `/feedbacks/complaint/${id}`,
+    getAllFeedbacks: "/feedback/all",
+    getAllComplaints: "/feedback/complaints",
+    getAllInstructorFeedbacks: "/feedback/instructor",
+    createFeedback: "/feedback",
+    createComplaint: "/complaint",
+    createInstructorFeedback: "/feedback/create-instructor",
+    updateFeedback: (id: string): string => `/feedback/update/${id}`,
+    deleteFeedback: (id: string): string => `/feedback/delete/${id}`,
+    getFeedbackById: (id: string): string => `/feedback/get/${id}`,
+    getComplaintById: (id: string): string => `/feedback/complaint/${id}`,
     getInstructorFeedbackById: (id: string): string => `/feedbacks/instructor/${id}`
   },
   CoorporateStudent: {
@@ -849,7 +858,7 @@ export const apiUrls = {
     processPayment: "/payments/process",
     getStudentPayments: (studentId: string, options: { page?: number; limit?: number; payment_type?: string } = {}): string => {
       if (!studentId) throw new Error('Student ID is required');
-      const { page = 1, limit = 10, payment_type = "" } = options;
+      const { page = 1, limit = 8, payment_type = "" } = options;
       const queryParams = new URLSearchParams();
       queryParams.append('page', String(page));
       queryParams.append('limit', String(limit));
