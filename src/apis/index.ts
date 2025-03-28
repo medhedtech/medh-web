@@ -209,7 +209,7 @@ export const apiUrls = {
     getAllCoursesWithLimits: (params: ICourseQueryParams = {}): string => {
       const {
         page = 1,
-        limit = 10,
+        limit = 8 ,
         course_title = "",
         course_tag = "",
         course_category = "",
@@ -233,7 +233,7 @@ export const apiUrls = {
 
       // Validate and set pagination params
       queryParams.append('page', String(Math.max(1, page)));
-      queryParams.append('limit', String(Math.min(100, Math.max(1, limit))));
+      queryParams.append('limit', String(Math.min(100, Math.max(1, Number(limit)))));
 
       // Set sorting params
       queryParams.append('sort_by', sort_by);
