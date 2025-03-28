@@ -10,47 +10,57 @@ import { toast } from 'react-toastify';
 const formSteps = [
   {
     title: 'Overview',
-    description: 'Basic course information'
+    description: 'Basic course information',
+    hash: 'overview'
   },
   {
     title: 'Description',
-    description: 'Course details and objectives'
+    description: 'Course details and objectives',
+    hash: 'description'
   },
   {
     title: 'Schedule',
-    description: 'Duration and sessions'
+    description: 'Duration and sessions',
+    hash: 'schedule'
   },
   {
     title: 'Pricing',
-    description: 'Course pricing and brochures'
+    description: 'Course pricing and brochures',
+    hash: 'pricing'
   },
   {
     title: 'Curriculum',
-    description: 'Course structure'
+    description: 'Course structure',
+    hash: 'curriculum'
   },
   {
     title: 'Resources',
-    description: 'Additional materials'
+    description: 'Additional materials',
+    hash: 'resources'
   },
   {
     title: 'FAQs',
-    description: 'Common questions'
+    description: 'Common questions',
+    hash: 'faqs'
   },
   {
     title: 'Tools',
-    description: 'Required technologies'
+    description: 'Required technologies',
+    hash: 'tools'
   },
   {
     title: 'Bonus',
-    description: 'Extra modules'
+    description: 'Extra modules',
+    hash: 'bonus'
   },
   {
     title: 'Related',
-    description: 'Related courses'
+    description: 'Related courses',
+    hash: 'related'
   }
 ];
 
-const schema = yup.object({
+const schema = yup.object().shape({
   course_category: yup.string().required('Course category is required'),
   course_subcategory: yup.string().required('Course subcategory is required'),
   course_title: yup.string().required('Course title is required'),
@@ -60,9 +70,10 @@ const schema = yup.object({
   language: yup.string().required('Language is required'),
   subtitle_languages: yup.array().of(yup.string()),
   course_image: yup.string().required('Course image is required'),
-  assigned_instructor: yup.string().required('Assigned instructor is required'),
-  // Add more validation as needed for other steps
-});
+  assigned_instructor: yup.string().nullable().required('Assigned instructor is required'),
+  class_type: yup.string().required('Class type is required'),
+  course_grade: yup.string().required('Course grade is required')
+}) as yup.ObjectSchema<ICourseFormData>;
 
 const AddCourse: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -72,11 +83,71 @@ const AddCourse: React.FC = () => {
     register,
     handleSubmit,
     setValue,
-    formState: { errors },
+    control,
+    formState,
     watch
   } = useForm<ICourseFormData>({
     resolver: yupResolver(schema),
-    mode: 'onChange'
+    mode: 'onChange',
+    defaultValues: {
+      assigned_instructor: null,
+      course_category: '',
+      course_subcategory: '',
+      course_title: '',
+      course_subtitle: '',
+      course_tag: '',
+      course_level: '',
+      language: '',
+      subtitle_languages: [],
+      course_image: '',
+      class_type: '',
+      course_grade: '',
+      course_description: {
+        program_overview: '',
+        benefits: '',
+        learning_objectives: [],
+        course_requirements: [],
+        target_audience: []
+      },
+      course_fee: 0,
+      prices: [],
+      brochures: [],
+      status: 'Draft',
+      isFree: false,
+      specifications: null,
+      resource_pdfs: [],
+      curriculum: [],
+      faqs: [],
+      tools_technologies: [],
+      bonus_modules: [],
+      efforts_per_Week: '',
+      is_Certification: 'no',
+      is_Assignments: 'no',
+      is_Projects: 'no',
+      is_Quizes: 'no',
+      related_courses: [],
+      min_hours_per_week: 0,
+      max_hours_per_week: 0,
+      category_type: '',
+      no_of_Sessions: 0,
+      course_duration: '',
+      session_duration: '',
+      final_evaluation: {
+        final_quizzes: [],
+        final_assessments: [],
+        certification: null,
+        final_faqs: []
+      },
+      meta: {
+        ratings: {
+          average: 0,
+          count: 0
+        },
+        views: 0,
+        enrollments: 0,
+        lastUpdated: new Date().toISOString()
+      }
+    }
   });
 
   const handleImageUpload = async (file: File) => {
@@ -108,10 +179,11 @@ const AddCourse: React.FC = () => {
           <CourseOverview
             register={register}
             setValue={setValue}
-            formState={{ errors }}
+            formState={formState}
             categories={[]} // Add your categories here
             onImageUpload={handleImageUpload}
             courseImage={courseImage}
+            control={control}
           />
         );
       // Add more cases for other steps

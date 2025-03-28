@@ -130,7 +130,6 @@ const BlogsPrimary = ({ initialBlogs = [], totalBlogs = 0, initialFilters = {} }
         sort_by: filters.sort === 'latest' ? 'createdAt' : 
                 filters.sort === 'popular' ? 'views' : 'createdAt',
         sort_order: 'desc',
-        status: 'published'
       };
       
       if (filters.category) queryParams.category = filters.category;
@@ -164,8 +163,7 @@ const BlogsPrimary = ({ initialBlogs = [], totalBlogs = 0, initialFilters = {} }
               count_only: true,
               category: filters.category || '',
               tags: filters.tag || '',
-              search: filters.search || '',
-              status: 'published'
+              search: filters.search || ''
             }),
           });
           

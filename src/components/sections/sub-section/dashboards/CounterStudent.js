@@ -31,7 +31,7 @@ const CounterStudent = () => {
       y: 0,
       transition: {
         duration: 0.6,
-        staggerChildren: 0.2
+        staggerChildren: 0.1
       }
     }
   };
@@ -63,7 +63,7 @@ const CounterStudent = () => {
       const fetchCounts = async () => {
         try {
           console.log("Fetching counts for student ID:", studentId);
-          const enrollmentCountsUrl = `/enroll/getCount/${studentId}`;
+          const enrollmentCountsUrl = `/enrolled/getCount/${studentId}`;
           
           await getQuery({
             url: enrollmentCountsUrl,
@@ -113,38 +113,53 @@ const CounterStudent = () => {
     }
   }, [studentId, getQuery]);
 
-  // Update dashboard data with new metrics
-  const dashboardCounts = [
+  // Updated dashboard metrics with modern design
+  const dashboardMetrics = [
     {
       name: "Total Courses",
-      image: counter1,
-      data: counts.totalCourses,
+      value: counts.totalCourses,
       description: "Total enrolled courses",
-      gradient: "from-[#FF6B6B] to-[#FF8E53]",
-      hoverGradient: "hover:from-[#FF8E53] hover:to-[#FF6B6B]",
-      iconBg: "bg-red-50 dark:bg-red-900/20",
-      numberColor: "text-[#FF6B6B] dark:text-[#FF8E53]"
+      icon: counter1,
+      gradient: "from-violet-500 to-purple-500",
+      shadowColor: "shadow-violet-500/20",
+      iconBg: "bg-violet-500/10",
+      textColor: "text-violet-500",
+      progressColor: "bg-violet-500"
     },
     {
-      name: "Live & Blended",
-      image: counter2,
-      data: counts.liveCourses + counts.blendedCourses,
-      description: "Interactive courses",
-      gradient: "from-[#4E65FF] to-[#92EFFD]",
-      hoverGradient: "hover:from-[#92EFFD] hover:to-[#4E65FF]",
-      iconBg: "bg-blue-50 dark:bg-blue-900/20",
-      numberColor: "text-[#4E65FF] dark:text-[#92EFFD]"
+      name: "Live Classes",
+      value: counts.liveCourses,
+      description: "Interactive live sessions",
+      icon: counter2,
+      gradient: "from-blue-500 to-cyan-500",
+      shadowColor: "shadow-blue-500/20",
+      iconBg: "bg-blue-500/10",
+      textColor: "text-blue-500",
+      progressColor: "bg-blue-500"
+    },
+    {
+      name: "Blended Learning",
+      value: counts.blendedCourses,
+      description: "Hybrid learning courses",
+      icon: counter2,
+      gradient: "from-emerald-500 to-teal-500",
+      shadowColor: "shadow-emerald-500/20",
+      iconBg: "bg-emerald-500/10",
+      textColor: "text-emerald-500",
+      progressColor: "bg-emerald-500"
     },
     {
       name: "Course Progress",
-      image: counter3,
-      data: `${counts.averageProgress}%`,
-      description: "Average completion rate",
-      gradient: "from-[#00C853] to-[#69F0AE]",
-      hoverGradient: "hover:from-[#69F0AE] hover:to-[#00C853]",
-      iconBg: "bg-green-50 dark:bg-green-900/20",
-      numberColor: "text-[#00C853] dark:text-[#69F0AE]"
-    },
+      value: `${counts.averageProgress}%`,
+      description: "Overall completion",
+      icon: counter3,
+      gradient: "from-rose-500 to-pink-500",
+      shadowColor: "shadow-rose-500/20",
+      iconBg: "bg-rose-500/10",
+      textColor: "text-rose-500",
+      progressColor: "bg-rose-500",
+      isProgress: true
+    }
   ];
 
   // Intersection Observer effect
@@ -173,75 +188,94 @@ const CounterStudent = () => {
   return (
     <section 
       id="counter-section"
-      className="py-16 bg-gradient-to-b from-gray-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 relative overflow-hidden"
+      className="py-12 md:py-24 bg-white dark:bg-gray-900 relative overflow-hidden"
     >
       {/* Modern background patterns */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
-      <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 dark:from-purple-900/20 dark:to-pink-900/20"></div>
-
-      <div className="container mx-auto px-4 relative z-10">
+      <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] opacity-25 dark:bg-[radial-gradient(#1f2937_1px,transparent_1px)]"></div>
+      
+      <motion.div
+        initial="hidden"
+        animate={isVisible ? "visible" : "hidden"}
+        variants={containerVariants}
+        className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10"
+      >
+        {/* Header Section */}
         <motion.div
-          initial="hidden"
-          animate={isVisible ? "visible" : "hidden"}
           variants={containerVariants}
-          className="text-center mb-12"
+          className="max-w-2xl mx-auto text-center mb-12 md:mb-16"
         >
-          <span className="inline-block px-4 py-2 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 text-sm font-medium mb-4">
-            Your Dashboard
-          </span>
-          <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 dark:from-primary-400 dark:to-secondary-400 bg-clip-text text-transparent mb-4">
-            Your Learning Journey
+          <div className="inline-flex items-center justify-center space-x-1 mb-4">
+            <span className="h-px w-8 bg-primary-500/50"></span>
+            <span className="text-sm font-medium text-primary-600 dark:text-primary-400 tracking-wider uppercase">
+              Dashboard Overview
+            </span>
+            <span className="h-px w-8 bg-primary-500/50"></span>
+          </div>
+          <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl mb-4">
+            Your Learning Progress
           </h2>
-          <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto text-lg">
-            Track your progress and achievements across different learning paths
+          <p className="text-lg leading-relaxed text-gray-600 dark:text-gray-400">
+            Track your educational journey and monitor your achievements across all courses
           </p>
         </motion.div>
 
-        <motion.div 
-          variants={containerVariants}
-          initial="hidden"
-          animate={isVisible ? "visible" : "hidden"}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-        >
-          {dashboardCounts.map((item, index) => (
+        {/* Metrics Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+          {dashboardMetrics.map((metric, index) => (
             <motion.div
               key={index}
               variants={itemVariants}
-              className={`group bg-white dark:bg-gray-800/50 backdrop-blur-lg rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 dark:border-gray-700/50`}
+              className={`relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 lg:p-8 ${metric.shadowColor} shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700/50`}
             >
-              <div className={`p-8 relative`}>
-                {/* Gradient background with transition */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${item.gradient} opacity-5 group-hover:opacity-10 transition-opacity duration-500`}></div>
-                
-                {/* Animated border gradient */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${item.gradient} ${item.hoverGradient} opacity-0 group-hover:opacity-10 transition-all duration-500 blur-xl`}></div>
-                
-                <div className="relative z-10">
-                  <div className={`flex items-center justify-center mb-6 ${item.iconBg} rounded-2xl p-4 w-20 h-20 mx-auto group-hover:scale-110 transition-transform duration-500`}>
-                    <div className="relative w-full h-full">
-                      <Image
-                        src={item.image}
-                        alt={item.name}
-                        fill
-                        className="object-contain transform group-hover:scale-110 transition-transform duration-500"
-                      />
-                    </div>
+              {/* Gradient background */}
+              <div className={`absolute inset-0 opacity-5 bg-gradient-to-br ${metric.gradient}`}></div>
+              
+              <div className="relative z-10">
+                {/* Icon */}
+                <div className={`${metric.iconBg} rounded-xl p-3 w-12 h-12 mb-6 transition-transform duration-300 hover:scale-110`}>
+                  <div className="relative w-full h-full">
+                    <Image
+                      src={metric.icon}
+                      alt={metric.name}
+                      fill
+                      className="object-contain"
+                    />
                   </div>
-                  <h3 className={`text-4xl font-bold ${item.numberColor} mb-3 group-hover:scale-110 transition-transform duration-300`}>
-                    {item.data}
-                  </h3>
-                  <h4 className="text-xl font-semibold text-gray-800 dark:text-white mb-2 group-hover:text-primary-500 dark:group-hover:text-primary-400 transition-colors duration-300">
-                    {item.name}
+                </div>
+
+                {/* Value */}
+                <h3 className={`text-3xl lg:text-4xl font-bold ${metric.textColor} mb-3`}>
+                  {metric.value}
+                </h3>
+
+                {/* Title and Description */}
+                <div>
+                  <h4 className="text-gray-900 dark:text-white font-semibold mb-2">
+                    {metric.name}
                   </h4>
-                  <p className="text-gray-600 dark:text-gray-400 text-base">
-                    {item.description}
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">
+                    {metric.description}
                   </p>
                 </div>
+
+                {/* Progress bar for progress metric */}
+                {metric.isProgress && (
+                  <div className="mt-6 h-2 w-full bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full ${metric.progressColor} transition-all duration-1000 ease-out`}
+                      style={{ width: `${counts.averageProgress}%` }}
+                    />
+                  </div>
+                )}
               </div>
+
+              {/* Decorative elements */}
+              <div className={`absolute bottom-0 right-0 w-32 h-32 ${metric.gradient} opacity-10 rounded-full -mr-16 -mb-16 blur-2xl`}></div>
+              <div className={`absolute top-0 left-0 w-24 h-24 ${metric.gradient} opacity-10 rounded-full -ml-12 -mt-12 blur-xl`}></div>
             </motion.div>
           ))}
-        </motion.div>
-      </div>
+        </div>
+      </motion.div>
     </section>
   );
 };
