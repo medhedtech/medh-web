@@ -270,7 +270,7 @@ const HomeCourseSection = ({
       getQuery({
         url: apiUrls?.courses?.getAllCoursesWithLimits(
           1, // page
-          100, // Get more courses to ensure we have courses from all categories
+          8, // Get more courses to ensure we have courses from all categories
           "", // course_title
           "", // course_tag
           "", // course_category

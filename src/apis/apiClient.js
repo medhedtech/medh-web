@@ -10,18 +10,30 @@ const isDevelopment = process.env.NODE_ENV !== 'production';
 const apiInstance = () => {
   const api = axios.create({
     baseURL: apiBaseUrl,
-    // Optional: You can set default headers like this if needed
-    // headers: { 'Content-Type': 'application/json' }
+    // Critical for CORS with credentials
+    withCredentials: true,
+    headers: { 
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    // Timeout in milliseconds
+    timeout: parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || '30000', 10)
   });
 
   // Configure retries.
   axiosRetry(api, {
-    retries: 3,             // Number of retries
+    retries: parseInt(process.env.NEXT_PUBLIC_API_RETRY_COUNT || '3', 10),
     retryDelay: (retryCount) => {
       // Exponential backoff or custom logic
-      return retryCount * 1000; // E.g., 1s, 2s, 3s
+      const baseDelay = parseInt(process.env.NEXT_PUBLIC_API_RETRY_DELAY || '1000', 10);
+      return retryCount * baseDelay; // E.g., 1s, 2s, 3s
     },
     retryCondition: (error) => {
+      // Don't retry on CORS errors
+      if (error.response && error.response.status === 0) {
+        return false;
+      }
+      
       // Only retry on network errors or 5xx responses
       return (
         axiosRetry.isNetworkError(error) ||
@@ -84,6 +96,29 @@ const apiInstance = () => {
       return response;
     },
     (error) => {
+      // Handle CORS specific errors
+      if (error.message && error.message.includes('Network Error')) {
+        if (isDevelopment) {
+          logger.log('CORS_ERROR', 'Possible CORS issue detected');
+        }
+        
+        // Dispatch event for CORS error handling
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('api:cors-error', { 
+            detail: { 
+              url: error.config?.url,
+              message: 'Request failed due to CORS policy. Please contact support if this persists.'
+            }
+          }));
+        }
+        
+        return Promise.reject({
+          ...error,
+          isCorsError: true,
+          friendlyMessage: 'Unable to connect to the API due to cross-origin restrictions.'
+        });
+      }
+      
       if (error?.response) {
         // Check for error details
         const detail = error.response.data?.detail || 'Unknown Error';
@@ -120,5 +155,43 @@ const apiInstance = () => {
 };
 
 const apiClient = apiInstance();
+
+// Add utility functions to check endpoint existence
+apiClient.checkEndpoint = async (url) => {
+  try {
+    // Perform HEAD request to check if endpoint exists
+    await apiClient.head(url);
+    return { exists: true, error: null };
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      // If we get any response, the endpoint exists but might return an error
+      if (error.response.status === 404) {
+        return { exists: false, error };
+      }
+      // Other error codes mean the endpoint exists but returned an error
+      return { exists: true, error };
+    }
+    // Network error or other issues
+    return { exists: false, error };
+  }
+};
+
+// Add a method to test CORS configuration
+apiClient.testCorsConfiguration = async () => {
+  try {
+    const response = await apiClient.options(`${apiBaseUrl}/cors-test`);
+    return { 
+      success: true, 
+      headers: response.headers,
+      message: 'CORS configuration is working correctly'
+    };
+  } catch (error) {
+    return { 
+      success: false, 
+      error: error.message,
+      message: 'CORS configuration test failed'
+    };
+  }
+};
 
 export default apiClient;
