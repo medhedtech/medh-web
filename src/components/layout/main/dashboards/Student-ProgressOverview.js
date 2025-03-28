@@ -70,7 +70,7 @@ const StudentProgressOverview = () => {
         try {
           setIsLoading(true);
           await getQuery({
-            url: `/enroll/getCount/${studentId}`,
+            url: `/enrolled/getCount/${studentId}`,
             onSuccess: (response) => {
               if (response?.data) {
                 setStudentData({

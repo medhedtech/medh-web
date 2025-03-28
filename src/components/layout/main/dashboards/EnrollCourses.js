@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
 import { motion, AnimatePresence } from "framer-motion";
-import { BookOpen, ChevronRight, Loader, Search, AlertCircle } from "lucide-react";
+import { BookOpen, ChevronRight, Loader, Search, AlertCircle, Sparkles } from "lucide-react";
 
 // Helper function to get the auth token
 const getAuthToken = () => {
@@ -103,7 +103,7 @@ const EnrollCourses = () => {
       
       const paymentApiUrl = apiUrls.payment.getStudentPayments(id, { 
         page: 1, 
-        limit: 100 // Only fetch 4 items since we're displaying a limited set
+        limit: 8 // Only fetch 4 items since we're displaying a limited set
       });
       
       await getQuery({
@@ -232,142 +232,158 @@ const EnrollCourses = () => {
   );
 
   return (
-    <motion.div 
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-      className="container mx-auto mt-[-40px] p-8"
-    >
-      <div className="flex items-center justify-between mb-8">
-        <motion.div 
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="flex items-center gap-3"
-        >
-          <div className="p-3 rounded-xl bg-primary-50 dark:bg-primary-900/20">
-            <BookOpen className="w-6 h-6 text-primary-500 dark:text-primary-400" />
+    <section className="py-12 md:py-16 relative overflow-hidden">
+      {/* Modern background patterns */}
+      <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] opacity-25 dark:bg-[radial-gradient(#1f2937_1px,transparent_1px)]"></div>
+
+      <motion.div 
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+        className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10"
+      >
+        {/* Header Section */}
+        <div className="max-w-2xl mx-auto text-center mb-12">
+          <div className="inline-flex items-center justify-center space-x-1 mb-4">
+            <span className="h-px w-8 bg-primary-500/50"></span>
+            <span className="text-sm font-medium text-primary-600 dark:text-primary-400 tracking-wider uppercase">
+              My Learning
+            </span>
+            <span className="h-px w-8 bg-primary-500/50"></span>
           </div>
-          <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 dark:text-white">
+          <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl mb-4">
             Enrolled Courses
           </h2>
-        </motion.div>
+          <p className="text-lg leading-relaxed text-gray-600 dark:text-gray-400">
+            Continue your learning journey with your enrolled courses
+          </p>
+        </div>
 
-        <div className="flex items-center gap-4">
+        {/* Search and Filter Section */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
           <motion.div
-            initial={{ opacity: 0, x: 20 }}
+            initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="relative"
+            className="relative w-full sm:w-auto"
           >
             <input
               type="text"
-              placeholder="Search courses..."
+              placeholder="Search your courses..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full sm:w-80 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50 backdrop-blur-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent pl-11"
             />
-            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           </motion.div>
 
           <motion.a
             href="/dashboards/enrolled-courses"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            whileHover={{ scale: 1.05, x: 5 }}
-            whileTap={{ scale: 0.95 }}
-            className="flex items-center gap-2 text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 font-medium transition-colors"
+            whileHover={{ scale: 1.02, x: 5 }}
+            whileTap={{ scale: 0.98 }}
+            className="flex items-center gap-2 px-6 py-3 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-xl font-medium transition-all duration-200 hover:bg-primary-100 dark:hover:bg-primary-900/40"
           >
-            View All
+            <Sparkles className="w-4 h-4" />
+            View All Courses
             <ChevronRight className="w-4 h-4" />
           </motion.a>
         </div>
-      </div>
 
-      {error && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 flex items-center gap-2"
-        >
-          <AlertCircle className="w-5 h-5" />
-          {error}
-        </motion.div>
-      )}
-
-      {loading ? (
-        <div className="min-h-[300px] flex items-center justify-center">
+        {/* Error Message */}
+        {error && (
           <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            className="flex items-center gap-3"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 flex items-center gap-2 backdrop-blur-lg"
           >
-            <Loader className="w-6 h-6 text-primary-500" />
-            <span className="text-gray-600 dark:text-gray-400">Loading your courses...</span>
+            <AlertCircle className="w-5 h-5" />
+            <p className="text-sm font-medium">{error}</p>
           </motion.div>
-        </div>
-      ) : filteredCourses.length === 0 ? (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="min-h-[300px] flex flex-col items-center justify-center text-center p-8 bg-gray-50 dark:bg-gray-800/50 rounded-2xl"
-        >
-          <div className="p-4 rounded-full bg-primary-50 dark:bg-primary-900/20 mb-4">
-            <BookOpen className="w-8 h-8 text-primary-500 dark:text-primary-400" />
-          </div>
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-            {searchTerm ? "No matching courses found" : "No Enrolled Courses Yet"}
-          </h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md">
-            {searchTerm 
-              ? "Try adjusting your search terms or view all courses"
-              : "Start your learning journey by enrolling in our courses. We have a wide range of options to choose from."}
-          </p>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => router.push('/courses')}
-            className="px-6 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors"
+        )}
+
+        {/* Loading State */}
+        {loading ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="min-h-[400px] flex flex-col items-center justify-center gap-4"
           >
-            Browse Courses
-          </motion.button>
-        </motion.div>
-      ) : (
-        <motion.div 
-          variants={containerVariants}
-          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
-        >
-          <AnimatePresence>
-            {filteredCourses.map((course) => (
-              <motion.div
-                key={course._id}
-                variants={cardVariants}
-                onHoverStart={() => setIsHovered(course._id)}
-                onHoverEnd={() => setIsHovered(null)}
-                layout
-              >
-                <EnrollCoursesCard
-                  title={course.course_title}
-                  image={course.course_image}
-                  isLive={!course.is_self_paced}
-                  progress={course.progress}
-                  lastAccessed={course.last_accessed}
-                  status={course.completion_status}
-                  onClick={() => handleCardClick(course._id)}
-                  isHovered={isHovered === course._id}
-                  paymentStatus={course.payment_status}
-                  remainingTime={course.remaining_time}
-                  completionCriteria={course.completion_criteria}
-                  completedLessons={course.completed_lessons?.length || 0}
-                  totalLessons={course.lessons?.length || 0}
-                  enrollmentType={course.enrollment_type}
-                  learningPath={course.learning_path}
-                  courseId={course._id}
-                />
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </motion.div>
-      )}
-    </motion.div>
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+              className="w-12 h-12 border-4 border-primary-500 border-t-transparent rounded-full"
+            />
+            <p className="text-gray-600 dark:text-gray-400 animate-pulse">
+              Loading your courses...
+            </p>
+          </motion.div>
+        ) : filteredCourses.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="min-h-[400px] flex flex-col items-center justify-center text-center p-8 rounded-2xl bg-white dark:bg-gray-800/50 backdrop-blur-lg border border-gray-100 dark:border-gray-700/50 shadow-lg"
+          >
+            <div className="w-20 h-20 rounded-full bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center mb-6">
+              <BookOpen className="w-10 h-10 text-primary-500" />
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              {searchTerm ? "No matching courses found" : "No Enrolled Courses Yet"}
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-md">
+              {searchTerm 
+                ? "Try adjusting your search terms or view all courses"
+                : "Start your learning journey by enrolling in our courses. We have a wide range of options to choose from."}
+            </p>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => router.push('/courses')}
+              className="px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl font-medium transition-all duration-300 hover:shadow-lg hover:shadow-primary-500/25 flex items-center gap-2"
+            >
+              Browse Courses
+              <ChevronRight className="w-4 h-4" />
+            </motion.button>
+          </motion.div>
+        ) : (
+          <motion.div 
+            variants={containerVariants}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+          >
+            <AnimatePresence>
+              {filteredCourses.map((course) => (
+                <motion.div
+                  key={course._id}
+                  variants={cardVariants}
+                  onHoverStart={() => setIsHovered(course._id)}
+                  onHoverEnd={() => setIsHovered(null)}
+                  layout
+                >
+                  <EnrollCoursesCard
+                    title={course.course_title}
+                    image={course.course_image}
+                    isLive={!course.is_self_paced}
+                    progress={course.progress}
+                    lastAccessed={course.last_accessed}
+                    status={course.completion_status}
+                    onClick={() => handleCardClick(course._id)}
+                    isHovered={isHovered === course._id}
+                    paymentStatus={course.payment_status}
+                    remainingTime={course.remaining_time}
+                    completionCriteria={course.completion_criteria}
+                    completedLessons={course.completed_lessons}
+                    totalLessons={course.lessons?.length || 0}
+                    enrollmentType={course.enrollment_type}
+                    learningPath={course.learning_path}
+                    courseId={course._id}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
+        )}
+      </motion.div>
+    </section>
   );
 };
 

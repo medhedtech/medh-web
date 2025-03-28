@@ -1,8 +1,10 @@
-import { format, parseISO } from 'date-fns';
+import { format, parse } from 'date-fns';
 
 export const formatZoomDateTime = (dateString: string): string => {
   try {
-    const date = parseISO(dateString);
+    // Remove any leading/trailing spaces and handle the format "MMM dd,yyyy"
+    const cleanDateString = dateString.trim();
+    const date = parse(cleanDateString, 'MMM dd,yyyy', new Date());
     return format(date, 'MMM dd, yyyy');
   } catch (error) {
     console.error('Error formatting date:', error);
@@ -12,9 +14,12 @@ export const formatZoomDateTime = (dateString: string): string => {
 
 export const formatDuration = (duration: string): string => {
   try {
-    // Expected format: "2h 30m" or "45m" or "1h"
-    const hours = duration.match(/(\d+)h/)?.[1] || '0';
-    const minutes = duration.match(/(\d+)m/)?.[1] || '0';
+    // Clean up the input string
+    const cleanDuration = duration.trim();
+    
+    // Extract hours and minutes using regex
+    const hours = cleanDuration.match(/(\d+)\s*hr/)?.[1] || '0';
+    const minutes = cleanDuration.match(/(\d+)\s*min/)?.[1] || '0';
     
     const totalMinutes = parseInt(hours) * 60 + parseInt(minutes);
     

@@ -1,20 +1,34 @@
 'use client';
 
-import React from 'react';
-import { CourseContentAdapter } from '@/components/shared/course-content';
+import SharedAnimatedContent from '@/components/shared/course-content/AnimatedContent';
 
 /**
  * AnimatedContent component for Personality Development course
  * This component now uses the shared CourseContentAdapter
  */
-function AnimatedContent({ components, exploreJourneyProps }) {
+const AnimatedContent = ({ components, exploreJourneyProps, bannerProps }) => {
+  // Map the personality development components to the shared component structure
+  const mappedComponents = {
+    CourseBanner: components.CourseBanner,
+    CourseContent: components.PersonalityCourse,
+    CourseOverview: components.PersonalityOvereveiw,
+    CourseFAQ: components.PersonalityFaq,
+    CourseRelatedCourses: components.PersonalityRelatedCourse,
+    ThemeController: components.ThemeController
+  };
+
+  // Options for the shared component
+  const options = {
+    ctaGradientColors: ["primary-500/10", "indigo-500/10", "purple-500/10"]
+  };
+
   return (
-    <CourseContentAdapter
-      components={components}
-      exploreJourneyProps={exploreJourneyProps}
-      courseType="personality-development"
+    <SharedAnimatedContent
+      components={mappedComponents}
+      bannerProps={bannerProps}
+      options={options}
     />
   );
-}
+};
 
 export default AnimatedContent; 

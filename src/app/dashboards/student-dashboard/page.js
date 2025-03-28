@@ -1,6 +1,7 @@
 import ProtectedPage from "@/app/protectedRoutes";
 import StudentDashboardMain from "@/components/layout/main/dashboards/StudentDashboardMain";
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
+import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 
 export const metadata = {
   title: "Student Dashboard | Medh - Education LMS Template",
@@ -8,6 +9,7 @@ export const metadata = {
 };
 const Student_Dashboard = () => {
   return (
+    <PageWrapper>
     <ProtectedPage>
       <main>
         <DashboardContainer>
@@ -16,6 +18,7 @@ const Student_Dashboard = () => {
         
       </main>
     </ProtectedPage>
+    </PageWrapper>
   );
 };
 

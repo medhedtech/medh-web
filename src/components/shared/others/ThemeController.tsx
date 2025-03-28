@@ -2,86 +2,47 @@
 
 import { useState, useEffect } from 'react';
 import { Moon, Sun } from 'lucide-react';
+import { useTheme } from 'next-themes';
 
-const ThemeController = ({ position = 'fixed' }) => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+interface ThemeControllerProps {
+  position?: 'fixed' | 'absolute' | 'relative' | 'static' | 'sticky';
+}
+
+const ThemeController = ({ position = 'fixed' }: ThemeControllerProps) => {
+  const { theme, setTheme } = useTheme();
   const [showTooltip, setShowTooltip] = useState(false);
-
-  // Initialize theme based on system preference or stored preference
+  const [mounted, setMounted] = useState(false);
+  
+  // Wait for component to mount to avoid hydration mismatch
   useEffect(() => {
-    const initializeTheme = () => {
-      try {
-        // Check if theme is stored in localStorage
-        const storedTheme = localStorage.getItem('theme');
-        
-        // Check system preference if no stored theme
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        
-        // Set initial theme
-        const shouldUseDarkMode = storedTheme === 'dark' || (!storedTheme && prefersDark);
-        
-        setIsDarkMode(shouldUseDarkMode);
-        document.documentElement.classList.toggle('dark', shouldUseDarkMode);
-        
-        // Add transition class after initial load
-        document.documentElement.classList.add('theme-transition');
-      } catch (error) {
-        console.error('Error initializing theme:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    initializeTheme();
-
-    // Listen for system theme changes
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleSystemThemeChange = (e) => {
-      if (!localStorage.getItem('theme')) {
-        setIsDarkMode(e.matches);
-        document.documentElement.classList.toggle('dark', e.matches);
-      }
-    };
-
-    mediaQuery.addEventListener('change', handleSystemThemeChange);
-    return () => mediaQuery.removeEventListener('change', handleSystemThemeChange);
+    setMounted(true);
   }, []);
 
   // Add keyboard shortcut listener
   useEffect(() => {
-    const handleKeyPress = (e) => {
+    const handleKeyPress = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'j') {
         e.preventDefault();
-        toggleTheme();
+        setTheme(theme === 'dark' ? 'light' : 'dark');
       }
     };
 
     document.addEventListener('keydown', handleKeyPress);
     return () => document.removeEventListener('keydown', handleKeyPress);
-  }, [isDarkMode]);
+  }, [theme, setTheme]);
 
-  // Toggle theme function
-  const toggleTheme = () => {
-    try {
-      const newDarkMode = !isDarkMode;
-      document.documentElement.classList.toggle('dark', newDarkMode);
-      localStorage.setItem('theme', newDarkMode ? 'dark' : 'light');
-      setIsDarkMode(newDarkMode);
-    } catch (error) {
-      console.error('Error toggling theme:', error);
-    }
-  };
-
-  if (isLoading) {
+  // Don't render anything until mounted to prevent hydration mismatch
+  if (!mounted) {
     return null;
   }
+
+  const isDarkMode = theme === 'dark';
 
   return (
     <div className={`${position} bottom-4 left-4 z-50 animate-slideUp`}>
       <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-md rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200/50 dark:border-gray-700/50">
         <button 
-          onClick={toggleTheme}
+          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
           onMouseEnter={() => setShowTooltip(true)}
           onMouseLeave={() => setShowTooltip(false)}
           onFocus={() => setShowTooltip(true)}
@@ -97,11 +58,6 @@ const ThemeController = ({ position = 'fixed' }) => {
               <Moon className="w-5 h-5 text-indigo-600" />
             </div>
           </div>
-          
-          {/* Text Label */}
-          {/* <span className="text-xs font-medium whitespace-nowrap">
-            {isDarkMode ? 'Light' : 'Dark'}
-          </span> */}
 
           {/* Tooltip */}
           <div 
@@ -133,12 +89,3 @@ const ThemeController = ({ position = 'fixed' }) => {
 };
 
 export default ThemeController;
-
-// Add this to your global CSS file (e.g., globals.css)
-/*
-.theme-transition * {
-  transition-property: background-color, border-color, color, fill, stroke;
-  transition-duration: 200ms;
-  transition-timing-function: ease-out;
-}
-*/

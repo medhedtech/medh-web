@@ -18,6 +18,10 @@ import {
   MaterialType
 } from '@/types/course.types';
 import { v4 as uuidv4 } from 'uuid';
+import { useUpload } from '@/hooks/useUpload';
+import FileUpload from '@/components/shared/FileUpload';
+import { ALLOWED_MIME_TYPES, MAX_FILE_SIZE } from '@/services/uploadService';
+import { getAuthToken, isAuthenticated } from '@/utils/auth';
 
 // Keep only the ILiveClass interface since it's not in the types file
 interface ILiveClass {
@@ -26,7 +30,7 @@ interface ILiveClass {
   scheduledDate: Date;
   duration: number;
   meetingLink?: string;
-  instructor?: string;
+  instructor?: string | null;  // Changed to allow null
   recordingUrl?: string;
   isRecorded: boolean;
   materials: IMaterial[];
@@ -99,6 +103,13 @@ interface IAssignment {
   due_date: string;
 }
 
+// Add new interface for video upload progress
+interface IVideoUploadProgress {
+  progress: number;
+  status: 'idle' | 'uploading' | 'processing' | 'complete' | 'error';
+  error?: string;
+}
+
 const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
   register,
   setValue,
@@ -118,9 +129,18 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
     quizzes: '',
     assignments: ''
   });
-  const [draggedItem, setDraggedItem] = useState<{ type: string; id: string } | null>(null);
+  const [draggedItem, setDraggedItem] = useState<{ type: string; id: string; parentId?: string } | null>(null);
   const [videoUploads, setVideoUploads] = useState<{ [key: string]: IVideoUploadState }>({});
   const [videoData, setVideoData] = useState<{ [key: string]: IVideoData }>({});
+  const [uploadProgress, setUploadProgress] = useState<{ [key: string]: IVideoUploadProgress }>({});
+  const { uploadFile, uploadMultipleFiles, isUploading } = useUpload({
+    onSuccess: (response) => {
+      toast.success('File uploaded successfully');
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    }
+  });
 
   // Helper function to generate IDs
   const generateId = (prefix: string, ...indices: number[]): string => {
@@ -131,21 +151,34 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
   useEffect(() => {
     const fetchQuizzes = async () => {
       try {
+        const token = getAuthToken();
+        if (!token) {
+          throw new Error('Authentication required');
+        }
+
         setIsLoading(prev => ({ ...prev, quizzes: true }));
         setLoadingError(prev => ({ ...prev, quizzes: '' }));
         
         const courseId = watch('_id');
         if (courseId) {
-          const response = await axios.get(`${apiBaseUrl}${apiUrls.courses.getCourseQuizzes(courseId)}`);
+          const response = await axios.get(
+            `${apiBaseUrl}${apiUrls.courses.getCourseQuizzes(courseId)}`,
+            {
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            }
+          );
           setQuizzes(response.data.data || []);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error fetching quizzes:', error);
+        const errorMessage = error.response?.data?.message || 'Failed to fetch quizzes. Please try again.';
         setLoadingError(prev => ({ 
           ...prev, 
-          quizzes: 'Failed to fetch quizzes. Please try again.' 
+          quizzes: errorMessage
         }));
-        toast.error('Failed to fetch quizzes');
+        toast.error(errorMessage);
       } finally {
         setIsLoading(prev => ({ ...prev, quizzes: false }));
       }
@@ -153,21 +186,34 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
 
     const fetchAssignments = async () => {
       try {
+        const token = getAuthToken();
+        if (!token) {
+          throw new Error('Authentication required');
+        }
+
         setIsLoading(prev => ({ ...prev, assignments: true }));
         setLoadingError(prev => ({ ...prev, assignments: '' }));
         
         const courseId = watch('_id');
         if (courseId) {
-          const response = await axios.get(`${apiBaseUrl}${apiUrls.courses.getCourseAssignments(courseId)}`);
+          const response = await axios.get(
+            `${apiBaseUrl}${apiUrls.courses.getCourseAssignments(courseId)}`,
+            {
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            }
+          );
           setAssignments(response.data.data || []);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error fetching assignments:', error);
+        const errorMessage = error.response?.data?.message || 'Failed to fetch assignments. Please try again.';
         setLoadingError(prev => ({ 
           ...prev, 
-          assignments: 'Failed to fetch assignments. Please try again.' 
+          assignments: errorMessage
         }));
-        toast.error('Failed to fetch assignments');
+        toast.error(errorMessage);
       } finally {
         setIsLoading(prev => ({ ...prev, assignments: false }));
       }
@@ -220,9 +266,9 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
     setWeeks(updatedWeeks);
   };
 
-  // Drag and drop handlers
-  const handleDragStart = (type: string, id: string) => {
-    setDraggedItem({ type, id });
+  // Enhanced drag and drop handlers
+  const handleDragStart = (type: string, id: string, parentId?: string) => {
+    setDraggedItem({ type, id, parentId });
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -240,6 +286,18 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
     } else if (draggedItem.type === 'lesson' && targetType === 'section') {
       // Move lesson between sections
       const newCurriculum = reorderLessons(targetId);
+      setWeeks(newCurriculum);
+    } else if (draggedItem.type === 'direct_lesson' && targetType === 'week') {
+      // Move direct lesson between weeks
+      const newCurriculum = reorderDirectLessons(targetId);
+      setWeeks(newCurriculum);
+    } else if (draggedItem.type === 'direct_lesson' && targetType === 'section') {
+      // Move direct lesson to a section
+      const newCurriculum = moveDirectLessonToSection(targetId);
+      setWeeks(newCurriculum);
+    } else if (draggedItem.type === 'lesson' && targetType === 'week') {
+      // Move section lesson to direct lesson
+      const newCurriculum = moveSectionLessonToWeek(targetId);
       setWeeks(newCurriculum);
     }
 
@@ -362,6 +420,190 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
     });
     
     newCurriculum[targetWeekIndex].sections[targetSectionIndex].lessons.forEach((lesson, idx) => {
+      lesson.order = idx + 1;
+    });
+    
+    return newCurriculum;
+  };
+
+  // Add new functions for direct lesson drag and drop
+  const reorderDirectLessons = (targetWeekId: string): ICurriculumWeek[] => {
+    if (!draggedItem) return weeks;
+    
+    // Find source week
+    const sourceWeekIndex = weeks.findIndex(week => 
+      week.lessons && week.lessons.some(lesson => lesson.id === draggedItem.id)
+    );
+    
+    const targetWeekIndex = weeks.findIndex(week => week.id === targetWeekId);
+    
+    if (sourceWeekIndex === -1 || targetWeekIndex === -1 || sourceWeekIndex === targetWeekIndex) return weeks;
+    
+    // Find the lesson to move
+    const sourceWeek = weeks[sourceWeekIndex];
+    if (!sourceWeek.lessons) return weeks;
+    
+    const lessonIndex = sourceWeek.lessons.findIndex(l => l.id === draggedItem.id);
+    const lessonToMove = { ...sourceWeek.lessons[lessonIndex] };
+    
+    // Create new curriculum with the lesson moved
+    const newCurriculum = [...weeks];
+    
+    // Remove from source
+    newCurriculum[sourceWeekIndex] = {
+      ...sourceWeek,
+      lessons: sourceWeek.lessons.filter(l => l.id !== draggedItem.id)
+    };
+    
+    // Add to target
+    const targetWeek = { ...newCurriculum[targetWeekIndex] };
+    if (!targetWeek.lessons) targetWeek.lessons = [];
+    
+    newCurriculum[targetWeekIndex] = {
+      ...targetWeek,
+      lessons: [...targetWeek.lessons, lessonToMove]
+    };
+    
+    // Update order in both weeks
+    if (newCurriculum[sourceWeekIndex].lessons) {
+      newCurriculum[sourceWeekIndex].lessons.forEach((lesson, idx) => {
+        lesson.order = idx + 1;
+      });
+    }
+    
+    newCurriculum[targetWeekIndex].lessons.forEach((lesson, idx) => {
+      lesson.order = idx + 1;
+    });
+    
+    return newCurriculum;
+  };
+
+  const moveDirectLessonToSection = (targetSectionId: string): ICurriculumWeek[] => {
+    if (!draggedItem) return weeks;
+    
+    // Find source week and the lesson to move
+    let sourceWeekIndex = -1;
+    for (let w = 0; w < weeks.length; w++) {
+      const week = weeks[w];
+      if (week.lessons && week.lessons.some(l => l.id === draggedItem.id)) {
+        sourceWeekIndex = w;
+        break;
+      }
+    }
+    
+    if (sourceWeekIndex === -1) return weeks;
+    
+    // Find target section
+    let targetWeekIndex = -1;
+    let targetSectionIndex = -1;
+    
+    for (let w = 0; w < weeks.length; w++) {
+      const week = weeks[w];
+      for (let s = 0; s < week.sections.length; s++) {
+        const section = week.sections[s];
+        if (section.id === targetSectionId) {
+          targetWeekIndex = w;
+          targetSectionIndex = s;
+          break;
+        }
+      }
+      if (targetWeekIndex !== -1) break;
+    }
+    
+    if (targetWeekIndex === -1 || targetSectionIndex === -1) return weeks;
+    
+    // Get the lesson to move
+    const sourceWeek = weeks[sourceWeekIndex];
+    if (!sourceWeek.lessons) return weeks;
+    
+    const lessonIndex = sourceWeek.lessons.findIndex(l => l.id === draggedItem.id);
+    const lessonToMove = { ...sourceWeek.lessons[lessonIndex] };
+    
+    // Create new curriculum
+    const newCurriculum = [...weeks];
+    
+    // Remove from source
+    newCurriculum[sourceWeekIndex] = {
+      ...sourceWeek,
+      lessons: sourceWeek.lessons.filter(l => l.id !== draggedItem.id)
+    };
+    
+    // Add to target section
+    const targetSection = newCurriculum[targetWeekIndex].sections[targetSectionIndex];
+    newCurriculum[targetWeekIndex].sections[targetSectionIndex] = {
+      ...targetSection,
+      lessons: [...targetSection.lessons, lessonToMove]
+    };
+    
+    // Update order in source and target
+    if (newCurriculum[sourceWeekIndex].lessons) {
+      newCurriculum[sourceWeekIndex].lessons.forEach((lesson, idx) => {
+        lesson.order = idx + 1;
+      });
+    }
+    
+    newCurriculum[targetWeekIndex].sections[targetSectionIndex].lessons.forEach((lesson, idx) => {
+      lesson.order = idx + 1;
+    });
+    
+    return newCurriculum;
+  };
+
+  const moveSectionLessonToWeek = (targetWeekId: string): ICurriculumWeek[] => {
+    if (!draggedItem || !draggedItem.parentId) return weeks;
+    
+    // Find source section and lesson
+    let sourceWeekIndex = -1;
+    let sourceSectionIndex = -1;
+    
+    for (let w = 0; w < weeks.length; w++) {
+      const week = weeks[w];
+      for (let s = 0; s < week.sections.length; s++) {
+        const section = week.sections[s];
+        if (section.id === draggedItem.parentId) {
+          sourceWeekIndex = w;
+          sourceSectionIndex = s;
+          break;
+        }
+      }
+      if (sourceWeekIndex !== -1) break;
+    }
+    
+    if (sourceWeekIndex === -1 || sourceSectionIndex === -1) return weeks;
+    
+    // Find target week
+    const targetWeekIndex = weeks.findIndex(week => week.id === targetWeekId);
+    if (targetWeekIndex === -1) return weeks;
+    
+    // Get the lesson to move
+    const sourceSection = weeks[sourceWeekIndex].sections[sourceSectionIndex];
+    const lessonIndex = sourceSection.lessons.findIndex(l => l.id === draggedItem.id);
+    const lessonToMove = { ...sourceSection.lessons[lessonIndex] };
+    
+    // Create new curriculum
+    const newCurriculum = [...weeks];
+    
+    // Remove from source section
+    newCurriculum[sourceWeekIndex].sections[sourceSectionIndex] = {
+      ...sourceSection,
+      lessons: sourceSection.lessons.filter(l => l.id !== draggedItem.id)
+    };
+    
+    // Add to target week
+    const targetWeek = newCurriculum[targetWeekIndex];
+    if (!targetWeek.lessons) targetWeek.lessons = [];
+    
+    newCurriculum[targetWeekIndex] = {
+      ...targetWeek,
+      lessons: [...targetWeek.lessons, lessonToMove]
+    };
+    
+    // Update order in source and target
+    newCurriculum[sourceWeekIndex].sections[sourceSectionIndex].lessons.forEach((lesson, idx) => {
+      lesson.order = idx + 1;
+    });
+    
+    newCurriculum[targetWeekIndex].lessons.forEach((lesson, idx) => {
       lesson.order = idx + 1;
     });
     
@@ -542,22 +784,49 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
     setWeeks(updatedWeeks);
   };
 
-  const handleUpdateLesson = (
+  // Create a unified function to update both direct lessons and section lessons
+  const updateLesson = (
     weekIndex: number,
-    sectionIndex: number,
     lessonIndex: number,
     field: keyof IBaseLessonFields | 'video_url' | 'duration' | 'quiz_id' | 'assignment_id',
-    value: string | boolean | number
+    value: string | boolean | number,
+    sectionIndex?: number
   ) => {
     const updatedWeeks = [...weeks];
-    const lesson = updatedWeeks[weekIndex].sections[sectionIndex].lessons[lessonIndex];
+    const week = updatedWeeks[weekIndex];
+    
+    let lesson;
+    
+    // Determine if this is a direct lesson or section lesson
+    if (sectionIndex !== undefined) {
+      // Section lesson
+      lesson = week.sections[sectionIndex].lessons[lessonIndex];
+    } else {
+      // Direct lesson
+      if (!week.lessons) {
+        week.lessons = [];
+        return;
+      }
+      lesson = week.lessons[lessonIndex];
+    }
+    
+    if (!lesson) return;
+    
+    // Add validation for title field
+    if (field === 'title' && typeof value === 'string' && !value.trim()) {
+      toast.warning('Lesson title is required');
+    }
     
     // Handle type-specific fields
     switch (lesson.lessonType) {
       case 'video': {
         const videoLesson = lesson as IVideoLesson;
         if (field === 'video_url' || field === 'duration') {
-          (videoLesson as any)[field] = value as string;
+          // Add validation for video URL
+          if (field === 'video_url' && typeof value === 'string' && !value.trim()) {
+            toast.warning('Video URL is required for video lessons');
+          }
+          (videoLesson as any)[field] = value;
         }
         break;
       }
@@ -583,6 +852,7 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
       (lesson as any)[commonField] = value;
     }
     
+    setValue('curriculum', updatedWeeks);
     setWeeks(updatedWeeks);
   };
 
@@ -614,7 +884,7 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
       scheduledDate: new Date(),
       duration: 60,
       meetingLink: '',
-      instructor: '',
+      instructor: null,  // Changed from empty string to null
       recordingUrl: '',
       isRecorded: false,
       materials: []
@@ -771,46 +1041,7 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
     field: keyof IBaseLessonFields | keyof IVideoLesson | keyof IQuizLesson | keyof IAssessmentLesson,
     value: string | boolean
   ) => {
-    const updatedWeeks = [...weeks];
-    const week = updatedWeeks[weekIndex];
-    
-    if (week.lessons && week.lessons[lessonIndex]) {
-      const lesson = week.lessons[lessonIndex];
-      
-      // Handle type-specific fields
-      switch (lesson.lessonType) {
-        case 'video': {
-          const videoLesson = lesson as IVideoLesson;
-          if (field === 'video_url' || field === 'duration') {
-            (videoLesson as any)[field] = value;
-          }
-          break;
-        }
-        case 'quiz': {
-          const quizLesson = lesson as IQuizLesson;
-          if (field === 'quiz_id') {
-            quizLesson.quiz_id = value as string;
-          }
-          break;
-        }
-        case 'assessment': {
-          const assessmentLesson = lesson as IAssessmentLesson;
-          if (field === 'assignment_id') {
-            assessmentLesson.assignment_id = value as string;
-          }
-          break;
-        }
-      }
-
-      // Handle common fields
-      if (field in lesson) {
-        const commonField = field as keyof IBaseLessonFields;
-        (lesson as any)[commonField] = value;
-      }
-      
-      setValue('curriculum', updatedWeeks);
-      setWeeks(updatedWeeks);
-    }
+    updateLesson(weekIndex, lessonIndex, field as any, value);
   };
 
   const createNewResource = (): ILessonResource => ({
@@ -876,7 +1107,7 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
     lessons: []
   });
 
-  // Add video upload handler
+  // Improved video upload handler
   const handleVideoUpload = async (
     file: File,
     weekIndex: number,
@@ -884,32 +1115,74 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
     lessonIndex: number
   ) => {
     const lessonId = weeks[weekIndex].sections[sectionIndex].lessons[lessonIndex].id;
-    
-    // Update upload state
-    setVideoUploads(prev => ({
+
+    // Check authentication first
+    if (!isAuthenticated()) {
+      toast.error('Your session has expired. Please login again.');
+      return;
+    }
+
+    // Get auth token
+    const token = getAuthToken();
+    if (!token) {
+      toast.error('Authentication token not found. Please login again.');
+      return;
+    }
+
+    // Validate file type and size
+    if (!file.type.startsWith('video/')) {
+      toast.error('Please upload a valid video file');
+      return;
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error(`File size must be less than ${MAX_FILE_SIZE / (1024 * 1024)}MB`);
+      return;
+    }
+
+    setUploadProgress(prev => ({
       ...prev,
-      [lessonId]: { isUploading: true, progress: 0, error: null }
+      [lessonId]: { progress: 0, status: 'uploading' }
     }));
 
     try {
-      // Create form data
-      const formData = new FormData();
-      formData.append('video', file);
-      formData.append('lessonId', lessonId);
+      // Convert file to base64
+      const base64String = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result as string;
+          resolve(result); // This will include the data:image/jpeg;base64, prefix
+        };
+        reader.onerror = () => reject(new Error('Failed to read file'));
+        reader.readAsDataURL(file); // This automatically adds the data:mimetype;base64, prefix
+      });
 
-      // Make API call to upload video
+      // // First verify the token is still valid
+      // try {
+      //   await axios.get(`${apiBaseUrl}/auth/verify`, {
+      //     headers: { 'Authorization': `Bearer ${token}` }
+      //   });
+      // } catch (authError) {
+      //   throw new Error('Authentication failed. Please login again.');
+      // }
+
+      // Upload the base64 file
       const response = await axios.post(
-        `${apiBaseUrl}${apiUrls.upload.uploadMedia}`,
-        formData,
+        `${apiBaseUrl}${apiUrls.upload.uploadBase64}`,
         {
-          headers: {
-            'Content-Type': 'multipart/form-data'
+          base64String,
+          fileType: 'video'
+        },
+        {
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
           },
           onUploadProgress: (progressEvent) => {
             const progress = Math.round(
               (progressEvent.loaded * 100) / (progressEvent.total || 0)
             );
-            setVideoUploads(prev => ({
+            setUploadProgress(prev => ({
               ...prev,
               [lessonId]: { ...prev[lessonId], progress }
             }));
@@ -917,74 +1190,119 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
         }
       );
 
+      // Log response for debugging
+      console.log('Upload response:', response.data);
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Upload failed');
+      }
+
       // Update video data
-      const { url, duration, thumbnail } = response.data;
+      const { url, duration, thumbnail } = response.data.data;
       setVideoData(prev => ({
         ...prev,
         [lessonId]: { url, duration, thumbnail, size: file.size }
       }));
 
-      // Update lesson with video URL
-      handleUpdateLesson(
-        weekIndex,
-        sectionIndex,
-        lessonIndex,
-        'video_url',
-        url
-      );
-
-      // Update duration if available
+      // Update lesson with video URL and duration
+      updateLesson(weekIndex, lessonIndex, 'video_url', url, sectionIndex);
       if (duration) {
-        handleUpdateLesson(
-          weekIndex,
-          sectionIndex,
-          lessonIndex,
-          'duration',
-          duration
-        );
+        updateLesson(weekIndex, lessonIndex, 'duration', duration, sectionIndex);
       }
 
+      setUploadProgress(prev => ({
+        ...prev,
+        [lessonId]: { progress: 100, status: 'complete' }
+      }));
+
       toast.success('Video uploaded successfully');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error uploading video:', error);
-      setVideoUploads(prev => ({
+      console.error('Error details:', {
+        response: error.response?.data,
+        request: error.request,
+        message: error.message
+      });
+      
+      // Handle different types of errors
+      let errorMessage = 'Failed to upload video. Please try again.';
+      
+      if (error.response) {
+        // Server responded with error
+        switch (error.response.status) {
+          case 401:
+            errorMessage = 'Your session has expired. Please login again.';
+            break;
+          case 403:
+            errorMessage = 'You do not have permission to upload files.';
+            break;
+          case 413:
+            errorMessage = 'File size too large. Please choose a smaller file.';
+            break;
+          case 400:
+            errorMessage = error.response.data?.message || 'Invalid request format';
+            break;
+          default:
+            errorMessage = error.response.data?.message || errorMessage;
+        }
+      } else if (error.request) {
+        // Request made but no response
+        errorMessage = 'Network error. Please check your connection.';
+      } else {
+        // Error before making request (like auth error)
+        errorMessage = error.message || errorMessage;
+      }
+
+      setUploadProgress(prev => ({
         ...prev,
         [lessonId]: {
-          ...prev[lessonId],
-          error: 'Failed to upload video. Please try again.'
+          progress: 0,
+          status: 'error',
+          error: errorMessage
         }
       }));
-      toast.error('Failed to upload video');
-    } finally {
-      setVideoUploads(prev => ({
-        ...prev,
-        [lessonId]: { ...prev[lessonId], isUploading: false }
-      }));
+      toast.error(errorMessage);
+
+      // If authentication error, you might want to trigger a logout or redirect
+      if (error.response?.status === 401 || error.message.includes('Authentication failed')) {
+        // Trigger logout or redirect to login
+        console.error('Authentication failed, user should be redirected to login');
+      }
     }
   };
 
-  // Add video preview component
+  // Improved video preview component
   const VideoPreview: React.FC<{
     videoUrl: string;
     thumbnail?: string;
     duration?: string;
     size?: number;
-  }> = ({ videoUrl, thumbnail, duration, size }) => (
+    onRemove: () => void;
+  }> = ({ videoUrl, thumbnail, duration, size, onRemove }) => (
     <div className="mt-2 rounded-lg border border-gray-200 p-4">
-      <div className="aspect-w-16 aspect-h-9 mb-2">
-        {thumbnail ? (
-          <img
-            src={thumbnail}
-            alt="Video thumbnail"
-            className="rounded-lg object-cover"
-          />
-        ) : (
-          <div className="bg-gray-100 rounded-lg flex items-center justify-center">
-            <Video className="h-12 w-12 text-gray-400" />
-          </div>
-        )}
+      <div className="relative">
+        <div className="aspect-w-16 aspect-h-9 mb-2">
+          {thumbnail ? (
+            <img
+              src={thumbnail}
+              alt="Video thumbnail"
+              className="rounded-lg object-cover"
+            />
+          ) : (
+            <div className="bg-gray-100 rounded-lg flex items-center justify-center">
+              <Video className="h-12 w-12 text-gray-400" />
+            </div>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={onRemove}
+          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 hover:bg-red-600 transition-colors"
+        >
+          <MinusCircle size={16} />
+        </button>
       </div>
-      <div className="space-y-1">
+      <div className="mt-2 grid grid-cols-2 gap-2">
         <div className="flex items-center text-sm text-gray-500">
           <Clock className="h-4 w-4 mr-1" />
           <span>{duration || 'Processing...'}</span>
@@ -996,8 +1314,283 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
           </div>
         )}
       </div>
+      <div className="mt-2">
+        <a
+          href={videoUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm text-customGreen hover:text-green-700 flex items-center"
+        >
+          <Link className="h-4 w-4 mr-1" />
+          View Video
+        </a>
+      </div>
     </div>
   );
+
+  // Modify the renderVideoUpload function to handle both section lessons and direct lessons
+  const renderVideoUpload = (weekIndex: number, sectionIndexOrWeekIndex: number, lessonIndex: number, lesson: any, isDirectLesson: boolean = false) => {
+    const lessonId = lesson.id;
+    const progress = uploadProgress[lessonId];
+    const videoInfo = videoData[lessonId];
+
+    return (
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-gray-700">
+          Video Upload
+        </label>
+        
+        {lesson.video_url ? (
+          <VideoPreview
+            videoUrl={lesson.video_url}
+            thumbnail={videoInfo?.thumbnail}
+            duration={lesson.duration}
+            size={videoInfo?.size}
+            onRemove={() => {
+              if (isDirectLesson) {
+                updateLesson(weekIndex, lessonIndex, 'video_url', '');
+                updateLesson(weekIndex, lessonIndex, 'duration', '');
+              } else {
+                updateLesson(weekIndex, lessonIndex, 'video_url', '', sectionIndexOrWeekIndex);
+                updateLesson(weekIndex, lessonIndex, 'duration', '', sectionIndexOrWeekIndex);
+              }
+              setVideoData(prev => {
+                const newData = { ...prev };
+                delete newData[lessonId];
+                return newData;
+              });
+            }}
+          />
+        ) : (
+          <FileUpload
+            label=""
+            accept="video/*"
+            onFileSelect={async (file) => {
+              if (isDirectLesson) {
+                await handleDirectVideoUpload(file, weekIndex, lessonIndex);
+              } else {
+                await handleVideoUpload(file, weekIndex, sectionIndexOrWeekIndex, lessonIndex);
+              }
+            }}
+            currentFile={null}
+            required={false}
+          />
+        )}
+
+        {progress?.status === 'uploading' && (
+          <div className="mt-2">
+            <div className="flex items-center justify-between text-sm text-gray-500 mb-1">
+              <span>Uploading...</span>
+              <span>{progress.progress}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                className="bg-customGreen h-2 rounded-full transition-all duration-300"
+                style={{ width: `${progress.progress}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {progress?.status === 'error' && (
+          <p className="text-red-500 text-sm mt-2">{progress.error}</p>
+        )}
+
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-gray-700">
+            Or Enter Video URL <span className="text-red-500">*</span>
+          </label>
+          <div className="mt-1 flex rounded-md shadow-sm">
+            <input
+              type="url"
+              value={lesson.video_url || ''}
+              onChange={(e) => {
+                if (isDirectLesson) {
+                  updateLesson(weekIndex, lessonIndex, 'video_url', e.target.value);
+                } else {
+                  updateLesson(weekIndex, lessonIndex, 'video_url', e.target.value, sectionIndexOrWeekIndex);
+                }
+              }}
+              className="flex-1 rounded-md border-gray-300 focus:border-customGreen focus:ring-customGreen sm:text-sm"
+              placeholder="Enter video URL (YouTube, Vimeo, etc.)"
+            />
+          </div>
+        </div>
+      </div>
+    );
+  };
+  
+  // Define the renderLessonContent function to handle section and direct lessons
+  const renderLessonContent = (weekIndex: number, sectionIndex: number, lessonIndex: number, lesson: any) => {
+    switch (lesson.lessonType) {
+      case 'video':
+        return renderVideoUpload(weekIndex, sectionIndex, lessonIndex, lesson, false);
+      case 'quiz':
+        return (
+          <QuizSelector
+            value={lesson.quiz_id || ''}
+            onChange={(value) =>
+              updateLesson(weekIndex, lessonIndex, 'quiz_id', value, sectionIndex)
+            }
+          />
+        );
+      case 'assessment':
+        return (
+          <AssignmentSelector
+            value={lesson.assignment_id || ''}
+            onChange={(value) =>
+              updateLesson(weekIndex, lessonIndex, 'assignment_id', value, sectionIndex)
+            }
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
+  // Add new handler for direct lesson video upload
+  const handleDirectVideoUpload = async (
+    file: File,
+    weekIndex: number,
+    lessonIndex: number
+  ) => {
+    if (!weeks[weekIndex].lessons) return;
+    const lessonId = weeks[weekIndex].lessons[lessonIndex].id;
+
+    // Check authentication first
+    if (!isAuthenticated()) {
+      toast.error('Your session has expired. Please login again.');
+      return;
+    }
+
+    // Get auth token
+    const token = getAuthToken();
+    if (!token) {
+      toast.error('Authentication token not found. Please login again.');
+      return;
+    }
+
+    // Validate file type and size
+    if (!file.type.startsWith('video/')) {
+      toast.error('Please upload a valid video file');
+      return;
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error(`File size must be less than ${MAX_FILE_SIZE / (1024 * 1024)}MB`);
+      return;
+    }
+
+    setUploadProgress(prev => ({
+      ...prev,
+      [lessonId]: { progress: 0, status: 'uploading' }
+    }));
+
+    try {
+      // Convert file to base64
+      const base64String = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result as string;
+          resolve(result);
+        };
+        reader.onerror = () => reject(new Error('Failed to read file'));
+        reader.readAsDataURL(file);
+      });
+
+      // Upload the base64 file
+      const response = await axios.post(
+        `${apiBaseUrl}${apiUrls.upload.uploadBase64}`,
+        {
+          base64String,
+          fileType: 'video'
+        },
+        {
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          onUploadProgress: (progressEvent) => {
+            const progress = Math.round(
+              (progressEvent.loaded * 100) / (progressEvent.total || 0)
+            );
+            setUploadProgress(prev => ({
+              ...prev,
+              [lessonId]: { ...prev[lessonId], progress }
+            }));
+          }
+        }
+      );
+
+      // Log response for debugging
+      console.log('Upload response:', response.data);
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Upload failed');
+      }
+
+      // Update video data
+      const { url, duration, thumbnail } = response.data.data;
+      setVideoData(prev => ({
+        ...prev,
+        [lessonId]: { url, duration, thumbnail, size: file.size }
+      }));
+
+      // Update lesson with video URL and duration
+      updateLesson(weekIndex, lessonIndex, 'video_url', url);
+      if (duration) {
+        updateLesson(weekIndex, lessonIndex, 'duration', duration);
+      }
+
+      setUploadProgress(prev => ({
+        ...prev,
+        [lessonId]: { progress: 100, status: 'complete' }
+      }));
+
+      toast.success('Video uploaded successfully');
+    } catch (error: any) {
+      console.error('Error uploading video:', error);
+      
+      // Handle different types of errors
+      let errorMessage = 'Failed to upload video. Please try again.';
+      
+      if (error.response) {
+        // Server responded with error
+        switch (error.response.status) {
+          case 401:
+            errorMessage = 'Your session has expired. Please login again.';
+            break;
+          case 403:
+            errorMessage = 'You do not have permission to upload files.';
+            break;
+          case 413:
+            errorMessage = 'File size too large. Please choose a smaller file.';
+            break;
+          case 400:
+            errorMessage = error.response.data?.message || 'Invalid request format';
+            break;
+          default:
+            errorMessage = error.response.data?.message || errorMessage;
+        }
+      } else if (error.request) {
+        // Request made but no response
+        errorMessage = 'Network error. Please check your connection.';
+      } else {
+        // Error before making request (like auth error)
+        errorMessage = error.message || errorMessage;
+      }
+
+      setUploadProgress(prev => ({
+        ...prev,
+        [lessonId]: {
+          progress: 0,
+          status: 'error',
+          error: errorMessage
+        }
+      }));
+      toast.error(errorMessage);
+    }
+  };
 
   // Add Quiz selection component
   const QuizSelector: React.FC<{
@@ -1024,17 +1617,14 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
           ))}
         </select>
         {isLoading.quizzes && (
-          <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-customGreen"></div>
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+            <div className="h-4 w-4 border-t-2 border-customGreen rounded-full animate-spin"></div>
           </div>
         )}
       </div>
-      {loadingError.quizzes && (
-        <p className="text-red-500 text-sm">{loadingError.quizzes}</p>
-      )}
-      {!isLoading.quizzes && !loadingError.quizzes && quizzes.length === 0 && (
-        <p className="text-gray-500 text-sm">
-          No quizzes available. Create quizzes first.
+      {quizzes.length === 0 && !isLoading.quizzes && (
+        <p className="text-sm text-yellow-600">
+          No quizzes found. Please create quizzes first.
         </p>
       )}
     </div>
@@ -1081,135 +1671,36 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
     </div>
   );
 
-  // Update the lesson rendering to use new selectors
-  const renderLessonContent = (weekIndex: number, sectionIndex: number, lessonIndex: number, lesson: any) => {
-    switch (lesson.lessonType) {
-      case 'video':
-        return renderVideoUpload(weekIndex, sectionIndex, lessonIndex, lesson);
-      case 'quiz':
-        return (
-          <QuizSelector
-            value={lesson.quiz_id || ''}
-            onChange={(value) =>
-              handleUpdateLesson(
-                weekIndex,
-                sectionIndex,
-                lessonIndex,
-                'quiz_id',
-                value
-              )
-            }
-          />
-        );
-      case 'assessment':
-        return (
-          <AssignmentSelector
-            value={lesson.assignment_id || ''}
-            onChange={(value) =>
-              handleUpdateLesson(
-                weekIndex,
-                sectionIndex,
-                lessonIndex,
-                'assignment_id',
-                value
-              )
-            }
-          />
-        );
-      default:
-        return null;
+  // Modify the Topics input to use a better UI
+  const handleTopicChange = (weekIndex: number, value: string) => {
+    const topics = value.split(',').map(t => t.trim()).filter(Boolean);
+    const updatedWeeks = [...weeks];
+    updatedWeeks[weekIndex].topics = topics;
+    setWeeks(updatedWeeks);
+    setValue('curriculum', updatedWeeks);
+  };
+
+  const handleAddTopic = (weekIndex: number, topic: string) => {
+    if (!topic.trim()) return;
+    
+    const updatedWeeks = [...weeks];
+    const currentTopics = updatedWeeks[weekIndex].topics || [];
+    
+    // Check if topic already exists
+    if (!currentTopics.includes(topic.trim())) {
+      updatedWeeks[weekIndex].topics = [...currentTopics, topic.trim()];
+      setWeeks(updatedWeeks);
+      setValue('curriculum', updatedWeeks);
     }
   };
 
-  // Modify the existing lesson rendering to include video upload
-  const renderVideoUpload = (weekIndex: number, sectionIndex: number, lessonIndex: number, lesson: any) => {
-    const lessonId = lesson.id;
-    const uploadState = videoUploads[lessonId];
-    const videoInfo = videoData[lessonId];
-
-    return (
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">
-          Video Upload
-        </label>
-        
-        {lesson.video_url ? (
-          <div className="space-y-2">
-            <VideoPreview
-              videoUrl={lesson.video_url}
-              thumbnail={videoInfo?.thumbnail}
-              duration={lesson.duration}
-              size={videoInfo?.size}
-            />
-            <button
-              type="button"
-              onClick={() => {
-                handleUpdateLesson(weekIndex, sectionIndex, lessonIndex, 'video_url', '');
-                handleUpdateLesson(weekIndex, sectionIndex, lessonIndex, 'duration', '');
-                setVideoData(prev => {
-                  const newData = { ...prev };
-                  delete newData[lessonId];
-                  return newData;
-                });
-              }}
-              className="text-red-500 hover:text-red-700 text-sm flex items-center"
-            >
-              <MinusCircle className="h-4 w-4 mr-1" />
-              Remove Video
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            <div className="flex items-center justify-center w-full">
-              <label className="w-full flex flex-col items-center px-4 py-6 bg-white rounded-lg border-2 border-dashed border-gray-300 cursor-pointer hover:border-customGreen">
-                <Upload className="h-8 w-8 text-gray-400" />
-                <span className="mt-2 text-sm text-gray-500">
-                  {uploadState?.isUploading
-                    ? `Uploading... ${uploadState.progress}%`
-                    : 'Click to upload video'}
-                </span>
-                <input
-                  type="file"
-                  className="hidden"
-                  accept="video/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      handleVideoUpload(file, weekIndex, sectionIndex, lessonIndex);
-                    }
-                  }}
-                  disabled={uploadState?.isUploading}
-                />
-              </label>
-            </div>
-            {uploadState?.error && (
-              <p className="text-red-500 text-sm">{uploadState.error}</p>
-            )}
-          </div>
-        )}
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Or Enter Video URL
-          </label>
-          <input
-            type="url"
-            value={lesson.video_url || ''}
-            onChange={(e) =>
-              handleUpdateLesson(
-                weekIndex,
-                sectionIndex,
-                lessonIndex,
-                'video_url',
-                e.target.value
-              )
-            }
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-customGreen focus:ring-customGreen"
-            placeholder="Enter video URL (YouTube, Vimeo, etc.)"
-          />
-        </div>
-      </div>
+  const handleRemoveTopic = (weekIndex: number, topicIndex: number) => {
+    const updatedWeeks = [...weeks];
+    updatedWeeks[weekIndex].topics = updatedWeeks[weekIndex].topics.filter(
+      (_, index) => index !== topicIndex
     );
+    setWeeks(updatedWeeks);
+    setValue('curriculum', updatedWeeks);
   };
 
   return (
@@ -1267,23 +1758,58 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
                     />
                   </div>
                   
-                  {/* Week Topics */}
+                  {/* Improved Week Topics */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Main Topics (comma separated)
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Main Topics
                     </label>
-                    <input
-                      type="text"
-                      value={week.topics?.join(', ') || ''}
-                      onChange={(e) => {
-                        const topics = e.target.value.split(',').map(t => t.trim()).filter(Boolean);
-                        const updatedWeeks = [...weeks];
-                        updatedWeeks[weekIndex].topics = topics;
-                        setWeeks(updatedWeeks);
-                      }}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-customGreen focus:ring-customGreen"
-                      placeholder="e.g., Components, Props, State"
-                    />
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {(week.topics || []).map((topic, topicIndex) => (
+                        <div 
+                          key={`${week.id}-topic-${topicIndex}`}
+                          className="bg-green-50 text-green-800 text-sm px-3 py-1 rounded-full flex items-center"
+                        >
+                          <span>{topic}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveTopic(weekIndex, topicIndex)}
+                            className="ml-2 text-green-600 hover:text-green-800"
+                          >
+                            <MinusCircle size={14} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        id={`week-${weekIndex}-topic`}
+                        placeholder="Add a topic and press Enter"
+                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-customGreen focus:ring-customGreen"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const input = e.target as HTMLInputElement;
+                            handleAddTopic(weekIndex, input.value);
+                            input.value = '';
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        className="inline-flex items-center justify-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-customGreen hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-customGreen"
+                        onClick={() => {
+                          const input = document.getElementById(`week-${weekIndex}-topic`) as HTMLInputElement;
+                          if (input) {
+                            handleAddTopic(weekIndex, input.value);
+                            input.value = '';
+                          }
+                        }}
+                      >
+                        <PlusCircle size={18} />
+                      </button>
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500">Add topics one by one or separate with commas</p>
                   </div>
                 </div>
                 {weeks.length > 1 && (
@@ -1297,7 +1823,7 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
                 )}
               </div>
 
-              {/* Direct Lessons Section */}
+              {/* Improved Direct Lessons Section */}
               <div className="mt-6 space-y-4">
                 <div className="flex justify-between items-center">
                   <h4 className="text-lg font-medium text-gray-900">Direct Lessons</h4>
@@ -1327,10 +1853,16 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
                   <div
                     key={lesson.id}
                     className="bg-gray-50 rounded-lg p-4 space-y-4"
+                    draggable
+                    onDragStart={() => handleDragStart('direct_lesson', lesson.id)}
+                    onDragOver={handleDragOver}
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1 space-y-4">
                         <div className="flex items-center gap-2">
+                          <div className="cursor-move p-1 text-gray-400 hover:text-gray-600">
+                            <GripVertical size={20} />
+                          </div>
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
                               <div className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded font-semibold">
@@ -1350,7 +1882,7 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
                               type="text"
                               value={lesson.title}
                               onChange={(e) =>
-                                updateDirectLesson(
+                                updateLesson(
                                   weekIndex,
                                   lessonIndex,
                                   'title',
@@ -1364,8 +1896,36 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
 
                           {lesson.lessonType === 'video' && (
                             <div>
-                              {renderLessonContent(weekIndex, weekIndex, lessonIndex, lesson)}
+                              {renderVideoUpload(weekIndex, weekIndex, lessonIndex, lesson, true)}
                             </div>
+                          )}
+
+                          {lesson.lessonType === 'quiz' && (
+                            <QuizSelector
+                              value={lesson.quiz_id || ''}
+                              onChange={(value) =>
+                                updateLesson(
+                                  weekIndex,
+                                  lessonIndex,
+                                  'quiz_id',
+                                  value
+                                )
+                              }
+                            />
+                          )}
+
+                          {lesson.lessonType === 'assessment' && (
+                            <AssignmentSelector
+                              value={lesson.assignment_id || ''}
+                              onChange={(value) =>
+                                updateLesson(
+                                  weekIndex,
+                                  lessonIndex,
+                                  'assignment_id',
+                                  value
+                                )
+                              }
+                            />
                           )}
                         </div>
 
@@ -1376,7 +1936,7 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
                           <textarea
                             value={lesson.description || ''}
                             onChange={(e) =>
-                              updateDirectLesson(
+                              updateLesson(
                                 weekIndex,
                                 lessonIndex,
                                 'description',
@@ -1387,6 +1947,145 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-customGreen focus:ring-customGreen"
                             placeholder="Detailed description of the lesson"
                           />
+                        </div>
+
+                        {/* Add resources for direct lessons */}
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <label className="block text-sm font-medium text-gray-700">
+                              Additional Resources
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const updatedWeeks = [...weeks];
+                                const week = updatedWeeks[weekIndex];
+                                if (!week.lessons) week.lessons = [];
+                                
+                                const lesson = week.lessons[lessonIndex];
+                                const newResource: ILessonResource = {
+                                  id: generateId('resource_direct', weekIndex + 1, lessonIndex + 1, lesson.resources.length + 1),
+                                  title: '',
+                                  url: '',
+                                  type: 'pdf',
+                                  description: ''
+                                };
+                                
+                                lesson.resources.push(newResource);
+                                setWeeks(updatedWeeks);
+                              }}
+                              className="inline-flex items-center text-sm text-customGreen hover:text-green-700"
+                            >
+                              <PlusCircle className="mr-1 h-4 w-4" />
+                              Add Resource
+                            </button>
+                          </div>
+
+                          {lesson.resources.map((resource, resourceIndex) => (
+                            <div
+                              key={resource.id}
+                              className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center"
+                            >
+                              <input
+                                type="text"
+                                value={resource.title}
+                                onChange={(e) => {
+                                  const updatedWeeks = [...weeks];
+                                  if (!updatedWeeks[weekIndex].lessons) return;
+                                  
+                                  const resources = updatedWeeks[weekIndex].lessons[lessonIndex].resources;
+                                  resources[resourceIndex] = {
+                                    ...resources[resourceIndex],
+                                    title: e.target.value
+                                  };
+                                  
+                                  setWeeks(updatedWeeks);
+                                }}
+                                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-customGreen focus:ring-customGreen"
+                                placeholder="Resource Title"
+                              />
+                              <select
+                                value={resource.type}
+                                onChange={(e) => {
+                                  const updatedWeeks = [...weeks];
+                                  if (!updatedWeeks[weekIndex].lessons) return;
+                                  
+                                  const resources = updatedWeeks[weekIndex].lessons[lessonIndex].resources;
+                                  resources[resourceIndex] = {
+                                    ...resources[resourceIndex],
+                                    type: e.target.value as any
+                                  };
+                                  
+                                  setWeeks(updatedWeeks);
+                                }}
+                                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-customGreen focus:ring-customGreen"
+                              >
+                                {RESOURCE_TYPES.map((type) => (
+                                  <option key={type.value} value={type.value}>
+                                    {type.label}
+                                  </option>
+                                ))}
+                              </select>
+                              <div className="flex items-center space-x-2">
+                                <input
+                                  type="url"
+                                  value={resource.url}
+                                  onChange={(e) => {
+                                    const updatedWeeks = [...weeks];
+                                    if (!updatedWeeks[weekIndex].lessons) return;
+                                    
+                                    const resources = updatedWeeks[weekIndex].lessons[lessonIndex].resources;
+                                    resources[resourceIndex] = {
+                                      ...resources[resourceIndex],
+                                      url: e.target.value
+                                    };
+                                    
+                                    setWeeks(updatedWeeks);
+                                  }}
+                                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-customGreen focus:ring-customGreen"
+                                  placeholder="Resource URL"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const updatedWeeks = [...weeks];
+                                    if (!updatedWeeks[weekIndex].lessons) return;
+                                    
+                                    const lesson = updatedWeeks[weekIndex].lessons[lessonIndex];
+                                    lesson.resources = lesson.resources.filter((_, i) => i !== resourceIndex);
+                                    
+                                    setWeeks(updatedWeeks);
+                                  }}
+                                  className="text-red-500 hover:text-red-700"
+                                >
+                                  <MinusCircle size={20} />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Preview toggle for direct lessons */}
+                        <div className="flex items-center space-x-2 mt-4">
+                          <input
+                            type="checkbox"
+                            checked={lesson.isPreview}
+                            onChange={(e) =>
+                              updateLesson(
+                                weekIndex,
+                                lessonIndex,
+                                'isPreview',
+                                e.target.checked
+                              )
+                            }
+                            className="focus:ring-customGreen h-4 w-4 text-customGreen border-gray-300 rounded"
+                          />
+                          <label
+                            htmlFor={`direct-lesson-preview-${weekIndex}-${lessonIndex}`}
+                            className="text-sm text-gray-700"
+                          >
+                            Make this lesson available as a preview
+                          </label>
                         </div>
                       </div>
 
@@ -1436,7 +2135,9 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
                             <label className="block text-sm font-medium text-gray-700">Scheduled Date</label>
                             <input
                               type="datetime-local"
-                              value={liveClass.scheduledDate.toISOString().slice(0, 16)}
+                              value={liveClass.scheduledDate instanceof Date 
+                                ? liveClass.scheduledDate.toISOString().slice(0, 16)
+                                : new Date(liveClass.scheduledDate).toISOString().slice(0, 16)}
                               onChange={(e) => updateLiveClass(weekIndex, liveClassIndex, 'scheduledDate', new Date(e.target.value))}
                               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-customGreen focus:ring-customGreen"
                             />
@@ -1654,6 +2355,8 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
                               className="bg-gray-50 rounded-lg p-4 space-y-4"
                               onDragOver={handleDragOver}
                               onDrop={() => handleDrop('lesson', lesson.id)}
+                              draggable
+                              onDragStart={() => handleDragStart('lesson', lesson.id, section.id)}
                             >
                               <div className="flex justify-between items-start">
                                 <div className="flex-1 space-y-4">
@@ -1684,12 +2387,12 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
                                         type="text"
                                         value={lesson.title}
                                         onChange={(e) =>
-                                          handleUpdateLesson(
+                                          updateLesson(
                                             weekIndex,
-                                            sectionIndex,
                                             lessonIndex,
                                             'title',
-                                            e.target.value
+                                            e.target.value,
+                                            sectionIndex
                                           )
                                         }
                                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-customGreen focus:ring-customGreen"
@@ -1699,20 +2402,26 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
 
                                     {lesson.lessonType === 'video' && (
                                       <div>
-                                        {renderLessonContent(weekIndex, sectionIndex, lessonIndex, lesson)}
+                                        {renderVideoUpload(weekIndex, sectionIndex, lessonIndex, lesson, false)}
                                       </div>
                                     )}
 
                                     {lesson.lessonType === 'quiz' && (
-                                      <div>
-                                        {renderLessonContent(weekIndex, sectionIndex, lessonIndex, lesson)}
-                                      </div>
+                                      <QuizSelector
+                                        value={lesson.quiz_id || ''}
+                                        onChange={(value) =>
+                                          updateLesson(weekIndex, lessonIndex, 'quiz_id', value, sectionIndex)
+                                        }
+                                      />
                                     )}
 
                                     {lesson.lessonType === 'assessment' && (
-                                      <div>
-                                        {renderLessonContent(weekIndex, sectionIndex, lessonIndex, lesson)}
-                                      </div>
+                                      <AssignmentSelector
+                                        value={lesson.assignment_id || ''}
+                                        onChange={(value) =>
+                                          updateLesson(weekIndex, lessonIndex, 'assignment_id', value, sectionIndex)
+                                        }
+                                      />
                                     )}
                                   </div>
 
@@ -1723,12 +2432,12 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
                                     <textarea
                                       value={lesson.description || ''}
                                       onChange={(e) =>
-                                        handleUpdateLesson(
+                                        updateLesson(
                                           weekIndex,
-                                          sectionIndex,
                                           lessonIndex,
                                           'description',
-                                          e.target.value
+                                          e.target.value,
+                                          sectionIndex
                                         )
                                       }
                                       rows={2}
@@ -1941,4 +2650,4 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
   );
 };
 
-export default CourseCurriculum; 
+export default CourseCurriculum;
