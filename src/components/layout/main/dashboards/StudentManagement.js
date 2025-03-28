@@ -75,7 +75,7 @@ const UsersTableStudent = () => {
     const fetchEnrolledStudents = async () => {
       try {
         await getQuery({
-          url: apiUrls?.EnrollCourse?.getEnrolledStudents,
+          url: apiUrls?.enrolledCourses?.getAllStudentsWithEnrolledCourses(),
           onSuccess: (data) => {
             setEnrolledStudents(data?.enrollments || []);
             console.log("enrolled studnet data:", enrolledStudents);
@@ -280,19 +280,18 @@ const UsersTableStudent = () => {
   const deleteEnrolledStudent = async (enrollmentId) => {
     if (confirm("Are you sure you want to delete this enrollment?")) {
       try {
-        await postQuery({
-          url: `${apiUrls.EnrollCourse.deleteEnrollment}/${enrollmentId}`,
-          method: "DELETE",
-          onSuccess: () => {
-            toast.success("Enrollment deleted successfully");
-            // Refresh enrolled students list
-            setEnrolledStudents(prev => prev.filter(e => e._id !== enrollmentId));
+        await deleteQuery({
+          url: `${apiUrls.enrolledCourses.deleteEnrolledCourse(enrollmentId)}`,
+          onSuccess: (data) => {
+            toast.success(data?.message || "Enrollment deleted successfully");
+            setDeletedStudents(enrollmentId);
           },
-          onFail: (err) => toast.error("Failed to delete enrollment")
+          onFail: (error) => {
+            toast.error(error?.message || "Failed to delete enrollment");
+          },
         });
       } catch (error) {
-        console.error("Delete error:", error);
-        toast.error("Error deleting enrollment");
+        toast.error("An error occurred while deleting enrollment");
       }
     }
   };
