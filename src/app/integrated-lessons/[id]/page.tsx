@@ -1310,11 +1310,11 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
 // ----------------------
 
 interface IntegratedLessonProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 const IntegratedLesson: React.FC<IntegratedLessonProps> = ({ params }) => {
-  const { id } = params;
+  const { id } = React.use(params);
   const router = useRouter();
 
   const [contentOpen, setContentOpen] = useState(false);
