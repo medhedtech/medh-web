@@ -19,33 +19,39 @@ const LiveDemoClass = () => {
       const storedUserId = localStorage.getItem("userId");
       if (storedUserId) {
         setInstructorId(storedUserId);
-      } else {
-        console.error("No instructor ID found in localStorage");
       }
     }
   }, []);
 
   useEffect(() => {
-    if (instructorId) {
-      const fetchUpcomingClasses = () => {
+    const controller = new AbortController();
+
+    const fetchUpcomingClasses = async () => {
+      if (!instructorId) return;
+      
+      try {
         getQuery({
           url: `${apiUrls?.onlineMeeting?.getMeetingsByInstructorId}/${instructorId}`,
           onSuccess: (res) => {
-            // setClasses(res.meetings || []);
             const sortedClasses = (res?.meetings || [])
               .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
               .slice(0, 4);
-
             setClasses(sortedClasses);
           },
           onFail: (err) => {
             console.error("Error fetching upcoming classes:", err);
           },
+          signal: controller.signal
         });
-      };
+      } catch (error) {
+        if (!error.name === 'AbortError') {
+          console.error('Fetch error:', error);
+        }
+      }
+    };
 
-      fetchUpcomingClasses();
-    }
+    fetchUpcomingClasses();
+    return () => controller.abort();
   }, [instructorId]);
 
   const liveAndDemoClasses = classes.filter(
@@ -53,7 +59,15 @@ const LiveDemoClass = () => {
   );
 
   if (loading) {
-    return <Preloader />;
+    return (
+      <div className="px-10 pb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, index) => (
+            <div key={index} className="animate-pulse bg-gray-200 dark:bg-gray-700 rounded-xl h-[300px]" />
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -90,6 +104,10 @@ const LiveDemoClass = () => {
                 className="w-full h-48 object-cover rounded-lg transform hover:scale-105 transition-all duration-300"
                 width={300}
                 height={200}
+                loading="lazy"
+                placeholder="blur"
+                blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDABQODxIPDRQSEBIXFRQdHx4eHRoaHiQkIh8nOzYrLy0zOklBQD9AQEBAP0hKSlBYWFhgYGBxcXF4eHh4eHh4eHj/2wBDAR"
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
               />
             </div>
 

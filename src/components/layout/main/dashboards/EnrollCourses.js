@@ -41,6 +41,11 @@ const EnrollCourses = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const { getQuery } = useGetQuery();
+  const [retryCount, setRetryCount] = useState({});
+  const MAX_RETRIES = 3;
+  const RETRY_DELAY = 1000; // 1 second
+  const [abortController, setAbortController] = useState(null);
+  const [invalidCourses, setInvalidCourses] = useState([]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -66,7 +71,7 @@ const EnrollCourses = () => {
   };
 
   const handleCardClick = (id) => {
-    router.push(`/dashboards/my-courses/${id}`);
+    router.push(`/integrated-lessons/${id}`);
   };
 
   useEffect(() => {
@@ -82,6 +87,89 @@ const EnrollCourses = () => {
       setStudentId(storedUserId);
     }
   }, []);
+
+  const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+  // Cleanup function for aborting pending requests
+  useEffect(() => {
+    return () => {
+      if (abortController) {
+        abortController.abort();
+      }
+    };
+  }, [abortController]);
+
+  const fetchCourseWithRetry = async (courseId, enrollment, headers, attempt = 1) => {
+    try {
+      // Create new AbortController for this request
+      const controller = new AbortController();
+      setAbortController(controller);
+
+      // Ensure courseId is properly formatted
+      if (!courseId || typeof courseId !== 'string') {
+        console.warn(`Invalid course ID format: ${courseId}`);
+        return null;
+      }
+
+      // Log the API URL being called
+      const courseUrl = apiUrls.courses.getCourseById(courseId);
+      console.log(`Fetching course data from: ${courseUrl}`);
+
+      const courseResponse = await getQuery({
+        url: courseUrl,
+        headers,
+        signal: controller.signal,
+        validateStatus: (status) => {
+          return status === 200; // Only treat 200 as success
+        }
+      });
+      
+      // Clear the controller after successful request
+      setAbortController(null);
+      
+      // Check for null response
+      if (!courseResponse) {
+        console.warn(`Null response received for course ID: ${courseId}`);
+        return null;
+      }
+      
+      // Extract course data, checking both possible response formats
+      const courseData = courseResponse?.data || courseResponse?.course;
+      
+      if (!courseData || !courseData._id) {
+        console.warn(`Invalid course data structure received for course ID: ${courseId}`, courseData);
+        return null;
+      }
+      
+      return courseData;
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        console.log('Request was aborted');
+        return null;
+      }
+
+      // Handle 404 errors specifically
+      if (error.response?.status === 404) {
+        console.warn(`Course not found (404) for ID: ${courseId}`);
+        return null;
+      }
+      
+      // Log other types of errors
+      console.error(`Error fetching course ${courseId}:`, {
+        status: error.response?.status,
+        message: error.message,
+        url: error.config?.url
+      });
+      
+      if (attempt < MAX_RETRIES) {
+        console.log(`Retrying fetch for course ${courseId}, attempt ${attempt + 1}`);
+        await sleep(RETRY_DELAY * attempt);
+        return fetchCourseWithRetry(courseId, enrollment, headers, attempt + 1);
+      }
+      
+      return null; // Return null instead of throwing to prevent cascade failures
+    }
+  };
 
   const fetchEnrolledCourses = async (id) => {
     try {
@@ -101,60 +189,58 @@ const EnrollCourses = () => {
         'Content-Type': 'application/json'
       };
       
+      // Log the payments API URL being called
       const paymentApiUrl = apiUrls.payment.getStudentPayments(id, { 
         page: 1, 
-        limit: 8 // Only fetch 4 items since we're displaying a limited set
+        limit: 8
       });
+      console.log(`Fetching enrollments from: ${paymentApiUrl}`);
       
       await getQuery({
         url: paymentApiUrl,
         headers,
+        validateStatus: (status) => {
+          return status === 200; // Only treat 200 as success
+        },
         onSuccess: async (response) => {
-          let courses = [];
+          if (!response?.success || !response?.data?.enrollments) {
+            console.warn('Invalid enrollment response structure:', response);
+            setError("Unable to load enrollment data. Please try again later.");
+            setLoading(false);
+            return;
+          }
+
+          const enrollments = response.data.enrollments;
+          console.log('Fetched enrollments:', enrollments.length);
           
-          if (response?.success && response?.data?.enrollments) {
-            const enrollments = response.data.enrollments || [];
+          if (enrollments.length === 0) {
+            setEnrollCourses([]);
+            setLoading(false);
+            return;
+          }
+
+          // Process enrollments in batches of 3
+          const processedEnrollments = [];
+          for (let i = 0; i < enrollments.length; i += 3) {
+            const batch = enrollments.slice(i, i + 3);
+            console.log(`Processing batch ${Math.floor(i/3) + 1} of ${Math.ceil(enrollments.length/3)}`);
             
-            // Process enrollments and fetch course details
-            const processedEnrollments = await Promise.all(
-              enrollments.map(async (enrollment) => {
-                if (!enrollment.course_id) return null;
+            const batchResults = await Promise.all(
+              batch.map(async (enrollment) => {
+                if (!enrollment.course_id) {
+                  console.warn('Missing course_id in enrollment:', enrollment._id);
+                  return null;
+                }
                 
                 try {
-                  // Fetch course details
-                  const courseResponse = await getQuery({
-                    url: apiUrls.courses.getCourseById(enrollment.course_id),
-                    headers,
-                  });
-                  
-                  const courseData = courseResponse?.course || courseResponse?.data || courseResponse;
-                  
-                  if (!courseData || !courseData._id) return null;
-                  
-                  // Calculate completion status based on criteria
-                  const completionCriteria = enrollment.completion_criteria || {
-                    required_progress: 100,
-                    required_assignments: true,
-                    required_quizzes: true
-                  };
-                  
-                  const hasMetProgress = enrollment.progress >= (completionCriteria.required_progress || 100);
-                  const hasMetAssignments = !completionCriteria.required_assignments || 
-                    (enrollment.completed_assignments && enrollment.completed_assignments.length > 0);
-                  const hasMetQuizzes = !completionCriteria.required_quizzes || 
-                    (enrollment.completed_quizzes && enrollment.completed_quizzes.length > 0);
-                  
-                  let status = 'not_started';
-                  if (enrollment.is_completed) {
-                    status = 'completed';
-                  } else if (enrollment.progress > 0 || enrollment.completed_lessons?.length > 0) {
-                    status = 'in_progress';
+                  const courseData = await fetchCourseWithRetry(enrollment.course_id, enrollment, headers);
+                  if (!courseData) {
+                    console.warn(`No course data returned for enrollment ${enrollment._id}`);
+                    return null;
                   }
                   
-                  // Get remaining time
-                  const remainingTime = calculateRemainingTime(enrollment.expiry_date);
+                  console.log(`Successfully fetched course data for enrollment ${enrollment._id}: ${courseData.course_title}`);
                   
-                  // Combine course data with enrollment data
                   return {
                     _id: courseData._id,
                     course_title: courseData.course_title,
@@ -166,13 +252,18 @@ const EnrollCourses = () => {
                     lessons: courseData.curriculum || [],
                     progress: enrollment.progress || 0,
                     last_accessed: enrollment.last_accessed || enrollment.updatedAt,
-                    completion_status: status,
+                    completion_status: enrollment.is_completed ? 'completed' : 
+                      (enrollment.progress > 0 || enrollment.completed_lessons?.length > 0) ? 'in_progress' : 'not_started',
                     enrollment_id: enrollment._id,
                     payment_status: enrollment.payment_status,
                     is_self_paced: enrollment.is_self_paced,
                     expiry_date: enrollment.expiry_date,
-                    remaining_time: remainingTime,
-                    completion_criteria: completionCriteria,
+                    remaining_time: calculateRemainingTime(enrollment.expiry_date),
+                    completion_criteria: enrollment.completion_criteria || {
+                      required_progress: 100,
+                      required_assignments: true,
+                      required_quizzes: true
+                    },
                     completed_lessons: enrollment.completed_lessons || [],
                     completed_assignments: enrollment.completed_assignments || [],
                     completed_quizzes: enrollment.completed_quizzes || [],
@@ -195,14 +286,33 @@ const EnrollCourses = () => {
               })
             );
             
-            courses = processedEnrollments.filter(Boolean);
+            const validResults = batchResults.filter(Boolean);
+            console.log(`Batch ${Math.floor(i/3) + 1} results: ${validResults.length} valid courses`);
+            processedEnrollments.push(...validResults);
+            
+            // Add a small delay between batches
+            if (i + 3 < enrollments.length) {
+              await new Promise(resolve => setTimeout(resolve, 500));
+            }
           }
           
-          setEnrollCourses(courses);
-          setError(null);
+          console.log('Final processed courses:', processedEnrollments.length);
+          setEnrollCourses(processedEnrollments);
+          
+          if (processedEnrollments.length === 0) {
+            setError("Unable to load your enrolled courses. Please try again later.");
+          } else {
+            setError(null);
+          }
           setLoading(false);
         },
         onError: (error) => {
+          console.error('Error fetching enrollments:', {
+            status: error.response?.status,
+            message: error.message,
+            url: error.config?.url
+          });
+          
           if (error?.response?.status === 401) {
             setError("Your session has expired. Please log in again.");
           } else if (error?.response?.status === 404) {
@@ -211,11 +321,11 @@ const EnrollCourses = () => {
           } else {
             setError("Failed to load enrolled courses. Please try again later.");
           }
-          
           setLoading(false);
         },
       });
     } catch (error) {
+      console.error("Unexpected error in fetchEnrolledCourses:", error);
       setError("An unexpected error occurred. Please try again later.");
       setLoading(false);
     }
@@ -230,6 +340,16 @@ const EnrollCourses = () => {
   const filteredCourses = enrollCourses.filter(course => 
     course.course_title?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Clean up function when component unmounts
+  useEffect(() => {
+    return () => {
+      setEnrollCourses([]);
+      setError(null);
+      setLoading(false);
+      setInvalidCourses([]);
+    };
+  }, []);
 
   return (
     <section className="py-12 md:py-16 relative overflow-hidden">

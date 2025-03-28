@@ -46,7 +46,10 @@ import {
   Library,
   Navigation,
   ExternalLink,
-  Code
+  Code,
+  ChartBar,
+  LucideIcon,
+  LucideProps
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { apiUrls } from "@/apis";
@@ -84,7 +87,13 @@ interface Lesson {
   status?: string;
   isPreview?: boolean;
   type?: string;
-  meta?: { presenter?: string };
+  lessonType?: string;
+  meta?: {
+    presenter?: string;
+    passing_score?: number;
+    due_date?: string;
+    [key: string]: any;
+  };
   resources?: {
     title: string;
     url: string;
@@ -140,7 +149,7 @@ const ItemTypeIcon: React.FC<{ type?: string; status?: string; className?: strin
     return <Lock className={className} />;
   }
 
-  const icons: Record<string, React.ElementType> = {
+  const icons: Record<string, LucideIcon> = {
     [ITEM_TYPES.VIDEO]: Video,
     [ITEM_TYPES.QUIZ]: FileQuestion,
     [ITEM_TYPES.ASSESSMENT]: ClipboardList,
@@ -156,16 +165,16 @@ const ItemTypeIcon: React.FC<{ type?: string; status?: string; className?: strin
   const lowerType = (type || "").toLowerCase();
   
   // Find the right icon by checking if the type contains any of our recognized types
-  let Icon = FileText; // Default icon
+  let IconComponent = FileText; // Default icon
   
   for (const [key, value] of Object.entries(ITEM_TYPES)) {
     if (lowerType === value || lowerType.includes(value)) {
-      Icon = icons[value];
+      IconComponent = icons[value];
       break;
     }
   }
   
-  return <Icon className={className} />;
+  return <IconComponent className={className} />;
 };
 
 const ProgressBar: React.FC<{ progress: number; animate?: boolean; showTooltip?: boolean }> = ({ progress, animate = true, showTooltip = false }) => (
@@ -210,6 +219,13 @@ const formatDuration = (duration: number | string | undefined): string => {
   const hours = Math.floor(duration / 60);
   const minutes = duration % 60;
   return minutes > 0 ? `${hours}h ${minutes}min` : `${hours}h`;
+};
+
+// Add formatTime helper function
+const formatTime = (seconds: number): string => {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = Math.floor(seconds % 60);
+  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 };
 
 const LessonAccordion: React.FC<LessonAccordionProps> = ({
@@ -376,7 +392,11 @@ const LessonAccordion: React.FC<LessonAccordionProps> = ({
       <div className="border-b border-gray-200 dark:border-gray-700/50 last:border-0" key={week.id || weekIndex}>
         <button
           onClick={() => toggleWeek(weekIndex)}
-          className="group w-full flex items-start justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors"
+          className={clsx(
+            "group w-full flex items-start justify-between p-4",
+            "hover:bg-gray-50/80 dark:hover:bg-gray-800/40",
+            "transition-all duration-200 ease-in-out"
+          )}
           aria-expanded={expandedWeeks.has(weekIndex)}
         >
           <div className="flex-1">
@@ -384,21 +404,41 @@ const LessonAccordion: React.FC<LessonAccordionProps> = ({
               <motion.div
                 animate={{ rotate: expandedWeeks.has(weekIndex) ? 90 : 0 }}
                 transition={{ duration: 0.2, ease: "easeInOut" }}
-                className="mt-1 w-5 h-5 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center group-hover:bg-primaryColor/10 transition-colors"
+                className={clsx(
+                  "mt-1 w-6 h-6 rounded-lg",
+                  "bg-gray-100 dark:bg-gray-800",
+                  "flex items-center justify-center",
+                  "group-hover:bg-primaryColor/10",
+                  "transition-all duration-200"
+                )}
               >
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-primaryColor" />
               </motion.div>
               <div className="text-left">
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-primaryColor transition-colors">
+                <h3 className={clsx(
+                  "text-base font-semibold",
+                  "text-gray-900 dark:text-white",
+                  "group-hover:text-primaryColor",
+                  "transition-colors duration-200"
+                )}>
                   {week.weekTitle || `Week ${weekIndex + 1}`}
                 </h3>
-                <div className="flex items-center gap-2 mt-2 text-xs text-gray-500 dark:text-gray-400">
-                  <div className="flex items-center gap-1">
-                    <CheckCircle className="w-3.5 h-3.5" />
-                    <span>{completedLessons} of {totalLessons} completed</span>
+                {week.weekDescription && (
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    {week.weekDescription}
+                  </p>
+                )}
+                <div className="flex items-center gap-3 mt-3">
+                  <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                    <div className="flex items-center gap-1.5 bg-gray-100/80 dark:bg-gray-800/60 px-2 py-1 rounded-md">
+                      <CheckCircle className="w-3.5 h-3.5" />
+                      <span>{completedLessons} of {totalLessons} completed</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 bg-primaryColor/10 text-primaryColor px-2 py-1 rounded-md">
+                      <ChartBar className="w-3.5 h-3.5" />
+                      <span className="font-medium">{weekProgress}%</span>
+                    </div>
                   </div>
-                  <span className="text-gray-300 dark:text-gray-600">•</span>
-                  <span className="text-primaryColor font-medium">{weekProgress}%</span>
                 </div>
               </div>
             </div>
@@ -419,7 +459,12 @@ const LessonAccordion: React.FC<LessonAccordionProps> = ({
       <div className="border-b border-gray-200 dark:border-gray-700/50 last:border-0" key={section.id || sectionIndex}>
         <button
           onClick={() => toggleSection(weekIndex, sectionIndex)}
-          className="group w-full flex items-start justify-between p-3.5 hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors pl-12"
+          className={clsx(
+            "group w-full flex items-start justify-between",
+            "p-4 pl-12",
+            "hover:bg-gray-50/80 dark:hover:bg-gray-800/40",
+            "transition-all duration-200 ease-in-out"
+          )}
           aria-expanded={isExpanded}
         >
           <div className="flex-1">
@@ -427,37 +472,75 @@ const LessonAccordion: React.FC<LessonAccordionProps> = ({
               <motion.div
                 animate={{ rotate: isExpanded ? 90 : 0 }}
                 transition={{ duration: 0.2, ease: "easeInOut" }}
-                className="mt-1 w-4 h-4 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center group-hover:bg-primaryColor/10 transition-colors"
+                className={clsx(
+                  "mt-1 w-5 h-5 rounded-lg",
+                  "bg-gray-100 dark:bg-gray-800",
+                  "flex items-center justify-center",
+                  "group-hover:bg-primaryColor/10",
+                  "transition-all duration-200"
+                )}
               >
-                <ChevronRight className="w-3 h-3" />
+                <ChevronRight className="w-3.5 h-3.5 text-gray-500 group-hover:text-primaryColor" />
               </motion.div>
-              <div className="text-left">
-                <h4 className="text-sm font-medium text-gray-800 dark:text-gray-200 group-hover:text-primaryColor transition-colors">
-                  {section.title}
-                </h4>
-                <div className="flex items-center gap-2 mt-1.5 text-xs text-gray-500 dark:text-gray-400">
-                  <div className="flex items-center gap-1">
-                    <CheckCircle className="w-3.5 h-3.5" />
-                    <span>{completedLessons} of {totalLessons} completed</span>
-                  </div>
-                  <span className="text-gray-300 dark:text-gray-600">•</span>
-                  <span className="text-primaryColor font-medium">{sectionProgress}%</span>
+              <div className="text-left min-w-0">
+                <div className="flex items-center gap-2">
+                  <h4 className={clsx(
+                    "text-sm font-medium",
+                    "text-gray-800 dark:text-gray-200",
+                    "group-hover:text-primaryColor",
+                    "transition-colors duration-200"
+                  )}>
+                    {section.title}
+                  </h4>
+                  <span className={clsx(
+                    "px-2 py-0.5 rounded-full text-xs font-medium",
+                    "bg-gray-100/80 dark:bg-gray-800/60",
+                    "text-gray-600 dark:text-gray-400",
+                    "backdrop-blur-sm"
+                  )}>
+                    {totalLessons} {totalLessons === 1 ? 'lesson' : 'lessons'}
+                  </span>
                 </div>
+                
+                <div className="flex items-center gap-3 mt-2">
+                  <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                    <div className="flex items-center gap-1.5 bg-gray-100/80 dark:bg-gray-800/60 px-2 py-1 rounded-md backdrop-blur-sm">
+                      <CheckCircle className="w-3.5 h-3.5" />
+                      <span>{completedLessons} of {totalLessons} completed</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 bg-primaryColor/10 text-primaryColor px-2 py-1 rounded-md backdrop-blur-sm">
+                      <ChartBar className="w-3.5 h-3.5" />
+                      <span className="font-medium">{sectionProgress}%</span>
+                    </div>
+                  </div>
+                </div>
+                
                 {section.resources && section.resources.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-2">
+                  <motion.div 
+                    className="flex flex-wrap gap-2 mt-3"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                  >
                     {section.resources.map((resource, index) => (
                       <a
                         key={index}
                         href={resource.fileUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-primaryColor/10 transition-colors"
+                        className={clsx(
+                          "inline-flex items-center px-2.5 py-1.5 rounded-md text-xs font-medium",
+                          "bg-gray-100/80 dark:bg-gray-800/60 text-gray-700 dark:text-gray-300",
+                          "hover:bg-primaryColor/10 hover:text-primaryColor",
+                          "transition-all duration-200 backdrop-blur-sm",
+                          "focus:outline-none focus:ring-2 focus:ring-primaryColor/30"
+                        )}
                       >
-                        <Download className="w-3 h-3 mr-1.5" />
+                        <Download className="w-3.5 h-3.5 mr-1.5" />
                         {resource.title}
                       </a>
                     ))}
-                  </div>
+                  </motion.div>
                 )}
               </div>
             </div>
@@ -468,22 +551,16 @@ const LessonAccordion: React.FC<LessonAccordionProps> = ({
   }, [expandedSections, toggleSection]);
 
   const renderLesson = useCallback((lesson: Lesson) => {
-    // Use _id if available
     const lessonId = lesson._id || lesson.id;
     if (!lessonId) return null;
     
-    // Skip rendering if this lesson doesn't match the active category filter
     if (!shouldShowLesson(lesson)) return null;
     
     const isActive = lessonId === currentLessonId;
     const isCompleted = lesson.is_completed;
     const isLocked = lesson.status === ITEM_STATUS.LOCKED;
     const isPreview = lesson.isPreview;
-    
-    // Determine lesson type (default to "video" if not specified)
     const lessonType = lesson.type || lesson.lessonType || "video";
-    
-    // Check if this lesson has any bookmarks
     const hasBookmarks = bookmarks.some(bookmark => bookmark.lessonId === lessonId);
 
     return (
@@ -493,133 +570,154 @@ const LessonAccordion: React.FC<LessonAccordionProps> = ({
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -10 }}
         transition={{ duration: 0.2 }}
-        className={`pl-[4.5rem] py-2.5 relative ${
-          isActive ? "bg-primaryColor/10" : "hover:bg-gray-50 dark:hover:bg-gray-800/40"
-        } transition-colors group`}
+        className={clsx(
+          "pl-[4.5rem] py-3 relative group",
+          isActive ? "bg-primaryColor/10" : "hover:bg-gray-50/80 dark:hover:bg-gray-800/60",
+          "transition-all duration-200 ease-in-out"
+        )}
       >
         <button
           onClick={() => onLessonSelect(lesson)}
           disabled={isLocked}
-          className={`w-full flex items-center gap-3 focus:outline-none ${
-            isLocked ? "cursor-not-allowed opacity-50" : ""
-          }`}
+          className={clsx(
+            "w-full flex items-start gap-3 focus:outline-none focus:ring-2 focus:ring-primaryColor/30 rounded-lg p-2",
+            isLocked ? "cursor-not-allowed opacity-50" : "",
+            "transition-all duration-200"
+          )}
         >
           <div
-            className={`w-5 h-5 mt-1 rounded-full flex items-center justify-center transition-all duration-300 ${
+            className={clsx(
+              "w-6 h-6 mt-1 rounded-full flex items-center justify-center transition-all duration-300",
               isCompleted
-                ? "bg-gradient-to-r from-green-400 to-green-500 shadow-sm shadow-green-500/20"
+                ? "bg-gradient-to-br from-green-400 to-green-500 shadow-lg shadow-green-500/20"
                 : isActive
-                ? "border-2 border-primaryColor bg-primaryColor/10"
-                : "border-2 border-gray-300 dark:border-gray-600 group-hover:border-primaryColor/70"
-            }`}
+                ? "border-2 border-primaryColor bg-primaryColor/10 shadow-lg shadow-primaryColor/20"
+                : "border-2 border-gray-300 dark:border-gray-600 group-hover:border-primaryColor/70",
+              "transform group-hover:scale-110 transition-transform duration-200"
+            )}
           >
             {isCompleted ? (
-              <CheckCircle className="w-3 h-3 text-white" />
+              <CheckCircle className="w-3.5 h-3.5 text-white" />
             ) : isLocked ? (
-              <Lock className="w-3 h-3 text-gray-400" />
+              <Lock className="w-3.5 h-3.5 text-gray-400" />
             ) : (
-              <ItemTypeIcon type={lessonType} className="w-3 h-3 text-primaryColor" />
+              <ItemTypeIcon type={lessonType} className="w-3.5 h-3.5 text-primaryColor" />
             )}
           </div>
           <div className="flex-1 text-left min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-primaryColor transition-colors">
+              <span className={clsx(
+                "text-sm font-medium transition-colors duration-200",
+                isActive 
+                  ? "text-primaryColor"
+                  : "text-gray-900 dark:text-white group-hover:text-primaryColor"
+              )}>
                 {lesson.title}
               </span>
               {isPreview && (
-                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100/80 text-green-800 dark:bg-green-900/30 dark:text-green-400 backdrop-blur-sm">
                   Preview
                 </span>
               )}
               {hasBookmarks && (
-                <span className="w-4 h-4 flex-shrink-0">
+                <motion.span 
+                  className="w-4 h-4 flex-shrink-0"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                >
                   <Bookmark className="w-full h-full text-yellow-500" />
-                </span>
+                </motion.span>
               )}
               
-              {/* Display lesson type badge */}
               {lessonType && lessonType !== "video" && (
-                <span className={`px-2 py-0.5 rounded-full text-xs font-medium 
-                  ${lessonType === "quiz" 
-                    ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400" 
+                <span className={clsx(
+                  "px-2 py-0.5 rounded-full text-xs font-medium backdrop-blur-sm",
+                  lessonType === "quiz" 
+                    ? "bg-yellow-100/80 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400" 
                     : lessonType === "assessment" || lessonType === "assignment"
-                    ? "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400"
-                    : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
-                  }`}>
+                    ? "bg-orange-100/80 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400"
+                    : "bg-gray-100/80 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
+                )}>
                   {lessonType.charAt(0).toUpperCase() + lessonType.slice(1)}
                 </span>
               )}
             </div>
             {lesson.description && (
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
+              <motion.p 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.1 }}
+                className="text-xs text-gray-500 dark:text-gray-400 mt-1.5 line-clamp-2 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors duration-200"
+              >
                 {lesson.description}
-              </p>
+              </motion.p>
             )}
-            <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 mt-2 flex-wrap">
+            <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 mt-2.5 flex-wrap">
               {lesson.duration && (
-                <span className="flex items-center">
-                  <Clock className="w-3.5 h-3.5 mr-1" />
+                <span className="flex items-center gap-1.5 bg-gray-100/80 dark:bg-gray-800/60 px-2 py-1 rounded-md backdrop-blur-sm">
+                  <Clock className="w-3.5 h-3.5" />
                   {formatDuration(lesson.duration)}
                 </span>
               )}
               {lessonType && (
-                <span className="flex items-center">
-                  <ItemTypeIcon type={lessonType} className="w-3.5 h-3.5 mr-1" />
+                <span className="flex items-center gap-1.5 bg-gray-100/80 dark:bg-gray-800/60 px-2 py-1 rounded-md backdrop-blur-sm">
+                  <ItemTypeIcon type={lessonType} className="w-3.5 h-3.5" />
                   {lessonType.charAt(0).toUpperCase() + lessonType.slice(1)}
                 </span>
               )}
               {lesson.meta?.presenter && (
-                <span className="flex items-center">
-                  <Users className="w-3.5 h-3.5 mr-1" />
+                <span className="flex items-center gap-1.5 bg-gray-100/80 dark:bg-gray-800/60 px-2 py-1 rounded-md backdrop-blur-sm">
+                  <Users className="w-3.5 h-3.5" />
                   {lesson.meta.presenter}
-                </span>
-              )}
-              
-              {/* Show passing score for quizzes */}
-              {lessonType === "quiz" && lesson.meta?.passing_score && (
-                <span className="flex items-center">
-                  <CheckSquare className="w-3.5 h-3.5 mr-1" />
-                  Pass: {lesson.meta.passing_score}%
-                </span>
-              )}
-              
-              {/* Show due date for assignments */}
-              {(lessonType === "assessment" || lessonType === "assignment") && lesson.meta?.due_date && (
-                <span className="flex items-center">
-                  <Calendar className="w-3.5 h-3.5 mr-1" />
-                  Due: {new Date(lesson.meta.due_date).toLocaleDateString()}
                 </span>
               )}
             </div>
             {lesson.resources && lesson.resources.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
+              <motion.div 
+                className="flex flex-wrap gap-2 mt-3"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
                 {lesson.resources.map((resource, index) => (
                   <a
                     key={index}
                     href={resource.url || resource.fileUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-primaryColor/10 hover:text-primaryColor transition-colors"
+                    className={clsx(
+                      "inline-flex items-center px-2.5 py-1.5 rounded-md text-xs font-medium",
+                      "bg-gray-100/80 dark:bg-gray-800/60 text-gray-700 dark:text-gray-300",
+                      "hover:bg-primaryColor/10 hover:text-primaryColor",
+                      "transition-all duration-200 backdrop-blur-sm",
+                      "focus:outline-none focus:ring-2 focus:ring-primaryColor/30"
+                    )}
                   >
-                    <Download className="w-3 h-3 mr-1.5" />
+                    <Download className="w-3.5 h-3.5 mr-1.5" />
                     {resource.title}
                   </a>
                 ))}
-              </div>
+              </motion.div>
             )}
           </div>
         </button>
       </motion.div>
     );
-  }, [currentLessonId, onLessonSelect, bookmarks, activeCategory, shouldShowLesson, formatDuration]);
+  }, [currentLessonId, onLessonSelect, bookmarks, activeCategory, shouldShowLesson]);
 
   const SearchResults = () => {
     if (!searchResults.length) {
       return (
         <div className="p-8 text-center">
-          <FileQuestion className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-          <p className="text-gray-500 dark:text-gray-400">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-gray-800/60 flex items-center justify-center">
+            <FileQuestion className="w-8 h-8 text-gray-400" />
+          </div>
+          <p className="text-gray-500 dark:text-gray-400 font-medium">
             No lessons found matching "{searchTerm}"
+          </p>
+          <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
+            Try adjusting your search terms or browse the curriculum below
           </p>
         </div>
       );
@@ -627,13 +725,27 @@ const LessonAccordion: React.FC<LessonAccordionProps> = ({
 
     return (
       <div className="space-y-2 p-4">
+        <div className="text-sm text-gray-500 dark:text-gray-400 mb-4 flex items-center justify-between">
+          <span>Found {searchResults.length} results</span>
+          <button
+            onClick={() => onSearchChange("")}
+            className="text-xs text-primaryColor hover:text-primaryColor/70 flex items-center gap-1"
+          >
+            <X className="w-3.5 h-3.5" />
+            Clear search
+          </button>
+        </div>
         {searchResults.map((result, index) => (
           <motion.div
             key={result.lesson._id || result.lesson.id || index}
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
-            className="bg-white dark:bg-gray-800/50 rounded-lg p-3 hover:bg-gray-50 dark:hover:bg-gray-800/80 transition-colors"
+            className={clsx(
+              "bg-white dark:bg-gray-800/50 rounded-lg",
+              "hover:bg-gray-50 dark:hover:bg-gray-800/80",
+              "transition-all duration-200 group"
+            )}
           >
             <button
               onClick={() => {
@@ -641,30 +753,40 @@ const LessonAccordion: React.FC<LessonAccordionProps> = ({
                 setExpandedWeeks(new Set([result.weekIndex]));
                 setExpandedSections(new Set([`${result.weekIndex}-${result.sectionIndex}`]));
               }}
-              className="w-full text-left"
+              className="w-full text-left p-4"
             >
               <div className="flex items-start gap-3">
-                <div
-                  className={`w-5 h-5 mt-1 rounded-full flex items-center justify-center ${
-                    result.lesson.is_completed 
-                      ? "bg-gradient-to-r from-green-400 to-green-500" 
-                      : "bg-primaryColor/10"
-                  }`}
-                >
-                  {result.lesson.is_completed ? (
-                    <CheckCircle className="w-3 h-3 text-white" />
-                  ) : (
-                    <Play className="w-3 h-3 text-primaryColor" />
-                  )}
+                <div className={clsx(
+                  "w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0",
+                  "bg-primaryColor/10 group-hover:bg-primaryColor/20",
+                  "transition-colors duration-200"
+                )}>
+                  <ItemTypeIcon 
+                    type={result.lesson.type} 
+                    className="w-5 h-5 text-primaryColor"
+                  />
                 </div>
-                <div>
-                  <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-primaryColor transition-colors">
                     {result.lesson.title}
                   </h4>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    {result.weekTitle} • {result.sectionTitle}
-                  </p>
+                  {result.lesson.description && (
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
+                      {result.lesson.description}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-3 mt-2 text-xs">
+                    <span className="text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
+                      <BookOpen className="w-3.5 h-3.5" />
+                      {result.weekTitle}
+                    </span>
+                    <span className="text-gray-300 dark:text-gray-600">•</span>
+                    <span className="text-gray-500 dark:text-gray-400">
+                      {result.sectionTitle}
+                    </span>
+                  </div>
                 </div>
+                <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-primaryColor transition-colors" />
               </div>
             </button>
           </motion.div>
