@@ -52,6 +52,15 @@ const nextConfig = {
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     unoptimized: true,
   },
+  experimental: {
+    turbo: {
+      // Example: adding an alias and custom file extension
+        resolveAlias: {
+          underscore: 'lodash',
+        },
+        resolveExtensions: ['.mdx', '.tsx', '.ts', '.jsx', '.js', '.json'],
+      },
+  },
   webpack: (config, { isServer }) => {
     if (!isServer) {
       // Client-side specific configurations
