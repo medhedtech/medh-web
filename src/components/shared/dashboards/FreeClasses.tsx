@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
 import Image from "next/image";
+import { getAllCoursesWithLimits } from "@/apis/course/course";
 
 interface Course {
   _id: string;
@@ -76,7 +77,7 @@ const FreeClasses: React.FC = () => {
   useEffect(() => {
     const fetchCourses = () => {
       getQuery({
-        url: apiUrls?.courses?.getAllCoursesWithLimits({
+        url: getAllCoursesWithLimits({
           page,
           limit,
           search: "",

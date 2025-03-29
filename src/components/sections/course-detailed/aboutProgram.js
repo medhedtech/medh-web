@@ -9,6 +9,7 @@ import Preloader from "@/components/shared/others/Preloader";
 import DownloadBrochureModal from "@/components/shared/download-broucher";
 import { motion, AnimatePresence } from "framer-motion";
 import { BookOpen, ChevronDown, ChevronUp, Download as DownloadIcon, FileText, Clock, Calendar, Users, Sparkles, Star, Award, CheckCircle, GraduationCap, Zap, Lightbulb, ArrowRight, MessageCircle } from "lucide-react";
+import { getCourseById } from "@/apis/course/course";
 
 export default function AboutProgram({ courseId }) {
   const [activeTab, setActiveTab] = useState("ProgramInfo");
@@ -61,7 +62,7 @@ export default function AboutProgram({ courseId }) {
   const fetchCourseDetails = async (id) => {
     try {
       await getQuery({
-        url: apiUrls.courses.getCourseById(id),
+        url: getCourseById(id),
         onSuccess: (data) => {
           console.log("Course details received:", data);
           setCourseDetails(data);

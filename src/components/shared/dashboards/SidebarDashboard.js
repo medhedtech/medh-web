@@ -26,9 +26,15 @@ const SidebarDashboard = ({ children }) => {
   const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [userName, setUserName] = useState("");
 
   useEffect(() => {
     setMounted(true);
+    // Get user name from localStorage
+    const storedUserName = localStorage.getItem("full_name");
+    if (storedUserName) {
+      setUserName(storedUserName);
+    }
   }, []);
 
   const partOfPathNaem = pathname.split("/")[2]?.split("-")[0] || '';
@@ -48,6 +54,7 @@ const SidebarDashboard = ({ children }) => {
     localStorage.removeItem("token");
     localStorage.removeItem("permissions");
     localStorage.removeItem("role");
+    localStorage.removeItem("full_name");
 
     router.push("/login");
   };
@@ -68,7 +75,7 @@ const SidebarDashboard = ({ children }) => {
 
   const adminItems = [
     {
-      title: "WELCOME, ADMIN",
+      title: `WELCOME, ${userName || "ADMIN"}`,
       items: [
         {
           name: "Dashboard",
@@ -477,7 +484,7 @@ const SidebarDashboard = ({ children }) => {
 
   const instructorItems = [
     {
-      title: "WELCOME, INSTRUCTOR",
+      title: `WELCOME, ${userName || "INSTRUCTOR"}`,
       items: [
         {
           name: "Dashboard",
@@ -687,7 +694,7 @@ const SidebarDashboard = ({ children }) => {
 
   const studentItems = [
     {
-      title: "WELCOME, STUDENT",
+      title: `WELCOME, ${userName || "STUDENT"}`,
       items: [
         {
           name: "Dashboard",
@@ -973,7 +980,7 @@ const SidebarDashboard = ({ children }) => {
   ];
   const corporateEmpItems = [
     {
-      title: "WELCOME, STUDENT",
+      title: `WELCOME, ${userName || "EMPLOYEE"}`,
       items: [
         {
           name: "Dashboard",
@@ -1134,7 +1141,7 @@ const SidebarDashboard = ({ children }) => {
   ];
   const corporateItems = [
     {
-      title: "WELCOME, CORPORATE-ADMIN",
+      title: `WELCOME, ${userName || "CORPORATE ADMIN"}`,
       items: [
         {
           name: "Dashboard",

@@ -1,5 +1,5 @@
 import ProtectedPage from "@/app/protectedRoutes";
-// import StudentQuizedashboard from "@/components/layout/main/dashboards/StudentQuizedashboard";
+import StudentQuizedashboard from "@/components/layout/main/dashboards/StudentQuizedashboard";
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
 import ComingSoonPage from "@/components/shared/others/ComingSoonPage";
 

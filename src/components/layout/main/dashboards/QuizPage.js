@@ -12,6 +12,7 @@ import useGetQuery from "@/hooks/getQuery.hook";
 import usePostQuery from "@/hooks/postQuery.hook";
 import QuizComponent from "@/components/shared/lessons/QuizComponent";
 import Pana from "@/assets/images/dashbord/pana.svg";
+import { getCourseById } from "@/apis/course/course";
 
 export default function QuizPage({ closeQuiz }) {
   const [studentId, setStudentId] = useState(null);
@@ -86,7 +87,7 @@ export default function QuizPage({ closeQuiz }) {
                   try {
                     // Fetch course details
                     const courseResponse = await getQuery({
-                      url: apiUrls.courses.getCourseById(enrollment.course_id),
+                      url: getCourseById(enrollment.course_id),
                       headers,
                     });
                     
