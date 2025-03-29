@@ -27,6 +27,9 @@ import CategoryToggle from "@/components/shared/courses/CategoryToggle";
 import { apiUrls } from "@/apis";
 import Link from "next/link";
 import React from "react";
+import { IUpdateCourseData } from '@/types/course.types';
+import { apiBaseUrl, apiUtils, ICourseFilters, ICourseSearchParams } from '@/apis/index'; // Adjust path if needed
+import { getAllCoursesWithLimits } from '@/apis/course/course';
 
 // Dynamically import components that might cause hydration issues
 const DynamicCourseCard = dynamic(() => import("./CourseCard"), {
@@ -639,7 +642,7 @@ const CoursesFilter = ({
       }
 
       // Get the API URL
-      const apiUrl = apiUrls.courses.getAllCoursesWithLimits(searchParams);
+      const apiUrl = getAllCoursesWithLimits(searchParams);
 
       // Log the final URL for debugging
       if (process.env.NODE_ENV === 'development') {

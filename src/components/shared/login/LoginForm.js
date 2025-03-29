@@ -16,8 +16,7 @@ import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 import { Eye, EyeOff, Mail, Lock, Loader2, CheckCircle, AlertCircle, Sparkles, ArrowRight } from "lucide-react";
 import CustomReCaptcha from '../ReCaptcha';
-import Cookies from "js-cookie";
-import CryptoJS from "crypto-js";
+import { useStorage } from "@/contexts/StorageContext";
 import FixedShadow from "../others/FixedShadow";
 
 const schema = yup
@@ -36,6 +35,7 @@ const schema = yup
 const LoginForm = () => {
   const router = useRouter();
   const { postQuery, loading } = usePostQuery();
+  const storageManager = useStorage();
   const [showPassword, setShowPassword] = useState(false);
   const [recaptchaValue, setRecaptchaValue] = useState(null);
   const [recaptchaError, setRecaptchaError] = useState(false);
@@ -56,41 +56,26 @@ const LoginForm = () => {
     defaultValues: prefilledValues,
   });
 
-  const secretKey = "secret-key-s3cUr3K3y$12345#";
-
   // Add entrance animation effect
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 300);
     return () => clearTimeout(timer);
   }, []);
 
-  // Prefill email and password from localStorage
+  // Prefill email and password from localStorage if previously stored with remember me
   useEffect(() => {
-    const encryptedEmail = localStorage.getItem("email");
-    const encryptedPassword = localStorage.getItem("password");
-
-    if (encryptedEmail && encryptedPassword) {
-      try {
-        const decryptedEmail = CryptoJS.AES.decrypt(
-          encryptedEmail,
-          secretKey
-        ).toString(CryptoJS.enc.Utf8);
-
-        const decryptedPassword = CryptoJS.AES.decrypt(
-          encryptedPassword,
-          secretKey
-        ).toString(CryptoJS.enc.Utf8);
-
-        setPrefilledValues({
-          email: decryptedEmail,
-          password: decryptedPassword,
-        });
-        setRememberMe(true);
-      } catch (error) {
-        console.error("Failed to decrypt stored email or password:", error);
-      }
+    // Check if rememberMe was set in previous sessions
+    const rememberedUser = storageManager.getCurrentUser();
+    const isRemembered = storageManager.getPreference(storageManager.STORAGE_KEYS.REMEMBER_ME, false);
+    
+    if (isRemembered && rememberedUser && rememberedUser.email) {
+      setPrefilledValues({
+        email: rememberedUser.email,
+        password: "", // For security, don't prefill password in the form
+      });
+      setRememberMe(true);
     }
-  }, []);
+  }, [storageManager]);
 
   useEffect(() => {
     setValue("email", prefilledValues.email);
@@ -122,6 +107,8 @@ const LoginForm = () => {
       onSuccess: (res) => {
         // Decode token and extract user role with better error handling
         let userRole = '';
+        let fullName = '';
+        
         try {
           const decoded = jwtDecode(res.token);
           console.log("Decoded token:", decoded); // Debug log
@@ -132,6 +119,11 @@ const LoginForm = () => {
             userRole = Array.isArray(decoded.user.role) 
               ? decoded.user.role[0] 
               : decoded.user.role;
+            
+            // Extract full name
+            if (decoded.user.full_name) {
+              fullName = decoded.user.full_name;
+            }
           } else if (decoded.role) {
             // Alternative path: directly in the token
             userRole = Array.isArray(decoded.role) 
@@ -144,42 +136,34 @@ const LoginForm = () => {
             userRole = res.role;
           }
 
-          console.log("Extracted userRole:", userRole); // Debug log
+          // Store user's full name
+          if (decoded.user && decoded.user.full_name) {
+            fullName = decoded.user.full_name;
+          } else if (res.full_name) {
+            fullName = res.full_name;
+          }
         } catch (error) {
           console.error("Error decoding token or extracting role:", error);
           // Fallback to using role from response if available
           userRole = res.role || '';
+          
+          // Still try to store full name from response if available
+          if (res.full_name) {
+            fullName = res.full_name;
+          }
         }
         
-        // Store role in localStorage for later use
-        localStorage.setItem("role", userRole);
-
-        if (rememberMe) {
-          // Encrypt email and password
-          const encryptedEmail = CryptoJS.AES.encrypt(
-            data.email,
-            secretKey
-          ).toString();
-          const encryptedPassword = CryptoJS.AES.encrypt(
-            data.password,
-            secretKey
-          ).toString();
-
-          // Save token in Cookies for 30 days
-          localStorage.setItem("token", res.token);
-          localStorage.setItem("userId", res.id);
-          localStorage.setItem("email", encryptedEmail);
-          localStorage.setItem("password", encryptedPassword);
-          localStorage.setItem("permissions", JSON.stringify(res.permissions));
-          Cookies.set("token", res.token, { expires: 30 });
-          Cookies.set("userId", res.id, { expires: 30 });
-        } else {
-          // Save token in localStorage for session
-          localStorage.setItem("token", res.token);
-          localStorage.setItem("userId", res.id);
-          // Still save permissions even for session login
-          localStorage.setItem("permissions", JSON.stringify(res.permissions));
-        }
+        // Use our storage manager to store all auth data
+        storageManager.login({
+          token: res.token,
+          userId: res.id,
+          email: data.email,
+          password: rememberMe ? data.password : undefined,
+          role: userRole,
+          fullName: fullName,
+          permissions: res.permissions || [],
+          rememberMe: rememberMe
+        });
 
         // Handle routing based on role
         // Convert role to lowercase for case-insensitive comparison
@@ -354,6 +338,7 @@ const LoginForm = () => {
                       type="checkbox"
                       className="h-3.5 w-3.5 sm:h-4 sm:w-4 rounded-md text-primary-600 focus:ring-primary-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700"
                       onChange={handleRememberMeChange}
+                      checked={rememberMe}
                     />
                     <label htmlFor="remember-me" className="ml-2 block text-xs sm:text-sm text-gray-700 dark:text-gray-300">
                       Remember me
@@ -382,6 +367,8 @@ const LoginForm = () => {
                       <a
                         href="/terms-and-services"
                         className="text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300 underline"
+                        target="_blank"
+                        rel="noopener noreferrer"
                       >
                         terms of use
                       </a>{" "}
@@ -389,6 +376,8 @@ const LoginForm = () => {
                       <a
                         href="/privacy-policy"
                         className="text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300 underline"
+                        target="_blank"
+                        rel="noopener noreferrer"
                       >
                         privacy policy
                       </a>

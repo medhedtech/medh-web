@@ -21,6 +21,7 @@ import CategorySelect from "./CategorySelect";
 import SelectMultipleCourses from "./SelectMultipleCourses";
 import Tooltip from "@/components/shared/others/Tooltip";
 import Cookies from "js-cookie";
+import { getCourseById } from "@/apis/course/course";
 
 // Optimized validation schema with all fields optional
 const schema = yup.object({
@@ -196,7 +197,7 @@ export default function UpdateCourse() {
   const fetchCourseDetails = async () => {
     try {
       await getQuery({
-        url: apiUrls.courses.getCourseById(courseId),
+        url: getCourseById(courseId),
         onSuccess: (res) => {
           const courseData = res.data;
           if (!courseData) return;

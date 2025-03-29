@@ -55,6 +55,7 @@ import React, { useEffect, useState } from "react";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import CourseCard from "../courses/CourseCard";
+import { getAllCoursesWithLimits } from "@/apis/course/course";
 
 function DigiMarketingRalatedCource() {
   const { getQuery } = useGetQuery();
@@ -63,7 +64,7 @@ function DigiMarketingRalatedCource() {
   // Fetch related Digital Marketing courses from API
   const fetchRelatedCourses = () => {
     getQuery({
-      url: apiUrls.courses.getAllCoursesWithLimits(
+      url: getAllCoursesWithLimits(
         1,
         10,
         "",

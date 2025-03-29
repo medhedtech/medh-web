@@ -13,6 +13,7 @@ import axios from "axios";
 import { apiUrls, apiBaseUrl } from "@/apis";
 import Preloader2 from "@/components/shared/others/Preloader2";
 import CourseCard from "@/components/sections/courses/CourseCard";
+import { getAllCoursesWithLimits } from "@/apis/course/course";
 // import RatingStars from "@/components/sections/courses/RatingStars";
 
 // Import the pre-defined categories list
@@ -147,7 +148,7 @@ const SearchResults = ({ initialQuery = "" }) => {
   // Fetch section data
   const fetchSectionData = useCallback(async (sectionId, filter) => {
     try {
-      const apiUrl = apiUrls.courses.getAllCoursesWithLimits(
+      const apiUrl = getAllCoursesWithLimits(
         1, // page
         4, // limit to 4 courses per section
         '', // course_title
@@ -266,7 +267,7 @@ const SearchResults = ({ initialQuery = "" }) => {
         filters.dateRange.end = now.toISOString();
       }
       
-      const apiUrl = apiUrls?.courses?.getAllCoursesWithLimits(
+      const apiUrl = getAllCoursesWithLimits(
         1, // Always first page
         5, // Limit to 5 latest courses
         "", // No course_title filter
@@ -425,7 +426,7 @@ const SearchResults = ({ initialQuery = "" }) => {
           filters.sortBy = "relevance";
       }
       
-      const apiUrl = apiUrls?.courses?.getAllCoursesWithLimits(
+      const apiUrl = getAllCoursesWithLimits(
         currentPage,
         12, // items per page
         query.trim(), // course_title
