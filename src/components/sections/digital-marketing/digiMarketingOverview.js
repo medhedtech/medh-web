@@ -475,24 +475,7 @@ const DigiMarketingOverview = () => {
         </div>
 
         {/* Enhanced Scroll to Top Button with better animations */}
-        <AnimatePresence>
-          {showScrollTop && (
-            <motion.button
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              className="fixed bottom-4 right-4 md:bottom-6 md:right-6 bg-blue-500 text-white p-2 md:p-3 rounded-full shadow-lg hover:bg-blue-600 transition-all z-50"
-              onClick={() => {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              aria-label="Scroll to top"
-            >
-              <ArrowUp className="h-5 w-5 md:h-6 md:w-6" />
-            </motion.button>
-          )}
-        </AnimatePresence>
+        <AnimatePresence/>
       </div>
     </section>
   );
