@@ -1,0 +1,17 @@
+# Allow all web crawlers
+User-agent: *
+Allow: /
+
+# Disallow admin and private routes
+Disallow: /dashboards/
+Disallow: /profile/
+Disallow: /login/
+Disallow: /signup/
+Disallow: /forgot-password/
+Disallow: /unauthorized/
+Disallow: /error/
+Disallow: /error-dark/
+Disallow: /maintenance/
+
+# Sitemap location
+Sitemap: https://https://www.medh.co/sitemap.xml 

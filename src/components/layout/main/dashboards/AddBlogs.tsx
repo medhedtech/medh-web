@@ -1,7 +1,7 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import usePostQuery from "@/hooks/postQuery.hook";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { apiUrls } from "@/apis";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -10,10 +10,11 @@ import useGetQuery from "@/hooks/getQuery.hook";
 import { useUpload } from "@/hooks/useUpload";
 import Preloader from "@/components/shared/others/Preloader";
 import AdminBlogs from "./AdminBlogs";
-import dynamic from 'next/dynamic';
 import Select, { MultiValue, ActionMeta } from 'react-select';
 import { motion } from 'framer-motion';
 import { Sparkles, Upload, Tag, Link as LinkIcon, Layout, Type, FileText } from 'lucide-react';
+import NoSSRQuill from "@/components/shared/editors/NoSSRQuill";
+import dynamic from "next/dynamic";
 
 // Define local helpers to avoid import issues
 /**
@@ -30,11 +31,45 @@ const slugify = (text: string): string => {
     .replace(/\-\-+/g, '-');     // Replace multiple - with single -
 };
 
-// Dynamic import of the rich text editor to avoid SSR issues
-const ReactQuill = dynamic(() => import('react-quill'), { 
-  ssr: false,
-  loading: () => <div className="h-[300px] bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-gray-400">Loading editor...</div>
-});
+// Dynamic import of the rich text editor to avoid SSR issues with modern React 18 compatibility
+const ReactQuill = dynamic(() => 
+  import('react-quill').then(mod => {
+    // Return a wrapper component that doesn't depend on findDOMNode
+    const Quill = ({ forwardedRef, ...props }: any) => {
+      const quillRef = useRef<any>(null);
+      
+      // Update the forwarded ref when our local ref changes
+      useEffect(() => {
+        if (forwardedRef && quillRef.current) {
+          forwardedRef.current = quillRef.current;
+        }
+      }, [forwardedRef]);
+      
+      return <mod.default ref={quillRef} {...props} />;
+    };
+    
+    return Quill;
+  }), { 
+    ssr: false,
+    loading: () => <div className="h-[300px] bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-gray-400">Loading editor...</div>
+  }
+);
+
+// Simplified approach - use a null renderer when SSR and lazy load the actual component
+const QuillEditor = dynamic(
+  async () => {
+    const { default: RQ } = await import('react-quill');
+    // Wrap the component to avoid findDOMNode issues
+    function QuillNoSSR(props: any) {
+      return <RQ {...props} />;
+    }
+    return QuillNoSSR;
+  },
+  {
+    ssr: false,
+    loading: () => <div className="h-[300px] bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-gray-400">Loading editor...</div>
+  }
+);
 import 'react-quill/dist/quill.snow.css';
 
 interface Category {
@@ -140,6 +175,7 @@ const AddBlog: React.FC = () => {
   const [tags, setTags] = useState<string[]>([]);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [editorMounted, setEditorMounted] = useState<boolean>(false);
+  const editorRef = useRef<any>(null);
 
   const {
     register,
@@ -558,7 +594,7 @@ const AddBlog: React.FC = () => {
             <div>
               <label className="text-sm text-gray-300 mb-2 block">Blog Content <span className="text-red-400">*</span></label>
               <div className="prose-editor-container rounded-xl overflow-hidden border border-white/10">
-                <ReactQuill
+                <NoSSRQuill
                   theme="snow"
                   value={content}
                   onChange={(value) => {
@@ -570,6 +606,7 @@ const AddBlog: React.FC = () => {
                   placeholder="Start writing your blog content here..."
                   preserveWhitespace={true}
                   onFocus={() => setEditorMounted(true)}
+                  forwardedRef={editorRef}
                 />
               </div>
               {content.length < 100 && (

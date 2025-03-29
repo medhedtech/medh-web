@@ -6,6 +6,7 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { ChevronDown, ChevronRight, HelpCircle, AlertCircle, Search, RefreshCw, ExternalLink, BookOpen, Clock } from "lucide-react";
 import axios from "axios";
 import DOMPurify from "dompurify";
+import { getCourseById } from "@/apis/course/course";
 
 export default function CourseFaq({ courseId }) {
   const [openIndex, setOpenIndex] = useState(null);
@@ -145,7 +146,7 @@ export default function CourseFaq({ courseId }) {
   const fetchCourseDetails = async (id) => {
     try {
       await getQuery({
-        url: apiUrls.courses.getCourseById(id),
+        url: getCourseById(id),
         onSuccess: (data) => {
           console.log("FAQ data received:", data?.course || data);
           // Support different data structures we might receive
