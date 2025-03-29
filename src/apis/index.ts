@@ -16,7 +16,21 @@ export const apiUtils = {
    */
   safeEncode: (value: any): string => {
     if (value === null || value === undefined) return '';
-    return encodeURIComponent(String(value).trim());
+    // Prevent double encoding by first decoding if already encoded
+    const decodedValue = decodeURIComponent(String(value).trim());
+    return encodeURIComponent(decodedValue);
+  },
+
+  /**
+   * Safely converts a value to a number, with fallback
+   * @param value - The value to convert
+   * @param fallback - Fallback value if conversion fails
+   * @returns The number or fallback value
+   */
+  safeNumber: (value: any, fallback: number): number => {
+    if (value === null || value === undefined) return fallback;
+    const num = Number(value);
+    return isNaN(num) ? fallback : num;
   },
 
   /**
@@ -159,6 +173,28 @@ export interface ICourseQueryParams {
   category_type?: string;
 }
 
+export interface ICourseSearchParams {
+  page?: number;
+  limit?: number;
+  course_title?: string;
+  course_tag?: string | string[];
+  course_category?: string | string[];
+  status?: 'Draft' | 'Published' | 'Archived';
+  search?: string;
+  course_grade?: string;
+  category?: string[];
+  filters?: ICourseFilters;
+  class_type?: string;
+  course_duration?: number | { min: number; max: number };
+  course_fee?: number | { min: number; max: number };
+  course_type?: string;
+  skill_level?: string;
+  language?: string;
+  sort_by?: string;
+  sort_order?: 'asc' | 'desc';
+  category_type?: string;
+}
+
 export const apiUrls = {
   categories: {
     getAllCategories: "/categories/getAll",
@@ -206,10 +242,10 @@ export const apiUrls = {
   },
   courses: {
     getAllCourses: "/courses/get",
-    getAllCoursesWithLimits: (params: ICourseQueryParams = {}): string => {
+    getAllCoursesWithLimits: (params: ICourseSearchParams = {}): string => {
       const {
         page = 1,
-        limit = 8 ,
+        limit = 12,
         course_title = "",
         course_tag = "",
         course_category = "",
@@ -231,84 +267,151 @@ export const apiUrls = {
 
       const queryParams = new URLSearchParams();
 
-      // Validate and set pagination params
-      queryParams.append('page', String(Math.max(1, page)));
-      queryParams.append('limit', String(Math.min(100, Math.max(1, Number(limit)))));
+      try {
+        // Validate and set pagination params with proper error handling
+        const safePage = apiUtils.safeNumber(page, 1);
+        const safeLimit = apiUtils.safeNumber(limit, 12);
+        
+        queryParams.append('page', String(Math.max(1, safePage)));
+        queryParams.append('limit', String(Math.min(100, Math.max(1, safeLimit))));
 
-      // Set sorting params
-      queryParams.append('sort_by', sort_by);
-      queryParams.append('sort_order', ['asc', 'desc'].includes(sort_order.toLowerCase()) ? sort_order.toLowerCase() : 'desc');
+        // Set sorting params with validation
+        const validSortFields = ['createdAt', 'course_title', 'course_fee'];
+        const safeSortBy = validSortFields.includes(sort_by) ? sort_by : 'createdAt';
+        const safeSortOrder = ['asc', 'desc'].includes(sort_order) ? sort_order : 'desc';
+        
+        queryParams.append('sort_by', safeSortBy);
+        queryParams.append('sort_order', safeSortOrder);
 
-      // Add search and filters with null checks
-      if (search) apiUtils.appendParam('search', search, queryParams);
-      if (status) apiUtils.appendParam('status', status, queryParams);
-      if (course_title) apiUtils.appendParam('course_title', course_title, queryParams);
-      if (course_tag) apiUtils.appendArrayParam('course_tag', course_tag, queryParams);
-      if (course_category) apiUtils.appendArrayParam('course_category', course_category, queryParams);
-      if (category.length > 0) apiUtils.appendArrayParam('category', category, queryParams);
-      if (class_type) apiUtils.appendArrayParam('class_type', class_type, queryParams);
-      if (course_grade) apiUtils.appendParam('course_grade', course_grade, queryParams);
-      if (course_type) apiUtils.appendParam('course_type', course_type, queryParams);
-      if (skill_level) apiUtils.appendParam('skill_level', skill_level, queryParams);
-      if (language) apiUtils.appendParam('language', language, queryParams);
-      if (category_type) apiUtils.appendParam('category_type', category_type, queryParams);
-
-      // Handle course duration and fee with type checking
-      if (course_duration) {
-        if (typeof course_duration === 'object' && 'min' in course_duration && 'max' in course_duration) {
-          apiUtils.appendParam('course_duration_min', course_duration.min, queryParams);
-          apiUtils.appendParam('course_duration_max', course_duration.max, queryParams);
-        } else if (typeof course_duration === 'number') {
-          apiUtils.appendParam('course_duration', course_duration, queryParams);
+        // Add search and filters with proper encoding
+        if (search) {
+          const safeSearch = apiUtils.safeEncode(search.trim());
+          if (safeSearch) queryParams.append('search', safeSearch);
         }
+
+        if (status) queryParams.append('status', status);
+
+        // Handle course_category with special care to prevent double encoding
+        if (course_category) {
+          if (Array.isArray(course_category)) {
+            const safeCategories = course_category
+              .map(cat => apiUtils.safeEncode(cat))
+              .filter(Boolean);
+            if (safeCategories.length) {
+              queryParams.append('course_category', safeCategories.join(','));
+            }
+          } else {
+            const safeCategory = apiUtils.safeEncode(course_category);
+            if (safeCategory) queryParams.append('course_category', safeCategory);
+          }
+        }
+
+        // Handle arrays with proper encoding
+        if (course_tag) apiUtils.appendArrayParam('course_tag', course_tag, queryParams);
+        if (category.length > 0) apiUtils.appendArrayParam('category', category, queryParams);
+        if (class_type) apiUtils.appendArrayParam('class_type', class_type, queryParams);
+
+        // Handle other string parameters with safe encoding
+        if (course_title) {
+          const safeCourseTitle = apiUtils.safeEncode(course_title);
+          if (safeCourseTitle) queryParams.append('course_title', safeCourseTitle);
+        }
+
+        if (course_grade) {
+          const safeCourseGrade = apiUtils.safeEncode(course_grade);
+          if (safeCourseGrade) queryParams.append('course_grade', safeCourseGrade);
+        }
+
+        if (course_type) {
+          const safeCourseType = apiUtils.safeEncode(course_type);
+          if (safeCourseType) queryParams.append('course_type', safeCourseType);
+        }
+
+        if (skill_level) {
+          const safeSkillLevel = apiUtils.safeEncode(skill_level);
+          if (safeSkillLevel) queryParams.append('skill_level', safeSkillLevel);
+        }
+
+        if (language) {
+          const safeLanguage = apiUtils.safeEncode(language);
+          if (safeLanguage) queryParams.append('language', safeLanguage);
+        }
+
+        if (category_type) {
+          const safeCategoryType = apiUtils.safeEncode(category_type);
+          if (safeCategoryType) queryParams.append('category_type', safeCategoryType);
+        }
+
+        // Handle numeric ranges with validation
+        if (course_duration) {
+          if (typeof course_duration === 'object' && 'min' in course_duration && 'max' in course_duration) {
+            const safeMin = apiUtils.safeNumber(course_duration.min, 0);
+            const safeMax = apiUtils.safeNumber(course_duration.max, 0);
+            if (safeMin > 0) queryParams.append('course_duration_min', String(safeMin));
+            if (safeMax > 0) queryParams.append('course_duration_max', String(safeMax));
+          } else if (typeof course_duration === 'number') {
+            const safeDuration = apiUtils.safeNumber(course_duration, 0);
+            if (safeDuration > 0) queryParams.append('course_duration', String(safeDuration));
+          }
+        }
+
+        if (course_fee) {
+          if (typeof course_fee === 'object' && 'min' in course_fee && 'max' in course_fee) {
+            const safeMin = apiUtils.safeNumber(course_fee.min, 0);
+            const safeMax = apiUtils.safeNumber(course_fee.max, 0);
+            if (safeMin >= 0) queryParams.append('course_fee_min', String(safeMin));
+            if (safeMax >= 0) queryParams.append('course_fee_max', String(safeMax));
+          } else if (typeof course_fee === 'number') {
+            const safeFee = apiUtils.safeNumber(course_fee, 0);
+            if (safeFee >= 0) queryParams.append('course_fee', String(safeFee));
+          }
+        }
+
+        // Handle additional filters with type safety
+        if (filters) {
+          if (typeof filters.certification === 'boolean') {
+            queryParams.append('is_Certification', filters.certification ? 'Yes' : 'No');
+          }
+          if (typeof filters.assignments === 'boolean') {
+            queryParams.append('is_Assignments', filters.assignments ? 'Yes' : 'No');
+          }
+          if (typeof filters.projects === 'boolean') {
+            queryParams.append('is_Projects', filters.projects ? 'Yes' : 'No');
+          }
+          if (typeof filters.quizzes === 'boolean') {
+            queryParams.append('is_Quizes', filters.quizzes ? 'Yes' : 'No');
+          }
+          if (filters.effortPerWeek) {
+            const safeMin = apiUtils.safeNumber(filters.effortPerWeek.min, 0);
+            const safeMax = apiUtils.safeNumber(filters.effortPerWeek.max, 0);
+            if (safeMin >= 0) queryParams.append('min_hours_per_week', String(safeMin));
+            if (safeMax >= 0) queryParams.append('max_hours_per_week', String(safeMax));
+          }
+          if (filters.noOfSessions) {
+            const safeSessions = apiUtils.safeNumber(filters.noOfSessions, 0);
+            if (safeSessions > 0) queryParams.append('no_of_Sessions', String(safeSessions));
+          }
+          if (filters.features?.length) {
+            apiUtils.appendArrayParam('features', filters.features, queryParams);
+          }
+          if (filters.tools?.length) {
+            apiUtils.appendArrayParam('tools_technologies', filters.tools, queryParams);
+          }
+          if (filters.dateRange) {
+            if (filters.dateRange.start) queryParams.append('date_start', filters.dateRange.start);
+            if (filters.dateRange.end) queryParams.append('date_end', filters.dateRange.end);
+          }
+          if (typeof filters.isFree === 'boolean') {
+            queryParams.append('isFree', String(filters.isFree));
+          }
+        }
+
+        return `/courses/search?${queryParams.toString()}`;
+      } catch (error) {
+        console.error('Error building course search URL:', error);
+        // Return a safe default URL
+        return `/courses/search?page=1&limit=12&sort_by=createdAt&sort_order=desc&status=Published`;
       }
-
-      if (course_fee) {
-        if (typeof course_fee === 'object' && 'min' in course_fee && 'max' in course_fee) {
-          apiUtils.appendParam('course_fee_min', course_fee.min, queryParams);
-          apiUtils.appendParam('course_fee_max', course_fee.max, queryParams);
-        } else if (typeof course_fee === 'number') {
-          apiUtils.appendParam('course_fee', course_fee, queryParams);
-        }
-      }
-
-      // Handle additional filters with type safety
-      if (filters) {
-        if (typeof filters.certification === 'boolean') {
-          apiUtils.appendParam('is_Certification', filters.certification ? 'Yes' : 'No', queryParams);
-        }
-        if (typeof filters.assignments === 'boolean') {
-          apiUtils.appendParam('is_Assignments', filters.assignments ? 'Yes' : 'No', queryParams);
-        }
-        if (typeof filters.projects === 'boolean') {
-          apiUtils.appendParam('is_Projects', filters.projects ? 'Yes' : 'No', queryParams);
-        }
-        if (typeof filters.quizzes === 'boolean') {
-          apiUtils.appendParam('is_Quizes', filters.quizzes ? 'Yes' : 'No', queryParams);
-        }
-        if (filters.effortPerWeek) {
-          apiUtils.appendParam('min_hours_per_week', filters.effortPerWeek.min, queryParams);
-          apiUtils.appendParam('max_hours_per_week', filters.effortPerWeek.max, queryParams);
-        }
-        if (filters.noOfSessions) {
-          apiUtils.appendParam('no_of_Sessions', filters.noOfSessions, queryParams);
-        }
-        if (filters.features?.length) {
-          apiUtils.appendArrayParam('features', filters.features, queryParams);
-        }
-        if (filters.tools?.length) {
-          apiUtils.appendArrayParam('tools_technologies', filters.tools, queryParams);
-        }
-        if (filters.dateRange) {
-          apiUtils.appendParam('date_start', filters.dateRange.start, queryParams);
-          apiUtils.appendParam('date_end', filters.dateRange.end, queryParams);
-        }
-        if (typeof filters.isFree === 'boolean') {
-          apiUtils.appendParam('isFree', filters.isFree, queryParams);
-        }
-      }
-
-      return `/courses/search?${queryParams.toString()}`;
     },
     getNewCourses: (options: {
       page?: number;

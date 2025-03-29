@@ -579,92 +579,91 @@ const CoursesFilter = ({
     
     setQueryError(null);
 
-    // Make sure categories are in sync (fixed or chosen)
-    const catList = fixedCategory
-      ? [fixedCategory]
-      : selectedCategory.map((c) => c.trim()).filter(Boolean);
-
-    // Encode each category individually and join with commas
-    const encodedCategory = catList.length > 0
-      ? catList.map(cat => encodeURIComponent(cat)).join(",")
-      : "";
-
-    // Build sort parameters
-    let sortBy, sortDir;
-    switch (sortOrder) {
-      case "oldest-first":
-        sortBy = "createdAt";
-        sortDir = "asc";
-        break;
-      case "A-Z":
-        sortBy = "course_title";
-        sortDir = "asc";
-        break;
-      case "Z-A":
-        sortBy = "course_title";
-        sortDir = "desc";
-        break;
-      case "price-low-high":
-        sortBy = "course_fee";
-        sortDir = "asc";
-        break;
-      case "price-high-low":
-        sortBy = "course_fee";
-        sortDir = "desc";
-        break;
-      case "newest-first":
-      default:
-        sortBy = "createdAt";
-        sortDir = "desc";
-    }
-
-    // Safely encode search term and grade
-    const encodedSearch = searchTerm ? encodeURIComponent(decodeURIComponent(searchTerm.trim())) : "";
-    const encodedGrade = selectedGrade ? encodeURIComponent(decodeURIComponent(selectedGrade.trim())) : "";
-
     try {
-      const apiUrl = apiUrls.courses.getAllCoursesWithLimits(
-        currentPage,
-        9, // items per page
-        "", // course_title
-        "", // course_tag
-        encodedCategory,
-        "Published",
-        encodedSearch,
-        encodedGrade,
-        [], // category array (deprecated)
-        {
-          certification: false,
-          hasAssignments: false,
-          hasProjects: false,
-          hasQuizzes: false,
-          sortBy,
-          sortOrder: sortDir
-        },
-        classType
-      );
+      // Build search parameters
+      const searchParams = {
+        page: currentPage,
+        limit: itemsPerPage || 12,
+        status: "Published",
+        sort_by: "createdAt",
+        sort_order: "desc"
+      };
+
+      // Add category if available
+      if (fixedCategory) {
+        searchParams.course_category = fixedCategory;
+      } else if (selectedCategory.length > 0) {
+        searchParams.course_category = selectedCategory;
+      }
+
+      // Add search term if available
+      if (searchTerm?.trim()) {
+        searchParams.search = searchTerm.trim();
+      }
+
+      // Add grade if selected
+      if (selectedGrade) {
+        searchParams.course_grade = selectedGrade;
+      }
+
+      // Add class type if specified
+      if (classType) {
+        searchParams.class_type = classType;
+      }
+
+      // Add sorting
+      switch (sortOrder) {
+        case "oldest-first":
+          searchParams.sort_by = "createdAt";
+          searchParams.sort_order = "asc";
+          break;
+        case "A-Z":
+          searchParams.sort_by = "course_title";
+          searchParams.sort_order = "asc";
+          break;
+        case "Z-A":
+          searchParams.sort_by = "course_title";
+          searchParams.sort_order = "desc";
+          break;
+        case "price-low-high":
+          searchParams.sort_by = "course_fee";
+          searchParams.sort_order = "asc";
+          break;
+        case "price-high-low":
+          searchParams.sort_by = "course_fee";
+          searchParams.sort_order = "desc";
+          break;
+        default:
+          searchParams.sort_by = "createdAt";
+          searchParams.sort_order = "desc";
+      }
+
+      // Get the API URL
+      const apiUrl = apiUrls.courses.getAllCoursesWithLimits(searchParams);
 
       // Log the final URL for debugging
-      console.debug('Fetching courses with URL:', apiUrl);
+      if (process.env.NODE_ENV === 'development') {
+        console.debug('Fetching courses with URL:', apiUrl);
+      }
 
       await getQuery({
         url: apiUrl,
         onSuccess: (data) => {
-          if (data && Array.isArray(data.courses)) {
-            setAllCourses(data.courses);
-            setFilteredCourses(data.courses);
-            setTotalPages(data.pagination?.totalPages || 1);
-            setTotalItems(data.pagination?.totalCourses || 0);
+          if (!data) {
+            throw new Error('No data received from API');
+          }
 
-            if (scrollToTop && typeof window !== 'undefined') {
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-          } else {
-            console.warn('Invalid or empty response data:', data);
-            setAllCourses([]);
-            setFilteredCourses([]);
-            setTotalPages(1);
-            setTotalItems(0);
+          if (!Array.isArray(data.courses)) {
+            throw new Error('Invalid courses data format');
+          }
+
+          setAllCourses(data.courses);
+          setFilteredCourses(data.courses);
+          setTotalPages(data.pagination?.totalPages || 1);
+          setTotalItems(data.pagination?.totalCourses || 0);
+
+          if (scrollToTop && typeof window !== 'undefined') {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
           }
         },
         onFail: (err) => {
@@ -672,6 +671,8 @@ const CoursesFilter = ({
           setQueryError(err?.message || "Failed to fetch courses. Please try again.");
           setAllCourses([]);
           setFilteredCourses([]);
+          setTotalPages(1);
+          setTotalItems(0);
         },
       });
     } catch (error) {
@@ -679,9 +680,12 @@ const CoursesFilter = ({
       setQueryError("An unexpected error occurred. Please try again later.");
       setAllCourses([]);
       setFilteredCourses([]);
+      setTotalPages(1);
+      setTotalItems(0);
     }
   }, [
     currentPage,
+    itemsPerPage,
     sortOrder,
     searchTerm,
     selectedGrade,
