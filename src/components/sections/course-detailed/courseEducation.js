@@ -25,6 +25,7 @@ import { toast } from "react-toastify";
 import { HelpCircle, DollarSign, Award, BookOpen, Check, Star, Zap, Calendar, Users, Clock, ArrowRight, Bookmark, Gift, Sparkles, Lightbulb } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Calculator, GraduationCap, Info } from "lucide-react";
+import { getCourseById } from "@/apis/course/course";
 
 // Error Fallback component
 const ErrorFallback = ({ error, resetErrorBoundary }) => (
@@ -99,7 +100,7 @@ function CourseEducation({ courseId, courseDetails }) {
 
     try {
       await getQuery({
-        url: apiUrls.courses.getCourseById(courseId),
+        url: getCourseById(courseId),
         onSuccess: (data) => {
           if (!data || !data._id) {
             throw new Error('Invalid course data');

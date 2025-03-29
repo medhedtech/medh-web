@@ -5,6 +5,7 @@ import { PlusCircle, MinusCircle, Search, ChevronDown, X } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { apiUrls, apiBaseUrl } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
+import { getAllCoursesWithLimits } from '@/apis/course/course';
 
 interface Course {
   _id: string;
@@ -63,23 +64,13 @@ const RelatedCourses: React.FC<RelatedCoursesProps> = ({
     const fetchAllCourses = async () => {
       setIsSearching(true);
       try {
-        const url = apiUrls.courses.getAllCoursesWithLimits(
-          1,
-          100,
-          undefined,
-          undefined,
-          undefined,
-          'active',
-          undefined,
-          undefined,
-          undefined,
-          {},
-          undefined,
-          undefined,
-          undefined,
-          'rating',
-          'desc'
-        );
+        const url = getAllCoursesWithLimits({
+          page: 1,
+          limit: 100,
+          status: 'Published',
+          sort_by: 'rating',
+          sort_order: 'desc'
+        });
 
         const response = await getQuery({
           url: url,
@@ -119,29 +110,20 @@ const RelatedCourses: React.FC<RelatedCoursesProps> = ({
 
     setIsSearching(true);
     try {
-      const url = apiUrls.courses.getAllCoursesWithLimits(
-        1,
-        10,
-        query,
-        undefined,
-        undefined,
-        'active',
-        query,
-        undefined,
-        undefined,
-        {},
-        undefined,
-        undefined,
-        undefined,
-        'rating',
-        'desc'
-      );
+      const url = getAllCoursesWithLimits({
+        page: 1,
+        limit: 10,
+        search: query.trim(),
+        status: 'Published',
+        sort_by: 'rating',
+        sort_order: 'desc'
+      });
 
       const response = await getQuery({
         url: url,
         onSuccess: () => {},
         onError: () => {
-          toast.error('Failed to fetch courses');
+          toast.error('Failed to fetch search results');
           setSearchResults([]);
         }
       });

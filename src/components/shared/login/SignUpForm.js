@@ -766,11 +766,21 @@ const SignUpForm = () => {
                     />
                     <span className="text-xs text-gray-600 dark:text-gray-400">
                       I accept the{" "}
-                      <a href="/terms-and-services" className="text-primary-600 hover:text-primary-500">
+                      <a 
+                        href="/terms-and-services" 
+                        className="text-primary-600 hover:text-primary-500"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
                         terms of use
                       </a>{" "}
                       and{" "}
-                      <a href="/privacy-policy" className="text-primary-600 hover:text-primary-500">
+                      <a 
+                        href="/privacy-policy" 
+                        className="text-primary-600 hover:text-primary-500"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
                         privacy policy
                       </a>
                     </span>

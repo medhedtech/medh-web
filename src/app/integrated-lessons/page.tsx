@@ -256,7 +256,7 @@ const IntegratedLessonsPage: React.FC = () => {
       setLoading(true);
       
       await getQuery({
-        url: apiUrls.courses.getAllCoursesWithLimits(
+        url: getAllCoursesWithLimits(
           1,
           8,
           "",

@@ -8,6 +8,7 @@ import AiMl from "@/assets/images/courses/Ai&Ml.jpeg";
 import { useRouter } from "next/navigation";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
+import { getAllCoursesWithLimits } from "@/apis/course/course";
 
 const FreeClassesCorporate = () => {
   const router = useRouter();
@@ -29,7 +30,7 @@ const FreeClassesCorporate = () => {
   useEffect(() => {
     const fetchCourses = () => {
       getQuery({
-        url: apiUrls?.courses?.getAllCoursesWithLimits(
+        url:getAllCoursesWithLimits(
           page,
           limit,
           "",
