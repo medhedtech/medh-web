@@ -3,7 +3,7 @@ import HeadingLg from "@/components/shared/headings/HeadingLg";
 import HreoName from "@/components/shared/section-names/HreoName";
 import Image from "next/image";
 import React, { useState, useEffect } from "react";
-import stemImg from "@/assets/images/iso/stem.jpg";
+import stemImg from "@/assets/images/iso/iso-STEM.jpg";
 import Group from "@/assets/Header-Images/Home/cheerful-arab.jpg";
 import bgImage from "@/assets/Header-Images/Home/Home_Banner_2_e7389bb905.jpg";
 import "@/assets/css/ovalAnimation.css";
@@ -16,6 +16,7 @@ import Preloader2 from "@/components/shared/others/Preloader2";
 import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
 import medhLogo from "@/assets/images/logo/medh.png";
+import { getAllCoursesWithLimits } from "@/apis/course/course";
 
 // Mobile version of Hero component
 const HeroMobile = ({ isLoaded, featuredCourses, loading }) => {
@@ -124,7 +125,7 @@ const Hero1 = ({ isCompact = false }) => {
   useEffect(() => {
     const fetchFeaturedCourses = () => {
       getQuery({
-        url: apiUrls?.courses?.getAllCoursesWithLimits(1, 4, "", "", "", "Published", "", "", []),
+        url: getAllCoursesWithLimits(1, 4, "", "", "", "Published", "", "", []),
         onSuccess: (data) => {
           const sortedCourses = (data?.courses || [])
             .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))

@@ -3,6 +3,7 @@
 import CartContextProvider from "@/contexts/CartContext";
 import { CookieConsentProvider } from "@/contexts/CookieConsentContext";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
+import { StorageProvider } from "@/contexts/StorageContext";
 import { ThemeProvider } from "next-themes";
 import { SessionProvider } from "next-auth/react";
 import { ToastContainer } from "react-toastify";
@@ -22,25 +23,27 @@ export default function Providers({ children }: ProvidersProps) {
         disableTransitionOnChange
         storageKey="medh-theme"
       >
-        <CookieConsentProvider>
-          <CurrencyProvider>
-            <CartContextProvider>
-              {children}
-              <ToastContainer
-                position="top-right"
-                autoClose={5000}
-                hideProgressBar={false}
-                newestOnTop
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-                theme="light"
-              />
-            </CartContextProvider>
-          </CurrencyProvider>
-        </CookieConsentProvider>
+        <StorageProvider>
+          <CookieConsentProvider>
+            <CurrencyProvider>
+              <CartContextProvider>
+                {children}
+                <ToastContainer
+                  position="top-right"
+                  autoClose={5000}
+                  hideProgressBar={false}
+                  newestOnTop
+                  closeOnClick
+                  rtl={false}
+                  pauseOnFocusLoss
+                  draggable
+                  pauseOnHover
+                  theme="light"
+                />
+              </CartContextProvider>
+            </CurrencyProvider>
+          </CookieConsentProvider>
+        </StorageProvider>
       </ThemeProvider>
     </SessionProvider>
   );

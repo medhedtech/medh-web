@@ -10,6 +10,7 @@ import usePostQuery from "@/hooks/postQuery.hook";
 import Preloader from "@/components/shared/others/Preloader";
 import { toast } from "react-toastify";
 import Education from "@/assets/images/course-detailed/education.svg";
+import { getCourseById } from "@/apis/course/course";
 
 const CoorporateBillDetails = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -32,7 +33,7 @@ const CoorporateBillDetails = () => {
     // Fetch Course Details
     const fetchCourseDetailsById = () => {
       getQuery({
-        url: apiUrls.courses.getCourseById(courseId),
+        url: getCourseById(courseId),
         onSuccess: (res) => {
           setCourseInfo(res);
           console.log("Course Info: ", res);

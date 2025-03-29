@@ -10,6 +10,7 @@ import { FaArrowLeft } from "react-icons/fa";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
 import CourseCard from "@/components/shared/dashboards/CourseCard";
+import { getAllCoursesWithLimits } from "@/apis/course/course";
 
 
 const StundentFreeCourses = () => {
@@ -23,7 +24,7 @@ const StundentFreeCourses = () => {
   useEffect(() => {
     const fetchCourses = () => {
       getQuery({
-        url: apiUrls?.courses?.getAllCoursesWithLimits(page, limit, '', '', '', 'Upcoming', '', '', '', true),
+        url: getAllCoursesWithLimits(page, limit, '', '', '', 'Upcoming', '', '', '', true),
         onSuccess: (res) => {
           // Filter the courses where isFree is true
           const freeCourses = res?.courses?.filter(course => course.isFree === true) || [];

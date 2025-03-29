@@ -1,6 +1,12 @@
+"use client";
+
 import { useState, useCallback, useRef, useEffect } from 'react';
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosError, CancelTokenSource } from 'axios';
 import apiClient from '../apis/apiClient';
+import apiWithAuth from '../utils/apiWithAuth';
+import { getAuthToken } from '../utils/auth';
+import { toast } from 'react-toastify';
+import { logger } from '../utils/logger';
 
 // Response cache to avoid duplicate requests
 const responseCache = new Map<string, { data: any; timestamp: number }>();
@@ -21,40 +27,83 @@ export interface RetryConfig {
 }
 
 export interface UseGetQueryParams<T> {
+  /** API endpoint url */
   url: string;
+  /** Optional axios request configuration */
   config?: AxiosRequestConfig;
+  /** Success callback */
   onSuccess?: (data: T) => void;
+  /** Error callback */
   onFail?: (error: any) => void;
-  cacheKey?: string; // Optional cache key, defaults to URL
-  cacheTTL?: number; // Time to live in ms, defaults to CACHE_TTL
-  skipCache?: boolean; // Skip reading from cache
+  /** Custom cache key, defaults to URL */
+  cacheKey?: string;
+  /** Time to live in ms, defaults to CACHE_TTL */
+  cacheTTL?: number;
+  /** Skip reading from cache */
+  skipCache?: boolean;
+  /** Pagination configuration */
   pagination?: {
     pageParam: string;
     limitParam: string;
     page: number;
     limit: number;
   };
-  retry?: RetryConfig | boolean; // Retry configuration or just boolean to enable/disable
+  /** Retry configuration or boolean to enable/disable */
+  retry?: RetryConfig | boolean;
+  /** Whether request requires authentication */
+  requireAuth?: boolean;
+  /** Whether to show toast messages */
+  showToast?: boolean;
+  /** Custom success message for toast */
+  successMessage?: string;
+  /** Custom error message for toast */
+  errorMessage?: string;
+  /** Whether to enable debug logging */
+  debug?: boolean;
 }
 
 export interface UseGetQueryState<T> {
+  /** Response data */
   data: T | null;
+  /** Error if request failed */
   error: Error | AxiosError | null;
+  /** Whether request is in progress */
   loading: boolean;
+  /** Whether there's a next page (pagination) */
   hasNextPage: boolean;
+  /** Total available pages (pagination) */
   totalPages: number;
+  /** Total available items (pagination) */
   totalItems: number;
 }
 
 export interface UseGetQueryReturn<T> extends UseGetQueryState<T> {
+  /** Function to execute GET request */
   getQuery: (params: UseGetQueryParams<T>) => Promise<T | null>;
+  /** Refetch using the last parameters */
   refetch: () => Promise<T | null>;
+  /** Cancel an ongoing request */
   cancelRequest: () => void;
+  /** Clear cache for specific key or all */
   clearCache: (cacheKey?: string) => void;
+  /** Update data manually */
   setData: React.Dispatch<React.SetStateAction<T | null>>;
+  /** Clear error state */
+  clearError: () => void;
+  /** Reset all states */
+  reset: () => void;
 }
 
-function useGetQuery<T = any>(initialUrl?: string, initialConfig?: AxiosRequestConfig): UseGetQueryReturn<T> {
+/**
+ * Custom hook for handling GET API requests with caching, retries, and cancellation
+ * @param initialUrl - Optional URL to fetch on mount
+ * @param initialConfig - Optional axios config for initial fetch
+ * @returns Object with query function and state
+ */
+export function useGetQuery<T = any>(
+  initialUrl?: string, 
+  initialConfig?: AxiosRequestConfig
+): UseGetQueryReturn<T> {
   // State for the query
   const [state, setState] = useState<UseGetQueryState<T>>({
     data: null,
@@ -98,6 +147,23 @@ function useGetQuery<T = any>(initialUrl?: string, initialConfig?: AxiosRequestC
     } else {
       responseCache.clear();
     }
+  }, []);
+
+  // Clear error state
+  const clearError = useCallback(() => {
+    setState(prev => ({ ...prev, error: null }));
+  }, []);
+
+  // Reset all states
+  const reset = useCallback(() => {
+    setState({
+      data: null,
+      error: null,
+      loading: false,
+      hasNextPage: false,
+      totalPages: 0,
+      totalItems: 0,
+    });
   }, []);
 
   // Clean up on unmount
@@ -153,11 +219,16 @@ function useGetQuery<T = any>(initialUrl?: string, initialConfig?: AxiosRequestC
     skipCache = false,
     pagination,
     retry,
+    requireAuth = false,
+    showToast = false,
+    successMessage,
+    errorMessage = "Failed to fetch data",
+    debug = false,
   }: UseGetQueryParams<T>): Promise<T | null> => {
     setState(prev => ({ ...prev, loading: true, error: null }));
     
     // Store params for potential refetch
-    lastParamsRef.current = { url, config, onSuccess, onFail, cacheKey, cacheTTL, skipCache, pagination, retry };
+    lastParamsRef.current = { url, config, onSuccess, onFail, cacheKey, cacheTTL, skipCache, pagination, retry, requireAuth, showToast, successMessage, errorMessage, debug };
 
     // Add pagination params if provided
     if (pagination) {
@@ -172,6 +243,17 @@ function useGetQuery<T = any>(initialUrl?: string, initialConfig?: AxiosRequestC
     // Create the cache key - either provided or based on URL and params
     const effectiveCacheKey = cacheKey || `${url}${config.params ? JSON.stringify(config.params) : ''}`;
     
+    // Debug logging
+    if (debug) {
+      logger.log({ 
+        url, 
+        params: config.params,
+        requireAuth,
+        useCache: !skipCache,
+        hasCachedData: responseCache.has(effectiveCacheKey)
+      }, 'getQuery-request');
+    }
+    
     // Check cache if not skipping
     if (!skipCache) {
       const cachedResponse = responseCache.get(effectiveCacheKey);
@@ -179,13 +261,24 @@ function useGetQuery<T = any>(initialUrl?: string, initialConfig?: AxiosRequestC
         const data = cachedResponse.data;
         setState(prev => ({
           ...prev,
-          data,
+          data: extractData(data) as T,
           loading: false,
           ...(isPaginatedResponse(data) ? extractPaginationInfo(data) : {}),
         }));
         
-        onSuccess?.(data);
-        return data;
+        if (debug) {
+          logger.log({ fromCache: true, cacheKey: effectiveCacheKey }, 'getQuery-cache-hit');
+        }
+        
+        if (onSuccess) {
+          onSuccess(extractData(data) as T);
+        }
+        
+        return extractData(data) as T;
+      }
+      
+      if (debug && responseCache.has(effectiveCacheKey)) {
+        logger.log({ fromCache: false, reason: 'Cache expired' }, 'getQuery-cache-miss');
       }
     }
 
@@ -223,14 +316,40 @@ function useGetQuery<T = any>(initialUrl?: string, initialConfig?: AxiosRequestC
 
     const executeRequest = async (): Promise<T | null> => {
       try {
+        // Get auth token if required
+        let authToken: string | null = null;
+        if (requireAuth) {
+          try {
+            authToken = getAuthToken();
+            
+            // Add auth headers if not already set
+            if (authToken && (!config.headers || !config.headers['Authorization'])) {
+              config.headers = {
+                ...config.headers,
+                'Authorization': `Bearer ${authToken}`,
+                'x-access-token': authToken
+              };
+            }
+          } catch (err) {
+            if (debug) {
+              logger.log('Failed to get auth token', 'getQuery-auth-failed');
+            }
+          }
+        }
+        
         // Add cancel token to request config
         const requestConfig: AxiosRequestConfig = {
           ...config,
           cancelToken: createCancelToken(),
         };
         
-        // Make the request
-        const response: AxiosResponse = await apiClient.get(url, requestConfig);
+        // Make the request - Fix typing issue with client.get
+        let response: AxiosResponse;
+        if (requireAuth && authToken) {
+          response = await apiWithAuth.get<T>(url, requestConfig);
+        } else {
+          response = await apiClient.get<T>(url, requestConfig);
+        }
         
         // Process the response
         const responseData = response.data;
@@ -250,8 +369,24 @@ function useGetQuery<T = any>(initialUrl?: string, initialConfig?: AxiosRequestC
           ...extractPaginationInfo(responseData),
         }));
         
+        // Show success toast if configured
+        if (showToast && successMessage) {
+          toast.success(successMessage);
+        }
+        
+        // Debug logging
+        if (debug) {
+          logger.log({ 
+            success: true, 
+            url, 
+            status: response.status 
+          }, 'getQuery-success');
+        }
+        
         // Call onSuccess callback if provided
-        onSuccess?.(extractedData);
+        if (onSuccess) {
+          onSuccess(extractedData);
+        }
         
         return extractedData;
       } catch (error) {
@@ -268,7 +403,9 @@ function useGetQuery<T = any>(initialUrl?: string, initialConfig?: AxiosRequestC
           retryCount++;
           const delay = getRetryDelay(retryCount);
           
-          console.log(`Retrying request (${retryCount}/${retryConfig?.maxRetries}) after ${delay}ms: ${url}`);
+          if (debug) {
+            logger.log(`Retrying request (${retryCount}/${retryConfig?.maxRetries}) after ${delay}ms: ${url}`, 'getQuery-retry');
+          }
           
           // Wait for the retry delay
           await new Promise(resolve => setTimeout(resolve, delay));
@@ -279,24 +416,33 @@ function useGetQuery<T = any>(initialUrl?: string, initialConfig?: AxiosRequestC
         
         // Format error with more details
         let formattedError: Error | AxiosError;
+        let errorMsg = errorMessage;
         
         if (axios.isAxiosError(error)) {
           // For axios errors, preserve the original error but add useful information
           const axiosError = error as AxiosError;
           
+          // Extract error message from response if available
+          const responseData = axiosError.response?.data as Record<string, any> | undefined;
+          if (responseData?.message) {
+            errorMsg = responseData.message;
+          } else if (error.message) {
+            errorMsg = error.message;
+          }
+          
           // Add URL to error message for better debugging
           if (axiosError.response) {
             // Handle specific HTTP status codes
             if (axiosError.response.status === 404) {
-              console.warn(`Resource not found: ${url}`);
+              errorMsg = "Resource not found";
               // You could add custom handling for 404 errors here
             } else if (axiosError.response.status === 401 || axiosError.response.status === 403) {
-              console.warn(`Authentication/Authorization error: ${axiosError.response.status}`);
+              errorMsg = axiosError.response.status === 401 ? "Authentication required" : "Access denied";
               // You could trigger auth flow here
             }
           } else if (axiosError.request) {
             // Request was made but no response received
-            console.warn('No response received from server');
+            errorMsg = "No response received from server";
           }
           
           formattedError = axiosError;
@@ -313,16 +459,26 @@ function useGetQuery<T = any>(initialUrl?: string, initialConfig?: AxiosRequestC
           loading: false,
         }));
         
+        // Show error toast if configured
+        if (showToast) {
+          toast.error(errorMsg);
+        }
+        
         // Call onFail callback if provided
-        onFail?.(formattedError);
+        if (onFail) {
+          onFail(formattedError);
+        }
         
         // Log error for debugging
-        console.error('API request failed:', {
-          url,
-          error: formattedError,
-          params: config.params,
-          retries: retryCount > 0 ? `${retryCount}/${retryConfig?.maxRetries}` : 'none',
-        });
+        if (debug) {
+          logger.log({
+            url,
+            error: formattedError.message,
+            params: config.params,
+            retries: retryCount > 0 ? `${retryCount}/${retryConfig?.maxRetries}` : 'none',
+            status: axiosError.response?.status
+          }, 'getQuery-error');
+        }
         
         return null;
       }
@@ -360,6 +516,8 @@ function useGetQuery<T = any>(initialUrl?: string, initialConfig?: AxiosRequestC
     refetch,
     cancelRequest,
     clearCache,
+    clearError,
+    reset,
     setData: (newData: React.SetStateAction<T | null>) => 
       setState(prev => ({ 
         ...prev, 
