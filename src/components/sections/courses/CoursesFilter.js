@@ -584,7 +584,7 @@ const CoursesFilter = ({
       ? [fixedCategory]
       : selectedCategory.map((c) => c.trim()).filter(Boolean);
 
-    // Simple single encoding for categories
+    // Encode each category individually and join with commas
     const encodedCategory = catList.length > 0
       ? catList.map(cat => encodeURIComponent(cat)).join(",")
       : "";
