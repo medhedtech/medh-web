@@ -59,7 +59,6 @@ const StepProgress: React.FC<StepProgressProps> = ({
                 }}
               >
                 <div
-                  style={{ paddingLeft: `${(index - 2) * 3}px` }}
                   className={`w-8 h-8 flex items-center justify-center rounded-full transition-all duration-500 ${
                     isCompleted
                       ? 'bg-primary-500 dark:bg-primary-400 text-white'

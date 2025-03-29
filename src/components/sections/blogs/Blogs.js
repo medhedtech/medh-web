@@ -130,27 +130,36 @@ const Blogs = ({
       await getQuery({
         url: apiUrl,
         onSuccess: (response) => {
-          if (response.success) {
-            const transformedBlogs = response.data.map(blog => ({
+          // Check if we have data in the response
+          const blogData = response.data || [];
+          
+          if (blogData.length > 0) {
+            const transformedBlogs = blogData.map(blog => ({
               _id: blog._id,
               title: blog.title,
               featured_image: blog.upload_image || "/images/blog/default.png",
-              blog_link: blog.blog_link,
-              excerpt: blog.excerpt || `Read our latest blog post about ${blog.title}`,
-              author: blog.author || "Medh Team",
+              blog_link: blog.blog_link || `/blogs/${blog.slug || blog._id}`,
+              excerpt: blog.description ? blog.description.substring(0, 120) + '...' : `Read our latest blog post about ${blog.title}`,
+              author: blog.author ? (blog.author.name || blog.author.email || "Medh Team") : "Medh Team",
               createdAt: blog.createdAt,
-              readTime: blog.readTime || `${Math.ceil(blog.title.length / 100)} min read`,
-              category: blog.category || "Education",
+              readTime: blog.reading_time ? `${blog.reading_time} min read` : "3 min read",
+              category: blog.categories && blog.categories.length > 0 ? blog.categories[0].category_name : "Education",
               tags: blog.tags || []
             }));
             
             setBlogs(transformedBlogs.slice(0, maxBlogs));
+          } else {
+            console.log("No blogs found in the response:", response);
+            setBlogs([]);
           }
         },
         onFail: async (error) => {
+          console.error("Error fetching blogs:", error);
           if (retryCount > 0) {
             await new Promise(resolve => setTimeout(resolve, 1000));
             await fetchBlogs(options, retryCount - 1);
+          } else {
+            setBlogs([]);
           }
         },
       });
