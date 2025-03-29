@@ -57,6 +57,7 @@ import DOMPurify from 'isomorphic-dompurify';
 import dynamic from 'next/dynamic';
 import { useSession } from 'next-auth/react';
 import { formatDistanceToNow } from 'date-fns';
+import { useStorage } from '@/contexts/StorageContext';
 
 // Dynamically import Markdown editor to avoid SSR issues
 const MarkdownEditor = dynamic(() => import('@/components/shared/MarkdownEditor'), { 
@@ -246,6 +247,7 @@ const IntegratedLessonPage = () => {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [videoBookmarks, setVideoBookmarks] = useState<VideoBookmark[]>([]);
   const [savedProgress, setSavedProgress] = useState<LessonProgress | null>(null);
+  const storage = useStorage();
   
   const {
     loading,
@@ -265,16 +267,16 @@ const IntegratedLessonPage = () => {
   useEffect(() => {
     if (lessonId) {
       try {
-        const savedProgressData = localStorage.getItem(`lesson-progress-${lessonId}`);
-        if (savedProgressData) {
-          const progress = JSON.parse(savedProgressData);
-          setSavedProgress(progress);
+        // Use our storage manager to get lesson progress
+        const progressData = storage.getLessonProgress(lessonId);
+        if (progressData) {
+          setSavedProgress(progressData);
         }
       } catch (error) {
         console.error('Error loading saved progress:', error);
       }
     }
-  }, [lessonId]);
+  }, [lessonId, storage]);
 
   // Update findAdjacentLessons function
   const findAdjacentLessons = (curriculum: CourseWeek[]): { prevLesson: Lesson | null; nextLesson: Lesson | null } => {
@@ -490,24 +492,27 @@ const IntegratedLessonPage = () => {
                       onProgress={(progress: number, currentTime: number) => {
                         // Save progress every 5 seconds to avoid too frequent updates
                         if (Math.floor(currentTime) % 5 === 0) {
-                          // Save progress to backend
                           try {
-                            const progressData = {
-                              lessonId,
-                              courseId,
-                              progress,
-                              currentTime,
-                              updatedAt: new Date().toISOString()
-                            };
+                            // Use our storage manager to save lesson progress
+                            storage.updateLessonProgress(lessonId, courseId, progress, currentTime);
                             
-                            // Store progress in localStorage as backup
-                            localStorage.setItem(
-                              `lesson-progress-${lessonId}`, 
-                              JSON.stringify(progressData)
-                            );
+                            // Track the course view
+                            storage.trackLastViewedCourse(courseId);
 
                             // Mark as complete if progress is >= 90%
                             if (progress >= 90 && !lessonData.is_completed && !lessonData.completed) {
+                              // Get the total number of lessons for this course to calculate overall progress
+                              let totalLessons = 0;
+                              courseData?.curriculum?.forEach(week => {
+                                week.sections?.forEach(section => {
+                                  totalLessons += section.lessons?.length || 0;
+                                });
+                              });
+                              
+                              // Update local storage progress before calling API
+                              storage.completeLessonAndUpdateProgress(lessonId, courseId, totalLessons);
+                              
+                              // Call API to mark as complete on the server
                               markLessonComplete({
                                 completed_at: new Date().toISOString()
                               });

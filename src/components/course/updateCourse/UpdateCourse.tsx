@@ -24,6 +24,7 @@ import useGetQuery from "@/hooks/getQuery.hook";
 import axios from 'axios';
 import { storeExternalToken } from '@/utils/auth';
 import { apiConfig, endpoints } from '@/config/api';
+import { getCourseById } from '@/apis/course/course';
 
 interface CategoryData {
   _id?: string;
@@ -448,7 +449,7 @@ const UpdateCourse: React.FC = () => {
       
       try {
         const response = await getQuery({
-          url: apiUrls.courses.getCourseById(courseId as string),
+          url: getCourseById(courseId as string),
           onSuccess: (response) => {
             console.log('Course data fetched successfully:', response);
           },

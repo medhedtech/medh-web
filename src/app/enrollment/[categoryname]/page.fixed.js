@@ -49,6 +49,7 @@ import AboutProgram from '@/components/sections/course-detailed/aboutProgram';
 import CourseCertificate from '@/components/sections/course-detailed/courseCertificate';
 import CourseRelated from '@/components/sections/course-detailed/courseRelated';
 import UnifiedCourseDetails from '@/components/sections/course-detailed/UnifiedCourseDetails';
+import { getAllCoursesWithLimits } from '@/apis/course/course';
 
 // Animations
 const fadeIn = {
@@ -419,7 +420,7 @@ function CategoryEnrollmentPage({ params }) {
         console.log("Fetching courses for category:", categoryInfo?.displayName);
         
         // Construct API endpoint using apiUrls helper
-        const apiEndpoint = apiUrls.courses.getAllCoursesWithLimits(
+        const apiEndpoint = getAllCoursesWithLimits(
           currentPage,
           itemsPerPage,
           "", // course_title
