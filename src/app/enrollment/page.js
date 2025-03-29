@@ -17,6 +17,7 @@ import Preloader from "@/components/shared/others/Preloader";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { parseApiError, formatDuration, formatPrice, getDurationFilter } from './errorHandler';
+import { getAllCoursesWithLimits } from '@/apis/course/course';
 
 // Duration options
 const DURATION_OPTIONS = [
@@ -71,7 +72,7 @@ function EnrollmentPage() {
       try {
         setLoading(true);
         getQuery({
-          url: apiUrls.courses.getAllCoursesWithLimits(1, 100, "", "", "", "Published"),
+          url: getAllCoursesWithLimits(1, 100, "", "", "", "Published"),
           onSuccess: (response) => {
             const courseData = response?.courses || [];
             setCourses(courseData);

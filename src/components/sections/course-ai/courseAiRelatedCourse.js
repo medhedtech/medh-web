@@ -3,16 +3,18 @@ import React, { useEffect, useState } from "react";
 import CourseCard from "../courses/CourseCard";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
+import { getAllCoursesWithLimits } from "@/apis/course/course";
 
 function CourseAiRelatedCourses() {
   const { getQuery } = useGetQuery();
   const [relatedCourses, setRelatedCourses] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState([]);
 
 
   // Fetch related courses from API
   const fetchRelatedCourses = () => {
     getQuery({
-      url: apiUrls.courses.getAllCoursesWithLimits(
+      url: getAllCoursesWithLimits(
         1,
         10,
         "",

@@ -50,6 +50,7 @@ import {
 
 // Import custom styles
 import './styles.css';
+import { getAllCoursesWithLimits } from '@/apis/course/course';
 
 // Custom CSS for sticky sidebar
 const stickyStyles = `
@@ -445,7 +446,7 @@ function CategoryEnrollmentPage({ params }) {
         console.log("Fetching courses for category:", categoryInfo?.displayName);
         
         // Construct API endpoint using apiUrls helper
-        const apiEndpoint = apiUrls.courses.getAllCoursesWithLimits(
+        const apiEndpoint = getAllCoursesWithLimits(
           currentPage,
           itemsPerPage,
           "", // course_title

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { apiUrls } from '@/apis';
 import useGetQuery from './getQuery.hook';
 import { toast } from 'react-toastify';
+import { getCourseById } from '@/apis/course/course';
 
 // ----------------------
 // Type Definitions
@@ -577,7 +578,7 @@ export const useCourseLesson = (courseId: string, lessonId: string = '') => {
         const studentId = localStorage.getItem('studentId') || '';
 
         const response: ApiResponse = await getQuery({
-          url: apiUrls.courses.getCourseById(courseId, studentId),
+          url: getCourseById(courseId, studentId),
           config: { headers }
         });
 

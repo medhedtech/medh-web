@@ -22,6 +22,7 @@ import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { formatDuration, parseDuration, parseApiError } from '../utils';
 import { Toaster, toast } from 'react-hot-toast';
+import { getCourseById } from '@/apis/course/course';
 
 export default function CourseView() {
   const router = useRouter();
@@ -44,7 +45,7 @@ export default function CourseView() {
     setLoading(true);
     console.log("Fetching course:", courseId);
     
-    const courseEndpoint = apiUrls.courses.getCourseById(courseId);
+    const courseEndpoint = getCourseById(courseId);
     
     getQuery({
       url: courseEndpoint,

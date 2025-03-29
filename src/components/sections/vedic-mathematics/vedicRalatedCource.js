@@ -53,6 +53,7 @@ import React, { useEffect, useState } from "react";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import CourseCard from "../courses/CourseCard";
+import { getAllCoursesWithLimits } from "@/apis/course/course";
 
 const VedicRalatedCource = () => {
   const { getQuery } = useGetQuery();
@@ -61,19 +62,16 @@ const VedicRalatedCource = () => {
   // Fetch related courses from API
   const fetchRelatedCourses = () => {
     getQuery({
-      url: apiUrls.courses.getAllCoursesWithLimits(
-        1,
-        10,
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "Vedic Mathematics",
-        false
-      ),
+      url: getAllCoursesWithLimits({
+        page: 1,
+        limit: 10, // Fetch more initially in case filtering is needed later, though we slice to 3
+        course_category: "Vedic Mathematics", // Use course_category for filtering
+        status: "Published" // Explicitly set status if needed, otherwise it defaults
+        // Removed other empty string arguments as they default correctly
+        // Removed the boolean 'false' which was incorrectly passed for 'filters'
+      }),
       onSuccess: (data) => {
+        // Slice the result to get only the top 3 related courses
         const filtered = (data?.courses || []).slice(0, 3);
         setRelatedCourses(filtered);
       },

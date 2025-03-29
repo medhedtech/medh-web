@@ -5,6 +5,7 @@ import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
 import Preloader from "../others/Preloader";
 import RecordedCard from "./RecordedCourses";
+import { getAllCoursesWithLimits } from "@/apis/course/course";
 
 const CoorporateRecorded_Sessions = () => {
   const router = useRouter();
@@ -40,7 +41,7 @@ const CoorporateRecorded_Sessions = () => {
   useEffect(() => {
     const fetchCourses = () => {
       getQuery({
-        url: apiUrls?.courses?.getAllCoursesWithLimits(
+        url: getAllCoursesWithLimits(
           page,
           limit,
           "",

@@ -6,6 +6,7 @@ import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, BookOpen, Loader2, Search, AlertCircle, Calendar, Clock, CheckCircle2 } from "lucide-react";
+import { getCourseById } from "@/apis/course/course";
 
 // Helper function to get the auth token
 const getAuthToken = () => {
@@ -284,7 +285,7 @@ const StudentEnrollCourses = () => {
       }
 
       // Log the API URL being called
-      const courseUrl = apiUrls.courses.getCourseById(courseId);
+      const courseUrl = getCourseById(courseId);
       console.log(`Fetching course data from: ${courseUrl}`);
 
       const courseResponse = await getQuery({

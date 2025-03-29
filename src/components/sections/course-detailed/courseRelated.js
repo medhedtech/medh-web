@@ -16,6 +16,7 @@ import {
   Tag
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { getAllCoursesWithLimits } from "@/apis/course/course";
 
 function CourseRelated({ categoryName, courseId, relatedCourses, courseTitle }) {
   const [courses, setCourses] = useState([]);
@@ -137,7 +138,7 @@ function CourseRelated({ categoryName, courseId, relatedCourses, courseTitle }) 
   const tryFallbackEndpoint = () => {
     try {
       // Use the getAllCoursesWithLimits with proper params for related courses
-      const fallbackEndpoint = apiUrls.courses.getAllCoursesWithLimits(
+      const fallbackEndpoint = getAllCoursesWithLimits(
         1,                 // page
         15,                // limit
         "",                // course_title 
@@ -253,7 +254,7 @@ function CourseRelated({ categoryName, courseId, relatedCourses, courseTitle }) 
     console.log("Fetching courses by category:", categoryName);
     
     getQuery({
-      url: apiUrls.courses.getAllCoursesWithLimits(
+      url: getAllCoursesWithLimits(
         1,                    // page
         15,                   // limit
         "",                   // course_title
@@ -393,7 +394,7 @@ function CourseRelated({ categoryName, courseId, relatedCourses, courseTitle }) 
     console.log("Fetching courses by title keywords:", keywords);
     
     getQuery({
-      url: apiUrls.courses.getAllCoursesWithLimits(
+      url: getAllCoursesWithLimits(
         1,                    // page
         15,                   // limit
         "",                   // course_title
@@ -439,7 +440,7 @@ function CourseRelated({ categoryName, courseId, relatedCourses, courseTitle }) 
     
     // Use the proper API endpoint from index.js with search parameters
     getQuery({
-      url: apiUrls.courses.getAllCoursesWithLimits(
+      url: getAllCoursesWithLimits(
         1,                 // page
         15,                // limit
         "",                // course_title 
