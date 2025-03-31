@@ -112,7 +112,7 @@ const StudentRecordedSessions = () => {
       <div className="flex justify-between items-center mb-8">
         <div
           onClick={() => {
-            router.push("/dashboards/student-dashboard");
+            router.push("/dashboards/student");
           }}
           className="flex items-center gap-3 cursor-pointer"
         >

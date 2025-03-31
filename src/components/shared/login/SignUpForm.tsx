@@ -637,13 +637,14 @@ const SignUpForm = () => {
                       value={selectedAgeGroup}
                       className="w-full px-4 py-2.5 bg-gray-50/50 dark:bg-gray-700/30 rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-11 appearance-none"
                     >
-                      <option value="Under 18">Under 18</option>
-                      <option value="18-24">18-24</option>
-                      <option value="25-34">25-34</option>
-                      <option value="35-44">35-44</option>
-                      <option value="45-54">45-54</option>
-                      <option value="55-64">55-64</option>
-                      <option value="65+">65+</option>
+                      <option value="4-6">4 - 6 Years</option>
+                      <option value="7-9">7 - 9 Years</option>
+                      <option value="10-12">10 - 12 Years</option>
+                      <option value="13-15">13 - 15 Years</option>
+                      <option value="16-18">16 - 18 Years</option>
+                      <option value="19-24">19 - 24 Years</option>
+                      <option value="25+">25+ Years</option>
+
                     </select>
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <UserCircle className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 dark:text-gray-500" />
