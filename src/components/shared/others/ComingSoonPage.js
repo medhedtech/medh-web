@@ -8,7 +8,7 @@ import Link from "next/link";
 const ComingSoonPage = ({ 
   title = "Coming Soon", 
   description = "We're working on something awesome!", 
-  returnPath = "/dashboards/student-dashboard" 
+  returnPath = "/dashboards/student" 
 }) => {
   const [email, setEmail] = useState("");
   const [isNotified, setIsNotified] = useState(false);
