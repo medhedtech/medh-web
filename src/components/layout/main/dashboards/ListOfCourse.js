@@ -1373,7 +1373,7 @@ const ListOfCourse = () => {
     const fetchCourses = async (retryCount = 0) => {
       try {
         await getQuery({
-          url: apiUrls.courses.getAllCourses,
+          url: apiUrls.courses?.getAllCourses || '/courses/get',
           onSuccess: (res) => {
             setCourses(res.data);
           },

@@ -34,9 +34,18 @@ const getAllMeetings = () => {
     zoomSpeakerImage1,
   ];
   const meetings = allMeetings?.map((meeting, idx) => ({
-    ...meeting,
-    image: images[idx],
-    speakerImage: speakerImages[idx],
+    id: meeting.id.toString(),
+    title: meeting.title,
+    image: images[idx % images.length],
+    speakerName: meeting.host,
+    speakerImage: meeting.hostImage || speakerImages[idx % speakerImages.length],
+    date: meeting.date,
+    startingTime: meeting.startTime,
+    duration: `${meeting.duration} min`,
+    department: meeting.department,
+    zoomMeetingId: meeting.meetingLink.split('/').pop(),
+    joinUrl: meeting.meetingLink,
+    status: meeting.status
   }));
   return meetings;
 };

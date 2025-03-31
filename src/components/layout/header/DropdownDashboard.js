@@ -6,13 +6,13 @@ const DropdownDashboard = () => {
     {
       name: "Admin",
       status: null,
-      path: "/dashboards/admin-dashboard",
+      path: "/dashboards/admin",
       type: "secondary",
       // dropdown: [
         // {
         //   name: "Admin Dashboard",
         //   status: null,
-        //   path: "/dashboards/admin-dashboard",
+        //   path: "/dashboards/admin",
         //   type: "secondary",
         // },
         // {
@@ -56,13 +56,13 @@ const DropdownDashboard = () => {
     {
       name: "Student",
       status: null,
-      path: "/dashboards/student-dashboard",
+      path: "/dashboards/student",
       type: "secondary",
       // dropdown: [
       //   {
       //     name: "Dashboard",
       //     status: null,
-      //     path: "/dashboards/student-dashboard",
+      //     path: "/dashboards/student",
       //     type: "secondary",
       //   },
       //   {

@@ -1,6 +1,7 @@
 // api.tsx
 
 import { IUpdateCourseData } from '@/types/course.types';
+import * as courseAPI from './course/course';
 
 export const apiBaseUrl: string = process.env.NEXT_PUBLIC_API_URL as string; // live instance URL
 // export const apiBaseUrl = "http://localhost:8080/api/v1"; // local URL
@@ -215,6 +216,43 @@ export const apiUrls = {
       if (!id) throw new Error('Category ID is required');
       return `/categories/related-courses/${id}`;
     }
+  },
+  courses: {
+    getAllCourses: `${apiBaseUrl}/courses/get`,
+    getCourseById: (id: string, studentId: string = ""): string => {
+      if (!id) throw new Error('Course ID cannot be empty');
+      const queryParams = new URLSearchParams();
+      if (studentId) {
+        queryParams.append('studentId', studentId);
+      }
+      const queryString = queryParams.toString();
+      return `${apiBaseUrl}/courses/${id}${queryString ? '?' + queryString : ''}`;
+    },
+    getCoorporateCourseById: (id: string, coorporateId: string = ""): string => {
+      if (!id) throw new Error('Corporate Course ID cannot be empty');
+      const queryParams = new URLSearchParams();
+      if (coorporateId) {
+        queryParams.append('coorporateId', coorporateId);
+      }
+      const queryString = queryParams.toString();
+      return `${apiBaseUrl}/courses/${id}${queryString ? '?' + queryString : ''}`;
+    },
+    getRecordedVideosForUser: (studentId: string): string => {
+      if (!studentId) throw new Error('Student ID cannot be empty');
+      return `${apiBaseUrl}/courses/recorded-videos/${studentId}`;
+    },
+    getRecorderVideosForUser: "/courses/recorded-videos",
+    createCourse: `${apiBaseUrl}/courses/create`,
+    updateCourse: `${apiBaseUrl}/courses/update`,
+    toggleCourseStatus: (id: string): string => {
+      if (!id) throw new Error('Course ID cannot be empty');
+      return `${apiBaseUrl}/courses/toggle-status/${id}`;
+    },
+    deleteCourse: (id: string): string => {
+      if (!id) throw new Error('Course ID cannot be empty');
+      return `${apiBaseUrl}/courses/delete/${id}`;
+    },
+    searchSuggestions: (query: string): string => `${apiBaseUrl}/courses/search-suggestions?q=${encodeURIComponent(query)}`
   },
   faqs: {
     getAllFaqs: "/faqs/getAll",
@@ -719,6 +757,66 @@ export const apiUrls = {
       queryParams.append('page', String(page));
       queryParams.append('limit', String(limit));
       return `/payments/receipts/student/${studentId}?${queryParams.toString()}`;
+    }
+  },
+  // Add new progress tracking API endpoints
+  progress: {
+    getCourseProgress: (courseId: string, studentId: string): string => {
+      if (!courseId) throw new Error('Course ID is required');
+      if (!studentId) throw new Error('Student ID is required');
+      return `${apiBaseUrl}/progress/course/${courseId}/student/${studentId}`;
+    },
+    getStudentProgress: (studentId: string, options: { page?: number; limit?: number } = {}): string => {
+      if (!studentId) throw new Error('Student ID is required');
+      const { page = 1, limit = 10 } = options;
+      const queryParams = new URLSearchParams();
+      queryParams.append('page', String(page));
+      queryParams.append('limit', String(limit));
+      return `${apiBaseUrl}/progress/student/${studentId}${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    },
+    getProgressStats: (studentId: string): string => {
+      if (!studentId) throw new Error('Student ID is required');
+      return `${apiBaseUrl}/progress/stats/${studentId}`;
+    },
+    updateLessonCompletion: (courseId: string, lessonId: string, studentId: string): string => {
+      if (!courseId || !lessonId || !studentId) throw new Error('Course ID, Lesson ID, and Student ID are required');
+      return `${apiBaseUrl}/progress/course/${courseId}/lesson/${lessonId}/student/${studentId}`;
+    },
+    updateWatchPosition: (courseId: string, lessonId: string, studentId: string): string => {
+      if (!courseId || !lessonId || !studentId) throw new Error('Course ID, Lesson ID, and Student ID are required');
+      return `${apiBaseUrl}/progress/course/${courseId}/lesson/${lessonId}/position/student/${studentId}`;
+    },
+    getLessonNotes: (courseId: string, lessonId: string, studentId: string): string => {
+      if (!courseId || !lessonId || !studentId) throw new Error('Course ID, Lesson ID, and Student ID are required');
+      return `${apiBaseUrl}/progress/course/${courseId}/lesson/${lessonId}/notes/student/${studentId}`;
+    },
+    addLessonNote: (courseId: string, lessonId: string, studentId: string): string => {
+      if (!courseId || !lessonId || !studentId) throw new Error('Course ID, Lesson ID, and Student ID are required');
+      return `${apiBaseUrl}/progress/course/${courseId}/lesson/${lessonId}/notes/student/${studentId}`;
+    },
+    updateLessonNote: (courseId: string, lessonId: string, noteId: string, studentId: string): string => {
+      if (!courseId || !lessonId || !noteId || !studentId) throw new Error('Course ID, Lesson ID, Note ID, and Student ID are required');
+      return `${apiBaseUrl}/progress/course/${courseId}/lesson/${lessonId}/notes/${noteId}/student/${studentId}`;
+    },
+    deleteLessonNote: (courseId: string, lessonId: string, noteId: string, studentId: string): string => {
+      if (!courseId || !lessonId || !noteId || !studentId) throw new Error('Course ID, Lesson ID, Note ID, and Student ID are required');
+      return `${apiBaseUrl}/progress/course/${courseId}/lesson/${lessonId}/notes/${noteId}/student/${studentId}`;
+    },
+    getLessonComments: (courseId: string, lessonId: string, studentId: string): string => {
+      if (!courseId || !lessonId || !studentId) throw new Error('Course ID, Lesson ID, and Student ID are required');
+      return `${apiBaseUrl}/progress/course/${courseId}/lesson/${lessonId}/comments/student/${studentId}`;
+    },
+    addVideoComment: (courseId: string, lessonId: string, studentId: string): string => {
+      if (!courseId || !lessonId || !studentId) throw new Error('Course ID, Lesson ID, and Student ID are required');
+      return `${apiBaseUrl}/progress/course/${courseId}/lesson/${lessonId}/comments/student/${studentId}`;
+    },
+    updateVideoComment: (courseId: string, lessonId: string, commentId: string, studentId: string): string => {
+      if (!courseId || !lessonId || !commentId || !studentId) throw new Error('Course ID, Lesson ID, Comment ID, and Student ID are required');
+      return `${apiBaseUrl}/progress/course/${courseId}/lesson/${lessonId}/comments/${commentId}/student/${studentId}`;
+    },
+    deleteVideoComment: (courseId: string, lessonId: string, commentId: string, studentId: string): string => {
+      if (!courseId || !lessonId || !commentId || !studentId) throw new Error('Course ID, Lesson ID, Comment ID, and Student ID are required');
+      return `${apiBaseUrl}/progress/course/${courseId}/lesson/${lessonId}/comments/${commentId}/student/${studentId}`;
     }
   },
   // Add new utility function for course filtering
