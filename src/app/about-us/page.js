@@ -71,12 +71,6 @@ const About = async () => {
       <WhoWeAre />
       <AtMedh />
       <WhyChooseMEDH />
-      
-      {/* Social Proof Sections */}
-      <Brands />
-      
-      {/* Featured Courses Section */}
-      <FeatureCourses />
     </PageWrapper>
   );
 };

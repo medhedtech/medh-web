@@ -1,5 +1,11 @@
 import { IUpdateCourseData } from '@/types/course.types';
 import { apiBaseUrl, apiUtils, ICourseFilters, ICourseSearchParams } from '../index'; // Adjust path if needed
+import { 
+  CoursePriceResponse,
+  BulkPriceUpdateResponse,
+  ErrorResponse 
+} from '@/types/api-responses';
+import axios from 'axios';
 
 /**
  * Fetches all courses based on specified parameters.
@@ -697,5 +703,142 @@ export const createVideoComment = (
       timestamp,
       created_at: new Date().toISOString()
     }
+  };
+};
+
+/**
+ * Constructs the URL and data payload for bulk updating multiple course fees.
+ * @param updateData - Array of objects containing course ID and new fee/pricing information.
+ * @returns An object containing the URL and the data payload.
+ */
+export const bulkUpdateCourseFees = (updateData: {
+  course_id: string;
+  course_fee: number;
+  prices: {
+    currency: string;
+    individual: number;
+    batch: number;
+    min_batch_size?: number;
+    max_batch_size?: number;
+    early_bird_discount?: number;
+    group_discount?: number;
+    is_active: boolean;
+  }[];
+}[]): { url: string; data: { updates: any[] } } => {
+  if (!updateData || !Array.isArray(updateData) || updateData.length === 0) {
+    throw new Error('Update data must be a non-empty array of course fee updates');
+  }
+  
+  return {
+    url: `${apiBaseUrl}/courses/bulk-update-fees`,
+    data: {
+      updates: updateData.map(item => ({
+        ...item,
+        updated_at: new Date().toISOString()
+      }))
+    }
+  };
+};
+
+// PRICE MANAGEMENT ENDPOINTS
+
+/**
+ * Get pricing details for a specific course
+ * @param courseId - ID of the course to retrieve prices for
+ * @returns Promise containing CoursePriceResponse or ErrorResponse
+ */
+export const fetchCoursePrices = async (
+  courseId: string
+): Promise<CoursePriceResponse | ErrorResponse> => {
+  try {
+    const response = await axios.get<CoursePriceResponse>(
+      `${apiBaseUrl}/courses/${courseId}/prices`
+    );
+    return response.data;
+  } catch (error) {
+    return handlePriceError(error, 'Failed to fetch course prices');
+  }
+};
+
+/**
+ * Update pricing for a single course
+ * @param courseId - ID of the course to update
+ * @param prices - Updated price data
+ * @returns Promise containing CoursePriceResponse or ErrorResponse
+ */
+export const updateCoursePricing = async (
+  courseId: string,
+  prices: PriceDetails[]
+): Promise<CoursePriceResponse | ErrorResponse> => {
+  try {
+    const response = await axios.put<CoursePriceResponse>(
+      `${apiBaseUrl}/courses/${courseId}/prices`,
+      { prices }
+    );
+    return response.data;
+  } catch (error) {
+    return handlePriceError(error, 'Failed to update course prices');
+  }
+};
+
+/**
+ * Bulk update prices for multiple courses
+ * @param updates - Array of bulk update payloads
+ * @returns Promise containing BulkPriceUpdateResponse or ErrorResponse
+ */
+export const bulkUpdateCoursePrices = async (
+  updates: BulkPriceUpdatePayload[]
+): Promise<BulkPriceUpdateResponse | ErrorResponse> => {
+  try {
+    const response = await axios.post<BulkPriceUpdateResponse>(
+      `${apiBaseUrl}/courses/prices/bulk-update`,
+      { updates }
+    );
+    return response.data;
+  } catch (error) {
+    return handlePriceError(error, 'Bulk price update failed');
+  }
+};
+
+/**
+ * List all courses with pricing information
+ * @param filters - Optional filter parameters
+ * @returns Promise containing CoursePriceResponse[] or ErrorResponse
+ */
+export const listAllCoursePrices = async (
+  filters?: PriceFilterParams
+): Promise<CoursePriceResponse[] | ErrorResponse> => {
+  try {
+    const response = await axios.get<CoursePriceResponse[]>(
+      `${apiBaseUrl}/courses/prices`,
+      { params: filters }
+    );
+    return response.data;
+  } catch (error) {
+    return handlePriceError(error, 'Failed to list course prices');
+  }
+};
+
+// Shared error handler for price endpoints
+const handlePriceError = (error: unknown, defaultMessage: string): ErrorResponse => {
+  if (axios.isAxiosError(error)) {
+    return {
+      success: false,
+      message: error.response?.data.message || defaultMessage,
+      error: {
+        code: error.response?.data.error.code || 'PRICE_API_ERROR',
+        details: error.response?.data.error.details
+      },
+      timestamp: new Date().toISOString()
+    };
+  }
+  return {
+    success: false,
+    message: defaultMessage,
+    error: {
+      code: 'UNKNOWN_ERROR',
+      details: ['An unexpected error occurred']
+    },
+    timestamp: new Date().toISOString()
   };
 };
