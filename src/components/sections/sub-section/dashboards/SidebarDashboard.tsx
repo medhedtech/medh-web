@@ -759,6 +759,15 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
               icon: <UserCircle className="w-4 h-4" />
             },
             {
+              name: "Currency Management",
+              path: "/dashboards/admin-currency",
+              icon: <DollarSign className="w-4 h-4" />,
+              onClick: () => {
+                onMenuClick("Dashboard", adminSidebar[0].items.map(item => item as SubItem));
+                router.push("/dashboards/admin-dashboard?view=admin-currency");
+              }
+            },
+            {
               name: "Change Password",
               path: "/dashboards/admin-password",
               icon: <Key className="w-4 h-4" />
@@ -787,7 +796,11 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
             {
               name: "Currency Master",
               path: "/dashboards/admin-currency",
-              icon: <DollarSign className="w-4 h-4" />
+              icon: <DollarSign className="w-4 h-4" />,
+              onClick: () => {
+                onMenuClick("Location & Currency", adminSidebar[1].items.map(item => item as SubItem));
+                router.push("/dashboards/admin-dashboard?view=admin-currency");
+              }
             },
             {
               name: "Time Zone",
@@ -1366,7 +1379,7 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
         {!isMobileDevice && (
           <div className="mt-6 pt-2 text-center text-xs text-gray-400 dark:text-gray-600">
             <p>Medh v1.0</p>
-            <p className="mt-1">© 2023 Medh Education</p>
+            <p className="mt-1">© 2025 Medh Education</p>
           </div>
         )}
       </div>

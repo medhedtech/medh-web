@@ -75,3 +75,42 @@ The component accepts:
 ## Development Guidelines
 
 Please refer to the project documentation for development guidelines, coding standards, and contribution requirements.
+
+## Admin Currency Management
+
+The platform includes a robust currency management system that allows administrators to:
+
+- View and manage supported currencies
+- Update exchange rates manually or via API
+- Set the default currency for new users
+- Enable/disable automatic currency detection
+- Add new currencies or remove existing ones
+
+### How it works
+
+The currency management system is built on a flexible context-based architecture:
+
+1. **CurrencyContext**: Provides currency data and conversion functions to all components
+2. **AdminCurrency Component**: Admin interface for managing currencies
+3. **Local Storage**: Persists currency settings between sessions
+
+### Admin Features
+
+- **View all currencies**: See a complete table of supported currencies with their codes, symbols, and exchange rates
+- **Edit exchange rates**: Update rates manually to reflect current market values
+- **Add new currencies**: Add support for additional currencies with custom symbols and rates
+- **Remove currencies**: Remove currencies that are no longer needed (except USD, which is the base currency)
+- **Set default currency**: Choose which currency should be used by default for new users
+- **Toggle auto-detection**: Enable or disable automatic currency detection based on user's location
+
+### Technical Implementation
+
+The currency system uses:
+- React Context API for global state management
+- Local Storage for persisting settings
+- Browser geolocation API for automatic currency detection
+- Admin UI built with React and styled with Tailwind CSS
+
+### Currency Conversion
+
+All prices in the system are stored in USD and converted on-the-fly using current exchange rates. The conversion happens in the client, ensuring users always see prices in their preferred currency.
