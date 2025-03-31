@@ -5,6 +5,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import Providers from '@/app/Providers';
 import ThemeController from '@/components/shared/others/ThemeController';
 import GoogleAnalytics from '@/components/shared/analytics/GoogleAnalytics';
+import { Suspense } from 'react';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -34,12 +35,14 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className} suppressHydrationWarning>
-        <Providers>
-          <ThemeController />
-          {/* Google Analytics - now inside Providers to access CookieConsentProvider */}
-          {GA_MEASUREMENT_ID && <GoogleAnalytics GA_MEASUREMENT_ID={GA_MEASUREMENT_ID} />}
-          {children}
-        </Providers>
+        <Suspense fallback={<div>Loading...</div>}>
+          <Providers>
+            <ThemeController />
+            {/* Google Analytics - now inside Providers to access CookieConsentProvider */}
+            {GA_MEASUREMENT_ID && <GoogleAnalytics GA_MEASUREMENT_ID={GA_MEASUREMENT_ID} />}
+            {children}
+          </Providers>
+        </Suspense>
       </body>
     </html>
   );
