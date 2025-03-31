@@ -6,13 +6,13 @@ const AccordionDashboard = () => {
   const items = [
     {
       name: "Admin",
-      path: "/dashboards/admin-dashboard",
+      path: "/dashboards/admin",
       accordion: true,
       items: [
         {
           name: "Admin Dashboard",
 
-          path: "/dashboards/admin-dashboard",
+          path: "/dashboards/admin",
         },
         {
           name: "Admin Profile",
@@ -117,13 +117,13 @@ const AccordionDashboard = () => {
     },
     {
       name: "Student",
-      path: "/dashboards/student-dashboard",
+      path: "/dashboards/student",
       accordion: true,
       items: [
         {
           name: "Dashboard",
 
-          path: "/dashboards/student-dashboard",
+          path: "/dashboards/student",
         },
         {
           name: "Profile",

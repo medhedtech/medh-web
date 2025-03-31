@@ -241,7 +241,7 @@ export default function CoorporateQuizPage({ closeQuiz }) {
         toast.success("Response submitted successfully");
         console.log("Quiz response submitted successfully.");
         closePopup();
-        router.push("/dashboards/student-dashboard");
+        router.push("/dashboards/student");
       },
       onFail: (error) => {
         console.error("Error submitting quiz response:", error);
