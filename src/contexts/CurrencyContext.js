@@ -1,198 +1,215 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import Cookies from 'js-cookie';
-import axios from 'axios';
+// Removed axios and js-cookie imports as they are no longer needed
 
-// Define available currencies with their symbols and exchange rates
-// These rates would ideally be fetched from an API in production
-const CURRENCIES = {
+// Define default available currencies (used if no admin settings found)
+const DEFAULT_CURRENCIES = {
   USD: { symbol: "$", name: "US Dollar", rate: 1 },
-  EUR: { symbol: "€", name: "Euro", rate: 0.91 },
-  AED: { symbol: "د.إ‎", name: "United Arab Emirates Dirham", rate: 3.67 },
-  GBP: { symbol: "£", name: "British Pound", rate: 0.78 },
-  INR: { symbol: "₹", name: "Indian Rupee", rate: 83.18 },
-  AUD: { symbol: "A$", name: "Australian Dollar", rate: 1.52 },
-  CAD: { symbol: "C$", name: "Canadian Dollar", rate: 1.36 },
-  SGD: { symbol: "S$", name: "Singapore Dollar", rate: 1.34 }
+  AED: { symbol: "د.إ‎", name: "United Arab Emirates Dirham", rate: 3.7 },
+  GBP: { symbol: "£", name: "British Pound", rate: 0.80 },
+  AUD: { symbol: "A$", name: "Australian Dollar", rate: 1.6 },
 };
 
-// Country to currency mapping
-const COUNTRY_CURRENCY_MAP = {
-  US: 'USD', AED: 'AED', CA: 'CAD', GB: 'GBP', 
-  IE: 'EUR', FR: 'EUR', DE: 'EUR', IT: 'EUR', ES: 'EUR', 
-  IN: 'INR', AU: 'AUD', SG: 'SGD',
-  // Add more country to currency mappings as needed
-};
+// Removed COUNTRY_CURRENCY_MAP and DEFAULT_CURRENCY_MAPPINGS
 
 // Create context
 const CurrencyContext = createContext();
 
-// Default currency mappings
-const CURRENCY_MAPPINGS = {
-  IN: { code: 'INR', symbol: '₹' },
-  US: { code: 'USD', symbol: '$' },
-  GB: { code: 'GBP', symbol: '£' },
-  EU: { code: 'EUR', symbol: '€' },
-  // Add more currency mappings as needed
-};
-
-// Default currency if everything fails
-const DEFAULT_CURRENCY = { code: 'USD', symbol: '$' };
+// Default currency if everything fails or no admin setting
+const DEFAULT_CURRENCY_DETAIL = { code: 'USD', symbol: '$', name: "US Dollar", rate: 1 };
 
 export const CurrencyProvider = ({ children }) => {
-  const [currency, setCurrency] = useState(DEFAULT_CURRENCY);
-  const [loading, setLoading] = useState(true);
+  // Simplified state: only currency and the list of available currencies
+  const [currency, setCurrency] = useState(DEFAULT_CURRENCY_DETAIL);
+  const [currencies, setCurrencies] = useState(DEFAULT_CURRENCIES);
+  // Removed loading, currencyMappings, and autoDetect states
 
-  const fetchCountryCode = async () => {
+  // Load admin settings from localStorage on initial mount
+  useEffect(() => {
     try {
-      // First try the primary API
-      const response = await axios.get('/api/proxy/ipapi', {
-        timeout: 5000 // 5 second timeout
-      });
-      return response.data.country;
-    } catch (primaryError) {
-      console.error('Error fetching from primary API:', primaryError);
-      
-      try {
-        // Fallback to a secondary API
-        const fallbackResponse = await axios.get('https://api.ipapi.com/check', {
-          timeout: 5000,
-          params: {
-            access_key: process.env.NEXT_PUBLIC_IPAPI_KEY // Make sure to add this to your env variables
-          }
-        });
-        return fallbackResponse.data.country_code;
-      } catch (fallbackError) {
-        console.error('Error fetching from fallback API:', fallbackError);
-        
-        // If both APIs fail, try to get from browser
-        try {
-          const browserLocale = navigator.language || navigator.userLanguage;
-          const countryCode = browserLocale.split('-')[1];
-          if (countryCode && countryCode.length === 2) {
-            return countryCode;
-          }
-        } catch (browserError) {
-          console.error('Error getting browser locale:', browserError);
+      const adminSettings = localStorage.getItem('currencySettings');
+      if (adminSettings) {
+        const settings = JSON.parse(adminSettings);
+
+        // Update available currencies if provided by admin
+        if (settings.currencies && typeof settings.currencies === 'object' && Object.keys(settings.currencies).length > 0) {
+          setCurrencies(settings.currencies);
+        } else {
+          // Reset to default if admin settings are invalid or empty
+          setCurrencies(DEFAULT_CURRENCIES);
         }
-        
-        // If all methods fail, return default
-        return 'US';
-      }
-    }
-  };
 
-  const getCurrencyForCountry = (countryCode) => {
-    // Check if we have a mapping for this country
-    if (CURRENCY_MAPPINGS[countryCode]) {
-      return CURRENCY_MAPPINGS[countryCode];
-    }
-    
-    // If no mapping found, return default currency
-    return DEFAULT_CURRENCY;
-  };
-
-  const setInitialCurrency = async () => {
-    try {
-      setLoading(true);
-      
-      // Try to get stored currency first
-      const storedCurrency = localStorage.getItem('preferredCurrency');
-      if (storedCurrency) {
-        try {
-          // Try to parse as JSON first
-          const parsedCurrency = JSON.parse(storedCurrency);
-          setCurrency(parsedCurrency);
-        } catch (parseError) {
-          // If parsing fails, treat it as a currency code string
-          const currencyCode = storedCurrency;
-          const newCurrency = Object.values(CURRENCY_MAPPINGS).find(
-            curr => curr.code === currencyCode
-          ) || DEFAULT_CURRENCY;
-          setCurrency(newCurrency);
+        // Set the initial currency based on admin's default currency
+        const effectiveCurrencies = settings.currencies || DEFAULT_CURRENCIES; // Use admin or default list
+        if (settings.defaultCurrency && effectiveCurrencies[settings.defaultCurrency]) {
+          const defaultData = effectiveCurrencies[settings.defaultCurrency];
+          setCurrency({
+            code: settings.defaultCurrency,
+            symbol: defaultData.symbol,
+            name: defaultData.name,
+            rate: defaultData.rate
+          });
+        } else {
+          // Fallback if defaultCurrency is not set or invalid
+          setCurrency(DEFAULT_CURRENCY_DETAIL);
         }
-        setLoading(false);
-        return;
+      } else {
+        // No admin settings found, use hardcoded defaults
+        setCurrencies(DEFAULT_CURRENCIES);
+        setCurrency(DEFAULT_CURRENCY_DETAIL);
       }
-
-      // If no stored currency, fetch country and set currency
-      const countryCode = await fetchCountryCode();
-      const newCurrency = getCurrencyForCountry(countryCode);
-      
-      // Store the currency preference
-      localStorage.setItem('preferredCurrency', JSON.stringify(newCurrency));
-      setCurrency(newCurrency);
     } catch (error) {
-      console.error('Error setting initial currency:', error);
-      // Fallback to default currency
-      setCurrency(DEFAULT_CURRENCY);
-    } finally {
-      setLoading(false);
+      console.error('Error loading admin currency settings:', error);
+      // Fallback to hardcoded defaults on error
+      setCurrencies(DEFAULT_CURRENCIES);
+      setCurrency(DEFAULT_CURRENCY_DETAIL);
     }
-  };
+  }, []); // Empty dependency array ensures this runs only once on mount
 
-  // Function to manually change currency
+  // Removed fetchCountryCode, getCurrencyForCountry, and setInitialCurrency (merged into useEffect)
+
+  // Function to manually change currency for the current session
+  // Does NOT save preference to localStorage, reverts to admin default on reload
   const changeCurrency = (newCurrencyCode) => {
     try {
-      const newCurrency = Object.values(CURRENCY_MAPPINGS).find(
-        curr => curr.code === newCurrencyCode
-      ) || DEFAULT_CURRENCY;
-      
-      localStorage.setItem('preferredCurrency', JSON.stringify(newCurrency));
-      setCurrency(newCurrency);
+      const currencyData = currencies[newCurrencyCode];
+      if (currencyData) {
+        setCurrency({
+          code: newCurrencyCode,
+          symbol: currencyData.symbol,
+          name: currencyData.name,
+          rate: currencyData.rate
+        });
+      } else {
+        console.warn(`Currency code "${newCurrencyCode}" not found in available currencies. Reverting to default.`);
+        // Optionally revert to default or keep current if not found
+        // setCurrency(DEFAULT_CURRENCY_DETAIL); // Or just do nothing
+      }
     } catch (error) {
       console.error('Error changing currency:', error);
-      // If error, keep current currency
     }
   };
 
-  useEffect(() => {
-    setInitialCurrency();
-  }, []);
+  // Removed the second useEffect that called setInitialCurrency
 
-  // Convert price from USD to selected currency
-  const convertPrice = (priceInUSD, toCurrency = currency) => {
-    if (!priceInUSD) return 0;
-    
-    const rate = CURRENCY_MAPPINGS[toCurrency]?.rate || 1;
-    return (priceInUSD * rate).toFixed(2);
+  // Convert price from base currency (assumed USD for rate calculation) to selected currency
+  const convertPrice = (priceInBase, toCurrency = currency) => {
+    if (priceInBase === undefined || priceInBase === null) return 0;
+
+    const currencyCode = toCurrency.code;
+    const rate = currencies[currencyCode]?.rate;
+
+    // Handle case where rate might be missing or invalid
+    if (rate === undefined || typeof rate !== 'number') {
+      console.warn(`Rate not found or invalid for currency ${currencyCode}. Using rate 1.`);
+      return Number(priceInBase).toFixed(2); // Return base price if rate is invalid
+    }
+
+    return (Number(priceInBase) * rate).toFixed(2);
   };
 
   // Format price with currency symbol
-  const formatPrice = (price, showCurrency = true, currencyCode = currency) => {
+  const formatPrice = (price, showCurrency = true, currencyObj = currency) => {
     if (price === undefined || price === null) return '';
-    
-    const { symbol } = CURRENCIES[currencyCode] || CURRENCIES.USD;
-    return showCurrency ? `${symbol}${Math.round(Number(price))}` : Math.round(Number(price)).toString();
+
+    const symbol = currencyObj.symbol || '$'; // Fallback symbol
+    const formattedPrice = Math.round(Number(price)); // Round to nearest integer
+
+    return showCurrency ? `${symbol}${formattedPrice}` : formattedPrice.toString();
   };
 
-  // Get all available currencies
+  // Get all available currencies as defined by admin or defaults
   const getAvailableCurrencies = () => {
-    return Object.keys(CURRENCIES).map(code => ({
+    return Object.entries(currencies).map(([code, details]) => ({
       code,
-      ...CURRENCIES[code]
+      symbol: details.symbol,
+      name: details.name,
+      rate: details.rate
     }));
   };
 
-  // Get current currency info
+  // Get current currency info object
   const getCurrentCurrency = () => {
+    // Ensure the returned object matches the structure used elsewhere
+    const currentData = currencies[currency.code];
     return {
-      code: currency,
-      ...CURRENCIES[currency]
+      code: currency.code,
+      symbol: currency.symbol || (currentData ? currentData.symbol : '$'),
+      name: currency.name || (currentData ? currentData.name : 'Unknown'),
+      rate: currency.rate || (currentData ? currentData.rate : 1)
     };
   };
+
+  // Update currencies and optionally the default currency (for admin use)
+  const updateCurrencies = (newCurrencies, newDefaultCurrencyCode = null) => {
+    if (newCurrencies && typeof newCurrencies === 'object' && Object.keys(newCurrencies).length > 0) {
+      setCurrencies(newCurrencies);
+
+      // Determine the default currency code to save
+      let defaultCodeToSave = newDefaultCurrencyCode;
+      if (!defaultCodeToSave || !newCurrencies[defaultCodeToSave]) {
+        // If new default is not provided or invalid, try using the current one
+        defaultCodeToSave = currency.code;
+        // If current one is also not in the new set, pick the first available or fallback
+        if (!newCurrencies[defaultCodeToSave]) {
+          defaultCodeToSave = Object.keys(newCurrencies)[0] || DEFAULT_CURRENCY_DETAIL.code;
+        }
+      }
+
+      // Save new settings to localStorage
+      const adminSettings = {
+        currencies: newCurrencies,
+        defaultCurrency: defaultCodeToSave,
+        // Removed autoDetect setting
+      };
+
+      try {
+        localStorage.setItem('currencySettings', JSON.stringify(adminSettings));
+
+        // Update the current currency state if the default changed
+        if (defaultCodeToSave !== currency.code && newCurrencies[defaultCodeToSave]) {
+           const defaultData = newCurrencies[defaultCodeToSave];
+           setCurrency({
+            code: defaultCodeToSave,
+            symbol: defaultData.symbol,
+            name: defaultData.name,
+            rate: defaultData.rate
+           });
+        } else if (!newCurrencies[currency.code]) {
+            // If the current currency is no longer valid, update to the new default
+            const defaultData = newCurrencies[defaultCodeToSave];
+            setCurrency({
+             code: defaultCodeToSave,
+             symbol: defaultData.symbol,
+             name: defaultData.name,
+             rate: defaultData.rate
+            });
+        }
+
+      } catch (error) {
+        console.error("Failed to save currency settings to localStorage:", error);
+      }
+
+    } else {
+        console.warn("Invalid or empty currencies object provided to updateCurrencies. No changes made.");
+    }
+  };
+
+  // Removed setAutoDetectPreference function
 
   return (
     <CurrencyContext.Provider
       value={{
-        currency,
-        currencies: CURRENCIES,
-        loading,
-        convertPrice,
-        formatPrice,
-        changeCurrency,
-        getAvailableCurrencies,
-        getCurrentCurrency
+        currency, // The current currency object { code, symbol, name, rate }
+        currencies, // The available currencies object { CODE: { symbol, name, rate } }
+        // Removed loading
+        convertPrice, // Function to convert a base price
+        formatPrice, // Function to format price with symbol
+        changeCurrency, // Function to change currency for the session
+        getAvailableCurrencies, // Function to get list of available currencies
+        getCurrentCurrency, // Function to get the current currency object
+        updateCurrencies, // Function for admin to update currencies and default
+        // Removed setAutoDetectPreference and autoDetect
       }}
     >
       {children}
@@ -208,4 +225,5 @@ export const useCurrency = () => {
   return context;
 };
 
-export default CurrencyContext; 
+export default CurrencyContext;
+// Removed unused lines and simplified logic throughout 

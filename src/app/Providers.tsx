@@ -4,6 +4,7 @@ import CartContextProvider from "@/contexts/CartContext";
 import { CookieConsentProvider } from "@/contexts/CookieConsentContext";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { StorageProvider } from "@/contexts/StorageContext";
+import { PlacementFormProvider } from "@/context/PlacementFormContext";
 import { ThemeProvider } from "next-themes";
 import { SessionProvider } from "next-auth/react";
 import { ToastContainer } from "react-toastify";
@@ -27,19 +28,21 @@ export default function Providers({ children }: ProvidersProps) {
           <CookieConsentProvider>
             <CurrencyProvider>
               <CartContextProvider>
-                {children}
-                <ToastContainer
-                  position="top-right"
-                  autoClose={5000}
-                  hideProgressBar={false}
-                  newestOnTop
-                  closeOnClick
-                  rtl={false}
-                  pauseOnFocusLoss
-                  draggable
-                  pauseOnHover
-                  theme="light"
-                />
+                <PlacementFormProvider>
+                  {children}
+                  <ToastContainer
+                    position="top-right"
+                    autoClose={5000}
+                    hideProgressBar={false}
+                    newestOnTop
+                    closeOnClick
+                    rtl={false}
+                    pauseOnFocusLoss
+                    draggable
+                    pauseOnHover
+                    theme="light"
+                  />
+                </PlacementFormProvider>
               </CartContextProvider>
             </CurrencyProvider>
           </CookieConsentProvider>
