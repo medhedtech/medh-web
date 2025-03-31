@@ -3,7 +3,6 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import 'react-toastify/dist/ReactToastify.css';
 import Providers from '@/app/Providers';
-import { CurrencyProvider } from '@/contexts/CurrencyContext';
 import ThemeController from '@/components/shared/others/ThemeController';
 import GoogleAnalytics from '@/components/shared/analytics/GoogleAnalytics';
 
@@ -35,13 +34,11 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className} suppressHydrationWarning>
-        {/* Google Analytics */}
-        {GA_MEASUREMENT_ID && <GoogleAnalytics GA_MEASUREMENT_ID={GA_MEASUREMENT_ID} />}
         <Providers>
           <ThemeController />
-          <CurrencyProvider>
-              {children}
-          </CurrencyProvider>
+          {/* Google Analytics - now inside Providers to access CookieConsentProvider */}
+          {GA_MEASUREMENT_ID && <GoogleAnalytics GA_MEASUREMENT_ID={GA_MEASUREMENT_ID} />}
+          {children}
         </Providers>
       </body>
     </html>
