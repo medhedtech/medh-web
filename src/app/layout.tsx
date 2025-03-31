@@ -5,6 +5,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import Providers from '@/app/Providers';
 import { CurrencyProvider } from '@/contexts/CurrencyContext';
 import ThemeController from '@/components/shared/others/ThemeController';
+import GoogleAnalytics from '@/components/shared/analytics/GoogleAnalytics';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -28,9 +29,14 @@ interface RootLayoutProps {
 }
 
 export default function RootLayout({ children }: RootLayoutProps) {
+  // Get Google Analytics measurement ID from environment variable
+  const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || '';
+  
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className} suppressHydrationWarning>
+        {/* Google Analytics */}
+        {GA_MEASUREMENT_ID && <GoogleAnalytics GA_MEASUREMENT_ID={GA_MEASUREMENT_ID} />}
         <Providers>
           <ThemeController />
           <CurrencyProvider>

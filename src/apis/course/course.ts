@@ -429,15 +429,18 @@ export const uploadFile = (): string => `${apiBaseUrl}/courses/upload`;
 export const uploadMultipleFiles = (): string => `${apiBaseUrl}/courses/upload-multiple`;
 
 /**
- * Fetches the notes for a specific lesson within a course.
- * @param courseId - The ID of the course.
- * @param lessonId - The ID of the lesson.
- * @returns The constructed API URL string.
+ * Manages notes for a lesson.
+ * @param courseId - The ID of the course
+ * @param lessonId - The ID of the lesson
+ * @param studentId - The ID of the student
+ * @returns The API URL for managing lesson notes
  */
-export const getLessonNotes = (courseId: string, lessonId: string): string => {
-  if (!courseId || !lessonId) throw new Error('Course ID and Lesson ID cannot be empty');
-  return `${apiBaseUrl}/courses/${courseId}/lessons/${lessonId}/notes`;
-}
+export const getProgressLessonNotes = (courseId: string, lessonId: string, studentId: string): string => {
+  if (!courseId) throw new Error('Course ID cannot be empty');
+  if (!lessonId) throw new Error('Lesson ID cannot be empty');
+  if (!studentId) throw new Error('Student ID cannot be empty');
+  return `${apiBaseUrl}/course/${courseId}/lesson/${lessonId}/notes/student/${studentId}`;
+};
 
 /**
  * Provides the endpoint URL for adding a note to a lesson.
@@ -542,3 +545,157 @@ export const downloadBrochure = (courseId: string): string => {
  * @returns The API URL string.
  */
 export const getAllCourses = (): string => `${apiBaseUrl}/courses/get`;
+
+/**
+ * Tracks progress for course completion.
+ * @param courseId - The ID of the course
+ * @param studentId - The ID of the student
+ * @param overallProgress - The overall progress percentage (0-100)
+ * @returns The API URL for tracking progress
+ */
+export const trackCourseProgress = (courseId: string, studentId: string, overallProgress: number): { url: string; data: any } => {
+  if (!courseId) throw new Error('Course ID cannot be empty');
+  if (!studentId) throw new Error('Student ID cannot be empty');
+  
+  return {
+    url: `${apiBaseUrl}/course/${courseId}/student/${studentId}`,
+    data: {
+      course_id: courseId,
+      student_id: studentId,
+      overall_progress: Math.min(100, Math.max(0, overallProgress)),
+      last_accessed: new Date().toISOString()
+    }
+  };
+};
+
+/**
+ * Updates progress for a specific lesson.
+ * @param courseId - The ID of the course
+ * @param lessonId - The ID of the lesson
+ * @param studentId - The ID of the student
+ * @param completed - Whether the lesson is completed
+ * @param watchDuration - Duration watched in seconds
+ * @param lastPosition - Last position in the video
+ * @returns The API URL and data payload for updating lesson progress
+ */
+export const updateLessonProgress = (
+  courseId: string,
+  lessonId: string,
+  studentId: string,
+  completed: boolean = false,
+  watchDuration: number = 0,
+  lastPosition: number = 0
+): { url: string; data: any } => {
+  if (!courseId) throw new Error('Course ID cannot be empty');
+  if (!lessonId) throw new Error('Lesson ID cannot be empty');
+  if (!studentId) throw new Error('Student ID cannot be empty');
+  
+  return {
+    url: `${apiBaseUrl}/progress/course/${courseId}/lesson/${lessonId}/student/${studentId}`,
+    data: {
+      lesson_id: lessonId,
+      completed,
+      watch_duration: watchDuration,
+      last_position: lastPosition,
+      completion_date: completed ? new Date().toISOString() : undefined
+    }
+  };
+};
+
+/**
+ * Gets all progress data for a student across all enrolled courses.
+ * @param studentId - The ID of the student
+ * @returns The API URL for retrieving student progress
+ */
+export const getStudentCoursesProgress = (studentId: string): string => {
+  if (!studentId) throw new Error('Student ID cannot be empty');
+  return `${apiBaseUrl}/progress/student/${studentId}`;
+};
+
+/**
+ * Gets progress statistics for a student.
+ * @param studentId - The ID of the student
+ * @returns The API URL for retrieving progress stats
+ */
+export const getStudentProgressStats = (studentId: string): string => {
+  if (!studentId) throw new Error('Student ID cannot be empty');
+  return `${apiBaseUrl}/progress/stats/${studentId}`;
+};
+
+/**
+ * Creates a new note for a lesson.
+ * @param courseId - The ID of the course
+ * @param lessonId - The ID of the lesson
+ * @param studentId - The ID of the student
+ * @param content - The note content
+ * @param timestamp - Optional timestamp in the video
+ * @returns The API URL and data payload for creating a note
+ */
+export const createLessonNote = (
+  courseId: string,
+  lessonId: string,
+  studentId: string,
+  content: string,
+  timestamp?: number
+): { url: string; data: any } => {
+  if (!courseId) throw new Error('Course ID cannot be empty');
+  if (!lessonId) throw new Error('Lesson ID cannot be empty');
+  if (!studentId) throw new Error('Student ID cannot be empty');
+  if (!content) throw new Error('Note content cannot be empty');
+  
+  return {
+    url: `${apiBaseUrl}/progress/course/${courseId}/lesson/${lessonId}/notes/student/${studentId}`,
+    data: {
+      lesson_id: lessonId,
+      content,
+      timestamp,
+      created_at: new Date().toISOString()
+    }
+  };
+};
+
+/**
+ * Gets all comments for a lesson.
+ * @param courseId - The ID of the course
+ * @param lessonId - The ID of the lesson
+ * @param studentId - The ID of the student
+ * @returns The API URL for retrieving lesson comments
+ */
+export const getLessonComments = (courseId: string, lessonId: string, studentId: string): string => {
+  if (!courseId) throw new Error('Course ID cannot be empty');
+  if (!lessonId) throw new Error('Lesson ID cannot be empty');
+  if (!studentId) throw new Error('Student ID cannot be empty');
+  return `${apiBaseUrl}/progress/course/${courseId}/lesson/${lessonId}/comments/student/${studentId}`;
+};
+
+/**
+ * Creates a new comment for a lesson video.
+ * @param courseId - The ID of the course
+ * @param lessonId - The ID of the lesson
+ * @param studentId - The ID of the student
+ * @param content - The comment content
+ * @param timestamp - Timestamp in the video for the comment
+ * @returns The API URL and data payload for creating a comment
+ */
+export const createVideoComment = (
+  courseId: string,
+  lessonId: string,
+  studentId: string,
+  content: string,
+  timestamp: number
+): { url: string; data: any } => {
+  if (!courseId) throw new Error('Course ID cannot be empty');
+  if (!lessonId) throw new Error('Lesson ID cannot be empty');
+  if (!studentId) throw new Error('Student ID cannot be empty');
+  if (!content) throw new Error('Comment content cannot be empty');
+  
+  return {
+    url: `${apiBaseUrl}/progress/course/${courseId}/lesson/${lessonId}/comments/student/${studentId}`,
+    data: {
+      lesson_id: lessonId,
+      content,
+      timestamp,
+      created_at: new Date().toISOString()
+    }
+  };
+};

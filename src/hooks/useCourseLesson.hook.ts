@@ -195,6 +195,7 @@ export interface QuizData {
 
 // Normalize MongoDB ObjectId to string
 const normalizeObjectId = (id: string | { $oid: string }): string => {
+  if (!id) return '';
   if (typeof id === 'string') return id;
   return id.$oid;
 };
@@ -241,13 +242,20 @@ const findLessonInCurriculum = (
   curriculum: CourseWeek[],
   targetId: string
 ): LessonData | undefined => {
-  if (!targetId) return undefined;
+  if (!targetId || !curriculum || !Array.isArray(curriculum) || curriculum.length === 0) {
+    console.log('Invalid curriculum or targetId:', { curriculum, targetId });
+    return undefined;
+  }
 
   console.log('Finding content with ID:', targetId);
   
+  // Normalize targetId if it's in MongoDB ObjectId format
+  const normalizedTargetId = targetId.includes('$oid') ? JSON.parse(targetId).$oid : targetId;
+  
   for (const week of curriculum) {
     // First check if the week has this ID
-    if (week._id === targetId || week.id === targetId) {
+    const weekId = normalizeObjectId(week._id || week.id || '');
+    if (weekId === normalizedTargetId) {
       console.log('Found matching week:', week);
       // If week has direct lessons, return the first one
       const weekLessons = week.lessons || [];
@@ -264,7 +272,8 @@ const findLessonInCurriculum = (
     // Check direct lessons in the week
     const weekLessons = week.lessons || [];
     for (const lesson of weekLessons) {
-      if (lesson._id === targetId || lesson.id === targetId) {
+      const lessonId = normalizeObjectId(lesson._id || lesson.id || '');
+      if (lessonId === normalizedTargetId) {
         console.log('Found lesson in week:', lesson);
         return {
           ...lesson,
@@ -278,7 +287,8 @@ const findLessonInCurriculum = (
     const sections = week.sections || [];
     for (const section of sections) {
       // Check if this is the target section
-      if (section._id === targetId || section.id === targetId) {
+      const sectionId = normalizeObjectId(section._id || section.id || '');
+      if (sectionId === normalizedTargetId) {
         console.log('Found matching section:', section);
         // If section has lessons, return the first one
         const sectionLessons = section.lessons || [];
@@ -295,7 +305,8 @@ const findLessonInCurriculum = (
       // Check lessons within the section
       const sectionLessons = section.lessons || [];
       for (const lesson of sectionLessons) {
-        if (lesson._id === targetId || lesson.id === targetId) {
+        const lessonId = normalizeObjectId(lesson._id || lesson.id || '');
+        if (lessonId === normalizedTargetId) {
           console.log('Found lesson in section:', lesson);
           return {
             ...lesson,
@@ -440,7 +451,7 @@ export const useCourseLesson = (courseId: string, lessonId: string = '') => {
       };
 
       const response = await getQuery({
-        url: apiUrls.courses.markLessonComplete(courseId, lessonId),
+        url: `/api/courses/${courseId}/lessons/${lessonId}/complete`,
         config: { method: 'POST', headers, data: completionData }
       });
 
@@ -510,7 +521,7 @@ export const useCourseLesson = (courseId: string, lessonId: string = '') => {
         assignmentData.files.forEach(file => formData.append('files', file));
       }
       const response = await getQuery({
-        url: apiUrls.courses.submitAssignment(courseId, lessonId),
+        url: `/api/courses/${courseId}/lessons/${lessonId}/assignment`,
         config: { method: 'POST', headers, data: formData }
       });
       if (response?.success) {
@@ -542,7 +553,7 @@ export const useCourseLesson = (courseId: string, lessonId: string = '') => {
         'Content-Type': 'application/json'
       };
       const response = await getQuery({
-        url: apiUrls.courses.submitQuiz(courseId, lessonId),
+        url: `/api/courses/${courseId}/lessons/${lessonId}/quiz`,
         config: { method: 'POST', headers, data: quizData }
       });
       if (response?.success) {

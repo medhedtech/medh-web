@@ -79,7 +79,7 @@ const SidebarDashboard = ({ children }) => {
       items: [
         {
           name: "Dashboard",
-          path: "/dashboards/admin-dashboard",
+          path: "/dashboards/admin",
           icon: (
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -698,7 +698,7 @@ const SidebarDashboard = ({ children }) => {
       items: [
         {
           name: "Dashboard",
-          path: "/dashboards/student-dashboard",
+          path: "/dashboards/student",
           icon: (
             <svg
               xmlns="http://www.w3.org/2000/svg"

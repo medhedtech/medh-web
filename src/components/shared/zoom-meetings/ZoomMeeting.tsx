@@ -21,6 +21,7 @@ interface Meeting {
   department: string;
   zoomMeetingId?: string;
   joinUrl?: string;
+  status?: "upcoming" | "live" | "completed";
 }
 
 interface ZoomMeetingProps {
@@ -37,7 +38,11 @@ const departmentColors = {
 } as const;
 
 export const ZoomMeeting = ({ meeting }: ZoomMeetingProps) => {
-  const [meetingStatus, setMeetingStatus] = useState<ZoomMeetingStatus>("not_started");
+  const [meetingStatus, setMeetingStatus] = useState<ZoomMeetingStatus>(
+    meeting.status === "live" ? "in_progress" : 
+    meeting.status === "completed" ? "ended" : 
+    "not_started"
+  );
   const [isJoining, setIsJoining] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const { zoomClient, isInitialized } = useZoomClient();
@@ -53,7 +58,8 @@ export const ZoomMeeting = ({ meeting }: ZoomMeetingProps) => {
     duration,
     department,
     zoomMeetingId,
-    joinUrl
+    joinUrl,
+    status
   } = meeting;
 
   useEffect(() => {
@@ -66,7 +72,7 @@ export const ZoomMeeting = ({ meeting }: ZoomMeetingProps) => {
   )?.[0] || "bg-secondaryColor";
 
   useEffect(() => {
-    if (!isMounted) return;
+    if (!isMounted || status) return; // Skip API call if we already have status
 
     const checkMeetingStatus = async () => {
       if (!zoomMeetingId || !isInitialized || !zoomClient) return;
@@ -84,7 +90,7 @@ export const ZoomMeeting = ({ meeting }: ZoomMeetingProps) => {
     // Poll for status updates every minute
     const interval = setInterval(checkMeetingStatus, 60000);
     return () => clearInterval(interval);
-  }, [zoomMeetingId, isInitialized, isMounted, zoomClient]);
+  }, [zoomMeetingId, isInitialized, isMounted, zoomClient, status]);
 
   const handleJoinMeeting = async () => {
     if (!joinUrl || !zoomMeetingId || !isInitialized || !zoomClient) {
