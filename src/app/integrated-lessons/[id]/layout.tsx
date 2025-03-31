@@ -9,10 +9,6 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   };
 }
 
-export async function generateStaticParams() {
-  return lessons?.map(({ id }) => ({ id: id.toString() }));
-}
-
 export default function LessonLayout({ children }) {
   return children;
 } 

@@ -24,21 +24,73 @@ import { formatDuration, parseDuration, parseApiError } from '../utils';
 import { Toaster, toast } from 'react-hot-toast';
 import { getCourseById } from '@/apis/course/course';
 
-export default function CourseView() {
+interface CourseData {
+  _id: string;
+  course_title?: string;
+  course_description?: string;
+  course_category?: string;
+  course_grade?: string;
+  course_image?: string;
+  course_duration?: string;
+  course_fee?: number;
+  enrolled_students?: number;
+  is_Certification?: string;
+  is_Assignments?: string;
+  is_Projects?: string;
+  is_Quizes?: string;
+  curriculum?: any[];
+  highlights?: any[];
+  learning_outcomes?: any[];
+  prerequisites?: any[];
+  faqs?: any[];
+  no_of_Sessions?: number;
+  status?: string;
+  isFree?: boolean;
+}
+
+interface ProcessedCourse {
+  _id: string;
+  title: string;
+  description: string;
+  long_description: string;
+  category: string;
+  grade: string;
+  thumbnail: string | null;
+  course_duration: string;
+  course_duration_days: number;
+  course_fee: number;
+  enrolled_students: number;
+  is_Certification: boolean;
+  is_Assignments: boolean;
+  is_Projects: boolean;
+  is_Quizes: boolean;
+  curriculum: any[];
+  highlights: any[];
+  learning_outcomes: any[];
+  prerequisites: any[];
+  faqs: any[];
+  no_of_Sessions: number;
+  status: string;
+  isFree: boolean;
+  hasFullDetails: boolean;
+}
+
+const CourseView: React.FC = () => {
   const router = useRouter();
   const params = useParams();
-  const { courseId } = params;
+  const courseId = params?.courseId as string;
   
-  const [course, setCourse] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [activeSection, setActiveSection] = useState('about');
+  const [course, setCourse] = useState<ProcessedCourse | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [activeSection, setActiveSection] = useState<string>('about');
   const { getQuery } = useGetQuery();
   
   // Fetch course by ID
   useEffect(() => {
     if (!courseId) {
-      router.replace('/enrollment');
+      setError("Course ID cannot be empty");
+      setLoading(false);
       return;
     }
     
@@ -49,8 +101,8 @@ export default function CourseView() {
     
     getQuery({
       url: courseEndpoint,
-      onSuccess: (response) => {
-        const courseData = response?.course || response?.data || response;
+      onSuccess: (response: { course?: CourseData; data?: CourseData } | CourseData) => {
+        const courseData = (response as any)?.course || (response as any)?.data || response;
         
         if (!courseData || !courseData._id) {
           setError("Course not found or invalid data received");
@@ -59,7 +111,7 @@ export default function CourseView() {
         }
         
         // Process the course data
-        const processedCourse = {
+        const processedCourse: ProcessedCourse = {
           _id: courseData._id,
           title: courseData.course_title || "",
           description: courseData.course_description || "",
@@ -89,7 +141,7 @@ export default function CourseView() {
         setCourse(processedCourse);
         setLoading(false);
       },
-      onError: (err) => {
+      onError: (err: any) => {
         console.error("Error fetching course:", err);
         setError(parseApiError(err) || "Failed to load course details");
         setLoading(false);
@@ -98,7 +150,7 @@ export default function CourseView() {
   }, [courseId, getQuery, router]);
   
   // Error component
-  const ErrorDisplay = () => (
+  const ErrorDisplay: React.FC = () => (
     <div className="max-w-3xl mx-auto px-3 sm:px-4 py-6 sm:py-10 text-center">
       <div className="bg-red-50 dark:bg-red-900/10 rounded-xl p-5 sm:p-8 border border-red-200 dark:border-red-800 shadow-sm">
         <div className="mb-4 sm:mb-6 flex justify-center">
@@ -224,4 +276,6 @@ export default function CourseView() {
       </div>
     </PageWrapper>
   );
-} 
+};
+
+export default CourseView; 
