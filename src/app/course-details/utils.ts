@@ -1,7 +1,43 @@
 // Common utility functions for enrollment pages
 
+// Define types for the application
+interface GradeOption {
+  gradeRange: string[];
+  recommendedFor: string[];
+}
+
+interface SharedGradeOptions {
+  schoolStudent: GradeOption;
+  [key: string]: GradeOption;
+}
+
+interface CategoryHighlight {
+  displayName: string;
+  description: string;
+  shortDescription: string;
+  colorClass: string;
+  bgClass: string;
+  borderClass: string;
+  subtitle: string;
+  colorRgb: string;
+  icon: string;
+  highlights: string[];
+  recommendedFor: string[];
+  targetGrades?: string[];
+  recommendedGrades?: string[];
+}
+
+interface CategoryMap {
+  [key: string]: CategoryHighlight;
+}
+
+interface DurationFilter {
+  test: (course: any) => boolean;
+  days: number;
+}
+
 // Shared grade configurations for specific categories
-const SHARED_GRADE_OPTIONS = {
+const SHARED_GRADE_OPTIONS: SharedGradeOptions = {
   schoolStudent: {
     gradeRange: ['Grade 5-6', 'Grade 7-8', 'Grade 9-10', 'Grade 11-12'],
     recommendedFor: ['Students preparing for competitive exams', 'Students aged 10-18 years']
@@ -9,7 +45,7 @@ const SHARED_GRADE_OPTIONS = {
 };
 
 // Map of category slugs to their display names and attributes
-export const CATEGORY_MAP = {
+export const CATEGORY_MAP: CategoryMap = {
   'vedic-mathematics': {
     displayName: 'Vedic Mathematics',
     description: 'Master ancient calculation techniques that speed up mathematical operations and enhance problem-solving skills.',
@@ -89,7 +125,7 @@ export const CATEGORY_MAP = {
 };
 
 // Helper to normalize category slugs
-export const normalizeCategory = (category) => {
+export const normalizeCategory = (category: string | null | undefined): string | null => {
   if (!category) return null;
   
   // Convert to lowercase and replace spaces with hyphens
@@ -100,17 +136,17 @@ export const normalizeCategory = (category) => {
 };
 
 // Get category info by slug
-export const getCategoryInfo = (categorySlug) => {
+export const getCategoryInfo = (categorySlug: string | null | undefined): CategoryHighlight | null => {
   const normalized = normalizeCategory(categorySlug);
   return normalized ? CATEGORY_MAP[normalized] : null;
 };
 
 /**
  * Format duration string for display
- * @param {string} duration - Raw duration string
+ * @param {string | number} duration - Raw duration string or number
  * @returns {string} - Formatted duration
  */
-export const formatDuration = (duration) => {
+export const formatDuration = (duration: string | number | undefined): string => {
   if (!duration) return "";
   
   // Handle already formatted durations
@@ -123,7 +159,7 @@ export const formatDuration = (duration) => {
   
   // Convert number to days/weeks/months
   const days = Number(duration);
-  if (isNaN(days)) return duration;
+  if (isNaN(days)) return duration.toString();
   
   if (days < 1) {
     return "Less than a day";
@@ -144,10 +180,10 @@ export const formatDuration = (duration) => {
 
 /**
  * Parse duration string to numeric days
- * @param {string} duration - Duration string
+ * @param {string | number | undefined} duration - Duration string or number
  * @returns {number} - Duration in days
  */
-export const parseDuration = (duration) => {
+export const parseDuration = (duration: string | number | undefined): number => {
   if (!duration) return 30; // Default to 30 days
   
   if (typeof duration === 'number') return duration;
@@ -175,25 +211,32 @@ export const parseDuration = (duration) => {
   return isNaN(days) ? 30 : days;
 };
 
+interface CourseType {
+  course_duration_days: number;
+  grade?: string;
+  course_grade?: string;
+  [key: string]: any;
+}
+
 /**
  * Get duration filter test function
- * @param {string} durationId - Duration identifier (e.g. 'short', 'medium', 'long')
- * @returns {Object|null} - Filter test function and days value
+ * @param {string | null | undefined} durationId - Duration identifier (e.g. 'short', 'medium', 'long')
+ * @returns {DurationFilter | null} - Filter test function and days value
  */
-export const getDurationFilter = (durationId) => {
+export const getDurationFilter = (durationId: string | null | undefined): DurationFilter | null => {
   if (!durationId || durationId === 'all') return null;
   
-  const filters = {
+  const filters: Record<string, DurationFilter> = {
     'short': {
-      test: (course) => (course.course_duration_days <= 14),
+      test: (course: CourseType) => (course.course_duration_days <= 14),
       days: 14
     },
     'medium': {
-      test: (course) => (course.course_duration_days > 14 && course.course_duration_days <= 60),
+      test: (course: CourseType) => (course.course_duration_days > 14 && course.course_duration_days <= 60),
       days: 60 
     },
     'long': {
-      test: (course) => (course.course_duration_days > 60),
+      test: (course: CourseType) => (course.course_duration_days > 60),
       days: 61
     }
   };
@@ -203,42 +246,54 @@ export const getDurationFilter = (durationId) => {
 
 /**
  * Get grade filter test function
- * @param {string} gradeId - Grade identifier
- * @returns {Function|null} - Filter test function
+ * @param {string | null | undefined} gradeId - Grade identifier
+ * @returns {((course: CourseType) => boolean) | null} - Filter test function
  */
-export const getGradeFilter = (gradeId) => {
+export const getGradeFilter = (gradeId: string | null | undefined): ((course: CourseType) => boolean) | null => {
   if (!gradeId || gradeId === 'all') return null;
   
-  return (course) => {
+  return (course: CourseType) => {
     // Implement grade filtering logic based on your data structure
     return course.grade === gradeId || course.course_grade === gradeId;
   };
 };
 
+interface ApiError {
+  response?: {
+    data?: {
+      message?: string;
+      error?: string;
+    };
+    status?: number;
+  };
+  message?: string;
+}
+
 /**
  * Parse API error to human-readable message
- * @param {Error|Object} error - Error object or API response
+ * @param {ApiError | string | unknown} error - Error object or API response
  * @returns {string} - Human readable error message
  */
-export const parseApiError = (error) => {
+export const parseApiError = (error: ApiError | string | unknown): string => {
   if (!error) return 'An unknown error occurred';
   
   // Handle axios error structure
-  if (error.response) {
-    const responseData = error.response.data;
+  if (typeof error === 'object' && error !== null && 'response' in error) {
+    const apiError = error as ApiError;
+    const responseData = apiError.response?.data;
     
-    if (responseData.message) {
+    if (responseData?.message) {
       return responseData.message;
-    } else if (responseData.error) {
+    } else if (responseData?.error) {
       return responseData.error;
-    } else {
-      return `Server error: ${error.response.status}`;
+    } else if (apiError.response?.status) {
+      return `Server error: ${apiError.response.status}`;
     }
   }
   
   // Handle direct API error responses
-  if (error.message) {
-    return error.message;
+  if (typeof error === 'object' && error !== null && 'message' in error && typeof (error as {message: string}).message === 'string') {
+    return (error as {message: string}).message;
   }
   
   // Handle string errors
@@ -247,4 +302,4 @@ export const parseApiError = (error) => {
   }
   
   return 'Failed to load data. Please try again later.';
-}; 
+};
