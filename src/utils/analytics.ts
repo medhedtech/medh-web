@@ -7,11 +7,33 @@ interface EventParams {
 const isClient = typeof window !== 'undefined';
 
 /**
+ * Check if analytics cookies are accepted
+ * @returns boolean
+ */
+const isAnalyticsEnabled = (): boolean => {
+  if (!isClient) return false;
+  
+  try {
+    const consentCookie = localStorage.getItem('medh-cookie-consent') || 
+                        document.cookie.split('; ').find(row => row.startsWith('medh-cookie-consent='))?.split('=')[1];
+    
+    if (consentCookie) {
+      const cookieSettings = JSON.parse(decodeURIComponent(consentCookie));
+      return cookieSettings.analytics === true;
+    }
+  } catch (error) {
+    console.error('Error checking analytics consent:', error);
+  }
+  
+  return false;
+};
+
+/**
  * Track a page view in Google Analytics
  * @param url The URL to track
  */
 export const pageView = (url: string) => {
-  if (!isClient || !window.gtag) return;
+  if (!isClient || !window.gtag || !isAnalyticsEnabled()) return;
 
   window.gtag('config', process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || '', {
     page_path: url,
@@ -24,7 +46,7 @@ export const pageView = (url: string) => {
  * @param params Additional parameters to track
  */
 export const event = (action: string, params: EventParams = {}) => {
-  if (!isClient || !window.gtag) return;
+  if (!isClient || !window.gtag || !isAnalyticsEnabled()) return;
   
   window.gtag('event', action, params);
 };

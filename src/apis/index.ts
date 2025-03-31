@@ -196,9 +196,45 @@ export interface ICourseSearchParams {
   category_type?: string;
 }
 
+// Add Currency interfaces before the apiUrls object
+export interface ICurrency {
+  _id: string;
+  country: string;
+  countryCode: string;
+  valueWrtUSD: number;
+  symbol: string;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ICurrencyResponse {
+  status: string;
+  data: {
+    currency: ICurrency;
+  };
+}
+
+export interface ICurrenciesResponse {
+  status: string;
+  results: number;
+  data: {
+    currencies: ICurrency[];
+  };
+}
+
+export interface ICreateCurrencyInput {
+  country: string;
+  countryCode: string;
+  valueWrtUSD: number;
+  symbol: string;
+}
+
+export interface IUpdateCurrencyInput extends Partial<ICreateCurrencyInput> {}
+
 export const apiUrls = {
   categories: {
-    getAllCategories: "/categories/getAll",
+    getAllCategories: "/categories",
     createCategory: "/categories/create",
     getCategoryById: (id: string): string => {
       if (!id) throw new Error('Category ID is required');
@@ -866,7 +902,31 @@ export const apiUrls = {
 
       return matches;
     });
-  }
+  },
+  currencies: {
+    getAllCurrencies: `${apiBaseUrl}/currencies`,
+    getCurrencyById: (id: string): string => {
+      if (!id) throw new Error('Currency ID is required');
+      return `${apiBaseUrl}/currencies/${id}`;
+    },
+    getCurrencyByCountryCode: (code: string): string => {
+      if (!code) throw new Error('Country code is required');
+      return `${apiBaseUrl}/currencies/code/${code}`;
+    },
+    createCurrency: `${apiBaseUrl}/currencies`,
+    updateCurrency: (id: string): string => {
+      if (!id) throw new Error('Currency ID is required');
+      return `${apiBaseUrl}/currencies/${id}`;
+    },
+    deleteCurrency: (id: string): string => {
+      if (!id) throw new Error('Currency ID is required');
+      return `${apiBaseUrl}/currencies/${id}`;
+    },
+    toggleCurrencyStatus: (id: string): string => {
+      if (!id) throw new Error('Currency ID is required');
+      return `${apiBaseUrl}/currencies/${id}/toggle-status`;
+    },
+  },
 };
 
 /**

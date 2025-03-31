@@ -22,7 +22,8 @@ import {
   User,
   Building,
   MessageCircle,
-  FileText
+  FileText,
+  DollarSign
 } from "lucide-react";
 
 // Dynamically import dashboard components
@@ -30,6 +31,12 @@ const AdminDashboardMain = dynamic(() => import("@/components/layout/main/dashbo
   ssr: false,
   loading: () => <div className="flex min-h-[60vh] items-center justify-center"><div className="animate-pulse text-primary-500">Loading overview...</div></div>
 });
+
+// New Course Fee Management section
+const AdminCourseFee = dynamic(() => import("@/components/layout/main/dashboards/AdminCourseFee"), { ssr: false });
+
+// Currency Management section
+const AdminCurrency = dynamic(() => import("@/components/layout/main/dashboards/AdminCurrency"), { ssr: false });
 
 // Feedback & Support
 const AdminFeedbackComplaints = dynamic(() => import("@/components/layout/main/dashboards/Admin-Feedback-Complaints"), { ssr: false });
@@ -139,7 +146,13 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ userRole })
     // Extract component props from URL params if any
     const params = Object.fromEntries(new URLSearchParams(window.location.search));
     if (params) {
+      // Check if there's a specific view requested in the URL
+      if (params.view) {
+        setCurrentView(params.view);
+      }
+      
       delete params.debug;
+      delete params.view;
       setComponentProps(params);
     }
     
@@ -182,6 +195,13 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ userRole })
         }
       },
       {
+        name: "Currency Settings",
+        icon: <DollarSign className="w-4 h-4" />,
+        onClick: () => {
+          setCurrentView("admin-currency");
+        }
+      },
+      {
         name: "Notifications",
         path: "/dashboards/admin-notifications",
         icon: <MessageCircle className="w-4 h-4" />,
@@ -208,6 +228,13 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ userRole })
         icon: <Pencil className="w-4 h-4" />,
         onClick: () => {
           setCurrentView("admin-listofcourse");
+        }
+      },
+      {
+        name: "Course Fees",
+        icon: <CreditCard className="w-4 h-4" />,
+        onClick: () => {
+          setCurrentView("admin-course-fee");
         }
       },
       {
@@ -524,6 +551,16 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ userRole })
   const viewMatches = (patterns: string[]): boolean => {
     if (!currentView) return false;
     
+    // If URL has view parameter, check it first
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlView = urlParams.get('view');
+    
+    if (urlView) {
+      const normalizedUrlView = urlView.toLowerCase();
+      return patterns.some(pattern => normalizedUrlView.includes(pattern.toLowerCase()));
+    }
+    
+    // Otherwise check the currentView state
     const normalizedView = currentView.toLowerCase();
     return patterns.some(pattern => normalizedView.includes(pattern.toLowerCase()));
   };
@@ -548,6 +585,11 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ userRole })
       return <AdminDashboardMain />;
     } 
     
+    // Currency Management
+    else if (viewMatches(['admin-currency', 'currency-settings'])) {
+      return <AdminCurrency />;
+    }
+    
     // Course Management
     else if (viewMatches(['admin-course-categories', 'categories'])) {
       return <CategoryManagement />;
@@ -557,6 +599,9 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ userRole })
     }
     else if (viewMatches(['admin-listofcourse', 'listcourse', 'edit-courses'])) {
       return <ListOfCourses />;
+    }
+    else if (viewMatches(['admin-course-fee', 'course-fees', 'pricing'])) {
+      return <AdminCourseFee />;
     }
     else if (viewMatches(['update-course'])) {
       return <UpdateCourse {...componentProps} />;
