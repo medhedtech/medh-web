@@ -310,6 +310,27 @@ const CourseIntroduction = ({
     return courseData.tools_technologies.filter((tech: any) => tech.category === techCategoryFilter);
   }, [courseData, techCategoryFilter]);
 
+  // Check if the course has any lessons in its curriculum
+  const hasLessons = useMemo(() => {
+    if (!courseData?.curriculum || !Array.isArray(courseData.curriculum) || courseData.curriculum.length === 0) {
+      return false;
+    }
+    
+    // Check if there are any weeks with direct lessons or sections with lessons
+    return courseData.curriculum.some((week: any) => {
+      // Check for direct lessons in the week
+      const hasWeekLessons = Array.isArray(week.lessons) && week.lessons.length > 0;
+      
+      // Check for sections with lessons
+      const hasSectionLessons = Array.isArray(week.sections) && 
+        week.sections.some((section: any) => 
+          Array.isArray(section.lessons) && section.lessons.length > 0
+        );
+      
+      return hasWeekLessons || hasSectionLessons;
+    });
+  }, [courseData]);
+
   if (!courseData) return null;
 
   const toggleFaq = (index: number) => {
@@ -348,8 +369,15 @@ const CourseIntroduction = ({
   const handleLessonSelect = (lesson: any) => {
     if (lesson?._id || lesson?.id) {
       const lessonId = lesson._id || lesson.id;
-      navigateToLesson(lessonId);
+      const id = typeof lessonId === 'object' ? lessonId.$oid : lessonId;
+      navigateToLesson(id);
     }
+  };
+
+  // Function to safely extract course ID 
+  const getCourseId = () => {
+    if (!courseData._id) return '';
+    return typeof courseData._id === 'object' ? courseData._id.$oid : courseData._id;
   };
 
   return (
@@ -366,7 +394,7 @@ const CourseIntroduction = ({
           </span>
           <span className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
             <BookOpen className="w-4 h-4 mr-1.5" />
-            {courseData.no_of_Sessions || courseData.curriculum?.length || "Multiple"} sessions
+            {courseData.no_of_Sessions || (courseData.curriculum && Array.isArray(courseData.curriculum) ? courseData.curriculum.length : 0) || "Multiple"} sessions
           </span>
         </div>
         
@@ -375,7 +403,7 @@ const CourseIntroduction = ({
         </h1>
         
         <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl">
-          {courseData.course_tag || courseData.course_description?.subtitle || "Master new skills with hands-on practice"}
+          {courseData.course_tag || (typeof courseData.course_description === 'object' && courseData.course_description?.subtitle) || "Master new skills with hands-on practice"}
         </p>
       </div>
 
@@ -387,7 +415,7 @@ const CourseIntroduction = ({
               <Eye className="w-6 h-6 text-purple-600 dark:text-purple-400" />
             </div>
             <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-              {courseData.meta.views.toLocaleString()}
+              {(courseData.meta.views || 0).toLocaleString()}
             </div>
             <div className="text-sm text-gray-500 dark:text-gray-400">Total Views</div>
           </div>
@@ -397,7 +425,7 @@ const CourseIntroduction = ({
               <Star className="w-6 h-6 text-amber-500" />
             </div>
             <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-              {courseData.meta.ratings.average.toFixed(1)} ({courseData.meta.ratings.count})
+              {courseData.meta.ratings ? courseData.meta.ratings.average.toFixed(1) : '0'} ({courseData.meta.ratings ? courseData.meta.ratings.count : '0'})
             </div>
             <div className="text-sm text-gray-500 dark:text-gray-400">Avg. Rating</div>
           </div>
@@ -407,7 +435,7 @@ const CourseIntroduction = ({
               <UserCheck className="w-6 h-6 text-teal-600 dark:text-teal-400" />
             </div>
             <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-              {courseData.meta.enrollments.toLocaleString()}
+              {(courseData.meta.enrollments || 0).toLocaleString()}
             </div>
             <div className="text-sm text-gray-500 dark:text-gray-400">Students Enrolled</div>
           </div>
@@ -425,14 +453,20 @@ const CourseIntroduction = ({
               Program Overview
             </h2>
             <div className="prose dark:prose-invert max-w-none text-gray-600 dark:text-gray-300 leading-relaxed">
-              <p>{typeof courseData.course_description?.program_overview === 'object' 
-                ? JSON.stringify(courseData.course_description?.program_overview) 
-                : courseData.course_description?.program_overview || "This comprehensive course is designed to give you a solid foundation in this subject area."}</p>
+              <p>{(() => {
+                if (typeof courseData.course_description === 'string') {
+                  return courseData.course_description;
+                } else if (typeof courseData.course_description === 'object') {
+                  return courseData.course_description?.program_overview || "This comprehensive course is designed to give you a solid foundation in this subject area.";
+                } else {
+                  return "This comprehensive course is designed to give you a solid foundation in this subject area.";
+                }
+              })()}</p>
             </div>
           </section>
           
           {/* Complete Curriculum */}
-          {courseData.curriculum?.length > 0 && (
+          {courseData.curriculum && Array.isArray(courseData.curriculum) && courseData.curriculum.length > 0 ? (
             <section className="space-y-6">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
                 <BookOpen className="w-6 h-6 mr-3 text-primaryColor" />
@@ -452,7 +486,7 @@ const CourseIntroduction = ({
                           <BookOpen className="w-5 h-5 text-primaryColor" />
                         </div>
                         <div className="text-left">
-                          <h3 className="font-medium text-gray-900 dark:text-white text-lg">{week.weekTitle}</h3>
+                          <h3 className="font-medium text-gray-900 dark:text-white text-lg">{week.weekTitle || `Week ${weekIndex + 1}`}</h3>
                           {week.weekDescription && (
                             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{week.weekDescription}</p>
                           )}
@@ -471,7 +505,80 @@ const CourseIntroduction = ({
                           transition={{ duration: 0.3 }}
                           className="overflow-hidden bg-gray-50 dark:bg-gray-900/50"
                         >
-                          {week.sections?.map((section: any, sectionIndex: number) => (
+                          {/* Direct Lessons in the Week (if any) */}
+                          {Array.isArray(week.lessons) && week.lessons.length > 0 && (
+                            <div className="divide-y divide-gray-100 dark:divide-gray-800/50">
+                              {week.lessons.map((lesson: any, lessonIndex: number) => {
+                                const lessonId = lesson._id || lesson.id;
+                                const isCompleted = lesson.is_completed || lesson.completed;
+                                const isLocked = lesson.status === "locked";
+                                
+                                return (
+                                  <div key={`direct-lesson-${weekIndex}-${lessonIndex}`} className="p-5 pl-16 hover:bg-white dark:hover:bg-gray-800/70 transition-colors">
+                                    <button 
+                                      onClick={() => handleLessonSelect(lesson)}
+                                      disabled={isLocked}
+                                      className={`w-full flex items-start gap-4 text-left group ${isLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
+                                    >
+                                      <div className={`w-6 h-6 mt-0.5 rounded-full flex-shrink-0 flex items-center justify-center transition-colors ${
+                                        isCompleted 
+                                          ? 'bg-green-500 text-white' 
+                                          : isLocked 
+                                            ? 'bg-gray-300 dark:bg-gray-600' 
+                                            : 'bg-primaryColor/10 group-hover:bg-primaryColor/20'
+                                      }`}>
+                                        {isCompleted ? (
+                                          <CheckCircle className="w-3.5 h-3.5" />
+                                        ) : isLocked ? (
+                                          <Lock className="w-3.5 h-3.5" />
+                                        ) : (
+                                          <Play className="w-3.5 h-3.5 text-primaryColor ml-0.5" />
+                                        )}
+                                      </div>
+                                      
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex items-start justify-between">
+                                          <div>
+                                            <h5 className="font-medium text-gray-900 dark:text-white text-sm group-hover:text-primaryColor transition-colors">{lesson.title}</h5>
+                                            {lesson.description && (
+                                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 line-clamp-2">{lesson.description}</p>
+                                            )}
+                                          </div>
+                                          {(lesson.duration || lesson.type || lesson.lessonType) && (
+                                            <div className="flex items-center gap-2 ml-4 flex-shrink-0">
+                                              {lesson.duration && (
+                                                <span className="text-xs bg-gray-100 dark:bg-gray-700 px-2.5 py-1 rounded-full text-gray-600 dark:text-gray-300 flex items-center">
+                                                  <Clock className="w-3 h-3 mr-1" />
+                                                  {formatDurationDisplay(lesson.duration)}
+                                                </span>
+                                              )}
+                                              {(lesson.type || lesson.lessonType) && (
+                                                <span className="text-xs capitalize bg-primaryColor/10 px-2.5 py-1 rounded-full text-primaryColor flex items-center">
+                                                  {(lesson.type || lesson.lessonType) === "video" ? (
+                                                    <Video className="w-3 h-3 mr-1" />
+                                                  ) : (lesson.type || lesson.lessonType) === "quiz" ? (
+                                                    <FileQuestion className="w-3 h-3 mr-1" />
+                                                  ) : (lesson.type || lesson.lessonType) === "assignment" || (lesson.type || lesson.lessonType) === "assessment" ? (
+                                                    <ClipboardList className="w-3 h-3 mr-1" />
+                                                  ) : (
+                                                    <FileText className="w-3 h-3 mr-1" />
+                                                  )}
+                                                  {lesson.type || lesson.lessonType}
+                                                </span>
+                                              )}
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </button>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                          
+                          {/* Sections and their Lessons */}
+                          {Array.isArray(week.sections) && week.sections.length > 0 && week.sections.map((section: any, sectionIndex: number) => (
                             <div key={`section-${weekIndex}-${sectionIndex}`} className="border-t border-gray-100 dark:border-gray-800/50">
                               {/* Section Header */}
                               <div className="p-5 pl-16 bg-gray-50/70 dark:bg-gray-800/30">
@@ -482,76 +589,88 @@ const CourseIntroduction = ({
                               </div>
                               
                               {/* Section Lessons */}
-                              <div className="divide-y divide-gray-100 dark:divide-gray-800/50">
-                                {section.lessons?.map((lesson: any, lessonIndex: number) => {
-                                  const lessonId = lesson._id || lesson.id;
-                                  const isCompleted = lesson.is_completed || lesson.completed;
-                                  const isLocked = lesson.status === "locked";
-                                  
-                                  return (
-                                    <div key={`lesson-${weekIndex}-${sectionIndex}-${lessonIndex}`} className="p-5 pl-20 hover:bg-white dark:hover:bg-gray-800/70 transition-colors">
-                                      <button 
-                                        onClick={() => handleLessonSelect(lesson)}
-                                        disabled={isLocked}
-                                        className={`w-full flex items-start gap-4 text-left group ${isLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
-                                      >
-                                        <div className={`w-6 h-6 mt-0.5 rounded-full flex-shrink-0 flex items-center justify-center transition-colors ${
-                                          isCompleted 
-                                            ? 'bg-green-500 text-white' 
-                                            : isLocked 
-                                              ? 'bg-gray-300 dark:bg-gray-600' 
-                                              : 'bg-primaryColor/10 group-hover:bg-primaryColor/20'
-                                        }`}>
-                                          {isCompleted ? (
-                                            <CheckCircle className="w-3.5 h-3.5" />
-                                          ) : isLocked ? (
-                                            <Lock className="w-3.5 h-3.5" />
-                                          ) : (
-                                            <Play className="w-3.5 h-3.5 text-primaryColor ml-0.5" />
-                                          )}
-                                        </div>
-                                        
-                                        <div className="flex-1 min-w-0">
-                                          <div className="flex items-start justify-between">
-                                            <div>
-                                              <h5 className="font-medium text-gray-900 dark:text-white text-sm group-hover:text-primaryColor transition-colors">{lesson.title}</h5>
-                                              {lesson.description && (
-                                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 line-clamp-2">{lesson.description}</p>
-                                              )}
-                                            </div>
-                                            {(lesson.duration || lesson.type) && (
-                                              <div className="flex items-center gap-2 ml-4 flex-shrink-0">
-                                                {lesson.duration && (
-                                                  <span className="text-xs bg-gray-100 dark:bg-gray-700 px-2.5 py-1 rounded-full text-gray-600 dark:text-gray-300 flex items-center">
-                                                    <Clock className="w-3 h-3 mr-1" />
-                                                    {formatDurationDisplay(lesson.duration)}
-                                                  </span>
-                                                )}
-                                                {lesson.type && (
-                                                  <span className="text-xs capitalize bg-primaryColor/10 px-2.5 py-1 rounded-full text-primaryColor flex items-center">
-                                                    {lesson.type === "video" ? (
-                                                      <Video className="w-3 h-3 mr-1" />
-                                                    ) : lesson.type === "quiz" ? (
-                                                      <FileQuestion className="w-3 h-3 mr-1" />
-                                                    ) : lesson.type === "assignment" ? (
-                                                      <ClipboardList className="w-3 h-3 mr-1" />
-                                                    ) : (
-                                                      <FileText className="w-3 h-3 mr-1" />
-                                                    )}
-                                                    {lesson.type}
-                                                  </span>
-                                                )}
-                                              </div>
+                              {Array.isArray(section.lessons) && section.lessons.length > 0 && (
+                                <div className="divide-y divide-gray-100 dark:divide-gray-800/50">
+                                  {section.lessons.map((lesson: any, lessonIndex: number) => {
+                                    const lessonId = lesson._id || lesson.id;
+                                    const isCompleted = lesson.is_completed || lesson.completed;
+                                    const isLocked = lesson.status === "locked";
+                                    
+                                    return (
+                                      <div key={`lesson-${weekIndex}-${sectionIndex}-${lessonIndex}`} className="p-5 pl-20 hover:bg-white dark:hover:bg-gray-800/70 transition-colors">
+                                        <button 
+                                          onClick={() => handleLessonSelect(lesson)}
+                                          disabled={isLocked}
+                                          className={`w-full flex items-start gap-4 text-left group ${isLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
+                                        >
+                                          <div className={`w-6 h-6 mt-0.5 rounded-full flex-shrink-0 flex items-center justify-center transition-colors ${
+                                            isCompleted 
+                                              ? 'bg-green-500 text-white' 
+                                              : isLocked 
+                                                ? 'bg-gray-300 dark:bg-gray-600' 
+                                                : 'bg-primaryColor/10 group-hover:bg-primaryColor/20'
+                                          }`}>
+                                            {isCompleted ? (
+                                              <CheckCircle className="w-3.5 h-3.5" />
+                                            ) : isLocked ? (
+                                              <Lock className="w-3.5 h-3.5" />
+                                            ) : (
+                                              <Play className="w-3.5 h-3.5 text-primaryColor ml-0.5" />
                                             )}
                                           </div>
-                                        </div>
-                                      </button>
-                                    </div>
-                                  );
-                                })}
-                              </div>
+                                          
+                                          <div className="flex-1 min-w-0">
+                                            <div className="flex items-start justify-between">
+                                              <div>
+                                                <h5 className="font-medium text-gray-900 dark:text-white text-sm group-hover:text-primaryColor transition-colors">{lesson.title}</h5>
+                                                {lesson.description && (
+                                                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 line-clamp-2">{lesson.description}</p>
+                                                )}
+                                              </div>
+                                              {(lesson.duration || lesson.type || lesson.lessonType) && (
+                                                <div className="flex items-center gap-2 ml-4 flex-shrink-0">
+                                                  {lesson.duration && (
+                                                    <span className="text-xs bg-gray-100 dark:bg-gray-700 px-2.5 py-1 rounded-full text-gray-600 dark:text-gray-300 flex items-center">
+                                                      <Clock className="w-3 h-3 mr-1" />
+                                                      {formatDurationDisplay(lesson.duration)}
+                                                    </span>
+                                                  )}
+                                                  {(lesson.type || lesson.lessonType) && (
+                                                    <span className="text-xs capitalize bg-primaryColor/10 px-2.5 py-1 rounded-full text-primaryColor flex items-center">
+                                                      {(lesson.type || lesson.lessonType) === "video" ? (
+                                                        <Video className="w-3 h-3 mr-1" />
+                                                      ) : (lesson.type || lesson.lessonType) === "quiz" ? (
+                                                        <FileQuestion className="w-3 h-3 mr-1" />
+                                                      ) : (lesson.type || lesson.lessonType) === "assignment" || (lesson.type || lesson.lessonType) === "assessment" ? (
+                                                        <ClipboardList className="w-3 h-3 mr-1" />
+                                                      ) : (
+                                                        <FileText className="w-3 h-3 mr-1" />
+                                                      )}
+                                                      {lesson.type || lesson.lessonType}
+                                                    </span>
+                                                  )}
+                                                </div>
+                                              )}
+                                            </div>
+                                          </div>
+                                        </button>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
                             </div>
                           ))}
+                          
+                          {/* Show message if neither direct lessons nor sections with lessons are found */}
+                          {(!Array.isArray(week.lessons) || week.lessons.length === 0) && 
+                           (!Array.isArray(week.sections) || week.sections.length === 0 || 
+                            !week.sections.some((section: any) => Array.isArray(section.lessons) && section.lessons.length > 0)) && (
+                            <div className="p-8 text-center">
+                              <FileQuestion className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                              <p className="text-gray-500 dark:text-gray-400">No lessons available in this section yet</p>
+                            </div>
+                          )}
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -559,10 +678,16 @@ const CourseIntroduction = ({
                 ))}
               </div>
             </section>
+          ) : (
+            <section className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm text-center">
+              <FileQuestion className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+              <h3 className="text-xl font-medium mb-2">Course Curriculum Coming Soon</h3>
+              <p className="text-gray-500 dark:text-gray-400">The curriculum for this course is currently being developed. Check back soon!</p>
+            </section>
           )}
           
           {/* FAQ Section */}
-          {courseData.faqs?.length > 0 && (
+          {courseData.faqs && Array.isArray(courseData.faqs) && courseData.faqs.length > 0 && (
             <section className="space-y-6">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
                 <HelpCircle className="w-6 h-6 mr-3 text-primaryColor" />
@@ -570,7 +695,7 @@ const CourseIntroduction = ({
               </h2>
               
               <div className="space-y-4">
-                {courseData.faqs.map((faq: FAQ, index: number) => (
+                {courseData.faqs.map((faq: any, index: number) => (
                   <div 
                     key={index} 
                     className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden"
@@ -607,7 +732,7 @@ const CourseIntroduction = ({
           )}
           
           {/* Tools & Technologies */}
-          {courseData.tools_technologies?.length > 0 && (
+          {courseData.tools_technologies && Array.isArray(courseData.tools_technologies) && courseData.tools_technologies.length > 0 && (
             <section className="space-y-6">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
                 <Code2 className="w-6 h-6 mr-3 text-primaryColor" />
@@ -643,7 +768,7 @@ const CourseIntroduction = ({
               )}
               
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                {filteredTech.map((tech: ToolTechnology, index: number) => (
+                {filteredTech.map((tech: any, index: number) => (
                   <motion.div
                     key={index}
                     initial={{ opacity: 0, y: 20 }}
@@ -728,7 +853,7 @@ const CourseIntroduction = ({
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500 dark:text-gray-400">Sessions:</span>
                   <span className="text-gray-900 dark:text-white font-medium">
-                    {courseData.no_of_Sessions || courseData.curriculum?.length || "Multiple"}
+                    {courseData.no_of_Sessions || (courseData.curriculum && Array.isArray(courseData.curriculum) ? courseData.curriculum.length : 0) || "Multiple"}
                   </span>
                 </div>
                 
@@ -751,7 +876,7 @@ const CourseIntroduction = ({
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500 dark:text-gray-400">Level:</span>
                   <span className="text-gray-900 dark:text-white font-medium">
-                    {courseData.course_grade || "All levels"}
+                    {courseData.course_grade || courseData.course_level || "All levels"}
                   </span>
                 </div>
                 
@@ -759,7 +884,7 @@ const CourseIntroduction = ({
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500 dark:text-gray-400">Certification:</span>
                     <span className="text-gray-900 dark:text-white font-medium">
-                      {courseData.is_Certification === "yes" ? "Included" : "Not included"}
+                      {courseData.is_Certification === "yes" || courseData.is_Certification === "Yes" ? "Included" : "Not included"}
                     </span>
                   </div>
                 )}
@@ -768,7 +893,7 @@ const CourseIntroduction = ({
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500 dark:text-gray-400">Assignments:</span>
                     <span className="text-gray-900 dark:text-white font-medium">
-                      {courseData.is_Assignments === "yes" ? "Included" : "Not included"}
+                      {courseData.is_Assignments === "yes" || courseData.is_Assignments === "Yes" ? "Included" : "Not included"}
                     </span>
                   </div>
                 )}
@@ -777,7 +902,7 @@ const CourseIntroduction = ({
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500 dark:text-gray-400">Projects:</span>
                     <span className="text-gray-900 dark:text-white font-medium">
-                      {courseData.is_Projects === "yes" ? "Included" : "Not included"}
+                      {courseData.is_Projects === "yes" || courseData.is_Projects === "Yes" ? "Included" : "Not included"}
                     </span>
                   </div>
                 )}
@@ -786,7 +911,7 @@ const CourseIntroduction = ({
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500 dark:text-gray-400">Quizzes:</span>
                     <span className="text-gray-900 dark:text-white font-medium">
-                      {courseData.is_Quizes === "yes" ? "Included" : "Not included"}
+                      {courseData.is_Quizes === "yes" || courseData.is_Quizes === "Yes" ? "Included" : "Not included"}
                     </span>
                   </div>
                 )}
@@ -800,13 +925,19 @@ const CourseIntroduction = ({
                   const firstLesson = findFirstLesson(courseData);
                   if (firstLesson && typeof window !== 'undefined') {
                     // Navigate to the first lesson
-                    window.location.href = `/integrated-lessons/${courseData._id}/lecture/${firstLesson}`;
+                    const courseId = getCourseId();
+                    window.location.href = `/integrated-lessons/${courseId}/lecture/${firstLesson}`;
+                  } else {
+                    // If no lesson found, just stay on the current page
+                    toast.info("No lessons available yet. The course curriculum is still being developed.");
                   }
                 }}
-                className="w-full py-4 px-6 bg-primaryColor text-white rounded-xl hover:bg-primaryColor/90 transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2 font-medium text-base"
+                className={`w-full py-4 px-6 ${
+                  hasLessons ? 'bg-primaryColor hover:bg-primaryColor/90' : 'bg-gray-400 hover:bg-gray-500'
+                } text-white rounded-xl transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2 font-medium text-base`}
               >
                 <Play className="w-5 h-5" />
-                Start Learning
+                {hasLessons ? "Start Learning" : "Coming Soon"}
               </button>
             </div>
           </div>
@@ -829,18 +960,42 @@ const MainContent: React.FC<MainContentProps> = ({ lessonData, activeTab, setAct
     };
     
     const findFirstLesson = (courseData: any): string | null => {
-      if (!courseData?.curriculum?.length) return null;
+      if (!courseData) return null;
       
+      // Some courses may not have a curriculum property or it might be empty
+      if (!courseData.curriculum || !Array.isArray(courseData.curriculum) || courseData.curriculum.length === 0) {
+        console.log("No curriculum found in course data");
+        return null;
+      }
+      
+      // Loop through each week/item in the curriculum
       for (const week of courseData.curriculum) {
-        if (week.sections?.length) {
+        // Case 1: Check for direct lessons in the week
+        if (Array.isArray(week.lessons) && week.lessons.length > 0) {
+          const firstLesson = week.lessons[0];
+          const lessonId = firstLesson._id || firstLesson.id;
+          if (lessonId) {
+            console.log("Found lesson directly in week:", lessonId);
+            return typeof lessonId === 'object' ? lessonId.$oid : lessonId;
+          }
+        }
+        
+        // Case 2: Check for sections with lessons
+        if (Array.isArray(week.sections) && week.sections.length > 0) {
           for (const section of week.sections) {
-            if (section.lessons?.length) {
+            if (Array.isArray(section.lessons) && section.lessons.length > 0) {
               const firstLesson = section.lessons[0];
-              return firstLesson._id || firstLesson.id || null;
+              const lessonId = firstLesson._id || firstLesson.id;
+              if (lessonId) {
+                console.log("Found lesson in section:", lessonId);
+                return typeof lessonId === 'object' ? lessonId.$oid : lessonId;
+              }
             }
           }
         }
       }
+      
+      console.log("No lessons found in curriculum");
       return null;
     };
     
@@ -1333,18 +1488,42 @@ const IntegratedLesson: React.FC<IntegratedLessonProps> = ({ params }) => {
 
   // Find the first lesson in the curriculum - keep this helper function for navigation
   const findFirstLesson = useCallback((courseData: any): string | null => {
-    if (!courseData?.curriculum?.length) return null;
+    if (!courseData) return null;
     
+    // Some courses may not have a curriculum property or it might be empty
+    if (!courseData.curriculum || !Array.isArray(courseData.curriculum) || courseData.curriculum.length === 0) {
+      console.log("No curriculum found in course data");
+      return null;
+    }
+    
+    // Loop through each week/item in the curriculum
     for (const week of courseData.curriculum) {
-      if (week.sections?.length) {
+      // Case 1: Check for direct lessons in the week
+      if (Array.isArray(week.lessons) && week.lessons.length > 0) {
+        const firstLesson = week.lessons[0];
+        const lessonId = firstLesson._id || firstLesson.id;
+        if (lessonId) {
+          console.log("Found lesson directly in week:", lessonId);
+          return typeof lessonId === 'object' ? lessonId.$oid : lessonId;
+        }
+      }
+      
+      // Case 2: Check for sections with lessons
+      if (Array.isArray(week.sections) && week.sections.length > 0) {
         for (const section of week.sections) {
-          if (section.lessons?.length) {
+          if (Array.isArray(section.lessons) && section.lessons.length > 0) {
             const firstLesson = section.lessons[0];
-            return firstLesson._id || firstLesson.id || null;
+            const lessonId = firstLesson._id || firstLesson.id;
+            if (lessonId) {
+              console.log("Found lesson in section:", lessonId);
+              return typeof lessonId === 'object' ? lessonId.$oid : lessonId;
+            }
           }
         }
       }
     }
+    
+    console.log("No lessons found in curriculum");
     return null;
   }, []);
 

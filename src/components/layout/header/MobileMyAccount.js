@@ -115,11 +115,11 @@ const MobileMyAccount = ({ onClose }) => {
     const roleLower = (userRole || "").toLowerCase();
     
     if (roleLower === "admin" || roleLower === "super-admin") {
-      return "/dashboards/admin-dashboard";
+      return "/dashboards/admin";
     } else if (roleLower === "instructor") {
       return "/dashboards/instructor-dashboard";
     } else if (roleLower === "student") {
-      return "/dashboards/student-dashboard";
+      return "/dashboards/student";
     } else if (roleLower === "coorporate") {
       return "/dashboards/coorporate-dashboard";
     } else if (roleLower === "coorporate-student") {
