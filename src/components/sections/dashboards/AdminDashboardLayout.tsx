@@ -4,8 +4,26 @@ import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import SidebarDashboard from "@/components/sections/sub-section/dashboards/SidebarDashboard";
+import DashboardNavbar from "@/components/sections/dashboards/DashboardNavbar";
 import ComingSoonPage from "@/components/shared/others/ComingSoonPage";
 import { useSearchParams } from "next/navigation";
+import { 
+  LayoutDashboard, 
+  Users, 
+  FileCheck, 
+  CheckSquare,
+  Award,
+  Calendar,
+  BookOpen,
+  FolderTree,
+  Pencil,
+  Plus,
+  CreditCard,
+  User,
+  Building,
+  MessageCircle,
+  FileText
+} from "lucide-react";
 
 // Dynamically import dashboard components
 const AdminDashboardMain = dynamic(() => import("@/components/layout/main/dashboards/AdminDashboardMain"), { 
@@ -81,6 +99,15 @@ const containerVariants = {
   exit: { opacity: 0, transition: { duration: 0.3 } },
 };
 
+// Define SubItem interface to match SidebarDashboard
+interface SubItem {
+  name: string;
+  path?: string;
+  icon: React.ReactNode;
+  comingSoon?: boolean;
+  onClick?: () => void;
+}
+
 interface AdminDashboardLayoutProps {
   userRole: string;
 }
@@ -93,6 +120,9 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ userRole })
   const [isDebug, setIsDebug] = useState<boolean>(false);
   const [comingSoonTitle, setComingSoonTitle] = useState<string>("Coming Soon");
   const [componentProps, setComponentProps] = useState<any>({});
+  const [activeMenu, setActiveMenu] = useState<string>("Dashboard");
+  const [activeSubItems, setActiveSubItems] = useState<SubItem[]>([]);
+  const [userName, setUserName] = useState<string>("Admin User");
 
   // Check if device is mobile and handle coming soon params
   useEffect(() => {
@@ -119,32 +149,389 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ userRole })
       setComingSoonTitle(title);
       setCurrentView("comingsoon");
     }
+
+    // Get user name from localStorage if available
+    if (typeof window !== 'undefined') {
+      const storedUserName = localStorage.getItem("full_name");
+      if (storedUserName) {
+        setUserName(storedUserName);
+      }
+    }
     
     return () => window.removeEventListener("resize", checkMobile);
   }, [searchParams]);
 
-  // Log view changes
-  useEffect(() => {
-    console.log("Current view changed to:", currentView);
-    if (isDebug) {
-      console.log("Component props:", componentProps);
-    }
-  }, [currentView, componentProps, isDebug]);
+  // Define predefined admin sidebar navigation items
+  // These will be available for both the sidebar and navbar to use
+  const adminNavItems = {
+    dashboard: [
+      {
+        name: "Overview",
+        path: "/dashboards/admin-dashboard",
+        icon: <LayoutDashboard className="w-4 h-4" />,
+        onClick: () => {
+          setCurrentView("overview");
+        }
+      },
+      {
+        name: "My Profile",
+        path: "/dashboards/admin-profile",
+        icon: <User className="w-4 h-4" />,
+        onClick: () => {
+          setCurrentView("admin-profile");
+        }
+      },
+      {
+        name: "Notifications",
+        path: "/dashboards/admin-notifications",
+        icon: <MessageCircle className="w-4 h-4" />,
+        comingSoon: true
+      }
+    ],
+    courseManagement: [
+      {
+        name: "Course Categories",
+        icon: <FolderTree className="w-4 h-4" />,
+        onClick: () => {
+          setCurrentView("admin-course-categories");
+        }
+      },
+      {
+        name: "Create New Course",
+        icon: <Plus className="w-4 h-4" />,
+        onClick: () => {
+          setCurrentView("add-course");
+        }
+      },
+      {
+        name: "Edit/Archive Courses",
+        icon: <Pencil className="w-4 h-4" />,
+        onClick: () => {
+          setCurrentView("admin-listofcourse");
+        }
+      },
+      {
+        name: "Course Status",
+        icon: <FileCheck className="w-4 h-4" />,
+        onClick: () => {
+          setCurrentView("coursestatus");
+        }
+      },
+      {
+        name: "Add Category",
+        icon: <Plus className="w-4 h-4" />,
+        onClick: () => {
+          setCurrentView("admin-add-category");
+        }
+      }
+    ],
+    studentManagement: [
+      {
+        name: "View All Students",
+        icon: <Users className="w-4 h-4" />,
+        onClick: () => {
+          setCurrentView("admin-studentmange");
+        }
+      },
+      {
+        name: "Add New Student",
+        icon: <Plus className="w-4 h-4" />,
+        onClick: () => {
+          setCurrentView("add-student");
+        }
+      },
+      {
+        name: "Attendance",
+        icon: <CheckSquare className="w-4 h-4" />,
+        comingSoon: true
+      }
+    ],
+    instructorManagement: [
+      {
+        name: "View All Instructors",
+        icon: <Users className="w-4 h-4" />,
+        onClick: () => {
+          setCurrentView("admin-instuctoremange");
+        }
+      },
+      {
+        name: "Add New Instructor",
+        icon: <Plus className="w-4 h-4" />,
+        onClick: () => {
+          setCurrentView("add-instructor");
+        }
+      },
+      {
+        name: "Assign Instructor",
+        icon: <FileCheck className="w-4 h-4" />,
+        onClick: () => {
+          setCurrentView("admin-assigninstructor");
+        }
+      }
+    ],
+    certificates: [
+      {
+        name: "Generate Certificate",
+        icon: <Award className="w-4 h-4" />,
+        onClick: () => {
+          setCurrentView("admin-generatecertificate");
+        }
+      },
+      {
+        name: "Certificate Templates",
+        icon: <FileText className="w-4 h-4" />,
+        comingSoon: true
+      }
+    ],
+    onlineClass: [
+      {
+        name: "Schedule Online Class",
+        icon: <Calendar className="w-4 h-4" />,
+        onClick: () => {
+          setCurrentView("online-class");
+        }
+      },
+      {
+        name: "Demo Classes",
+        icon: <BookOpen className="w-4 h-4" />,
+        onClick: () => {
+          setCurrentView("demo-classes");
+        }
+      },
+      {
+        name: "Live Demo Class",
+        icon: <Calendar className="w-4 h-4" />,
+        onClick: () => {
+          setCurrentView("live-demo-class");
+        }
+      },
+      {
+        name: "Main Class",
+        icon: <BookOpen className="w-4 h-4" />,
+        onClick: () => {
+          setCurrentView("main-class");
+        }
+      },
+      {
+        name: "All Main Classes",
+        icon: <Users className="w-4 h-4" />,
+        onClick: () => {
+          setCurrentView("all-main-classes");
+        }
+      }
+    ],
+    blogManagement: [
+      {
+        name: "All Blogs",
+        icon: <FileText className="w-4 h-4" />,
+        onClick: () => {
+          setCurrentView("admin-blogs");
+        }
+      },
+      {
+        name: "Add Blog",
+        icon: <Plus className="w-4 h-4" />,
+        onClick: () => {
+          setCurrentView("add-blog");
+        }
+      }
+    ],
+    formsManagement: [
+      {
+        name: "Enrollment Forms",
+        icon: <FileText className="w-4 h-4" />,
+        onClick: () => {
+          setCurrentView("admin-enrollments");
+        }
+      },
+      {
+        name: "Contact Queries",
+        icon: <MessageCircle className="w-4 h-4" />,
+        onClick: () => {
+          setCurrentView("admin-get-in-touch");
+        }
+      },
+      {
+        name: "Job Applications",
+        icon: <Users className="w-4 h-4" />,
+        onClick: () => {
+          setCurrentView("admin-job-applicants");
+        }
+      }
+    ],
+    feedbackManagement: [
+      {
+        name: "View Feedback",
+        icon: <MessageCircle className="w-4 h-4" />,
+        onClick: () => {
+          setCurrentView("admin-feedback-and-complaints");
+        }
+      }
+    ],
+    corporateManagement: [
+      {
+        name: "Placements",
+        icon: <Building className="w-4 h-4" />,
+        onClick: () => {
+          setCurrentView("admin-placements");
+        }
+      },
+      {
+        name: "Add Corporate Admin",
+        icon: <Plus className="w-4 h-4" />,
+        onClick: () => {
+          setCurrentView("add-corporate-admin");
+        }
+      },
+      {
+        name: "Corporate Admin Table",
+        icon: <Users className="w-4 h-4" />,
+        onClick: () => {
+          setCurrentView("corporate-admin-table");
+        }
+      }
+    ]
+  };
 
-  // Handle menu item selection
-  const handleMenuSelect = (viewName: string) => {
-    console.log("Menu selected:", viewName); // Debug log
-    setCurrentView(viewName);
-    setComponentProps({}); // Reset props when changing views
+  // Handle menu item selection from sidebar
+  const handleMenuSelect = (menuName: string, items: SubItem[] = []) => {
+    if (isDebug) {
+      console.log("Menu selected:", menuName); // Debug log
+    }
+    
+    setActiveMenu(menuName);
+    
+    // Use predefined items based on menu name if available, otherwise use provided items
+    let menuItems: SubItem[] = [];
+    
+    switch(menuName) {
+      case "Dashboard":
+        menuItems = adminNavItems.dashboard;
+        break;
+      case "Course Setup":
+        menuItems = adminNavItems.courseManagement;
+        break;
+      case "Student Management":
+        menuItems = adminNavItems.studentManagement;
+        break;
+      case "Instructor Management":
+        menuItems = adminNavItems.instructorManagement;
+        break;
+      case "Certificate Management":
+        menuItems = adminNavItems.certificates;
+        break;
+      case "Online Class Management":
+      case "timetable":
+        menuItems = adminNavItems.onlineClass;
+        break;
+      case "Blogs Management":
+        menuItems = adminNavItems.blogManagement;
+        break;
+      case "Form Management":
+      case "queries":
+        menuItems = adminNavItems.formsManagement;
+        break;
+      case "Feedback & Grievances":
+        menuItems = adminNavItems.feedbackManagement;
+        break;
+      case "Corporate Management":
+        menuItems = adminNavItems.corporateManagement;
+        break;
+      default:
+        // Use items passed from sidebar if no predefined items exist
+        menuItems = items;
+    }
+    
+    setActiveSubItems(menuItems);
+    
+    // Default behavior - if items are available and no specific one is clicked,
+    // navigate to the first item's path or trigger its onClick
+    if (menuItems.length > 0 && !items.find(item => item.onClick)) {
+      const firstItem = menuItems[0];
+      if (firstItem.onClick) {
+        firstItem.onClick();
+      } else if (firstItem.path) {
+        // Extract view name from path
+        const pathParts = firstItem.path.split('/');
+        const viewFromPath = pathParts[pathParts.length - 1];
+        setCurrentView(viewFromPath);
+      } else {
+        // Default view based on menu name
+        setCurrentView(menuName.toLowerCase().replace(/\s+/g, '-'));
+      }
+    }
+    
     if (isMobile) {
       setSidebarOpen(false);
     }
   };
 
+  // Handle sub-item click from the navbar
+  const handleSubItemClick = (subItem: SubItem) => {
+    if (subItem.comingSoon) {
+      return;
+    }
+    
+    if (subItem.onClick) {
+      subItem.onClick();
+    } else if (subItem.path) {
+      // Extract view name from path
+      const pathParts = subItem.path.split('/');
+      const viewFromPath = pathParts[pathParts.length - 1];
+      setCurrentView(viewFromPath);
+    }
+    
+    if (isMobile) {
+      setSidebarOpen(false);
+    }
+  };
+
+  // Check if a sub-item is active
+  const isSubItemActive = (subItem: SubItem): boolean => {
+    if (!currentView) return false;
+    
+    // If the item has an onClick that sets a specific view, check if current view matches
+    const normalizedCurrentView = currentView.toLowerCase();
+    
+    // Special case for specific views from onClick handlers
+    if (normalizedCurrentView === "overview" && subItem.name === "Overview") {
+      return true;
+    }
+    
+    if (normalizedCurrentView === "admin-course-categories" && subItem.name === "Course Categories") {
+      return true;
+    }
+    
+    if (normalizedCurrentView === "add-course" && subItem.name === "Create New Course") {
+      return true;
+    }
+    
+    if (normalizedCurrentView === "admin-listofcourse" && subItem.name === "Edit/Archive Courses") {
+      return true;
+    }
+    
+    // Check for path match
+    if (subItem.path) {
+      const pathParts = subItem.path.split('/');
+      const viewFromPath = pathParts[pathParts.length - 1];
+      return normalizedCurrentView === viewFromPath.toLowerCase();
+    }
+    
+    return false;
+  };
+
+  // Check if the current view matches any of the given patterns
+  const viewMatches = (patterns: string[]): boolean => {
+    if (!currentView) return false;
+    
+    const normalizedView = currentView.toLowerCase();
+    return patterns.some(pattern => normalizedView.includes(pattern.toLowerCase()));
+  };
+
   // Render component based on current view
   const renderComponent = () => {
     if (isDebug) {
-      console.log("Current view:", currentView);
+      console.log("Rendering component for view:", currentView);
     }
     
     // Handle coming soon page
@@ -156,14 +543,8 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ userRole })
       />;
     }
     
-    // Helper to check if the current view matches any of the given patterns
-    const viewMatches = (patterns: string[]): boolean => {
-      const normalizedView = currentView.toLowerCase();
-      return patterns.some(pattern => normalizedView.includes(pattern));
-    };
-    
     // Main Dashboard
-    if (viewMatches(['overview', 'dashboard', 'admin-dashboard'])) {
+    if (viewMatches(['overview', 'dashboard'])) {
       return <AdminDashboardMain />;
     } 
     
@@ -174,7 +555,7 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ userRole })
     else if (viewMatches(['add-course', 'admin-addcourse', 'newcourse'])) {
       return <AddCourse />;
     }
-    else if (viewMatches(['admin-edit-courses', 'admin-listofcourse', 'listcourse'])) {
+    else if (viewMatches(['admin-listofcourse', 'listcourse', 'edit-courses'])) {
       return <ListOfCourses />;
     }
     else if (viewMatches(['update-course'])) {
@@ -196,38 +577,23 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ userRole })
       return <AdminCategories selectedCategory={null} />;
     }
     
-    // Resource & Curriculum Management
-    else if (viewMatches(['curriculum-builder', 'assignment-builder', 'resource-builder', 'quiz-builder'])) {
-      return <ComingSoonPage 
-        title="Course Content Builder" 
-        description="This feature is coming soon. You'll be able to build course content here."
-        returnPath="/dashboards/admin-dashboard"
-      />;
-    }
-    
     // Student Management
-    else if (viewMatches(['admin-view-students', 'studentmange', 'admin-studentmange'])) {
+    else if (viewMatches(['admin-studentmange', 'studentmange', 'view-students'])) {
       return <StudentManagement />;
+    }
+    else if (viewMatches(['add-student'])) {
+      return <AddStudent />;
     }
     
     // Instructor Management
-    else if (viewMatches(['admin-view-instructors', 'instuctoremange', 'admin-instuctoremange'])) {
+    else if (viewMatches(['admin-instuctoremange', 'instuctoremange', 'view-instructors'])) {
       return <InstructorManagement />;
     }
     else if (viewMatches(['add-instructor'])) {
       return <AddInstructor />;
     }
-    else if (viewMatches(['assign-instructor', 'admin-assigninstructor'])) {
+    else if (viewMatches(['admin-assigninstructor', 'assign-instructor'])) {
       return <AssignInstructor />;
-    }
-    
-    // User Management
-    else if (viewMatches(['add-user', 'add-student'])) {
-      return <ComingSoonPage 
-        title="User Management" 
-        description="This feature is coming soon. You'll be able to add and manage users here."
-        returnPath="/dashboards/admin-dashboard"
-      />;
     }
     
     // Certificate Management
@@ -257,9 +623,7 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ userRole })
       return <AdminBlogsManagement />;
     }
     else if (viewMatches(['add-blog'])) {
-      // For now, return to blog management instead of the problematic component
-      setCurrentView('admin-blogs');
-      return <AdminBlogsManagement />;
+      return <AdminBlogsManagement />; // Redirect to blogs management instead
     }
     
     // Forms Management
@@ -274,12 +638,12 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ userRole })
     }
     
     // Feedback Management
-    else if (viewMatches(['admin-feedback-and-complaints', 'complaints'])) {
+    else if (viewMatches(['admin-feedback-and-complaints', 'complaints', 'feedback'])) {
       return <AdminFeedbackComplaints />;
     }
     
     // Placement Management
-    else if (viewMatches(['admin-placements', 'corporate'])) {
+    else if (viewMatches(['admin-placements', 'corporate', 'placement'])) {
       return <AdminPlacements />;
     }
     
@@ -291,6 +655,7 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ userRole })
       return <CorporateAdminTable />;
     }
     
+    // Fallback for debug mode
     else if (isDebug) {
       return (
         <div className="p-8 text-center">
@@ -309,7 +674,7 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ userRole })
     } else {
       // Default to ComingSoon page for unimplemented views
       return <ComingSoonPage 
-        title="Feature Coming Soon" 
+        title={`Feature: ${currentView}`}
         description="This admin feature is under development and will be available soon!"
         returnPath="/dashboards/admin-dashboard"
       />;
@@ -355,10 +720,17 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ userRole })
           } top-0 h-screen flex-shrink-0 w-[280px] bg-white dark:bg-gray-800 transition-transform duration-300 shadow-md overflow-hidden`}
         >
           <SidebarDashboard
-            role={userRole}
-            isAdmin={true}
-            onMenuSelect={handleMenuSelect}
-            currentView={currentView}
+            userRole={userRole || "admin"}
+            userName={userName}
+            userEmail=""
+            userImage=""
+            userNotifications={0}
+            userSettings={{
+              theme: "light",
+              language: "en",
+              notifications: true
+            }}
+            onMenuClick={handleMenuSelect}
           />
         </div>
 
@@ -370,10 +742,23 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ userRole })
           exit="exit"
           className="flex-1 overflow-y-auto"
         >
+          {/* Dashboard Navbar */}
+          {activeSubItems && activeSubItems.length > 0 && (
+            <DashboardNavbar
+              activeMenu={activeMenu}
+              subItems={activeSubItems}
+              onItemClick={handleSubItemClick}
+              currentView={currentView}
+              isSubItemActive={isSubItemActive}
+            />
+          )}
+
           <div className="p-6">
             {isDebug && (
               <div className="mb-4 p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 rounded-lg text-xs">
                 Debug: Current View = "{currentView}"
+                <div className="mt-1">Active Menu = "{activeMenu}"</div>
+                <div className="mt-1">Subitems Count = {activeSubItems?.length || 0}</div>
                 {Object.keys(componentProps).length > 0 && (
                   <span className="block mt-1">
                     Props: {JSON.stringify(componentProps)}

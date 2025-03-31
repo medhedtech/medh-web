@@ -18,6 +18,7 @@ import { Eye, EyeOff, Mail, Lock, Loader2, CheckCircle, AlertCircle, Sparkles, A
 import CustomReCaptcha from '../ReCaptcha';
 import { useStorage } from "@/contexts/StorageContext";
 import FixedShadow from "../others/FixedShadow";
+import { events } from "@/utils/analytics";
 
 const schema = yup
   .object({
@@ -164,6 +165,9 @@ const LoginForm = () => {
           permissions: res.permissions || [],
           rememberMe: rememberMe
         });
+
+        // Track login event in Google Analytics
+        events.login(userRole || 'user');
 
         // Handle routing based on role
         // Convert role to lowercase for case-insensitive comparison

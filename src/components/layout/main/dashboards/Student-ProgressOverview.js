@@ -153,7 +153,7 @@ const StudentProgressOverview = () => {
       <div className="mb-8">
         <div className="flex items-center gap-4 mb-6">
           <button
-            onClick={() => router.push("/dashboards/student-dashboard")}
+            onClick={() => router.push("/dashboards/student")}
             className="p-2 rounded-full bg-white dark:bg-gray-800 shadow-md hover:shadow-lg transition-all duration-300"
           >
             <FaArrowLeft className="text-gray-700 dark:text-white" size={20} />

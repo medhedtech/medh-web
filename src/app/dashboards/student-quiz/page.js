@@ -17,7 +17,7 @@ const StudentQuizes = () => {
           <ComingSoonPage 
             title="Quiz Feature Coming Soon" 
             description="Our interactive quiz feature is currently under development. Get ready for a fun learning experience with adaptive quizzes tailored to your courses!"
-            returnPath="/dashboards/student-dashboard"
+            returnPath="/dashboards/student"
           />
         </DashboardContainer>
       </main>
