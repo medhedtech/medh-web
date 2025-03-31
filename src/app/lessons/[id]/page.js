@@ -26,8 +26,4 @@ const Lesson = ({ params }) => {
   redirect(`/integrated-lessons/${id}`);
 };
 
-export async function generateStaticParams() {
-  return lessons?.map(({ id }) => ({ id: id.toString() }));
-}
-
 export default Lesson;
