@@ -21,7 +21,4 @@ const Product_Details = async ({ params }) => {
     </PageWrapper>
   );
 };
-export async function generateStaticParams() {
-  return products?.map(({ id }) => ({ id: id.toString() }));
-}
 export default Product_Details;

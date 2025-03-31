@@ -23,7 +23,4 @@ const Event_details = async ({ params }) => {
     </PageWrapper>
   );
 };
-export async function generateStaticParams() {
-  return events?.map(({ id }) => ({ id: id.toString() }));
-}
 export default Event_details;
