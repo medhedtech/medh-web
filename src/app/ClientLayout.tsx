@@ -16,6 +16,8 @@ import { useEffect, useState } from "react";
 import CookieConsent from "@/components/shared/gdpr/CookieConsent";
 import Providers from "./Providers";
 import { ChevronUp } from "lucide-react";
+import GoogleAnalytics from "@/components/shared/analytics/GoogleAnalytics";
+import { events } from "@/utils/analytics";
 
 // Font configuration
 const poppins = Poppins({
@@ -129,6 +131,9 @@ const ScrollToTop = () => {
 };
 
 export default function ClientLayout({ children }: ClientLayoutProps) {
+  // Get Google Analytics measurement ID from environment variable
+  const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || '';
+  
   useEffect(() => {
     // Initialize smooth scrolling behavior
     const initSmoothScroll = () => {
@@ -146,6 +151,11 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
 
     initSmoothScroll();
 
+    // Track page view when component mounts (client-side navigation)
+    if (GA_MEASUREMENT_ID) {
+      events.pageView(window.location.pathname + window.location.search);
+    }
+
     // Listen for changes in reduced motion preference
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     const handleMotionPreference = (e: MediaQueryListEvent) => {
@@ -161,7 +171,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
       document.body.style.overflow = '';
       document.body.style.height = '';
     };
-  }, []);
+  }, [GA_MEASUREMENT_ID]);
 
   return (
     <html 
@@ -170,6 +180,9 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
       className={`${hind.variable} ${poppins.variable} ${montserrat.variable} h-full`}
     >
       <body className="relative bg-bodyBg dark:bg-bodyBg-dark text-gray-700 dark:text-gray-200 min-h-screen font-sans antialiased">
+        {/* Google Analytics */}
+        {GA_MEASUREMENT_ID && <GoogleAnalytics GA_MEASUREMENT_ID={GA_MEASUREMENT_ID} />}
+        
         <Providers>
           {/* Scroll Progress Bar */}
           <ScrollProgress />

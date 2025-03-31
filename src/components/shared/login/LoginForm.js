@@ -179,7 +179,7 @@ const LoginForm = () => {
           roleLower === "coorporate"
         ) {
           console.log(`Redirecting to /dashboards/${roleLower}-dashboard`);
-          router.push(`/dashboards/${roleLower}-dashboard`);
+          router.push(`/dashboards/${roleLower}`);
         } else if (roleLower === "coorporate-student") {
           console.log("Redirecting to /dashboards/coorporate-employee-dashboard");
           router.push(`/dashboards/coorporate-employee-dashboard`);
