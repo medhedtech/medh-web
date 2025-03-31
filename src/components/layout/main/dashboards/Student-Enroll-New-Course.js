@@ -105,7 +105,7 @@ const StudentNewCourses = () => {
       <div className="flex justify-between flex-wrap gap-4 mb-4">
         <div className="flex items-center gap-4">
           <div
-            onClick={() => router.push("/dashboards/student-dashboard")}
+            onClick={() => router.push("/dashboards/student")}
             className="flex items-center gap-2 cursor-pointer"
           >
             <FaArrowLeft className="text-gray-700 dark:text-white" size={20} />

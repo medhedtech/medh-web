@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import SidebarDashboard from "@/components/sections/sub-section/dashboards/SidebarDashboard";
 import ComingSoonPage from "@/components/shared/others/ComingSoonPage";
 import { useSearchParams } from "next/navigation";
-import { ChevronDown, ChevronRight, MoreHorizontal, Menu, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import DashboardNavbar from "./DashboardNavbar";
 
@@ -64,52 +63,27 @@ const hideScrollbarStyles = `
       opacity: 0.7;
     }
   }
-  
-  .dropdown-container {
-    position: relative;
-  }
-  
-  .dropdown-menu {
-    position: absolute;
-    top: calc(100% + 8px);
-    right: 0;
-    z-index: 50;
-    width: 15rem;
-    transform-origin: top right;
-  }
-  
-  @media (max-width: 640px) {
-    .dropdown-menu {
-      position: fixed;
-      left: 50%;
-      transform: translateX(-50%);
-      bottom: 16px;
-      top: auto;
-      width: calc(100% - 32px);
-      max-width: 20rem;
-    }
-  }
 `;
 
 // Dynamically import dashboard components
-const StudentDashboardMain = dynamic(() => import("@/components/layout/main/dashboards/StudentDashboardMain"), { 
+const ParentDashboardMain = dynamic(() => import("@/components/layout/main/dashboards/ParentDashboardMain"), { 
   ssr: false,
   loading: () => <div className="flex min-h-[60vh] items-center justify-center"><div className="animate-pulse text-primary-500">Loading overview...</div></div>
 });
-const MyCoursesDashboard = dynamic(() => import("@/components/layout/main/dashboards/MyCoursesDashboard"), { 
+const ParentGradesView = dynamic(() => import("@/components/layout/main/dashboards/ParentGradesView"), { 
   ssr: false,
-  loading: () => <div className="flex min-h-[60vh] items-center justify-center"><div className="animate-pulse text-primary-500">Loading courses...</div></div>
+  loading: () => <div className="flex min-h-[60vh] items-center justify-center"><div className="animate-pulse text-primary-500">Loading grades...</div></div>
 });
-const StudentMembership = dynamic(() => import("@/components/layout/main/dashboards/studentMembership"), { ssr: false });
-const StudentEnrolledCourses = dynamic(() => import("@/components/sections/sub-section/dashboards/StudentEnrolledCourses"), { 
+const ParentAttendanceView = dynamic(() => import("@/components/layout/main/dashboards/ParentAttendanceView"), { 
   ssr: false,
-  loading: () => <div className="flex min-h-[60vh] items-center justify-center"><div className="animate-pulse text-primary-500">Loading enrolled courses...</div></div>
+  loading: () => <div className="flex min-h-[60vh] items-center justify-center"><div className="animate-pulse text-primary-500">Loading attendance...</div></div>
 });
-const QuizPage = dynamic(() => import("@/components/layout/main/dashboards/QuizPage"), { ssr: false });
+const ParentProfile = dynamic(() => import("@/components/layout/main/dashboards/ParentProfile"), { 
+  ssr: false,
+  loading: () => <div className="flex min-h-[60vh] items-center justify-center"><div className="animate-pulse text-primary-500">Loading profile...</div></div>
+});
 const FeedbackandSupport = dynamic(() => import("@/components/layout/main/dashboards/FeedbackandSupport"), { ssr: false });
-const CertificateCoursesEnroll = dynamic(() => import("@/components/layout/main/dashboards/CertificateCoursesEnroll"), { ssr: false });
 const Payments = dynamic(() => import("@/components/layout/main/dashboards/Payments"), { ssr: false });
-const PlacementForm = dynamic(() => import("@/components/layout/main/dashboards/PlacementForm"), { ssr: false });
 
 // Dashboard layout container animations
 const containerVariants = {
@@ -125,10 +99,6 @@ const containerVariants = {
   exit: { opacity: 0, transition: { duration: 0.3 } },
 };
 
-interface DashboardLayoutProps {
-  userRole: string;
-}
-
 interface SubItem {
   name: string;
   path?: string;
@@ -137,7 +107,7 @@ interface SubItem {
   onClick?: () => void;
 }
 
-interface StudentDashboardLayoutProps {
+interface ParentDashboardLayoutProps {
   children?: React.ReactNode;
   userRole: string;
   userName: string;
@@ -151,7 +121,7 @@ interface StudentDashboardLayoutProps {
   };
 }
 
-const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
+const ParentDashboardLayout: React.FC<ParentDashboardLayoutProps> = ({
   children,
   userRole,
   userName,
@@ -163,7 +133,6 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
   const searchParams = useSearchParams();
   const router = useRouter();
   const [currentView, setCurrentView] = useState<string>("overview");
-  const [certificateUrl, setCertificateUrl] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
   const [isDebug, setIsDebug] = useState<boolean>(false);
@@ -245,16 +214,6 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
     }
   };
 
-  // Certificate view handlers
-  const handleViewCertificate = () => {
-    setCurrentView("certificateView");
-  };
-
-  const handleCloseCertificate = () => {
-    setCurrentView("certificates");
-    setCertificateUrl(null);
-  };
-
   // Render component based on current view
   const renderComponent = () => {
     if (isDebug) {
@@ -266,7 +225,7 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
       return <ComingSoonPage 
         title={comingSoonTitle} 
         description="We're working on this feature. It will be available soon!"
-        returnPath="/dashboards/student"
+        returnPath="/dashboards/parent"
       />;
     }
     
@@ -278,76 +237,40 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
     
     // Determine which component to render based on the current view
     if (viewMatches(['overview', 'dashboard'])) {
-      return <StudentDashboardMain />;
-    } else if (viewMatches(['mycourses', 'my-courses', 'courses'])) {
-      return <MyCoursesDashboard />;
-    } else if (viewMatches(['membership'])) {
-      return <StudentMembership />;
-    } else if (viewMatches(['enrolledcourses', 'enrolled-courses', 'enrolled'])) {
-      return <StudentEnrolledCourses />;
-    } else if (viewMatches(['quiz', 'quizzes'])) {
-      return <QuizPage closeQuiz={() => setCurrentView("overview")} />;
-    } else if (viewMatches(['feedback', 'support'])) {
+      return <ParentDashboardMain />;
+    } else if (viewMatches(['profile'])) {
+      return <ParentProfile />;
+    } else if (viewMatches(['grades', 'assignments'])) {
+      return <ParentGradesView />;
+    } else if (viewMatches(['attendance'])) {
+      return <ParentAttendanceView />;
+    } else if (viewMatches(['feedback', 'support', 'concerns'])) {
       return <FeedbackandSupport />;
-    } else if (viewMatches(['certificate', 'certificates'])) {
-      if (viewMatches(['view'])) {
-        return (
-          <div className="p-8 w-full flex flex-col items-center justify-center">
-            <button 
-              onClick={handleCloseCertificate}
-              className="self-start mb-4 px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-            >
-              &larr; Back to Certificates
-            </button>
-            {certificateUrl && (
-              <iframe 
-                src={certificateUrl} 
-                className="w-full max-w-4xl h-[80vh] rounded-lg shadow-lg" 
-              />
-            )}
-          </div>
-        );
-      } else {
-        return (
-          <CertificateCoursesEnroll 
-            onViewCertificate={handleViewCertificate} 
-            setCertificateUrl={setCertificateUrl} 
-          />
-        );
-      }
-    } else if (viewMatches(['payment', 'payments'])) {
+    } else if (viewMatches(['payment', 'payments', 'fees', 'fee'])) {
       return <Payments />;
-    } else if (viewMatches(['placement'])) {
-      return <PlacementForm />;
-    } else if (viewMatches(['democlasses', 'demo'])) {
+    } else if (viewMatches(['communication', 'message', 'instructors', 'meetings'])) {
       return <ComingSoonPage 
-        title="Demo Classes" 
-        description="This feature is coming soon. You'll be able to manage your demo classes here."
-        returnPath="/dashboards/student"
+        title="Communication Center" 
+        description="The messaging system will be available soon. You'll be able to communicate with instructors here."
+        returnPath="/dashboards/parent"
       />;
-    } else if (viewMatches(['progress', 'analytics'])) {
+    } else if (viewMatches(['timetable', 'schedule', 'classes'])) {
       return <ComingSoonPage 
-        title="Progress Tracking" 
-        description="Track your course progress and performance analytics here. Coming soon!"
-        returnPath="/dashboards/student"
+        title="Class Schedule" 
+        description="View your child's class schedule and upcoming classes. Coming soon!"
+        returnPath="/dashboards/parent"
       />;
-    } else if (viewMatches(['resource', 'materials', 'ebooks'])) {
+    } else if (viewMatches(['recordings', 'video', 'live'])) {
       return <ComingSoonPage 
-        title="Learning Resources" 
-        description="Access course materials and e-books. Coming soon!"
-        returnPath="/dashboards/student"
+        title="Class Recordings" 
+        description="Access recorded class sessions. Coming soon!"
+        returnPath="/dashboards/parent"
       />;
-    } else if (viewMatches(['assignments', 'assignment'])) {
+    } else if (viewMatches(['performance', 'tracking', 'progress'])) {
       return <ComingSoonPage 
-        title="Assignments" 
-        description="View and submit your assignments here. Coming soon!"
-        returnPath="/dashboards/student"
-      />;
-    } else if (viewMatches(['liveclasses', 'live'])) {
-      return <ComingSoonPage 
-        title="Live Classes" 
-        description="Join and manage your live classes here. Coming soon!"
-        returnPath="/dashboards/student"
+        title="Performance Tracking" 
+        description="Track your child's academic performance over time. Coming soon!"
+        returnPath="/dashboards/parent"
       />;
     } else if (isDebug) {
       return (
@@ -369,7 +292,7 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
       return <ComingSoonPage 
         title="Feature Coming Soon" 
         description="We're working on this feature and it will be available soon!"
-        returnPath="/dashboards/student"
+        returnPath="/dashboards/parent"
       />;
     }
   };
@@ -390,7 +313,7 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
               className="fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-lg"
             >
               <SidebarDashboard
-                userRole={userRole}
+                userRole="parent"
                 userName={userName}
                 userEmail={userEmail}
                 userImage={userImage}
@@ -401,6 +324,22 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Mobile toggle button */}
+        <button
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          className="fixed bottom-6 left-6 z-50 p-3 bg-primary-500 text-white rounded-full shadow-lg md:hidden"
+        >
+          {isSidebarOpen ? (
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          ) : (
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          )}
+        </button>
 
         {/* Main Content */}
         <div className={`transition-all duration-300 ${isSidebarOpen ? "md:ml-64" : ""}`}>
@@ -443,4 +382,4 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
   );
 };
 
-export default StudentDashboardLayout; 
+export default ParentDashboardLayout; 

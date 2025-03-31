@@ -1,14 +1,23 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Calendar, Clock, Video, BookOpen, GraduationCap } from "lucide-react";
+import { 
+  Calendar, 
+  Clock, 
+  Video, 
+  BookOpen, 
+  GraduationCap, 
+  CalendarClock, 
+  ExternalLink, 
+  Users,
+  ArrowRight
+} from "lucide-react";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
 import moment from "moment";
 import { toast } from "react-toastify";
 import Image from "next/image";
 import AiMl from "@/assets/images/courses/Ai&Ml.jpeg";
-import Preloader from "@/components/shared/others/Preloader";
 
 interface ClassDetails {
   _id: string;
@@ -27,7 +36,7 @@ const StudentUpcomingClasses: React.FC = () => {
   const [studentId, setStudentId] = useState<string | null>(null);
   const { getQuery, loading } = useGetQuery<ClassDetails[]>();
   const [isVisible, setIsVisible] = useState(false);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [selectedTab, setSelectedTab] = useState<'upcoming' | 'today' | 'recent'>('upcoming');
 
   // Animation variants
   const containerVariants = {
@@ -60,7 +69,6 @@ const StudentUpcomingClasses: React.FC = () => {
       } else {
         console.error("No student ID found in localStorage");
       }
-      setIsInitialLoad(false);
     }
   }, []);
 
@@ -150,208 +158,263 @@ const StudentUpcomingClasses: React.FC = () => {
     return currentTime.isBetween(startLiveTime, endLiveTime);
   };
 
-  // Show loading state only during initial load or when fetching data
-  if (loading) {
-    return (
-      <section className="py-12 md:py-16 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] opacity-25 dark:bg-[radial-gradient(#1f2937_1px,transparent_1px)]"></div>
-        
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          {/* Header Skeleton */}
-          <div className="max-w-2xl mx-auto text-center mb-12">
-            <div className="inline-flex items-center justify-center space-x-1 mb-4">
-              <div className="h-px w-8 bg-primary-500/50"></div>
-              <div className="h-5 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-              <div className="h-px w-8 bg-primary-500/50"></div>
-            </div>
-            <div className="h-8 w-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mx-auto mb-4"></div>
-            <div className="h-4 w-96 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mx-auto"></div>
-          </div>
-
-          {/* Cards Skeleton */}
-          <div className="grid grid-cols-1 gap-6">
-            {[1, 2].map((index) => (
-              <div 
-                key={index}
-                className="group relative bg-white dark:bg-gray-800/50 backdrop-blur-lg rounded-2xl shadow-lg overflow-hidden border border-gray-100 dark:border-gray-700/50"
-              >
-                <div className="flex flex-col md:flex-row">
-                  {/* Image Skeleton */}
-                  <div className="relative h-48 md:h-auto md:w-48 lg:w-64 bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
-
-                  {/* Content Skeleton */}
-                  <div className="flex-1 p-6">
-                    <div className="flex flex-col h-full">
-                      <div className="flex-grow">
-                        {/* Title and Badge */}
-                        <div className="flex items-center gap-2 mb-4">
-                          <div className="h-5 w-5 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-                          <div className="h-5 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-                        </div>
-
-                        {/* Course Title */}
-                        <div className="h-6 w-3/4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-2"></div>
-                        <div className="h-4 w-1/2 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-4"></div>
-
-                        {/* Time and Date */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                          <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-                          <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-                        </div>
-                      </div>
-
-                      {/* Button Skeleton */}
-                      <div className="h-12 w-full bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+  // Calculate time until class starts or if it's already over
+  const getClassStatus = (classItem: ClassDetails) => {
+    const classDateTime = moment(
+      `${classItem.date} ${classItem.time}`,
+      "YYYY-MM-DD HH:mm"
     );
-  }
+    const classEndTime = classDateTime.clone().add(1, "hour");
+    const currentTime = moment();
+
+    if (currentTime.isBefore(classDateTime)) {
+      const diffMinutes = classDateTime.diff(currentTime, "minutes");
+      if (diffMinutes < 60) {
+        return {
+          status: 'soon',
+          text: `Starts in ${diffMinutes} minutes`,
+          color: 'text-amber-600 dark:text-amber-400'
+        };
+      }
+      const diffHours = Math.floor(diffMinutes / 60);
+      const remainingMinutes = diffMinutes % 60;
+      return {
+        status: 'upcoming',
+        text: `Starts in ${diffHours}h ${remainingMinutes}m`,
+        color: 'text-gray-600 dark:text-gray-400'
+      };
+    } else if (currentTime.isBefore(classEndTime)) {
+      return {
+        status: 'ongoing',
+        text: 'Class in progress',
+        color: 'text-emerald-600 dark:text-emerald-400'
+      };
+    } else {
+      return {
+        status: 'ended',
+        text: 'Class ended',
+        color: 'text-gray-500 dark:text-gray-500'
+      };
+    }
+  };
+
+  // Filter classes based on the selected tab
+  const getFilteredClasses = () => {
+    const today = moment().startOf('day');
+    const tomorrow = moment().add(1, 'day').startOf('day');
+
+    switch (selectedTab) {
+      case 'today':
+        return classes.filter(classItem => {
+          const classDate = moment(classItem.date, "YYYY-MM-DD").startOf('day');
+          return classDate.isSame(today);
+        });
+      case 'recent':
+        return classes.filter(classItem => {
+          const classDateTime = moment(
+            `${classItem.date} ${classItem.time}`,
+            "YYYY-MM-DD HH:mm"
+          );
+          return classDateTime.isBefore(moment());
+        }).sort((a, b) => 
+          moment(`${b.date} ${b.time}`, "YYYY-MM-DD HH:mm").diff(
+            moment(`${a.date} ${a.time}`, "YYYY-MM-DD HH:mm")
+          )
+        ).slice(0, 3);
+      case 'upcoming':
+      default:
+        return classes.filter(classItem => {
+          const classDateTime = moment(
+            `${classItem.date} ${classItem.time}`,
+            "YYYY-MM-DD HH:mm"
+          );
+          return classDateTime.isAfter(moment());
+        }).sort((a, b) => 
+          moment(`${a.date} ${a.time}`, "YYYY-MM-DD HH:mm").diff(
+            moment(`${b.date} ${b.time}`, "YYYY-MM-DD HH:mm")
+          )
+        );
+    }
+  };
+
+  const filteredClasses = getFilteredClasses();
+
+  // Loading skeleton component
+  const ClassSkeleton = () => (
+    <div className="animate-pulse h-36 bg-white dark:bg-gray-800/50 rounded-xl shadow-sm p-4 flex gap-4">
+      <div className="w-1/4 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+      <div className="flex-1">
+        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-3"></div>
+        <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-2/3 mb-3"></div>
+        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-3"></div>
+        <div className="flex gap-3 mt-auto">
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
-    <section 
-      id="upcoming-classes-section"
-      className="py-12 md:py-16 relative overflow-hidden"
-    >
-      {/* Modern background patterns */}
-      <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] opacity-25 dark:bg-[radial-gradient(#1f2937_1px,transparent_1px)]"></div>
+    <div id="upcoming-classes-section" className="p-6">
+      {/* Header with tabs */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white leading-tight">Live Sessions</h2>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Join your scheduled classes and stay engaged
+          </p>
+        </div>
+        
+        {/* Tab navigation */}
+        <div className="flex bg-gray-100 dark:bg-gray-800/50 rounded-lg p-1">
+          {[
+            { id: 'upcoming', label: 'Upcoming' }, 
+            { id: 'today', label: 'Today' },
+            { id: 'recent', label: 'Recent' }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setSelectedTab(tab.id as 'upcoming' | 'today' | 'recent')}
+              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+                selectedTab === tab.id 
+                  ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm' 
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
-      <motion.div
+      {/* Classes list */}
+      <motion.div 
         initial="hidden"
         animate={isVisible ? "visible" : "hidden"}
         variants={containerVariants}
-        className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10"
+        className="space-y-4"
       >
-        {/* Header Section */}
-        <motion.div
-          variants={containerVariants}
-          className="max-w-2xl mx-auto text-center mb-12"
-        >
-          <div className="inline-flex items-center justify-center space-x-1 mb-4">
-            <span className="h-px w-8 bg-primary-500/50"></span>
-            <span className="text-sm font-medium text-primary-600 dark:text-primary-400 tracking-wider uppercase">
-              Live Sessions
-            </span>
-            <span className="h-px w-8 bg-primary-500/50"></span>
-          </div>
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl mb-4">
-            Upcoming Classes
-          </h2>
-          <p className="text-lg leading-relaxed text-gray-600 dark:text-gray-400">
-            Join your scheduled live sessions and stay engaged with your courses
-          </p>
-        </motion.div>
-
-        {/* Classes Grid */}
-        <motion.div 
-          variants={containerVariants}
-          className="grid grid-cols-1 gap-6"
-        >
-          {classes.length > 0 ? (
-            classes.map((classItem) => (
+        {loading ? (
+          // Loading skeletons
+          Array(3).fill(null).map((_, index) => (
+            <ClassSkeleton key={index} />
+          ))
+        ) : filteredClasses.length > 0 ? (
+          filteredClasses.map((classItem) => {
+            const isOngoing = isClassOngoing(classItem);
+            const classStatus = getClassStatus(classItem);
+            
+            return (
               <motion.div
                 key={classItem._id}
                 variants={itemVariants}
-                className="group relative bg-white dark:bg-gray-800/50 backdrop-blur-lg rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 dark:border-gray-700/50"
+                className="bg-white dark:bg-gray-800/50 rounded-xl shadow-sm overflow-hidden border border-gray-100 dark:border-gray-700/50 transition-all duration-300 hover:shadow-md"
               >
-                <div className="flex flex-col md:flex-row">
+                <div className="flex flex-col sm:flex-row">
                   {/* Course Image */}
-                  <div className="relative h-48 md:h-auto md:w-48 lg:w-64">
+                  <div className="relative h-32 sm:h-auto sm:w-32 flex-shrink-0">
                     <Image
                       src={classItem?.courseDetails?.course_image || AiMl}
                       alt={classItem?.meet_title || "Class"}
                       fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      className="object-cover"
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-
                     {/* Live indicator */}
-                    {isClassOngoing(classItem) && (
-                      <div className="absolute top-4 right-4">
-                        <span className="inline-flex items-center px-3 py-1 rounded-full bg-red-100 dark:bg-red-900/30">
-                          <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-red-500 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500 mr-1"></span>
-                          <span className="text-red-600 dark:text-red-400 text-xs font-medium">LIVE</span>
+                    {isOngoing && (
+                      <div className="absolute top-2 right-2">
+                        <span className="inline-flex items-center px-2 py-1 rounded-md bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-xs font-medium">
+                          <span className="relative flex h-2 w-2 mr-1">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                          </span>
+                          LIVE
                         </span>
                       </div>
                     )}
                   </div>
-
+                  
                   {/* Content */}
-                  <div className="flex-1 p-6">
-                    <div className="flex flex-col h-full">
-                      <div className="flex-grow">
-                        <div className="flex items-center gap-2 mb-1">
-                          <GraduationCap className="w-5 h-5 text-primary-500" />
-                          <span className="text-sm font-medium text-primary-600 dark:text-primary-400">
-                            Live Class
-                          </span>
-                        </div>
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-primary-500 dark:group-hover:text-primary-400 transition-colors">
-                          {classItem.meet_title || "Untitled Class"}
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-                          {classItem.course_name || "Untitled Course"}
-                        </p>
-
-                        {/* Time and Date */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                          <div className="flex items-center text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
-                            <Calendar className="w-5 h-5 mr-2 text-primary-500" />
-                            <span className="text-sm">
-                              {moment(classItem.date).format("DD MMM YYYY")}
-                            </span>
-                          </div>
-                          <div className="flex items-center text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
-                            <Clock className="w-5 h-5 mr-2 text-primary-500" />
-                            <span className="text-sm">{classItem.time}</span>
-                          </div>
-                        </div>
+                  <div className="p-4 flex-1 flex flex-col">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-1">
+                      <div className="flex items-center text-xs font-medium">
+                        <CalendarClock className="w-3.5 h-3.5 mr-1 text-primary-500" />
+                        <span className={classStatus.color}>{classStatus.text}</span>
                       </div>
-
-                      {/* Join Button */}
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
+                      <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                        <Clock className="w-3.5 h-3.5 mr-1" />
+                        <span>{moment(classItem.date).format("ddd, MMM D")} • {classItem.time}</span>
+                      </div>
+                    </div>
+                    
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+                      {classItem.meet_title || "Untitled Class"}
+                    </h3>
+                    
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                      {classItem.course_name || "Untitled Course"}
+                    </p>
+                    
+                    <div className="flex items-center gap-3 mt-auto">
+                      <button
                         onClick={() => handleJoinClick(classItem)}
-                        className="w-full px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+                        disabled={classStatus.status === 'ended'}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors ${
+                          classStatus.status === 'ongoing'
+                            ? 'bg-primary-500 hover:bg-primary-600 text-white'
+                            : classStatus.status === 'ended'
+                              ? 'bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500 cursor-not-allowed'
+                              : 'bg-primary-50 text-primary-600 hover:bg-primary-100 dark:bg-primary-900/20 dark:text-primary-400'
+                        }`}
                       >
-                        <Video className="w-5 h-5" />
-                        Join Class
-                      </motion.button>
+                        <Video className="w-4 h-4" />
+                        {classStatus.status === 'ongoing' ? 'Join Now' : 'Join Class'}
+                      </button>
+                      
+                      {selectedTab === 'recent' && classStatus.status === 'ended' && (
+                        <button className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 flex items-center gap-1.5">
+                          <BookOpen className="w-4 h-4" />
+                          View Recording
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
               </motion.div>
-            ))
-          ) : (
-            <motion.div 
-              variants={itemVariants}
-              className="text-center py-12 px-6 rounded-2xl bg-white dark:bg-gray-800/50 backdrop-blur-lg shadow-lg border border-gray-100 dark:border-gray-700/50"
-            >
-              <div className="mb-6">
-                <div className="w-20 h-20 rounded-full bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center mx-auto mb-4">
-                  <Video className="w-10 h-10 text-primary-500" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                  No Upcoming Classes
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
-                  You don't have any upcoming live classes scheduled. Check your enrolled courses for the next sessions.
-                </p>
-              </div>
-            </motion.div>
-          )}
-        </motion.div>
+            );
+          })
+        ) : (
+          <motion.div 
+            variants={itemVariants}
+            className="text-center py-8 px-6 rounded-xl bg-white/50 dark:bg-gray-800/30 backdrop-blur-md shadow-sm border border-gray-100 dark:border-gray-700/30"
+          >
+            <div className="w-16 h-16 rounded-full bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center mx-auto mb-4">
+              <Video className="w-8 h-8 text-primary-500/70" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+              {selectedTab === 'today' 
+                ? "No Classes Today" 
+                : selectedTab === 'recent' 
+                  ? "No Recent Classes" 
+                  : "No Upcoming Classes"}
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto mb-6">
+              {selectedTab === 'today' 
+                ? "You don't have any live sessions scheduled for today." 
+                : selectedTab === 'recent' 
+                  ? "You haven't attended any classes recently."
+                  : "You don't have any upcoming live classes scheduled."}
+            </p>
+            <button onClick={() => selectedTab !== 'upcoming' && setSelectedTab('upcoming')} className="inline-flex items-center px-4 py-2 bg-primary-50 text-primary-600 hover:bg-primary-100 dark:bg-primary-900/20 dark:text-primary-400 dark:hover:bg-primary-900/30 font-medium rounded-lg transition-colors duration-300">
+              {selectedTab === 'upcoming' ? 'Browse Courses' : 'Check Upcoming Classes'}
+              <ArrowRight className="ml-1 w-4 h-4" />
+            </button>
+          </motion.div>
+        )}
       </motion.div>
-    </section>
+    </div>
   );
 };
 
-export default StudentUpcomingClasses; 
+export default StudentUpcomingClasses;

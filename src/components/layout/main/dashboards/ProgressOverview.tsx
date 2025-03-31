@@ -1,7 +1,26 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ChevronRight, BookOpen, Clock, Award, Sparkles, Calendar, PlayCircle, Timer } from "lucide-react";
+import { 
+  ChevronRight, 
+  BookOpen, 
+  Clock, 
+  Award, 
+  Sparkles, 
+  Calendar, 
+  PlayCircle, 
+  Timer, 
+  TrendingUp,
+  CheckCircle,
+  Badge,
+  BarChart4,
+  GraduationCap,
+  Users,
+  VideoIcon,
+  Layers,
+  Zap,
+  BookMarked
+} from "lucide-react";
 import useGetQuery from "@/hooks/getQuery.hook";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -22,8 +41,72 @@ interface StudentData {
     averageProgress: number;
     coursesInProgress: number;
     coursesCompleted: number;
+    totalEnrolled?: number;
+    liveClasses?: number;
+    blendedLearning?: number;
+    improvementRate?: number;
+    studyStreak?: number;
+    recordedCourses?: number;
+    totalStudyTime?: number;
   };
 }
+
+interface MetricCardProps {
+  icon: React.ElementType;
+  iconColor: string;
+  bgColor: string;
+  title: string;
+  value: number | string;
+  change?: string;
+  subtitle?: string;
+}
+
+// Progress visualization - defined outside as it doesn't need component state
+const ProgressCircle = ({ progress, size = 80, strokeWidth = 8 }: { progress: number, size?: number, strokeWidth?: number }) => {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (progress / 100) * circumference;
+  
+  return (
+    <div style={{ width: size, height: size }} className="relative">
+      <svg className="w-full h-full" viewBox={`0 0 ${size} ${size}`}>
+        {/* Background circle */}
+        <circle 
+          cx={size/2} 
+          cy={size/2} 
+          r={radius} 
+          stroke="#e5e7eb" 
+          strokeWidth={strokeWidth} 
+          fill="none" 
+          className="dark:stroke-gray-700"
+        />
+        {/* Progress circle */}
+        <circle 
+          cx={size/2} 
+          cy={size/2} 
+          r={radius} 
+          stroke="url(#progressGradient)" 
+          strokeWidth={strokeWidth} 
+          fill="none"
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={strokeDashoffset}
+          transform={`rotate(-90 ${size/2} ${size/2})`}
+        />
+        {/* Gradient definition */}
+        <defs>
+          <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#8B5CF6" />
+            <stop offset="100%" stopColor="#6366F1" />
+          </linearGradient>
+        </defs>
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center text-xl font-bold text-gray-900 dark:text-white">
+        {progress}%
+      </div>
+    </div>
+  );
+};
 
 const ProgressOverview: React.FC = () => {
   const router = useRouter();
@@ -33,12 +116,20 @@ const ProgressOverview: React.FC = () => {
     progress: {
       averageProgress: 0,
       coursesInProgress: 0,
-      coursesCompleted: 0
+      coursesCompleted: 0,
+      totalEnrolled: 0,
+      liveClasses: 0,
+      blendedLearning: 0,
+      recordedCourses: 0,
+      improvementRate: 0,
+      studyStreak: 0,
+      totalStudyTime: 0
     }
   });
   const [studentId, setStudentId] = useState<string | null>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'all' | 'active' | 'completed'>('active');
 
   // Animation variants
   const containerVariants = {
@@ -74,30 +165,48 @@ const ProgressOverview: React.FC = () => {
 
   useEffect(() => {
     if (studentId) {
+      setIsLoading(true);
+      
       const fetchStudentData = async () => {
         try {
           await getQuery({
             url: `/enrolled/getCount/${studentId}`,
             onSuccess: (response) => {
               if (response?.data) {
-                const { recent_activity, progress } = response.data;
-                const activeCourses = getActiveCourseCount(recent_activity || []);
+                // Extract the main sections from the response
+                const { recent_activity, counts, progress } = response.data;
+                
+                // Update with correct data from the API response structure
                 setStudentData({
                   recentActivity: recent_activity || [],
                   progress: {
-                    averageProgress: progress.averageProgress || 0,
-                    coursesInProgress: activeCourses,
-                    coursesCompleted: progress.coursesCompleted || 0
+                    // Use the values directly from the API response
+                    averageProgress: progress?.averageProgress || 0,
+                    coursesInProgress: counts?.active || 0,
+                    coursesCompleted: counts?.completed || 0,
+                    totalEnrolled: counts?.total || 0,
+                    
+                    // Get course type counts from the correct location in the response
+                    liveClasses: counts?.byCourseType?.live || 0,
+                    blendedLearning: counts?.byCourseType?.blended || 0,
+                    recordedCourses: counts?.byCourseType?.selfPaced || 0,
+                    
+                    // Set default values for metrics not in the API
+                    improvementRate: 0,
+                    studyStreak: 0,
+                    totalStudyTime: 0
                   }
                 });
               }
             },
             onFail: (error) => {
               console.error("Failed to fetch student data:", error);
+              setIsLoading(false);
             }
           });
         } catch (error) {
           console.error("Error fetching student data:", error);
+          setIsLoading(false);
         } finally {
           setIsLoading(false);
         }
@@ -106,6 +215,19 @@ const ProgressOverview: React.FC = () => {
       fetchStudentData();
     }
   }, [studentId, getQuery]);
+
+  // Helper functions for counting course types
+  const getBlendedLearningCount = (courses: CourseProgress[]): number => {
+    return courses.filter(course => course.class_type === "Blended Learning").length;
+  };
+
+  const getLiveClassesCount = (courses: CourseProgress[]): number => {
+    return courses.filter(course => course.class_type === "Live").length;
+  };
+
+  const getRecordedCoursesCount = (courses: CourseProgress[]): number => {
+    return courses.filter(course => course.class_type === "Recorded").length;
+  };
 
   // Intersection Observer effect
   useEffect(() => {
@@ -150,6 +272,15 @@ const ProgressOverview: React.FC = () => {
         label: "Active"
       };
     }
+    if (status === "completed") {
+      return {
+        color: "text-blue-500",
+        bgColor: "bg-blue-50 dark:bg-blue-500/10", 
+        borderColor: "border-blue-200 dark:border-blue-500/20",
+        icon: CheckCircle,
+        label: "Completed"
+      };
+    }
     return {
       color: "text-gray-500",
       bgColor: "bg-gray-50 dark:bg-gray-500/10",
@@ -170,7 +301,118 @@ const ProgressOverview: React.FC = () => {
     return remainingMinutes;
   };
 
-  // Add loading skeleton component
+  // Format minutes into hours and minutes
+  const formatTimeRemaining = (minutes: number) => {
+    if (minutes < 60) return `${minutes}m`;
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+  };
+
+  // Get filtered courses based on active tab
+  const getFilteredCourses = () => {
+    if (activeTab === 'all') return studentData.recentActivity;
+    return studentData.recentActivity.filter(course => 
+      activeTab === 'active' 
+        ? course.status === 'active' && course.payment_status !== 'pending'
+        : course.status === 'completed'
+    );
+  };
+
+  // Get active course count
+  const getActiveCourseCount = (courses: CourseProgress[]) => {
+    return courses.filter(course => course.status === "active" && course.payment_status !== "pending").length;
+  };
+
+  // Add helper functions for processing course data
+  const calculateRecentActivityDetails = (progressData: any): { improvementRate: number } => {
+    // This function would analyze progress data to determine improvement rate
+    // For example, comparing recent progress to previous month's progress
+    
+    try {
+      // Logic to calculate improvement rate based on progress trends
+      // For now, return a mock value
+      return {
+        improvementRate: 5
+      };
+    } catch (error) {
+      console.error("Error calculating activity details:", error);
+      return {
+        improvementRate: 0
+      };
+    }
+  };
+
+  // Metric Card Component
+  const MetricCard: React.FC<MetricCardProps> = ({ 
+    icon: Icon, 
+    iconColor, 
+    bgColor, 
+    title, 
+    value, 
+    change, 
+    subtitle 
+  }) => (
+    <motion.div
+      variants={itemVariants}
+      className={`rounded-xl ${bgColor} p-4 flex items-center gap-4 h-full`}
+    >
+      <div className={`w-12 h-12 rounded-full ${iconColor.replace('text-', 'bg-').replace('500', '100')} dark:${iconColor.replace('text-', 'bg-').replace('500', '900')}/30 flex items-center justify-center`}>
+        <Icon className={`w-6 h-6 ${iconColor}`} />
+      </div>
+      <div>
+        <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">{title}</h3>
+        <div className="flex items-baseline gap-1">
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
+          {change && (
+            <span className="text-xs font-medium text-green-500 flex items-center">
+              <TrendingUp className="w-3 h-3 mr-0.5" />{change}
+            </span>
+          )}
+        </div>
+        {subtitle && <p className="text-xs text-gray-500 dark:text-gray-400">{subtitle}</p>}
+      </div>
+    </motion.div>
+  );
+
+  // Visual elements for empty state - moved inside the component to access activeTab and router
+  const EmptyCourseState = () => (
+    <motion.div
+      variants={itemVariants}
+      className="text-center py-8 px-6 rounded-xl bg-white/50 dark:bg-gray-800/30 backdrop-blur-md shadow-sm border border-gray-100 dark:border-gray-700/30"
+    >
+      <div className="mb-4">
+        <div className="w-16 h-16 rounded-full bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center mx-auto">
+          <BookOpen className="w-8 h-8 text-primary-500/70" />
+        </div>
+        <h3 className="text-xl font-bold text-gray-900 dark:text-white mt-4 mb-2">
+          {activeTab === 'active' 
+            ? "No Active Courses" 
+            : activeTab === 'completed' 
+              ? "No Completed Courses Yet" 
+              : "No Courses Found"}
+        </h3>
+        <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto mb-6">
+          {activeTab === 'active' 
+            ? "You don't have any active courses. Browse our catalog to start your learning journey." 
+            : activeTab === 'completed' 
+              ? "Keep learning! You'll see your completed courses here once you finish them."
+              : "Explore our course catalog and find the perfect learning path for you."}
+        </p>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => router.push('/courses')}
+          className="inline-flex items-center px-5 py-2.5 rounded-lg text-white bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 transition-all duration-300 shadow-md hover:shadow-lg"
+        >
+          Browse Courses
+          <ChevronRight className="ml-1 w-4 h-4" />
+        </motion.button>
+      </div>
+    </motion.div>
+  );
+
+  // Add loading skeleton component inside the component
   const CardSkeleton = () => (
     <div className="animate-pulse">
       <div className="h-48 bg-gray-200 dark:bg-gray-700 rounded-t-2xl"></div>
@@ -186,293 +428,213 @@ const ProgressOverview: React.FC = () => {
     </div>
   );
 
-  // Add this helper function after the existing helper functions
-  const getActiveCourseCount = (courses: CourseProgress[]) => {
-    return courses.filter(course => course.status === "active" && course.payment_status !== "pending").length;
+  const filteredCourses = getFilteredCourses();
+
+  // Add the formatStudyTime function to properly handle undefined minutes
+  const formatStudyTime = (minutes?: number): string => {
+    if (!minutes) return "0h";
+    
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    
+    if (hours === 0) return `${remainingMinutes}m`;
+    if (remainingMinutes === 0) return `${hours}h`;
+    return `${hours}h ${remainingMinutes}m`;
   };
 
   return (
-    <section 
-      id="progress-section"
-      className="py-12 md:py-16 relative overflow-hidden"
-    >
-      {/* Modern background patterns */}
-      <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] opacity-25 dark:bg-[radial-gradient(#1f2937_1px,transparent_1px)]"></div>
-
-      <motion.div
-        initial="hidden"
-        animate={isVisible ? "visible" : "hidden"}
-        variants={containerVariants}
-        className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10"
-      >
-        {/* Header Section */}
-        <motion.div
-          variants={containerVariants}
-          className="max-w-2xl mx-auto text-center mb-12"
-        >
-          <div className="inline-flex items-center justify-center space-x-1 mb-4">
-            <span className="h-px w-8 bg-primary-500/50"></span>
-            <span className="text-sm font-medium text-primary-600 dark:text-primary-400 tracking-wider uppercase">
-              Learning Journey
-            </span>
-            <span className="h-px w-8 bg-primary-500/50"></span>
+    <div id="progress-section" className="p-6">
+      <div className="flex flex-col h-full">
+        {/* Header with tabs */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white leading-tight">Your Learning Metrics</h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Track your educational journey with real-time statistics
+            </p>
           </div>
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl mb-4">
-            Your Progress Overview
-          </h2>
-          <p className="text-lg leading-relaxed text-gray-600 dark:text-gray-400">
-            Track your learning journey and stay motivated with your course progress
-          </p>
-        </motion.div>
+          
+          {/* Tab navigation */}
+          <div className="flex bg-gray-100 dark:bg-gray-800/50 rounded-lg p-1">
+            {[
+              { id: 'active', label: 'Active' }, 
+              { id: 'completed', label: 'Completed' },
+              { id: 'all', label: 'All' }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as 'all' | 'active' | 'completed')}
+                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+                  activeTab === tab.id 
+                    ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm' 
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        
+        {/* Metrics Grid */}
+        <div className="mb-6 grid grid-cols-2 lg:grid-cols-3 gap-4">
+          <MetricCard 
+            icon={BookMarked}
+            iconColor="text-indigo-500"
+            bgColor="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20"
+            title="Total Enrolled Courses"
+            value={studentData.progress.totalEnrolled || 0}
+            subtitle="All courses you've enrolled in"
+          />
+          
+          <MetricCard 
+            icon={BarChart4}
+            iconColor="text-blue-500"
+            bgColor="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20"
+            title="Average Completion"
+            value={`${studentData.progress.averageProgress}%`}
+            change="+0%"
+            subtitle="Overall course progress"
+          />
+          
+          <MetricCard 
+            icon={VideoIcon}
+            iconColor="text-emerald-500"
+            bgColor="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20"
+            title="Live Classes"
+            value={studentData.progress.liveClasses || 0}
+            subtitle="Interactive sessions"
+          />
+          
+          <MetricCard 
+            icon={CheckCircle}
+            iconColor="text-green-500"
+            bgColor="bg-gradient-to-br from-green-50 to-lime-50 dark:from-green-900/20 dark:to-lime-900/20"
+            title="Completed Courses"
+            value={studentData.progress.coursesCompleted}
+            subtitle="Finished learning paths"
+          />
+          
+          <MetricCard 
+            icon={Sparkles}
+            iconColor="text-amber-500"
+            bgColor="bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20"
+            title="Active Courses"
+            value={studentData.progress.coursesInProgress || 0}
+            subtitle="Currently learning"
+          />
+          
+          <MetricCard 
+            icon={Clock}
+            iconColor="text-rose-500"
+            bgColor="bg-gradient-to-br from-rose-50 to-pink-50 dark:from-rose-900/20 dark:to-pink-900/20"
+            title="Study Streak"
+            value={`${0} days`}
+            subtitle="Continuous learning"
+          />
+        </div>
 
-        {/* Progress Stats */}
-        <motion.div
-          variants={containerVariants}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12"
-        >
-          <motion.div
-            variants={itemVariants}
-            className="p-6 rounded-2xl bg-white dark:bg-gray-800/50 backdrop-blur-lg shadow-lg border border-gray-100 dark:border-gray-700/50"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Average Progress</h3>
-              <div className="p-2 rounded-lg bg-primary-50 dark:bg-primary-900/20">
-                <Award className="w-6 h-6 text-primary-500" />
-              </div>
-            </div>
-            <p className="text-3xl font-bold text-gray-900 dark:text-white">
-              {studentData.progress.averageProgress}%
-            </p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Overall completion rate</p>
-          </motion.div>
-
-          <motion.div
-            variants={itemVariants}
-            className="p-6 rounded-2xl bg-white dark:bg-gray-800/50 backdrop-blur-lg shadow-lg border border-gray-100 dark:border-gray-700/50"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Active Courses</h3>
-              <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20">
-                <BookOpen className="w-6 h-6 text-emerald-500" />
-              </div>
-            </div>
-            <div className="flex items-baseline gap-2">
-              <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                {studentData.progress.coursesInProgress}
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">/ {studentData.recentActivity.length} Total</p>
-            </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Currently active courses</p>
-            {studentData.progress.coursesInProgress === 0 && (
-              <p className="text-xs text-amber-500 mt-2 flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                No active courses yet
-              </p>
-            )}
-          </motion.div>
-
-          <motion.div
-            variants={itemVariants}
-            className="p-6 rounded-2xl bg-white dark:bg-gray-800/50 backdrop-blur-lg shadow-lg border border-gray-100 dark:border-gray-700/50"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Completed</h3>
-              <div className="p-2 rounded-lg bg-amber-50 dark:bg-amber-900/20">
-                <Sparkles className="w-6 h-6 text-amber-500" />
-              </div>
-            </div>
-            <p className="text-3xl font-bold text-gray-900 dark:text-white">
-              {studentData.progress.coursesCompleted}
-            </p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Courses completed</p>
-          </motion.div>
-        </motion.div>
-
-        {/* Course Cards */}
-        <motion.div 
-          variants={containerVariants}
-          className="grid grid-cols-1 gap-6"
-        >
-          {studentData.recentActivity.length === 0 ? (
-            <motion.div
-              variants={itemVariants}
-              className="text-center py-12 px-6 rounded-2xl bg-white dark:bg-gray-800/50 backdrop-blur-lg shadow-lg border border-gray-100 dark:border-gray-700/50"
-            >
-              <div className="mb-6">
-                <div className="w-20 h-20 rounded-full bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center mx-auto mb-4">
-                  <BookOpen className="w-10 h-10 text-primary-500" />
+        {/* Add new section for additional metrics */}
+        <div className="mb-8">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Learning Activity</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-white dark:bg-gray-800/50 rounded-xl p-4 shadow-sm">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/20">
+                  <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                  Start Your Learning Journey
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto mb-8">
-                  Explore our courses and begin your path to success!
-                </p>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => router.push('/courses')}
-                  className="inline-flex items-center px-6 py-3 rounded-xl text-white bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 transition-all duration-300 shadow-lg hover:shadow-xl"
-                >
-                  Browse Courses
-                  <ChevronRight className="ml-2 w-4 h-4" />
-                </motion.button>
+                <h4 className="text-base font-medium text-gray-900 dark:text-white">Course Types</h4>
               </div>
-            </motion.div>
-          ) : isLoading ? (
-            // Show loading skeletons
-            Array(3).fill(null).map((_, index) => (
-              <motion.div
-                key={index}
-                variants={itemVariants}
-                className="overflow-hidden rounded-2xl bg-white dark:bg-gray-800/50 shadow-lg"
-              >
-                <CardSkeleton />
-              </motion.div>
-            ))
-          ) : (
-            // Render actual course cards
-            studentData.recentActivity.map((course) => {
-              const statusInfo = getStatusInfo(course.status, course.payment_status);
-              const StatusIcon = statusInfo.icon;
-              const estimatedTimeRemaining = calculateTimeRemaining(course.progress, 120); // Assuming 120 minutes total duration
               
-              return (
-                <motion.div
-                  key={course.course_id}
-                  variants={itemVariants}
-                  className={`group relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800/50 shadow-lg hover:shadow-xl transition-all duration-300 ${statusInfo.borderColor}`}
-                  role="article"
-                  aria-label={`${course.course_title} - ${statusInfo.label}`}
-                >
-                  {/* Course thumbnail */}
-                  <div className="relative h-48 overflow-hidden">
-                    {course.course_image ? (
-                      <Image
-                        src={course.course_image}
-                        alt={course.course_title}
-                        fill
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      />
-                    ) : (
-                      <div className="h-full bg-gradient-to-br from-primary-500/20 to-secondary-500/20 flex items-center justify-center">
-                        <BookOpen className="w-16 h-16 text-primary-500/50" />
-                      </div>
-                    )}
-                    {/* Overlay with quick action */}
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                      <button
-                        onClick={() => handleContinueLearning(course.course_id)}
-                        className="transform scale-90 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-300 flex items-center gap-2 px-6 py-3 bg-white/90 hover:bg-white text-gray-900 rounded-full"
-                        aria-label={`Continue ${course.course_title}`}
-                      >
-                        <PlayCircle className="w-5 h-5" />
-                        Continue Learning
-                      </button>
-                    </div>
+              <div className="space-y-3">
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-gray-600 dark:text-gray-400">Live Classes</span>
+                    <span className="font-medium text-gray-900 dark:text-white">{studentData.progress.liveClasses || 0}</span>
                   </div>
-
-                  <div className="p-6">
-                    {/* Status badge */}
-                    <div className="flex items-center gap-2 mb-3">
-                      <StatusIcon className={`w-4 h-4 ${statusInfo.color}`} />
-                      <span className={`text-sm font-medium ${statusInfo.color}`}>
-                        {statusInfo.label}
-                      </span>
-                    </div>
-
-                    {/* Course title */}
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 group-hover:text-primary-500 transition-colors duration-300">
-                      {course.course_title}
-                    </h3>
-
-                    {/* Course info grid */}
-                    <div className="grid grid-cols-2 gap-4 mb-6">
-                      <div className={`flex items-center p-3 rounded-lg ${statusInfo.bgColor}`}>
-                        <Calendar className={`w-5 h-5 mr-2 ${statusInfo.color}`} />
-                        <div>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">Course Type</p>
-                          <p className={`text-sm ${statusInfo.color}`}>{course.class_type}</p>
-                        </div>
-                      </div>
-
-                      <div className={`flex items-center p-3 rounded-lg ${statusInfo.bgColor}`}>
-                        <Timer className={`w-5 h-5 mr-2 ${statusInfo.color}`} />
-                        <div>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">Time Left</p>
-                          <p className={`text-sm ${statusInfo.color}`}>{estimatedTimeRemaining}m</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Progress section */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="font-medium text-gray-700 dark:text-gray-300">Course Progress</span>
-                        <span className="font-medium text-primary-600 dark:text-primary-400">{course.progress}%</span>
-                      </div>
-                      <div className="h-2 w-full bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-                        <motion.div 
-                          initial={{ width: 0 }}
-                          animate={{ width: `${course.progress}%` }}
-                          transition={{ duration: 1, ease: "easeOut" }}
-                          className="h-full rounded-full bg-gradient-to-r from-primary-500 to-primary-600 relative"
-                        >
-                          {/* Progress glow effect */}
-                          <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
-                        </motion.div>
-                      </div>
-                    </div>
-
-                    {/* Action button */}
-                    <div className="mt-6">
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => handleContinueLearning(course.course_id)}
-                        className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl"
-                      >
-                        Continue Learning
-                        <ChevronRight className="w-4 h-4" />
-                      </motion.button>
-                    </div>
+                  <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-blue-500 rounded-full" 
+                      style={{ 
+                        width: `${studentData.progress.totalEnrolled && studentData.progress.liveClasses ? 
+                          (studentData.progress.liveClasses / studentData.progress.totalEnrolled) * 100 : 0}%` 
+                      }}
+                    ></div>
                   </div>
-                </motion.div>
-              );
-            })
-          )}
-        </motion.div>
-
-        {studentData.recentActivity.length === 0 && (
-          <motion.div
-            variants={itemVariants}
-            className="text-center py-12 px-6 rounded-2xl bg-white dark:bg-gray-800/50 backdrop-blur-lg shadow-lg border border-gray-100 dark:border-gray-700/50"
-          >
-            <div className="mb-6">
-              <div className="w-20 h-20 rounded-full bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center mx-auto mb-4">
-                <BookOpen className="w-10 h-10 text-primary-500" />
+                </div>
+                
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-gray-600 dark:text-gray-400">Recorded Courses</span>
+                    <span className="font-medium text-gray-900 dark:text-white">{studentData.progress.recordedCourses || 0}</span>
+                  </div>
+                  <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-purple-500 rounded-full" 
+                      style={{ 
+                        width: `${studentData.progress.totalEnrolled && studentData.progress.recordedCourses ? 
+                          (studentData.progress.recordedCourses / studentData.progress.totalEnrolled) * 100 : 0}%` 
+                      }}
+                    ></div>
+                  </div>
+                </div>
+                
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-gray-600 dark:text-gray-400">Blended Learning</span>
+                    <span className="font-medium text-gray-900 dark:text-white">{studentData.progress.blendedLearning || 0}</span>
+                  </div>
+                  <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-amber-500 rounded-full" 
+                      style={{ 
+                        width: `${studentData.progress.totalEnrolled && studentData.progress.blendedLearning ? 
+                          (studentData.progress.blendedLearning / studentData.progress.totalEnrolled) * 100 : 0}%` 
+                      }}
+                    ></div>
+                  </div>
+                </div>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                Start Your Learning Journey
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto mb-8">
-                Explore our courses and begin your path to success!
-              </p>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => router.push('/courses')}
-                className="inline-flex items-center px-6 py-3 rounded-xl text-white bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 transition-all duration-300 shadow-lg hover:shadow-xl"
-              >
-                Browse Courses
-                <ChevronRight className="ml-2 w-4 h-4" />
-              </motion.button>
             </div>
-          </motion.div>
-        )}
-      </motion.div>
-    </section>
+            
+            <div className="bg-white dark:bg-gray-800/50 rounded-xl p-4 shadow-sm">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/20">
+                  <Timer className="w-5 h-5 text-green-600 dark:text-green-400" />
+                </div>
+                <h4 className="text-base font-medium text-gray-900 dark:text-white">Study Activity</h4>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-green-50 dark:bg-green-900/10 rounded-lg">
+                    <Clock className="w-7 h-7 text-green-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Total Study Time</p>
+                    <p className="text-xl font-bold text-gray-900 dark:text-white">
+                      {formatStudyTime(0)}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-indigo-50 dark:bg-indigo-900/10 rounded-lg">
+                    <Calendar className="w-7 h-7 text-indigo-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Days Active</p>
+                    <p className="text-xl font-bold text-gray-900 dark:text-white">
+                      {0} <span className="text-sm font-normal text-gray-500">days</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
