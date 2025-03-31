@@ -33,23 +33,7 @@ const slugify = (text: string): string => {
 
 // Dynamic import of the rich text editor to avoid SSR issues with modern React 18 compatibility
 const ReactQuill = dynamic(() => 
-  import('react-quill').then(mod => {
-    // Return a wrapper component that doesn't depend on findDOMNode
-    const Quill = ({ forwardedRef, ...props }: any) => {
-      const quillRef = useRef<any>(null);
-      
-      // Update the forwarded ref when our local ref changes
-      useEffect(() => {
-        if (forwardedRef && quillRef.current) {
-          forwardedRef.current = quillRef.current;
-        }
-      }, [forwardedRef]);
-      
-      return <mod.default ref={quillRef} {...props} />;
-    };
-    
-    return Quill;
-  }), { 
+  import('react-quill'), { 
     ssr: false,
     loading: () => <div className="h-[300px] bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-gray-400">Loading editor...</div>
   }
@@ -59,11 +43,9 @@ const ReactQuill = dynamic(() =>
 const QuillEditor = dynamic(
   async () => {
     const { default: RQ } = await import('react-quill');
-    // Wrap the component to avoid findDOMNode issues
-    function QuillNoSSR(props: any) {
+    return function QuillNoSSR(props: any) {
       return <RQ {...props} />;
     }
-    return QuillNoSSR;
   },
   {
     ssr: false,

@@ -1,6 +1,6 @@
 import {useState} from 'react';
 import apiClient from '../apis/apiClient';
-import logger from '../utils/logger';
+import { logger } from '../utils/logger';
 
 const headers = {
   'Content-Type': 'application/json',

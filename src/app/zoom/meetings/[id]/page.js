@@ -23,7 +23,4 @@ const Zoom_Meetings_Details = ({ params }) => {
     </PageWrapper>
   );
 };
-export async function generateStaticParams() {
-  return meetings?.map(({ id }) => ({ id: id.toString() }));
-}
 export default Zoom_Meetings_Details;
