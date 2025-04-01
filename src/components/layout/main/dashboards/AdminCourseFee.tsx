@@ -261,12 +261,14 @@ const BulkUpdateSection: React.FC<{
   onApplyBulkUpdate: () => void;
   bulkConfig: BulkUpdateConfig;
   currencies: string[];
+  currencyRates: CurrencyRates;
 }> = ({ 
   selectedCount, 
   onBulkUpdateConfig, 
   onApplyBulkUpdate, 
   bulkConfig,
-  currencies
+  currencies,
+  currencyRates 
 }) => {
   return (
     <div className="bg-white mb-6 rounded-lg shadow-sm border border-gray-200 overflow-hidden">
@@ -336,15 +338,16 @@ const BulkUpdateSection: React.FC<{
           
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700">Currency</label>
-            <select 
-              value={bulkConfig.currency || ''} 
-              onChange={(e) => onBulkUpdateConfig({ currency: e.target.value })}
-              disabled={selectedCount === 0 || !bulkConfig.type}
+            <select
+              value={bulkConfig.currency || ''}
+              onChange={e => onBulkUpdateConfig({ currency: e.target.value === '' ? undefined : e.target.value })}
               className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-customGreen focus:border-customGreen sm:text-sm rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value="">All Currencies</option>
-              {currencies.map((currency) => (
-                <option key={currency} value={currency}>{currency}</option>
+              {Object.keys(currencyRates).map(code => (
+                <option key={code} value={code}>
+                  {code} ({currencyRates[code].symbol})
+                </option>
               ))}
             </select>
           </div>
@@ -437,10 +440,11 @@ interface PriceEditorProps {
   index: number;
   onChange: (index: number, updatedPrice: PriceDetails) => void;
   onRemove?: (index: number) => void;
-  isNew?: boolean; 
+  isNew?: boolean;
+  currencyRates: CurrencyRates;
 }
 
-const PriceEditor: React.FC<PriceEditorProps> = ({ price, index, onChange, onRemove, isNew = false }) => {
+const PriceEditor: React.FC<PriceEditorProps> = ({ price, index, onChange, onRemove, isNew = false, currencyRates }) => {
   return (
     <div className={`rounded-lg p-5 ${isNew ? 'bg-green-50 border-2 border-green-200' : 'bg-white border border-gray-200 shadow-sm'}`}>
       <div className="flex justify-between items-center mb-4">
@@ -470,13 +474,17 @@ const PriceEditor: React.FC<PriceEditorProps> = ({ price, index, onChange, onRem
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
         <div className="space-y-2 lg:col-span-1">
           <label className="block text-sm font-medium text-gray-700">Currency</label>
-          <input
-            type="text"
+          <select
             value={price.currency}
             onChange={(e) => onChange(index, { ...price, currency: e.target.value })}
             className="w-full focus:ring-customGreen focus:border-customGreen block text-base border-gray-300 rounded-md"
-            placeholder="USD"
-          />
+          >
+            {Object.keys(currencyRates).map(code => (
+              <option key={code} value={code}>
+                {code} ({currencyRates[code].symbol})
+              </option>
+            ))}
+          </select>
         </div>
         
         <div className="space-y-2 lg:col-span-2">
@@ -856,7 +864,6 @@ const AdminCourseFee: React.FC = () => {
     message: '',
     type: 'success'
   });
-  const [availableCurrencies, setAvailableCurrencies] = useState<string[]>([]);
   const [currencyRates, setCurrencyRates] = useState<CurrencyRates>({
     USD: { symbol: "$", name: "US Dollar", rate: 1 },
     INR: { symbol: "₹", name: "Indian Rupee", rate: 83.5 },
@@ -872,18 +879,12 @@ const AdminCourseFee: React.FC = () => {
   const fetchCurrencies = async () => {
     setIsCurrencyLoading(true);
     try {
-      // Get the token but don't pass it to getAllCurrencies - it should handle auth internally
-      const token = localStorage.getItem('token');
+      // Get the token from localStorage
       const currencies = await getAllCurrencies();
       
-      // Transform to the format we need
-      const rates: CurrencyRates = {};
-      
-      // Always include USD as base currency
-      rates["USD"] = {
-        symbol: "$",
-        name: "US Dollar",
-        rate: 1
+      // Start with default rates to ensure we always have USD
+      const rates: CurrencyRates = {
+        USD: { symbol: "$", name: "US Dollar", rate: 1 }
       };
       
       // Add all currencies from the API
@@ -895,10 +896,15 @@ const AdminCourseFee: React.FC = () => {
         };
       });
       
-      setCurrencyRates(rates);
+      // Only update if we got currencies back from API
+      if (Object.keys(rates).length > 1) {
+        setCurrencyRates(rates);
+      }
+      
     } catch (error) {
       console.error("Error fetching currencies:", error);
-      showToast("Failed to load currency data", "error");
+      // Keep using existing rates on error - don't show error toast as it's not critical
+      // This way the component still functions with default rates
     } finally {
       setIsCurrencyLoading(false);
     }
@@ -1025,13 +1031,6 @@ const AdminCourseFee: React.FC = () => {
         ));
         setCategories(categories.length > 0 ? categories : []);
         
-        // Extract unique currencies
-        const allCurrencies = apiCourses
-          .flatMap(course => course.pricing.map(price => price.currency))
-          .filter(Boolean);
-        const uniqueCurrencies = [...new Set(allCurrencies)];
-        setAvailableCurrencies(uniqueCurrencies);
-        
         // Map the API response to our internal format
         const mappedCourses = apiCourses.map(course => {
           // Map pricing to our price details format
@@ -1122,8 +1121,10 @@ const AdminCourseFee: React.FC = () => {
     setCourses(courses.map(course => {
       if (course.id === courseId && course.editedPrices) {
         // Create a new price option with defaults
+        // Use the first available currency from our rates or USD as fallback
+        const defaultCurrency = Object.keys(currencyRates)[0] || 'USD';
         const newPrice: PriceDetails = {
-          currency: availableCurrencies[0] || 'USD',
+          currency: defaultCurrency,
           individual: 0,
           batch: 0,
           min_batch_size: 2,
@@ -1373,9 +1374,11 @@ const AdminCourseFee: React.FC = () => {
   const handleAddFirstPriceOption = (courseId: string) => {
     setCourses(courses.map(course => {
       if (course.id === courseId) {
-        // Create a default price if the course has no prices
+        // Create a default price with the first available currency from our rates
+        // or USD as fallback
+        const defaultCurrency = Object.keys(currencyRates)[0] || 'USD';
         const defaultPrice: PriceDetails = {
-          currency: availableCurrencies[0] || 'USD',
+          currency: defaultCurrency,
           individual: 0,
           batch: 0,
           min_batch_size: 2,
@@ -1426,7 +1429,8 @@ const AdminCourseFee: React.FC = () => {
         onBulkUpdateConfig={handleBulkUpdateConfig}
         onApplyBulkUpdate={applyBulkUpdate}
         bulkConfig={bulkConfig}
-        currencies={availableCurrencies}
+        currencies={Object.keys(currencyRates)}
+        currencyRates={currencyRates}
       />
       
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
@@ -1581,6 +1585,7 @@ const AdminCourseFee: React.FC = () => {
                                         ? (idx) => handleRemovePriceOption(course.id, idx) 
                                         : undefined}
                                       isNew={course.prices.length === 0}
+                                      currencyRates={currencyRates}
                                     />
                                   ))}
                                 </div>
