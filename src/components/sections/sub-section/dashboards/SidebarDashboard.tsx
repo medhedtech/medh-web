@@ -651,7 +651,7 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           ]
         },
         {
-          name: "Assignments & Grades",
+          name: "Grades",
           icon: <ClipboardList className="w-5 h-5" />,
           subItems: [
             {
@@ -1256,6 +1256,7 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
             width={isMobileDevice ? 80 : 100} 
             height={isMobileDevice ? 80 : 100} 
             className="transition-transform hover:scale-105" 
+            onClick={() => router.push("/")}
           />
           <div className="flex items-center gap-2">
             <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors relative">

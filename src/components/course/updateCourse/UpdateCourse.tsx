@@ -11,7 +11,7 @@ import CourseOverview from '@/components/course/steps/CourseOverview';
 import CourseDescription from '@/components/course/steps/CourseDescription';
 import CourseSchedule from '@/components/course/steps/CourseSchedule';
 import CoursePricing from '@/components/course/steps/CoursePricing';
-import CourseCurriculum from '@/components/course/steps/CourseCurriculum';
+import SimpleCurriculum from '@/components/course/steps/SimpleCurriculum';
 import FAQSection from '@/components/course/steps/FAQSection';
 import ResourcePDFs from '@/components/course/steps/ResourcePDFs';
 import ToolsTechnologies from '@/components/course/steps/ToolsTechnologies';
@@ -1075,7 +1075,7 @@ const UpdateCourse: React.FC = () => {
         );
       case 5:
         return (
-          <CourseCurriculum
+          <SimpleCurriculum
             register={register}
             setValue={setValue}
             formState={formState}
