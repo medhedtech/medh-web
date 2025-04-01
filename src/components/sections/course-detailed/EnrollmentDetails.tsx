@@ -37,6 +37,13 @@ interface CourseDetails {
   grade?: string;
   features?: string[];
   prices?: CoursePrice[];
+  course_category?: string;
+  course_description?: string;
+  course_fee?: number;
+  curriculum?: any[];
+  meta?: {
+    views: number;
+  };
 }
 
 interface CategoryInfo {
@@ -164,7 +171,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState<boolean>(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const { convertPrice, formatPrice: formatCurrencyPrice } = useCurrency();
-  const [currencyCode, setCurrencyCode] = useState<string>('USD');
+  const [currencyCode, setCurrencyCode] = useState<string>('INR');
   const [exchangeRate, setExchangeRate] = useState<number>(1);
   const { getQuery } = useGetQuery();
   const { postQuery, loading: postLoading } = usePostQuery();
@@ -208,59 +215,101 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
   const duration = courseDetails?.course_duration || '4 months / 16 weeks';
   
   // Get active price information
-  const activePricing = useMemo<CoursePrice>(() => {
-    // Use the prices array from courseDetails or fallback to a default
-    const prices = courseDetails?.prices || [
-      {
-        currency: 'USD',
-        individual: 99,
-        batch: 99,
-        min_batch_size: 2,
-        max_batch_size: 10,
-        early_bird_discount: 0,
-        group_discount: 0,
-        is_active: true,
-        _id: 'default'
-      }
-    ];
+  const getActivePrice = useCallback((): CoursePrice | null => {
+    const prices = courseDetails?.prices;
+    console.log('Course Details:', courseDetails);
+    console.log('Course Prices:', prices);
+    console.log('Current Currency:', currencyCode);
     
-    // Find the active price or use the first one
-    return prices.find(price => price.is_active) || prices[0];
-  }, [courseDetails]);
+    if (!prices || prices.length === 0) {
+      console.log('No prices found');
+      return null;
+    }
+
+    // First try to find a price matching the user's preferred currency
+    const preferredPrice = prices.find(price => 
+      price.is_active && price.currency === currencyCode
+    );
+    console.log('Preferred Price:', preferredPrice);
+
+    // If no matching currency found, try to find any active price
+    const activePrice = prices.find(price => price.is_active);
+    console.log('Active Price:', activePrice);
+
+    // If still no price found, use the first price
+    const finalPrice = preferredPrice || activePrice || prices[0] || null;
+    console.log('Final Selected Price:', finalPrice);
+    return finalPrice;
+  }, [courseDetails, currencyCode]);
+
+  // State for active pricing
+  const [activePricing, setActivePricing] = useState<CoursePrice | null>(null);
+
+  // Update activePricing when course details or currency changes
+  useEffect(() => {
+    const price = getActivePrice();
+    console.log('Setting Active Pricing:', price);
+    setActivePricing(price);
+  }, [courseDetails, currencyCode, getActivePrice]);
 
   // Calculate final price including any applicable discounts
-  const calculateFinalPrice = useCallback((basePrice: number, discountPercentage: number = 0): number => {
-    if (isFreePrice(basePrice)) return 0;
-    
-    // Apply discount if any
-    if (discountPercentage > 0) {
-      return basePrice - (basePrice * (discountPercentage / 100));
+  const calculateFinalPrice = useCallback((price: number | undefined, discount: number | undefined): number => {
+    if (!price) {
+      console.log('No price provided for calculation');
+      return 0;
     }
-    
-    return basePrice;
+    const safeDiscount = discount || 0;
+    const finalPrice = price - (price * safeDiscount / 100);
+    console.log('Calculated Final Price:', { price, discount: safeDiscount, finalPrice });
+    return finalPrice;
   }, []);
   
   // Get the final price in the user's currency
   const getFinalPrice = useCallback((): number => {
+    if (!activePricing) {
+      console.log('No active pricing found for final price calculation');
+      return 0;
+    }
+    
     const basePrice = enrollmentType === 'individual' 
-      ? activePricing.individual 
+      ? activePricing.individual
       : activePricing.batch;
     
+    console.log('Base Price:', { enrollmentType, basePrice });
+    
     const discountPercentage = enrollmentType === 'batch' 
-      ? activePricing.group_discount 
-      : activePricing.early_bird_discount || 0;
+      ? activePricing.group_discount
+      : activePricing.early_bird_discount;
     
-    const rawPrice = calculateFinalPrice(basePrice, discountPercentage);
+    console.log('Discount Percentage:', discountPercentage);
     
-    // Convert to user's currency
-    return convertPrice(rawPrice);
-  }, [enrollmentType, activePricing, calculateFinalPrice, convertPrice]);
+    const finalPrice = calculateFinalPrice(basePrice, discountPercentage);
+    console.log('Final Price Calculation:', {
+      enrollmentType,
+      basePrice,
+      discountPercentage,
+      finalPrice
+    });
+    return finalPrice;
+  }, [activePricing, enrollmentType, calculateFinalPrice]);
 
   // Format price for display with proper currency symbol
   const formatPrice = useCallback((price: number, showCurrency: boolean = true): string => {
-    if (isFreePrice(price)) return "Free";
-    return formatCurrencyPrice(price, showCurrency);
-  }, [formatCurrencyPrice]);
+    console.log('Formatting Price:', { price, showCurrency });
+    if (!price || price <= 0) {
+      console.log('Price is free or invalid');
+      return "Free";
+    }
+    // Force INR currency for display
+    const formattedPrice = new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(price);
+    console.log('Formatted Price:', formattedPrice);
+    return formattedPrice;
+  }, []);
   
   // Get primary color from category or default
   const primaryColor = categoryInfo?.primaryColor || 'primary';
@@ -270,23 +319,33 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
 
   // Determine the payment currency and conversion for Razorpay
   const getPaymentDetails = useCallback((): PaymentDetails => {
+    if (!activePricing) {
+      return {
+        originalPrice: 0,
+        originalCurrency: 'USD',
+        paymentCurrency: 'INR',
+        amountInINR: 0,
+        conversionRate: 1,
+        formattedOriginalPrice: '0'
+      };
+    }
+
     // Get the base price in the original currency
     const basePrice = enrollmentType === 'individual' 
-      ? activePricing.individual 
+      ? activePricing.individual
       : activePricing.batch;
     
     // Apply any discounts
     const discountPercentage = enrollmentType === 'batch' 
-      ? activePricing.group_discount 
-      : activePricing.early_bird_discount || 0;
+      ? activePricing.group_discount
+      : activePricing.early_bird_discount;
     
     const priceAfterDiscount = calculateFinalPrice(basePrice, discountPercentage);
     
     // Razorpay primarily works with INR, so convert if needed
-    // For production, you should fetch real-time exchange rates from your backend
-    const baseCurrency = activePricing.currency || 'USD';
+    const baseCurrency = activePricing.currency;
     const inrConversionRate = {
-      'USD': 84.47, // Example rate, should be updated with real-time rates
+      'USD': 84.47,
       'EUR': 90.21,
       'GBP': 106.35,
       'INR': 1,
@@ -312,6 +371,10 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
       const token = localStorage.getItem('token');
       if (!token) {
         throw new Error('No authentication token found');
+      }
+
+      if (!activePricing) {
+        throw new Error('No active pricing found');
       }
 
       // Use postQuery to call the enrolled courses API
@@ -442,6 +505,11 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
       toast.error("Course information is missing");
       return;
     }
+
+    if (!activePricing) {
+      toast.error("Pricing information is missing");
+      return;
+    }
     
     try {
       setLoading(true);
@@ -550,7 +618,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
         notes: {
           enrollment_type: enrollmentType,
           course_id: courseDetails._id,
-          price_id: activePricing._id,
+          price_id: activePricing?._id || '',
           user_id: userId,
           original_currency: paymentDetails.originalCurrency,
           original_amount: paymentDetails.originalPrice,
@@ -572,7 +640,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
         notes: {
           enrollment_type: options.notes.enrollment_type,
           course_id: options.notes.course_id,
-          price_id: options.notes.price_id,
+          price_id: activePricing?._id || '',
           user_id: options.notes.user_id || '',
           original_currency: options.notes.original_currency,
           original_amount: options.notes.original_amount.toString(),
@@ -618,16 +686,19 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
   }
 
   // Calculate any discount percentage to display
-  const discountPercentage = enrollmentType === 'batch' 
+  const discountPercentage = activePricing ? (enrollmentType === 'batch' 
     ? activePricing.group_discount
-    : activePricing.early_bird_discount;
+    : activePricing.early_bird_discount) : 0;
 
   // Get the final price for display
   const finalPrice = getFinalPrice();
+  console.log('Final Price for Display:', finalPrice);
   
   // Determine original price (before discount) if applicable
-  const originalPrice = discountPercentage > 0 
-    ? convertPrice(enrollmentType === 'individual' ? activePricing.individual : activePricing.batch)
+  const originalPrice = activePricing && discountPercentage > 0 
+    ? convertPrice(enrollmentType === 'individual' 
+      ? activePricing.individual
+      : activePricing.batch)
     : null;
 
   return (
