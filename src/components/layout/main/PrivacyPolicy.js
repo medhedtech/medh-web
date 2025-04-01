@@ -178,6 +178,9 @@ const PrivacyPolicy = () => {
               </a>
             </p>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+              Or mail at Esampark Tech Solutions Private Limited
+            </p>
+            <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
               MEDH – LEARN. UPSKILL. ELEVATE
             </p>
           </section>
