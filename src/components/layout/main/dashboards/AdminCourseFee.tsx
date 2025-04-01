@@ -1104,6 +1104,14 @@ const AdminCourseFee: React.FC = () => {
       }
       return course;
     }));
+
+    // Auto-expand the row when entering edit mode
+    if (!courses.find(c => c.id === courseId)?.isEditing) {
+      setExpandedRows(prev => ({
+        ...prev,
+        [courseId]: true
+      }));
+    }
   };
   
   const handlePriceChange = (courseId: string, priceIndex: number, updatedPrice: PriceDetails) => {
@@ -1395,6 +1403,12 @@ const AdminCourseFee: React.FC = () => {
         };
       }
       return course;
+    }));
+
+    // Auto-expand the row when adding the first price option
+    setExpandedRows(prev => ({
+      ...prev,
+      [courseId]: true
     }));
   };
 
