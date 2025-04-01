@@ -26,9 +26,67 @@ import { HelpCircle, DollarSign, Award, BookOpen, Check, Star, Zap, Calendar, Us
 import { motion, AnimatePresence } from "framer-motion";
 import { Calculator, GraduationCap, Info } from "lucide-react";
 import { getCourseById } from "@/apis/course/course";
+import useRazorpay from "@/hooks/useRazorpay";
+import RAZORPAY_CONFIG from "@/config/razorpay";
+
+// Types
+interface CourseData {
+  _id: string;
+  course_title: string;
+  course_description?: string;
+  course_image?: string;
+  course_fee?: string | number;
+  course_duration?: string;
+  course_grade?: string;
+  start_date?: string;
+  enrolled_students?: string;
+  class_type?: string;
+  students_count?: string;
+  is_Certification?: string;
+  is_Assignments?: string;
+  is_Projects?: string;
+  is_Quizes?: string;
+  is_Popular?: string;
+}
+
+interface ErrorFallbackProps {
+  error: string | null;
+  resetErrorBoundary: () => void;
+}
+
+interface CourseEducationProps {
+  courseId: string;
+  courseDetails?: CourseData | null;
+}
+
+interface FormattedContent {
+  overview: string;
+  benefits: string[];
+}
+
+interface CourseHighlight {
+  label: string;
+  value: boolean;
+  icon: React.ElementType;
+  color: string;
+}
+
+interface CourseStat {
+  label: string;
+  value: string;
+  icon: React.ElementType;
+  color: string;
+}
+
+interface TabData {
+  id: number;
+  name: string;
+  icon: React.ElementType;
+  content: React.ReactNode;
+}
 
 // Error Fallback component
-const ErrorFallback = ({ error, resetErrorBoundary }) => (
+const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, resetErrorBoundary }) => (
   <div className="flex flex-col items-center justify-center min-h-[50vh] p-6 text-center">
     <div className="bg-red-50 dark:bg-red-900/20 p-6 rounded-xl max-w-md mx-auto">
       <h2 className="text-xl font-semibold text-red-700 dark:text-red-400 mb-3">
@@ -47,23 +105,30 @@ const ErrorFallback = ({ error, resetErrorBoundary }) => (
   </div>
 );
 
-function CourseEducation({ courseId, courseDetails }) {
+const CourseEducation: React.FC<CourseEducationProps> = ({ courseId, courseDetails }) => {
   const { getQuery, loading } = useGetQuery();
   const { postQuery } = usePostQuery();
-  const [courseData, setCourseData] = useState(courseDetails || null);
-  const [error, setError] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [showFullDescription, setShowFullDescription] = useState(false);
-  const [formattedContent, setFormattedContent] = useState({ overview: '', benefits: [] });
-  const [activeTab, setActiveTab] = useState(1);
-  const [isEnrollButtonHovered, setIsEnrollButtonHovered] = useState(false);
+  const [courseData, setCourseData] = useState<CourseData | null>(courseDetails || null);
+  const [error, setError] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [showFullDescription, setShowFullDescription] = useState<boolean>(false);
+  const [formattedContent, setFormattedContent] = useState<FormattedContent>({ overview: '', benefits: [] });
+  const [activeTab, setActiveTab] = useState<number>(1);
+  const [isEnrollButtonHovered, setIsEnrollButtonHovered] = useState<boolean>(false);
+  const { 
+    loadRazorpayScript, 
+    openRazorpayCheckout, 
+    isScriptLoaded, 
+    isLoading: razorpayLoading, 
+    error: razorpayError 
+  } = useRazorpay();
 
-  const parseDescription = (description) => {
+  const parseDescription = (description: string | undefined): FormattedContent => {
     if (!description) return { overview: '', benefits: [] };
 
     const parts = description.split('Benefits');
     let overview = '';
-    let benefits = [];
+    let benefits: string[] = [];
 
     if (parts.length > 0) {
       const overviewPart = parts[0].replace('Program Overview', '').trim();
@@ -80,7 +145,7 @@ function CourseEducation({ courseId, courseDetails }) {
     return { overview, benefits };
   };
 
-  const formattedContentMemo = useMemo(() => {
+  const formattedContentMemo = useMemo((): FormattedContent => {
     if (!courseData?.course_description) return { overview: '', benefits: [] };
 
     const parts = courseData.course_description.split('Benefits');
@@ -133,7 +198,7 @@ function CourseEducation({ courseId, courseDetails }) {
   }, [courseData?.course_description]);
 
   // Course highlights
-  const highlights = [
+  const highlights: CourseHighlight[] = [
     { 
       label: "Industry-recognized certification", 
       value: courseData?.is_Certification === "Yes",
@@ -179,7 +244,7 @@ function CourseEducation({ courseId, courseDetails }) {
   ];
 
   // Course details
-  const courseStats = [
+  const courseStats: CourseStat[] = [
     {
       label: "Duration",
       value: courseData?.course_duration || "10 weeks",
@@ -206,17 +271,7 @@ function CourseEducation({ courseId, courseDetails }) {
     }
   ];
 
-  const loadRazorpayScript = () => {
-    return new Promise((resolve) => {
-      const script = document.createElement("script");
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
-  };
-
-  const handleBuyNow = async () => {
+  const handleBuyNow = async (): Promise<void> => {
     const token = localStorage.getItem("token");
     const studentId = localStorage.getItem("userId");
 
@@ -225,41 +280,45 @@ function CourseEducation({ courseId, courseDetails }) {
       return;
     }
     
-    const scriptLoaded = await loadRazorpayScript();
-    if (!scriptLoaded) {
-      toast.error("Please log in first.");
-      return;
-    }
-    
-    if (courseData) {
+    try {
+      if (!courseData) {
+        toast.error("Course information is missing");
+        return;
+      }
+      
       const courseFee = Number(courseData?.course_fee) || 59500;
+      
+      // Configure Razorpay options
       const options = {
-        key: "rzp_test_Rz8NSLJbl4LBA5",
-        amount: courseFee * 100 * 84.47,
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || RAZORPAY_CONFIG.key,
+        amount: courseFee * 100 * 84.47, // Convert to INR and paise
         currency: "INR",
-        name: courseData?.course_title,
-        description: `Payment for ${courseData?.course_title}`,
-        image: Education,
-        handler: async function (response) {
+        name: courseData?.course_title || "Course Enrollment",
+        description: `Payment for ${courseData?.course_title || "Course"}`,
+        image: "/images/logo.png",
+        handler: async function (response: any) {
           toast.success("Payment Successful!");
           await subscribeCourse(studentId, courseId, courseFee);
         },
         prefill: {
-          name: "Medh Student",
-          email: "medh@student.com",
-          contact: "9876543210",
+          name: RAZORPAY_CONFIG.prefill.name,
+          email: RAZORPAY_CONFIG.prefill.email,
+          contact: RAZORPAY_CONFIG.prefill.contact,
         },
         theme: {
-          color: "#7ECA9D",
+          color: RAZORPAY_CONFIG.theme.color,
         },
       };
 
-      const razorpay = new window.Razorpay(options);
-      razorpay.open();
+      // Use the hook to open the Razorpay checkout
+      await openRazorpayCheckout(options);
+    } catch (err) {
+      console.error("Payment error:", err);
+      toast.error("Failed to process payment. Please try again.");
     }
   };
 
-  const subscribeCourse = async (studentId, courseId, amount) => {
+  const subscribeCourse = async (studentId: string, courseId: string, amount: number): Promise<void> => {
     try {
       await postQuery({
         url: apiUrls?.Subscription?.AddSubscription,
@@ -283,7 +342,7 @@ function CourseEducation({ courseId, courseDetails }) {
     }
   };
 
-  const enrollCourse = async (studentId, courseId) => {
+  const enrollCourse = async (studentId: string, courseId: string): Promise<void> => {
     try {
       await postQuery({
         url: apiUrls?.EnrollCourse?.enrollCourse,
@@ -305,7 +364,7 @@ function CourseEducation({ courseId, courseDetails }) {
     }
   };
 
-  const tabData = [
+  const tabData: TabData[] = [
     {
       id: 1,
       name: "Overview",
@@ -420,7 +479,7 @@ function CourseEducation({ courseId, courseDetails }) {
     );
   }
 
-  const getColorGradient = (index) => {
+  const getColorGradient = (index: number): string => {
     const gradients = [
       'from-emerald-500 to-green-500',
       'from-blue-500 to-indigo-500',
@@ -684,6 +743,6 @@ function CourseEducation({ courseId, courseDetails }) {
       <SignInModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </motion.div>
   );
-}
+};
 
-export default CourseEducation;
+export default CourseEducation; 

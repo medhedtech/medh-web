@@ -57,7 +57,7 @@ const COUNTRY_CURRENCY_MAP: Record<string, string> = {
 };
 
 // Default currency if everything fails
-const DEFAULT_CURRENCY: CurrencyInfo = { code: 'USD', symbol: '$' };
+const DEFAULT_CURRENCY: CurrencyInfo = { code: 'INR', symbol: '₹' };
 
 // Create context with default undefined value
 const CurrencyContext = createContext<CurrencyContextState | undefined>(undefined);
