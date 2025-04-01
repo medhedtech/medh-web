@@ -26,6 +26,12 @@ import {
   IAssessmentLesson,
   LessonType,
 } from '@/types/course.types';
+import { useUpload } from '@/hooks/useUpload';
+import FileUpload from '@/components/shared/FileUpload';
+import { ALLOWED_MIME_TYPES, MAX_FILE_SIZE } from '@/services/uploadService';
+import { getAuthToken, isAuthenticated } from '@/utils/auth';
+import axios from 'axios';
+import { apiBaseUrl, apiUrls } from '@/apis';
 
 interface SimpleCurriculumProps {
   register: UseFormRegister<ICourseFormData>;
@@ -45,6 +51,17 @@ const SimpleCurriculum: React.FC<SimpleCurriculumProps> = ({
   const [expandedWeeks, setExpandedWeeks] = useState<{ [key: string]: boolean }>({});
   const [dragItem, setDragItem] = useState<any>(null);
   const [draggingOver, setDraggingOver] = useState<string | null>(null);
+  const [videoUploads, setVideoUploads] = useState<{ [key: string]: { isUploading: boolean; progress: number; error: string | null } }>({});
+  const [videoData, setVideoData] = useState<{ [key: string]: { url: string; duration: string; thumbnail?: string; size?: number } }>({});
+  const [uploadProgress, setUploadProgress] = useState<{ [key: string]: { progress: number; status: 'idle' | 'uploading' | 'processing' | 'complete' | 'error'; error?: string } }>({});
+  const { uploadFile, isUploading } = useUpload({
+    onSuccess: (response) => {
+      toast.success('File uploaded successfully');
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    }
+  });
 
   // Initialize the curriculum with a single week if empty
   useEffect(() => {
@@ -403,6 +420,703 @@ const SimpleCurriculum: React.FC<SimpleCurriculumProps> = ({
     setValue('curriculum', updatedWeeks);
   };
 
+  // Handler to add a direct lesson to a week
+  const handleAddDirectLesson = (weekIndex: number, type: LessonType = 'video') => {
+    const updatedWeeks = [...weeks];
+    const week = updatedWeeks[weekIndex];
+    const newLesson = createNewLesson(type);
+    newLesson.order = (week.lessons || []).length;
+    
+    if (!week.lessons) {
+      week.lessons = [];
+    }
+    
+    week.lessons.push(newLesson);
+    setValue('curriculum', updatedWeeks);
+    setWeeks(updatedWeeks);
+    
+    // Auto-scroll to the new lesson
+    setTimeout(() => {
+      document.getElementById(`direct-lesson-${newLesson.id}`)?.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'center'
+      });
+    }, 100);
+  };
+
+  // Handler to remove a direct lesson
+  const handleRemoveDirectLesson = (weekIndex: number, lessonIndex: number) => {
+    if (window.confirm("Are you sure you want to remove this lesson?")) {
+      const updatedWeeks = [...weeks];
+      const week = updatedWeeks[weekIndex];
+      
+      if (week.lessons) {
+        week.lessons = week.lessons.filter((_, index) => index !== lessonIndex);
+        
+        // Update lesson orders
+        week.lessons.forEach((lesson, index) => {
+          lesson.order = index;
+        });
+        
+        setValue('curriculum', updatedWeeks);
+        setWeeks(updatedWeeks);
+      }
+    }
+  };
+
+  // Update direct lesson fields
+  const updateDirectLessonField = (weekIndex: number, lessonIndex: number, field: string, value: any) => {
+    const updatedWeeks = [...weeks];
+    const week = updatedWeeks[weekIndex];
+    
+    if (!week.lessons) return;
+    
+    const lesson = week.lessons[lessonIndex];
+    
+    // Handle type-specific fields
+    switch (lesson.lessonType) {
+      case 'video': {
+        const videoLesson = lesson as IVideoLesson;
+        if (field === 'video_url' || field === 'duration') {
+          (videoLesson as any)[field] = value;
+        }
+        break;
+      }
+      case 'quiz': {
+        const quizLesson = lesson as IQuizLesson;
+        if (field === 'quiz_id') {
+          quizLesson.quiz_id = value as string;
+        }
+        break;
+      }
+      case 'assessment': {
+        const assessmentLesson = lesson as IAssessmentLesson;
+        if (field === 'assignment_id') {
+          assessmentLesson.assignment_id = value as string;
+        }
+        break;
+      }
+    }
+
+    // Handle common fields
+    if (field in lesson) {
+      (lesson as any)[field] = value;
+    }
+    
+    setValue('curriculum', updatedWeeks);
+    setWeeks(updatedWeeks);
+  };
+
+  // Video upload handler for section lessons
+  const handleVideoUpload = async (file: File, weekIndex: number, sectionIndex: number, lessonIndex: number) => {
+    const lessonId = weeks[weekIndex].sections[sectionIndex].lessons[lessonIndex].id;
+
+    // Check authentication first
+    if (!isAuthenticated()) {
+      toast.error('Your session has expired. Please login again.');
+      return;
+    }
+
+    // Get auth token
+    const token = getAuthToken();
+    if (!token) {
+      toast.error('Authentication token not found. Please login again.');
+      return;
+    }
+
+    // Validate file type and size
+    if (!file.type.startsWith('video/')) {
+      toast.error('Please upload a valid video file');
+      return;
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error(`File size must be less than ${MAX_FILE_SIZE / (1024 * 1024)}MB`);
+      return;
+    }
+
+    setUploadProgress(prev => ({
+      ...prev,
+      [lessonId]: { progress: 0, status: 'uploading' }
+    }));
+
+    try {
+      // Convert file to base64
+      const base64String = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result as string;
+          resolve(result); // This will include the data:image/jpeg;base64, prefix
+        };
+        reader.onerror = () => reject(new Error('Failed to read file'));
+        reader.readAsDataURL(file); // This automatically adds the data:mimetype;base64, prefix
+      });
+
+      // Upload the base64 file
+      const response = await axios.post(
+        `${apiBaseUrl}${apiUrls.upload.uploadBase64}`,
+        {
+          base64String,
+          fileType: 'video'
+        },
+        {
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          withCredentials: true,
+          onUploadProgress: (progressEvent) => {
+            const progress = Math.round(
+              (progressEvent.loaded * 100) / (progressEvent.total || 0)
+            );
+            setUploadProgress(prev => ({
+              ...prev,
+              [lessonId]: { ...prev[lessonId], progress }
+            }));
+          }
+        }
+      );
+
+      // Log response for debugging
+      console.log('Upload response:', response.data);
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Upload failed');
+      }
+
+      // Update video data
+      const { url, duration, thumbnail } = response.data.data;
+      setVideoData(prev => ({
+        ...prev,
+        [lessonId]: { url, duration, thumbnail, size: file.size }
+      }));
+
+      // Update lesson with video URL and duration
+      updateLessonField(weekIndex, sectionIndex, lessonIndex, 'video_url', url);
+      if (duration) {
+        updateLessonField(weekIndex, sectionIndex, lessonIndex, 'duration', duration);
+      }
+
+      setUploadProgress(prev => ({
+        ...prev,
+        [lessonId]: { progress: 100, status: 'complete' }
+      }));
+
+      toast.success('Video uploaded successfully');
+    } catch (error: any) {
+      console.error('Error uploading video:', error);
+      
+      // Handle different types of errors
+      let errorMessage = 'Failed to upload video. Please try again.';
+      
+      if (error.response) {
+        // Server responded with error
+        switch (error.response.status) {
+          case 401:
+            errorMessage = 'Your session has expired. Please login again.';
+            break;
+          case 403:
+            errorMessage = 'You do not have permission to upload files.';
+            break;
+          case 413:
+            errorMessage = 'File size too large. Please choose a smaller file.';
+            break;
+          case 400:
+            errorMessage = error.response.data?.message || 'Invalid request format';
+            break;
+          default:
+            errorMessage = error.response.data?.message || errorMessage;
+        }
+      } else if (error.request) {
+        // Request made but no response
+        errorMessage = 'Network error. Please check your connection.';
+      } else {
+        // Error before making request (like auth error)
+        errorMessage = error.message || errorMessage;
+      }
+
+      setUploadProgress(prev => ({
+        ...prev,
+        [lessonId]: {
+          progress: 0,
+          status: 'error',
+          error: errorMessage
+        }
+      }));
+      toast.error(errorMessage);
+    }
+  };
+
+  // Video upload handler for direct lessons
+  const handleDirectVideoUpload = async (file: File, weekIndex: number, lessonIndex: number) => {
+    if (!weeks[weekIndex].lessons) return;
+    const lessonId = weeks[weekIndex].lessons[lessonIndex].id;
+
+    // Check authentication first
+    if (!isAuthenticated()) {
+      toast.error('Your session has expired. Please login again.');
+      return;
+    }
+
+    // Get auth token
+    const token = getAuthToken();
+    if (!token) {
+      toast.error('Authentication token not found. Please login again.');
+      return;
+    }
+
+    // Validate file type and size
+    if (!file.type.startsWith('video/')) {
+      toast.error('Please upload a valid video file');
+      return;
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error(`File size must be less than ${MAX_FILE_SIZE / (1024 * 1024)}MB`);
+      return;
+    }
+
+    setUploadProgress(prev => ({
+      ...prev,
+      [lessonId]: { progress: 0, status: 'uploading' }
+    }));
+
+    try {
+      // Convert file to base64
+      const base64String = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result as string;
+          resolve(result);
+        };
+        reader.onerror = () => reject(new Error('Failed to read file'));
+        reader.readAsDataURL(file);
+      });
+
+      // Upload the base64 file
+      const response = await axios.post(
+        `${apiBaseUrl}${apiUrls.upload.uploadBase64}`,
+        {
+          base64String,
+          fileType: 'video'
+        },
+        {
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          onUploadProgress: (progressEvent) => {
+            const progress = Math.round(
+              (progressEvent.loaded * 100) / (progressEvent.total || 0)
+            );
+            setUploadProgress(prev => ({
+              ...prev,
+              [lessonId]: { ...prev[lessonId], progress }
+            }));
+          }
+        }
+      );
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Upload failed');
+      }
+
+      // Update video data
+      const { url, duration, thumbnail } = response.data.data;
+      setVideoData(prev => ({
+        ...prev,
+        [lessonId]: { url, duration, thumbnail, size: file.size }
+      }));
+
+      // Update lesson with video URL and duration
+      updateDirectLessonField(weekIndex, lessonIndex, 'video_url', url);
+      if (duration) {
+        updateDirectLessonField(weekIndex, lessonIndex, 'duration', duration);
+      }
+
+      setUploadProgress(prev => ({
+        ...prev,
+        [lessonId]: { progress: 100, status: 'complete' }
+      }));
+
+      toast.success('Video uploaded successfully');
+    } catch (error: any) {
+      console.error('Error uploading video:', error);
+      
+      // Handle different types of errors
+      let errorMessage = 'Failed to upload video. Please try again.';
+      
+      if (error.response) {
+        // Server responded with error
+        switch (error.response.status) {
+          case 401:
+            errorMessage = 'Your session has expired. Please login again.';
+            break;
+          case 403:
+            errorMessage = 'You do not have permission to upload files.';
+            break;
+          case 413:
+            errorMessage = 'File size too large. Please choose a smaller file.';
+            break;
+          case 400:
+            errorMessage = error.response.data?.message || 'Invalid request format';
+            break;
+          default:
+            errorMessage = error.response.data?.message || errorMessage;
+        }
+      } else if (error.request) {
+        // Request made but no response
+        errorMessage = 'Network error. Please check your connection.';
+      } else {
+        // Error before making request (like auth error)
+        errorMessage = error.message || errorMessage;
+      }
+
+      setUploadProgress(prev => ({
+        ...prev,
+        [lessonId]: {
+          progress: 0,
+          status: 'error',
+          error: errorMessage
+        }
+      }));
+      toast.error(errorMessage);
+    }
+  };
+
+  // Video preview component for displaying uploaded videos
+  const VideoPreview: React.FC<{
+    videoUrl: string;
+    thumbnail?: string;
+    duration?: string;
+    size?: number;
+    onRemove: () => void;
+  }> = ({ videoUrl, thumbnail, duration, size, onRemove }) => (
+    <div className="mt-2 rounded-lg border border-gray-200 p-4">
+      <div className="relative">
+        <div className="aspect-w-16 aspect-h-9 mb-2">
+          {thumbnail ? (
+            <img
+              src={thumbnail}
+              alt="Video thumbnail"
+              className="rounded-lg object-cover"
+            />
+          ) : (
+            <div className="bg-gray-100 rounded-lg flex items-center justify-center">
+              <Video className="h-12 w-12 text-gray-400" />
+            </div>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={onRemove}
+          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 hover:bg-red-600 transition-colors"
+        >
+          <MinusCircle size={16} />
+        </button>
+      </div>
+      <div className="mt-2 grid grid-cols-2 gap-2">
+        {duration && (
+          <div className="flex items-center text-sm text-gray-500">
+            <Clock className="h-4 w-4 mr-1" />
+            <span>{duration}</span>
+          </div>
+        )}
+        {size && (
+          <div className="flex items-center text-sm text-gray-500">
+            <FileText className="h-4 w-4 mr-1" />
+            <span>{Math.round(size / 1024 / 1024)}MB</span>
+          </div>
+        )}
+      </div>
+      <div className="mt-2">
+        <a
+          href={videoUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm text-customGreen hover:text-green-700 flex items-center"
+        >
+          View Video
+        </a>
+      </div>
+    </div>
+  );
+
+  // Render video upload component for section lessons
+  const renderVideoUpload = (weekIndex: number, sectionIndex: number, lessonIndex: number, lesson: IVideoLesson) => {
+    const lessonId = lesson.id;
+    const progress = uploadProgress[lessonId];
+    const videoInfo = videoData[lessonId];
+
+    return (
+      <div className="mt-3 px-3 py-2 bg-blue-50 rounded-md">
+        <h3 className="text-sm font-medium text-blue-800 mb-2">Video Content</h3>
+        
+        {lesson.video_url ? (
+          <VideoPreview
+            videoUrl={lesson.video_url}
+            thumbnail={videoInfo?.thumbnail}
+            duration={lesson.duration}
+            size={videoInfo?.size}
+            onRemove={() => {
+              updateLessonField(weekIndex, lessonIndex, 'video_url', '', sectionIndex);
+              updateLessonField(weekIndex, lessonIndex, 'duration', '', sectionIndex);
+              setVideoData(prev => {
+                const newData = { ...prev };
+                delete newData[lessonId];
+                return newData;
+              });
+            }}
+          />
+        ) : (
+          <div className="space-y-2">
+            <FileUpload
+              label=""
+              accept="video/*"
+              onFileSelect={async (file) => {
+                await handleVideoUpload(file, weekIndex, sectionIndex, lessonIndex);
+              }}
+              currentFile={null}
+              required={false}
+            />
+            
+            <div className="mt-1">
+              <label className="block text-xs text-blue-700">
+                Or Enter Video URL
+              </label>
+              <input
+                type="url"
+                value={lesson.video_url || ''}
+                onChange={(e) => updateLessonField(
+                  weekIndex,
+                  lessonIndex,
+                  'video_url', 
+                  e.target.value,
+                  sectionIndex
+                )}
+                className="mt-1 w-full text-sm p-1.5 border border-blue-200 rounded focus:ring-1 focus:ring-blue-500"
+                placeholder="Enter video URL (YouTube, Vimeo, etc.)"
+              />
+            </div>
+          </div>
+        )}
+
+        {progress?.status === 'uploading' && (
+          <div className="mt-2">
+            <div className="flex items-center justify-between text-xs text-blue-600 mb-1">
+              <span>Uploading...</span>
+              <span>{progress.progress}%</span>
+            </div>
+            <div className="w-full bg-blue-100 rounded-full h-1.5">
+              <div
+                className="bg-blue-600 h-1.5 rounded-full transition-all duration-300"
+                style={{ width: `${progress.progress}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {progress?.status === 'error' && (
+          <p className="text-red-500 text-xs mt-1">{progress.error}</p>
+        )}
+      </div>
+    );
+  };
+
+  // Render video upload component for direct lessons
+  const renderDirectVideoUpload = (weekIndex: number, lessonIndex: number, lesson: IVideoLesson) => {
+    const lessonId = lesson.id;
+    const progress = uploadProgress[lessonId];
+    const videoInfo = videoData[lessonId];
+
+    return (
+      <div className="mt-3 px-3 py-2 bg-blue-50 rounded-md">
+        <h3 className="text-sm font-medium text-blue-800 mb-2">Video Content</h3>
+        
+        {lesson.video_url ? (
+          <VideoPreview
+            videoUrl={lesson.video_url}
+            thumbnail={videoInfo?.thumbnail}
+            duration={lesson.duration}
+            size={videoInfo?.size}
+            onRemove={() => {
+              updateDirectLessonField(weekIndex, lessonIndex, 'video_url', '');
+              updateDirectLessonField(weekIndex, lessonIndex, 'duration', '');
+              setVideoData(prev => {
+                const newData = { ...prev };
+                delete newData[lessonId];
+                return newData;
+              });
+            }}
+          />
+        ) : (
+          <div className="space-y-2">
+            <FileUpload
+              label=""
+              accept="video/*"
+              onFileSelect={async (file) => {
+                await handleDirectVideoUpload(file, weekIndex, lessonIndex);
+              }}
+              currentFile={null}
+              required={false}
+            />
+            
+            <div className="mt-1">
+              <label className="block text-xs text-blue-700">
+                Or Enter Video URL
+              </label>
+              <input
+                type="url"
+                value={lesson.video_url || ''}
+                onChange={(e) => updateDirectLessonField(
+                  weekIndex,
+                  lessonIndex,
+                  'video_url', 
+                  e.target.value
+                )}
+                className="mt-1 w-full text-sm p-1.5 border border-blue-200 rounded focus:ring-1 focus:ring-blue-500"
+                placeholder="Enter video URL (YouTube, Vimeo, etc.)"
+              />
+            </div>
+          </div>
+        )}
+
+        {progress?.status === 'uploading' && (
+          <div className="mt-2">
+            <div className="flex items-center justify-between text-xs text-blue-600 mb-1">
+              <span>Uploading...</span>
+              <span>{progress.progress}%</span>
+            </div>
+            <div className="w-full bg-blue-100 rounded-full h-1.5">
+              <div
+                className="bg-blue-600 h-1.5 rounded-full transition-all duration-300"
+                style={{ width: `${progress.progress}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {progress?.status === 'error' && (
+          <p className="text-red-500 text-xs mt-1">{progress.error}</p>
+        )}
+      </div>
+    );
+  };
+
+  // In the rendering section for each lesson, add this to expand lesson content
+  const handleLessonDetailsClick = (lessonId: string) => {
+    setActiveTabs(prev => ({
+      ...prev,
+      [lessonId]: !prev[lessonId]
+    }));
+  };
+
+  // Modify the section lesson rendering to include video upload
+  const renderLessonWithDetails = (lesson: ILesson, weekIndex: number, sectionIndex: number, lessonIndex: number) => {
+    const isActive = activeTabs[lesson.id] || false;
+    
+    return (
+      <div 
+        key={lesson.id}
+        id={`lesson-${lesson.id}`}
+        className={`p-3 ${
+          lesson.lessonType === 'video' ? 'bg-blue-50' :
+          lesson.lessonType === 'quiz' ? 'bg-purple-50' :
+          'bg-orange-50'
+        } rounded-lg`}
+        draggable
+        onDragStart={(e) => handleDragStart(e, { weekIndex, sectionIndex, lessonIndex }, 'lesson')}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="flex justify-between items-center">
+          <div className="flex-1">
+            <input
+              type="text"
+              value={lesson.title}
+              onChange={(e) => updateLessonField(
+                weekIndex, 
+                sectionIndex, 
+                lessonIndex, 
+                'title', 
+                e.target.value
+              )}
+              className={`w-full bg-transparent border-none p-0 mb-1 ${
+                lesson.lessonType === 'video' ? 'text-blue-800' :
+                lesson.lessonType === 'quiz' ? 'text-purple-800' :
+                'text-orange-800'
+              } font-medium focus:ring-0`}
+              placeholder={`${lesson.lessonType === 'video' ? 'Video' : 
+                          lesson.lessonType === 'quiz' ? 'Quiz' : 
+                          'Assignment'} Title`}
+            />
+            {renderLessonContent(lesson)}
+          </div>
+          <div className="flex items-center space-x-1">
+            <button
+              type="button"
+              onClick={() => handleLessonDetailsClick(lesson.id)}
+              className="text-gray-500 hover:text-gray-700 p-1"
+            >
+              {isActive ? "Hide" : "Edit"}
+            </button>
+            <button
+              type="button"
+              onClick={() => handleRemoveLesson(weekIndex, sectionIndex, lessonIndex)}
+              className="text-red-500 hover:text-red-700 p-1"
+            >
+              <MinusCircle size={16} />
+            </button>
+          </div>
+        </div>
+        
+        {isActive && (
+          <div className="mt-2 pt-2 border-t border-gray-200">
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Description
+                </label>
+                <textarea
+                  value={lesson.description || ''}
+                  onChange={(e) => updateLessonField(
+                    weekIndex, 
+                    sectionIndex,
+                    lessonIndex, 
+                    'description', 
+                    e.target.value
+                  )}
+                  rows={2}
+                  className="w-full text-sm p-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-light focus:border-blue"
+                  placeholder="Explain what students will learn"
+                />
+              </div>
+              
+              {lesson.lessonType === 'video' && renderVideoUpload(weekIndex, sectionIndex, lessonIndex, lesson as IVideoLesson)}
+              
+              <div className="flex items-center py-1">
+                <input
+                  type="checkbox"
+                  checked={lesson.isPreview}
+                  onChange={(e) => updateLessonField(
+                    weekIndex,
+                    lessonIndex,
+                    'isPreview',
+                    e.target.checked,
+                    sectionIndex
+                  )}
+                  className="h-4 w-4 text-customGreen rounded border-gray-300"
+                />
+                <label className="ml-2 text-sm text-gray-700">
+                  Make this lesson available as a free preview
+                </label>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-8">
       <div className="bg-white p-6 rounded-lg shadow-sm">
@@ -558,6 +1272,153 @@ const SimpleCurriculum: React.FC<SimpleCurriculumProps> = ({
                     </div>
                   </div>
 
+                  {/* Direct Lessons */}
+                  <div className="mb-6">
+                    <div className="flex justify-between items-center mb-3">
+                      <h5 className="font-medium text-gray-800">Direct Lessons</h5>
+                      <div className="flex flex-wrap gap-1">
+                        <button
+                          type="button"
+                          onClick={() => handleAddDirectLesson(weekIndex, 'video')}
+                          className="flex items-center text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                        >
+                          <Video className="mr-1 h-3 w-3" />
+                          Video
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleAddDirectLesson(weekIndex, 'quiz')}
+                          className="flex items-center text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded hover:bg-purple-200"
+                        >
+                          <HelpCircle className="mr-1 h-3 w-3" />
+                          Quiz
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleAddDirectLesson(weekIndex, 'assessment')}
+                          className="flex items-center text-xs px-2 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200"
+                        >
+                          <FileText className="mr-1 h-3 w-3" />
+                          Assignment
+                        </button>
+                      </div>
+                    </div>
+
+                    {(!week.lessons || week.lessons.length === 0) ? (
+                      <div className="text-center py-4 border border-dashed border-gray-300 rounded-lg">
+                        <p className="text-sm text-gray-500">No direct lessons yet</p>
+                        <p className="text-xs text-gray-400">Direct lessons are not part of any section</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {week.lessons.map((lesson, lessonIndex) => {
+                          const isActive = activeTabs[`direct_${lesson.id}`] || false;
+                          
+                          return (
+                            <div 
+                              key={lesson.id}
+                              id={`direct-lesson-${lesson.id}`}
+                              className={`p-3 ${
+                                lesson.lessonType === 'video' ? 'bg-blue-50' :
+                                lesson.lessonType === 'quiz' ? 'bg-purple-50' :
+                                'bg-orange-50'
+                              } rounded-lg`}
+                              draggable
+                              onDragStart={(e) => handleDragStart(e, { weekIndex, lessonIndex }, 'direct_lesson')}
+                              onDragEnd={handleDragEnd}
+                            >
+                              <div className="flex justify-between items-center">
+                                <div className="flex-1">
+                                  <input
+                                    type="text"
+                                    value={lesson.title}
+                                    onChange={(e) => updateDirectLessonField(
+                                      weekIndex, 
+                                      lessonIndex, 
+                                      'title', 
+                                      e.target.value
+                                    )}
+                                    className={`w-full bg-transparent border-none p-0 mb-1 ${
+                                      lesson.lessonType === 'video' ? 'text-blue-800' :
+                                      lesson.lessonType === 'quiz' ? 'text-purple-800' :
+                                      'text-orange-800'
+                                    } font-medium focus:ring-0`}
+                                    placeholder={`${lesson.lessonType === 'video' ? 'Video' : 
+                                                lesson.lessonType === 'quiz' ? 'Quiz' : 
+                                                'Assignment'} Title`}
+                                  />
+                                  {renderLessonContent(lesson)}
+                                </div>
+                                <div className="flex items-center space-x-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => setActiveTabs(prev => ({
+                                      ...prev,
+                                      [`direct_${lesson.id}`]: !prev[`direct_${lesson.id}`]
+                                    }))}
+                                    className="text-gray-500 hover:text-gray-700 p-1"
+                                  >
+                                    {isActive ? "Hide" : "Edit"}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveDirectLesson(weekIndex, lessonIndex)}
+                                    className="text-red-500 hover:text-red-700 p-1"
+                                  >
+                                    <MinusCircle size={16} />
+                                  </button>
+                                </div>
+                              </div>
+                              
+                              {isActive && (
+                                <div className="mt-2 pt-2 border-t border-gray-200">
+                                  <div className="space-y-3">
+                                    <div>
+                                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                                        Description
+                                      </label>
+                                      <textarea
+                                        value={lesson.description || ''}
+                                        onChange={(e) => updateDirectLessonField(
+                                          weekIndex, 
+                                          lessonIndex, 
+                                          'description', 
+                                          e.target.value
+                                        )}
+                                        rows={2}
+                                        className="w-full text-sm p-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-light focus:border-blue"
+                                        placeholder="Explain what students will learn"
+                                      />
+                                    </div>
+                                    
+                                    {lesson.lessonType === 'video' && renderDirectVideoUpload(weekIndex, lessonIndex, lesson as IVideoLesson)}
+                                    
+                                    <div className="flex items-center py-1">
+                                      <input
+                                        type="checkbox"
+                                        checked={lesson.isPreview}
+                                        onChange={(e) => updateDirectLessonField(
+                                          weekIndex,
+                                          lessonIndex,
+                                          'isPreview',
+                                          e.target.checked
+                                        )}
+                                        className="h-4 w-4 text-customGreen rounded border-gray-300"
+                                      />
+                                      <label className="ml-2 text-sm text-gray-700">
+                                        Make this lesson available as a free preview
+                                      </label>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
                   {/* Sections */}
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
@@ -675,50 +1536,9 @@ const SimpleCurriculum: React.FC<SimpleCurriculumProps> = ({
                                 </div>
                               ) : (
                                 <div className="space-y-2">
-                                  {section.lessons.map((lesson, lessonIndex) => (
-                                    <div
-                                      key={lesson.id}
-                                      id={`lesson-${lesson.id}`}
-                                      className={`p-3 ${
-                                        lesson.lessonType === 'video' ? 'bg-blue-50' :
-                                        lesson.lessonType === 'quiz' ? 'bg-purple-50' :
-                                        'bg-orange-50'
-                                      } rounded-lg flex justify-between items-center`}
-                                      draggable
-                                      onDragStart={(e) => handleDragStart(e, { weekIndex, sectionIndex, lessonIndex }, 'lesson')}
-                                      onDragEnd={handleDragEnd}
-                                    >
-                                      <div className="flex-1">
-                                        <input
-                                          type="text"
-                                          value={lesson.title}
-                                          onChange={(e) => updateLessonField(
-                                            weekIndex, 
-                                            sectionIndex, 
-                                            lessonIndex, 
-                                            'title', 
-                                            e.target.value
-                                          )}
-                                          className={`w-full bg-transparent border-none p-0 mb-1 ${
-                                            lesson.lessonType === 'video' ? 'text-blue-800' :
-                                            lesson.lessonType === 'quiz' ? 'text-purple-800' :
-                                            'text-orange-800'
-                                          } font-medium focus:ring-0`}
-                                          placeholder={`${lesson.lessonType === 'video' ? 'Video' : 
-                                                      lesson.lessonType === 'quiz' ? 'Quiz' : 
-                                                      'Assignment'} Title`}
-                                        />
-                                        {renderLessonContent(lesson)}
-                                      </div>
-                                      <button
-                                        type="button"
-                                        onClick={() => handleRemoveLesson(weekIndex, sectionIndex, lessonIndex)}
-                                        className="text-red-500 hover:text-red-700 p-1"
-                                      >
-                                        <MinusCircle size={16} />
-                                      </button>
-                                    </div>
-                                  ))}
+                                  {section.lessons.map((lesson, lessonIndex) => 
+                                    renderLessonWithDetails(lesson, weekIndex, sectionIndex, lessonIndex)
+                                  )}
                                 </div>
                               )}
                             </div>
