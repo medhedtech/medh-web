@@ -457,7 +457,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
       if (userId) {
         const isEnrolled = await checkEnrollmentStatus(userId, courseDetails._id);
         if (isEnrolled) {
-          toast.warning("You are already enrolled in this course!");
+          toast.error("You are already enrolled in this course!");
           router.push('/dashboards/my-courses');
           return;
         }
