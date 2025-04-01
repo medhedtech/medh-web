@@ -36,17 +36,19 @@ interface PriceFilterParams {
 // New API response interface
 interface CoursePricingItem {
   currency: string;
-  individualPrice: number;
-  batchPrice: number;
+  prices: {
+    individual: string;
+    batch: string;
+  };
   discounts: {
-    earlyBird: number;
-    group: number;
+    earlyBird: string;
+    group: string;
   };
   batchSize: {
     min: number;
     max: number;
   };
-  active: boolean;
+  status: string;
 }
 
 interface CourseWithPricing {
@@ -1031,18 +1033,28 @@ const AdminCourseFee: React.FC = () => {
         ));
         setCategories(categories.length > 0 ? categories : []);
         
+        // Helper function to parse price string to number
+        const parsePriceString = (priceStr: string): number => {
+          // Remove currency symbols and any whitespace
+          const cleanPrice = priceStr.replace(/[₹$€£\s]/g, '');
+          // Convert to number
+          const numPrice = parseFloat(cleanPrice);
+          // Return 0 if parsing fails
+          return isNaN(numPrice) ? 0 : numPrice;
+        };
+        
         // Map the API response to our internal format
         const mappedCourses = apiCourses.map(course => {
           // Map pricing to our price details format
           const prices: PriceDetails[] = course.pricing.map(price => ({
             currency: price.currency,
-            individual: price.individualPrice,
-            batch: price.batchPrice,
+            individual: parsePriceString(price.prices.individual),
+            batch: parsePriceString(price.prices.batch),
             min_batch_size: price.batchSize.min,
             max_batch_size: price.batchSize.max,
-            early_bird_discount: price.discounts.earlyBird,
-            group_discount: price.discounts.group,
-            is_active: price.active
+            early_bird_discount: price.discounts.earlyBird === "N/A" ? 0 : parseFloat(price.discounts.earlyBird),
+            group_discount: price.discounts.group === "N/A" ? 0 : parseFloat(price.discounts.group),
+            is_active: price.status === "Active"
           }));
           
           return {
