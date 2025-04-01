@@ -362,4 +362,68 @@ const ProtectedPage = () => {
     </div>
   );
 };
-``` 
+```
+
+## useRazorpay
+
+A custom hook for integrating with the Razorpay payment gateway. It handles script loading, checkout initialization, and provides error handling.
+
+### Usage
+
+```tsx
+import { useRazorpay } from '@/hooks';
+import RAZORPAY_CONFIG, { USD_TO_INR_RATE } from '@/config/razorpay';
+
+const MyComponent = () => {
+  const { openRazorpayCheckout, isLoading, error } = useRazorpay();
+
+  const handlePayment = async () => {
+    try {
+      await openRazorpayCheckout({
+        ...RAZORPAY_CONFIG,
+        amount: 1000 * 100 * USD_TO_INR_RATE, // Convert to paise and apply exchange rate
+        name: 'Product Name',
+        description: 'Payment for Product',
+        handler: function(response) {
+          console.log('Payment successful', response);
+          // Handle successful payment
+        }
+      });
+    } catch (error) {
+      console.error('Payment failed', error);
+      // Handle payment failure
+    }
+  };
+
+  return (
+    <button 
+      onClick={handlePayment} 
+      disabled={isLoading}
+    >
+      {isLoading ? 'Processing...' : 'Pay Now'}
+    </button>
+  );
+};
+```
+
+### API
+
+#### Return Values
+
+| Name | Type | Description |
+|------|------|-------------|
+| `loadRazorpayScript` | `() => Promise<boolean>` | Loads the Razorpay script manually. Returns `true` if successful. |
+| `openRazorpayCheckout` | `(options: RazorpayOptions) => Promise<void>` | Opens the Razorpay checkout with the provided options. Automatically loads the script if needed. |
+| `isScriptLoaded` | `boolean` | Indicates if the Razorpay script has been loaded. |
+| `isLoading` | `boolean` | Indicates if a loading operation is in progress. |
+| `error` | `string \| null` | Error message if an error occurred, null otherwise. |
+
+#### RazorpayOptions
+
+See the `RazorpayOptions` interface in the hook for all available options.
+
+#### Notes
+
+- The hook automatically handles script loading when you call `openRazorpayCheckout`.
+- There's a centralized config file at `src/config/razorpay.ts` for common settings.
+- For production, use environment variables for the Razorpay key. 

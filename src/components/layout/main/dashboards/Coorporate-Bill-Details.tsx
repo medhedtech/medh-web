@@ -11,16 +11,40 @@ import Preloader from "@/components/shared/others/Preloader";
 import { toast } from "react-toastify";
 import Education from "@/assets/images/course-detailed/education.svg";
 import { getCourseById } from "@/apis/course/course";
+import useRazorpay from "@/hooks/useRazorpay";
+import RAZORPAY_CONFIG from "@/config/razorpay";
 
-const BillDetails = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+interface CourseInfo {
+  _id: string;
+  course_title: string;
+  course_image?: string;
+  course_tag?: string;
+  course_category?: string;
+  course_fee?: string | number;
+}
+
+interface UserInfo {
+  _id: string;
+  full_name?: string;
+  email?: string;
+}
+
+const CoorporateBillDetails: React.FC = () => {
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const router = useRouter();
-  const courseId = useParams().id;
-  const [userId, setUserId] = useState(null);
-  const [courseInfo, setCourseInfo] = useState(null);
-  const [userInfo, setUserInfo] = useState(null);
+  const courseId = useParams().id as string;
+  const [userId, setUserId] = useState<string | null>(null);
+  const [courseInfo, setCourseInfo] = useState<CourseInfo | null>(null);
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const { getQuery, loading: GetLoading } = useGetQuery();
   const { postQuery, loading } = usePostQuery();
+  const { 
+    loadRazorpayScript, 
+    openRazorpayCheckout, 
+    isScriptLoaded, 
+    isLoading: razorpayLoading, 
+    error: razorpayError 
+  } = useRazorpay();
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -30,109 +54,103 @@ const BillDetails = () => {
   }, []);
 
   useEffect(() => {
-    // Fetch Course Details
-    const fetchCourseDetailsById = () => {
-      getQuery({
-        url: getCourseById(courseId),
-        onSuccess: (res) => {
-          setCourseInfo(res);
-          console.log("Course Info: ", res);
-        },
-        onFail: (err) => {
-          console.error("Error fetching course details:", err);
-        },
-      });
-    };
-    fetchCourseDetailsById();
+    // Only fetch if userId is available
+    if (userId) {
+      // Fetch Course Details
+      const fetchCourseDetailsById = () => {
+        getQuery({
+          url: getCourseById(courseId),
+          onSuccess: (res) => {
+            setCourseInfo(res);
+            console.log("Course Info: ", res);
+          },
+          onFail: (err) => {
+            console.error("Error fetching course details:", err);
+          },
+        });
+      };
+      fetchCourseDetailsById();
 
-    // Fetch User Details
-    const fetchUserDetailsById = () => {
-      getQuery({
-        url: `${apiUrls?.user?.getDetailsbyId}/${userId}`,
-        onSuccess: (res) => {
-          setUserInfo(res.data);
-          console.log("User Info: ", res.data);
-        },
-        onFail: (err) => {
-          console.error("Error fetching user details:", err);
-        },
-      });
-    };
-    fetchUserDetailsById();
-  }, [userId]);
+      // Fetch User Details
+      const fetchUserDetailsById = () => {
+        getQuery({
+          url: `${apiUrls?.user?.getDetailsbyId}/${userId}`,
+          onSuccess: (res) => {
+            setUserInfo(res.data);
+            console.log("User Info: ", res.data);
+          },
+          onFail: (err) => {
+            console.error("Error fetching user details:", err);
+          },
+        });
+      };
+      fetchUserDetailsById();
+    }
+  }, [userId, courseId, getQuery]);
 
-  const loadRazorpayScript = () => {
-    return new Promise((resolve) => {
-      const script = document.createElement("script");
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
-  };
-
-  const handleProceedToPay = async () => {
+  const handleProceedToPay = async (): Promise<void> => {
     const token = localStorage.getItem("token");
-    const studentId = localStorage.getItem("userId");
+    const coorporateId = localStorage.getItem("userId");
 
-    if (!token || !studentId) {
+    if (!token || !coorporateId) {
       setIsModalOpen(true);
       return;
     }
-    // Load Razorpay script
-    const scriptLoaded = await loadRazorpayScript();
-    if (!scriptLoaded) {
-      toast.error("Please log in first.");
-      return;
-    }
-    if (courseInfo) {
+    
+    try {
+      if (!courseInfo) {
+        toast.error("Course information is missing");
+        return;
+      }
+      
       const courseFee = Number(courseInfo?.course_fee) || 59500;
+      
+      // Configure Razorpay options
       const options = {
-        key: "rzp_test_Rz8NSLJbl4LBA5",
-        amount: courseFee * 100 * 84.47,
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || RAZORPAY_CONFIG.key,
+        amount: courseFee * 100 * 84.47, // Convert to INR and paise
         currency: "INR",
-        name: courseInfo?.course_title,
-        description: `Payment for ${courseInfo?.course_title}`,
-        image: Education,
-        handler: async function (response) {
+        name: courseInfo?.course_title || "Course Enrollment",
+        description: `Payment for ${courseInfo?.course_title || "Course"}`,
+        image: "/images/logo.png",
+        handler: async function (response: any) {
           toast.success("Payment Successful!");
-
           // Call subscription API after successful payment
-          await subscribeCourse(studentId, courseId, courseFee);
+          await subscribeCourse(coorporateId, courseId, courseFee);
         },
         prefill: {
-          name: "Medh Student",
-          email: "medh@student.com",
+          name: "Medh Corporate Admin",
+          email: "medh@corporate.com",
           contact: "9876543210",
         },
-        notes: {
-          address: "Razorpay address",
-        },
         theme: {
-          color: "#7ECA9D",
+          color: RAZORPAY_CONFIG.theme.color,
         },
       };
 
-      const razorpay = new window.Razorpay(options);
-      razorpay.open();
+      // Use the hook to open the Razorpay checkout
+      await openRazorpayCheckout(options);
+    } catch (err) {
+      console.error("Payment error:", err);
+      toast.error("Failed to process payment. Please try again.");
     }
   };
 
-  const subscribeCourse = async (studentId, courseId, amount) => {
+  const subscribeCourse = async (coorporateId: string, courseId: string, amount: number): Promise<void> => {
     try {
       await postQuery({
         url: apiUrls?.Subscription?.AddSubscription,
         postData: {
-          student_id: studentId,
+          student_id: coorporateId,
           course_id: courseId,
           amount: amount,
-          status: 'success'
+          status: "success",
         },
         onSuccess: async () => {
           console.log("Payment successful!");
 
           // Call enrollCourse API after successful subscription
-          await enrollCourse(studentId, courseId);
+          await enrollCourse(coorporateId, courseId);
         },
         onFail: (err) => {
           console.error("Subscription failed:", err);
@@ -145,17 +163,17 @@ const BillDetails = () => {
     }
   };
 
-  const enrollCourse = async (studentId, courseId) => {
+  const enrollCourse = async (coorporateId: string, courseId: string): Promise<void> => {
     try {
       await postQuery({
-        url: apiUrls?.EnrollCourse?.enrollCourse,
+        url: apiUrls?.CoorporateEnrollCourse?.addCooporateAssignToCourse,
         postData: {
-          student_id: studentId,
+          coorporate_id: coorporateId,
           course_id: courseId,
         },
         onSuccess: () => {
           setIsModalOpen(true);
-          console.log("Student enrolled successfully!");
+          console.log("Corporate enrolled successfully!");
         },
         onFail: (err) => {
           console.error("Enrollment failed:", err);
@@ -168,11 +186,11 @@ const BillDetails = () => {
     }
   };
 
-  const closeModal = () => {
+  const closeModal = (): void => {
     setIsModalOpen(false);
   };
 
-  const handleGoBack = () => {
+  const handleGoBack = (): void => {
     router.back();
   };
 
@@ -213,8 +231,6 @@ const BillDetails = () => {
           <div className="w-1/2">
             <Image
               src={courseInfo?.course_image || MLimg}
-              // width={800}
-              // height={0}
               width={800}
               height={600}
               className="w-full rounded-xl h-96"
@@ -321,7 +337,7 @@ const BillDetails = () => {
                 <button
                   onClick={() => {
                     closeModal();
-                    router.push("/dashboards/my-courses");
+                    router.push("/dashboards/coorporate-dashboard");
                   }}
                   className="px-8 py-2 bg-primaryColor text-center text-white rounded-full hover:bg-green-500"
                 >
@@ -336,4 +352,4 @@ const BillDetails = () => {
   );
 };
 
-export default BillDetails;
+export default CoorporateBillDetails; 
