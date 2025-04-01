@@ -1597,7 +1597,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
           <CourseHeader 
             title={courseDetails?.course_title}
             category={courseDetails?.course_category || courseDetails?.category}
-            price={courseDetails?.course_fee}
+            price={courseDetails?.prices?.[0]?.batch || 0}
             backgroundImage={courseDetails?.course_image}
             colorClass={getCategoryColorClasses().color}
             bgClass={getCategoryColorClasses().bg}
@@ -1639,7 +1639,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
         <div className="flex flex-col">
           <span className="text-xs text-gray-600 dark:text-gray-400">Course Fee</span>
           <span className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
-            {courseDetails?.course_fee ? `₹${courseDetails.course_fee}` : 'Free'}
+            {courseDetails?.prices ? `₹${courseDetails.prices}` : 'Free'}
           </span>
         </div>
         <button 
