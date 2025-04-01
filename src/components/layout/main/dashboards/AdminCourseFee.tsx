@@ -1512,20 +1512,34 @@ const AdminCourseFee: React.FC = () => {
                         />
                       </td>
                       <td className="px-4 py-4 text-sm font-medium text-gray-900">
-                        <div className="space-y-1">
-                          <div className="font-semibold text-gray-900">{course.title.split('|')[0].trim()}</div>
+                        <div className="space-y-1.5">
+                          <div className="font-semibold text-gray-900 line-clamp-1">
+                            {course.title.split('|')[0].trim()}
+                          </div>
                           <div className="flex flex-wrap gap-2 text-xs">
                             {course.title.split('|').slice(1).map((detail, index) => {
                               const [label, value] = detail.split(':').map(s => s.trim());
+                              let badgeColor = 'bg-gray-100 text-gray-800';
+                              
+                              // Determine badge color based on label
+                              if (label.toLowerCase().includes('grade')) {
+                                if (value.toLowerCase().includes('preschool')) {
+                                  badgeColor = 'bg-pink-100 text-pink-800';
+                                } else if (value.toLowerCase().includes('executive') || value.toLowerCase().includes('professional')) {
+                                  badgeColor = 'bg-purple-100 text-purple-800';
+                                } else if (value.toLowerCase().includes('all grade')) {
+                                  badgeColor = 'bg-indigo-100 text-indigo-800';
+                                } else {
+                                  badgeColor = 'bg-blue-100 text-blue-800';
+                                }
+                              } else if (label.toLowerCase().includes('duration')) {
+                                badgeColor = 'bg-green-100 text-green-800';
+                              }
+
                               return (
                                 <span 
                                   key={index}
-                                  className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
-                                    ${label.toLowerCase().includes('grade') 
-                                      ? 'bg-blue-100 text-blue-800' 
-                                      : label.toLowerCase().includes('duration')
-                                      ? 'bg-purple-100 text-purple-800'
-                                      : 'bg-gray-100 text-gray-800'}`}
+                                  className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${badgeColor}`}
                                 >
                                   {label}: {value}
                                 </span>
@@ -1541,15 +1555,41 @@ const AdminCourseFee: React.FC = () => {
                         <div className="flex flex-wrap gap-2">
                           {course.prices.length > 0 ? (
                             course.prices.map((price, index) => (
-                              <div key={index} className="flex items-center mb-1">
-                                <span className={`w-3 h-3 rounded-full mr-2 ${price.is_active ? 'bg-green-500' : 'bg-gray-400'}`}></span>
-                                <span className="font-medium">{currencyFormat(price.individual, price.currency)}</span>
+                              <div 
+                                key={index} 
+                                className={`flex items-center space-x-2 px-2 py-1 rounded-md ${
+                                  price.is_active 
+                                    ? 'bg-green-50 border border-green-200' 
+                                    : 'bg-gray-50 border border-gray-200'
+                                }`}
+                              >
+                                <span className={`w-2 h-2 rounded-full ${price.is_active ? 'bg-green-500' : 'bg-gray-400'}`}></span>
+                                <div className="flex flex-col">
+                                  <div className="flex items-center space-x-1">
+                                    <span className="font-medium text-gray-900">{currencyFormat(price.individual, price.currency)}</span>
+                                    <span className="text-xs text-gray-500">/ individual</span>
+                                  </div>
+                                  <div className="flex items-center space-x-1">
+                                    <span className="font-medium text-gray-900">{currencyFormat(price.batch, price.currency)}</span>
+                                    <span className="text-xs text-gray-500">/ batch</span>
+                                  </div>
+                                  {(price.early_bird_discount ?? 0) > 0 && (
+                                    <div className="text-xs text-green-600">
+                                      Early Bird: {price.early_bird_discount}% off
+                                    </div>
+                                  )}
+                                  {(price.group_discount ?? 0) > 0 && (
+                                    <div className="text-xs text-blue-600">
+                                      Group: {price.group_discount}% off
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             ))
                           ) : (
-                            <div className="text-amber-600 flex items-center">
-                              <span className="w-2 h-2 rounded-full bg-amber-500 mr-2"></span>
-                              <span className="text-sm italic">No pricing set</span>
+                            <div className="flex items-center space-x-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-md">
+                              <AlertCircle className="h-4 w-4 text-amber-500" />
+                              <span className="text-sm text-amber-700">No pricing set</span>
                             </div>
                           )}
                         </div>
@@ -1644,11 +1684,11 @@ const AdminCourseFee: React.FC = () => {
                                         <div className="space-y-3">
                                           <div className="flex justify-between items-center border-b border-gray-100 pb-2">
                                             <span className="text-sm text-gray-500">Individual Price:</span>
-                                            <span className="text-base font-semibold">{price.currency} {price.individual}</span>
+                                            <span className="text-base font-semibold">{currencyFormat(price.individual, price.currency)}</span>
                             </div>
                                           <div className="flex justify-between items-center border-b border-gray-100 pb-2">
                                             <span className="text-sm text-gray-500">Batch Price:</span>
-                                            <span className="text-base font-semibold">{price.currency} {price.batch}</span>
+                                            <span className="text-base font-semibold">{currencyFormat(price.batch, price.currency)}</span>
                                 </div>
                                           <div className="flex justify-between items-center border-b border-gray-100 pb-2">
                                             <span className="text-sm text-gray-500">Batch Size:</span>
