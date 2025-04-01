@@ -1487,7 +1487,11 @@ const PlacementForm: React.FC<PlacementFormProps> = ({ isOpen, onClose }) => {
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Placement Application Form</h2>
           <button
             type="button"
-            onClick={onClose}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onClose();
+            }}
             className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white"
           >
             <X className="w-6 h-6" />
@@ -1658,7 +1662,10 @@ const PlacementForm: React.FC<PlacementFormProps> = ({ isOpen, onClose }) => {
           <div className="flex justify-between items-center pt-2 mt-8">
             <button
               type="button"
-              onClick={activeTab === 0 ? onClose : prevTab}
+              onClick={(e) => {
+                e.preventDefault();
+                activeTab === 0 ? onClose() : prevTab();
+              }}
               className="px-6 py-3 rounded-xl font-medium text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white transition-colors"
             >
               {activeTab === 0 ? 'Cancel' : 'Previous'}
