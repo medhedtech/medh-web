@@ -1,15 +1,33 @@
 "use client";
 import React from "react";
 import Image from "next/image";
-import PropTypes from "prop-types";
 import { CalendarClock } from "lucide-react";
 import useGetQuery from "@/hooks/getQuery.hook";
 import Education from "@/assets/images/course-detailed/education.svg";
 import { apiUrls } from "@/apis";
 import usePostQuery from "@/hooks/postQuery.hook";
 import { capitalize } from "@mui/material";
+import useRazorpay from "@/hooks/useRazorpay";
+import RAZORPAY_CONFIG from "@/config/razorpay";
+import { toast } from "react-toastify";
 
-const StudentMainMembership = ({
+interface StudentMainMembershipProps {
+  courseImage?: string;
+  title: string;
+  courseCategory?: string;
+  typeLabel: string;
+  sessions: string | number;
+  duration: string;
+  sessionDuration: string;
+  membershipName: string;
+  expiryDate: string;
+  iconVideo: string;
+  iconClock: string;
+  fallbackImage: string;
+  planType?: string;
+}
+
+const StudentMainMembership: React.FC<StudentMainMembershipProps> = ({
   courseImage,
   title,
   courseCategory,
@@ -24,7 +42,7 @@ const StudentMainMembership = ({
   fallbackImage,
   planType = "Renew",
 }) => {
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     const day = String(date.getDate()).padStart(2, "0");
     const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are zero-indexed
@@ -34,32 +52,23 @@ const StudentMainMembership = ({
 
   const { getQuery, loading } = useGetQuery();
   const { postQuery, loading: isLoading } = usePostQuery();
+  const { 
+    openRazorpayCheckout, 
+    isScriptLoaded, 
+    isLoading: razorpayLoading, 
+    error: razorpayError 
+  } = useRazorpay();
 
-  const hasExpired = (expiryDate) => {
+  const hasExpired = (expiryDate: string): boolean => {
     const today = new Date();
     const expiry = new Date(expiryDate);
 
     return expiry < today; // Returns true if expiry date is in the past
   };
 
-  // const handleRenewMembership = () => {
-  //   console.log("Membership Renewed");
-  // };
-
-  const loadRazorpayScript = () => {
-    return new Promise((resolve) => {
-      const script = document.createElement("script");
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
-  };
-
-  const renew = async (membership_id) => {
+  const renew = async (membership_id: string): Promise<void> => {
     postQuery({
       url: `${apiUrls?.Membership.renewMembership}/${membership_id}`,
-
       onSuccess: (data) => {
         window.location.reload();
       },
@@ -69,58 +78,61 @@ const StudentMainMembership = ({
     });
   };
 
-  const handleRenewMembership = async () => {
+  const handleRenewMembership = async (): Promise<void> => {
     const studentId = localStorage.getItem("userId");
+    
+    if (!studentId) {
+      toast.error("Please log in first.");
+      return;
+    }
+    
     getQuery({
       url: `${apiUrls?.Membership.getRenewAmount}?user_id=${studentId}&category=${courseCategory}`,
       onSuccess: async (data) => {
         console.log("Renew Amount: ", data);
         const token = localStorage.getItem("token");
+        
         if (!token || !studentId) {
-          console.error("Please log in first.");
-          return;
-        }
-        const scriptLoaded = await loadRazorpayScript();
-        console.log("Script Loaded: ", scriptLoaded);
-        if (!scriptLoaded) {
           toast.error("Please log in first.");
           return;
         }
-        if (planType) {
+        
+        try {
+          // Configure Razorpay options
           const options = {
-            key: "rzp_test_Rz8NSLJbl4LBA5",
-            amount: data.data.amount * 100 * 84.47,
+            key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || RAZORPAY_CONFIG.key,
+            amount: data.data.amount * 100 * 84.47, // Convert to INR and paise
             currency: "INR",
             name: `${capitalize(planType)} Membership`,
             description: `Payment for ${capitalize(planType)} Membership`,
-            image: Education,
-            handler: async function (response) {
+            image: "/images/logo.png",
+            handler: async function (response: any) {
               console.log("Payment Successful!");
+              toast.success("Payment Successful!");
               renew(data.data.membership_id);
-              // Call subscription API after successful payment
             },
             prefill: {
-              name: "Medh Membership Plan",
-              email: "medh@student.com",
-              contact: "9876543210",
-            },
-            notes: {
-              address: "Razorpay address",
+              name: RAZORPAY_CONFIG.prefill.name,
+              email: RAZORPAY_CONFIG.prefill.email,
+              contact: RAZORPAY_CONFIG.prefill.contact,
             },
             theme: {
-              color: "#7ECA9D",
+              color: RAZORPAY_CONFIG.theme.color,
             },
           };
-          const razorpay = new window.Razorpay(options);
-          razorpay.open();
+
+          // Use the hook to open the Razorpay checkout
+          await openRazorpayCheckout(options);
+        } catch (err) {
+          console.error("Payment error:", err);
+          toast.error("Failed to process payment. Please try again.");
         }
       },
       onFail: (err) => {
         console.error("Error fetching renew amount:", err);
+        toast.error("Error fetching membership details. Please try again.");
       },
     });
-
-    // Load Razorpay script
   };
 
   return (
@@ -176,14 +188,14 @@ const StudentMainMembership = ({
           </p>
           <button
             onClick={handleRenewMembership}
-            disabled={!hasExpired(expiryDate)}
+            disabled={!hasExpired(expiryDate) || isLoading || razorpayLoading}
             className={`px-4 py-2.5 rounded-lg transition-all text-xs ${
-              !hasExpired(expiryDate)
+              !hasExpired(expiryDate) || isLoading || razorpayLoading
                 ? "bg-gray-300 cursor-not-allowed"
                 : "bg-[#3B82F6] hover:bg-[#2563EB] active:bg-[#1D4ED8] text-white shadow-md hover:shadow-lg cursor-pointer"
             }`}
           >
-            Renew
+            {isLoading || razorpayLoading ? "Processing..." : "Renew"}
           </button>
         </div>
       </div>
@@ -191,20 +203,4 @@ const StudentMainMembership = ({
   );
 };
 
-// Define prop types
-StudentMainMembership.propTypes = {
-  courseImage: PropTypes.string,
-  courseCategory: PropTypes.string,
-  title: PropTypes.string.isRequired,
-  typeLabel: PropTypes.string.isRequired,
-  sessions: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
-    .isRequired,
-  duration: PropTypes.string.isRequired,
-  sessionDuration: PropTypes.string.isRequired,
-  membershipName: PropTypes.string.isRequired,
-  iconVideo: PropTypes.string.isRequired,
-  iconClock: PropTypes.string.isRequired,
-  fallbackImage: PropTypes.string.isRequired,
-};
-
-export default StudentMainMembership;
+export default StudentMainMembership; 

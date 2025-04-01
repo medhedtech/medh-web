@@ -23,8 +23,9 @@ import {
   updateCurrency, 
   getCurrencyByCountryCode 
 } from '@/apis/currency/currency';
+import { apiUrls } from '@/apis';
 
-// First, update the PriceFilterParams interface to include the new fields
+// First, update the PriceFilterParams interface to include currency
 interface PriceFilterParams {
   status?: string;
   courseCategory?: string;
@@ -32,6 +33,9 @@ interface PriceFilterParams {
   course_id?: string;
   course_grade?: string;
   course_type?: string;
+  pricing_status?: string;
+  has_pricing?: string;
+  currency?: string;
 }
 
 // New API response interface
@@ -76,9 +80,12 @@ interface CoursePrice {
   editedPrices?: PriceDetails[];
 }
 
+// Then update the CourseFeeFilterProps interface
 interface CourseFeeFilterProps {
   onFilterChange: (filters: PriceFilterParams) => void;
   categories: string[];
+  currencies?: string[];
+  classTypes?: string[];
 }
 
 interface BulkUpdateConfig {
@@ -97,13 +104,21 @@ interface SortState {
   direction: SortDirection;
 }
 
-const CourseFeeFilter: React.FC<CourseFeeFilterProps> = ({ onFilterChange, categories }) => {
+const CourseFeeFilter: React.FC<CourseFeeFilterProps> = ({ 
+  onFilterChange, 
+  categories, 
+  currencies = ["USD", "INR"],
+  classTypes = ["Live Courses", "Blended Courses", "Pre-Recorded"]
+}) => {
   const [status, setStatus] = useState('Published');
   const [category, setCategory] = useState('');
   const [search, setSearch] = useState('');
   const [courseId, setCourseId] = useState('');
   const [courseGrade, setCourseGrade] = useState('');
   const [courseType, setCourseType] = useState('');
+  const [pricingStatus, setPricingStatus] = useState('');
+  const [hasPricing, setHasPricing] = useState('');
+  const [currency, setCurrency] = useState('');
   const [advancedSearch, setAdvancedSearch] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
 
@@ -125,8 +140,31 @@ const CourseFeeFilter: React.FC<CourseFeeFilterProps> = ({ onFilterChange, categ
       search, 
       course_id: courseId,
       course_grade: courseGrade,
-      course_type: courseType
+      course_type: courseType,
+      pricing_status: pricingStatus,
+      has_pricing: hasPricing,
+      currency
     });
+  };
+
+  // Reset all filters
+  const resetFilters = () => {
+    setStatus('Published');
+    setCategory('');
+    setSearch('');
+    setCourseId('');
+    setCourseGrade('');
+    setCourseType('');
+    setPricingStatus('');
+    setHasPricing('');
+    setCurrency('');
+    
+    // Apply the reset filters
+    setTimeout(() => {
+      onFilterChange({
+        status: 'Published'
+      });
+    }, 0);
   };
 
   // Debounced search handler
@@ -161,17 +199,26 @@ const CourseFeeFilter: React.FC<CourseFeeFilterProps> = ({ onFilterChange, categ
           <h3 className="text-lg font-medium text-gray-900">Filter Courses</h3>
           <p className="text-sm text-gray-500">Filter the courses to update their prices</p>
         </div>
-        <button 
-          onClick={() => setAdvancedSearch(!advancedSearch)}
-          className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
-        >
-          {advancedSearch ? 'Simple Search' : 'Advanced Search'}
-          {advancedSearch ? <ChevronUp className="ml-1 h-4 w-4" /> : <ChevronDown className="ml-1 h-4 w-4" />}
-        </button>
+        <div className="flex items-center space-x-3">
+          <button 
+            onClick={() => setAdvancedSearch(!advancedSearch)}
+            className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
+          >
+            {advancedSearch ? 'Simple Search' : 'Advanced Search'}
+            {advancedSearch ? <ChevronUp className="ml-1 h-4 w-4" /> : <ChevronDown className="ml-1 h-4 w-4" />}
+          </button>
+          <button
+            onClick={resetFilters}
+            className="text-sm text-gray-600 hover:text-gray-800 flex items-center border border-gray-200 rounded px-2 py-1"
+          >
+            <RefreshCw className="mr-1 h-3 w-3" />
+            Reset
+          </button>
+        </div>
       </div>
       <div className="px-6 py-4">
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">Status</label>
               <select 
@@ -183,9 +230,11 @@ const CourseFeeFilter: React.FC<CourseFeeFilterProps> = ({ onFilterChange, categ
                 }}
                 className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-customGreen focus:border-customGreen sm:text-sm rounded-md"
               >
+                <option value="">All Statuses</option>
                 <option value="Published">Published</option>
                 <option value="Draft">Draft</option>
                 <option value="Archived">Archived</option>
+                <option value="Upcoming">Upcoming</option>
               </select>
             </div>
             
@@ -208,7 +257,7 @@ const CourseFeeFilter: React.FC<CourseFeeFilterProps> = ({ onFilterChange, categ
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Type</label>
+              <label className="text-sm font-medium text-gray-700">Course Type</label>
               <select 
                 value={courseType} 
                 onChange={(e) => {
@@ -218,11 +267,9 @@ const CourseFeeFilter: React.FC<CourseFeeFilterProps> = ({ onFilterChange, categ
                 className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-customGreen focus:border-customGreen sm:text-sm rounded-md"
               >
                 <option value="">All Types</option>
-                <option value="Live Courses">Live</option>
-                <option value="Blended Courses">Blended</option>
-                <option value="Recorded Courses">Recorded</option>
-                <option value="Hybrid Courses">Hybrid</option>
-                <option value="Self-paced Courses">Self-paced</option>
+                {classTypes.map((type) => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
               </select>
             </div>
             
@@ -245,10 +292,84 @@ const CourseFeeFilter: React.FC<CourseFeeFilterProps> = ({ onFilterChange, categ
                 />
               </div>
             </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Course Grade</label>
+              <select
+                value={courseGrade}
+                onChange={(e) => {
+                  setCourseGrade(e.target.value);
+                  setTimeout(() => applyFilters(), 0);
+                }}
+                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-customGreen focus:border-customGreen sm:text-sm rounded-md"
+              >
+                <option value="">All Grades</option>
+                <option value="Preschool">Preschool</option>
+                <option value="Grade 1-2">Grade 1-2</option>
+                <option value="Grade 3-4">Grade 3-4</option>
+                <option value="Grade 5-6">Grade 5-6</option>
+                <option value="Grade 7-8">Grade 7-8</option>
+                <option value="Grade 9-10">Grade 9-10</option>
+                <option value="Grade 11-12">Grade 11-12</option>
+                <option value="UG - Graduate - Professionals">Graduate/Professional</option>
+                <option value="Executive Diploma">Executive Diploma</option>
+                <option value="Professional Edge Diploma">Professional Edge Diploma</option>
+                <option value="All Grade">All Grades</option>
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Currency</label>
+              <select 
+                value={currency} 
+                onChange={(e) => {
+                  setCurrency(e.target.value);
+                  setTimeout(() => applyFilters(), 0);
+                }}
+                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-customGreen focus:border-customGreen sm:text-sm rounded-md"
+              >
+                <option value="">All Currencies</option>
+                {currencies.map((curr) => (
+                  <option key={curr} value={curr}>{curr} {curr === 'USD' ? '($)' : curr === 'INR' ? '(₹)' : ''}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Pricing Status</label>
+              <select 
+                value={pricingStatus} 
+                onChange={(e) => {
+                  setPricingStatus(e.target.value);
+                  setTimeout(() => applyFilters(), 0);
+                }}
+                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-customGreen focus:border-customGreen sm:text-sm rounded-md"
+              >
+                <option value="">All Statuses</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Pricing Availability</label>
+              <select 
+                value={hasPricing} 
+                onChange={(e) => {
+                  setHasPricing(e.target.value);
+                  setTimeout(() => applyFilters(), 0);
+                }}
+                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-customGreen focus:border-customGreen sm:text-sm rounded-md"
+              >
+                <option value="">All Courses</option>
+                <option value="yes">Has Pricing</option>
+                <option value="no">Missing Pricing</option>
+              </select>
+            </div>
           </div>
           
           {advancedSearch && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-gray-100">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 mt-2 border-t border-gray-100">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">Course ID</label>
                 <input
@@ -260,28 +381,29 @@ const CourseFeeFilter: React.FC<CourseFeeFilterProps> = ({ onFilterChange, categ
                 />
               </div>
               
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Course Grade</label>
-                <input
-                  type="text"
-                  placeholder="Enter course grade"
-                  value={courseGrade}
-                  onChange={(e) => setCourseGrade(e.target.value)}
-                  className="focus:ring-customGreen focus:border-customGreen block w-full py-2 sm:text-sm border-gray-300 rounded-md"
-                />
+              <div className="flex items-end">
+                <button
+                  type="submit"
+                  className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-customGreen hover:bg-customGreen-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-customGreen"
+                >
+                  <Filter className="mr-2 h-4 w-4" />
+                  Apply Filters
+                </button>
               </div>
             </div>
           )}
           
-          <div className="flex justify-end">
-            <button
-              type="submit"
-              className="inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-customGreen hover:bg-customGreen-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-customGreen"
-            >
-              <Filter className="mr-2 h-4 w-4" />
-              Apply Filters
-            </button>
-          </div>
+          {!advancedSearch && (
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                className="inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-customGreen hover:bg-customGreen-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-customGreen"
+              >
+                <Filter className="mr-2 h-4 w-4" />
+                Apply Filters
+              </button>
+            </div>
+          )}
         </form>
       </div>
     </div>
@@ -625,12 +747,29 @@ interface ExpandedRows {
 }
 
 // Helper function for currency formatting
-const currencyFormat = (amount: number, currency: string) => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: currency || 'INR',
-    minimumFractionDigits: 0,
-  }).format(amount);
+const currencyFormat = (amount: number, currency?: string) => {
+  // Validate currency code
+  const validCurrency = currency && typeof currency === 'string' && currency.trim() !== '' 
+    ? currency.trim().toUpperCase() 
+    : 'USD';
+
+  try {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: validCurrency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  } catch (error) {
+    // Fallback formatting if the currency code is invalid
+    console.warn(`Invalid currency code: ${currency}, falling back to USD`);
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  }
 };
 
 // Currency conversion interface
@@ -1034,6 +1173,9 @@ const AdminCourseFee: React.FC = () => {
       if (filters.course_id) params.course_id = filters.course_id;
       if (filters.course_grade) params.course_grade = filters.course_grade;
       if (filters.course_type) params.course_type = filters.course_type;
+      if (filters.currency) params.currency = filters.currency;
+      if (filters.pricing_status) params.pricing_status = filters.pricing_status;
+      if (filters.has_pricing) params.has_pricing = filters.has_pricing;
 
       // Get authentication token from localStorage
       const token = localStorage.getItem('token');
@@ -1059,7 +1201,7 @@ const AdminCourseFee: React.FC = () => {
         // Extract categories from API response if available
         const categories = Array.from(new Set(
           apiCourses
-            .map(course => course.category || '')
+            .map(course => course.courseCategory || '')
             .filter(Boolean)
         ));
         setCategories(categories.length > 0 ? categories : []);
@@ -1077,7 +1219,7 @@ const AdminCourseFee: React.FC = () => {
         // Map the API response to our internal format
         const mappedCourses = apiCourses.map(course => {
           // Extract category from title if not provided in course object
-          const category = course.category || course.courseTitle.split('|').find(detail => 
+          const category = course.courseCategory || course.courseTitle.split('|').find(detail => 
             detail.toLowerCase().includes('category:')
           )?.split(':')[1]?.trim() || '';
           
@@ -1096,7 +1238,7 @@ const AdminCourseFee: React.FC = () => {
           return {
             id: course.courseId,
             title: course.courseTitle,
-            category: course.courseCategory || '', // Use category if available
+            category: course.courseCategory || '', // Use courseCategory here
             selected: false,
             prices: prices,
             isEditing: false
@@ -1490,6 +1632,55 @@ const AdminCourseFee: React.FC = () => {
     });
   }, [courses, sortState]);
 
+  // Add function to fetch categories
+  const fetchCategories = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      // Use the courses/prices endpoint which contains category information
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/courses/prices`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.data && response.data.success) {
+        // Check if the filters field contains categories
+        if (response.data.filters && Array.isArray(response.data.filters.categories)) {
+          // Explicit filtering to ensure only strings
+          const apiCategories = response.data.filters.categories
+            .filter((cat): cat is string => typeof cat === 'string');
+          setCategories(apiCategories);
+        } else {
+          // Extract category names from the courses data with strong typing
+          const apiCourses = response.data.data || [];
+          const categoryList: string[] = [];
+          
+          // Safely extract categories
+          for (const course of apiCourses) {
+            if (course && typeof course.courseCategory === 'string' && course.courseCategory) {
+              categoryList.push(course.courseCategory);
+            }
+          }
+          
+          // Remove duplicates
+          const uniqueCategories = [...new Set(categoryList)];
+          setCategories(uniqueCategories);
+        }
+      } else {
+        console.error('Failed to fetch categories:', response.data?.message);
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      showToast('Failed to fetch categories', 'error');
+    }
+  };
+
+  // Add useEffect to fetch categories on component mount
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -1497,7 +1688,10 @@ const AdminCourseFee: React.FC = () => {
         <div className="flex space-x-3">
           <button 
             className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-customGreen"
-            onClick={fetchCourses}
+            onClick={() => {
+              fetchCourses();
+              fetchCategories(); // Refresh categories when refreshing courses
+            }}
             disabled={loading}
           >
             <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
@@ -1514,7 +1708,12 @@ const AdminCourseFee: React.FC = () => {
         onRefresh={fetchCurrencies}
       />
       
-      <CourseFeeFilter onFilterChange={setFilters} categories={categories} />
+      <CourseFeeFilter 
+        onFilterChange={setFilters} 
+        categories={categories} 
+        currencies={Object.keys(currencyRates)}
+        classTypes={["Live Courses", "Blended Courses", "Pre-Recorded"]}
+      />
       
       <BulkUpdateSection 
         selectedCount={selectedCount}
