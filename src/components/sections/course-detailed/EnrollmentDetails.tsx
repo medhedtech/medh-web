@@ -14,9 +14,77 @@ import { isFreePrice } from '@/utils/priceUtils';
 import axios from 'axios';
 import useGetQuery from "@/hooks/getQuery.hook";
 import usePostQuery from "@/hooks/postQuery.hook";
+import useRazorpay from "@/hooks/useRazorpay";
+import RAZORPAY_CONFIG from "@/config/razorpay";
+
+// Types
+interface CoursePrice {
+  currency: string;
+  individual: number;
+  batch: number;
+  min_batch_size: number;
+  max_batch_size: number;
+  early_bird_discount: number;
+  group_discount: number;
+  is_active: boolean;
+  _id: string;
+}
+
+interface CourseDetails {
+  _id: string;
+  course_title: string;
+  course_duration?: string;
+  grade?: string;
+  features?: string[];
+  prices?: CoursePrice[];
+}
+
+interface CategoryInfo {
+  primaryColor?: string;
+  colorClass?: string;
+  bgClass?: string;
+  borderClass?: string;
+}
+
+interface ErrorFallbackProps {
+  error: string | null;
+  resetErrorBoundary: () => void;
+}
+
+interface SuccessModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  courseTitle: string;
+  navigateToCourse: () => void;
+}
+
+interface EnrollmentDetailsProps {
+  courseDetails: CourseDetails | null;
+  categoryInfo?: CategoryInfo;
+  onEnrollClick?: (enrollmentData: any) => Promise<void>;
+}
+
+interface UserProfile {
+  email?: string;
+  full_name?: string;
+  name?: string;
+  phone_number?: string;
+  mobile?: string;
+}
+
+interface PaymentDetails {
+  originalPrice: number;
+  originalCurrency: string;
+  paymentCurrency: string;
+  amountInINR: number;
+  conversionRate: number;
+  formattedOriginalPrice: string;
+}
+
+type EnrollmentType = 'individual' | 'batch';
 
 // Error Boundary Component
-const ErrorFallback = ({ error, resetErrorBoundary }) => (
+const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, resetErrorBoundary }) => (
   <div className="bg-red-50 dark:bg-red-900/20 p-6 rounded-xl text-center">
     <div className="flex justify-center mb-4">
       <AlertTriangle className="h-12 w-12 text-red-500" />
@@ -37,7 +105,7 @@ const ErrorFallback = ({ error, resetErrorBoundary }) => (
 );
 
 // Success Modal Component
-const SuccessModal = ({ isOpen, onClose, courseTitle, navigateToCourse }) => {
+const SuccessModal: React.FC<SuccessModalProps> = ({ isOpen, onClose, courseTitle, navigateToCourse }) => {
   if (!isOpen) return null;
 
   return (
@@ -81,23 +149,32 @@ const SuccessModal = ({ isOpen, onClose, courseTitle, navigateToCourse }) => {
   );
 };
 
-const EnrollmentDetails = ({ 
+const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({ 
   courseDetails = null,
   categoryInfo = {},
   onEnrollClick
 }) => {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userId, setUserId] = useState(null);
-  const [enrollmentType, setEnrollmentType] = useState('individual');
-  const [showBatchInfo, setShowBatchInfo] = useState(false);
-  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
-  const [userProfile, setUserProfile] = useState(null);
-  const { convertPrice, formatPrice: formatCurrencyPrice, currencyCode, exchangeRate } = useCurrency();
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [enrollmentType, setEnrollmentType] = useState<EnrollmentType>('individual');
+  const [showBatchInfo, setShowBatchInfo] = useState<boolean>(false);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState<boolean>(false);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const { convertPrice, formatPrice: formatCurrencyPrice } = useCurrency();
+  const [currencyCode, setCurrencyCode] = useState<string>('USD');
+  const [exchangeRate, setExchangeRate] = useState<number>(1);
   const { getQuery } = useGetQuery();
   const { postQuery, loading: postLoading } = usePostQuery();
+  const { 
+    loadRazorpayScript, 
+    openRazorpayCheckout, 
+    isScriptLoaded, 
+    isLoading: razorpayLoading, 
+    error: razorpayError 
+  } = useRazorpay();
 
   // Check login status on component mount
   useEffect(() => {
@@ -131,7 +208,7 @@ const EnrollmentDetails = ({
   const duration = courseDetails?.course_duration || '4 months / 16 weeks';
   
   // Get active price information
-  const activePricing = useMemo(() => {
+  const activePricing = useMemo<CoursePrice>(() => {
     // Use the prices array from courseDetails or fallback to a default
     const prices = courseDetails?.prices || [
       {
@@ -152,7 +229,7 @@ const EnrollmentDetails = ({
   }, [courseDetails]);
 
   // Calculate final price including any applicable discounts
-  const calculateFinalPrice = useCallback((basePrice, discountPercentage = 0) => {
+  const calculateFinalPrice = useCallback((basePrice: number, discountPercentage: number = 0): number => {
     if (isFreePrice(basePrice)) return 0;
     
     // Apply discount if any
@@ -164,7 +241,7 @@ const EnrollmentDetails = ({
   }, []);
   
   // Get the final price in the user's currency
-  const getFinalPrice = useCallback(() => {
+  const getFinalPrice = useCallback((): number => {
     const basePrice = enrollmentType === 'individual' 
       ? activePricing.individual 
       : activePricing.batch;
@@ -180,7 +257,7 @@ const EnrollmentDetails = ({
   }, [enrollmentType, activePricing, calculateFinalPrice, convertPrice]);
 
   // Format price for display with proper currency symbol
-  const formatPrice = useCallback((price, showCurrency = true) => {
+  const formatPrice = useCallback((price: number, showCurrency: boolean = true): string => {
     if (isFreePrice(price)) return "Free";
     return formatCurrencyPrice(price, showCurrency);
   }, [formatCurrencyPrice]);
@@ -191,19 +268,8 @@ const EnrollmentDetails = ({
   const bgClass = categoryInfo?.bgClass || `bg-${primaryColor}-50 dark:bg-${primaryColor}-900/20`;
   const borderClass = categoryInfo?.borderClass || `border-${primaryColor}-200 dark:border-${primaryColor}-800`;
 
-  // Handle Razorpay script loading
-  const loadRazorpayScript = () => {
-    return new Promise((resolve) => {
-      const script = document.createElement("script");
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
-  };
-
   // Determine the payment currency and conversion for Razorpay
-  const getPaymentDetails = useCallback(() => {
+  const getPaymentDetails = useCallback((): PaymentDetails => {
     // Get the base price in the original currency
     const basePrice = enrollmentType === 'individual' 
       ? activePricing.individual 
@@ -241,7 +307,7 @@ const EnrollmentDetails = ({
   }, [enrollmentType, activePricing, calculateFinalPrice, formatPrice]);
 
   // Enroll in course after successful payment
-  const enrollCourse = async (studentId, courseId, paymentResponse = {}) => {
+  const enrollCourse = async (studentId: string, courseId: string, paymentResponse: any = {}): Promise<any> => {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -280,7 +346,7 @@ const EnrollmentDetails = ({
       console.log("Student enrolled successfully!");
       
       return response;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error enrolling course:", error);
       toast.error(error.message || "Error enrolling in the course. Please try again!");
       throw error;
@@ -288,7 +354,7 @@ const EnrollmentDetails = ({
   };
 
   // Track enrollment progress
-  const trackEnrollmentProgress = async (studentId, courseId) => {
+  const trackEnrollmentProgress = async (studentId: string, courseId: string): Promise<void> => {
     try {
       const token = localStorage.getItem('token');
       if (!token) return;
@@ -314,7 +380,7 @@ const EnrollmentDetails = ({
   };
 
   // Check if user is already enrolled
-  const checkEnrollmentStatus = async (studentId, courseId) => {
+  const checkEnrollmentStatus = async (studentId: string, courseId: string): Promise<boolean> => {
     try {
       const token = localStorage.getItem('token');
       if (!token || !studentId || !courseId) return false;
@@ -344,14 +410,14 @@ const EnrollmentDetails = ({
   };
 
   // Get upcoming meetings for enrolled student
-  const getUpcomingMeetings = async (studentId) => {
+  const getUpcomingMeetings = async (studentId: string): Promise<any[]> => {
     try {
       const token = localStorage.getItem('token');
       if (!token || !studentId) return [];
 
       // Use getQuery for upcoming meetings
       const endpoint = `/enroll/get-upcoming-meetings/${studentId}`;
-      let meetings = [];
+      let meetings: any[] = [];
       
       await getQuery({
         url: endpoint,
@@ -388,11 +454,13 @@ const EnrollmentDetails = ({
       }
 
       // Check if already enrolled
-      const isEnrolled = await checkEnrollmentStatus(userId, courseDetails._id);
-      if (isEnrolled) {
-        toast.info("You are already enrolled in this course!");
-        router.push('/dashboards/my-courses');
-        return;
+      if (userId) {
+        const isEnrolled = await checkEnrollmentStatus(userId, courseDetails._id);
+        if (isEnrolled) {
+          toast.warning("You are already enrolled in this course!");
+          router.push('/dashboards/my-courses');
+          return;
+        }
       }
       
       // Create enrollment data with selected type
@@ -410,7 +478,9 @@ const EnrollmentDetails = ({
       } else {
         // If course is free, directly enroll
         if (isFreePrice(getFinalPrice())) {
-          await enrollCourse(userId, courseDetails._id);
+          if (userId) {
+            await enrollCourse(userId, courseDetails._id);
+          }
         } else {
           // Otherwise process payment via Razorpay
           await handleRazorpayPayment();
@@ -418,12 +488,14 @@ const EnrollmentDetails = ({
       }
 
       // Fetch upcoming meetings after successful enrollment
-      const meetings = await getUpcomingMeetings(userId);
-      if (meetings.length > 0) {
-        // You could store these in state or context if needed
-        console.log("Upcoming meetings:", meetings);
+      if (userId) {
+        const meetings = await getUpcomingMeetings(userId);
+        if (meetings.length > 0) {
+          // You could store these in state or context if needed
+          console.log("Upcoming meetings:", meetings);
+        }
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Enrollment error:", err);
       setError(err.message || "Failed to process enrollment");
       toast.error("Enrollment failed. Please try again.");
@@ -433,7 +505,7 @@ const EnrollmentDetails = ({
   }, [courseDetails, isLoggedIn, router, onEnrollClick, enrollmentType, activePricing, userId, getFinalPrice, currencyCode]);
 
   // Handle enrollment through Razorpay
-  const handleRazorpayPayment = async () => {
+  const handleRazorpayPayment = async (): Promise<void> => {
     if (!courseDetails?._id) {
       toast.error("Course information is missing");
       return;
@@ -442,38 +514,33 @@ const EnrollmentDetails = ({
     try {
       setLoading(true);
       
-      // Load Razorpay script
-      const scriptLoaded = await loadRazorpayScript();
-      if (!scriptLoaded) {
-        toast.error("Payment system failed to load. Please try again.");
-        return;
-      }
-
       // Get payment details with proper currency conversion
       const paymentDetails = getPaymentDetails();
       
       // Get user info from profile if available
-      const userEmail = userProfile?.email || "student@medh.com";
-      const userName = userProfile?.full_name || userProfile?.name || "Medh Student";
-      const userPhone = userProfile?.phone_number || userProfile?.mobile || "9876543210";
+      const userEmail = userProfile?.email || RAZORPAY_CONFIG.prefill.email;
+      const userName = userProfile?.full_name || userProfile?.name || RAZORPAY_CONFIG.prefill.name;
+      const userPhone = userProfile?.phone_number || userProfile?.mobile || RAZORPAY_CONFIG.prefill.contact;
 
       // Configure Razorpay options
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_Rz8NSLJbl4LBA5",
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || RAZORPAY_CONFIG.key,
         amount: paymentDetails.amountInINR,
         currency: paymentDetails.paymentCurrency,
         name: courseDetails?.course_title || "Course Enrollment",
         description: `Payment for ${courseDetails?.course_title || "Course"} (${enrollmentType} enrollment)`,
         image: "/images/logo.png", // Use local image path instead of external URL
-        handler: async function (response) {
+        handler: async function (response: any) {
           toast.success("Payment Successful!");
           
           // Call enrollment API directly with payment details
-          await enrollCourse(
-            userId, 
-            courseDetails._id, 
-            response
-          );
+          if (userId) {
+            await enrollCourse(
+              userId, 
+              courseDetails._id, 
+              response
+            );
+          }
         },
         prefill: {
           name: userName,
@@ -490,7 +557,7 @@ const EnrollmentDetails = ({
           conversion_rate: paymentDetails.conversionRate
         },
         theme: {
-          color: "#7ECA9D",
+          color: RAZORPAY_CONFIG.theme.color,
         },
         modal: {
           ondismiss: function() {
@@ -499,10 +566,21 @@ const EnrollmentDetails = ({
         }
       };
 
-      // Create Razorpay instance and open payment modal
-      const razorpay = new window.Razorpay(options);
-      razorpay.open();
-    } catch (err) {
+      // Use the hook to handle Razorpay checkout
+      const razorpayOptions = {
+        ...options,
+        notes: {
+          enrollment_type: options.notes.enrollment_type,
+          course_id: options.notes.course_id,
+          price_id: options.notes.price_id,
+          user_id: options.notes.user_id || '',
+          original_currency: options.notes.original_currency,
+          original_amount: options.notes.original_amount.toString(),
+          conversion_rate: options.notes.conversion_rate.toString()
+        }
+      };
+      await openRazorpayCheckout(razorpayOptions);
+    } catch (err: any) {
       console.error("Enrollment error:", err);
       setError(err.message || "Failed to process enrollment");
       toast.error("Enrollment failed. Please try again.");
@@ -637,15 +715,6 @@ const EnrollmentDetails = ({
                 {courseDetails?.grade}
               </span>
             </div>
-            
-            {/* {enrollmentType === 'batch' && (
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600 dark:text-gray-400 text-sm">Batch Size</span>
-                <span className="font-medium text-gray-900 dark:text-white">
-                  {activePricing.min_batch_size} - {activePricing.max_batch_size} people
-                </span>
-              </div>
-            )} */}
           </div>
           
           {/* Course Features */}

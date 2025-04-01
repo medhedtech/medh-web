@@ -10,6 +10,27 @@ import Education from "@/assets/images/course-detailed/education.svg";
 import { toast } from "react-toastify";
 import Preloader from "@/components/shared/others/Preloader";
 import { useRouter } from "next/navigation";
+import useRazorpay from "@/hooks/useRazorpay";
+import RAZORPAY_CONFIG, { USD_TO_INR_RATE } from "@/config/razorpay";
+
+interface SelectCourseModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  planType: string;
+  amount: string;
+  selectedPlan: string;
+  closeParent: () => void;
+}
+
+interface Course {
+  _id: string;
+  category: string;
+}
+
+interface Category {
+  _id: string;
+  category_name: string;
+}
 
 export default function SelectCourseModal({
   isOpen,
@@ -18,20 +39,21 @@ export default function SelectCourseModal({
   amount,
   selectedPlan,
   closeParent,
-}) {
+}: SelectCourseModalProps) {
   const studentId = localStorage.getItem("userId");
-  const [courses, setCourses] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCourses, setSelectedCourses] = useState([]);
-  const [selectedCategories, setSelectedCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [selectedCourses, setSelectedCourses] = useState<Course[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const { getQuery } = useGetQuery();
   const { postQuery, loading: postLoading } = usePostQuery();
-  const [planAmount, setPlanAmount] = useState(Number(amount.replace("$", "")) || 0);
+  const [planAmount, setPlanAmount] = useState<number>(Number(amount.replace("$", "")) || 0);
   const router = useRouter();
+  const { openRazorpayCheckout } = useRazorpay();
 
   const maxSelections = planType === "silver" ? 1 : 3;
 
@@ -45,16 +67,6 @@ export default function SelectCourseModal({
     hidden: { opacity: 0 },
     visible: { opacity: 1 },
     exit: { opacity: 0 }
-  };
-
-  const loadRazorpayScript = () => {
-    return new Promise((resolve) => {
-      const script = document.createElement("script");
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
   };
 
   const handleProceedToPay = async () => {
@@ -73,41 +85,29 @@ export default function SelectCourseModal({
         return;
       }
 
-      const scriptLoaded = await loadRazorpayScript();
-      if (!scriptLoaded) {
-        toast.error("Payment system failed to load. Please try again.");
-        return;
-      }
-
       if (planType) {
-        const options = {
-          key: "rzp_test_Rz8NSLJbl4LBA5",
-          amount: planAmount * 100 * 84.47,
-          currency: "INR",
-          name: `${capitalize(planType)} Membership`,
-          description: `Payment for ${capitalize(planType)} Membership`,
-          image: Education,
-          handler: async function (response) {
-            toast.success("Payment successful!");
-            handleSubmit();
-          },
-          prefill: {
-            name: "Medh Membership Plan",
-            email: "medh@student.com",
-            contact: "9876543210",
-          },
-          theme: {
-            color: "#7ECA9D",
-          },
-          modal: {
-            ondismiss: function() {
-              setIsProcessing(false);
+        try {
+          await openRazorpayCheckout({
+            ...RAZORPAY_CONFIG,
+            amount: planAmount * 100 * USD_TO_INR_RATE,
+            name: `${capitalize(planType)} Membership`,
+            description: `Payment for ${capitalize(planType)} Membership`,
+            image: Education,
+            handler: async function (response) {
+              toast.success("Payment successful!");
+              handleSubmit();
+            },
+            modal: {
+              ondismiss: function() {
+                setIsProcessing(false);
+              }
             }
-          }
-        };
-
-        const razorpay = new window.Razorpay(options);
-        razorpay.open();
+          });
+        } catch (error) {
+          console.error("Payment error:", error);
+          toast.error("Payment initialization failed. Please try again.");
+          setIsProcessing(false);
+        }
       }
     } catch (error) {
       console.error("Payment initialization error:", error);
@@ -141,7 +141,7 @@ export default function SelectCourseModal({
           })
         ]);
       } catch (err) {
-        setError(err.message || "Failed to load data. Please try again later.");
+        setError(err instanceof Error ? err.message : "Failed to load data. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -156,7 +156,7 @@ export default function SelectCourseModal({
     category.category_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const toggleCategorySelection = (category) => {
+  const toggleCategorySelection = (category: Category) => {
     if (planType === "silver") {
       setSelectedCategories(
         selectedCategories.some((c) => c._id === category._id) ? [] : [category]
@@ -175,6 +175,8 @@ export default function SelectCourseModal({
   };
 
   const handleSubscribe = async () => {
+    if (!studentId) return;
+    
     try {
       const membershipResponse = await postQuery({
         url: apiUrls?.Membership?.addMembership,
@@ -194,14 +196,14 @@ export default function SelectCourseModal({
       const membershipId = membershipResponse?.data?._id;
       const expiryDate = membershipResponse?.data?.expiry_date;
       const categoryNames = membershipResponse?.data?.category_ids?.map(
-        (category) => category.category_name
+        (category: Category) => category.category_name
       ) || [];
 
       if (!membershipId || !expiryDate) {
         throw new Error("Invalid membership data received");
       }
 
-      const groupedCourses = categoryNames.map((category) =>
+      const groupedCourses = categoryNames.map((category: string) =>
         courses.filter((course) => course.category === category)
       );
       const enrolledCourses = groupedCourses.flatMap((group) =>
@@ -240,16 +242,16 @@ export default function SelectCourseModal({
       router.push("/dashboards/student-membership");
     } catch (err) {
       console.error("Error during subscription process:", err);
-      toast.error(err.message || "An unexpected error occurred. Please try again.");
+      toast.error(err instanceof Error ? err.message : "An unexpected error occurred. Please try again.");
     }
   };
 
-  const removeFirstChr = (str = "") => {
+  const removeFirstChr = (str = ""): number => {
     if (!str.length) return 0;
     return Number(str.substring(1));
   };
 
-  function capitalize(str) {
+  function capitalize(str: string): string {
     if (!str) return "";
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
   }
@@ -376,4 +378,4 @@ export default function SelectCourseModal({
       </motion.div>
     </AnimatePresence>
   );
-}
+} 
