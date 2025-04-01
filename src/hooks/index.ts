@@ -176,3 +176,5 @@ export type {
   ZoomClient,
   ZoomClientConfig
 } from '../types/zoom';
+
+export { default as useRazorpay } from './useRazorpay';
