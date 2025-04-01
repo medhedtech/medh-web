@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { forwardRef } from "react";
 import dynamic from "next/dynamic";
 import 'react-quill/dist/quill.snow.css';
 
@@ -8,11 +8,7 @@ import 'react-quill/dist/quill.snow.css';
 const ReactQuill = dynamic(
   async () => {
     const { default: RQ } = await import('react-quill');
-    
-    // Return a wrapper component that doesn't use findDOMNode
-    return function NoSSRQuill({ forwardedRef, ...props }: any) {
-      return <RQ {...props} />;
-    };
+    return RQ;
   },
   {
     ssr: false,
@@ -24,9 +20,11 @@ const ReactQuill = dynamic(
   }
 );
 
-// Export the component with the same props interface as ReactQuill
-const NoSSRQuill: React.FC<any> = (props) => {
-  return <ReactQuill {...props} />;
-};
+// Create a forwarded ref wrapper component
+const NoSSRQuill = forwardRef((props: any, ref) => {
+  return <ReactQuill ref={ref} {...props} />;
+});
+
+NoSSRQuill.displayName = 'NoSSRQuill';
 
 export default NoSSRQuill; 
