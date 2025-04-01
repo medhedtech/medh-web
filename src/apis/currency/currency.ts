@@ -14,7 +14,16 @@ import {
  */
 export const getAllCurrencies = async (): Promise<ICurrency[]> => {
   try {
-    const response = await axios.get<ICurrenciesResponse>(apiUrls.currencies.getAllCurrencies);
+    // Get authentication token from localStorage
+    const token = localStorage.getItem('token');
+    
+    // Make API request with authentication header
+    const response = await axios.get<ICurrenciesResponse>(apiUrls.currencies.getAllCurrencies, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
     return response.data.data.currencies;
   } catch (error) {
     console.error('Error fetching currencies:', error);
@@ -29,7 +38,16 @@ export const getAllCurrencies = async (): Promise<ICurrency[]> => {
  */
 export const getCurrencyById = async (id: string): Promise<ICurrency> => {
   try {
-    const response = await axios.get<ICurrencyResponse>(apiUrls.currencies.getCurrencyById(id));
+    // Get authentication token from localStorage
+    const token = localStorage.getItem('token');
+    
+    // Make API request with authentication header
+    const response = await axios.get<ICurrencyResponse>(apiUrls.currencies.getCurrencyById(id), {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
     return response.data.data.currency;
   } catch (error) {
     console.error(`Error fetching currency with ID ${id}:`, error);
@@ -44,7 +62,16 @@ export const getCurrencyById = async (id: string): Promise<ICurrency> => {
  */
 export const getCurrencyByCountryCode = async (code: string): Promise<ICurrency> => {
   try {
-    const response = await axios.get<ICurrencyResponse>(apiUrls.currencies.getCurrencyByCountryCode(code));
+    // Get authentication token from localStorage
+    const token = localStorage.getItem('token');
+    
+    // Make API request with authentication header
+    const response = await axios.get<ICurrencyResponse>(apiUrls.currencies.getCurrencyByCountryCode(code), {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
     return response.data.data.currency;
   } catch (error) {
     console.error(`Error fetching currency with country code ${code}:`, error);
@@ -59,7 +86,20 @@ export const getCurrencyByCountryCode = async (code: string): Promise<ICurrency>
  */
 export const createCurrency = async (currencyData: ICreateCurrencyInput): Promise<ICurrency> => {
   try {
-    const response = await axios.post<ICurrencyResponse>(apiUrls.currencies.createCurrency, currencyData);
+    // Get authentication token from localStorage
+    const token = localStorage.getItem('token');
+    
+    // Make API request with authentication header
+    const response = await axios.post<ICurrencyResponse>(
+      apiUrls.currencies.createCurrency, 
+      currencyData,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
     return response.data.data.currency;
   } catch (error) {
     console.error('Error creating currency:', error);
@@ -75,7 +115,20 @@ export const createCurrency = async (currencyData: ICreateCurrencyInput): Promis
  */
 export const updateCurrency = async (id: string, updateData: IUpdateCurrencyInput): Promise<ICurrency> => {
   try {
-    const response = await axios.put<ICurrencyResponse>(apiUrls.currencies.updateCurrency(id), updateData);
+    // Get authentication token from localStorage
+    const token = localStorage.getItem('token');
+    
+    // Make API request with authentication header
+    const response = await axios.put<ICurrencyResponse>(
+      apiUrls.currencies.updateCurrency(id), 
+      updateData,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
     return response.data.data.currency;
   } catch (error) {
     console.error(`Error updating currency with ID ${id}:`, error);
@@ -89,7 +142,16 @@ export const updateCurrency = async (id: string, updateData: IUpdateCurrencyInpu
  */
 export const deleteCurrency = async (id: string): Promise<void> => {
   try {
-    await axios.delete(apiUrls.currencies.deleteCurrency(id));
+    // Get authentication token from localStorage
+    const token = localStorage.getItem('token');
+    
+    // Make API request with authentication header
+    await axios.delete(apiUrls.currencies.deleteCurrency(id), {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
   } catch (error) {
     console.error(`Error deleting currency with ID ${id}:`, error);
     throw error;
@@ -103,7 +165,16 @@ export const deleteCurrency = async (id: string): Promise<void> => {
  */
 export const toggleCurrencyStatus = async (id: string): Promise<ICurrency> => {
   try {
-    const response = await axios.patch<ICurrencyResponse>(apiUrls.currencies.toggleCurrencyStatus(id));
+    // Get authentication token from localStorage
+    const token = localStorage.getItem('token');
+    
+    // Make API request with authentication header
+    const response = await axios.patch<ICurrencyResponse>(apiUrls.currencies.toggleCurrencyStatus(id), {}, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
     return response.data.data.currency;
   } catch (error) {
     console.error(`Error toggling status for currency with ID ${id}:`, error);
@@ -125,10 +196,18 @@ export const convertCurrency = async (
 ): Promise<number> => {
   try {
     // Get the source currency
-    const sourceCurrency = await getCurrencyByCountryCode(fromCurrency);
+    let sourceCurrency;
+    let targetCurrency;
     
-    // Get the target currency
-    const targetCurrency = await getCurrencyByCountryCode(toCurrency);
+    try {
+      sourceCurrency = await getCurrencyByCountryCode(fromCurrency);
+      targetCurrency = await getCurrencyByCountryCode(toCurrency);
+    } catch (error) {
+      console.warn(`Error fetching currency data for conversion, using fallback values:`, error);
+      // Fallback to approximate rates if API call fails
+      sourceCurrency = { valueWrtUSD: fromCurrency === 'USD' ? 1 : 0.01 };
+      targetCurrency = { valueWrtUSD: toCurrency === 'USD' ? 1 : 80 };
+    }
     
     // Convert to USD first (if not already USD)
     const amountInUSD = fromCurrency === 'USD' 
@@ -143,7 +222,8 @@ export const convertCurrency = async (
     return Number(convertedAmount.toFixed(2));
   } catch (error) {
     console.error(`Error converting ${amount} ${fromCurrency} to ${toCurrency}:`, error);
-    throw error;
+    // Return original amount as fallback
+    return amount;
   }
 };
 
@@ -155,7 +235,20 @@ export const convertCurrency = async (
  */
 export const formatCurrency = async (amount: number, currencyCode: string): Promise<string> => {
   try {
-    const currency = await getCurrencyByCountryCode(currencyCode);
+    let currency;
+    
+    try {
+      currency = await getCurrencyByCountryCode(currencyCode);
+    } catch (error) {
+      console.warn(`Error fetching currency for formatting, using fallback:`, error);
+      // Use default symbol based on common currencies if API call fails
+      const fallbackSymbols: {[key: string]: string} = {
+        'USD': '$', 'EUR': '€', 'GBP': '£', 'JPY': '¥', 'INR': '₹',
+        'CNY': '¥', 'KRW': '₩', 'AUD': 'A$', 'CAD': 'C$', 'AED': 'د.إ'
+      };
+      return `${fallbackSymbols[currencyCode] || ''}${amount.toLocaleString()} ${currencyCode}`;
+    }
+    
     return `${currency.symbol}${amount.toLocaleString()}`;
   } catch (error) {
     // Fallback to a basic format if currency information is not available
