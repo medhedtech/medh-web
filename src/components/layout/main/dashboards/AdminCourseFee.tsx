@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Fragment, useRef } from 'react';
+import React, { useState, useEffect, Fragment, useRef, useMemo } from 'react';
 import { Search, RefreshCw, Save, Filter, DollarSign, Percent, X as XIcon, ChevronDown, ChevronUp, Edit, Check, AlertCircle } from 'lucide-react';
 import axios from 'axios';
 import { 
@@ -27,10 +27,11 @@ import {
 // First, update the PriceFilterParams interface to include the new fields
 interface PriceFilterParams {
   status?: string;
-  course_category?: string;
+  courseCategory?: string;
   search?: string;
   course_id?: string;
   course_grade?: string;
+  course_type?: string;
 }
 
 // New API response interface
@@ -54,7 +55,7 @@ interface CoursePricingItem {
 interface CourseWithPricing {
   courseId: string;
   courseTitle: string;
-  category?: string;
+  courseCategory?: string;
   pricing: CoursePricingItem[];
 }
 
@@ -87,12 +88,22 @@ interface BulkUpdateConfig {
   currency?: string;
 }
 
+// Add new type for sort direction
+type SortDirection = 'asc' | 'desc' | null;
+
+// Add new interface for sort state
+interface SortState {
+  field: 'title' | 'category';
+  direction: SortDirection;
+}
+
 const CourseFeeFilter: React.FC<CourseFeeFilterProps> = ({ onFilterChange, categories }) => {
   const [status, setStatus] = useState('Published');
   const [category, setCategory] = useState('');
   const [search, setSearch] = useState('');
   const [courseId, setCourseId] = useState('');
   const [courseGrade, setCourseGrade] = useState('');
+  const [courseType, setCourseType] = useState('');
   const [advancedSearch, setAdvancedSearch] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
 
@@ -110,10 +121,11 @@ const CourseFeeFilter: React.FC<CourseFeeFilterProps> = ({ onFilterChange, categ
     setIsSearching(false);
     onFilterChange({ 
       status, 
-      course_category: category, 
+      courseCategory: category, 
       search, 
       course_id: courseId,
-      course_grade: courseGrade
+      course_grade: courseGrade,
+      course_type: courseType
     });
   };
 
@@ -192,6 +204,25 @@ const CourseFeeFilter: React.FC<CourseFeeFilterProps> = ({ onFilterChange, categ
                 {categories.map((cat) => (
                   <option key={cat} value={cat}>{cat}</option>
                 ))}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Type</label>
+              <select 
+                value={courseType} 
+                onChange={(e) => {
+                  setCourseType(e.target.value);
+                  setTimeout(() => applyFilters(), 0);
+                }}
+                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-customGreen focus:border-customGreen sm:text-sm rounded-md"
+              >
+                <option value="">All Types</option>
+                <option value="Live Courses">Live</option>
+                <option value="Blended Courses">Blended</option>
+                <option value="Recorded Courses">Recorded</option>
+                <option value="Hybrid Courses">Hybrid</option>
+                <option value="Self-paced Courses">Self-paced</option>
               </select>
             </div>
             
@@ -874,6 +905,7 @@ const AdminCourseFee: React.FC = () => {
     AED: { symbol: "د.إ‎", name: "UAE Dirham", rate: 3.67 }
   });
   const [isCurrencyLoading, setIsCurrencyLoading] = useState(false);
+  const [sortState, setSortState] = useState<SortState>({ field: 'title', direction: 'asc' });
   
   // ======= Currency Management Functions =======
   
@@ -997,12 +1029,11 @@ const AdminCourseFee: React.FC = () => {
       
       // Add filter parameters if they exist
       if (filters.status) params.status = filters.status;
-      if (filters.course_category) params.course_category = filters.course_category;
+      if (filters.courseCategory) params.courseCategory = filters.courseCategory;
       if (filters.search) params.search = filters.search;
       if (filters.course_id) params.course_id = filters.course_id;
       if (filters.course_grade) params.course_grade = filters.course_grade;
-      
-      console.log('Fetching courses with filters:', params);
+      if (filters.course_type) params.course_type = filters.course_type;
 
       // Get authentication token from localStorage
       const token = localStorage.getItem('token');
@@ -1021,7 +1052,7 @@ const AdminCourseFee: React.FC = () => {
         const apiCourses = response.data.data;
         
         // If we received no courses but have search filters, show a message
-        if (apiCourses.length === 0 && (filters.search || filters.course_id || filters.course_grade)) {
+        if (apiCourses.length === 0 && (filters.search || filters.course_id || filters.course_grade || filters.course_type || filters.courseCategory)) {
           showToast('No courses found matching your search criteria. Try adjusting your filters.', 'error');
         }
         
@@ -1045,6 +1076,11 @@ const AdminCourseFee: React.FC = () => {
         
         // Map the API response to our internal format
         const mappedCourses = apiCourses.map(course => {
+          // Extract category from title if not provided in course object
+          const category = course.category || course.courseTitle.split('|').find(detail => 
+            detail.toLowerCase().includes('category:')
+          )?.split(':')[1]?.trim() || '';
+          
           // Map pricing to our price details format
           const prices: PriceDetails[] = course.pricing.map(price => ({
             currency: price.currency,
@@ -1060,7 +1096,7 @@ const AdminCourseFee: React.FC = () => {
           return {
             id: course.courseId,
             title: course.courseTitle,
-            category: course.category || '', // Use category if available
+            category: course.courseCategory || '', // Use category if available
             selected: false,
             prices: prices,
             isEditing: false
@@ -1424,6 +1460,36 @@ const AdminCourseFee: React.FC = () => {
     }));
   };
 
+  // Add sorting function
+  const handleSort = (field: 'title' | 'category') => {
+    setSortState(prev => {
+      if (prev.field === field) {
+        // If clicking the same field, cycle through: asc -> desc -> null
+        if (prev.direction === 'asc') return { field, direction: 'desc' };
+        if (prev.direction === 'desc') return { field, direction: null };
+        return { field, direction: 'asc' };
+      }
+      // If clicking a new field, start with ascending sort
+      return { field, direction: 'asc' };
+    });
+  };
+
+  // Add sorted courses computation
+  const sortedCourses = useMemo(() => {
+    if (!sortState.direction) return courses;
+
+    return [...courses].sort((a, b) => {
+      const aValue = a[sortState.field] || '';
+      const bValue = b[sortState.field] || '';
+      
+      if (sortState.direction === 'asc') {
+        return aValue.localeCompare(bValue);
+      } else {
+        return bValue.localeCompare(aValue);
+      }
+    });
+  }, [courses, sortState]);
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -1477,11 +1543,33 @@ const AdminCourseFee: React.FC = () => {
                     disabled={loading || courses.length === 0}
                   />
                 </th>
-                <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Course Title
+                <th 
+                  scope="col" 
+                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSort('title')}
+                >
+                  <div className="flex items-center space-x-1">
+                    <span>Course Title</span>
+                    {sortState.field === 'title' && (
+                      <span className="text-gray-400">
+                        {sortState.direction === 'asc' ? '↑' : '↓'}
+                      </span>
+                    )}
+                  </div>
                 </th>
-                <th scope="col" className="hidden md:table-cell px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Category
+                <th 
+                  scope="col" 
+                  className="hidden md:table-cell px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSort('category')}
+                >
+                  <div className="flex items-center space-x-1">
+                    <span>Category</span>
+                    {sortState.field === 'category' && (
+                      <span className="text-gray-400">
+                        {sortState.direction === 'asc' ? '↑' : '↓'}
+                      </span>
+                    )}
+                  </div>
                 </th>
                 <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Pricing Options
@@ -1511,7 +1599,7 @@ const AdminCourseFee: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                courses.map(course => (
+                sortedCourses.map(course => (
                   <Fragment key={course.id}>
                     <tr className={`${expandedRows[course.id] ? 'bg-gray-50' : 'hover:bg-gray-50'}`}>
                       <td className="px-4 py-4 whitespace-nowrap">
