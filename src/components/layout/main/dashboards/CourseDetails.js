@@ -218,7 +218,7 @@ const CourseDetails = () => {
             tag={courseDetails?.course_tag}
             rating={course.rating || 0}
             hour={courseDetails?.session_duration || "- hours"}
-            price={courseDetails?.course_fee || 0}
+            price={courseDetails?.batch_price || 0}
             individualPrice={courseDetails?.individual_price || courseDetails?.course_fee || 0}
             batchPrice={courseDetails?.batch_price || (courseDetails?.course_fee ? courseDetails.course_fee * 0.75 : 0)}
             minBatchSize={courseDetails?.min_batch_size || 2}
