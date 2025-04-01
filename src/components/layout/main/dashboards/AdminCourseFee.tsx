@@ -1512,7 +1512,27 @@ const AdminCourseFee: React.FC = () => {
                         />
                       </td>
                       <td className="px-4 py-4 text-sm font-medium text-gray-900">
-                        <div className="line-clamp-2">{course.title}</div>
+                        <div className="space-y-1">
+                          <div className="font-semibold text-gray-900">{course.title.split('|')[0].trim()}</div>
+                          <div className="flex flex-wrap gap-2 text-xs">
+                            {course.title.split('|').slice(1).map((detail, index) => {
+                              const [label, value] = detail.split(':').map(s => s.trim());
+                              return (
+                                <span 
+                                  key={index}
+                                  className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
+                                    ${label.toLowerCase().includes('grade') 
+                                      ? 'bg-blue-100 text-blue-800' 
+                                      : label.toLowerCase().includes('duration')
+                                      ? 'bg-purple-100 text-purple-800'
+                                      : 'bg-gray-100 text-gray-800'}`}
+                                >
+                                  {label}: {value}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        </div>
                       </td>
                       <td className="hidden md:table-cell px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                         {course.category || 'N/A'}
