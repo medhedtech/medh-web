@@ -15,7 +15,7 @@ interface RazorpayConfig {
 }
 
 const RAZORPAY_CONFIG: RazorpayConfig = {
-  key: "rzp_test_Rz8NSLJbl4LBA5", // Replace with environment variable in production
+  key: "rzp_live_35wGO3X13yjE5S", // Replace with environment variable in production
   currency: "INR",
   prefill: {
     name: "Medh Student",
@@ -33,4 +33,4 @@ const RAZORPAY_CONFIG: RazorpayConfig = {
 // USD to INR conversion rate (can be updated or fetched dynamically in production)
 export const USD_TO_INR_RATE = 84.47;
 
-export default RAZORPAY_CONFIG; 
+export default RAZORPAY_CONFIG;

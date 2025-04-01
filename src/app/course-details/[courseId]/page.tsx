@@ -46,12 +46,23 @@ interface CourseData {
   no_of_Sessions?: number;
   status?: string;
   isFree?: boolean;
+  prices?: {
+    currency: string;
+    individual: number;
+    batch: number;
+    min_batch_size: number;
+    max_batch_size: number;
+    early_bird_discount: number;
+    group_discount: number;
+    is_active: boolean;
+    _id: string;
+  }[];
 }
 
 interface ProcessedCourse {
   _id: string;
-  title: string;
-  description: string;
+  course_title: string;
+  course_description: string;
   long_description: string;
   category: string;
   grade: string;
@@ -73,6 +84,17 @@ interface ProcessedCourse {
   status: string;
   isFree: boolean;
   hasFullDetails: boolean;
+  prices?: {
+    currency: string;
+    individual: number;
+    batch: number;
+    min_batch_size: number;
+    max_batch_size: number;
+    early_bird_discount: number;
+    group_discount: number;
+    is_active: boolean;
+    _id: string;
+  }[];
 }
 
 const CourseView: React.FC = () => {
@@ -113,8 +135,8 @@ const CourseView: React.FC = () => {
         // Process the course data
         const processedCourse: ProcessedCourse = {
           _id: courseData._id,
-          title: courseData.course_title || "",
-          description: courseData.course_description || "",
+          course_title: courseData.course_title || "",
+          course_description: courseData.course_description || "",
           long_description: courseData.course_description || "",
           category: courseData.course_category || "",
           grade: courseData.course_grade || "",
@@ -135,13 +157,18 @@ const CourseView: React.FC = () => {
           no_of_Sessions: courseData.no_of_Sessions || 0,
           status: courseData.status || "Published",
           isFree: courseData.isFree || false,
-          hasFullDetails: true
+          hasFullDetails: true,
+          prices: courseData.prices?.map(price => ({
+            ...price,
+            currency: price.currency || 'INR', // Default to INR if no currency specified
+            is_active: price.is_active ?? true // Default to true if not specified
+          })) || []
         };
         
         setCourse(processedCourse);
         setLoading(false);
       },
-      onError: (err: any) => {
+      onFail: (err: any) => {
         console.error("Error fetching course:", err);
         setError(parseApiError(err) || "Failed to load course details");
         setLoading(false);
@@ -192,12 +219,21 @@ const CourseView: React.FC = () => {
               </button>
               <div className="flex items-center overflow-hidden">
                 <h1 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
-                  {course?.title || "Course Details"}
+                  {course?.course_title || "Course Details"}
                 </h1>
                 <span className="ml-2 px-2 py-1 text-xs font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-full hidden sm:inline-block">
                   Course
                 </span>
               </div>
+              {/* Add Batch Price */}
+              {course?.prices && course.prices.length > 0 && (
+                <div className="ml-4 hidden sm:flex items-center">
+                  <span className="text-sm text-gray-600 dark:text-gray-400 mr-2">Batch Price:</span>
+                  <span className="text-base font-semibold text-emerald-600 dark:text-emerald-400">
+                    ₹{course.prices[0]?.batch?.toLocaleString('en-IN') || '0'}
+                  </span>
+                </div>
+              )}
             </div>
             
             <div className="flex items-center space-x-3">
@@ -228,7 +264,6 @@ const CourseView: React.FC = () => {
                       <CourseDetailsPage 
                         courseId={course._id} 
                         initialActiveSection={activeSection}
-                        faqComponent={<CourseFaq courseId={course._id} />}
                       />
                     </div>
                   )}
@@ -245,11 +280,31 @@ const CourseView: React.FC = () => {
                         transition={{ duration: 0.5 }}
                       >
                         <EnrollmentDetails 
-                          courseDetails={course}
+                          courseDetails={{
+                            _id: course._id,
+                            course_title: course.course_title,
+                            course_duration: course.course_duration,
+                            grade: course.grade,
+                            prices: course.prices,
+                            course_category: course.category,
+                            course_description: course.course_description,
+                            course_fee: course.course_fee,
+                            curriculum: course.curriculum,
+                            meta: {
+                              views: 0 // Add default views if needed
+                            },
+                            features: [
+                              "Live interactive sessions",
+                              "Certificate of completion",
+                              "Lifetime access to recordings",
+                              "Hands-on projects & assignments"
+                            ]
+                          }}
                           categoryInfo={{
-                            displayName: course.category,
+                            primaryColor: 'emerald',
                             colorClass: 'text-emerald-700 dark:text-emerald-300',
-                            bgClass: 'bg-emerald-50 dark:bg-emerald-900/30'
+                            bgClass: 'bg-emerald-50 dark:bg-emerald-900/30',
+                            borderClass: 'border-emerald-200 dark:border-emerald-800'
                           }}
                         />
                       </motion.div>
