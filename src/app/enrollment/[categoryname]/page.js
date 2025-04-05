@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef, use } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Calculator, BrainCircuit, TrendingUp, UserCheck, ArrowLeft, 
@@ -214,7 +214,8 @@ function useDynamicCourseContent(selectedCourse, categoryInfo) {
 }
 
 function CategoryEnrollmentPage({ params }) {
-  const { categoryname } = params;
+  const unwrappedParams = React.use(params);
+  const { categoryname } = unwrappedParams;
   const router = useRouter();
   
   // Improved: Better course ID detection with more robust parsing
