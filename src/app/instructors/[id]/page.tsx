@@ -20,8 +20,8 @@ interface Instructor {
   // Add additional instructor properties if needed
 }
 
-const Instructor_Details: NextPage<InstructorDetailsProps> = ({ params }) => {
-  const { id } = params;
+const Instructor_Details: NextPage<InstructorDetailsProps> = async ({ params }) => {
+  const { id } = await params;
   const isExistinstructor = (instructors as Instructor[])?.find(
     ({ id: instructorId }) => instructorId === parseInt(id)
   );
