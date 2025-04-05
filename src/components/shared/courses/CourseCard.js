@@ -4,14 +4,20 @@ import Image from "next/image";
 import Link from "next/link";
 import React, { useState } from "react";
 import { useCurrency } from "@/contexts/CurrencyContext";
-import { calculateDiscountPercentage, isFreePrice } from "@/utils/priceUtils";
-import { User, Users } from "lucide-react";
+import { calculateDiscountPercentage, isFreePrice, getCoursePriceValue, getMinBatchSize } from "@/utils/priceUtils";
+import { User, Users, Download } from "lucide-react";
+import useAuth from "@/hooks/useAuth";
+import DownloadBrochureModal from "@/components/shared/download-broucher";
+import { apiBaseUrl } from "@/apis";
 
 let insId = 0;
 const CourseCard = ({ course, type }) => {
   const { addProductToWishlist } = useWishlistContext() || {};
   const { convertPrice, formatPrice } = useCurrency();
-  const [selectedPricing, setSelectedPricing] = useState("individual");
+  const { user, isAuthenticated } = useAuth();
+  const [selectedPricing, setSelectedPricing] = useState(course.classType === 'blended' ? "individual" : "batch");
+  const [showBrochureModal, setShowBrochureModal] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const {
     id,
@@ -19,9 +25,10 @@ const CourseCard = ({ course, type }) => {
     lesson,
     duration,
     image,
+    prices,
     price,
     batchPrice,
-    minBatchSize = 2,
+    minBatchSize,
     isFree,
     insName,
     insImg,
@@ -30,16 +37,31 @@ const CourseCard = ({ course, type }) => {
     isActive,
     isCompleted,
     completedParchent,
+    classType,
   } = course;
   
-  const defaultBatchPrice = batchPrice || (price ? price * 0.75 : 0);
-  const currentPrice = price ? convertPrice(price) : convertPrice(32.00);
-  const currentBatchPrice = defaultBatchPrice ? convertPrice(defaultBatchPrice) : convertPrice(24.00);
-  const originalPrice = price ? convertPrice(price * 2.1) : convertPrice(67.00);
+  // Get actual batch and individual prices using utility functions
+  const batchPriceValue = getCoursePriceValue(course, true);
+  const individualPriceValue = getCoursePriceValue(course, false);
+  const actualMinBatchSize = getMinBatchSize(course);
   
-  const discountPercentage = calculateDiscountPercentage(originalPrice, currentPrice);
-  const batchDiscountPercentage = price ? Math.round(((price - defaultBatchPrice) / price) * 100) : 25;
+  // Convert prices to current currency
+  const currentBatchPrice = convertPrice(batchPriceValue);
+  const currentIndividualPrice = convertPrice(individualPriceValue);
   
+  // Calculate original price (for showing discount)
+  const originalPrice = convertPrice(individualPriceValue * 2.1);
+  
+  // Calculate discount percentages
+  const discountPercentage = calculateDiscountPercentage(originalPrice, currentIndividualPrice);
+  const batchDiscountPercentage = Math.round(((individualPriceValue - batchPriceValue) / individualPriceValue) * 100);
+  
+  // Function to handle brochure download
+  const handleBrochureDownload = async () => {
+    // Always show the modal, regardless of authentication status
+    setShowBrochureModal(true);
+  };
+
   const depBgs = [
     {
       category: "Art & Design",
@@ -140,19 +162,28 @@ const CourseCard = ({ course, type }) => {
                   {categories}
                 </p>
               </div>
-              <button
-                onClick={() =>
-                  addProductToWishlist &&
-                  addProductToWishlist({
-                    ...course,
-                    isCourse: true,
-                    quantity: 1,
-                  })
-                }
-                className="text-white bg-black bg-opacity-15 rounded hover:bg-primaryColor"
-              >
-                <i className="icofont-heart-alt text-base py-1 px-2"></i>
-              </button>
+              <div className="flex gap-1">
+                <button
+                  onClick={handleBrochureDownload}
+                  disabled={isDownloading}
+                  className="text-white bg-black bg-opacity-15 rounded hover:bg-primaryColor"
+                >
+                  <Download size={16} className="py-1 px-1" />
+                </button>
+                <button
+                  onClick={() =>
+                    addProductToWishlist &&
+                    addProductToWishlist({
+                      ...course,
+                      isCourse: true,
+                      quantity: 1,
+                    })
+                  }
+                  className="text-white bg-black bg-opacity-15 rounded hover:bg-primaryColor"
+                >
+                  <i className="icofont-heart-alt text-base py-1 px-2"></i>
+                </button>
+              </div>
             </div>
           </div>
           {/* card content */}
@@ -195,35 +226,39 @@ const CourseCard = ({ course, type }) => {
                 <span className="text-lg font-semibold text-green-600">Free</span>
               ) : (
                 <>
-                  {/* Pricing toggle */}
-                  <div className="flex space-x-2 mb-1 text-xs border-b border-gray-200 pb-1">
-                    <button
-                      onClick={() => setSelectedPricing("individual")}
-                      className={`flex items-center ${
-                        selectedPricing === "individual"
-                          ? "text-primaryColor font-medium"
-                          : "text-gray-500"
-                      }`}
-                    >
-                      <User size={12} className="mr-1" /> Individual
-                    </button>
-                    <button
-                      onClick={() => setSelectedPricing("batch")}
-                      className={`flex items-center ${
-                        selectedPricing === "batch"
-                          ? "text-primaryColor font-medium"
-                          : "text-gray-500"
-                      }`}
-                    >
-                      <Users size={12} className="mr-1" /> Batch ({minBatchSize}+)
-                    </button>
-                  </div>
+                  {/* Pricing toggle - hide for blended courses */}
+                  {classType !== 'blended' ? (
+                    <div className="flex space-x-2 mb-1 text-xs border-b border-gray-200 pb-1">
+                      <button
+                        onClick={() => setSelectedPricing("individual")}
+                        className={`flex items-center ${
+                          selectedPricing === "individual"
+                            ? "text-primaryColor font-medium"
+                            : "text-gray-500"
+                        }`}
+                      >
+                        <User size={12} className="mr-1" /> Individual
+                      </button>
+                      <button
+                        onClick={() => setSelectedPricing("batch")}
+                        className={`flex items-center ${
+                          selectedPricing === "batch"
+                            ? "text-primaryColor font-medium"
+                            : "text-gray-500"
+                        }`}
+                      >
+                        <Users size={12} className="mr-1" /> Batch ({actualMinBatchSize}+)
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="text-xs text-gray-500 mb-1">Individual Enrollment</div>
+                  )}
                   
                   {/* Price display */}
                   <div className="text-lg font-semibold text-primaryColor">
-                    {selectedPricing === "individual" ? (
+                    {(selectedPricing === "individual" || classType === 'blended') ? (
                       <>
-                        {formatPrice(currentPrice)}
+                        {formatPrice(currentIndividualPrice)}
                         <del className="text-sm text-lightGrey4 font-semibold ml-1">
                           / {formatPrice(originalPrice)}
                         </del>
@@ -245,6 +280,17 @@ const CourseCard = ({ course, type }) => {
                   </div>
                 </>
               )}
+            </div>
+            {/* Download brochure section for small screens */}
+            <div className="mb-3 sm:hidden">
+              <button
+                onClick={handleBrochureDownload}
+                disabled={isDownloading}
+                className="w-full text-xs flex items-center justify-center gap-1 text-primaryColor border border-primaryColor py-1 px-2 rounded hover:bg-primaryColor hover:text-white transition-colors"
+              >
+                <Download size={12} />
+                {isDownloading ? "Downloading..." : "Download Brochure"}
+              </button>
             </div>
             {/* author and rating--> */}
             <div className="grid grid-cols-1 md:grid-cols-2 pt-15px border-t border-borderColor">
@@ -318,6 +364,14 @@ const CourseCard = ({ course, type }) => {
           </div>
         </div>
       </div>
+      
+      {/* Brochure download modal - show for all users */}
+      <DownloadBrochureModal
+        isOpen={showBrochureModal}
+        onClose={() => setShowBrochureModal(false)}
+        courseTitle={title}
+        courseId={id}
+      />
     </div>
   );
 };
