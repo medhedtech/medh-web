@@ -10,7 +10,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { apiUrls } from '@/apis';
 import { useCurrency } from '@/contexts/CurrencyContext';
-import { isFreePrice } from '@/utils/priceUtils';
+import { isFreePrice, getCoursePriceValue, getMinBatchSize } from '@/utils/priceUtils';
 import axios from 'axios';
 import useGetQuery from "@/hooks/getQuery.hook";
 import usePostQuery from "@/hooks/postQuery.hook";
@@ -44,6 +44,7 @@ interface CourseDetails {
   meta?: {
     views: number;
   };
+  classType?: string;
 }
 
 interface CategoryInfo {
@@ -162,17 +163,26 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
   onEnrollClick
 }) => {
   const router = useRouter();
+  const { convertPrice, formatPrice, currency } = useCurrency();
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [userId, setUserId] = useState<string | null>(null);
-  const [enrollmentType, setEnrollmentType] = useState<EnrollmentType>('individual');
+  const isBlendedCourse = courseDetails?.classType === 'Blended Courses';
+  const [enrollmentType, setEnrollmentType] = useState<EnrollmentType>(isBlendedCourse ? 'individual' : 'batch');
   const [showBatchInfo, setShowBatchInfo] = useState<boolean>(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState<boolean>(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const { convertPrice, formatPrice: formatCurrencyPrice } = useCurrency();
-  const [currencyCode, setCurrencyCode] = useState<string>('INR');
-  const [exchangeRate, setExchangeRate] = useState<number>(1);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [minStudentsRequired, setMinStudentsRequired] = useState<number>(0);
+  const [paymentDetails, setPaymentDetails] = useState<PaymentDetails>({
+    originalPrice: 0,
+    originalCurrency: 'USD',
+    paymentCurrency: 'INR',
+    amountInINR: 0,
+    conversionRate: 1,
+    formattedOriginalPrice: '0'
+  });
   const { getQuery } = useGetQuery();
   const { postQuery, loading: postLoading } = usePostQuery();
   const { 
@@ -208,6 +218,9 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
           console.error("Failed to parse user data:", e);
         }
       }
+      
+      // Set loading to false after checking authentication
+      setIsLoading(false);
     }
   }, []);
 
@@ -219,7 +232,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     const prices = courseDetails?.prices;
     console.log('Course Details:', courseDetails);
     console.log('Course Prices:', prices);
-    console.log('Current Currency:', currencyCode);
+    console.log('Current Currency:', currency.code);
     
     if (!prices || prices.length === 0) {
       console.log('No prices found');
@@ -228,7 +241,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
 
     // First try to find a price matching the user's preferred currency
     const preferredPrice = prices.find(price => 
-      price.is_active && price.currency === currencyCode
+      price.is_active && price.currency === currency.code
     );
     console.log('Preferred Price:', preferredPrice);
 
@@ -240,7 +253,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     const finalPrice = preferredPrice || activePrice || prices[0] || null;
     console.log('Final Selected Price:', finalPrice);
     return finalPrice;
-  }, [courseDetails, currencyCode]);
+  }, [courseDetails, currency.code]);
 
   // State for active pricing
   const [activePricing, setActivePricing] = useState<CoursePrice | null>(null);
@@ -250,7 +263,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     const price = getActivePrice();
     console.log('Setting Active Pricing:', price);
     setActivePricing(price);
-  }, [courseDetails, currencyCode, getActivePrice]);
+  }, [courseDetails, currency.code, getActivePrice]);
 
   // Calculate final price including any applicable discounts
   const calculateFinalPrice = useCallback((price: number | undefined, discount: number | undefined): number => {
@@ -294,22 +307,28 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
   }, [activePricing, enrollmentType, calculateFinalPrice]);
 
   // Format price for display with proper currency symbol
-  const formatPrice = useCallback((price: number, showCurrency: boolean = true): string => {
+  const formatPriceDisplay = useCallback((price: number, showCurrency: boolean = true): string => {
     console.log('Formatting Price:', { price, showCurrency });
     if (!price || price <= 0) {
       console.log('Price is free or invalid');
       return "Free";
     }
-    // Force INR currency for display
+    
+    // Use the context's currency formatting if available
+    if (formatPrice) {
+      return formatPrice(convertPrice(price), showCurrency);
+    }
+    
+    // Fallback to Intl formatting
     const formattedPrice = new Intl.NumberFormat('en-IN', {
       style: 'currency',
-      currency: 'INR',
+      currency: currency?.code || 'INR',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     }).format(price);
     console.log('Formatted Price:', formattedPrice);
     return formattedPrice;
-  }, []);
+  }, [currency, formatPrice, convertPrice]);
   
   // Get primary color from category or default
   const primaryColor = categoryInfo?.primaryColor || 'primary';
@@ -361,9 +380,9 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
       paymentCurrency: 'INR',
       amountInINR: amountInINR,
       conversionRate: inrConversionRate,
-      formattedOriginalPrice: formatPrice(priceAfterDiscount)
+      formattedOriginalPrice: formatPriceDisplay(priceAfterDiscount)
     };
-  }, [enrollmentType, activePricing, calculateFinalPrice, formatPrice]);
+  }, [enrollmentType, activePricing, calculateFinalPrice, formatPriceDisplay]);
 
   // Enroll in course after successful payment
   const enrollCourse = async (studentId: string, courseId: string, paymentResponse: any = {}): Promise<any> => {
@@ -396,7 +415,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
             payment_order_id: paymentResponse.razorpay_order_id || '',
             payment_method: 'razorpay',
             amount: getFinalPrice(),
-            currency: currencyCode,
+            currency: currency.code,
             payment_date: new Date().toISOString()
           } : null
         }
@@ -537,7 +556,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
         enrollmentType,
         priceId: activePricing._id,
         finalPrice: getFinalPrice(),
-        currencyCode: currencyCode
+        currencyCode: currency.code
       };
       
       // If onEnrollClick prop is provided, use that
@@ -570,7 +589,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [courseDetails, isLoggedIn, router, onEnrollClick, enrollmentType, activePricing, userId, getFinalPrice, currencyCode]);
+  }, [courseDetails, isLoggedIn, router, onEnrollClick, enrollmentType, activePricing, userId, getFinalPrice, currency.code]);
 
   // Handle enrollment through Razorpay
   const handleRazorpayPayment = async (): Promise<void> => {
@@ -701,6 +720,44 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
       : activePricing.batch)
     : null;
 
+  useEffect(() => {
+    if (courseDetails && !isLoading) {
+      // Get pricing information using the utility functions
+      const individualPrice = getCoursePriceValue(courseDetails, false);
+      const batchPrice = getCoursePriceValue(courseDetails, true);
+      const minBatchSize = getMinBatchSize(courseDetails);
+      
+      // Set prices with current currency conversion
+      setPaymentDetails(prevDetails => ({
+        originalPrice: enrollmentType === 'batch' ? batchPrice : individualPrice,
+        originalCurrency: 'USD', // Assuming USD as base currency
+        paymentCurrency: currency.code,
+        amountInINR: convertPrice(enrollmentType === 'batch' ? batchPrice : individualPrice, 'INR'),
+        conversionRate: 1, // This will be updated by the API
+        formattedOriginalPrice: formatPriceDisplay(
+          convertPrice(enrollmentType === 'batch' ? batchPrice : individualPrice)
+        )
+      }));
+      
+      // Also update batch size
+      setMinStudentsRequired(minBatchSize);
+    }
+  }, [courseDetails, enrollmentType, currency.code, isLoading, convertPrice, formatPriceDisplay]);
+
+  // Update enrollment type if course type changes
+  useEffect(() => {
+    if (isBlendedCourse && enrollmentType === 'batch') {
+      setEnrollmentType('individual');
+    }
+  }, [isBlendedCourse, enrollmentType]);
+
+  // Ensure batch pricing is disabled for blended courses
+  useEffect(() => {
+    if (isBlendedCourse) {
+      setEnrollmentType('individual');
+    }
+  }, [isBlendedCourse]);
+
   return (
     <>
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
@@ -711,31 +768,43 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
         </div>
         
         <div className="p-4 space-y-5">
-          {/* Enrollment Type Selection */}
-          <div className="flex w-full rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
-            <button
-              onClick={() => setEnrollmentType('individual')}
-              className={`flex-1 py-3 px-2 flex flex-col items-center justify-center transition ${
-                enrollmentType === 'individual' 
-                  ? `${bgClass} ${colorClass} font-medium` 
-                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400'
-              }`}
-            >
-              <User className={`h-5 w-5 mb-1 ${enrollmentType === 'individual' ? colorClass : ''}`} />
-              <span className="text-sm">Individual</span>
-            </button>
-            <button
-              onClick={() => setEnrollmentType('batch')}
-              className={`flex-1 py-3 px-2 flex flex-col items-center justify-center transition ${
-                enrollmentType === 'batch' 
-                  ? `${bgClass} ${colorClass} font-medium` 
-                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400'
-              }`}
-            >
-              <Users className={`h-5 w-5 mb-1 ${enrollmentType === 'batch' ? colorClass : ''}`} />
-              <span className="text-sm">Batch/Group</span>
-            </button>
-          </div>
+          {/* Enrollment Type Selection - Hide for blended courses */}
+          {!isBlendedCourse && (
+            <div className="flex w-full rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+              <button
+                onClick={() => setEnrollmentType('individual')}
+                className={`flex-1 py-3 px-2 flex flex-col items-center justify-center transition ${
+                  enrollmentType === 'individual' 
+                    ? `${bgClass} ${colorClass} font-medium` 
+                    : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+                }`}
+              >
+                <User className={`h-5 w-5 mb-1 ${enrollmentType === 'individual' ? colorClass : ''}`} />
+                <span className="text-sm">Individual</span>
+              </button>
+              <button
+                onClick={() => setEnrollmentType('batch')}
+                className={`flex-1 py-3 px-2 flex flex-col items-center justify-center transition ${
+                  enrollmentType === 'batch' 
+                    ? `${bgClass} ${colorClass} font-medium` 
+                    : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+                }`}
+              >
+                <Users className={`h-5 w-5 mb-1 ${enrollmentType === 'batch' ? colorClass : ''}`} />
+                <span className="text-sm">Batch/Group</span>
+              </button>
+            </div>
+          )}
+          
+          {/* Show enrollment type label for blended courses */}
+          {isBlendedCourse && (
+            <div className="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center text-gray-700 dark:text-gray-300">
+                <Info className="h-4 w-4 mr-2 text-blue-500" />
+                <span className="text-sm">This blended learning course is available for individual enrollment only</span>
+              </div>
+            </div>
+          )}
           
           {/* Course Price */}
           <AnimatePresence mode="wait">
@@ -748,16 +817,16 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
             >
               <div>
                 <p className="text-gray-600 dark:text-gray-400 text-sm">
-                  {enrollmentType === 'individual' ? 'Individual Price' : 'Batch Price (per person)'}
+                  {isBlendedCourse ? 'Individual Price' : (enrollmentType === 'individual' ? 'Individual Price' : 'Batch Price (per person)')}
                 </p>
                 <div className="flex items-baseline gap-2">
                   <h4 className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {formatPrice(finalPrice)}
+                    {formatPriceDisplay(finalPrice)}
                   </h4>
                   
                   {originalPrice && originalPrice > finalPrice && (
                     <span className="text-sm text-gray-500 line-through">
-                      {formatPrice(originalPrice)}
+                      {formatPriceDisplay(originalPrice)}
                     </span>
                   )}
                   
@@ -832,7 +901,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
               <>
                 {isLoggedIn ? (
                   <>
-                    {enrollmentType === 'individual' ? 'Enroll Now' : 'Enroll in Batch'} <ArrowRight className="w-4 h-4 ml-2" />
+                    {isBlendedCourse ? 'Enroll Now' : (enrollmentType === 'individual' ? 'Enroll Now' : 'Enroll in Batch')} <ArrowRight className="w-4 h-4 ml-2" />
                   </>
                 ) : (
                   <>
