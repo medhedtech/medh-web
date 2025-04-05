@@ -1,0 +1,173 @@
+# Medh Web Platform - Project Rules
+
+## Naming Conventions
+1. Directories & Files
+   - Use lowercase with dashes for directories (e.g., components/auth-wizard)
+   - Use PascalCase for component files (e.g., CourseCard.tsx)
+   - Use camelCase for utility files (e.g., apiUtils.ts)
+   - Use kebab-case for page files (e.g., course-details.tsx)
+
+2. Components & Variables
+   - Use PascalCase for component names (e.g., CourseCard)
+   - Use camelCase for variables and functions (e.g., isLoading, handleSubmit)
+   - Use descriptive names that indicate purpose (e.g., courseFilterState)
+   - Prefix boolean variables with is/has/should (e.g., isVisible, hasError)
+
+3. Exports
+   - Use named exports for components
+   - Use default exports for pages
+   - Use named exports for hooks and utilities
+
+## Code Structure
+1. Component Organization
+   - Group by feature (e.g., courses, blogs, auth)
+   - Separate presentational and container components
+   - Keep components focused on a single responsibility
+   - Use composition over inheritance
+
+2. File Structure
+   - Place components in src/components
+   - Place pages in src/app
+   - Place hooks in src/hooks
+   - Place utilities in src/utils
+   - Place API clients in src/apis
+
+3. Import Order
+   - React and Next.js imports
+   - Third-party libraries
+   - Components
+   - Hooks and utilities
+   - Types and interfaces
+   - Constants and styles
+
+## TypeScript Guidelines
+1. Type Definitions
+   - Define interfaces for component props
+   - Use type for unions and primitives
+   - Use enum for constants
+   - Use generics for reusable types
+
+2. Type Safety
+   - Enable strict mode in tsconfig.json
+   - Avoid using any
+   - Use proper return types for functions
+   - Use proper types for state
+
+3. Type Naming
+   - Prefix interfaces with I (e.g., ICourseProps)
+   - Prefix types with T (e.g., TCourseType)
+   - Prefix enums with E (e.g., ECourseStatus)
+
+## Styling Guidelines
+1. Tailwind CSS
+   - Use utility classes for styling
+   - Group related utilities with comments
+   - Use custom theme extensions for repeated values
+   - Use responsive prefixes (sm:, md:, lg:)
+
+2. Component Styling
+   - Use CSS modules for component-specific styles
+   - Use Tailwind for layout and common styles
+   - Use CSS variables for theme values
+   - Use CSS-in-JS for dynamic styles
+
+3. Responsive Design
+   - Mobile-first approach
+   - Use Tailwind breakpoints
+   - Test on multiple devices
+   - Use fluid typography
+
+## Performance Patterns
+1. Code Splitting
+   - Use dynamic imports for large components
+   - Use React.lazy for route-based splitting
+   - Use Suspense for loading states
+   - Use loading.tsx for page loading
+
+2. Image Optimization
+   - Use Next.js Image component
+   - Specify width and height
+   - Use proper formats (WebP, AVIF)
+   - Use proper sizes for different devices
+
+3. Data Fetching
+   - Use SWR for data fetching
+   - Use React Query for complex data
+   - Use proper caching strategies
+   - Use proper error handling
+
+## Testing Guidelines
+1. Unit Testing
+   - Test components in isolation
+   - Test hooks separately
+   - Test utilities thoroughly
+   - Use proper mocking
+
+2. Integration Testing
+   - Test component interactions
+   - Test data flow
+   - Test user interactions
+   - Test error handling
+
+3. E2E Testing
+   - Test critical user flows
+   - Test responsive design
+   - Test accessibility
+   - Test performance
+
+## Documentation Guidelines
+1. Code Documentation
+   - Use JSDoc for functions
+   - Use comments for complex logic
+   - Document component props
+   - Document types and interfaces
+
+2. Project Documentation
+   - Keep README up to date
+   - Document setup instructions
+   - Document deployment process
+   - Document architecture decisions
+
+3. API Documentation
+   - Document API endpoints
+   - Document request/response formats
+   - Document error codes
+   - Document authentication
+
+## Git Workflow
+1. Branch Naming
+   - feature/ for new features
+   - bugfix/ for bug fixes
+   - hotfix/ for urgent fixes
+   - release/ for releases
+
+2. Commit Messages
+   - Use conventional commits
+   - Keep messages concise
+   - Reference issues
+   - Use present tense
+
+3. Pull Requests
+   - Keep PRs small and focused
+   - Include tests
+   - Update documentation
+   - Request reviews
+
+## Deployment Guidelines
+1. Environment Variables
+   - Use .env.local for local development
+   - Use .env.production for production
+   - Use .env.example for documentation
+   - Never commit sensitive values
+
+2. Build Process
+   - Run tests before build
+   - Run linting before build
+   - Run type checking before build
+   - Use proper build flags
+
+3. Deployment Process
+   - Deploy to staging first
+   - Run smoke tests
+   - Deploy to production
+   - Monitor for issues 

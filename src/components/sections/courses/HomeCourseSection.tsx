@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import CourseCard from "@/components/sections/courses/CourseCard";
 import { getAllCoursesWithLimits } from '@/apis/course/course';
 import useGetQuery from "@/hooks/getQuery.hook";
@@ -9,6 +9,8 @@ import PropTypes from 'prop-types';
 import { motion } from "framer-motion";
 import Link from "next/link";
 import mobileMenu from "@/libs/mobileMenu";
+import { useCurrency } from '@/contexts/CurrencyContext';
+import { getCoursePriceValue, getMinBatchSize } from '@/utils/priceUtils';
 
 // List of specific course durations to display (in weeks)
 const TARGET_DURATIONS = [
@@ -110,18 +112,21 @@ const featuredLiveCourses = [
 
 // Estimated video count and QnA sessions for blended courses
 const getBlendedCourseSessions = (course) => {
-  // Default values if not available in course data
-  const defaultVideoCount = 20; // Random between 30-50
-  const defaultQnaSessions = 2; // Random between 4-8
+  if (!course) return { videoCount: 0, qnaSessions: 0 };
   
-  // Try to extract from course data or use defaults
-  const videoCount = course.video_count || course.lectures_count || defaultVideoCount;
-  const qnaSessions = course.qa_sessions || course.live_sessions || defaultQnaSessions;
+  // Use defined values if available
+  if (course.video_count !== undefined && course.qa_sessions !== undefined) {
+    return {
+      videoCount: course.video_count,
+      qnaSessions: course.qa_sessions
+    };
+  }
   
-  return {
-    videoCount,
-    qnaSessions
-  };
+  // Estimate if not provided directly
+  const videoCount = course.lectures_count || Math.round(Math.random() * 8) + 4;
+  const qnaSessions = course.live_sessions || Math.round(Math.random() * 3) + 1;
+  
+  return { videoCount, qnaSessions };
 };
 
 // Prepare icons for learning experience display
@@ -138,10 +143,54 @@ const formatBlendedLearningExperience = (videoCount, qnaSessions) => {
       </div>
       <div className="flex items-center text-xs">
         <QnaIcon />
-        <span> Live QnA Sessions</span>
+        <span>{qnaSessions} Live QnA Sessions</span>
       </div>
     </div>
   );
+};
+
+// Function to get course type display text
+const getCourseTypeDisplay = (course) => {
+  if (course.classType === 'live') {
+    return 'Live Course';
+  } else if (course.classType === 'blended') {
+    return 'Blended Learning';
+  } else if (course.course_type) {
+    return course.course_type;
+  }
+  return 'Self-Paced';
+};
+
+// Ensure a course has the correct classType set
+const ensureClassType = (course) => {
+  if (!course) return course;
+  
+  // If classType is already set, return as is
+  if (course.classType) return course;
+  
+  // Try to infer from course_type field
+  if (course.course_type) {
+    if (course.course_type.toLowerCase().includes('live')) {
+      return { ...course, classType: 'live' };
+    } else if (course.course_type.toLowerCase().includes('blend')) {
+      return { ...course, classType: 'blended' };
+    }
+  }
+  
+  // If video_count or qa_sessions exist, it's likely a blended course
+  if (course.video_count || course.qa_sessions || course.lectures_count) {
+    return { ...course, classType: 'blended' };
+  }
+  
+  // Default to self-paced
+  return { ...course, classType: 'self-paced' };
+};
+
+// Process courses to ensure they have classType and other metadata
+const processCourses = (courses) => {
+  if (!courses || !Array.isArray(courses)) return [];
+  
+  return courses.map(course => ensureClassType(course));
 };
 
 // Define an interface for the Course object structure used in this component
@@ -191,6 +240,31 @@ interface ICourse {
   qa_sessions?: number;
   live_sessions?: number;
 }
+
+// Component to display course type badge
+const CourseTypeTag = ({ course }) => {
+  const type = course.classType || 'self-paced';
+  const isBlended = type === 'blended';
+  const isLive = type === 'live';
+  
+  let bgColor = 'bg-gray-100 text-gray-700'; // Default for self-paced
+  let icon: React.ReactNode = null;
+  
+  if (isBlended) {
+    bgColor = 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300';
+    icon = <Video size={12} className="mr-1" />;
+  } else if (isLive) {
+    bgColor = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300';
+    icon = <VideoIcon />;
+  }
+  
+  return (
+    <span className={`flex items-center text-xs px-2 py-1 rounded-full ${bgColor}`}>
+      {icon}
+      {isBlended ? 'Blended' : isLive ? 'Live' : 'Self-Paced'}
+    </span>
+  );
+};
 
 const HomeCourseSection = ({ 
   CustomText = "Featured Courses",
@@ -289,8 +363,9 @@ const HomeCourseSection = ({
             // Add other relevant default filters for blended if necessary
           }),
           onSuccess: (data) => {
-            // Directly set, using fallback to empty array
-             setBlendedCourses(data?.courses || []);
+            // Process courses to ensure they have classType set
+            const processedCourses = processCourses(data?.courses || []);
+            setBlendedCourses(processedCourses);
           }
         });
       }
@@ -401,6 +476,32 @@ const HomeCourseSection = ({
       </button>
     );
   };
+
+  // Apply the filters to the blended courses
+  const filteredBlendedCourses = useMemo(() => {
+    // Base filter for not showing placeholder courses
+    let filtered = blendedCourses.filter(course => !course.is_placeholder);
+    
+    // Apply active filters
+    if (activeBlendedFilters.popular) {
+      filtered = filtered.filter(course => course.popular === true);
+    }
+    
+    if (activeBlendedFilters.latest) {
+      filtered = filtered.filter(course => course.latest === true);
+    }
+    
+    if (activeBlendedFilters.beginner) {
+      filtered = filtered.filter(course => 
+        course.level === 'Beginner' || 
+        course.difficulty === 'Easy' ||
+        course.difficulty === 'Beginner'
+      );
+    }
+    
+    // Ensure all courses have classType property
+    return processCourses(filtered);
+  }, [blendedCourses, activeBlendedFilters]);
 
   return (
     // Improve background and section sizing
@@ -545,7 +646,7 @@ const HomeCourseSection = ({
               <Preloader2 />
             </div>
           ) : (() => { // IIFE to calculate filtered courses inline
-            let coursesToRender = [...blendedCourses];
+            let coursesToRender = [...filteredBlendedCourses];
 
             if (activeBlendedFilters.popular) {
               coursesToRender = coursesToRender.sort((a, b) => (b.enrollmentCount || 0) - (a.enrollmentCount || 0));
@@ -575,36 +676,50 @@ const HomeCourseSection = ({
                 initial="hidden"
                 animate="visible"
               >
-                {coursesToRender.map((course) => {
+                {coursesToRender.map((course, index) => {
                   // Get video and QnA session info for the blended course
                   const { videoCount, qnaSessions } = getBlendedCourseSessions(course);
                   
                   // Format the learning experience text with icons
                   const learningExperienceText = formatBlendedLearningExperience(videoCount, qnaSessions);
                   
+                  // Create a modified course object with the enhanced properties
+                  const enhancedCourse = {
+                    ...course,
+                    _id: course._id || course.id,
+                    course_title: course.course_title,
+                    course_image: course.thumbnail || course.course_image,
+                    course_duration: learningExperienceText,
+                    display_duration: true,
+                    duration_range: `${videoCount} Videos • ${qnaSessions} Q&A`,
+                    course_fee: course.course_fee || course.price || "Free",
+                    price: course.price || course.course_fee || "Free",
+                    custom_url: course.custom_url || `/course-details/${course._id}`,
+                    href: course.custom_url || `/course-details/${course._id}`,
+                    no_of_Sessions: videoCount + qnaSessions,
+                    effort_hours: course.effort_hours || "3-5",
+                    learning_points: course.learning_points || course.course_highlights || [],
+                    prerequisites: course.prerequisites || [],
+                    instructor: course.instructor ?? undefined
+                  };
+                  
                   return (
-                    <motion.div key={course._id} variants={itemVariants} className="blended-course-card h-full">
-                      <CourseCard 
-                        course={{
-                          _id: course._id || course.id,
-                          course_title: course.course_title,
-                          course_image: course.thumbnail || course.course_image,
-                          course_duration: learningExperienceText,
-                          display_duration: true,
-                          duration_range: `${videoCount} Videos • ${qnaSessions} Q&A`,
-                          course_fee: course.course_fee || course.price || "Free",
-                          price: course.price || course.course_fee || "Free",
-                          custom_url: course.custom_url || `/course-details/${course._id}`,
-                          href: course.custom_url || `/course-details/${course._id}`,
-                          no_of_Sessions: videoCount + qnaSessions,
-                          effort_hours: course.effort_hours || "3-5",
-                          learning_points: course.learning_points || course.course_highlights || [],
-                          prerequisites: course.prerequisites || [],
-                          instructor: course.instructor ?? undefined
-                        }} 
-                        classType="blended" 
-                        showDuration={true}
-                      />
+                    <motion.div 
+                      key={course._id || `blended-${index}`}
+                      variants={itemVariants}
+                      className="col-span-1"
+                    >
+                      <div className="relative">
+                        {/* Course Type Badge - positioned at top left */}
+                        <div className="absolute left-4 top-4 z-10">
+                          <CourseTypeTag course={course} />
+                        </div>
+                        
+                        {/* Render the CourseCard component with proper props */}
+                        <CourseCard 
+                          course={enhancedCourse}
+                        />
+                      </div>
                     </motion.div>
                   );
                 })}
