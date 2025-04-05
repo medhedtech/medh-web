@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { apiBaseUrl, apiUrls } from "@/apis";
+import useAuth from "@/hooks/useAuth";
 
 const DownloadBrochureModal = ({
   isOpen,
@@ -13,6 +14,7 @@ const DownloadBrochureModal = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
+  const { user, isAuthenticated } = useAuth();
   const [formData, setFormData] = useState({
     full_name: "",
     email: "",
@@ -21,6 +23,20 @@ const DownloadBrochureModal = ({
     accepted: false,
   });
   const [errors, setErrors] = useState({});
+
+  // Auto-fill form with user data if authenticated
+  useEffect(() => {
+    if (isOpen && isAuthenticated && user) {
+      setFormData(prevData => ({
+        ...prevData,
+        full_name: user.full_name || user.name || "",
+        email: user.email || "",
+        phone_number: user.phone_number || "",
+        country_code: user.country_code || "IN",
+        accepted: true,
+      }));
+    }
+  }, [isOpen, isAuthenticated, user]);
 
   // Warn if neither courseId nor brochureId is provided
   useEffect(() => {
@@ -70,6 +86,70 @@ const DownloadBrochureModal = ({
     return Object.keys(newErrors).length === 0;
   };
 
+  // Function for direct download (authenticated users)
+  const handleDirectDownload = async () => {
+    try {
+      setLoading(true);
+      const idToUse = courseId || brochureId;
+      if (!idToUse) {
+        console.error("Missing course or brochure ID");
+        onClose();
+        return;
+      }
+
+      console.log('Opening brochure in new tab...');
+      
+      // Get the authentication token
+      const token = localStorage.getItem('auth_token') || '';
+      
+      // Create a URL with the token and open in a new tab
+      const brochureUrl = `${apiBaseUrl}/broucher/download/${idToUse}`;
+      
+      // Open in a new tab
+      const newTab = window.open('about:blank', '_blank');
+      
+      // Create a form to send the token securely via POST
+      const form = document.createElement('form');
+      form.method = 'GET';
+      form.action = brochureUrl;
+      form.target = '_blank';
+      
+      // Add token as hidden field
+      const tokenField = document.createElement('input');
+      tokenField.type = 'hidden';
+      tokenField.name = 'token';
+      tokenField.value = token;
+      form.appendChild(tokenField);
+      
+      // Add to document, submit, and remove
+      document.body.appendChild(form);
+      
+      if (newTab) {
+        // If new tab was successfully opened
+        newTab.location = brochureUrl + `?token=${encodeURIComponent(token)}`;
+      } else {
+        // Fallback - this might be blocked by popup blockers
+        window.open(brochureUrl + `?token=${encodeURIComponent(token)}`, '_blank');
+      }
+      
+      console.log('Brochure opened in new tab');
+      setDownloadSuccess(true);
+      
+      // Close the modal after a short delay
+      setTimeout(() => {
+        onClose();
+        setDownloadSuccess(false);
+      }, 1500);
+      
+      setLoading(false);
+    } catch (err) {
+      console.error('Error opening brochure:', err);
+      setLoading(false);
+      setErrors(prev => ({ ...prev, general: "Failed to open brochure. Please try again." }));
+    }
+  };
+
+  // Function for email delivery (non-authenticated users)
   const downloadBrochure = async () => {
     try {
       setLoading(true);
@@ -78,6 +158,8 @@ const DownloadBrochureModal = ({
         setErrors(prev => ({ ...prev, general: "Missing course or brochure details" }));
         return;
       }
+
+      // For all users, send email via POST request
       const requestData = apiUrls.brouchers.requestBroucher({
         brochure_id: brochureId,
         course_id: courseId,
@@ -88,6 +170,7 @@ const DownloadBrochureModal = ({
         send_email: true,
         sender_email: "medh@medhlive.com"
       });
+      
       const response = await fetch(`${apiBaseUrl}${requestData.url}`, {
         method: "POST",
         headers: {
@@ -96,11 +179,14 @@ const DownloadBrochureModal = ({
         },
         body: JSON.stringify(requestData.data),
       });
+      
       if (!response.ok) {
         throw new Error("Failed to send brochure to email");
       }
+      
       await response.json();
       setDownloadSuccess(true);
+      
       setTimeout(() => {
         onClose();
         setDownloadSuccess(false);
@@ -125,6 +211,7 @@ const DownloadBrochureModal = ({
     await downloadBrochure();
   };
 
+  // Always render the form, even for authenticated users
   if (!isOpen) return null;
 
   const containerClass = inlineForm
@@ -147,7 +234,9 @@ const DownloadBrochureModal = ({
           </button>
         </div>
         <p className="text-xs text-gray-600 mb-3">
-          Fill in your details and we'll email you the brochure from Medh.
+          {isAuthenticated ? 
+            "Confirm your details to download the brochure from Medh." :
+            "Fill in your details and we'll email you the brochure from Medh."}
         </p>
         <form onSubmit={handleSubmit} className="space-y-2">
           <input
@@ -194,7 +283,7 @@ const DownloadBrochureModal = ({
             disabled={loading}
             className="w-full py-1 text-sm font-medium text-white bg-primary-500 rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-75"
           >
-            {loading ? "Submitting..." : "Download"}
+            {loading ? "Submitting..." : "Get Brochure"}
           </button>
         </form>
         {downloadSuccess && (

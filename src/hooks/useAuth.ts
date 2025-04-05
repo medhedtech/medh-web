@@ -46,15 +46,22 @@ const useAuth = () => {
         return false;
       }
       
-      // If we have user info in the token, set it
-      if (decoded._id) {
-        setUser({
-          _id: decoded._id,
-          email: decoded.email,
-          role: decoded.role
-        });
+      // Extract as much user info as possible from the token
+      const tokenUser = {
+        ...(decoded._id ? { _id: decoded._id } : {}),
+        ...(decoded.id ? { _id: decoded.id } : {}),
+        ...(decoded.userId ? { _id: decoded.userId } : {}),
+        ...(decoded.email ? { email: decoded.email } : {}),
+        ...(decoded.role ? { role: decoded.role } : {}),
+        ...(decoded.name ? { name: decoded.name } : {}),
+      };
+      
+      // Only update user if we have some basic info
+      if (Object.keys(tokenUser).length > 0) {
+        setUser(prev => ({ ...prev, ...tokenUser }));
       }
       
+      // Valid token even without ID
       return true;
     } catch (error) {
       console.error('Invalid token:', error);
@@ -71,19 +78,37 @@ const useAuth = () => {
     if (!token) return null;
     
     try {
-      const response = await axios.get(`${apiBaseUrl}/users/profile`, {
-        headers: {
-          Authorization: `Bearer ${token}`
+      // First decode the token to get possible user identifiers
+      try {
+        const decoded = jwtDecode<DecodedToken>(token);
+        const userId = decoded._id || decoded.id || decoded.userId;
+        
+        if (!userId) {
+          console.log('Token does not contain user ID, skipping profile fetch');
+          // Still consider authentication valid based on token alone
+          setIsAuthenticated(true);
+          return null;
         }
-      });
-      
-      if (response.data && response.data.user) {
-        setUser(response.data.user);
-        return response.data.user;
+        
+        // Use the ID from the token to make the API request
+        const response = await axios.get(`${apiBaseUrl}/auth/get/${userId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        
+        if (response.data && response.data.data) {
+          setUser(response.data.data);
+          return response.data.data;
+        }
+        return null;
+      } catch (decodeError) {
+        console.error('Error decoding token:', decodeError);
+        return null;
       }
-      return null;
     } catch (error) {
       console.error('Error fetching user profile:', error);
+      // Don't invalidate authentication on profile fetch failure
       return null;
     }
   }, []);
