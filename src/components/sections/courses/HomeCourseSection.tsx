@@ -9,7 +9,6 @@ import PropTypes from 'prop-types';
 import { motion } from "framer-motion";
 import Link from "next/link";
 import mobileMenu from "@/libs/mobileMenu";
-import { useCurrency } from '@/contexts/CurrencyContext';
 import { getCoursePriceValue, getMinBatchSize } from '@/utils/priceUtils';
 import axios from 'axios';
 import { apiBaseUrl, apiUrls } from '@/apis/index';
