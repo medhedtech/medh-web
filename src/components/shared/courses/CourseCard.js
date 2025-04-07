@@ -3,13 +3,21 @@ import { useWishlistContext } from "@/contexts/WshlistContext";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useState } from "react";
-import { useCurrency } from "@/contexts/CurrencyContext";
 import { calculateDiscountPercentage, isFreePrice } from "@/utils/priceUtils";
 import * as priceUtils from "@/utils/priceUtils";
 import { User, Users, Download } from "lucide-react";
 import useAuth from "@/hooks/useAuth";
 import DownloadBrochureModal from "@/components/shared/download-broucher";
 import { apiBaseUrl } from "@/apis";
+
+// Simple price formatting function to replace useCurrency
+const formatPrice = (price, currency = 'INR') => {
+  if (price === undefined || price === null) return '';
+  
+  // Format the price with the currency symbol
+  const symbol = currency === 'USD' ? '$' : '₹';
+  return `${symbol}${Math.round(Number(price))}`;
+};
 
 // Local implementation of the price utility functions
 const getCoursePriceValue = (course, isBatch = true) => {
@@ -63,112 +71,105 @@ const getMinBatchSize = (course) => {
 let insId = 0;
 const CourseCard = ({ course, type }) => {
   const { addProductToWishlist } = useWishlistContext() || {};
-  const { convertPrice, formatPrice } = useCurrency();
   const { user, isAuthenticated } = useAuth();
   const [selectedPricing, setSelectedPricing] = useState("batch");
   const [showBrochureModal, setShowBrochureModal] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
 
   const {
-    id,
-    title,
-    lesson,
-    duration,
-    image,
+    _id,
+    course_title,
+    course_description,
+    course_duration,
+    course_image,
+    course_category,
+    no_of_Sessions,
     prices,
-    price,
-    batchPrice,
-    minBatchSize,
     isFree,
-    insName,
-    insImg,
-    categories,
-    filterOption,
-    isActive,
-    isCompleted,
-    completedParchent,
-    classType,
-    price_suffix,
+    status,
+    is_Certification,
+    is_Assignments,
+    is_Projects,
+    is_Quizes,
+    category_type,
+    course_grade,
+    brochures,
+    meta
   } = course;
   
   // Get actual batch and individual prices using utility functions
-  const batchPriceValue = getCoursePriceValue(course, true) || 0;
-  const individualPriceValue = getCoursePriceValue(course, false) || 0;
-  const actualMinBatchSize = getMinBatchSize(course) || 2;
+  const activePrice = prices && prices.length > 0 ? prices[0] : null;
+  console.log('Active Price:', activePrice);
   
-  // Convert prices to current currency
-  const currentBatchPrice = convertPrice(isNaN(batchPriceValue) ? 0 : batchPriceValue);
-  const currentIndividualPrice = convertPrice(isNaN(individualPriceValue) ? 0 : individualPriceValue);
+  // Ensure we have valid price values
+  const batchPriceValue = activePrice && typeof activePrice.batch === 'number' ? activePrice.batch : 0;
+  const individualPriceValue = activePrice && typeof activePrice.individual === 'number' ? activePrice.individual : 0;
+  console.log('Batch Price:', batchPriceValue, 'Individual Price:', individualPriceValue);
   
-  // Calculate original price (for showing discount)
-  const originalPrice = convertPrice(isNaN(individualPriceValue) ? 0 : individualPriceValue * 2.1);
+  const actualMinBatchSize = activePrice?.min_batch_size || 2;
+  const currency = activePrice?.currency || 'INR';
   
   // Calculate discount percentages
-  const discountPercentage = calculateDiscountPercentage(originalPrice, currentIndividualPrice);
-  const batchDiscountPercentage = individualPriceValue > 0 && batchPriceValue > 0 ? 
-    Math.round(((individualPriceValue - batchPriceValue) / individualPriceValue) * 100) : 0;
+  const discountPercentage = calculateDiscountPercentage(individualPriceValue, batchPriceValue);
+  const batchDiscountPercentage = calculateDiscountPercentage(individualPriceValue, batchPriceValue);
+  
+  console.log('Discount Percentage:', discountPercentage);
+  console.log('Batch Discount Percentage:', batchDiscountPercentage);
+  console.log('Is Free:', isFree);
+  console.log('Selected Pricing:', selectedPricing);
   
   // Function to handle brochure download
   const handleBrochureDownload = async () => {
-    // Always show the modal, regardless of authentication status
-    setShowBrochureModal(true);
+    if (brochures?.[0]) {
+      setShowBrochureModal(true);
+    }
   };
 
   const depBgs = [
     {
+      category: "Technical Skills",
+      bg: "bg-blue",
+    },
+    {
       category: "Art & Design",
       bg: "bg-secondaryColor",
     },
-
     {
       category: "Development",
       bg: "bg-blue",
     },
-
     {
       category: "Lifestyle",
       bg: "bg-secondaryColor2",
     },
-
     {
       category: "Web Design",
       bg: "bg-greencolor2",
     },
-
     {
       category: "Business",
       bg: "bg-orange",
-    },
-
-    {
-      category: "Art & Design",
-      bg: "bg-yellow",
     },
     {
       category: "Personal Development",
       bg: "bg-secondaryColor",
     },
-
     {
       category: "Marketing",
       bg: "bg-blue",
     },
-
     {
       category: "Photography",
       bg: "bg-secondaryColor2",
     },
-
     {
       category: "Data Science",
       bg: "bg-greencolor2",
     },
-
     {
       category: "Health & Fitness",
       bg: "bg-orange",
     },
-
     {
       category: "Mobile Application",
       bg: "bg-yellow",
@@ -176,52 +177,53 @@ const CourseCard = ({ course, type }) => {
   ];
 
   const cardBg = depBgs?.find(
-    ({ category: category1 }) => category1 === categories
-  )?.bg;
-  insId = id;
+    ({ category }) => category === course_category
+  )?.bg || 'bg-blue';
+  insId = _id;
   insId = insId % 6 ? insId % 6 : 6;
 
   return (
     <div
-      className={`group  ${
+      className={`group ${
         type === "primary" || type === "primaryMd"
           ? ""
           : `w-full sm:w-1/2 lg:w-1/3 grid-item ${
               type === "lg" ? "xl:w-1/4" : ""
             }`
-      } ${filterOption ? filterOption : ""}`}
+      }`}
     >
-      <div className={`  ${type === "primaryMd" ? "" : "sm:px-15px  mb-30px"}`}>
+      <div className={`${type === "primaryMd" ? "" : "sm:px-15px mb-30px"}`}>
         <div className="p-15px bg-whiteColor shadow-brand dark:bg-darkdeep3-dark dark:shadow-brand-dark">
           {/* card image */}
           <div className="relative mb-2">
             <Link
-              href={`/courses/${id}`}
+              href={`/courses/${_id}`}
               className="w-full overflow-hidden rounded"
             >
               <Image
-                src={image}
-                alt=""
-                priority={true}
+                src={course_image}
+                alt={course_title}
+                width={400}
+                height={225}
                 className="w-full transition-all duration-300 group-hover:scale-110"
               />
             </Link>
             <div className="absolute left-0 top-1 flex justify-between w-full items-center px-2">
               <div>
-                <p
-                  className={`text-xs text-whiteColor px-4 py-[3px]  rounded font-semibold ${cardBg}`}
-                >
-                  {categories}
+                <p className={`text-xs text-whiteColor px-4 py-[3px] rounded font-semibold ${cardBg}`}>
+                  {course_category}
                 </p>
               </div>
               <div className="flex gap-1">
-                <button
-                  onClick={handleBrochureDownload}
-                  disabled={isDownloading}
-                  className="text-white bg-black bg-opacity-15 rounded hover:bg-primaryColor"
-                >
-                  <Download size={16} className="py-1 px-1" />
-                </button>
+                {brochures?.[0] && (
+                  <button
+                    onClick={handleBrochureDownload}
+                    disabled={isDownloading}
+                    className="text-white bg-black bg-opacity-15 rounded hover:bg-primaryColor"
+                  >
+                    <Download size={16} className="py-1 px-1" />
+                  </button>
+                )}
                 <button
                   onClick={() =>
                     addProductToWishlist &&
@@ -247,7 +249,7 @@ const CourseCard = ({ course, type }) => {
                 </div>
                 <div>
                   <span className="text-sm text-black dark:text-blackColor-dark">
-                    {lesson}
+                    {no_of_Sessions} Sessions
                   </span>
                 </div>
               </div>
@@ -257,108 +259,56 @@ const CourseCard = ({ course, type }) => {
                 </div>
                 <div>
                   <span className="text-sm text-black dark:text-blackColor-dark">
-                    {duration}
+                    {course_duration}
                   </span>
                 </div>
               </div>
             </div>
-            <h5 className={`${type === "primaryMd" ? "text-lg " : "text-xl "}`}>
+            <h5 className={`${type === "primaryMd" ? "text-lg" : "text-xl"}`}>
               <Link
-                href={`/courses/${id}`}
+                href={`/courses/${_id}`}
                 className={`font-semibold text-blackColor mb-10px dark:text-blackColor-dark hover:text-primaryColor dark:hover:text-primaryColor ${
-                  type === "primaryMd" ? "leading-25px" : "leading-27px "
-                } `}
+                  type === "primaryMd" ? "leading-25px" : "leading-27px"
+                }`}
               >
-                {title}
+                {course_title}
               </Link>
             </h5>
             {/* price with batch/individual toggle */}
             <div className="mb-4">
-              {isFree === true ? (
+              {isFree === true || (individualPriceValue === 0 && batchPriceValue === 0) ? (
                 <span className="text-lg font-semibold text-green-600">Free</span>
               ) : (
                 <>
-                  {/* Pricing toggle - hide for blended courses */}
-                  {classType !== 'blended' ? (
-                    <div className="flex space-x-2 mb-1 text-xs border-b border-gray-200 pb-1">
-                      <button
-                        onClick={() => setSelectedPricing("individual")}
-                        className={`flex items-center ${
-                          selectedPricing === "individual"
-                            ? "text-primaryColor font-medium"
-                            : "text-gray-500"
-                        }`}
-                      >
-                        <User size={12} className="mr-1" /> Individual
-                      </button>
-                      <button
-                        onClick={() => setSelectedPricing("batch")}
-                        className={`flex items-center ${
-                          selectedPricing === "batch"
-                            ? "text-primaryColor font-medium"
-                            : "text-gray-500"
-                        }`}
-                      >
-                        <Users size={12} className="mr-1" /> Batch ({actualMinBatchSize}+)
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex space-x-2 mb-1 text-xs border-b border-gray-200 pb-1">
-                      <button
-                        onClick={() => setSelectedPricing("individual")}
-                        className={`flex items-center ${
-                          selectedPricing === "individual"
-                            ? "text-primaryColor font-medium"
-                            : "text-gray-500"
-                        }`}
-                      >
-                        <User size={12} className="mr-1" /> Individual
-                      </button>
-                      <button
-                        onClick={() => setSelectedPricing("batch")}
-                        className={`flex items-center ${
-                          selectedPricing === "batch"
-                            ? "text-primaryColor font-medium"
-                            : "text-gray-500"
-                        }`}
-                      >
-                        <Users size={12} className="mr-1" /> Batch ({actualMinBatchSize}+)
-                      </button>
-                    </div>
-                  )}
-                  
+                  {/* Pricing toggle */}
+                  <div className="flex space-x-2 mb-1 text-xs border-b border-gray-200 pb-1">
+                    <button
+                      onClick={() => setSelectedPricing("individual")}
+                      className={`flex items-center ${
+                        selectedPricing === "individual"
+                          ? "text-primaryColor font-medium"
+                          : "text-gray-500"
+                      }`}
+                    >
+                      Individual
+                    </button>
+                    <button
+                      onClick={() => setSelectedPricing("batch")}
+                      className={`flex items-center ${
+                        selectedPricing === "batch"
+                          ? "text-primaryColor font-medium"
+                          : "text-gray-500"
+                      }`}
+                    >
+                      Batch
+                    </button>
+                  </div>
                   {/* Price display */}
                   <div className="text-lg font-semibold text-primaryColor">
-                    {(selectedPricing === "individual") ? (
+                    {selectedPricing === "individual" ? (
                       <>
-                        {classType === 'blended' && prices && prices.length > 0 && prices[0].individual ? (
-                          // For blended courses, use the currency from prices array if available
-                          <>
-                            {formatPrice(prices[0].individual, prices[0].currency)}
-                            {price_suffix && <span className="text-xs text-gray-500 ml-1">{price_suffix}</span>}
-                          </>
-                        ) : isNaN(currentIndividualPrice) ? 
-                          (price && !isNaN(price) ? (
-                            <>
-                              {formatPrice(price)}
-                              {price_suffix && <span className="text-xs text-gray-500 ml-1">{price_suffix}</span>}
-                            </>
-                          ) : "Price on request") : 
-                          (
-                            <>
-                              {formatPrice(currentIndividualPrice)}
-                              {price_suffix && <span className="text-xs text-gray-500 ml-1">{price_suffix}</span>}
-                            </>
-                          )
-                        }
-                        
-                        {!isNaN(originalPrice) && originalPrice > currentIndividualPrice && classType !== 'blended' && (
-                          <del className="text-sm text-lightGrey4 font-semibold ml-1">
-                            / {formatPrice(originalPrice)}
-                          </del>
-                        )}
-                        
-                        {discountPercentage > 0 && !isNaN(discountPercentage) && classType !== 'blended' && (
+                        {formatPrice(individualPriceValue, currency)}
+                        {discountPercentage > 0 && !isNaN(discountPercentage) && (
                           <span className="ml-2 text-xs bg-secondaryColor3 text-white px-2 py-1 rounded-full">
                             {discountPercentage}% OFF
                           </span>
@@ -366,30 +316,9 @@ const CourseCard = ({ course, type }) => {
                       </>
                     ) : (
                       <>
-                        {classType === 'blended' && prices && prices.length > 0 && prices[0].batch ? (
-                          // For blended courses batch pricing, directly use the batch price from prices array and its currency
-                          <>
-                            {formatPrice(prices[0].batch, prices[0].currency)}
-                            {price_suffix && <span className="text-xs text-gray-500 ml-1">{price_suffix}</span>}
-                          </>
-                        ) : isNaN(currentBatchPrice) ? 
-                          (batchPrice && !isNaN(batchPrice) ? (
-                            <>
-                              {formatPrice(batchPrice)}
-                              {price_suffix && <span className="text-xs text-gray-500 ml-1">{price_suffix}</span>}
-                            </>
-                          ) : "Price on request") : 
-                          (
-                            <>
-                              {formatPrice(currentBatchPrice)}
-                              {price_suffix && <span className="text-xs text-gray-500 ml-1">{price_suffix}</span>}
-                            </>
-                          )
-                        }
-                          
+                        {formatPrice(batchPriceValue, currency)}
                         <span className="text-xs text-gray-500 ml-1">/student</span>
-                        
-                        {batchDiscountPercentage > 0 && !isNaN(batchDiscountPercentage) && classType !== 'blended' && (
+                        {batchDiscountPercentage > 0 && !isNaN(batchDiscountPercentage) && (
                           <span className="block text-xs text-green-600">
                             Save {batchDiscountPercentage}% vs individual price
                           </span>
@@ -397,99 +326,64 @@ const CourseCard = ({ course, type }) => {
                       </>
                     )}
                   </div>
+                  {selectedPricing === "batch" && (
+                    <div className="text-sm text-gray-500">
+                      Min. {actualMinBatchSize}+ students
+                    </div>
+                  )}
                 </>
+              )}
+            </div>
+            {/* Features */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              {is_Certification === "Yes" && (
+                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                  Certification
+                </span>
+              )}
+              {is_Assignments === "Yes" && (
+                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                  Assignments
+                </span>
+              )}
+              {is_Projects === "Yes" && (
+                <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">
+                  Projects
+                </span>
+              )}
+              {is_Quizes === "Yes" && (
+                <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                  Quizzes
+                </span>
               )}
             </div>
             {/* Download brochure section for small screens */}
             <div className="mb-3 sm:hidden">
-              <button
-                onClick={handleBrochureDownload}
-                disabled={isDownloading}
-                className="w-full text-xs flex items-center justify-center gap-1 text-primaryColor border border-primaryColor py-1 px-2 rounded hover:bg-primaryColor hover:text-white transition-colors"
-              >
-                <Download size={12} />
-                {isDownloading ? "Downloading..." : "Download Brochure"}
-              </button>
+              {brochures?.[0] && (
+                <button
+                  onClick={handleBrochureDownload}
+                  disabled={isDownloading}
+                  className="w-full text-xs flex items-center justify-center gap-1 text-primaryColor border border-primaryColor py-1 px-2 rounded hover:bg-primaryColor hover:text-white transition-colors"
+                >
+                  <Download size={12} />
+                  {isDownloading ? "Downloading..." : "Download Brochure"}
+                </button>
+              )}
             </div>
-            {/* author and rating--> */}
-            <div className="grid grid-cols-1 md:grid-cols-2 pt-15px border-t border-borderColor">
-              <div>
-                <h6>
-                  <Link
-                    href={`/instructors/${insId}`}
-                    className="text-base font-bold  flex items-center hover:text-primaryColor dark:text-blackColor-dark dark:hover:text-primaryColor"
-                  >
-                    <Image
-                      className="w-[30px] h-[30px] rounded-full mr-15px"
-                      src={insImg}
-                      alt=""
-                      placeholder="blur"
-                    />
-                    <span className="whitespace-nowrap">{insName}</span>
-                  </Link>
-                </h6>
-              </div>
-              <div className="text-start md:text-end space-x-1">
-                <i className="icofont-star text-size-15 text-yellow"></i>
-                <i className="icofont-star text-size-15 text-yellow"></i>
-                <i className="icofont-star text-size-15 text-yellow"></i>
-                <i className="icofont-star text-size-15 text-yellow"></i>
-                {type === "primaryMd" ? (
-                  ""
-                ) : (
-                  <i className="icofont-star text-size-15 text-yellow"></i>
-                )}
-                <span className="text-xs text-lightGrey6">(44)</span>
-              </div>
+            {/* Views count */}
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              {meta?.views ? `${meta.views.toLocaleString()} views` : ""}
             </div>
-            {isCompleted || isActive ? (
-              <div>
-                <div className="h-25px w-full bg-blue-x-light rounded-md relative mt-5 mb-15px">
-                  <div
-                    className={`text-center bg-primaryColor absolute top-0 left-0  rounded-md leading-25px `}
-                    style={{
-                      width: isActive ? completedParchent + "%" : "100%",
-                      height: "100%",
-                    }}
-                  >
-                    <span className="text-size-10 text-whiteColor block leading-25px">
-                      {isActive ? completedParchent : 100}% Complete
-                    </span>
-                  </div>
-                </div>
-                {isCompleted ? (
-                  <div>
-                    <Link
-                      href="/dashboards/create-course"
-                      className="text-size-15 text-whiteColor bg-secondaryColor w-full px-25px py-10px border border-secondaryColor hover:text-secondaryColor hover:bg-whiteColor rounded group text-nowrap text-center"
-                    >
-                      Download Certificate
-                    </Link>
-                  </div>
-                ) : (
-                  <div>
-                    <Link
-                      href={`/dashboards/my-courses/${id}`}
-                      className="text-size-15 text-whiteColor w-full bg-secondaryColor px-25px py-10px border border-secondaryColor hover:text-secondaryColor hover:bg-whiteColor rounded inline-block text-center"
-                    >
-                      Continue Learning
-                    </Link>
-                  </div>
-                )}
-              </div>
-            ) : (
-              ""
-            )}
           </div>
         </div>
       </div>
       
-      {/* Brochure download modal - show for all users */}
+      {/* Brochure download modal */}
       <DownloadBrochureModal
         isOpen={showBrochureModal}
         onClose={() => setShowBrochureModal(false)}
-        courseTitle={title}
-        courseId={id}
+        courseTitle={course_title}
+        courseId={_id}
       />
     </div>
   );
