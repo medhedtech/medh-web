@@ -30,6 +30,7 @@ import React from "react";
 import { IUpdateCourseData } from '@/types/course.types';
 import { apiBaseUrl, apiUtils, ICourseFilters, ICourseSearchParams } from '@/apis/index'; // Adjust path if needed
 import { getAllCoursesWithLimits } from '@/apis/course/course';
+import axios from 'axios';
 
 // Dynamically import components that might cause hydration issues
 const DynamicCourseCard = dynamic(() => import("./CourseCard"), {
@@ -361,6 +362,44 @@ const useDebounce = (value, delay) => {
   return debouncedValue;
 };
 
+// Add currency detection function
+const getLocationCurrency = async () => {
+  try {
+    // Check if we've already stored the currency in localStorage
+    const cachedCurrency = localStorage.getItem('userCurrency');
+    const cachedTimestamp = localStorage.getItem('userCurrencyTimestamp');
+    
+    // Use cached value if it exists and is less than 24 hours old
+    if (cachedCurrency && cachedTimestamp) {
+      const timestamp = parseInt(cachedTimestamp);
+      if (Date.now() - timestamp < 24 * 60 * 60 * 1000) { // 24 hours
+        console.log(`Using cached currency: ${cachedCurrency}`);
+        return cachedCurrency;
+      }
+    }
+    
+    // Make request to IP geolocation API
+    const response = await axios.get('https://ipapi.co/json/', { timeout: 5000 });
+    
+    if (response.data && response.data.currency) {
+      const detectedCurrency = response.data.currency;
+      console.log(`Detected currency from IP: ${detectedCurrency}`);
+      
+      // Store in localStorage with timestamp
+      localStorage.setItem('userCurrency', detectedCurrency);
+      localStorage.setItem('userCurrencyTimestamp', Date.now().toString());
+      
+      return detectedCurrency;
+    } else {
+      console.log("Could not detect currency from IP, using default");
+      return "USD"; // Default fallback
+    }
+  } catch (error) {
+    console.error("Error detecting location:", error);
+    return "USD"; // Default fallback on error
+  }
+};
+
 const CoursesFilter = ({
   CustomButton,
   CustomText,
@@ -456,6 +495,21 @@ const CoursesFilter = ({
 
   // Debounce search term
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
+
+  const [userCurrency, setUserCurrency] = useState("USD"); // Default currency
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
+
+  // Initialize currency on component mount
+  useEffect(() => {
+    const initializeCurrency = async () => {
+      setIsDetectingLocation(true);
+      const currency = await getLocationCurrency();
+      setUserCurrency(currency);
+      setIsDetectingLocation(false);
+    };
+
+    initializeCurrency();
+  }, []);
 
   /**
    * 1) Read URL + filterState once on mount
@@ -577,7 +631,6 @@ const CoursesFilter = ({
    * 3) Fetch courses from API whenever relevant states change (debounced).
    */
   const fetchCourses = useCallback(async () => {
-    // Skip during SSR
     if (typeof window === 'undefined') return;
     
     setQueryError(null);
@@ -589,7 +642,9 @@ const CoursesFilter = ({
         limit: itemsPerPage || 12,
         status: "Published",
         sort_by: "createdAt",
-        sort_order: "desc"
+        sort_order: "desc",
+        currency: userCurrency.toLowerCase(),
+        fields: ['card']
       };
 
       // Add category if available
@@ -641,29 +696,56 @@ const CoursesFilter = ({
           searchParams.sort_order = "desc";
       }
 
-      // Get the API URL
       const apiUrl = getAllCoursesWithLimits(searchParams);
 
-      // Log the final URL for debugging
       if (process.env.NODE_ENV === 'development') {
-        console.debug('Fetching courses with URL:', apiUrl);
+        console.debug('Fetching courses with URL:', apiUrl, 'Currency:', userCurrency);
       }
 
       await getQuery({
         url: apiUrl,
-        onSuccess: (data) => {
-          if (!data) {
-            throw new Error('No data received from API');
+        skipCache: true,
+        requireAuth: false,
+        onSuccess: (response) => {
+          // Check if we have a valid response
+          if (!response || !response.success) {
+            throw new Error('Invalid API response');
           }
 
-          if (!Array.isArray(data.courses)) {
+          // Get the data object from the response
+          const data = response.data;
+          
+          if (!data || !Array.isArray(data.courses)) {
             throw new Error('Invalid courses data format');
           }
 
-          setAllCourses(data.courses);
-          setFilteredCourses(data.courses);
-          setTotalPages(data.pagination?.totalPages || 1);
-          setTotalItems(data.pagination?.totalCourses || 0);
+          // Process courses to ensure they have proper currency information
+          const processedCourses = data.courses.map(course => ({
+            ...course,
+            currency: userCurrency,
+            prices: course.prices?.map(price => ({
+              ...price,
+              currency: userCurrency
+            })) || []
+          }));
+
+          setAllCourses(processedCourses);
+          setFilteredCourses(processedCourses);
+
+          // Handle pagination from the correct data structure
+          if (data.pagination) {
+            setTotalPages(data.pagination.totalPages || 1);
+            setTotalItems(data.pagination.total || 0);
+          } else {
+            setTotalPages(1);
+            setTotalItems(processedCourses.length);
+          }
+
+          // Handle facets/categories if needed
+          if (data.facets?.categories) {
+            // You can store categories for filtering if needed
+            console.debug('Categories facets:', data.facets.categories);
+          }
 
           if (scrollToTop && typeof window !== 'undefined') {
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -680,7 +762,7 @@ const CoursesFilter = ({
       });
     } catch (error) {
       console.error("Fetch error:", error);
-      setQueryError("An unexpected error occurred. Please try again later.");
+      setQueryError(error?.message || "An unexpected error occurred. Please try again later.");
       setAllCourses([]);
       setFilteredCourses([]);
       setTotalPages(1);
@@ -696,7 +778,8 @@ const CoursesFilter = ({
     fixedCategory,
     classType,
     scrollToTop,
-    getQuery
+    getQuery,
+    userCurrency
   ]);
 
   // Whenever relevant states change, fire the fetch (with small debounce)
