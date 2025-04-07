@@ -97,6 +97,7 @@ interface CourseDetails {
     views: number;
   };
   classType?: string;
+  isFree?: boolean;
 }
 
 interface CategoryInfo {
@@ -366,11 +367,6 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
       return "Free";
     }
     
-    // Use the context's currency formatting if available
-    if (formatPrice) {
-      return formatPrice(convertPrice(price), showCurrency);
-    }
-    
     // Fallback to Intl formatting
     const formattedPrice = new Intl.NumberFormat('en-IN', {
       style: 'currency',
@@ -577,7 +573,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
       return;
     }
 
-    if (!activePricing) {
+    if (!activePricing && !courseDetails.isFree) {
       toast.error("Pricing information is missing");
       return;
     }
@@ -606,7 +602,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
       const enrollmentData = {
         ...courseDetails,
         enrollmentType,
-        priceId: activePricing._id,
+        priceId: activePricing?._id,
         finalPrice: getFinalPrice(),
         currencyCode: currency.code
       };
@@ -616,7 +612,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
         await onEnrollClick(enrollmentData);
       } else {
         // If course is free, directly enroll
-        if (isFreePrice(getFinalPrice())) {
+        if (courseDetails.isFree || isFreePrice(getFinalPrice())) {
           if (userId) {
             await enrollCourse(userId, courseDetails._id);
           }
@@ -807,6 +803,8 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
   useEffect(() => {
     if (isBlendedCourse) {
       setEnrollmentType('individual');
+      // Disable batch enrollment option for blended courses
+      setShowBatchInfo(false);
     }
   }, [isBlendedCourse]);
 
@@ -873,7 +871,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
                 </p>
                 <div className="flex items-baseline gap-2">
                   <h4 className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {formatPriceDisplay(finalPrice)}
+                    {courseDetails?.isFree ? "Free" : formatPriceDisplay(finalPrice)}
                   </h4>
                   
                   {originalPrice && originalPrice > finalPrice && (
@@ -953,7 +951,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
               <>
                 {isLoggedIn ? (
                   <>
-                    {isBlendedCourse ? 'Enroll Now' : (enrollmentType === 'individual' ? 'Enroll Now' : 'Enroll in Batch')} <ArrowRight className="w-4 h-4 ml-2" />
+                    {courseDetails?.isFree ? 'Enroll for Free' : (isBlendedCourse ? 'Enroll Now' : (enrollmentType === 'individual' ? 'Enroll Now' : 'Enroll in Batch'))} <ArrowRight className="w-4 h-4 ml-2" />
                   </>
                 ) : (
                   <>
@@ -964,10 +962,12 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
             )}
           </motion.button>
           
-          {/* Payment info */}
-          <div className="text-center text-xs text-gray-500 dark:text-gray-400">
-            Secure payment powered by Razorpay. Price shown in your local currency.
-          </div>
+          {/* Payment info - Only show for paid courses */}
+          {!courseDetails?.isFree && (
+            <div className="text-center text-xs text-gray-500 dark:text-gray-400">
+              Secure payment powered by Razorpay. Price shown in your local currency.
+            </div>
+          )}
           
           {/* Fast Track Option */}
           <motion.div
