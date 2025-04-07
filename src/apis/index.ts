@@ -2,6 +2,7 @@
 
 import { IUpdateCourseData } from '@/types/course.types';
 import * as courseAPI from './course/course';
+import { MdHomeFilled } from 'react-icons/md';
 
 export const apiBaseUrl: string = process.env.NEXT_PUBLIC_API_URL as string; // live instance URL
 // export const apiBaseUrl = "http://localhost:8080/api/v1"; // local URL
@@ -903,6 +904,21 @@ export const apiUrls = {
       return matches;
     });
   },
+  home: {
+    getHomeFields: (options: { fields?: string[]; filters?: Record<string, any> } = {}): string => {
+      const { fields = [], filters = {} } = options;
+      const queryParams = new URLSearchParams();
+      if (fields.length) {
+        fields.forEach(field => queryParams.append('fields', field));
+      }
+      if (Object.keys(filters).length) {
+        Object.entries(filters).forEach(([key, value]) => {
+          queryParams.append(key, String(value));
+        });
+      }
+      return `${apiBaseUrl}/home-display/fields?${queryParams.toString()}`;
+    }
+  },
   currencies: {
     getAllCurrencies: `${apiBaseUrl}/currencies`,
     getCurrencyById: (id: string): string => {
@@ -913,6 +929,7 @@ export const apiUrls = {
       if (!code) throw new Error('Country code is required');
       return `${apiBaseUrl}/currencies/code/${code}`;
     },
+    getAllCurrencyCountryCodes: `${apiBaseUrl}/currencies/country-codes`,
     createCurrency: `${apiBaseUrl}/currencies`,
     updateCurrency: (id: string): string => {
       if (!id) throw new Error('Currency ID is required');

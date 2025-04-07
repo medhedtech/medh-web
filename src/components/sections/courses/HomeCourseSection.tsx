@@ -1,7 +1,7 @@
 "use client";
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import CourseCard from "@/components/sections/courses/CourseCard";
-import { getAllCoursesWithLimits } from '@/apis/course/course';
+import { getAllCoursesWithLimits, getCoursesWithFields } from '@/apis/course/course';
 import useGetQuery from "@/hooks/getQuery.hook";
 import Preloader2 from "@/components/shared/others/Preloader2";
 import { BookOpen, ChevronRight, Layers, Sparkles, Video, Clock, Users, Calendar, Filter, Book, Laptop, GraduationCap, LucideLayoutGrid } from "lucide-react";
@@ -11,6 +11,8 @@ import Link from "next/link";
 import mobileMenu from "@/libs/mobileMenu";
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { getCoursePriceValue, getMinBatchSize } from '@/utils/priceUtils';
+import axios from 'axios';
+import { apiBaseUrl, apiUrls } from '@/apis/index';
 
 // List of specific course durations to display (in weeks)
 const TARGET_DURATIONS = [
@@ -18,12 +20,13 @@ const TARGET_DURATIONS = [
   36   // 9 months (36 weeks)
 ];
 
-// Feature courses for Live Interactive section - added with course URLs
-const featuredLiveCourses = [
+// Feature courses for Live Interactive section - added with course URLs (keeping this as fallback)
+const fallbackLiveCourses: ICourse[] = [
   {
+    _id: "ai_data_science",
     id: "ai_data_science",
-    title: "AI & Data Science",
-    description: "Master the fundamentals of artificial intelligence and data science with hands-on projects and industry mentorship.",
+    course_title: "AI & Data Science",
+    course_description: "Master the fundamentals of artificial intelligence and data science with hands-on projects and industry mentorship.",
     url: "/ai-and-data-science-course", // URL for redirection
     duration_range: "4-18 months",
     effort_hours: "4-6",
@@ -40,12 +43,41 @@ const featuredLiveCourses = [
       name: "Dr. Rajesh Kumar",
       title: "AI Specialist",
       image: "/instructors/rajesh-kumar.jpg"
-    }
+    },
+    prices: [
+      {
+        currency: "INR",
+        individual: 32000,
+        batch: 22400,
+        min_batch_size: 2,
+        max_batch_size: 10,
+        early_bird_discount: 0,
+        group_discount: 0,
+        is_active: true,
+        _id: "ai_data_science_inr"
+      },
+      {
+        currency: "USD",
+        individual: 510,
+        batch: 310,
+        min_batch_size: 2,
+        max_batch_size: 10,
+        early_bird_discount: 0,
+        group_discount: 0,
+        is_active: true,
+        _id: "ai_data_science_usd"
+      }
+    ],
+    price_suffix: "Onwards",
+    course_category: "AI and Data Science",
+    classType: "live",
+    course_duration: "4-18 months"
   },
   {
+    _id: "digital_marketing",
     id: "digital_marketing",
-    title: "Digital Marketing with Data Analytics",
-    description: "Learn how to leverage digital platforms and data analytics to create successful marketing campaigns.",
+    course_title: "Digital Marketing with Data Analytics",
+    course_description: "Learn how to leverage digital platforms and data analytics to create successful marketing campaigns.",
     url: "/digital-marketing-with-data-analytics-course", // URL for redirection
     duration_range: "4-18 months",
     effort_hours: "4-6",
@@ -62,12 +94,41 @@ const featuredLiveCourses = [
       name: "Priya Sharma",
       title: "Digital Marketing Expert",
       image: "/instructors/priya-sharma.jpg"
-    }
+    },
+    prices: [
+      {
+        currency: "INR",
+        individual: 32000,
+        batch: 22400,
+        min_batch_size: 2,
+        max_batch_size: 10,
+        early_bird_discount: 0,
+        group_discount: 0,
+        is_active: true,
+        _id: "digital_marketing_inr"
+      },
+      {
+        currency: "USD",
+        individual: 510,
+        batch: 310,
+        min_batch_size: 2,
+        max_batch_size: 10,
+        early_bird_discount: 0,
+        group_discount: 0,
+        is_active: true,
+        _id: "digital_marketing_usd"
+      }
+    ],
+    price_suffix: "Onwards",
+    course_category: "Digital Marketing with Data Analytics",
+    classType: "live",
+    course_duration: "4-18 months"
   },
   {
+    _id: "personality_development",
     id: "personality_development",
-    title: "Personality Development",
-    description: "Develop essential soft skills, communication abilities, and confidence for personal and professional growth.",
+    course_title: "Personality Development",
+    course_description: "Develop essential soft skills, communication abilities, and confidence for personal and professional growth.",
     url: "/personality-development-course", // URL for redirection
     duration_range: "3-9 months",
     effort_hours: "4-6",
@@ -84,12 +145,41 @@ const featuredLiveCourses = [
       name: "Amit Verma",
       title: "Soft Skills Trainer",
       image: "/instructors/amit-verma.jpg"
-    }
+    },
+    prices: [
+      {
+        currency: "INR",
+        individual: 28800,
+        batch: 19200,
+        min_batch_size: 2,
+        max_batch_size: 10,
+        early_bird_discount: 0,
+        group_discount: 0,
+        is_active: true,
+        _id: "personality_development_inr"
+      },
+      {
+        currency: "USD",
+        individual: 480,
+        batch: 290,
+        min_batch_size: 2,
+        max_batch_size: 10,
+        early_bird_discount: 0,
+        group_discount: 0,
+        is_active: true,
+        _id: "personality_development_usd"
+      }
+    ],
+    price_suffix: "Onwards",
+    course_category: "Personality Development",
+    classType: "live",
+    course_duration: "3-9 months"
   },
   {
+    _id: "vedic_mathematics",
     id: "vedic_mathematics",
-    title: "Vedic Mathematics",
-    description: "Learn ancient Indian mathematical techniques for faster calculations and enhanced problem-solving abilities.",
+    course_title: "Vedic Mathematics",
+    course_description: "Learn ancient Indian mathematical techniques for faster calculations and enhanced problem-solving abilities.",
     url: "/vedic-mathematics-course", // URL for redirection
     duration_range: "3-9 months",
     effort_hours: "4-6",
@@ -106,7 +196,35 @@ const featuredLiveCourses = [
       name: "Dr. Sunita Rao",
       title: "Mathematics Educator",
       image: "/instructors/sunita-rao.jpg"
-    }
+    },
+    prices: [
+      {
+        currency: "INR",
+        individual: 24000,
+        batch: 13200,
+        min_batch_size: 2,
+        max_batch_size: 10,
+        early_bird_discount: 0,
+        group_discount: 0,
+        is_active: true,
+        _id: "vedic_mathematics_inr"
+      },
+      {
+        currency: "USD",
+        individual: 380,
+        batch: 230,
+        min_batch_size: 2,
+        max_batch_size: 10,
+        early_bird_discount: 0,
+        group_discount: 0,
+        is_active: true,
+        _id: "vedic_mathematics_usd"
+      }
+    ],
+    price_suffix: "Onwards",
+    course_category: "Vedic Mathematics",
+    classType: "live",
+    course_duration: "3-9 months"
   }
 ];
 
@@ -120,6 +238,16 @@ const getBlendedCourseSessions = (course) => {
       videoCount: course.video_count,
       qnaSessions: course.qa_sessions
     };
+  }
+  
+  // Use no_of_Sessions from API response if available
+  if (course.no_of_Sessions !== undefined) {
+    // Split the sessions between videos and Q&A
+    const totalSessions = parseInt(course.no_of_Sessions) || 0;
+    const videoCount = Math.max(1, Math.floor(totalSessions * 0.7)); // 70% videos
+    const qnaSessions = Math.max(1, totalSessions - videoCount); // 30% Q&A
+    
+    return { videoCount, qnaSessions };
   }
   
   // Estimate if not provided directly
@@ -168,6 +296,18 @@ const ensureClassType = (course) => {
   // If classType is already set, return as is
   if (course.classType) return course;
   
+  // Check for class_type field from API response
+  if (course.class_type) {
+    // Check specifically for "Blended Courses" string
+    if (course.class_type === "Blended Courses") {
+      return { ...course, classType: 'blended' };
+    } else if (course.class_type.toLowerCase().includes('live')) {
+      return { ...course, classType: 'live' };
+    } else if (course.class_type.toLowerCase().includes('blend')) {
+      return { ...course, classType: 'blended' };
+    }
+  }
+  
   // Try to infer from course_type field
   if (course.course_type) {
     if (course.course_type.toLowerCase().includes('live')) {
@@ -179,6 +319,11 @@ const ensureClassType = (course) => {
   
   // If video_count or qa_sessions exist, it's likely a blended course
   if (course.video_count || course.qa_sessions || course.lectures_count) {
+    return { ...course, classType: 'blended' };
+  }
+  
+  // If no_of_Sessions exists, it's likely a blended course
+  if (course.no_of_Sessions) {
     return { ...course, classType: 'blended' };
   }
   
@@ -204,6 +349,7 @@ interface ICourse {
   _id: string;
   id?: string; // Optional, used in some placeholders
   course_title: string;
+  title?: string; // Added to handle API responses
   course_description?: string;
   description?: string;
   course_image?: string;
@@ -216,14 +362,18 @@ interface ICourse {
   price_suffix?: string;
   custom_url?: string;
   href?: string;
+  url?: string; // Added for live courses
   no_of_Sessions?: number | string;
   effort_hours?: string;
+  efforts_per_Week?: string; // Added for API response
   learning_points?: string[];
   course_highlights?: string[];
   prerequisites?: string[];
   course_category?: string;
+  category?: string; // Added to handle API responses
   instructor?: ICourseInstructor | null;
   classType?: 'live' | 'blended';
+  class_type?: string; // Added for API response
   is_placeholder?: boolean;
   highlights?: string[];
   enrollmentCount?: number;
@@ -239,12 +389,31 @@ interface ICourse {
   lectures_count?: number;
   qa_sessions?: number;
   live_sessions?: number;
+  isFree?: boolean; // Added for course pricing
+  batchPrice?: number; // Added for pricing display
+  minBatchSize?: number; // Added for batch pricing
+  prices?: Array<{
+    currency: string;
+    individual: number;
+    batch: number;
+    min_batch_size: number;
+    max_batch_size: number;
+    early_bird_discount: number;
+    group_discount: number;
+    is_active: boolean;
+    _id: string;
+  }>;
 }
 
 // Component to display course type badge
 const CourseTypeTag = ({ course }) => {
+  // Get the classType, defaulting to 'self-paced' if not set
   const type = course.classType || 'self-paced';
+  
+  // Check if it's a blended course
   const isBlended = type === 'blended';
+  
+  // Check if it's a live course
   const isLive = type === 'live';
   
   let bgColor = 'bg-gray-100 text-gray-700'; // Default for self-paced
@@ -274,11 +443,14 @@ const HomeCourseSection = ({
   showOnlyLive = false 
 }) => {
   const [blendedCourses, setBlendedCourses] = useState<ICourse[]>([]);
+  const [liveCourses, setLiveCourses] = useState<ICourse[]>([]);
   const [activeBlendedFilters, setActiveBlendedFilters] = useState({
     popular: false,
     latest: false,
     beginner: false
   });
+  const [userCurrency, setUserCurrency] = useState("USD"); // Default currency
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
   const { getQuery, loading, error } = useGetQuery();
   const blendedRef = useRef(null);
 
@@ -349,30 +521,216 @@ const HomeCourseSection = ({
     return Array.from(categoryMap.values());
   };
 
+  // Function to detect user's location and get the appropriate currency
+  const getLocationCurrency = useCallback(async () => {
+    try {
+      setIsDetectingLocation(true);
+      
+      // Check if we've already stored the currency in localStorage
+      const cachedCurrency = localStorage.getItem('userCurrency');
+      const cachedTimestamp = localStorage.getItem('userCurrencyTimestamp');
+      
+      // Use cached value if it exists and is less than 24 hours old
+      if (cachedCurrency && cachedTimestamp) {
+        const timestamp = parseInt(cachedTimestamp);
+        if (Date.now() - timestamp < 24 * 60 * 60 * 1000) { // 24 hours
+          console.log(`Using cached currency: ${cachedCurrency}`);
+          setUserCurrency(cachedCurrency);
+          return cachedCurrency;
+        }
+      }
+      
+      // Make request to IP geolocation API
+      const response = await axios.get('https://ipapi.co/json/', { timeout: 5000 });
+      
+      if (response.data && response.data.currency) {
+        const detectedCurrency = response.data.currency;
+        console.log(`Detected currency from IP: ${detectedCurrency}`);
+        
+        // Store in localStorage with timestamp
+        localStorage.setItem('userCurrency', detectedCurrency);
+        localStorage.setItem('userCurrencyTimestamp', Date.now().toString());
+        
+        setUserCurrency(detectedCurrency);
+        return detectedCurrency;
+      } else {
+        console.log("Could not detect currency from IP, using default");
+        return "USD"; // Default fallback
+      }
+    } catch (error) {
+      console.error("Error detecting location:", error);
+      return "USD"; // Default fallback on error
+    } finally {
+      setIsDetectingLocation(false);
+    }
+  }, []);
+
   const fetchCourses = async () => {
     try {
+      // Get currency based on user's location
+      const currency = await getLocationCurrency();
+      console.log(`Using currency for API request: ${currency}`);
+      
+      // Fetch live courses - using relative URL as required by useGetQuery hook
+      console.log("Fetching live courses...");
+      
+      // Create a promise for the live courses fetch
+      const fetchLiveCoursesPromise = new Promise((resolve, reject) => {
+        // More robust API call with better error handling
+        getQuery({
+          url: apiUrls.home.getHomeFields({
+            fields: ['card'],
+            filters: {
+              currency: currency.toLowerCase()
+            }
+          }),
+          skipCache: true, // Force a fresh request
+          requireAuth: false, // Don't require authentication for public data
+          onSuccess: (response) => {
+            console.log("Live Courses API Response received");
+            
+            // Handle the response data in a more robust way
+            let processedCourses: ICourse[] = [];
+            
+            try {
+              // Check different potential response structures
+              if (response && Array.isArray(response) && response.length > 0) {
+                console.log(`Found ${response.length} live courses from API`);
+                processedCourses = response;
+              } else if (response && response.data && Array.isArray(response.data) && response.data.length > 0) {
+                console.log(`Found ${response.data.length} live courses from API (in data property)`);
+                processedCourses = response.data;
+              } else if (response && response.courses && Array.isArray(response.courses) && response.courses.length > 0) {
+                console.log(`Found ${response.courses.length} live courses from API (in courses property)`);
+                processedCourses = response.courses;
+              } else {
+                console.log("No valid live courses found in the API response, using fallback data");
+                processedCourses = fallbackLiveCourses;
+              }
+              
+              // Process each course with proper type checking
+              const formattedCourses = processedCourses.map(course => {
+                const courseId = course._id || course.id || `live-${Math.random().toString(36).substring(2, 9)}`;
+                const courseTitle = course.course_title || course.title || 'Untitled Course';
+                console.log("Processing live course:", courseId, courseTitle);
+                
+                return {
+                  ...course,
+                  _id: courseId,
+                  id: courseId,
+                  classType: 'live', // Explicitly set classType
+                  course_title: courseTitle,
+                  course_category: course.course_category || course.category || 'Uncategorized',
+                  course_image: course.course_image || course.thumbnail || '/placeholder-course.jpg',
+                  course_duration: course.duration_range || course.course_duration || "4-18 months",
+                  // Ensure prices is always an array
+                  prices: Array.isArray(course.prices) ? course.prices : []
+                } as ICourse;
+              });
+              
+              console.log("Processed live courses count:", formattedCourses.length);
+              setLiveCourses(formattedCourses);
+              resolve(true); // Resolve the promise after live courses are processed
+            } catch (parseError) {
+              console.error("Error processing live courses data:", parseError);
+              setLiveCourses(fallbackLiveCourses);
+              resolve(true); // Still resolve so we can continue to blended courses
+            }
+          },
+          onFail: (error) => {
+            console.error("Error fetching live courses:", error);
+            // Use fallback data when API request fails
+            setLiveCourses(fallbackLiveCourses);
+            resolve(true); // Still resolve so we can continue to blended courses
+          }
+        });
+      });
+      
+      // Wait for live courses to be processed before fetching blended courses
+      await fetchLiveCoursesPromise;
+      
       // Only fetch blended courses if needed
       if (!showOnlyLive) {
-        // Fetch ONLY blended courses
+        console.log("Fetching blended courses...");
+        
+        // Fetch ONLY blended courses using getCoursesWithFields
         getQuery({
-          url: getAllCoursesWithLimits({
+          url: getCoursesWithFields({
             page: 1,
             limit: 8, // Or adjust limit as needed for blended view
             status: "Published",
-            class_type: "Blended Course"
-            // Add other relevant default filters for blended if necessary
+            fields: ['card'],
+            filters: {
+              class_type: "Blended Courses",
+              currency: currency // Use the detected currency
+            }
           }),
-          onSuccess: (data) => {
-            // Process courses to ensure they have classType set
-            const processedCourses = processCourses(data?.courses || []);
-            setBlendedCourses(processedCourses);
+          onSuccess: (response) => {
+            console.log("Blended Courses API Response received");
+            
+            // Process the blended courses with better error handling
+            try {
+              // The API response data is directly in the response, not in data.data
+              if (response && Array.isArray(response) && response.length > 0) {
+                console.log(`Found ${response.length} blended courses from API`);
+                
+                // Process each course
+                const processedCourses = response.map(course => {
+                  return {
+                    ...course,
+                    classType: 'blended', // Explicitly set classType
+                    course_title: course.course_title || 'Untitled Course',
+                    course_category: course.course_category || 'Uncategorized',
+                    course_image: course.course_image || course.thumbnail || '/placeholder-course.jpg'
+                  };
+                });
+                
+                console.log("Processed blended courses:", processedCourses.length);
+                
+                // Set the blended courses state
+                setBlendedCourses(processedCourses);
+              } else if (response && response.data && Array.isArray(response.data) && response.data.length > 0) {
+                // Alternative structure check if the response is wrapped in a data property
+                console.log(`Found ${response.data.length} blended courses from API (in data property)`);
+                
+                // Process each course
+                const processedCourses = response.data.map(course => {
+                  return {
+                    ...course,
+                    classType: 'blended', // Explicitly set classType
+                    course_title: course.course_title || 'Untitled Course',
+                    course_category: course.course_category || 'Uncategorized',
+                    course_image: course.course_image || course.thumbnail || '/placeholder-course.jpg'
+                  };
+                });
+                
+                console.log("Processed blended courses:", processedCourses.length);
+                
+                // Set the blended courses state
+                setBlendedCourses(processedCourses);
+              } else {
+                console.log("No blended courses found in the API response");
+                setBlendedCourses([]);
+              }
+            } catch (error) {
+              console.error("Error processing blended courses:", error);
+              setBlendedCourses([]);
+            }
+          },
+          onFail: (error) => {
+            console.error("Error fetching blended courses:", error);
+            setBlendedCourses([]);
           }
         });
+      } else {
+        // If showing only live courses, clear the blended courses
+        setBlendedCourses([]);
       }
     } catch (error) {
-      console.error("Error fetching courses:", error);
-       // Clear both potentially on error
-       setBlendedCourses([]);
+      console.error("Error in fetchCourses function:", error);
+      // Use fallback data when everything fails
+      setLiveCourses(fallbackLiveCourses);
+      setBlendedCourses([]);
     }
   };
 
@@ -385,9 +743,31 @@ const HomeCourseSection = ({
     setActiveBlendedFilters(newFilters);
   };
 
+  // Initialize user currency and fetch courses on component mount
   useEffect(() => {
-    fetchCourses();
-  }, [showOnlyLive]);
+    // Detect user's location and currency on mount
+    getLocationCurrency().then(() => {
+      fetchCourses();
+    });
+  }, [showOnlyLive, getLocationCurrency]);
+
+  // Function to filter prices based on user's currency
+  const getFilteredPrices = useCallback((prices) => {
+    if (!prices || !Array.isArray(prices) || prices.length === 0) {
+      return [];
+    }
+
+    // First try to find a price object matching the user's currency
+    const matchingPrice = prices.find(p => p.currency === userCurrency);
+    
+    if (matchingPrice) {
+      return [matchingPrice];
+    }
+    
+    // If no matching currency is found, return all prices
+    // The CourseCard component will handle the selection
+    return prices;
+  }, [userCurrency]);
 
   if (error) {
     return (
@@ -479,28 +859,67 @@ const HomeCourseSection = ({
 
   // Apply the filters to the blended courses
   const filteredBlendedCourses = useMemo(() => {
+    console.log("Filtering blended courses with filters:", activeBlendedFilters);
+    console.log("Starting with blended courses count:", blendedCourses.length);
+    
     // Base filter for not showing placeholder courses
     let filtered = blendedCourses.filter(course => !course.is_placeholder);
+    console.log("After removing placeholders:", filtered.length);
     
-    // Apply active filters
+    // If no filters are active, return all courses
+    const noFiltersActive = !activeBlendedFilters.popular && !activeBlendedFilters.latest && !activeBlendedFilters.beginner;
+    
+    if (noFiltersActive) {
+      console.log("No filters active, returning all courses:", filtered.length);
+      return filtered;
+    }
+    
+    // Copy the filtered courses to apply active filters
+    let appliedFilteredCourses = [...filtered];
+    
+    // Apply active filters - but don't reduce to empty result set
     if (activeBlendedFilters.popular) {
-      filtered = filtered.filter(course => course.popular === true);
+      const popularCourses = filtered.filter(course => course.popular === true);
+      console.log("Popular courses:", popularCourses.length);
+      
+      // Only apply filter if it doesn't eliminate all courses
+      if (popularCourses.length > 0) {
+        appliedFilteredCourses = popularCourses;
+      } else {
+        console.log("No courses match 'popular' filter, using all courses instead");
+      }
     }
     
     if (activeBlendedFilters.latest) {
-      filtered = filtered.filter(course => course.latest === true);
+      const latestCourses = appliedFilteredCourses.filter(course => course.latest === true);
+      console.log("Latest courses:", latestCourses.length);
+      
+      // Only apply filter if it doesn't eliminate all courses
+      if (latestCourses.length > 0) {
+        appliedFilteredCourses = latestCourses;
+      } else {
+        console.log("No courses match 'latest' filter, keeping previous filter results");
+      }
     }
     
     if (activeBlendedFilters.beginner) {
-      filtered = filtered.filter(course => 
+      const beginnerCourses = appliedFilteredCourses.filter(course => 
         course.level === 'Beginner' || 
         course.difficulty === 'Easy' ||
         course.difficulty === 'Beginner'
       );
+      console.log("Beginner courses:", beginnerCourses.length);
+      
+      // Only apply filter if it doesn't eliminate all courses
+      if (beginnerCourses.length > 0) {
+        appliedFilteredCourses = beginnerCourses;
+      } else {
+        console.log("No courses match 'beginner' filter, keeping previous filter results");
+      }
     }
     
-    // Ensure all courses have classType property
-    return processCourses(filtered);
+    console.log("Final filtered courses count:", appliedFilteredCourses.length);
+    return appliedFilteredCourses;
   }, [blendedCourses, activeBlendedFilters]);
 
   return (
@@ -545,45 +964,58 @@ const HomeCourseSection = ({
           <div className="flex items-center justify-center p-8 md:p-6">
             <Preloader2 />
           </div>
-        ) : featuredLiveCourses.length > 0 ? (
+        ) : liveCourses.length > 0 ? (
           <motion.div 
             className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-5 md:gap-6"
             variants={containerVariants}
             initial="hidden"
             animate="visible"
           >
-            {featuredLiveCourses.map((course) => (
+            {liveCourses.map((course) => {
+              // Get video and QnA session info for the live course
+              const { videoCount, qnaSessions } = getBlendedCourseSessions(course);
+              
+              // Calculate batch pricing if available
+              const batchPrice = course.prices && course.prices[0] ? course.prices[0].batch : null;
+              const minBatchSize = course.prices && course.prices[0] ? course.prices[0].min_batch_size : 2;
+              const displayPrice = batchPrice || (course.prices && course.prices[0] ? course.prices[0].individual : null);
+              
+              return (
               <motion.div 
-                key={course.id}
+                key={course._id || course.id}
                 variants={itemVariants} 
                 className={`h-full live-course-card ${course.id === "digital_marketing" ? "active" : ""}`}
               >
                 <CourseCard 
                   course={{
-                    _id: course.id,
-                    course_title: course.title,
-                    course_description: course.description,
-                    course_image: course.instructor?.image,
+                    _id: course._id || course.id,
+                    course_title: course.course_title,
+                    course_description: course.course_description || course.description,
+                    course_image: course.course_image || course.thumbnail || course.instructor?.image,
                     course_duration: course.duration_range || "4-18 months",
                     display_duration: true,
                     duration_range: course.duration_range || "4-18 months",
-                    course_fee: "695 Onwards",
+                    prices: course.prices || [],
+                    course_fee: displayPrice || 1499,
                     price_suffix: "Onwards",
-                    custom_url: course.url,
-                    href: course.url,
-                    no_of_Sessions: course.no_of_Sessions || 24,
-                    effort_hours: course.effort_hours || "6-8",
+                    custom_url: course.custom_url || course.url || `/courses/${course._id || course.id}`,
+                    href: course.href || course.url || `/courses/${course._id || course.id}`,
+                    no_of_Sessions: course.no_of_Sessions || videoCount + qnaSessions || 24,
+                    effort_hours: course.effort_hours || course.efforts_per_Week || "6-8",
                     learning_points: course.learning_points || [],
                     prerequisites: course.prerequisites || [],
                     instructor: course.instructor || null,
                     classType: 'live',
-                    highlights: course.highlights,
+                    highlights: course.highlights || course.course_highlights,
+                    isFree: course.isFree || false,
+                    batchPrice: batchPrice,
+                    minBatchSize: minBatchSize
                   }} 
                   classType="live" 
                   showDuration={true}
                 />
               </motion.div>
-            ))}
+            )})}
           </motion.div>
         ) : (
           <EmptyState type="live" />
@@ -677,6 +1109,8 @@ const HomeCourseSection = ({
                 animate="visible"
               >
                 {coursesToRender.map((course, index) => {
+                  console.log("Rendering course:", course._id, course.course_title, "classType:", course.classType);
+                  
                   // Get video and QnA session info for the blended course
                   const { videoCount, qnaSessions } = getBlendedCourseSessions(course);
                   
@@ -688,19 +1122,28 @@ const HomeCourseSection = ({
                     ...course,
                     _id: course._id || course.id,
                     course_title: course.course_title,
-                    course_image: course.thumbnail || course.course_image,
+                    course_image: course.course_image || course.thumbnail,
                     course_duration: learningExperienceText,
                     display_duration: true,
                     duration_range: `${videoCount} Videos • ${qnaSessions} Q&A`,
-                    course_fee: course.course_fee || course.price || "Free",
-                    price: course.price || course.course_fee || "Free",
-                    custom_url: course.custom_url || `/course-details/${course._id}`,
-                    href: course.custom_url || `/course-details/${course._id}`,
+                    // Simply use the price value directly from the first price in the array
+                    price: course.prices && course.prices[0] ? course.prices[0].individual : 1499,
+                    // No need for string formatting here as it will be handled by the CourseCard component
+                    course_fee: course.prices && course.prices[0].batch ? course.prices[0].batch : 1499,
+                    custom_url: course.custom_url || `/courses/${course._id}`,
+                    href: course.href || `/courses/${course._id}`,
                     no_of_Sessions: videoCount + qnaSessions,
-                    effort_hours: course.effort_hours || "3-5",
+                    effort_hours: course.effort_hours || course.efforts_per_Week || "3-5",
                     learning_points: course.learning_points || course.course_highlights || [],
                     prerequisites: course.prerequisites || [],
-                    instructor: course.instructor ?? undefined
+                    instructor: course.instructor ?? undefined,
+                    classType: 'blended', // Ensure classType is set here
+                    // Add additional price-related properties for CourseCard component
+                    batchPrice: course.prices && course.prices[0] ? course.prices[0].batch : null,
+                    minBatchSize: course.prices && course.prices[0] ? course.prices[0].min_batch_size : 2,
+                    // Pass the entire prices array as is
+                    prices: course.prices || [],
+                    isFree: false // Explicitly set to false to prevent free display
                   };
                   
                   return (
@@ -712,12 +1155,13 @@ const HomeCourseSection = ({
                       <div className="relative">
                         {/* Course Type Badge - positioned at top left */}
                         <div className="absolute left-4 top-4 z-10">
-                          <CourseTypeTag course={course} />
+                          <CourseTypeTag course={{...course, classType: 'blended'}} />
                         </div>
                         
                         {/* Render the CourseCard component with proper props */}
                         <CourseCard 
                           course={enhancedCourse}
+                          classType="blended"
                         />
                       </div>
                     </motion.div>
