@@ -10,12 +10,64 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { apiUrls } from '@/apis';
 import { useCurrency } from '@/contexts/CurrencyContext';
-import { isFreePrice, getCoursePriceValue, getMinBatchSize } from '@/utils/priceUtils';
+import { isFreePrice } from '@/utils/priceUtils';
 import axios from 'axios';
 import useGetQuery from "@/hooks/getQuery.hook";
 import usePostQuery from "@/hooks/postQuery.hook";
 import useRazorpay from "@/hooks/useRazorpay";
 import RAZORPAY_CONFIG from "@/config/razorpay";
+
+// Local implementation of the price utility functions
+const getCoursePriceValue = (
+  course: any, 
+  isBatch: boolean = true
+): number => {
+  // If course has prices array, use it
+  if (course.prices && Array.isArray(course.prices) && course.prices.length > 0) {
+    // Use the first active price (typically in base currency)
+    const activePrice = course.prices.find((p: any) => p.is_active === true);
+    
+    if (activePrice) {
+      return isBatch ? activePrice.batch : activePrice.individual;
+    }
+  }
+  
+  // Fall back to price/batchPrice if available
+  if (isBatch && course.batchPrice !== undefined) {
+    return course.batchPrice;
+  }
+  
+  if (!isBatch && course.price !== undefined) {
+    return course.price;
+  }
+  
+  // Fall back to course_fee (with discount applied for batch)
+  if (course.course_fee !== undefined) {
+    return isBatch ? course.course_fee * 0.75 : course.course_fee;
+  }
+  
+  // Last resort fallbacks
+  return isBatch ? 24.00 : 32.00;
+};
+
+const getMinBatchSize = (course: any): number => {
+  // If course has prices array, use min_batch_size from there
+  if (course.prices && Array.isArray(course.prices) && course.prices.length > 0) {
+    const activePrice = course.prices.find((p: any) => p.is_active === true);
+    
+    if (activePrice && activePrice.min_batch_size) {
+      return activePrice.min_batch_size;
+    }
+  }
+  
+  // Fall back to course.minBatchSize if available
+  if (course.minBatchSize !== undefined) {
+    return course.minBatchSize;
+  }
+  
+  // Default min batch size
+  return 2;
+};
 
 // Types
 interface CoursePrice {

@@ -113,4 +113,7 @@ export const formatPriceWithCurrency = (
   // This is just a fallback for when the hook can't be used
   // Format with basic $ symbol if currency context not available
   return `$${price.toLocaleString()}`;
-}; 
+};
+
+// Explicitly re-export the functions that are causing issues
+export { getCoursePriceValue, getMinBatchSize }; 
