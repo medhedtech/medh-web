@@ -195,6 +195,7 @@ export interface ICourseSearchParams {
   sort_by?: string;
   sort_order?: 'asc' | 'desc';
   category_type?: string;
+  currency?: string;
 }
 
 // Add Currency interfaces before the apiUrls object
