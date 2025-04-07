@@ -368,16 +368,37 @@ const CourseCard = ({
 
   // Update the formatPrice function to better handle batch pricing
   const formatPrice = (price, batchPrice) => {
-    if (isFreePrice(price) && (!batchPrice || isFreePrice(batchPrice))) return "Free";
+    // Check if the course is explicitly marked as free
+    if (course?.isFree === true) return "Free";
     
     // Get currency from course prices if available
     const currency = course?.prices && course.prices.length > 0 && course.prices[0].currency 
       ? course.prices[0].currency 
       : undefined;
     
-    // If batch price is available, use it as the display price
+    // If we have a prices array, use the first price object
+    if (course?.prices && course.prices.length > 0) {
+      const priceObj = course.prices[0];
+      
+      // Check if both individual and batch prices are 0
+      if (priceObj.individual === 0 && priceObj.batch === 0) {
+        return "Free";
+      }
+      
+      // If batch price is available and less than individual price, use it
+      if (priceObj.batch && priceObj.batch < priceObj.individual) {
+        return formatCurrencyPrice(convertPrice(priceObj.batch), true, currency);
+      }
+      
+      // Otherwise use individual price
+      return formatCurrencyPrice(convertPrice(priceObj.individual), true, currency);
+    }
+    
+    // Fallback to the provided price and batchPrice parameters
+    if (isFreePrice(price) && (!batchPrice || isFreePrice(batchPrice))) return "Free";
+    
+    // If batch price is available and less than individual price, use it
     if (batchPrice && !isFreePrice(batchPrice) && batchPrice < price) {
-      // Format batch price with currency
       return formatCurrencyPrice(convertPrice(batchPrice), true, currency);
     }
     
@@ -922,9 +943,7 @@ const CourseCard = ({
               <div className="mt-1.5 text-center">
                 <div className="flex items-baseline gap-1.5 justify-center">
                   <span className={`text-lg font-bold ${styles.priceColor}`}>
-                    {course?.course_fee 
-                      ? formatPrice(course.course_fee, course.batchPrice) 
-                      : 'Free'}
+                    {formatPrice(course.course_fee, course.batchPrice) }
                   </span>
                   {course?.original_fee && (
                     <span className="text-sm text-gray-500 line-through">
