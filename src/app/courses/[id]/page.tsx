@@ -5,14 +5,14 @@ import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import courses from "@/../public/fakedata/courses.json";
 import { notFound } from "next/navigation";
 
-interface PageProps {
+type PageProps = {
   params: {
     id: string;
   };
-}
+};
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { id } = params;
+  const id = params.id;
   const course = courses?.find(({ id: courseId }) => courseId === parseInt(id));
 
   if (!course) {
@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 const Course_Details = async ({ params }: PageProps) => {
-  const { id } = params;
+  const id = params.id;
   const isExistCourse = courses?.find(({ id: courseId }) => courseId === parseInt(id));
   
   if (!isExistCourse) {
