@@ -4,18 +4,68 @@ import Image from "next/image";
 import Link from "next/link";
 import React, { useState } from "react";
 import { useCurrency } from "@/contexts/CurrencyContext";
-import { calculateDiscountPercentage, isFreePrice, getCoursePriceValue, getMinBatchSize } from "@/utils/priceUtils";
+import { calculateDiscountPercentage, isFreePrice } from "@/utils/priceUtils";
+import * as priceUtils from "@/utils/priceUtils";
 import { User, Users, Download } from "lucide-react";
 import useAuth from "@/hooks/useAuth";
 import DownloadBrochureModal from "@/components/shared/download-broucher";
 import { apiBaseUrl } from "@/apis";
+
+// Local implementation of the price utility functions
+const getCoursePriceValue = (course, isBatch = true) => {
+  // If course has prices array, use it
+  if (course.prices && Array.isArray(course.prices) && course.prices.length > 0) {
+    // Use the first active price (typically in base currency)
+    const activePrice = course.prices.find(p => p.is_active === true);
+    
+    if (activePrice) {
+      return isBatch ? activePrice.batch : activePrice.individual;
+    }
+  }
+  
+  // Fall back to price/batchPrice if available
+  if (isBatch && course.batchPrice !== undefined) {
+    return course.batchPrice;
+  }
+  
+  if (!isBatch && course.price !== undefined) {
+    return course.price;
+  }
+  
+  // Fall back to course_fee (with discount applied for batch)
+  if (course.course_fee !== undefined) {
+    return isBatch ? course.course_fee * 0.75 : course.course_fee;
+  }
+  
+  // Last resort fallbacks
+  return isBatch ? 24.00 : 32.00;
+};
+
+const getMinBatchSize = (course) => {
+  // If course has prices array, use min_batch_size from there
+  if (course.prices && Array.isArray(course.prices) && course.prices.length > 0) {
+    const activePrice = course.prices.find(p => p.is_active === true);
+    
+    if (activePrice && activePrice.min_batch_size) {
+      return activePrice.min_batch_size;
+    }
+  }
+  
+  // Fall back to course.minBatchSize if available
+  if (course.minBatchSize !== undefined) {
+    return course.minBatchSize;
+  }
+  
+  // Default min batch size
+  return 2;
+};
 
 let insId = 0;
 const CourseCard = ({ course, type }) => {
   const { addProductToWishlist } = useWishlistContext() || {};
   const { convertPrice, formatPrice } = useCurrency();
   const { user, isAuthenticated } = useAuth();
-  const [selectedPricing, setSelectedPricing] = useState(course.classType === 'blended' ? "individual" : "batch");
+  const [selectedPricing, setSelectedPricing] = useState("batch");
   const [showBrochureModal, setShowBrochureModal] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
 
@@ -38,23 +88,25 @@ const CourseCard = ({ course, type }) => {
     isCompleted,
     completedParchent,
     classType,
+    price_suffix,
   } = course;
   
   // Get actual batch and individual prices using utility functions
-  const batchPriceValue = getCoursePriceValue(course, true);
-  const individualPriceValue = getCoursePriceValue(course, false);
-  const actualMinBatchSize = getMinBatchSize(course);
+  const batchPriceValue = getCoursePriceValue(course, true) || 0;
+  const individualPriceValue = getCoursePriceValue(course, false) || 0;
+  const actualMinBatchSize = getMinBatchSize(course) || 2;
   
   // Convert prices to current currency
-  const currentBatchPrice = convertPrice(batchPriceValue);
-  const currentIndividualPrice = convertPrice(individualPriceValue);
+  const currentBatchPrice = convertPrice(isNaN(batchPriceValue) ? 0 : batchPriceValue);
+  const currentIndividualPrice = convertPrice(isNaN(individualPriceValue) ? 0 : individualPriceValue);
   
   // Calculate original price (for showing discount)
-  const originalPrice = convertPrice(individualPriceValue * 2.1);
+  const originalPrice = convertPrice(isNaN(individualPriceValue) ? 0 : individualPriceValue * 2.1);
   
   // Calculate discount percentages
   const discountPercentage = calculateDiscountPercentage(originalPrice, currentIndividualPrice);
-  const batchDiscountPercentage = Math.round(((individualPriceValue - batchPriceValue) / individualPriceValue) * 100);
+  const batchDiscountPercentage = individualPriceValue > 0 && batchPriceValue > 0 ? 
+    Math.round(((individualPriceValue - batchPriceValue) / individualPriceValue) * 100) : 0;
   
   // Function to handle brochure download
   const handleBrochureDownload = async () => {
@@ -222,7 +274,7 @@ const CourseCard = ({ course, type }) => {
             </h5>
             {/* price with batch/individual toggle */}
             <div className="mb-4">
-              {isFree ? (
+              {isFree === true ? (
                 <span className="text-lg font-semibold text-green-600">Free</span>
               ) : (
                 <>
@@ -251,18 +303,62 @@ const CourseCard = ({ course, type }) => {
                       </button>
                     </div>
                   ) : (
-                    <div className="text-xs text-gray-500 mb-1">Individual Enrollment</div>
+                    <div className="flex space-x-2 mb-1 text-xs border-b border-gray-200 pb-1">
+                      <button
+                        onClick={() => setSelectedPricing("individual")}
+                        className={`flex items-center ${
+                          selectedPricing === "individual"
+                            ? "text-primaryColor font-medium"
+                            : "text-gray-500"
+                        }`}
+                      >
+                        <User size={12} className="mr-1" /> Individual
+                      </button>
+                      <button
+                        onClick={() => setSelectedPricing("batch")}
+                        className={`flex items-center ${
+                          selectedPricing === "batch"
+                            ? "text-primaryColor font-medium"
+                            : "text-gray-500"
+                        }`}
+                      >
+                        <Users size={12} className="mr-1" /> Batch ({actualMinBatchSize}+)
+                      </button>
+                    </div>
                   )}
                   
                   {/* Price display */}
                   <div className="text-lg font-semibold text-primaryColor">
-                    {(selectedPricing === "individual" || classType === 'blended') ? (
+                    {(selectedPricing === "individual") ? (
                       <>
-                        {formatPrice(currentIndividualPrice)}
-                        <del className="text-sm text-lightGrey4 font-semibold ml-1">
-                          / {formatPrice(originalPrice)}
-                        </del>
-                        {discountPercentage > 0 && (
+                        {classType === 'blended' && prices && prices.length > 0 && prices[0].individual ? (
+                          // For blended courses, use the currency from prices array if available
+                          <>
+                            {formatPrice(prices[0].individual, prices[0].currency)}
+                            {price_suffix && <span className="text-xs text-gray-500 ml-1">{price_suffix}</span>}
+                          </>
+                        ) : isNaN(currentIndividualPrice) ? 
+                          (price && !isNaN(price) ? (
+                            <>
+                              {formatPrice(price)}
+                              {price_suffix && <span className="text-xs text-gray-500 ml-1">{price_suffix}</span>}
+                            </>
+                          ) : "Price on request") : 
+                          (
+                            <>
+                              {formatPrice(currentIndividualPrice)}
+                              {price_suffix && <span className="text-xs text-gray-500 ml-1">{price_suffix}</span>}
+                            </>
+                          )
+                        }
+                        
+                        {!isNaN(originalPrice) && originalPrice > currentIndividualPrice && classType !== 'blended' && (
+                          <del className="text-sm text-lightGrey4 font-semibold ml-1">
+                            / {formatPrice(originalPrice)}
+                          </del>
+                        )}
+                        
+                        {discountPercentage > 0 && !isNaN(discountPercentage) && classType !== 'blended' && (
                           <span className="ml-2 text-xs bg-secondaryColor3 text-white px-2 py-1 rounded-full">
                             {discountPercentage}% OFF
                           </span>
@@ -270,11 +366,34 @@ const CourseCard = ({ course, type }) => {
                       </>
                     ) : (
                       <>
-                        {formatPrice(currentBatchPrice)}
+                        {classType === 'blended' && prices && prices.length > 0 && prices[0].batch ? (
+                          // For blended courses batch pricing, directly use the batch price from prices array and its currency
+                          <>
+                            {formatPrice(prices[0].batch, prices[0].currency)}
+                            {price_suffix && <span className="text-xs text-gray-500 ml-1">{price_suffix}</span>}
+                          </>
+                        ) : isNaN(currentBatchPrice) ? 
+                          (batchPrice && !isNaN(batchPrice) ? (
+                            <>
+                              {formatPrice(batchPrice)}
+                              {price_suffix && <span className="text-xs text-gray-500 ml-1">{price_suffix}</span>}
+                            </>
+                          ) : "Price on request") : 
+                          (
+                            <>
+                              {formatPrice(currentBatchPrice)}
+                              {price_suffix && <span className="text-xs text-gray-500 ml-1">{price_suffix}</span>}
+                            </>
+                          )
+                        }
+                          
                         <span className="text-xs text-gray-500 ml-1">/student</span>
-                        <span className="block text-xs text-green-600">
-                          Save {batchDiscountPercentage}% vs individual price
-                        </span>
+                        
+                        {batchDiscountPercentage > 0 && !isNaN(batchDiscountPercentage) && classType !== 'blended' && (
+                          <span className="block text-xs text-green-600">
+                            Save {batchDiscountPercentage}% vs individual price
+                          </span>
+                        )}
                       </>
                     )}
                   </div>
