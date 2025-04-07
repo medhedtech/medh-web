@@ -366,25 +366,35 @@ const CourseCard = ({
     };
   }, []);
 
-  // Update the formatPrice function to handle individual and batch prices
+  // Update the formatPrice function to better handle batch pricing
   const formatPrice = (price, batchPrice) => {
     if (isFreePrice(price) && (!batchPrice || isFreePrice(batchPrice))) return "Free";
+    
+    // Get currency from course prices if available
+    const currency = course?.prices && course.prices.length > 0 && course.prices[0].currency 
+      ? course.prices[0].currency 
+      : undefined;
+    
+    // If batch price is available, use it as the display price
+    if (batchPrice && !isFreePrice(batchPrice) && batchPrice < price) {
+      // Format batch price with currency
+      return formatCurrencyPrice(convertPrice(batchPrice), true, currency);
+    }
     
     // If this is a simple price display with no batch option
     if (!batchPrice || batchPrice === price) {
       // Check if price already includes "onwards" text
       if (typeof price === 'string' && price.includes('Onwards')) {
-        return formatCurrencyPrice(convertPrice(price.replace(' Onwards', ''))) + ' Onwards';
+        return formatCurrencyPrice(convertPrice(price.replace(' Onwards', '')), true, currency);
       }
-      return formatCurrencyPrice(convertPrice(price));
+      return formatCurrencyPrice(convertPrice(price), true, currency);
     }
     
     // Handle the case where we have both individual and batch pricing
-    const formattedMainPrice = formatCurrencyPrice(convertPrice(price));
-    const formattedBatchPrice = formatCurrencyPrice(convertPrice(batchPrice));
+    const formattedMainPrice = formatCurrencyPrice(convertPrice(price), true, currency);
     
     // Return appropriate price based on selected pricing
-    return selectedPricing === "batch" ? formattedBatchPrice : formattedMainPrice;
+    return formattedMainPrice;
   };
 
   // Calculate discount percentage for batch pricing
@@ -912,11 +922,18 @@ const CourseCard = ({
               <div className="mt-1.5 text-center">
                 <div className="flex items-baseline gap-1.5 justify-center">
                   <span className={`text-lg font-bold ${styles.priceColor}`}>
-                    {course?.course_fee ? formatPrice(course.course_fee) : 'Free'}
+                    {course?.course_fee 
+                      ? formatPrice(course.course_fee, course.batchPrice) 
+                      : 'Free'}
                   </span>
                   {course?.original_fee && (
                     <span className="text-sm text-gray-500 line-through">
                       {formatCurrencyPrice(convertPrice(course.original_fee))}
+                    </span>
+                  )}
+                  {course?.price_suffix && course.batchPrice && (
+                    <span className="text-sm text-gray-500 font-medium">
+                      {course.price_suffix}
                     </span>
                   )}
                 </div>

@@ -819,6 +819,43 @@ export const listAllCoursePrices = async (
   }
 };
 
+/**
+ * Fetches courses with specific fields.
+ * @param options - Optional parameters for filtering and pagination.
+ * @returns The constructed API URL string.
+ */
+export const getCoursesWithFields = (options: {
+  page?: number;
+  limit?: number;
+  fields?: string[];
+  status?: string;
+  search?: string;
+  filters?: Record<string, any>;
+} = {}): string => {
+  const { page = 1, limit = 10, fields = [], status = "Published", search = "", filters = {} } = options;
+  const queryParams = new URLSearchParams();
+  
+  apiUtils.appendParam('page', page, queryParams);
+  apiUtils.appendParam('limit', limit, queryParams);
+  apiUtils.appendParam('status', status, queryParams);
+  apiUtils.appendParam('search', search, queryParams);
+  
+  if (fields.length > 0) {
+    apiUtils.appendArrayParam('fields', fields, queryParams);
+  }
+  
+  // Add filters to the query parameters
+  if (Object.keys(filters).length > 0) {
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        queryParams.append(`filters[${key}]`, String(value));
+      }
+    });
+  }
+  
+  return `${apiBaseUrl}/courses/fields?${queryParams.toString()}`;
+};
+
 // Shared error handler for price endpoints
 const handlePriceError = (error: unknown, defaultMessage: string): ErrorResponse => {
   if (axios.isAxiosError(error)) {

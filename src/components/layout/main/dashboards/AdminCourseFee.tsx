@@ -523,20 +523,35 @@ const BulkUpdateSection: React.FC<{
 };
 
 // Toast notification component
-const Toast = ({ message, type, onClose }: { message: string, type: 'success' | 'error', onClose: () => void }) => {
+const Toast = ({ message, type, onClose }: { message: string, type: 'success' | 'error' | 'info', onClose: () => void }) => {
+  // Determine background and text color based on type
+  const bgColor = type === 'success' ? 'bg-green-100' : 
+                  type === 'error' ? 'bg-red-100' : 
+                  'bg-blue-100';
+  
+  const textColor = type === 'success' ? 'text-green-800' : 
+                    type === 'error' ? 'text-red-800' : 
+                    'text-blue-800';
+  
+  const iconColor = type === 'success' ? 'text-green-500' : 
+                    type === 'error' ? 'text-red-500' : 
+                    'text-blue-500';
+
   return (
-    <div className={`fixed bottom-4 right-4 z-50 p-4 rounded-md shadow-lg max-w-md flex items-center justify-between ${
-      type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-    }`}>
+    <div className={`fixed bottom-4 right-4 z-50 p-4 rounded-md shadow-lg max-w-md flex items-center justify-between ${bgColor} ${textColor}`}>
       <div className="flex items-center">
-        <div className={`flex-shrink-0 ${type === 'success' ? 'text-green-500' : 'text-red-500'}`}>
+        <div className={`flex-shrink-0 ${iconColor}`}>
           {type === 'success' ? (
             <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
             </svg>
-          ) : (
+          ) : type === 'error' ? (
             <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+            </svg>
+          ) : (
+            <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9a1 1 0 00-1-1z" clipRule="evenodd" />
             </svg>
           )}
         </div>
@@ -789,11 +804,13 @@ const CurrencyRateEditor: React.FC<{
   onSave: (rates: CurrencyRates) => void;
   isLoading?: boolean;
   onRefresh: () => void;
-}> = ({ rates, onSave, isLoading = false, onRefresh }) => {
+  onBulkAddCurrencyPricing: (currency: string) => void;
+}> = ({ rates, onSave, isLoading = false, onRefresh, onBulkAddCurrencyPricing }) => {
   const [editedRates, setEditedRates] = useState<CurrencyRates>(rates);
   const [isEditing, setIsEditing] = useState(false);
   const [newCurrency, setNewCurrency] = useState({ code: '', symbol: '', name: '', rate: 1 });
   const [showAddForm, setShowAddForm] = useState(false);
+  const [selectedCurrencyForBulk, setSelectedCurrencyForBulk] = useState<string>('');
 
   const handleRateChange = (currencyCode: string, value: number) => {
     setEditedRates({
@@ -1002,15 +1019,50 @@ const CurrencyRateEditor: React.FC<{
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {Object.entries(rates).map(([code, currency]) => (
-              <div key={code} className="p-4 border border-gray-200 rounded-lg">
-                <div className="font-medium">{code}</div>
-                <div className="text-sm text-gray-500">{currency.symbol} - {currency.name}</div>
-                <div className="text-sm mt-1">1 USD = {currency.rate} {code}</div>
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {Object.entries(rates).map(([code, currency]) => (
+                <div key={code} className="p-4 border border-gray-200 rounded-lg">
+                  <div className="font-medium">{code}</div>
+                  <div className="text-sm text-gray-500">{currency.symbol} - {currency.name}</div>
+                  <div className="text-sm mt-1">1 USD = {currency.rate} {code}</div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="mt-6 border-t border-gray-200 pt-4">
+              <h4 className="text-base font-medium text-gray-900 mb-3">Bulk Add Course Pricing with Currency</h4>
+              <div className="flex items-end gap-4">
+                <div className="flex-grow">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Select Currency</label>
+                  <select
+                    value={selectedCurrencyForBulk}
+                    onChange={(e) => setSelectedCurrencyForBulk(e.target.value)}
+                    className="w-full focus:ring-customGreen focus:border-customGreen block text-base border-gray-300 rounded-md"
+                  >
+                    <option value="">Select a currency</option>
+                    {Object.entries(rates)
+                      .filter(([code]) => code !== 'USD' && code !== 'INR') // Filter out USD and INR
+                      .map(([code, currency]) => (
+                        <option key={code} value={code}>
+                          {code} ({currency.symbol}) - {currency.name}
+                        </option>
+                      ))}
+                  </select>
+                  <p className="mt-1 text-xs text-gray-500">
+                    This will add pricing based on USD prices converted to the selected currency
+                  </p>
+                </div>
+                <button
+                  onClick={() => onBulkAddCurrencyPricing(selectedCurrencyForBulk)}
+                  disabled={!selectedCurrencyForBulk || isLoading}
+                  className="px-4 py-2.5 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Bulk Add Pricing
+                </button>
               </div>
-            ))}
-          </div>
+            </div>
+          </>
         )}
       </div>
     </div>
@@ -1031,7 +1083,7 @@ const AdminCourseFee: React.FC = () => {
   });
   const [categories, setCategories] = useState<string[]>([]);
   const [expandedRows, setExpandedRows] = useState<{[key: string]: boolean}>({});
-  const [toast, setToast] = useState<{show: boolean, message: string, type: 'success' | 'error'}>({
+  const [toast, setToast] = useState<{show: boolean, message: string, type: 'success' | 'error' | 'info'}>({
     show: false,
     message: '',
     type: 'success'
@@ -1150,7 +1202,8 @@ const AdminCourseFee: React.FC = () => {
     fetchCourses();
   }, [filters]);
   
-  const showToast = (message: string, type: 'success' | 'error') => {
+  // Update the showToast function to accept 'info' as a valid type
+  const showToast = (message: string, type: 'success' | 'error' | 'info') => {
     setToast({ show: true, message, type });
     setTimeout(() => {
       setToast(prev => ({ ...prev, show: false }));
@@ -1681,6 +1734,134 @@ const AdminCourseFee: React.FC = () => {
     fetchCategories();
   }, []);
 
+  const handleBulkAddCurrencyPricing = async (currencyCode: string) => {
+    if (!currencyCode) {
+      showToast('Please select a currency', 'error');
+      return;
+    }
+    
+    setSaving('bulk-currency');
+    
+    try {
+      // Get the selected currency rate
+      const currencyRate = currencyRates[currencyCode];
+      if (!currencyRate) {
+        throw new Error('Currency rate not found');
+      }
+      
+      // Get courses that don't have pricing in the selected currency
+      const coursesNeedingPricing = courses.filter(course => {
+        // Check if course already has pricing in the selected currency
+        return !course.prices.some(price => price.currency === currencyCode);
+      });
+      
+      if (coursesNeedingPricing.length === 0) {
+        showToast(`All courses already have pricing in ${currencyCode}`, 'success');
+        setSaving(null);
+        return;
+      }
+      
+      // Create updates for these courses
+      const bulkUpdates = coursesNeedingPricing.map(course => {
+        // Start with current prices
+        const existingPrices = [...course.prices];
+        
+        // Find USD price to use as base for conversion (if exists)
+        const usdPrice = existingPrices.find(price => price.currency === 'USD');
+        
+        // If no USD price, skip this course
+        if (!usdPrice) return null;
+        
+        // Create new price option based on USD
+        const newPrice: PriceDetails = {
+          currency: currencyCode,
+          individual: usdPrice.individual * currencyRate.rate,
+          batch: usdPrice.batch * currencyRate.rate,
+          min_batch_size: usdPrice.min_batch_size || 2,
+          max_batch_size: usdPrice.max_batch_size || 10,
+          early_bird_discount: usdPrice.early_bird_discount || 0,
+          group_discount: usdPrice.group_discount || 0,
+          is_active: true
+        };
+        
+        // Add the new price to existing prices
+        const updatedPrices = [...existingPrices, newPrice];
+        
+        // Convert to the API's expected format
+        const apiPricing = updatedPrices.map(price => ({
+          currency: price.currency,
+          individual: price.individual,
+          batch: price.batch,
+          min_batch_size: price.min_batch_size || 2,
+          max_batch_size: price.max_batch_size || 10,
+          early_bird_discount: price.early_bird_discount || 0,
+          group_discount: price.group_discount || 0,
+          is_active: price.is_active
+        }));
+        
+        return {
+          courseId: course.id,
+          prices: apiPricing
+        };
+      }).filter(Boolean); // Remove null updates (courses with no USD pricing)
+      
+      if (bulkUpdates.length === 0) {
+        showToast(`No courses found with USD pricing to convert from`, 'error');
+        setSaving(null);
+        return;
+      }
+      
+      // Call the API to update the prices
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/courses/prices/bulk-update`;
+      
+      // Get authentication token from localStorage
+      const token = localStorage.getItem('token');
+      
+      const response = await axios.post(url, {
+        updates: bulkUpdates
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.data && response.data.success) {
+        // Update the courses in state with the new prices
+        setCourses(courses.map(course => {
+          const update = bulkUpdates.find(u => u?.courseId === course.id);
+          if (!update) return course;
+          
+          // Convert back to our internal format
+          const prices: PriceDetails[] = update.prices.map(price => ({
+            currency: price.currency,
+            individual: price.individual,
+            batch: price.batch,
+            min_batch_size: price.min_batch_size || 2,
+            max_batch_size: price.max_batch_size || 10,
+            early_bird_discount: price.early_bird_discount || 0,
+            group_discount: price.group_discount || 0,
+            is_active: price.is_active
+          }));
+          
+          return {
+            ...course,
+            prices
+          };
+        }));
+        
+        showToast(`Added ${currencyCode} pricing to ${bulkUpdates.length} courses based on USD rates`, 'success');
+      } else {
+        showToast(response.data?.message || 'Failed to update pricing', 'error');
+      }
+    } catch (error) {
+      console.error('Error applying bulk currency update:', error);
+      showToast('Failed to apply bulk currency updates. Please try again.', 'error');
+    } finally {
+      setSaving(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -1706,6 +1887,7 @@ const AdminCourseFee: React.FC = () => {
         onSave={handleCurrencyRatesUpdate} 
         isLoading={isCurrencyLoading}
         onRefresh={fetchCurrencies}
+        onBulkAddCurrencyPricing={handleBulkAddCurrencyPricing}
       />
       
       <CourseFeeFilter 
@@ -2038,6 +2220,12 @@ const AdminCourseFee: React.FC = () => {
             <div className="flex items-center text-sm text-customGreen">
               <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
               Applying bulk updates...
+            </div>
+          )}
+          {saving === 'bulk-currency' && (
+            <div className="flex items-center text-sm text-customGreen">
+              <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+              Adding currency pricing to courses...
             </div>
           )}
         </div>
