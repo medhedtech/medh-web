@@ -3,7 +3,10 @@ import { apiBaseUrl, apiUtils, ICourseFilters, ICourseSearchParams } from '../in
 import { 
   CoursePriceResponse,
   BulkPriceUpdateResponse,
-  ErrorResponse 
+  ErrorResponse,
+  PriceDetails,
+  BulkPriceUpdatePayload,
+  PriceFilterParams
 } from '@/types/api-responses';
 import axios from 'axios';
 
@@ -13,7 +16,7 @@ import axios from 'axios';
  * @returns The constructed API URL string.
  */
 export const getAllCoursesWithLimits = (params: ICourseSearchParams = {}): string => {
-  const { page = 1, limit = 12, course_title = "", course_tag = "", course_category = "", status = "Published", search = "", course_grade = "", category = [], filters = {}, class_type = "", course_duration, course_fee, course_type = "", skill_level = "", language = "", sort_by = "createdAt", sort_order = "desc", category_type = "" } = params;
+  const { page = 1, limit = 12, course_title = "", course_tag = "", course_category = "", status = "Published", search = "", course_grade = "", category = [], filters = {}, class_type = "", course_duration, course_fee, course_type = "", skill_level = "", language = "", sort_by = "createdAt", sort_order = "desc", category_type = "", currency = "" } = params;
   const queryParams = new URLSearchParams();
   try {
     const safePage = apiUtils.safeNumber(page, 1);
@@ -32,6 +35,11 @@ export const getAllCoursesWithLimits = (params: ICourseSearchParams = {}): strin
       if (safeSearch) queryParams.append('search', safeSearch);
     }
     if (status) queryParams.append('status', status);
+
+    if (currency) {
+      const safeCurrency = apiUtils.safeEncode(currency);
+      if (safeCurrency) queryParams.append('currency', safeCurrency);
+    }
 
     if (course_category) {
       if (Array.isArray(course_category)) {
@@ -186,12 +194,14 @@ export const getAllRelatedCourses = (courseIds: string[] = [], limit: number = 6
  * Fetches a specific course by its ID, optionally including student context.
  * @param id - The ID of the course.
  * @param studentId - Optional ID of the student accessing the course.
+ * @param currency - Optional currency code (e.g., 'USD', 'INR') to filter prices.
  * @returns The constructed API URL string.
  */
-export const getCourseById = (id: string, studentId: string = ""): string => {
+export const getCourseById = (id: string, studentId: string = "", currency: string = ""): string => {
   if (!id) throw new Error('Course ID cannot be empty');
   const queryParams = new URLSearchParams();
   if (studentId) apiUtils.appendParam('studentId', studentId, queryParams);
+  if (currency) apiUtils.appendParam('currency', currency, queryParams);
   const queryString = queryParams.toString();
   return `${apiBaseUrl}/courses/${id}${queryString ? '?' + queryString : ''}`;
 };
