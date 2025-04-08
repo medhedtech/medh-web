@@ -6,7 +6,7 @@ import axios, {
   InternalAxiosRequestConfig
 } from 'axios';
 import axiosRetry, { isNetworkError } from 'axios-retry';
-import { apiBaseUrl } from './index';
+import { apiBaseUrl } from './config';
 import { logger } from '../utils/logger';
 
 // Determine environment

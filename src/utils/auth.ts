@@ -11,6 +11,9 @@ export const saveAuthToken = (token: string): void => {
     // Store in both storage types for redundancy
     localStorage.setItem('token', token);
     sessionStorage.setItem('token', token);
+    
+    // Also set a cookie for server-side access
+    document.cookie = `token=${token}; path=/; max-age=86400; SameSite=Lax`;
   } catch (err) {
     console.error('Error saving auth token:', err);
   }
@@ -52,6 +55,9 @@ export const clearAuthToken = (): void => {
   try {
     localStorage.removeItem('token');
     sessionStorage.removeItem('token');
+    
+    // Also clear the cookie
+    document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
   } catch (err) {
     console.error('Error clearing auth token:', err);
   }
