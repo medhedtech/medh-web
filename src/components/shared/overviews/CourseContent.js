@@ -1,5 +1,7 @@
+"use client";
+
 import getAllCourses from "@/libs/getAllCourses";
-import CourseCard2 from "../courses/CourseCard2";
+import CourseCard from "../courses/CourseCard";
 
 const CourseContent = ({ isNotSidebar }) => {
   const allCourses = getAllCourses();
@@ -9,7 +11,7 @@ const CourseContent = ({ isNotSidebar }) => {
     <div className="flex flex-col gap-30px">
       {courses?.length &&
         courses.map((course, idx) => (
-          <CourseCard2
+          <CourseCard
             isNotSidebar={isNotSidebar}
             key={idx}
             idx={idx}

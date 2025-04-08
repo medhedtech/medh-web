@@ -1,7 +1,8 @@
 // api.tsx
 
-// Define apiBaseUrl at the very top to avoid initialization issues
-export const apiBaseUrl: string = process.env.NEXT_PUBLIC_API_URL || 'https://api.medh.app';
+// Import apiBaseUrl from config to avoid circular dependencies
+import { apiBaseUrl } from './config';
+export { apiBaseUrl };
 
 import { IUpdateCourseData } from '@/types/course.types';
 import * as courseAPI from './course/course';
