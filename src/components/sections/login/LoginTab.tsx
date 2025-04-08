@@ -10,9 +10,14 @@ import shapImage4 from "@/assets/images/education/hero_shape4.png";
 import shapImage5 from "@/assets/images/education/hero_shape5.png";
 import useTab from "@/hooks/useTab";
 
-const LoginTab = () => {
+interface TabButton {
+  name: string;
+  content: JSX.Element;
+}
+
+const LoginTab = (): JSX.Element => {
   const { currentIdx, handleTabClick } = useTab();
-  const tabButtons = [
+  const tabButtons: TabButton[] = [
     { name: "Login", content: <LoginForm /> },
     {
       name: " Sing up",

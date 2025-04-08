@@ -10,8 +10,11 @@ import { Suspense } from 'react';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Medh - Education Platform',
-  description: 'A modern education platform for online learning',
+  title: 'Medh',
+  description: 'Medh - Your Learning Platform',
+  keywords: 'education, learning, courses, online learning',
+  authors: [{ name: 'Medh Team' }],
+  robots: 'index, follow',
 };
 
 export const viewport = {
