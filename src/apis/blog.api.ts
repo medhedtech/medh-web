@@ -127,7 +127,7 @@ export const blogApi = {
   /**
    * Create a blog
    */
-  createBlog: `${apiBaseUrl}/blogs`,
+  createBlog: (): string => `${apiBaseUrl}/blogs`,
 
   /**
    * Update a blog
@@ -189,7 +189,7 @@ export const blogApi = {
   /**
    * Get blog categories
    */
-  getBlogCategories: `${apiBaseUrl}/blogs/categories`,
+  getBlogCategories: (): string => `${apiBaseUrl}/blogs/categories`,
 
   /**
    * Get blog tags

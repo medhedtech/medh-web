@@ -98,6 +98,8 @@ interface CourseDetails {
   };
   classType?: string;
   isFree?: boolean;
+  no_of_Sessions?: number;
+  target_audience?: string[];
 }
 
 interface CategoryInfo {
@@ -277,9 +279,38 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     }
   }, []);
 
-  // Extract data from courseDetails
-  const duration = courseDetails?.course_duration || '4 months / 16 weeks';
+  // Extract data from courseDetails with better fallbacks
+  const duration = courseDetails?.course_duration || 
+    (courseDetails?.no_of_Sessions ? `${courseDetails.no_of_Sessions} sessions` : '4 months / 16 weeks');
   
+  // Format duration to handle "0 months X weeks" cases
+  const formatDuration = (durationStr: string): string => {
+    // Check if the duration matches the pattern "X months Y weeks"
+    const regex = /(\d+)\s*months?\s*(\d+)\s*weeks?/i;
+    const match = durationStr.match(regex);
+    
+    if (match) {
+      const months = parseInt(match[1], 10);
+      const weeks = parseInt(match[2], 10);
+      
+      // If months is 0, only show weeks
+      if (months === 0) {
+        return `${weeks} week${weeks !== 1 ? 's' : ''}`;
+      }
+      
+      // Otherwise show months with weeks in parentheses
+      return `${months} month${months !== 1 ? 's' : ''} (${weeks} week${weeks !== 1 ? 's' : ''})`;
+    }
+    
+    // Return original string if it doesn't match expected format
+    return durationStr;
+  };
+
+  const formattedDuration = formatDuration(duration);
+  
+  const grade = courseDetails?.grade || 
+    (courseDetails?.target_audience?.length ? courseDetails.target_audience[0] : 'All Levels');
+
   // Get active price information
   const getActivePrice = useCallback((): CoursePrice | null => {
     const prices = courseDetails?.prices;
@@ -367,16 +398,24 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
       return "Free";
     }
     
-    // Fallback to Intl formatting
-    const formattedPrice = new Intl.NumberFormat('en-IN', {
+    // Get the active currency from the pricing or fall back to INR
+    const displayCurrency = activePricing?.currency || 'INR';
+    
+    // Use proper locale based on currency
+    const locale = displayCurrency === 'INR' ? 'en-IN' : 'en-US';
+    
+    // Format the price with the appropriate currency symbol
+    const formattedPrice = new Intl.NumberFormat(locale, {
       style: 'currency',
-      currency: currency?.code || 'INR',
+      currency: displayCurrency,
       minimumFractionDigits: 0,
-      maximumFractionDigits: 0
+      maximumFractionDigits: 0,
+      currencyDisplay: 'symbol'
     }).format(price);
+    
     console.log('Formatted Price:', formattedPrice);
     return formattedPrice;
-  }, [currency, formatPrice, convertPrice]);
+  }, [activePricing]);
   
   // Get primary color from category or default
   const primaryColor = categoryInfo?.primaryColor || 'primary';
@@ -646,22 +685,41 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
       return;
     }
 
+    if (!activePricing) {
+      toast.error("Pricing information is missing");
+      return;
+    }
+
     try {
       setLoading(true);
       
-      // Get payment details with proper currency conversion
-      const paymentDetails = getPaymentDetails();
+      // Get the final price in the original currency
+      const finalPrice = getFinalPrice();
+      const originalCurrency = activePricing.currency;
       
       // Get user info from profile if available
       const userEmail = userProfile?.email || RAZORPAY_CONFIG.prefill.email;
       const userName = userProfile?.full_name || userProfile?.name || RAZORPAY_CONFIG.prefill.name;
       const userPhone = userProfile?.phone_number || userProfile?.mobile || RAZORPAY_CONFIG.prefill.contact;
 
+      // Import functions for currency handling
+      const { getRazorpayConfigForCurrency, isCurrencySupported } = await import('@/config/razorpay');
+      
+      // Get Razorpay configuration for the course currency
+      const razorpayConfig = await getRazorpayConfigForCurrency(
+        originalCurrency,
+        userId || undefined
+      );
+      
+      // Use the original currency and price without conversion
+      // Note: Razorpay requires the amount in paise (smallest unit)
+      const finalAmount = Math.round(finalPrice * 100);
+      
       // Configure Razorpay options
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || RAZORPAY_CONFIG.key,
-        amount: paymentDetails.amountInINR,
-        currency: paymentDetails.paymentCurrency,
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || razorpayConfig.key,
+        amount: finalAmount,
+        currency: originalCurrency,
         name: courseDetails?.course_title || "Course Enrollment",
         description: `Payment for ${courseDetails?.course_title || "Course"} (${enrollmentType} enrollment)`,
         image: "/images/logo.png", // Use local image path instead of external URL
@@ -686,13 +744,12 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
           enrollment_type: enrollmentType,
           course_id: courseDetails._id,
           price_id: activePricing?._id || '',
-          user_id: userId,
-          original_currency: paymentDetails.originalCurrency,
-          original_amount: paymentDetails.originalPrice,
-          conversion_rate: paymentDetails.conversionRate
+          user_id: userId || '',
+          currency: originalCurrency,
+          price: finalPrice.toString()
         },
         theme: {
-          color: RAZORPAY_CONFIG.theme.color,
+          color: razorpayConfig.theme.color,
         },
         modal: {
           ondismiss: function() {
@@ -701,20 +758,8 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
         }
       };
 
-      // Use the hook to handle Razorpay checkout
-      const razorpayOptions = {
-        ...options,
-        notes: {
-          enrollment_type: options.notes.enrollment_type,
-          course_id: options.notes.course_id,
-          price_id: activePricing?._id || '',
-          user_id: options.notes.user_id || '',
-          original_currency: options.notes.original_currency,
-          original_amount: options.notes.original_amount.toString(),
-          conversion_rate: options.notes.conversion_rate.toString()
-        }
-      };
-      await openRazorpayCheckout(razorpayOptions);
+      // Use the hook to handle Razorpay checkout with the proper types
+      await openRazorpayCheckout(options);
     } catch (err: any) {
       console.error("Enrollment error:", err);
       setError(err.message || "Failed to process enrollment");
@@ -831,6 +876,11 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
               >
                 <User className={`h-5 w-5 mb-1 ${enrollmentType === 'individual' ? colorClass : ''}`} />
                 <span className="text-sm">Individual</span>
+                {activePricing && (
+                  <span className="text-xs mt-1">
+                    {formatPriceDisplay(activePricing.individual)}
+                  </span>
+                )}
               </button>
               <button
                 onClick={() => setEnrollmentType('batch')}
@@ -842,17 +892,12 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
               >
                 <Users className={`h-5 w-5 mb-1 ${enrollmentType === 'batch' ? colorClass : ''}`} />
                 <span className="text-sm">Batch/Group</span>
+                {activePricing && (
+                  <span className="text-xs mt-1">
+                    {formatPriceDisplay(activePricing.batch)} per person
+                  </span>
+                )}
               </button>
-            </div>
-          )}
-          
-          {/* Show enrollment type label for blended courses */}
-          {isBlendedCourse && (
-            <div className="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
-              <div className="flex items-center text-gray-700 dark:text-gray-300">
-                <Info className="h-4 w-4 mr-2 text-blue-500" />
-                <span className="text-sm">This blended learning course is available for individual enrollment only</span>
-              </div>
             </div>
           )}
           
@@ -871,7 +916,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
                 </p>
                 <div className="flex items-baseline gap-2">
                   <h4 className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {courseDetails?.isFree ? "Free" : formatPriceDisplay(finalPrice)}
+                    {courseDetails?.isFree ? "Free" : formatPriceDisplay(getFinalPrice())}
                   </h4>
                   
                   {originalPrice && originalPrice > finalPrice && (
@@ -886,6 +931,11 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
                     </span>
                   )}
                 </div>
+                {enrollmentType === 'batch' && !isBlendedCourse && activePricing && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Minimum {activePricing.min_batch_size} students required
+                  </p>
+                )}
               </div>
               <div className={`p-2.5 rounded-full ${bgClass}`}>
                 <CreditCard className={`h-6 w-6 ${colorClass}`} />
@@ -897,12 +947,12 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
           <div className="space-y-2.5 border-t border-gray-200 dark:border-gray-700 pt-4">
             <div className="flex justify-between items-center">
               <span className="text-gray-600 dark:text-gray-400 text-sm">Duration</span>
-              <span className="font-medium text-gray-900 dark:text-white">{duration}</span>
+              <span className="font-medium text-gray-900 dark:text-white">{formattedDuration}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-gray-600 dark:text-gray-400 text-sm">Grade</span>
               <span className="font-medium text-gray-900 dark:text-white">
-                {courseDetails?.grade}
+                {grade}
               </span>
             </div>
           </div>

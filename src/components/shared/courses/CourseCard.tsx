@@ -215,7 +215,7 @@ const CourseCard: React.FC<CourseProps> = ({
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
       <div className="relative">
-        <Link href={`/courses/${_id}`}>
+        <Link href={`/course-details/${_id}`}>
           <div className="relative h-48 w-full">
             <Image
               src={course_image}
@@ -232,7 +232,7 @@ const CourseCard: React.FC<CourseProps> = ({
       </div>
 
       <div className="p-4">
-        <Link href={`/courses/${_id}`}>
+        <Link href={`/course-details/${_id}`}>
           <h3 className="text-lg font-semibold mb-2 line-clamp-2 hover:text-primaryColor">
             {course_title}
           </h3>

@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
 import { Shield, CheckCircle2, AlertCircle } from 'lucide-react';
 
-const CustomReCaptcha = ({ onChange, error }) => {
-  const [isVerified, setIsVerified] = useState(false);
-  const [isChecking, setIsChecking] = useState(false);
+interface CustomReCaptchaProps {
+  onChange: (value: string) => void;
+  error?: boolean;
+}
 
-  const handleVerification = () => {
+const CustomReCaptcha: React.FC<CustomReCaptchaProps> = ({ onChange, error }) => {
+  const [isVerified, setIsVerified] = useState<boolean>(false);
+  const [isChecking, setIsChecking] = useState<boolean>(false);
+
+  const handleVerification = (): void => {
     setIsChecking(true);
     // Simulate verification process
     setTimeout(() => {

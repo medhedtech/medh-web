@@ -1,0 +1,12 @@
+./src/components/layout/header Header
+./src/components/layout/main BlogDetailsMain
+./src/components/layout/main InstructorMain
+./src/components/layout/main LoginMain
+./src/components/layout/main/dashboards EnrollCourses
+./src/components/layout/main/dashboards EnrollCoursesCard
+./src/components/layout/main/dashboards InstructorDashboard
+./src/components/shared/courses CourseCard
+./src/components/shared/courses CourseCard2
+./src/components/shared/dashboards FreeClassesCorporate
+./src/components/shared/lessons LessonAccordion
+./src/components/shared/wrappers TabContentWrapper
