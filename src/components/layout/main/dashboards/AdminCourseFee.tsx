@@ -1564,6 +1564,39 @@ const AdminCourseFee: React.FC = () => {
     }
   };
   
+  // New function to apply bulk update with provided data
+  const applyBulkUpdateWithData = async (updatesData: any) => {
+    setSaving('bulk-with-data');
+    
+    try {
+      // Get authentication token from localStorage
+      const token = localStorage.getItem('token');
+      
+      // Call the API to update the prices
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/home-display/prices/bulk-update`;
+      
+      const response = await axios.post(url, updatesData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.data && response.data.success) {
+        // Refresh the courses to get the updated data
+        await fetchCourses();
+        showToast(`Updated pricing for ${updatesData.updates.length} courses`, 'success');
+      } else {
+        showToast(response.data?.message || 'Failed to update pricing', 'error');
+      }
+    } catch (error) {
+      console.error('Error applying bulk update with data:', error);
+      showToast('Failed to apply bulk updates. Please try again.', 'error');
+    } finally {
+      setSaving(null);
+    }
+  };
+  
   // Helper function to apply price updates based on the update type
   const applyPriceUpdate = (currentPrice: number, updateType: string, value: number): number => {
     switch (updateType) {
