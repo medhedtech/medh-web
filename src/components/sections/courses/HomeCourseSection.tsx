@@ -4,7 +4,7 @@ import CourseCard from "@/components/sections/courses/CourseCard";
 import { getAllCoursesWithLimits, getCoursesWithFields } from '@/apis/course/course';
 import useGetQuery from "@/hooks/getQuery.hook";
 import Preloader2 from "@/components/shared/others/Preloader2";
-import { BookOpen, ChevronRight, Layers, Sparkles, Video, Clock, Users, Calendar, Filter, Book, Laptop, GraduationCap, LucideLayoutGrid } from "lucide-react";
+import { BookOpen, ChevronRight, Layers, Sparkles, Video, Clock, Users, Calendar, Filter, Book, Laptop, GraduationCap, LucideLayoutGrid, Loader2 } from "lucide-react";
 import PropTypes from 'prop-types';
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -228,7 +228,7 @@ const fallbackLiveCourses: ICourse[] = [
 ];
 
 // Estimated video count and QnA sessions for blended courses
-const getBlendedCourseSessions = (course) => {
+const getBlendedCourseSessions = (course: ICourse) => {
   if (!course) return { videoCount: 0, qnaSessions: 0 };
   
   // Use defined values if available
@@ -242,7 +242,9 @@ const getBlendedCourseSessions = (course) => {
   // Use no_of_Sessions from API response if available
   if (course.no_of_Sessions !== undefined) {
     // Split the sessions between videos and Q&A
-    const totalSessions = parseInt(course.no_of_Sessions) || 0;
+    const totalSessions = typeof course.no_of_Sessions === 'string' 
+      ? parseInt(course.no_of_Sessions) || 0 
+      : (course.no_of_Sessions as number);
     const videoCount = Math.max(1, Math.floor(totalSessions * 0.7)); // 70% videos
     const qnaSessions = Math.max(1, totalSessions - videoCount); // 30% Q&A
     
@@ -261,7 +263,7 @@ const VideoIcon = () => <Video size={14} className="mr-1 flex-shrink-0 text-rose
 const QnaIcon = () => <Users size={14} className="mr-1 flex-shrink-0 text-[#379392]" />;
 
 // Format the blended course learning experience text with better phrasing and icons
-const formatBlendedLearningExperience = (videoCount, qnaSessions) => {
+const formatBlendedLearningExperience = (videoCount: number, qnaSessions: number) => {
   return (
     <div className="flex flex-col space-y-1" >
       <div className="flex items-center text-xs">
@@ -277,7 +279,7 @@ const formatBlendedLearningExperience = (videoCount, qnaSessions) => {
 };
 
 // Function to get course type display text
-const getCourseTypeDisplay = (course) => {
+const getCourseTypeDisplay = (course: ICourse) => {
   if (course.classType === 'live') {
     return 'Live Course';
   } else if (course.classType === 'blended') {
@@ -289,7 +291,7 @@ const getCourseTypeDisplay = (course) => {
 };
 
 // Ensure a course has the correct classType set
-const ensureClassType = (course) => {
+const ensureClassType = (course: ICourse) => {
   if (!course) return course;
   
   // If classType is already set, return as is
@@ -331,7 +333,7 @@ const ensureClassType = (course) => {
 };
 
 // Process courses to ensure they have classType and other metadata
-const processCourses = (courses) => {
+const processCourses = (courses: ICourse[]) => {
   if (!courses || !Array.isArray(courses)) return [];
   
   return courses.map(course => ensureClassType(course));
@@ -402,10 +404,12 @@ interface ICourse {
     is_active: boolean;
     _id: string;
   }>;
+  rating?: number;
+  reviewCount?: number;
 }
 
 // Component to display course type badge
-const CourseTypeTag = ({ course }) => {
+const CourseTypeTag = ({ course }: { course: ICourse }) => {
   // Get the classType, defaulting to 'self-paced' if not set
   const type = course.classType || 'self-paced';
   
@@ -440,6 +444,12 @@ const HomeCourseSection = ({
   scrollToTop,
   hideGradeFilter,
   showOnlyLive = false 
+}: {
+  CustomText?: string;
+  CustomDescription?: string;
+  scrollToTop?: () => void;
+  hideGradeFilter?: boolean;
+  showOnlyLive?: boolean;
 }) => {
   const [blendedCourses, setBlendedCourses] = useState<ICourse[]>([]);
   const [liveCourses, setLiveCourses] = useState<ICourse[]>([]);
@@ -478,45 +488,29 @@ const HomeCourseSection = ({
   };
 
   // Helper function to convert duration string to weeks
-  const durationToWeeks = (duration) => {
+  const durationToWeeks = (duration: string | number) => {
     if (!duration) return 0;
     
+    // If duration is already a number, return it
+    if (typeof duration === 'number') return duration;
+    
     // Convert duration string to number of weeks
-    const durationString = duration.toLowerCase();
-    
-    // Check for months format
-    if (durationString.includes('month')) {
-      const months = parseInt(durationString.match(/\d+/)?.[0] || '0');
-      return months * 4; // Approximate 4 weeks per month
-    }
-    
-    // Check for weeks format
-    if (durationString.includes('week')) {
-      return parseInt(durationString.match(/\d+/)?.[0] || '0');
-    }
-    
-    // Return 0 if format is not recognized
-    return 0;
+    const match = duration.match(/(\d+)\s*weeks?/i);
+    return match ? parseInt(match[1], 10) : 0;
   };
 
   // Function to pick one course from each category
-  const getOneCoursePerCategory = (courses) => {
+  const getOneCoursePerCategory = (courses: ICourse[]) => {
     if (!courses || !Array.isArray(courses)) return [];
     
-    // Create a map to hold one course per category
-    const categoryMap = new Map();
+    const categoryMap = new Map<string, ICourse>();
     
-    // For each course, save one course per course_category
-    courses.forEach(course => {
-      const category = course.course_category || "Uncategorized";
-      
-      // If we don't have a course for this category yet, add it
-      if (!categoryMap.has(category)) {
-        categoryMap.set(category, course);
+    courses.forEach((course: ICourse) => {
+      if (course.category && !categoryMap.has(course.category)) {
+        categoryMap.set(course.category, course);
       }
     });
     
-    // Convert map back to array
     return Array.from(categoryMap.values());
   };
 
@@ -620,7 +614,7 @@ const HomeCourseSection = ({
                   classType: 'live', // Explicitly set classType
                   course_title: courseTitle,
                   course_category: course.course_category || course.category || 'Uncategorized',
-                  course_image: course.course_image || course.thumbnail || '/placeholder-course.jpg',
+                  course_image: course.course_image || course.thumbnail || '/fallback-course-image.jpg',
                   course_duration: course.duration_range || course.course_duration || "4-18 months",
                   // Ensure prices is always an array
                   prices: Array.isArray(course.prices) ? course.prices : []
@@ -674,13 +668,13 @@ const HomeCourseSection = ({
                 console.log(`Found ${response.length} blended courses from API`);
                 
                 // Process each course
-                const processedCourses = response.map(course => {
+                const processedCourses = response.map((course: any) => {
                   return {
                     ...course,
                     classType: 'blended', // Explicitly set classType
                     course_title: course.course_title || 'Untitled Course',
                     course_category: course.course_category || 'Uncategorized',
-                    course_image: course.course_image || course.thumbnail || '/placeholder-course.jpg'
+                    course_image: course.course_image || course.thumbnail || '/fallback-course-image.jpg'
                   };
                 });
                 
@@ -693,13 +687,13 @@ const HomeCourseSection = ({
                 console.log(`Found ${response.data.length} blended courses from API (in data property)`);
                 
                 // Process each course
-                const processedCourses = response.data.map(course => {
+                const processedCourses = response.data.map((course: any) => {
                   return {
                     ...course,
                     classType: 'blended', // Explicitly set classType
                     course_title: course.course_title || 'Untitled Course',
                     course_category: course.course_category || 'Uncategorized',
-                    course_image: course.course_image || course.thumbnail || '/placeholder-course.jpg'
+                    course_image: course.course_image || course.thumbnail || '/fallback-course-image.jpg'
                   };
                 });
                 
@@ -734,7 +728,7 @@ const HomeCourseSection = ({
   };
 
   // Handle filter toggles for blended courses
-  const toggleBlendedFilter = (filter) => {
+  const toggleBlendedFilter = (filter: keyof typeof activeBlendedFilters) => {
     const newFilters = {
       ...activeBlendedFilters,
       [filter]: !activeBlendedFilters[filter]
@@ -751,7 +745,7 @@ const HomeCourseSection = ({
   }, [showOnlyLive, getLocationCurrency]);
 
   // Function to filter prices based on user's currency
-  const getFilteredPrices = useCallback((prices) => {
+  const getFilteredPrices = useCallback((prices: any[]) => {
     if (!prices || !Array.isArray(prices) || prices.length === 0) {
       return [];
     }
@@ -775,32 +769,33 @@ const HomeCourseSection = ({
           <BookOpen size={80} />
         </div>
         <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-2">
-          Error Loading Courses
+          <span suppressHydrationWarning={true}>Error Loading Courses</span>
         </h2>
         <p className="text-gray-600 dark:text-gray-400 max-w-md text-center mb-6">
-          There was a problem loading the courses. Please try again later.
+          <span suppressHydrationWarning={true}>There was a problem loading the courses. Please try again later.</span>
         </p>
         <button
           onClick={() => window.location.reload()}
           className="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-full shadow-sm transition-colors"
+          suppressHydrationWarning={true}
         >
-          Refresh Page
+          <span suppressHydrationWarning={true}>Refresh Page</span>
         </button>
       </div>
     );
   }
 
   // Custom link button component
-  const ViewAllButton = ({ href, text }) => (
+  const ViewAllButton = ({ href, text }: { href: string; text: string }) => (
     <Link href={href} 
       className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg md:px-5 md:py-2.5">
-      <span>{text}</span>
+      <span suppressHydrationWarning={true}>{text}</span>
       <ChevronRight size={16} className="ml-1" />
     </Link>
   );
 
   // EmptyState component for when no courses match filters
-  const EmptyState = ({ type }) => (
+  const EmptyState = ({ type }: { type: string }) => (
     <div className="flex flex-col items-center justify-center p-6 md:p-5 text-center bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-900/50 rounded-xl">
       <div className="w-16 h-16 mb-4 flex items-center justify-center rounded-full bg-gray-200/50 dark:bg-gray-700/50">
         {type === 'live' ? (
@@ -810,20 +805,36 @@ const HomeCourseSection = ({
         )}
       </div>
       <h3 className="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-300">
-        No {type === 'live' ? 'Live' : 'Blended'} Courses Available
+        <span suppressHydrationWarning={true}>
+          No {type === 'live' ? 'Live' : 'Blended'} Courses Available
+        </span>
       </h3>
       <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-        We're preparing amazing new {type === 'live' ? 'live' : 'blended'} courses. Check back soon!
+        <span suppressHydrationWarning={true}>
+          We're preparing amazing new {type === 'live' ? 'live' : 'blended'} courses. Check back soon!
+        </span>
       </p>
       <Link href="/contact-us" className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 rounded-lg transition-all duration-300">
-        Request a Course
+        <span suppressHydrationWarning={true}>Request a Course</span>
         <ChevronRight size={16} className="ml-1" />
       </Link>
     </div>
   );
 
   // Filter button component
-  const FilterButton = ({ active, icon, label, onClick, color="teal" }) => {
+  const FilterButton = ({ 
+    active, 
+    icon, 
+    label, 
+    onClick, 
+    color = "teal" 
+  }: { 
+    active: boolean; 
+    icon: React.ReactNode; 
+    label: string; 
+    onClick: () => void; 
+    color?: "rose" | "indigo" | "primary" | "teal"; 
+  }) => {
     const colorClasses = {
       rose: {
         active: "bg-rose-500 text-white font-bold",
@@ -849,9 +860,10 @@ const HomeCourseSection = ({
         className={`flex items-center space-x-1 px-3 py-1.5 md:py-1.5 rounded-full text-xs transition-all duration-200 ${
           active ? colorClasses[color].active : colorClasses[color].inactive
         }`}
+        suppressHydrationWarning={true}
       >
         {icon}
-        <span>{label}</span>
+        <span suppressHydrationWarning={true}>{label}</span>
       </button>
     );
   };
@@ -920,6 +932,22 @@ const HomeCourseSection = ({
     console.log("Final filtered courses count:", appliedFilteredCourses.length);
     return appliedFilteredCourses;
   }, [blendedCourses, activeBlendedFilters]);
+
+  if (loading) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center bg-white dark:bg-gray-900 rounded-2xl shadow-sm">
+        <div className="w-20 h-20 mb-6 text-primary-500 animate-spin">
+          <Loader2 size={80} />
+        </div>
+        <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          <span suppressHydrationWarning={true}>Loading Courses</span>
+        </h2>
+        <p className="text-gray-600 dark:text-gray-400 max-w-md text-center">
+          <span suppressHydrationWarning={true}>Please wait while we fetch the latest courses for you.</span>
+        </p>
+      </div>
+    );
+  }
 
   return (
     // Improve background and section sizing
@@ -990,16 +1018,16 @@ const HomeCourseSection = ({
                     _id: course._id || course.id,
                     course_title: course.course_title,
                     course_description: course.course_description || course.description,
-                    course_image: course.course_image || course.thumbnail || course.instructor?.image,
+                    course_image: course.course_image || course.thumbnail || '/fallback-course-image.jpg',
                     course_duration: course.duration_range || "4-18 months",
                     display_duration: true,
                     duration_range: course.duration_range || "4-18 months",
                     prices: course.prices || [],
                     course_fee: displayPrice || 1499,
                     price_suffix: "Onwards",
-                    custom_url: course.custom_url || course.url || `/course-details/${course._id || course.id}`,
-                    href: course.href || course.url || `/course-details/${course._id || course.id}`,
-                    no_of_Sessions: course.no_of_Sessions || videoCount + qnaSessions || 24,
+                    custom_url: `/course-details/${course._id || course.id}`,
+                    href: `/course-details/${course._id || course.id}`,
+                    no_of_Sessions: typeof course.no_of_Sessions === 'string' ? parseInt(course.no_of_Sessions) : (course.no_of_Sessions || videoCount + qnaSessions || 24),
                     effort_hours: course.effort_hours || course.efforts_per_Week || "6-8",
                     learning_points: course.learning_points || [],
                     prerequisites: course.prerequisites || [],
@@ -1063,9 +1091,10 @@ const HomeCourseSection = ({
                 <button 
                   onClick={() => setActiveBlendedFilters({beginner: false, popular: false, latest: false})}
                   className="flex items-center space-x-1 px-3 py-1.5 md:py-1.5 rounded-full text-xs font-medium bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition-all duration-200"
+                  suppressHydrationWarning={true}
                 >
                   <Filter size={14} />
-                  <span>Clear</span>
+                  <span suppressHydrationWarning={true}>Clear</span>
                 </button>
               )}
             </div>
@@ -1121,7 +1150,7 @@ const HomeCourseSection = ({
                     ...course,
                     _id: course._id || course.id,
                     course_title: course.course_title,
-                    course_image: course.course_image || course.thumbnail,
+                    course_image: course.course_image || course.thumbnail || '/fallback-course-image.jpg',
                     course_duration: learningExperienceText,
                     display_duration: true,
                     duration_range: `${videoCount} Videos • ${qnaSessions} Q&A`,
@@ -1131,7 +1160,7 @@ const HomeCourseSection = ({
                     course_fee: course.prices && course.prices[0].batch ? course.prices[0].batch : 1499,
                     custom_url: course.custom_url || `/course-details/${course._id}`,
                     href: course.href || `/course-details/${course._id}`,
-                    no_of_Sessions: videoCount + qnaSessions,
+                    no_of_Sessions: typeof course.no_of_Sessions === 'string' ? parseInt(course.no_of_Sessions) : (course.no_of_Sessions || videoCount + qnaSessions || 24),
                     effort_hours: course.effort_hours || course.efforts_per_Week || "3-5",
                     learning_points: course.learning_points || course.course_highlights || [],
                     prerequisites: course.prerequisites || [],
@@ -1142,7 +1171,10 @@ const HomeCourseSection = ({
                     minBatchSize: course.prices && course.prices[0] ? course.prices[0].min_batch_size : 2,
                     // Pass the entire prices array as is
                     prices: course.prices || [],
-                    isFree: false // Explicitly set to false to prevent free display
+                    isFree: false, // Explicitly set to false to prevent free display
+                    // Add default rating value to avoid undefined errors
+                    rating: course.rating || 0,
+                    reviewCount: course.reviewCount || 0
                   };
                   
                   return (
@@ -1181,7 +1213,7 @@ const HomeCourseSection = ({
           className="w-full max-w-md px-5 py-3.5 flex items-center justify-center bg-gradient-to-r from-[#379392] to-[#379392]/90 text-white font-medium rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl hover:from-[#2d7978] hover:to-[#2d7978]/90"
           onClick={scrollToTop}
         >
-          View All Courses
+          <span suppressHydrationWarning={true}>View All Courses</span>
           <ChevronRight size={18} className="ml-1.5" />
         </Link>
       </div>

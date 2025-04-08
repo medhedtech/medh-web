@@ -3,7 +3,7 @@ import React, { Suspense, lazy } from "react";
 
 const AssignedDemoClass = lazy(() => import("./AssignedDemoClass"));
 const LiveDemoClass = lazy(() => import("./LiveDemoClass"));
-const RecordedSession = lazy(() => import("./RecordedSession"));
+const RecordedSession = lazy(() => import("./RecordedSessions"));
 
 const LoadingFallback = () => (
   <div className="animate-pulse bg-gray-200 dark:bg-gray-700 rounded-lg h-48"></div>

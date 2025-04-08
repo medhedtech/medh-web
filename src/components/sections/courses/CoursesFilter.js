@@ -712,15 +712,15 @@ const CoursesFilter = ({
             throw new Error('Invalid API response');
           }
 
-          // Get the data object from the response
-          const data = response.data;
+          // Get the courses array from the response
+          const courses = response.courses;
           
-          if (!data || !Array.isArray(data.courses)) {
+          if (!Array.isArray(courses)) {
             throw new Error('Invalid courses data format');
           }
 
           // Process courses to ensure they have proper currency information
-          const processedCourses = data.courses.map(course => ({
+          const processedCourses = courses.map(course => ({
             ...course,
             currency: userCurrency,
             prices: course.prices?.map(price => ({
@@ -732,19 +732,19 @@ const CoursesFilter = ({
           setAllCourses(processedCourses);
           setFilteredCourses(processedCourses);
 
-          // Handle pagination from the correct data structure
-          if (data.pagination) {
-            setTotalPages(data.pagination.totalPages || 1);
-            setTotalItems(data.pagination.total || 0);
+          // Handle pagination from the response
+          if (response.pagination) {
+            setTotalPages(response.pagination.totalPages || 1);
+            setTotalItems(response.pagination.totalCourses || 0);
           } else {
             setTotalPages(1);
             setTotalItems(processedCourses.length);
           }
 
           // Handle facets/categories if needed
-          if (data.facets?.categories) {
-            // You can store categories for filtering if needed
-            console.debug('Categories facets:', data.facets.categories);
+          if (response.facets?.categories) {
+            // Store categories for filtering if needed
+            console.debug('Categories facets:', response.facets.categories);
           }
 
           if (scrollToTop && typeof window !== 'undefined') {

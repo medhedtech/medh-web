@@ -46,13 +46,14 @@ const nextConfig = {
     ],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    formats: ['image/webp'],
-    minimumCacheTTL: 60,
+    formats: ['image/webp', 'image/avif'],
+    minimumCacheTTL: 60 * 60 * 24 * 7, // 1 week
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     unoptimized: true,
   },
   experimental: {
+    optimizeCss: true,
     turbo: {
       // Example: adding an alias and custom file extension
         resolveAlias: {
@@ -61,51 +62,79 @@ const nextConfig = {
         resolveExtensions: ['.mdx', '.tsx', '.ts', '.jsx', '.js', '.json'],
       },
   },
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      // Client-side specific configurations
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        punycode: false,
-        stream: false,
-        buffer: false,
-      };
-      
-      // Apply optimizations for production builds
-      if (process.env.NODE_ENV === 'production') {
-        // Use standard optimization settings
-        config.optimization = {
-          ...config.optimization,
-          runtimeChunk: {
-            name: 'runtime',
-          },
-          splitChunks: {
-            chunks: 'all',
-            cacheGroups: {
-              vendor: {
-                name: 'vendors',
-                test: /[\\/]node_modules[\\/]/,
-                priority: -10,
-                reuseExistingChunk: true,
-              },
-              default: {
-                minChunks: 2,
-                priority: -20,
-                reuseExistingChunk: true,
-              },
+  webpack: (config, { dev, isServer }) => {
+    if (!dev && !isServer) {
+      // Optimize production builds
+      config.optimization = {
+        ...config.optimization,
+        runtimeChunk: {
+          name: 'runtime',
+        },
+        splitChunks: {
+          chunks: 'all',
+          cacheGroups: {
+            vendor: {
+              name: 'vendors',
+              test: /[\\/]node_modules[\\/]/,
+              priority: -10,
+              reuseExistingChunk: true,
+            },
+            default: {
+              minChunks: 2,
+              priority: -20,
+              reuseExistingChunk: true,
             },
           },
-        };
-      }
-    } else {
-      // Server-side specific configurations
-      config.output.globalObject = 'globalThis';
+        },
+      };
     }
-    
+
+    // Removed compression plugin that was causing issues
+
     return config;
   },
-  // Reduce build output size
-  productionBrowserSourceMaps: false,
+  // Enable production source maps for better debugging
+  productionBrowserSourceMaps: true,
+  // Add headers for better caching and security
+  async headers() {
+    return [
+      {
+        source: '/:all*(svg|jpg|png|webp|avif)',
+        locale: false,
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'X-DNS-Prefetch-Control',
+            value: 'on',
+          },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains',
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
