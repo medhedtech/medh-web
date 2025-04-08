@@ -11,6 +11,7 @@ export interface ICoursePrice {
   early_bird_discount: number;
   group_discount: number;
   is_active: boolean;
+  _id: string;
 }
 
 export interface IResourcePDF {
@@ -122,11 +123,12 @@ export interface IBonusModule {
 }
 
 export interface ICourseDescription {
-  program_overview: string;
-  benefits: string;
-  learning_objectives: string[];
-  course_requirements: string[];
-  target_audience: string[];
+  program_overview?: string;
+  benefits?: string;
+  learning_objectives?: string[];
+  course_requirements?: string[];
+  target_audience?: string[];
+  _id?: string;
 }
 
 export interface ICourseFormData {
@@ -246,7 +248,7 @@ export interface IUpdateCourseData {
 }
 
 export interface ICourse {
-  id: string;
+  _id: string;
   course_category: string;
   course_subcategory?: string;
   course_title: string;
@@ -285,6 +287,13 @@ export interface ICourse {
   unique_key?: string;
   slug?: string;
   meta: ICourseMetadata;
+  createdAt: string;
+  final_evaluation?: {
+    final_quizzes: any[];
+    final_assessments: any[];
+    certification: any;
+    final_faqs: any[];
+  };
 }
 
 export interface ICourseFilters {
@@ -304,4 +313,38 @@ export interface ICourseFilters {
     end: string;
   };
   isFree?: boolean;
+}
+
+export interface ICoursesResponse {
+  success: boolean;
+  courses: ICourse[];
+  pagination: {
+    totalCourses: number;
+    totalPages: number;
+    currentPage: number;
+    limit: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+  facets: {
+    categories: Array<{ _id: string; count: number }>;
+    categoryTypes: Array<{ _id: string | null; count: number }>;
+    courseTags: Array<{ _id: string | null; count: number }>;
+    classTypes: Array<{ _id: string; count: number }>;
+    priceRanges: Array<{ _id: string; count: number }>;
+    features: Array<{
+      _id: null;
+      certification?: { [key: string]: number };
+      assignments?: { [key: string]: number };
+      projects?: { [key: string]: number };
+      quizzes?: { [key: string]: number };
+    }>;
+  };
+  filters: {
+    applied: {
+      status: string;
+      user_id: boolean;
+      enrolledCoursesExcluded: number;
+    };
+  };
 } 
