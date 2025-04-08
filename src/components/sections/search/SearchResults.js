@@ -294,7 +294,7 @@ const SearchResults = ({ initialQuery = "" }) => {
               ...course,
               id: course._id || course.id,
               title: course.title || course.course_title || 'Untitled Course',
-              thumbnail_url: course.thumbnail_url || course.course_image || course.thumbnail || "/assets/images/placeholder-course.jpg",
+              thumbnail_url: course.thumbnail_url || course.course_image || course.thumbnail || "/fallback-course-image.jpg",
               duration: formatDuration(course.course_duration),
               rating: parseFloat(course.avg_rating || course.rating) || 0,
               enrolled_count: Array.isArray(course.enrolled_students) ? course.enrolled_students.length : (course.enrolled_count || 0),
@@ -465,7 +465,7 @@ const SearchResults = ({ initialQuery = "" }) => {
               ...course,
               id: course._id || course.id,
               title: course.title || course.course_title || 'Untitled Course',
-              thumbnail_url: course.thumbnail_url || course.course_image || course.thumbnail || "/assets/images/placeholder-course.jpg",
+              thumbnail_url: course.thumbnail_url || course.course_image || course.thumbnail || "/fallback-course-image.jpg",
               duration: formatDuration(course.course_duration),
               rating: parseFloat(course.avg_rating || course.rating) || 0,
               enrolled_count: Array.isArray(course.enrolled_students) ? course.enrolled_students.length : (course.enrolled_count || 0),
@@ -813,7 +813,7 @@ const SearchResults = ({ initialQuery = "" }) => {
         <div className="grid grid-cols-2 gap-6">
           <div className="relative aspect-video">
             <Image
-              src={course.thumbnail_url || course.thumbnail || "/assets/images/placeholder-course.jpg"}
+              src={course.thumbnail_url || course.thumbnail || "/fallback-course-image.jpg"}
               alt={course.title || 'Course Preview'}
               fill
               className="rounded-lg object-cover"
@@ -1242,7 +1242,7 @@ const SearchResults = ({ initialQuery = "" }) => {
                   {item.rating > 0 && (
                     <span className="flex items-center">
                       <ThumbsUp size={12} className="mr-1" />
-                      {item.rating.toFixed(1)}
+                      {(item.rating && !isNaN(item.rating)) ? item.rating.toFixed(1) : '0.0'}
                     </span>
                   )}
                   {item.completion_rate > 0 && (

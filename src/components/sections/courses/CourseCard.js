@@ -1125,4 +1125,23 @@ if (typeof document !== 'undefined') {
   document.head.appendChild(style);
 }
 
+// Add a safe rating display function
+const safeRatingDisplay = (rating) => {
+  // Check if rating exists and is a number
+  if (rating === undefined || rating === null) {
+    return '0.0';
+  }
+  
+  // Try to parse the rating as a number if it's not already
+  const ratingNumber = typeof rating === 'number' ? rating : parseFloat(rating);
+  
+  // Check if parsing was successful
+  if (isNaN(ratingNumber)) {
+    return '0.0';
+  }
+  
+  // Return formatted rating
+  return ratingNumber.toFixed(1);
+};
+
 export default CourseCard;
