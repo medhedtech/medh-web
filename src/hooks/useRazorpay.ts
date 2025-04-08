@@ -82,6 +82,8 @@ export interface CreateOrderPayload {
   plan_id?: string;
   plan_name?: string;
   duration_months?: number;
+  original_currency?: string;
+  price_id?: string;
 }
 
 export interface OrderResponse {
@@ -430,7 +432,19 @@ export const useRazorpay = (): UseRazorpayReturn => {
     try {
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
       
-      const response = await axios.post(`${apiBaseUrl}/api/v1/payments/create-order`, payload, {
+      // Add original currency and price information if available
+      const enhancedPayload = {
+        ...payload,
+        // Make sure we include any original currency information
+        original_currency: payload.original_currency || payload.currency,
+        // Don't convert the amount unless explicitly requested
+        currency: payload.currency || 'INR',
+        // Add metadata to help with debugging
+        source: 'web',
+        version: process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0'
+      };
+      
+      const response = await axios.post(`${apiBaseUrl}/api/v1/payments/create-order`, enhancedPayload, {
         headers: {
           'Content-Type': 'application/json',
           ...(token && { Authorization: `Bearer ${token}` })
@@ -708,7 +722,7 @@ export const useRazorpay = (): UseRazorpayReturn => {
       // 1. Fetch Razorpay key
       const key = await fetchRazorpayKey();
       
-      // 2. Create order
+      // 2. Create order - this should maintain the original currency
       const order = await createOrder(payload);
       
       // 3. Get user details if authenticated
@@ -733,11 +747,11 @@ export const useRazorpay = (): UseRazorpayReturn => {
         });
       };
       
-      // 5. Configure Razorpay options
+      // 5. Configure Razorpay options with original currency
       const options: RazorpayOptions = {
         key,
         amount: order.amount.toString(),
-        currency: order.currency,
+        currency: order.currency, // Use the currency from the order
         name: 'MEDH Learning Platform',
         description: payload.productInfo.description,
         order_id: order.id,
@@ -750,6 +764,14 @@ export const useRazorpay = (): UseRazorpayReturn => {
             setIsLoading(false);
             errorCallback && errorCallback('Payment cancelled');
           }
+        },
+        notes: {
+          payment_type: payload.payment_type,
+          ...(payload.course_id && { course_id: payload.course_id }),
+          ...(payload.enrollment_type && { enrollment_type: payload.enrollment_type }),
+          ...(payload.price_id && { price_id: payload.price_id }),
+          original_currency: payload.original_currency || payload.currency,
+          _source: 'web'
         }
       };
       
