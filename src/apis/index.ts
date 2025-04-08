@@ -1,10 +1,12 @@
 // api.tsx
 
+// Define apiBaseUrl at the very top to avoid initialization issues
+export const apiBaseUrl: string = process.env.NEXT_PUBLIC_API_URL || 'https://api.medh.app';
+
 import { IUpdateCourseData } from '@/types/course.types';
 import * as courseAPI from './course/course';
 import { MdHomeFilled } from 'react-icons/md';
 
-export const apiBaseUrl: string = process.env.NEXT_PUBLIC_API_URL as string; // live instance URL
 // export const apiBaseUrl = "http://localhost:8080/api/v1"; // local URL
 
 /**
@@ -918,6 +920,12 @@ export const apiUrls = {
         });
       }
       return `${apiBaseUrl}/home-display/fields?${queryParams.toString()}`;
+    },
+    getAllHomeDisplaysWithPrices: `${apiBaseUrl}/home-display/prices`,
+    bulkUpdateHomeDisplayPrices: `${apiBaseUrl}/home-display/prices/bulk-update`,
+    getHomeDisplayPrices: (id: string): string => {
+      if (!id) throw new Error('Home Display ID is required');
+      return `${apiBaseUrl}/home-display/${id}/prices`;
     }
   },
   currencies: {
@@ -1179,3 +1187,7 @@ export interface IBlogUpdateInput extends Partial<IBlogCreateInput> {
 export interface IBlogCommentInput {
   content: string;
 }
+
+export * from './courses';
+export * from './blog.api';
+export * from './apiClient';

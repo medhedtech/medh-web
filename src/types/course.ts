@@ -11,6 +11,10 @@ export interface Course {
   meta: {
     views: number;
   };
+  enrolledStudents: number;
+  lastUpdated: string;
+  category: string;
+  tags: string[];
 }
 
 export interface CurriculumItem {
