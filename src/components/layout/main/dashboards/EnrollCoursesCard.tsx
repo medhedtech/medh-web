@@ -26,50 +26,45 @@ interface CompletionCriteria {
 }
 
 interface EnrollCoursesCardProps {
-  title?: string;
-  image?: string;
-  isLive?: boolean;
-  progress?: number;
-  lastAccessed?: string;
-  status?: 'completed' | 'in_progress' | 'not_started';
-  onClick?: () => void;
-  isHovered?: boolean;
+  title: string;
+  image: string;
+  progress: number;
+  lastAccessed: string;
+  status: 'completed' | 'in_progress' | 'not_started';
+  onClick: () => void;
+  isHovered: boolean;
   paymentStatus?: string;
   remainingTime?: string;
-  completionCriteria?: CompletionCriteria;
+  completionCriteria?: {
+    required_progress: number;
+    required_assignments: boolean;
+    required_quizzes: boolean;
+  };
   completedLessons?: string[];
   totalLessons?: number;
   enrollmentType?: string;
-  learningPath?: string;
-  batchSize?: number;
-  completedAssignments?: string[];
-  completedQuizzes?: string[];
-  is_certified?: boolean;
-  notes?: any[];
-  bookmarks?: any[];
-  assignment_submissions?: any[];
-  quiz_submissions?: any[];
   courseId?: string;
-  typeIcon?: ReactNode;
+  typeIcon?: React.ReactNode;
+  is_certified?: boolean;
 }
 
-const EnrollCoursesCard: React.FC<EnrollCoursesCardProps> = ({ 
-  title = "Untitled Course", 
-  image, 
-  isLive, 
-  progress = 0, 
-  lastAccessed, 
-  status = 'not_started', 
+const EnrollCoursesCard: React.FC<EnrollCoursesCardProps> = ({
+  title,
+  image,
+  progress,
+  lastAccessed,
+  status,
   onClick,
-  paymentStatus = 'completed',
-  remainingTime = 'No limit',
+  isHovered,
+  paymentStatus,
+  remainingTime,
   completionCriteria,
   completedLessons = [],
   totalLessons = 0,
-  enrollmentType = 'Self-paced',
+  enrollmentType = 'Individual',
   courseId,
   typeIcon,
-  is_certified
+  is_certified = false
 }) => {
   const router = useRouter();
   const displayImage = image || AiMl;
@@ -118,34 +113,10 @@ const EnrollCoursesCard: React.FC<EnrollCoursesCardProps> = ({
     }
   };
 
-  // Custom status display component
-  const StatusBadge = () => {
-    if (status === 'completed') {
-      return (
-        <div className="absolute top-4 right-4 z-10 flex items-center gap-2 bg-gradient-to-r from-green-500/80 to-emerald-600/80 backdrop-blur-md px-3 py-1.5 rounded-full text-white text-xs font-medium">
-          <CheckCircle className="w-3.5 h-3.5" />
-          <span>Completed</span>
-        </div>
-      );
-    } else if (status === 'in_progress') {
-      return (
-        <div className="absolute top-4 right-4 z-10 flex items-center gap-2 bg-gradient-to-r from-blue-500/80 to-indigo-600/80 backdrop-blur-md px-3 py-1.5 rounded-full text-white text-xs font-medium">
-          <div className="relative">
-            <div className="w-1.5 h-1.5 rounded-full bg-white absolute animate-ping"></div>
-            <div className="w-1.5 h-1.5 rounded-full bg-white relative"></div>
-          </div>
-          <span>In Progress</span>
-        </div>
-      );
-    } else {
-      return (
-        <div className="absolute top-4 right-4 z-10 flex items-center gap-2 bg-gradient-to-r from-gray-600/80 to-gray-700/80 backdrop-blur-md px-3 py-1.5 rounded-full text-white text-xs font-medium">
-          <PlayCircle className="w-3.5 h-3.5" />
-          <span>Not Started</span>
-        </div>
-      );
-    }
-  };
+  // Format the enrollment type for display
+  const formattedEnrollmentType = enrollmentType === 'batch' ? 'Batch' : 
+                                 enrollmentType === 'individual' ? 'Individual' : 
+                                 enrollmentType;
 
   return (
     <motion.div
@@ -180,23 +151,51 @@ const EnrollCoursesCard: React.FC<EnrollCoursesCardProps> = ({
         {/* Image overlay with gradient */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/10 transition-opacity duration-300 group-hover:opacity-80" />
         
-        <StatusBadge />
-
-        {/* Live/Enrollment Type Badge */}
-        <div className="absolute top-4 left-4 z-10">
-          {isLive ? (
-            <div className="px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-md bg-gradient-to-r from-red-500/80 to-rose-600/80 text-white flex items-center gap-2">
-              <span className="w-1.5 h-1.5 bg-white rounded-full animate-ping absolute"></span>
-              <span className="w-1.5 h-1.5 bg-white rounded-full relative"></span>
-              <span>LIVE</span>
-            </div>
-          ) : (
-            <div className="px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-md bg-gradient-to-r from-gray-900/90 to-gray-800/90 text-white border border-white/10 flex items-center gap-2 shadow-sm">
-              {typeIcon || <BookOpen className="w-3 h-3" />}
-              <span>{enrollmentType}</span>
-            </div>
-          )}
+        {/* Enrollment Type Badge */}
+        <div className="absolute top-3 right-3 z-10">
+          <div className="flex items-center bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-medium text-gray-700 dark:text-gray-300 shadow-sm">
+            {typeIcon || <Zap className="w-3 h-3 mr-1" />}
+            <span>{formattedEnrollmentType}</span>
+          </div>
         </div>
+
+        {/* Status Badge */}
+        <div className="absolute top-3 left-3 z-10">
+          <div className={`flex items-center px-2 py-1 rounded-full text-xs font-medium shadow-sm ${
+            status === 'completed' 
+              ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
+              : status === 'in_progress' 
+                ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' 
+                : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400'
+          }`}>
+            {status === 'completed' ? (
+              <>
+                <CheckCircle className="w-3 h-3 mr-1" />
+                <span>Completed</span>
+              </>
+            ) : status === 'in_progress' ? (
+              <>
+                <Clock className="w-3 h-3 mr-1" />
+                <span>In Progress</span>
+              </>
+            ) : (
+              <>
+                <PlayCircle className="w-3 h-3 mr-1" />
+                <span>Not Started</span>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Certification Badge */}
+        {is_certified && (
+          <div className="absolute bottom-3 right-3 z-10">
+            <div className="flex items-center bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 px-2 py-1 rounded-full text-xs font-medium shadow-sm">
+              <Award className="w-3 h-3 mr-1" />
+              <span>Certified</span>
+            </div>
+          </div>
+        )}
 
         {/* Course Title on Image */}
         <div className="absolute bottom-0 left-0 right-0 p-6 transform transition-transform duration-300 group-hover:translate-y-[-4px]">
