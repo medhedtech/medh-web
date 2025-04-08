@@ -707,13 +707,13 @@ const CoursesFilter = ({
         skipCache: true,
         requireAuth: false,
         onSuccess: (response) => {
-          // Check if we have a valid response
-          if (!response || !response.success) {
+          // Check if we have a valid response with the new structure
+          if (!response || !response.success || !response.data) {
             throw new Error('Invalid API response');
           }
 
-          // Get the courses array from the response
-          const courses = response.courses;
+          // Get the courses array from the new response structure
+          const courses = response.data.courses;
           
           if (!Array.isArray(courses)) {
             throw new Error('Invalid courses data format');
@@ -732,19 +732,36 @@ const CoursesFilter = ({
           setAllCourses(processedCourses);
           setFilteredCourses(processedCourses);
 
-          // Handle pagination from the response
-          if (response.pagination) {
-            setTotalPages(response.pagination.totalPages || 1);
-            setTotalItems(response.pagination.totalCourses || 0);
+          // Handle pagination from the new response structure
+          if (response.data.pagination) {
+            setTotalPages(response.data.pagination.totalPages || 1);
+            setTotalItems(response.data.pagination.total || 0);
           } else {
             setTotalPages(1);
             setTotalItems(processedCourses.length);
           }
 
-          // Handle facets/categories if needed
-          if (response.facets?.categories) {
+          // Handle facets if available
+          if (response.data.facets) {
             // Store categories for filtering if needed
-            console.debug('Categories facets:', response.facets.categories);
+            if (response.data.facets.categories) {
+              console.debug('Categories facets:', response.data.facets.categories);
+            }
+            
+            // Store category types if available
+            if (response.data.facets.categoryTypes) {
+              console.debug('Category types facets:', response.data.facets.categoryTypes);
+            }
+            
+            // Store class types if available
+            if (response.data.facets.classTypes) {
+              console.debug('Class types facets:', response.data.facets.classTypes);
+            }
+            
+            // Store price ranges if available
+            if (response.data.facets.priceRanges) {
+              console.debug('Price ranges facets:', response.data.facets.priceRanges);
+            }
           }
 
           if (scrollToTop && typeof window !== 'undefined') {
