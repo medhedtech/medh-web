@@ -18,8 +18,19 @@ import 'react-phone-input-2/lib/high-res.css';
 import Link from "next/link";
 import { parsePhoneNumber, isValidPhoneNumber, formatPhoneNumber as formatPhoneNumberIntl } from 'libphonenumber-js';
 
+interface PhoneNumberFormat {
+  international: string;
+  national: string;
+  e164: string;
+  rfc3966: string;
+  significant: string;
+  countryCode: string;
+  country: string;
+  type: string;
+}
+
 // Enhanced phone number validation using libphonenumber-js
-const validatePhoneNumber = (phoneNumber, countryCode) => {
+const validatePhoneNumber = (phoneNumber: string, countryCode?: string): boolean => {
   if (!phoneNumber) return false;
   
   try {
@@ -41,7 +52,7 @@ const validatePhoneNumber = (phoneNumber, countryCode) => {
 };
 
 // Format phone number for display and storage
-const formatPhoneNumber = (phoneNumber, countryCode) => {
+const formatPhoneNumber = (phoneNumber: string, countryCode?: string): string | PhoneNumberFormat => {
   if (!phoneNumber) return '';
   
   try {
@@ -68,6 +79,19 @@ const formatPhoneNumber = (phoneNumber, countryCode) => {
     return phoneNumber;
   }
 };
+
+interface FormInputs {
+  full_name: string;
+  email: string;
+  password: string;
+  agree_terms: boolean;
+  role: string[];
+  age_group: string;
+  status: string;
+  meta: {
+    gender: string;
+  };
+}
 
 const schema = yup
   .object({
@@ -98,29 +122,8 @@ const schema = yup
     meta: yup.object({
       gender: yup.string()
         .oneOf(["Male", "Female", "Others"])
-        .default("Male"),
-      upload_resume: yup.array()
-        .of(yup.string())
-        .default([])
-    }).default(() => ({
-      gender: "Male",
-      age_group: "18-24",
-      upload_resume: []
-    })),
-    phone_numbers: yup.array()
-      .of(yup.object({
-        country: yup.string().required("Country code is required"),
-        number: yup.string()
-          .required("Phone number is required")
-          .matches(
-            /^\+?[1-9]\d{1,14}$/,
-            "Phone number must be in international E.164 format"
-          )
-      }))
-      .min(1, "At least one phone number is required")
-      .required(),
-    recaptcha: yup.string()
-      .required("Please verify that you are human")
+        .required("Gender is required")
+    })
   })
   .required();
 
@@ -637,14 +640,13 @@ const SignUpForm = () => {
                       value={selectedAgeGroup}
                       className="w-full px-4 py-2.5 bg-gray-50/50 dark:bg-gray-700/30 rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-11 appearance-none"
                     >
-                      <option value="4-6">4 - 6 Years</option>
-                      <option value="7-9">7 - 9 Years</option>
-                      <option value="10-12">10 - 12 Years</option>
-                      <option value="13-15">13 - 15 Years</option>
-                      <option value="16-18">16 - 18 Years</option>
-                      <option value="19-24">19 - 24 Years</option>
-                      <option value="25+">25+ Years</option>
-
+                      <option value="Under 18">Under 18</option>
+                      <option value="18-24">18-24</option>
+                      <option value="25-34">25-34</option>
+                      <option value="35-44">35-44</option>
+                      <option value="45-54">45-54</option>
+                      <option value="55-64">55-64</option>
+                      <option value="65+">65+</option>
                     </select>
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <UserCircle className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 dark:text-gray-500" />
