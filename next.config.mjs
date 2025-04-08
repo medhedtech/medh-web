@@ -52,16 +52,7 @@ const nextConfig = {
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     unoptimized: true,
   },
-  experimental: {
-    optimizeCss: true,
-    turbo: {
-      // Example: adding an alias and custom file extension
-        resolveAlias: {
-          underscore: 'lodash',
-        },
-        resolveExtensions: ['.mdx', '.tsx', '.ts', '.jsx', '.js', '.json'],
-      },
-  },
+  // Removed experimental features that might cause issues
   webpack: (config, { dev, isServer }) => {
     if (!dev && !isServer) {
       // Optimize production builds
@@ -88,8 +79,6 @@ const nextConfig = {
         },
       };
     }
-
-    // Removed compression plugin that was causing issues
 
     return config;
   },
