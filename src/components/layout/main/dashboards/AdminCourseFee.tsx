@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Fragment, useRef, useMemo } from 'react';
-import { Search, RefreshCw, Save, Filter, DollarSign, Percent, X as XIcon, ChevronDown, ChevronUp, Edit, Check, AlertCircle, Trash, Plus, ArrowUp, ArrowDown } from 'lucide-react';
+import { Search, RefreshCw, Save, Filter, DollarSign, Percent, X as XIcon, ChevronDown, ChevronUp, Edit, Check, AlertCircle, Trash, Plus, ArrowUp, ArrowDown, Trash2, Edit2 } from 'lucide-react';
 import axios from 'axios';
 import { 
   getAllCoursesWithLimits, 
@@ -13,7 +13,7 @@ import {
   PriceDetails, 
   BulkPriceUpdatePayload, 
   CoursePriceResponse,
-  BulkPriceUpdateResponse,
+  BulkPriceUpdateResponse, 
   ErrorResponse
 } from '@/types/api-responses';
 import { LucideIcon } from 'lucide-react';
@@ -885,7 +885,7 @@ const CurrencyRateEditor: React.FC<{
   return (
     <Card className="mb-6">
       <CardHeader 
-        title="Currency Conversion Rates" 
+        title="Bulk Add Course Pricing with Currency" 
         subtitle="Define exchange rates for different currencies (Base: USD)" 
       />
       <div className="p-6">
@@ -2413,22 +2413,39 @@ const AdminCourseFee: React.FC = () => {
 // Add home display pricing interfaces and components
 interface HomeDisplayPricingItem {
   currency: string;
-  price: string;
-  discountPrice?: string;
-  discountPercentage?: number;
+  prices: {
+    individual: string;
+    batch: string;
+  };
+  discounts: {
+    earlyBird: string;
+    group: string;
+  };
+  batchSize: {
+    min: number;
+    max: number;
+  };
   status: string;
 }
 
 interface HomeDisplayItem {
-  displayId: string;
-  displayTitle: string;
-  displayType?: string;
+  id: string;
+  title: string;
+  category: string;
+  classType: string;
+  display_order: number;
+  is_active: boolean;
   pricing: HomeDisplayPricingItem[];
 }
 
 interface HomeDisplayPricingListResponse {
   success: boolean;
   count: number;
+  filters: {
+    categories: string[];
+    types: string[];
+    currencies: string[];
+  };
   data: HomeDisplayItem[];
   message?: string;
 }
@@ -2436,7 +2453,10 @@ interface HomeDisplayPricingListResponse {
 interface HomeDisplayPrice {
   id: string;
   title: string;
-  type?: string;
+  category: string;
+  classType: string;
+  display_order: number;
+  is_active: boolean;
   selected: boolean;
   prices: HomeDisplayPricingItem[];
   isEditing: boolean;
@@ -2445,13 +2465,213 @@ interface HomeDisplayPrice {
 
 interface HomeDisplayFilterParams {
   status?: string;
-  displayType?: string;
+  category?: string;
+  classType?: string;
   search?: string;
   display_id?: string;
   pricing_status?: string;
   has_pricing?: string;
   currency?: string;
 }
+
+// Add ExpandedRowContent component interface
+interface ExpandedRowContentProps {
+  item: HomeDisplayPrice;
+  onPriceChange: (index: number, price: HomeDisplayPricingItem, displayId: string) => void;
+  onAddPrice: () => void;
+  onRemovePrice: (index: number, displayId: string) => void;
+  currencyRates: CurrencyRates;
+}
+
+// Add ExpandedRowContent component
+const ExpandedRowContent: React.FC<ExpandedRowContentProps> = ({
+  item,
+  onPriceChange,
+  onAddPrice,
+  onRemovePrice,
+  currencyRates
+}) => {
+  return (
+    <div className="space-y-4">
+      {item.isEditing ? (
+        <>
+          {item.editedPrices?.map((price, index) => (
+            <div key={index} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Currency
+                </label>
+                <Select
+                  value={price.currency}
+                  onChange={(value) => onPriceChange(index, { ...price, currency: value }, item.id)}
+                  options={Object.entries(currencyRates).map(([code, currency]) => ({
+                    value: code,
+                    label: `${code} (${currency.symbol})`
+                  }))}
+                  disabled={!item.isEditing}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Individual Price
+                </label>
+                <Input
+                  value={price.prices.individual}
+                  onChange={(value) => onPriceChange(index, { 
+                    ...price, 
+                    prices: { ...price.prices, individual: value }
+                  }, item.id)}
+                  placeholder="Enter individual price"
+                  type="number"
+                  disabled={!item.isEditing}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Batch Price
+                </label>
+                <Input
+                  value={price.prices.batch}
+                  onChange={(value) => onPriceChange(index, { 
+                    ...price, 
+                    prices: { ...price.prices, batch: value }
+                  }, item.id)}
+                  placeholder="Enter batch price"
+                  type="number"
+                  disabled={!item.isEditing}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Batch Size
+                </label>
+                <div className="flex space-x-2">
+                  <Input
+                    value={price.batchSize.min.toString()}
+                    onChange={(value) => onPriceChange(index, { 
+                      ...price, 
+                      batchSize: { ...price.batchSize, min: parseInt(value) || 0 }
+                    }, item.id)}
+                    placeholder="Min"
+                    type="number"
+                    disabled={!item.isEditing}
+                  />
+                  <Input
+                    value={price.batchSize.max.toString()}
+                    onChange={(value) => onPriceChange(index, { 
+                      ...price, 
+                      batchSize: { ...price.batchSize, max: parseInt(value) || 0 }
+                    }, item.id)}
+                    placeholder="Max"
+                    type="number"
+                    disabled={!item.isEditing}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Early Bird Discount (%)
+                </label>
+                <Input
+                  value={price.discounts.earlyBird}
+                  onChange={(value) => onPriceChange(index, { 
+                    ...price, 
+                    discounts: { ...price.discounts, earlyBird: value }
+                  }, item.id)}
+                  placeholder="Enter early bird discount"
+                  type="number"
+                  disabled={!item.isEditing}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Group Discount (%)
+                </label>
+                <Input
+                  value={price.discounts.group}
+                  onChange={(value) => onPriceChange(index, { 
+                    ...price, 
+                    discounts: { ...price.discounts, group: value }
+                  }, item.id)}
+                  placeholder="Enter group discount"
+                  type="number"
+                  disabled={!item.isEditing}
+                />
+              </div>
+
+              {item.isEditing && (
+                <div className="flex items-end">
+                  <Button
+                    onClick={() => onRemovePrice(index, item.id)}
+                    variant="danger"
+                    icon={Trash2}
+                  >
+                    Remove
+                  </Button>
+                </div>
+              )}
+            </div>
+          ))}
+          <div className="flex justify-end mt-4">
+            <Button
+              onClick={onAddPrice}
+              variant="default"
+              icon={Plus}
+            >
+              Add Price Option
+            </Button>
+          </div>
+        </>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {item.prices.map((price, index) => (
+            <div key={index} className="p-4 border border-gray-200 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-lg font-medium">
+                  {currencyRates[price.currency]?.symbol || price.currency}
+                </span>
+                <span className="text-sm text-gray-500">{price.currency}</span>
+              </div>
+              <div className="space-y-2">
+                <div>
+                  <span className="text-sm text-gray-500">Individual:</span>
+                  <span className="ml-2 font-medium">
+                    {currencyRates[price.currency]?.symbol || ''}{price.prices.individual}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-500">Batch:</span>
+                  <span className="ml-2 font-medium">
+                    {currencyRates[price.currency]?.symbol || ''}{price.prices.batch}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-500">Batch Size:</span>
+                  <span className="ml-2 font-medium">
+                    {price.batchSize.min} - {price.batchSize.max}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-500">Early Bird Discount:</span>
+                  <span className="ml-2 font-medium">{price.discounts.earlyBird}%</span>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-500">Group Discount:</span>
+                  <span className="ml-2 font-medium">{price.discounts.group}%</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const HomeDisplayPricing = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -2463,6 +2683,7 @@ const HomeDisplayPricing = () => {
     USD: { symbol: '$', name: 'US Dollar', rate: 1 },
     INR: { symbol: '₹', name: 'Indian Rupee', rate: 84.47 }
   });
+  const [selectedCurrencyForBulk, setSelectedCurrencyForBulk] = useState<string>('');
   const [expandedRows, setExpandedRows] = useState<ExpandedRows>({});
   const [selectedAll, setSelectedAll] = useState(false);
   const [sortState, setSortState] = useState<SortState>({ field: 'title', direction: null });
@@ -2479,6 +2700,20 @@ const HomeDisplayPricing = () => {
   const [filterParams, setFilterParams] = useState<HomeDisplayFilterParams>({
     status: 'Published'
   });
+
+  // Toast helper function
+  const showToast = (message: string, type: 'success' | 'error' | 'info') => {
+    setToastState({
+      visible: true,
+      message,
+      type
+    });
+    
+    // Auto-hide toast after 3 seconds
+    setTimeout(() => {
+      setToastState(prev => ({ ...prev, visible: false }));
+    }, 3000);
+  };
 
   // Add currency rates editor state
   const [isEditingRates, setIsEditingRates] = useState(false);
@@ -2582,20 +2817,25 @@ const HomeDisplayPricing = () => {
       if (data.success) {
         // Transform the data for our UI
         const displayItemsWithUI = data.data.map(item => ({
-          id: item.displayId,
-          title: item.displayTitle,
-          type: item.displayType || 'Default',
+          id: item.id,
+          title: item.title,
+          category: item.category,
+          classType: item.classType,
+          display_order: item.display_order,
+          is_active: item.is_active,
           selected: false,
-          prices: item.pricing || [],
+          prices: item.pricing || [], // Map pricing array to prices
           isEditing: false
         }));
 
         setDisplayItems(displayItemsWithUI);
         setFilteredDisplayItems(displayItemsWithUI);
         
-        // Extract display types from data
-        const types = Array.from(new Set(data.data.map(item => item.displayType || 'Default')));
-        setDisplayTypes(types);
+        // Update filters from API response
+        if (data.filters) {
+          setDisplayTypes(data.filters.types || []);
+          setCurrencies(data.filters.currencies || []);
+        }
       } else {
         showToast(data.message || 'Failed to fetch home display items', 'error');
       }
@@ -2632,7 +2872,7 @@ const HomeDisplayPricing = () => {
         return;
       }
 
-      // Helper function for price updates - adding missing function
+      // Helper function for price updates
       const applyPriceUpdate = (currentPrice: number, updateType: string, value: number): number => {
         switch (updateType) {
           case 'fixed':
@@ -2654,20 +2894,18 @@ const HomeDisplayPricing = () => {
       const updatedDisplayItems = selectedItems.map(item => {
         const updatedPrices = item.prices.map(price => {
           if (!bulkConfig.currency || price.currency === bulkConfig.currency) {
-            const currentPrice = parseFloat(price.price) || 0;
-            const updatedPrice = applyPriceUpdate(currentPrice, bulkConfig.type, parseFloat(bulkConfig.value) || 0);
+            const currentIndividualPrice = parseFloat(price.prices.individual) || 0;
+            const currentBatchPrice = parseFloat(price.prices.batch) || 0;
             
-            // If discount price exists, also update it
-            let updatedDiscountPrice = undefined;
-            if (price.discountPrice) {
-              const currentDiscountPrice = parseFloat(price.discountPrice) || 0;
-              updatedDiscountPrice = applyPriceUpdate(currentDiscountPrice, bulkConfig.type, parseFloat(bulkConfig.value) || 0);
-            }
+            const updatedIndividualPrice = applyPriceUpdate(currentIndividualPrice, bulkConfig.type, parseFloat(bulkConfig.value) || 0);
+            const updatedBatchPrice = applyPriceUpdate(currentBatchPrice, bulkConfig.type, parseFloat(bulkConfig.value) || 0);
 
             return {
               ...price,
-              price: updatedPrice.toFixed(2),
-              discountPrice: updatedDiscountPrice ? updatedDiscountPrice.toFixed(2) : price.discountPrice
+              prices: {
+                individual: updatedIndividualPrice.toFixed(2),
+                batch: updatedBatchPrice.toFixed(2)
+              }
             };
           }
           return price;
@@ -2809,7 +3047,22 @@ const HomeDisplayPricing = () => {
       prev.map(item => {
         if (item.id === displayId && item.editedPrices) {
           const newPrices = [...item.editedPrices];
-          newPrices[priceIndex] = updatedPrice;
+          newPrices[priceIndex] = {
+            ...updatedPrice,
+            prices: {
+              individual: updatedPrice.prices.individual,
+              batch: updatedPrice.prices.batch
+            },
+            discounts: {
+              earlyBird: updatedPrice.discounts.earlyBird,
+              group: updatedPrice.discounts.group
+            },
+            batchSize: {
+              min: updatedPrice.batchSize.min,
+              max: updatedPrice.batchSize.max
+            },
+            status: updatedPrice.status
+          };
           return {
             ...item,
             editedPrices: newPrices
@@ -2833,8 +3086,19 @@ const HomeDisplayPricing = () => {
           
           const newPrice: HomeDisplayPricingItem = {
             currency: availableCurrency,
-            price: '0.00',
-            status: 'active'
+            prices: {
+              individual: '0.00',
+              batch: '0.00'
+            },
+            discounts: {
+              earlyBird: 'N/A',
+              group: 'N/A'
+            },
+            batchSize: {
+              min: 2,
+              max: 10
+            },
+            status: 'Active'
           };
           
           return {
@@ -2862,20 +3126,6 @@ const HomeDisplayPricing = () => {
         return item;
       })
     );
-  };
-
-  // Show toast notification
-  const showToast = (message: string, type: 'success' | 'error' | 'info') => {
-    setToastState({
-      visible: true,
-      message,
-      type
-    });
-    
-    // Auto-hide toast after 3 seconds
-    setTimeout(() => {
-      setToastState(prev => ({ ...prev, visible: false }));
-    }, 3000);
   };
 
   useEffect(() => {
@@ -2931,8 +3181,8 @@ const HomeDisplayPricing = () => {
     
     setFilteredDisplayItems(prev => 
       [...prev].sort((a, b) => {
-        const aValue = field === 'title' ? a.title : a.type || '';
-        const bValue = field === 'title' ? b.title : b.type || '';
+        const aValue = field === 'title' ? a.title : a.category || '';
+        const bValue = field === 'title' ? b.title : b.category || '';
         return direction === 'asc' 
           ? aValue.localeCompare(bValue)
           : bValue.localeCompare(aValue);
@@ -2987,7 +3237,18 @@ const HomeDisplayPricing = () => {
         // Create new price based on USD
         const newPrice: HomeDisplayPricingItem = {
           currency: currencyCode,
-          price: (parseFloat(usdPrice.price) * currencyRate.rate).toFixed(2),
+          prices: {
+            individual: (parseFloat(usdPrice.prices.individual) * currencyRate.rate).toFixed(2),
+            batch: (parseFloat(usdPrice.prices.batch) * currencyRate.rate).toFixed(2)
+          },
+          discounts: {
+            earlyBird: usdPrice.discounts.earlyBird,
+            group: usdPrice.discounts.group
+          },
+          batchSize: {
+            min: usdPrice.batchSize.min,
+            max: usdPrice.batchSize.max
+          },
           status: 'active'
         };
 
@@ -3034,28 +3295,20 @@ const HomeDisplayPricing = () => {
 
   // Add currency list display section
   const CurrencyList = () => (
-    <Card className="mb-6">
-      <CardHeader 
-        title="Available Currencies" 
-        subtitle="Current exchange rates for all supported currencies"
-      />
-      <div className="p-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {Object.entries(currencyRates).map(([code, currency]) => (
-            <div key={code} className="p-4 border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-medium text-lg">{code}</span>
-                <span className="text-2xl">{currency.symbol}</span>
-              </div>
-              <div className="text-sm text-gray-600">{currency.name}</div>
-              <div className="mt-2 text-sm font-medium">
-                1 USD = {currency.rate.toFixed(2)} {code}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </Card>
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      {Object.entries(currencyRates).map(([code, currency]) => (
+        <Card key={code} className="p-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="font-medium text-lg">{code}</span>
+            <span className="text-2xl">{currency.symbol}</span>
+          </div>
+          <div className="text-sm text-gray-600">{currency.name}</div>
+          <div className="mt-2 text-sm font-medium">
+            1 USD = {currency.rate.toFixed(2)} {code}
+          </div>
+        </Card>
+      ))}
+    </div>
   );
 
   // Add toggleRowExpansion function
@@ -3072,301 +3325,62 @@ const HomeDisplayPricing = () => {
       <CurrencyList />
 
       {/* Currency Rate Editor */}
-      <CurrencyRateEditor
-        rates={currencyRates}
-        onSave={handleCurrencyRateUpdate}
-        isLoading={isLoading}
-        onRefresh={fetchCurrencyRates}
-        onBulkAddCurrencyPricing={(currency) => handleBulkAddCurrencyPricing(currency)}
-      />
-
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Home Display Price Management</h1>
-        <div className="flex space-x-3">
-          <Button
-            onClick={() => {
-              fetchHomeDisplays();
-              fetchCurrencyRates();
-            }}
-            variant="default"
-            icon={RefreshCw}
-            disabled={isLoading}
-          >
-            Refresh
-          </Button>
-        </div>
-      </div>
-
-      {/* Filter Section */}
-      <Card className="mb-6">
+      <Card>
         <CardHeader
-          title="Filter Home Display Items"
-          subtitle="Filter the display items to update their prices"
+          title="Bulk Add Course Pricing with Currency"
+          subtitle="Update exchange rates and add new currencies"
         />
         <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Search
-              </label>
-              <div className="relative">
-                <Input
-                  value={filterParams.search || ''}
-                  onChange={(value) => handleFilterChange({ ...filterParams, search: value })}
-                  placeholder="Search display items..."
-                  className="pl-10"
-                />
-                <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+          <div className="space-y-4">
+            {Object.entries(currencyRates).map(([code, rate]) => (
+              <div key={code} className="flex items-center space-x-4">
+                <div className="w-24">
+                  <span className="font-medium">{code}</span>
+                </div>
+                <div className="flex-1">
+                  <Input
+                    value={rate.rate.toString()}
+                    onChange={(value) => {
+                      const newRates = { ...currencyRates };
+                      newRates[code] = { ...rate, rate: parseFloat(value) };
+                      handleCurrencyRateUpdate(newRates);
+                    }}
+                    type="number"
+                    placeholder="Exchange rate"
+                    disabled={isLoading}
+                  />
+                </div>
+                <div className="w-24 text-sm text-gray-500">
+                  {rate.symbol}
+                </div>
               </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Display Type
-              </label>
-              <Select
-                value={filterParams.displayType || ''}
-                onChange={(value) => handleFilterChange({ ...filterParams, displayType: value })}
-                options={displayTypes.map(type => ({ value: type, label: type }))}
-                placeholder="Select display type"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Currency
-              </label>
-              <Select
-                value={filterParams.currency || ''}
-                onChange={(value) => handleFilterChange({ ...filterParams, currency: value })}
-                options={Object.entries(currencyRates).map(([code, currency]) => ({
-                  value: code,
-                  label: `${code} (${currency.symbol})`
-                }))}
-                placeholder="Select currency"
-              />
-            </div>
+            ))}
           </div>
-        </div>
-      </Card>
-
-      {/* Bulk Update Section */}
-      <Card className="mb-6">
-        <CardHeader
-          title="Bulk Update Display Pricing"
-          subtitle={selectedAll ? 'Update pricing for all items' : `Update pricing for ${displayItems.filter(item => item.selected).length} selected items`}
-        />
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Update Type
-              </label>
-              <Select
-                value={bulkConfig.type}
-                onChange={(value) => setBulkConfig({ ...bulkConfig, type: value as BulkUpdateConfig['type'] })}
-                options={[
-                  { value: 'fixed', label: 'Set Fixed Amount' },
-                  { value: 'increase_percent', label: 'Increase by Percentage' },
-                  { value: 'decrease_percent', label: 'Decrease by Percentage' },
-                  { value: 'increase_amount', label: 'Increase by Amount' },
-                  { value: 'decrease_amount', label: 'Decrease by Amount' }
-                ]}
-                placeholder="Select update type"
-                disabled={!displayItems.some(item => item.selected)}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Value
-              </label>
-              <Input
-                value={bulkConfig.value}
-                onChange={(value) => setBulkConfig({ ...bulkConfig, value })}
-                type="number"
-                placeholder={bulkConfig.type.includes('percent') ? 'Enter percentage' : 'Enter amount'}
-                className="w-full"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Currency
-              </label>
-              <Select
-                value={bulkConfig.currency || ''}
-                onChange={(value) => setBulkConfig({ ...bulkConfig, currency: value })}
-                options={Object.entries(currencyRates).map(([code, currency]) => ({
-                  value: code,
-                  label: `${code} (${currency.symbol})`
-                }))}
-                placeholder="All Currencies"
-                disabled={!displayItems.some(item => item.selected)}
-              />
-            </div>
-
-            <div className="flex items-end">
+          
+          <div className="mt-6 border-t border-gray-200 pt-4">
+            <h4 className="text-base font-medium text-gray-900 mb-3">Bulk Add Display Item Pricing with Currency</h4>
+            <div className="flex items-end gap-4">
+              <div className="flex-grow">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Select Currency</label>
+                <Select
+                  value={selectedCurrencyForBulk}
+                  onChange={(value) => setSelectedCurrencyForBulk(value)}
+                  options={Object.entries(currencyRates).map(([code, currency]) => ({ value: code, label: `${code} (${currency.symbol})` }))}
+                  placeholder="Select currency"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  This will add pricing based on USD prices converted to the selected currency
+                </p>
+              </div>
               <Button
-                onClick={applyBulkUpdate}
+                onClick={() => handleBulkAddCurrencyPricing(selectedCurrencyForBulk)}
                 variant="success"
-                disabled={!displayItems.some(item => item.selected) || !bulkConfig.type || !bulkConfig.value}
-                className="w-full"
+                disabled={!selectedCurrencyForBulk || isLoading}
               >
-                Apply to Selected
+                Bulk Add Pricing
               </Button>
             </div>
           </div>
-        </div>
-      </Card>
-
-      {/* Display Items Table */}
-      <Card>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <input
-                    type="checkbox"
-                    checked={selectedAll}
-                    onChange={(e) => handleSelectAll(e.target.checked)}
-                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                  />
-                </th>
-                <th 
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                  onClick={() => handleSort('title')}
-                >
-                  <div className="flex items-center space-x-1">
-                    <span>Title</span>
-                    {sortState.field === 'title' && (
-                      sortState.direction === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />
-                    )}
-                  </div>
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Type
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredDisplayItems.map((item) => (
-                <Fragment key={item.id}>
-                  <tr className={expandedRows[item.id] ? 'bg-gray-50' : ''}>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <input
-                        type="checkbox"
-                        checked={item.selected}
-                        onChange={(e) => handleSelectItem(item.id, e.target.checked)}
-                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                      />
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center">
-                        <button
-                          onClick={() => toggleRowExpansion(item.id)}
-                          className="mr-2 text-gray-500 hover:text-gray-700"
-                        >
-                          {expandedRows[item.id] ? (
-                            <ChevronUp className="h-4 w-4" />
-                          ) : (
-                            <ChevronDown className="h-4 w-4" />
-                          )}
-                        </button>
-                        {item.title}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {item.type || 'Default'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex space-x-2">
-                        <Button
-                          onClick={() => toggleEditMode(item.id)}
-                          variant={item.isEditing ? 'success' : 'default'}
-                          icon={item.isEditing ? Check : Edit}
-                        >
-                          {item.isEditing ? 'Save' : 'Edit'}
-                        </Button>
-                        {item.isEditing && (
-                          <Button
-                            onClick={() => cancelEditing(item.id)}
-                            variant="danger"
-                            icon={XIcon}
-                          >
-                            Cancel
-                          </Button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                  {expandedRows[item.id] && (
-                    <tr>
-                      <td colSpan={4} className="px-6 py-4 bg-gray-50">
-                        <div className="space-y-4">
-                          {item.prices.map((price, index) => (
-                            <div key={index} className="flex items-center space-x-4">
-                              <div className="flex-1">
-                                <Input
-                                  value={price.price}
-                                  onChange={(value) => handlePriceChange(item.id, index, { ...price, price: value })}
-                                  placeholder="Enter price"
-                                  disabled={!item.isEditing}
-                                  type="number"
-                                />
-                              </div>
-                              <div className="flex-1">
-                                <Input
-                                  value={price.discountPrice || ''}
-                                  onChange={(value) => handlePriceChange(item.id, index, { ...price, discountPrice: value })}
-                                  placeholder="Enter discount price"
-                                  disabled={!item.isEditing}
-                                  type="number"
-                                />
-                              </div>
-                              <div className="w-32">
-                                <Select
-                                  value={price.currency}
-                                  onChange={(value) => handlePriceChange(item.id, index, { ...price, currency: value })}
-                                  options={Object.entries(currencyRates).map(([code, currency]) => ({
-                                    value: code,
-                                    label: `${code} (${currency.symbol})`
-                                  }))}
-                                  disabled={!item.isEditing}
-                                />
-                              </div>
-                              {item.isEditing && (
-                                <Button
-                                  onClick={() => handleRemovePriceOption(item.id, index)}
-                                  variant="danger"
-                                  icon={Trash}
-                                >
-                                  Remove
-                                </Button>
-                              )}
-                            </div>
-                          ))}
-                          {item.isEditing && (
-                            <Button
-                              onClick={() => handleAddPriceOption(item.id)}
-                              variant="default"
-                              icon={Plus}
-                            >
-                              Add Price Option
-                            </Button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </Fragment>
-              ))}
-            </tbody>
-          </table>
         </div>
       </Card>
 
