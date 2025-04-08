@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRazorpay } from '@/hooks/useRazorpay';
+import { isCurrencySupported } from '@/config/razorpay';
 
 /**
  * Props for the RazorpayCheckout component
@@ -31,6 +32,10 @@ interface RazorpayCheckoutProps {
   className?: string;
   /** Payment currency */
   currency?: string;
+  /** Original price in original currency (for display) */
+  originalPrice?: number;
+  /** Price ID when payment is for a course with specific pricing */
+  priceId?: string;
 }
 
 /**
@@ -50,7 +55,9 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
   onError,
   buttonText = 'Pay Now',
   className = 'payment-button',
-  currency = 'INR'
+  currency = 'INR',
+  originalPrice,
+  priceId
 }) => {
   const { processPayment, isLoading, error, resetError } = useRazorpay();
   const [hasError, setHasError] = useState<boolean>(false);
@@ -72,6 +79,14 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
     }
   }, [error, onError]);
 
+  // Validate currency on component mount
+  useEffect(() => {
+    // Check if the provided currency is supported
+    if (currency && !isCurrencySupported(currency)) {
+      console.warn(`Currency ${currency} is not supported by Razorpay, will use INR instead`);
+    }
+  }, [currency]);
+
   const handlePayment = async () => {
     try {
       setHasError(false);
@@ -84,16 +99,22 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
           : planName ? `Subscription plan: ${planName}` : 'Subscription Plan'
       };
 
+      // Ensure currency is supported or default to INR
+      const finalCurrency = isCurrencySupported(currency) ? currency : 'INR';
+
       // Create the payload
       const payload = {
         amount,
-        currency,
+        currency: finalCurrency,
         payment_type: paymentType,
         productInfo,
         ...(paymentType === 'course' && {
           course_id: courseId,
           enrollment_type: enrollmentType,
-          is_self_paced: isSelfPaced
+          is_self_paced: isSelfPaced,
+          price_id: priceId,
+          original_price: originalPrice,
+          original_currency: currency
         }),
         ...(paymentType === 'subscription' && {
           plan_id: planId,

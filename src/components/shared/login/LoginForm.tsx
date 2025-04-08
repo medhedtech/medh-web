@@ -20,6 +20,12 @@ import { useStorage } from "@/contexts/StorageContext";
 import FixedShadow from "../others/FixedShadow";
 import { events } from "@/utils/analytics";
 
+interface FormInputs {
+  email: string;
+  password: string;
+  agree_terms: boolean;
+}
+
 const schema = yup
   .object({
     email: yup.string().email("Please enter a valid email").required("Email is required"),
@@ -33,16 +39,19 @@ const schema = yup
   })
   .required();
 
-const LoginForm = () => {
+const LoginForm = (): JSX.Element => {
   const router = useRouter();
   const { postQuery, loading } = usePostQuery();
   const storageManager = useStorage();
-  const [showPassword, setShowPassword] = useState(false);
-  const [recaptchaValue, setRecaptchaValue] = useState(null);
-  const [recaptchaError, setRecaptchaError] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
-  const [prefilledValues, setPrefilledValues] = useState({
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [recaptchaValue, setRecaptchaValue] = useState<string | null>(null);
+  const [recaptchaError, setRecaptchaError] = useState<boolean>(false);
+  const [rememberMe, setRememberMe] = useState<boolean>(false);
+  const [isVisible, setIsVisible] = useState<boolean>(false);
+  const [prefilledValues, setPrefilledValues] = useState<{
+    email: string;
+    password: string;
+  }>({
     email: "",
     password: "",
   });
@@ -52,7 +61,7 @@ const LoginForm = () => {
     handleSubmit,
     setValue,
     formState: { errors },
-  } = useForm({
+  } = useForm<FormInputs>({
     resolver: yupResolver(schema),
     defaultValues: prefilledValues,
   });
@@ -83,17 +92,17 @@ const LoginForm = () => {
     setValue("password", prefilledValues.password);
   }, [prefilledValues, setValue]);
 
-  const handleRecaptchaChange = (value) => {
+  const handleRecaptchaChange = (value: string): void => {
     setRecaptchaValue(value);
     setRecaptchaError(false);
   };
 
   // Update onChange handler
-  const handleRememberMeChange = (e) => {
+  const handleRememberMeChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     setRememberMe(e.target.checked);
   };
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (data: FormInputs): Promise<void> => {
     if (!recaptchaValue) {
       setRecaptchaError(true);
       return;

@@ -1,3 +1,7 @@
+export type MaterialType = 'video' | 'document' | 'quiz' | 'assignment';
+export type CourseStatus = 'Draft' | 'Published' | 'Archived';
+export type CourseLevel = 'beginner' | 'intermediate' | 'advanced';
+
 export interface ICoursePrice {
   currency: string;
   individual: number;
@@ -28,12 +32,14 @@ export interface ILessonResource {
   description?: string;
 }
 
-export type MaterialType = 'pdf' | 'document' | 'presentation' | 'code' | 'other';
-
 export interface IMaterial {
   title: string;
   url: string;
   type: MaterialType;
+  description?: string;
+  size_mb?: number;
+  pages?: number;
+  upload_date?: string;
 }
 
 export type LessonType = 'video' | 'quiz' | 'assessment';
@@ -69,18 +75,12 @@ export type ILesson = IVideoLesson | IQuizLesson | IAssessmentLesson;
 export interface ISection {
   id: string;
   title: string;
-  description: string;
+  description?: string;
   order: number;
   lessons: ILesson[];
-  resources: {
-    title: string;
-    description: string;
-    fileUrl: string;
-    type: string;
-  }[];
 }
 
-export interface ICurriculumWeek {
+export interface ICourseWeek {
   id: string;
   weekNumber: number;
   weekTitle: string;
@@ -118,12 +118,7 @@ export interface ITool {
 export interface IBonusModule {
   title: string;
   description: string;
-  resources: {
-    title: string;
-    type: string;
-    url: string;
-    description: string;
-  }[];
+  resources: IMaterial[];
 }
 
 export interface ICourseDescription {
@@ -144,7 +139,7 @@ export interface ICourseFormData {
   course_duration: string;
   session_duration: string;
   course_description: ICourseDescription;
-  course_level: string;
+  course_level: CourseLevel;
   language: string;
   subtitle_languages: string[];
   course_fee: number;
@@ -157,7 +152,7 @@ export interface ICourseFormData {
   course_image: string;
   course_grade: string;
   resource_pdfs: IResourcePDF[];
-  curriculum: ICurriculumWeek[];
+  curriculum: ICourseWeek[];
   faqs: IFAQ[];
   tools_technologies: ITool[];
   bonus_modules: IBonusModule[];
@@ -212,9 +207,14 @@ export interface ICourseSection {
 }
 
 export interface ICourseMetadata {
-  last_updated: string;
-  version: string;
-  [key: string]: any;
+  views: number;
+  ratings: {
+    average: number;
+    count: number;
+  };
+  enrollments: number;
+  lastUpdated: string;
+  version?: string;
 }
 
 export interface IUpdateCourseData {
@@ -243,4 +243,65 @@ export interface IUpdateCourseData {
   status?: 'Draft' | 'Published' | 'Archived';
   sections?: ICourseSection[];
   metadata?: ICourseMetadata;
+}
+
+export interface ICourse {
+  id: string;
+  course_category: string;
+  course_subcategory?: string;
+  course_title: string;
+  course_subtitle?: string;
+  course_tag?: string;
+  no_of_Sessions: number;
+  course_duration: string;
+  session_duration: string;
+  course_description: ICourseDescription;
+  course_level: CourseLevel;
+  language: string;
+  subtitle_languages: string[];
+  course_fee: number;
+  prices: ICoursePrice[];
+  brochures: string[];
+  status: CourseStatus;
+  isFree: boolean;
+  assigned_instructor: string | null;
+  specifications?: string | null;
+  course_image: string;
+  course_grade: string;
+  curriculum: ICourseWeek[];
+  faqs: IFAQ[];
+  tools_technologies: ITool[];
+  bonus_modules: IBonusModule[];
+  efforts_per_Week: string;
+  class_type: string;
+  is_Certification: string;
+  is_Assignments: string;
+  is_Projects: string;
+  is_Quizes: string;
+  related_courses: string[];
+  min_hours_per_week: number;
+  max_hours_per_week: number;
+  category_type: string;
+  unique_key?: string;
+  slug?: string;
+  meta: ICourseMetadata;
+}
+
+export interface ICourseFilters {
+  certification?: boolean;
+  assignments?: boolean;
+  projects?: boolean;
+  quizzes?: boolean;
+  effortPerWeek?: {
+    min: number;
+    max: number;
+  };
+  noOfSessions?: number;
+  features?: string[];
+  tools?: string[];
+  dateRange?: {
+    start: string;
+    end: string;
+  };
+  isFree?: boolean;
 } 
