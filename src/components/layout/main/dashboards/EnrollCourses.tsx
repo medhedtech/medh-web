@@ -38,6 +38,46 @@ interface Enrollment {
     required_assignments: boolean;
     required_quizzes: boolean;
   };
+  is_certified?: boolean;
+  enrollment_status?: string;
+}
+
+// New interface for the API response
+interface PaymentResponse {
+  success: boolean;
+  data: PaymentData[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+}
+
+interface PaymentData {
+  id: string;
+  orderId: string;
+  type: string;
+  course: string;
+  courseImage: string;
+  price: {
+    amount: number;
+    currency: string;
+  };
+  expiryDate?: string;
+  paymentType?: string;
+  status?: string;
+  enrollmentStatus?: string;
+  enrollmentDate?: string;
+  progress?: number;
+  isCertified?: boolean;
+  course_id?: {
+    _id: string;
+    course_title: string;
+    course_image: string;
+  };
 }
 
 // Helper function to get the auth token
@@ -49,8 +89,8 @@ const getAuthToken = (): string | null => {
 };
 
 // Helper function to calculate remaining time
-const calculateRemainingTime = (expiryDate?: string): string | null => {
-  if (!expiryDate) return null;
+const calculateRemainingTime = (expiryDate?: string): string | undefined => {
+  if (!expiryDate) return undefined;
   const now = new Date();
   const expiry = new Date(expiryDate);
   const diffTime = expiry.getTime() - now.getTime();
@@ -74,11 +114,12 @@ const EnrollCourses = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const { getQuery } = useGetQuery();
-  const [retryCount, setRetryCount] = useState({});
+  const [retryCount, setRetryCount] = useState<Record<string, number>>({});
   const MAX_RETRIES = 3;
   const RETRY_DELAY = 1000; // 1 second
-  const [abortController, setAbortController] = useState(null);
-  const [invalidCourses, setInvalidCourses] = useState([]);
+  const [abortController, setAbortController] = useState<AbortController | null>(null);
+  const [invalidCourses, setInvalidCourses] = useState<string[]>([]);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -144,11 +185,8 @@ const EnrollCourses = () => {
       // Make the API call using getQuery or axios directly if needed
       const courseResponse = await getQuery({ 
         url: courseApiUrl,
-        method: 'GET',
-        headers,
-        signal: controller.signal,
-        validateStatus: (status: number) => {
-          return status === 200; // Only treat 200 as success
+        config: {
+          signal: controller.signal
         }
       });
       
@@ -159,7 +197,7 @@ const EnrollCourses = () => {
       }
       
       // Extract course data, checking both possible response formats
-      const courseData = courseResponse?.data || courseResponse?.course;
+      const courseData = courseResponse?.data || courseResponse;
       
       if (!courseData || !courseData._id) {
         console.warn(`Invalid course data structure received for course ID: ${courseId}`, courseData);
@@ -224,74 +262,73 @@ const EnrollCourses = () => {
       
       await getQuery({
         url: paymentApiUrl,
-        headers,
-        validateStatus: (status: number) => status === 200,
         onSuccess: async (response: any) => {
-          if (!response?.success || !response?.data?.enrollments) {
+          // Check if response is an array directly
+          const paymentData = Array.isArray(response) ? response : 
+                            (response?.data && Array.isArray(response.data)) ? response.data : 
+                            null;
+          
+          if (!paymentData) {
             console.warn('Invalid enrollment response structure:', response);
             setError("Unable to load enrollment data. Please try again later.");
             setLoading(false);
             return;
           }
 
-          // First collect all course IDs for batch fetching
-          const courseIds = response.data.enrollments
-            .filter((enrollment: any) => enrollment.course_id)
-            .map((enrollment: any) => enrollment.course_id);
-          
-          console.log(`Found ${courseIds.length} course IDs to fetch details for`);
-          
-          // Create a map to store course details by ID
-          const courseDetailsMap: Record<string, any> = {};
-
-          // Fetch course details in batches
-          for (const courseId of courseIds) {
-            try {
-              const courseData = await fetchCourseWithRetry(courseId, null, headers);
-              if (courseData) {
-                courseDetailsMap[courseId] = courseData;
-              }
-            } catch (error) {
-              console.error(`Error fetching course ${courseId}:`, error);
+          // Process the API response format
+          const enrollmentsData = paymentData.map((payment: PaymentData) => {
+            // Determine completion status based on progress
+            const progress = payment.progress || 0;
+            const completionStatus: 'completed' | 'in_progress' | 'not_started' = 
+              progress === 100 ? 'completed' : 
+              (progress > 0) ? 'in_progress' : 'not_started';
+            
+            // Calculate remaining time if expiry date exists
+            const remainingTime = payment.expiryDate ? calculateRemainingTime(payment.expiryDate) : undefined;
+            
+            // Handle cases where course_id might be null
+            const courseId = payment.course_id?._id || payment.id;
+            const courseTitle = payment.course_id?.course_title || payment.course || "Untitled Course";
+            const courseImage = payment.course_id?.course_image || payment.courseImage || "";
+            
+            // Check if enrollment is active
+            const isActive = payment.enrollmentStatus === 'active';
+            
+            // If enrollment is not active or course_id is null, add to invalid courses
+            if (!isActive || !payment.course_id) {
+              setInvalidCourses(prev => [...prev, payment.id]);
             }
-          }
-
-          // Map enrollments with course details
-          const enrollmentsData = response.data.enrollments
-            .filter((enrollment: any) => enrollment.course_id)
-            .map((enrollment: any) => {
-              const courseDetails = courseDetailsMap[enrollment.course_id] || {};
-              
-              return {
-                _id: enrollment._id,
-                course_id: enrollment.course_id,
-                course_title: courseDetails.course_title || enrollment.course_title || "Untitled Course",
-                course_image: courseDetails.course_image || enrollment.course_image || "",
-                course_description: courseDetails.course_description || enrollment.course_description || "",
-                progress: enrollment.progress || 0,
-                last_accessed: enrollment.last_accessed || enrollment.updatedAt,
-                completion_status: enrollment.is_completed ? 'completed' : 
-                  (enrollment.progress > 0 || enrollment.completed_lessons?.length > 0) ? 'in_progress' : 'not_started',
-                payment_status: enrollment.payment_status,
-                expiry_date: enrollment.expiry_date,
-                remaining_time: calculateRemainingTime(enrollment.expiry_date),
-                enrollment_type: enrollment.enrollment_type || 'Self-Paced',
-                is_self_paced: enrollment.is_self_paced,
-                completed_lessons: enrollment.completed_lessons || [],
-                lessons: courseDetails.curriculum || courseDetails.lessons || enrollment.lessons || [],
-                completion_criteria: enrollment.completion_criteria || {
-                  required_progress: 100,
-                  required_assignments: true,
-                  required_quizzes: true
-                }
-              };
-            });
+            
+            return {
+              _id: payment.id,
+              course_id: courseId,
+              course_title: courseTitle,
+              course_image: courseImage,
+              progress: progress,
+              last_accessed: payment.enrollmentDate || new Date().toISOString(),
+              completion_status: completionStatus,
+              payment_status: payment.status || 'completed',
+              expiry_date: payment.expiryDate,
+              remaining_time: remainingTime,
+              enrollment_type: payment.paymentType === 'batch' ? 'Batch' : 'Individual',
+              is_self_paced: true, // Assuming all courses are self-paced for now
+              completed_lessons: [], // This would need to be fetched separately
+              lessons: [], // This would need to be fetched separately
+              completion_criteria: {
+                required_progress: 100,
+                required_assignments: true,
+                required_quizzes: true
+              },
+              is_certified: payment.isCertified || false,
+              enrollment_status: payment.enrollmentStatus || 'active'
+            };
+          });
           
-          console.log('Processed enrollments with course details:', enrollmentsData);
+          console.log('Processed enrollments with new format:', enrollmentsData);
           setEnrollments(enrollmentsData);
           setLoading(false);
         },
-        onError: (error: any) => {
+        onFail: (error: any) => {
           console.error('Error fetching enrollments:', {
             status: error.response?.status,
             message: error.message,
@@ -303,6 +340,10 @@ const EnrollCourses = () => {
           } else if (error?.response?.status === 404) {
             setEnrollments([]); // No enrollments found for the student
             setError(null); 
+          } else if (error?.response?.status === 500) {
+            setError("Server error. Please try again later.");
+          } else if (error?.response?.status === 503) {
+            setError("Service temporarily unavailable. Please try again later.");
           } else {
             setError("Failed to load enrolled courses. Please try again later.");
           }
@@ -313,6 +354,15 @@ const EnrollCourses = () => {
       console.error("Unexpected error in fetchEnrolledCourses:", error);
       setError("An unexpected error occurred. Please try again later.");
       setLoading(false);
+    }
+  };
+
+  // Function to refresh courses
+  const handleRefresh = async () => {
+    if (studentId) {
+      setRefreshing(true);
+      await fetchEnrolledCourses(studentId);
+      setRefreshing(false);
     }
   };
 
@@ -343,6 +393,8 @@ const EnrollCourses = () => {
     
     switch (type.toLowerCase()) {
       case 'live': return <Zap className="w-3 h-3 mr-1" />;
+      case 'batch': return <Users className="w-3 h-3 mr-1" />;
+      case 'individual': return <Video className="w-3 h-3 mr-1" />;
       default: return <Zap className="w-3 h-3 mr-1" />;
     }
   };
@@ -391,7 +443,28 @@ const EnrollCourses = () => {
             />
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           </motion.div>
-          {/* Removed View All Button */}
+          
+          {/* Refresh Button */}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleRefresh}
+            disabled={refreshing || loading}
+            className="ml-3 p-3 rounded-full bg-white dark:bg-gray-800/80 backdrop-blur-sm shadow-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label="Refresh courses"
+          >
+            <motion.div
+              animate={{ rotate: refreshing ? 360 : 0 }}
+              transition={{ duration: refreshing ? 1 : 0, repeat: refreshing ? Infinity : 0, ease: "linear" }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 2v6h-6"></path>
+                <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
+                <path d="M3 22v-6h6"></path>
+                <path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path>
+              </svg>
+            </motion.div>
+          </motion.button>
         </div>
 
         {/* Error Message */}
@@ -403,6 +476,17 @@ const EnrollCourses = () => {
           >
             <AlertCircle className="w-5 h-5 flex-shrink-0" />
             <p className="text-sm font-medium flex-grow">{error}</p>
+            <button 
+              onClick={handleRefresh}
+              className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 2v6h-6"></path>
+                <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
+                <path d="M3 22v-6h6"></path>
+                <path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path>
+              </svg>
+            </button>
           </motion.div>
         )}
 
@@ -522,6 +606,7 @@ const EnrollCourses = () => {
                           enrollmentType={course.enrollment_type}
                           courseId={course.course_id}
                           typeIcon={getTypeIcon(course.enrollment_type)}
+                          is_certified={course.is_certified}
                         />
                       </motion.div>
                     </SwiperSlide>
@@ -547,7 +632,7 @@ const EnrollCourses = () => {
             animate={{ opacity: 1 }}
             className="mt-6 text-center text-xs text-gray-500 dark:text-gray-400"
           >
-            Note: {invalidCourses.length} course(s) could not be loaded due to missing data.
+            Note: {invalidCourses.length} course(s) could not be loaded due to missing data or inactive enrollment status.
           </motion.div>
         )}
       </motion.div>
