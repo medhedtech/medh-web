@@ -24,7 +24,8 @@ import {
   Check,
   Banknote,
   ArrowRight,
-  Heart
+  Heart,
+  Lock
 } from 'lucide-react';
 import Image from 'next/image';
 import { toast } from 'react-hot-toast';
@@ -59,6 +60,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
   const [openAccordions, setOpenAccordions] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   
   // Refs for component structure - we don't use these for scrolling anymore
   const aboutRef = useRef(null);
@@ -217,6 +219,17 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
       setActiveSection(initialActiveSection);
     }
   }, [initialActiveSection]);
+
+  // Check login status
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      const userId = localStorage.getItem('userId');
+      const user = localStorage.getItem('user') || localStorage.getItem('userData');
+      
+      setIsLoggedIn(!!token && (!!userId || !!user));
+    }
+  }, []);
 
   const toggleAccordion = (index) => {
     setOpenAccordions(openAccordions === index ? null : index);
@@ -883,26 +896,38 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
                   </h3>
                   <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
                     {hasBrochure() 
-                      ? "Get detailed information about curriculum, instructors, career opportunities, and more."
+                      ? isLoggedIn 
+                        ? "Get detailed information about curriculum, instructors, career opportunities, and more."
+                        : "Please login to download the course brochure."
                       : "Brochure for this course is currently being prepared. Please check back soon."}
                   </p>
                 </div>
                 
                 <div className="w-full sm:w-1/4 flex justify-center">
-                  <motion.button
-                    onClick={openModal}
-                    className={`flex items-center px-5 sm:px-6 py-2.5 sm:py-3 ${
-                      hasBrochure() 
-                        ? `bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-500 to-${getCategoryColorClasses().primaryColor}-600 hover:from-${getCategoryColorClasses().primaryColor}-600 hover:to-${getCategoryColorClasses().primaryColor}-700` 
-                        : "bg-gray-300 dark:bg-gray-600 cursor-not-allowed"
-                    } text-white font-medium rounded-lg transition-all duration-300 shadow-md w-full sm:w-auto`}
-                    whileHover={hasBrochure() ? { scale: 1.05 } : {}}
-                    whileTap={hasBrochure() ? { scale: 0.95 } : {}}
-                    disabled={!hasBrochure()}
-                  >
-                    <DownloadIcon size={18} className="mr-2 text-white" />
-                    {hasBrochure() ? "Download" : "Coming Soon"}
-                  </motion.button>
+                  {isLoggedIn ? (
+                    <motion.button
+                      onClick={openModal}
+                      className={`flex items-center px-5 sm:px-6 py-2.5 sm:py-3 ${
+                        hasBrochure() 
+                          ? `bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-500 to-${getCategoryColorClasses().primaryColor}-600 hover:from-${getCategoryColorClasses().primaryColor}-600 hover:to-${getCategoryColorClasses().primaryColor}-700` 
+                          : "bg-gray-300 dark:bg-gray-600 cursor-not-allowed"
+                      } text-white font-medium rounded-lg transition-all duration-300 shadow-md w-full sm:w-auto`}
+                      whileHover={hasBrochure() ? { scale: 1.05 } : {}}
+                      whileTap={hasBrochure() ? { scale: 0.95 } : {}}
+                      disabled={!hasBrochure()}
+                    >
+                      <DownloadIcon size={18} className="mr-2 text-white" />
+                      {hasBrochure() ? "Download" : "Coming Soon"}
+                    </motion.button>
+                  ) : (
+                    <Link 
+                      href="/login"
+                      className={`flex items-center px-5 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-500 to-${getCategoryColorClasses().primaryColor}-600 hover:from-${getCategoryColorClasses().primaryColor}-600 hover:to-${getCategoryColorClasses().primaryColor}-700 text-white font-medium rounded-lg transition-all duration-300 shadow-md w-full sm:w-auto`}
+                    >
+                      <Lock size={18} className="mr-2 text-white" />
+                      Login to Download
+                    </Link>
+                  )}
                 </div>
               </div>
             </motion.div>

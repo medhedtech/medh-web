@@ -1,4 +1,12 @@
-const TabButtonPrimary = ({
+interface TabButtonPrimaryProps {
+  name: string;
+  handleTabClick: (idx: number) => void;
+  idx: number;
+  currentIdx: number;
+  button?: string;
+}
+
+const TabButtonPrimary: React.FC<TabButtonPrimaryProps> = ({
   name,
   handleTabClick,
   idx,

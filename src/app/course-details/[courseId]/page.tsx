@@ -85,6 +85,9 @@ interface ProcessedCourse {
   status: string;
   isFree: boolean;
   hasFullDetails: boolean;
+  classType?: string;
+  class_type?: string;
+  course_type?: string;
   prices?: {
     currency: string;
     individual: number;
@@ -337,6 +340,7 @@ const CourseView: React.FC = () => {
                             course_description: course.course_description,
                             course_fee: course.course_fee,
                             curriculum: course.curriculum,
+                            classType: course.classType || course.class_type || course.course_type,
                             meta: {
                               views: 0 // Add default views if needed
                             },
