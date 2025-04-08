@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Fragment, useRef, useMemo } from 'react';
-import { Search, RefreshCw, Save, Filter, DollarSign, Percent, X as XIcon, ChevronDown, ChevronUp, Edit, Check, AlertCircle } from 'lucide-react';
+import { Search, RefreshCw, Save, Filter, DollarSign, Percent, X as XIcon, ChevronDown, ChevronUp, Edit, Check, AlertCircle, Trash, Plus, ArrowUp, ArrowDown } from 'lucide-react';
 import axios from 'axios';
 import { 
   getAllCoursesWithLimits, 
@@ -23,7 +23,7 @@ import {
   updateCurrency, 
   getCurrencyByCountryCode 
 } from '@/apis/currency/currency';
-import { apiUrls } from '@/apis';
+import { apiUrls, apiBaseUrl } from '@/apis/index';
 
 // First, update the PriceFilterParams interface to include currency
 interface PriceFilterParams {
@@ -103,6 +103,129 @@ interface SortState {
   field: 'title' | 'category';
   direction: SortDirection;
 }
+
+// Add missing interfaces at the top of the file
+interface ICurrency {
+  _id: string;
+  country: string;
+  countryCode: string;
+  valueWrtUSD: number;
+  symbol: string;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+interface ICreateCurrencyInput {
+  country: string;
+  countryCode: string;
+  valueWrtUSD: number;
+  symbol: string;
+}
+
+// Shared Components
+const Card = ({ children, className = '' }: { children: React.ReactNode, className?: string }) => (
+  <div className={`bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden ${className}`}>
+    {children}
+  </div>
+);
+
+const CardHeader = ({ title, subtitle }: { title: string, subtitle?: string }) => (
+  <div className="px-6 py-4 border-b border-gray-200">
+    <h3 className="text-lg font-medium text-gray-900">{title}</h3>
+    {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
+  </div>
+);
+
+const Button = ({ 
+  onClick, 
+  variant = 'default', 
+  icon: Icon, 
+  children, 
+  disabled = false,
+  className = ''
+}: { 
+  onClick: () => void, 
+  variant?: 'default' | 'primary' | 'success' | 'danger', 
+  icon?: LucideIcon, 
+  children: React.ReactNode,
+  disabled?: boolean,
+  className?: string
+}) => {
+  const baseStyles = "inline-flex items-center px-4 py-2 border rounded-md shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors";
+  const variantStyles = {
+    default: "border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:ring-indigo-500",
+    primary: "border-transparent bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500",
+    success: "border-transparent bg-green-600 text-white hover:bg-green-700 focus:ring-green-500",
+    danger: "border-transparent bg-red-600 text-white hover:bg-red-700 focus:ring-red-500"
+  };
+
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`${baseStyles} ${variantStyles[variant]} ${className}`}
+    >
+      {Icon && <Icon className="w-4 h-4 mr-2" />}
+      {children}
+    </button>
+  );
+};
+
+const Input = ({ 
+  value, 
+  onChange, 
+  placeholder = '', 
+  type = 'text',
+  className = '',
+  disabled = false
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  type?: string;
+  className?: string;
+  disabled?: boolean;
+}) => (
+  <input
+    type={type}
+    value={value}
+    onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
+    placeholder={placeholder}
+    disabled={disabled}
+    className={`block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${className} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+  />
+);
+
+const Select = ({
+  value,
+  onChange,
+  options,
+  placeholder = 'Select an option',
+  className = '',
+  disabled = false
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  options: { value: string; label: string }[];
+  placeholder?: string;
+  className?: string;
+  disabled?: boolean;
+}) => (
+  <select
+    value={value}
+    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onChange(e.target.value)}
+    disabled={disabled}
+    className={`block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${className} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+  >
+    <option value="">{placeholder}</option>
+    {options.map(option => (
+      <option key={option.value} value={option.value}>
+        {option.label}
+      </option>
+    ))}
+  </select>
+);
 
 const CourseFeeFilter: React.FC<CourseFeeFilterProps> = ({ 
   onFilterChange, 
@@ -193,220 +316,131 @@ const CourseFeeFilter: React.FC<CourseFeeFilterProps> = ({
   }, []);
 
   return (
-    <div className="bg-white mb-6 rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-        <div>
-          <h3 className="text-lg font-medium text-gray-900">Filter Courses</h3>
-          <p className="text-sm text-gray-500">Filter the courses to update their prices</p>
-        </div>
-        <div className="flex items-center space-x-3">
-          <button 
-            onClick={() => setAdvancedSearch(!advancedSearch)}
-            className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
-          >
-            {advancedSearch ? 'Simple Search' : 'Advanced Search'}
-            {advancedSearch ? <ChevronUp className="ml-1 h-4 w-4" /> : <ChevronDown className="ml-1 h-4 w-4" />}
-          </button>
-          <button
-            onClick={resetFilters}
-            className="text-sm text-gray-600 hover:text-gray-800 flex items-center border border-gray-200 rounded px-2 py-1"
-          >
-            <RefreshCw className="mr-1 h-3 w-3" />
-            Reset
-          </button>
-        </div>
-      </div>
-      <div className="px-6 py-4">
+    <Card className="mb-6">
+      <CardHeader 
+        title="Filter Courses" 
+        subtitle="Filter the courses to update their prices" 
+      />
+      <div className="p-6">
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Status</label>
-              <select 
-                value={status} 
-                onChange={(e) => {
-                  setStatus(e.target.value);
-                  // Auto-apply when status changes
-                  setTimeout(() => applyFilters(), 0);
-                }}
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-customGreen focus:border-customGreen sm:text-sm rounded-md"
-              >
-                <option value="">All Statuses</option>
-                <option value="Published">Published</option>
-                <option value="Draft">Draft</option>
-                <option value="Archived">Archived</option>
-                <option value="Upcoming">Upcoming</option>
-              </select>
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Category</label>
-              <select 
-                value={category} 
-                onChange={(e) => {
-                  setCategory(e.target.value);
-                  // Auto-apply when category changes
-                  setTimeout(() => applyFilters(), 0);
-                }}
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-customGreen focus:border-customGreen sm:text-sm rounded-md"
-              >
-                <option value="">All Categories</option>
-                {categories.map((cat) => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Course Type</label>
-              <select 
-                value={courseType} 
-                onChange={(e) => {
-                  setCourseType(e.target.value);
-                  setTimeout(() => applyFilters(), 0);
-                }}
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-customGreen focus:border-customGreen sm:text-sm rounded-md"
-              >
-                <option value="">All Types</option>
-                {classTypes.map((type) => (
-                  <option key={type} value={type}>{type}</option>
-                ))}
-              </select>
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Search by Title</label>
-              <div className="relative rounded-md shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  {isSearching ? (
-                    <RefreshCw className="h-4 w-4 text-gray-400 animate-spin" />
-                  ) : (
-                    <Search className="h-4 w-4 text-gray-400" />
-                  )}
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search courses..."
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Search
+              </label>
+              <div className="relative">
+                <Input
                   value={search}
-                  onChange={(e) => handleSearchChange(e.target.value)}
-                  className="focus:ring-customGreen focus:border-customGreen block w-full pl-10 py-2 sm:text-sm border-gray-300 rounded-md"
+                  onChange={handleSearchChange}
+                  placeholder="Search courses..."
+                  className="pl-10"
                 />
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Course Grade</label>
-              <select
-                value={courseGrade}
-                onChange={(e) => {
-                  setCourseGrade(e.target.value);
-                  setTimeout(() => applyFilters(), 0);
-                }}
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-customGreen focus:border-customGreen sm:text-sm rounded-md"
-              >
-                <option value="">All Grades</option>
-                <option value="Preschool">Preschool</option>
-                <option value="Grade 1-2">Grade 1-2</option>
-                <option value="Grade 3-4">Grade 3-4</option>
-                <option value="Grade 5-6">Grade 5-6</option>
-                <option value="Grade 7-8">Grade 7-8</option>
-                <option value="Grade 9-10">Grade 9-10</option>
-                <option value="Grade 11-12">Grade 11-12</option>
-                <option value="UG - Graduate - Professionals">Graduate/Professional</option>
-                <option value="Executive Diploma">Executive Diploma</option>
-                <option value="Professional Edge Diploma">Professional Edge Diploma</option>
-                <option value="All Grade">All Grades</option>
-              </select>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Category
+              </label>
+              <Select
+                value={category}
+                onChange={setCategory}
+                options={categories.map(cat => ({ value: cat, label: cat }))}
+                placeholder="Select category"
+              />
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Currency</label>
-              <select 
-                value={currency} 
-                onChange={(e) => {
-                  setCurrency(e.target.value);
-                  setTimeout(() => applyFilters(), 0);
-                }}
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-customGreen focus:border-customGreen sm:text-sm rounded-md"
-              >
-                <option value="">All Currencies</option>
-                {currencies.map((curr) => (
-                  <option key={curr} value={curr}>{curr} {curr === 'USD' ? '($)' : curr === 'INR' ? '(₹)' : ''}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Pricing Status</label>
-              <select 
-                value={pricingStatus} 
-                onChange={(e) => {
-                  setPricingStatus(e.target.value);
-                  setTimeout(() => applyFilters(), 0);
-                }}
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-customGreen focus:border-customGreen sm:text-sm rounded-md"
-              >
-                <option value="">All Statuses</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Pricing Availability</label>
-              <select 
-                value={hasPricing} 
-                onChange={(e) => {
-                  setHasPricing(e.target.value);
-                  setTimeout(() => applyFilters(), 0);
-                }}
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-customGreen focus:border-customGreen sm:text-sm rounded-md"
-              >
-                <option value="">All Courses</option>
-                <option value="yes">Has Pricing</option>
-                <option value="no">Missing Pricing</option>
-              </select>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Currency
+              </label>
+              <Select
+                value={currency}
+                onChange={setCurrency}
+                options={currencies.map(curr => ({ value: curr, label: curr }))}
+                placeholder="Select currency"
+              />
             </div>
           </div>
-          
+
           {advancedSearch && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 mt-2 border-t border-gray-100">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Course ID</label>
-                <input
-                  type="text"
-                  placeholder="Enter course ID"
-                  value={courseId}
-                  onChange={(e) => setCourseId(e.target.value)}
-                  className="focus:ring-customGreen focus:border-customGreen block w-full py-2 sm:text-sm border-gray-300 rounded-md"
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Course Type
+                </label>
+                <Select
+                  value={courseType}
+                  onChange={setCourseType}
+                  options={classTypes.map(type => ({ value: type, label: type }))}
+                  placeholder="Select course type"
                 />
               </div>
-              
-              <div className="flex items-end">
-                <button
-                  type="submit"
-                  className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-customGreen hover:bg-customGreen-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-customGreen"
-                >
-                  <Filter className="mr-2 h-4 w-4" />
-                  Apply Filters
-                </button>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Status
+                </label>
+                <Select
+                  value={status}
+                  onChange={setStatus}
+                  options={[
+                    { value: 'Published', label: 'Published' },
+                    { value: 'Draft', label: 'Draft' },
+                    { value: 'Archived', label: 'Archived' }
+                  ]}
+                  placeholder="Select status"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Pricing Status
+                </label>
+                <Select
+                  value={pricingStatus}
+                  onChange={setPricingStatus}
+                  options={[
+                    { value: 'active', label: 'Active' },
+                    { value: 'inactive', label: 'Inactive' }
+                  ]}
+                  placeholder="Select pricing status"
+                />
               </div>
             </div>
           )}
-          
-          {!advancedSearch && (
-            <div className="flex justify-end">
-              <button
-                type="submit"
-                className="inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-customGreen hover:bg-customGreen-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-customGreen"
+
+          <div className="flex justify-between items-center pt-4">
+            <Button
+              onClick={() => setAdvancedSearch(!advancedSearch)}
+              icon={Filter}
+              variant="default"
+            >
+              {advancedSearch ? 'Less Filters' : 'More Filters'}
+            </Button>
+
+            <div className="space-x-3">
+              <Button
+                onClick={resetFilters}
+                variant="default"
+                icon={RefreshCw}
               >
-                <Filter className="mr-2 h-4 w-4" />
+                Reset
+              </Button>
+              <Button
+                onClick={() => applyFilters()}
+                variant="primary"
+                icon={Search}
+                disabled={isSearching}
+              >
                 Apply Filters
-              </button>
+              </Button>
             </div>
-          )}
+          </div>
         </form>
       </div>
-    </div>
+    </Card>
   );
 };
 
@@ -426,32 +460,28 @@ const BulkUpdateSection: React.FC<{
   currencyRates 
 }) => {
   return (
-    <div className="bg-white mb-6 rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200">
-        <h3 className="text-lg font-medium text-gray-900">Bulk Update Course Pricing</h3>
-        <p className="text-sm text-gray-500">
-          {selectedCount > 0 
-            ? `Update pricing for ${selectedCount} selected courses` 
-            : 'Select courses to update their prices'}
-        </p>
-      </div>
-      <div className="px-6 py-4">
+    <Card className="mb-6">
+      <CardHeader 
+        title="Bulk Update Course Pricing" 
+        subtitle={`${selectedCount > 0 ? `Update pricing for ${selectedCount} selected courses` : 'Select courses to update their prices'}`}
+      />
+      <div className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700">Update Type</label>
-            <select 
-              value={bulkConfig.type} 
-              onChange={(e) => onBulkUpdateConfig({ type: e.target.value as BulkUpdateConfig['type'] })}
-              disabled={selectedCount === 0}
-              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-customGreen focus:border-customGreen sm:text-sm rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <option value="">Choose an update type</option>
-              <option value="fixed">Set Fixed Amount</option>
-              <option value="increase_percent">Increase by Percentage</option>
-              <option value="decrease_percent">Decrease by Percentage</option>
-              <option value="increase_amount">Increase by Amount</option>
-              <option value="decrease_amount">Decrease by Amount</option>
-            </select>
+            <Select
+              value={bulkConfig.type}
+              onChange={(value) => onBulkUpdateConfig({ type: value as BulkUpdateConfig['type'] })}
+              options={[
+                { value: '', label: 'Choose an update type' },
+                { value: 'fixed', label: 'Set Fixed Amount' },
+                { value: 'increase_percent', label: 'Increase by Percentage' },
+                { value: 'decrease_percent', label: 'Decrease by Percentage' },
+                { value: 'increase_amount', label: 'Increase by Amount' },
+                { value: 'decrease_amount', label: 'Decrease by Amount' }
+              ]}
+              placeholder="Select update type"
+            />
           </div>
           
           <div className="space-y-2">
@@ -479,46 +509,40 @@ const BulkUpdateSection: React.FC<{
           
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700">Price Type</label>
-            <select 
-              value={bulkConfig.priceType} 
-              onChange={(e) => onBulkUpdateConfig({ priceType: e.target.value as 'batch' | 'individual' | 'both' })}
-              disabled={selectedCount === 0 || !bulkConfig.type}
-              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-customGreen focus:border-customGreen sm:text-sm rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <option value="both">Both Batch & Individual</option>
-              <option value="batch">Only Batch Price</option>
-              <option value="individual">Only Individual Price</option>
-            </select>
+            <Select
+              value={bulkConfig.priceType}
+              onChange={(value) => onBulkUpdateConfig({ priceType: value as 'batch' | 'individual' | 'both' })}
+              options={[
+                { value: 'both', label: 'Both Batch & Individual' },
+                { value: 'batch', label: 'Only Batch Price' },
+                { value: 'individual', label: 'Only Individual Price' }
+              ]}
+              placeholder="Select price type"
+            />
           </div>
           
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700">Currency</label>
-            <select
+            <Select
               value={bulkConfig.currency || ''}
-              onChange={e => onBulkUpdateConfig({ currency: e.target.value === '' ? undefined : e.target.value })}
-              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-customGreen focus:border-customGreen sm:text-sm rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <option value="">All Currencies</option>
-              {Object.keys(currencyRates).map(code => (
-                <option key={code} value={code}>
-                  {code} ({currencyRates[code].symbol})
-                </option>
-              ))}
-            </select>
+              onChange={value => onBulkUpdateConfig({ currency: value === '' ? undefined : value })}
+              options={Object.entries(currencyRates).map(([code, currency]) => ({ value: code, label: `${code} (${currency.symbol})` }))}
+              placeholder="Select currency"
+            />
           </div>
           
           <div className="flex items-end">
-            <button
-              className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-customGreen hover:bg-customGreen-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-customGreen disabled:opacity-50 disabled:cursor-not-allowed"
+            <Button
               onClick={onApplyBulkUpdate}
+              variant="success"
               disabled={selectedCount === 0 || !bulkConfig.type || !bulkConfig.value}
             >
               Apply to Selected ({selectedCount})
-            </button>
+            </Button>
           </div>
         </div>
       </div>
-    </div>
+    </Card>
   );
 };
 
@@ -859,59 +883,12 @@ const CurrencyRateEditor: React.FC<{
   };
 
   return (
-    <div className="bg-white mb-6 rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-        <div>
-          <h3 className="text-lg font-medium text-gray-900">Currency Conversion Rates</h3>
-          <p className="text-sm text-gray-500">Define exchange rates for different currencies (Base: USD)</p>
-        </div>
-        <div className="flex space-x-2">
-          {isLoading && (
-            <div className="flex items-center text-sm text-gray-600">
-              <RefreshCw className="animate-spin h-4 w-4 mr-2" />
-              Loading...
-            </div>
-          )}
-          {isEditing ? (
-            <>
-              <button
-                onClick={handleSave}
-                className="px-3 py-2 bg-green-50 text-green-700 rounded-md text-sm font-medium hover:bg-green-100 transition-colors border border-green-200"
-                disabled={isLoading}
-              >
-                Save Changes
-              </button>
-              <button
-                onClick={handleCancel}
-                className="px-3 py-2 bg-gray-50 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-100 transition-colors border border-gray-200"
-                disabled={isLoading}
-              >
-                Cancel
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                onClick={() => setIsEditing(true)}
-                className="px-3 py-2 bg-blue-50 text-blue-700 rounded-md text-sm font-medium hover:bg-blue-100 transition-colors border border-blue-200"
-                disabled={isLoading}
-              >
-                Edit Rates
-              </button>
-              <button
-                onClick={onRefresh}
-                className="px-3 py-2 bg-gray-50 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-100 transition-colors border border-gray-200 flex items-center"
-                disabled={isLoading}
-              >
-                <RefreshCw className={`h-4 w-4 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
-                Refresh
-              </button>
-            </>
-          )}
-        </div>
-      </div>
-      
-      <div className="px-6 py-4">
+    <Card className="mb-6">
+      <CardHeader 
+        title="Currency Conversion Rates" 
+        subtitle="Define exchange rates for different currencies (Base: USD)" 
+      />
+      <div className="p-6">
         {isEditing ? (
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -1035,37 +1012,29 @@ const CurrencyRateEditor: React.FC<{
               <div className="flex items-end gap-4">
                 <div className="flex-grow">
                   <label className="block text-sm font-medium text-gray-700 mb-2">Select Currency</label>
-                  <select
+                  <Select
                     value={selectedCurrencyForBulk}
-                    onChange={(e) => setSelectedCurrencyForBulk(e.target.value)}
-                    className="w-full focus:ring-customGreen focus:border-customGreen block text-base border-gray-300 rounded-md"
-                  >
-                    <option value="">Select a currency</option>
-                    {Object.entries(rates)
-                      .filter(([code]) => code !== 'USD' && code !== 'INR') // Filter out USD and INR
-                      .map(([code, currency]) => (
-                        <option key={code} value={code}>
-                          {code} ({currency.symbol}) - {currency.name}
-                        </option>
-                      ))}
-                  </select>
+                    onChange={(value) => setSelectedCurrencyForBulk(value)}
+                    options={Object.entries(rates).map(([code, currency]) => ({ value: code, label: `${code} (${currency.symbol})` }))}
+                    placeholder="Select currency"
+                  />
                   <p className="mt-1 text-xs text-gray-500">
                     This will add pricing based on USD prices converted to the selected currency
                   </p>
                 </div>
-                <button
+                <Button
                   onClick={() => onBulkAddCurrencyPricing(selectedCurrencyForBulk)}
+                  variant="success"
                   disabled={!selectedCurrencyForBulk || isLoading}
-                  className="px-4 py-2.5 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Bulk Add Pricing
-                </button>
+                </Button>
               </div>
             </div>
           </>
         )}
       </div>
-    </div>
+    </Card>
   );
 };
 
@@ -1214,7 +1183,7 @@ const AdminCourseFee: React.FC = () => {
     setLoading(true);
     try {
       // Get the API URL based on filters
-      const url = `${process.env.NEXT_PUBLIC_API_URL}/courses/prices`;
+      const url = `${apiBaseUrl}/courses/prices`;
       
       // Prepare the parameters for the API request
       const params: Record<string, any> = {};
@@ -1246,11 +1215,6 @@ const AdminCourseFee: React.FC = () => {
         // Get the courses from the response
         const apiCourses = response.data.data;
         
-        // If we received no courses but have search filters, show a message
-        if (apiCourses.length === 0 && (filters.search || filters.course_id || filters.course_grade || filters.course_type || filters.courseCategory)) {
-          showToast('No courses found matching your search criteria. Try adjusting your filters.', 'error');
-        }
-        
         // Extract categories from API response if available
         const categories = Array.from(new Set(
           apiCourses
@@ -1260,7 +1224,8 @@ const AdminCourseFee: React.FC = () => {
         setCategories(categories.length > 0 ? categories : []);
         
         // Helper function to parse price string to number
-        const parsePriceString = (priceStr: string): number => {
+        const parsePriceString = (priceStr: string | number): number => {
+          if (typeof priceStr === 'number') return priceStr;
           // Remove currency symbols and any whitespace
           const cleanPrice = priceStr.replace(/[₹$€£\s]/g, '');
           // Convert to number
@@ -1271,18 +1236,15 @@ const AdminCourseFee: React.FC = () => {
         
         // Map the API response to our internal format
         const mappedCourses = apiCourses.map(course => {
-          // Extract category from title if not provided in course object
-          const category = course.courseCategory || course.courseTitle.split('|').find(detail => 
-            detail.toLowerCase().includes('category:')
-          )?.split(':')[1]?.trim() || '';
-          
           // Map pricing to our price details format
-          const prices: PriceDetails[] = course.pricing.map(price => ({
+          const validPrices: PriceDetails[] = course.pricing
+            .filter(price => price.currency !== 'Not specified' && price.prices.individual !== 'N/A')
+            .map(price => ({
             currency: price.currency,
             individual: parsePriceString(price.prices.individual),
             batch: parsePriceString(price.prices.batch),
-            min_batch_size: price.batchSize.min,
-            max_batch_size: price.batchSize.max,
+              min_batch_size: typeof price.batchSize.min === 'string' ? 2 : price.batchSize.min,
+              max_batch_size: typeof price.batchSize.max === 'string' ? 10 : price.batchSize.max,
             early_bird_discount: price.discounts.earlyBird === "N/A" ? 0 : parseFloat(price.discounts.earlyBird),
             group_discount: price.discounts.group === "N/A" ? 0 : parseFloat(price.discounts.group),
             is_active: price.status === "Active"
@@ -1291,9 +1253,9 @@ const AdminCourseFee: React.FC = () => {
           return {
             id: course.courseId,
             title: course.courseTitle,
-            category: course.courseCategory || '', // Use courseCategory here
+            category: course.courseCategory || '', 
             selected: false,
-            prices: prices,
+            prices: validPrices,
             isEditing: false
           };
         });
@@ -1620,6 +1582,143 @@ const AdminCourseFee: React.FC = () => {
     }
   };
   
+  // New function to apply psychology pricing (rounding to nearest 9)
+  const applyPsychologyPricing = (price: number): number => {
+    // Convert to integer for easier manipulation
+    const priceInt = Math.round(price);
+    
+    // Get the last two digits
+    const lastTwoDigits = priceInt % 100;
+    
+    // Check if the price is close to a number ending in 99
+    // If the last two digits are between 00-09 or 90-99, round to nearest 99
+    if (lastTwoDigits <= 9 || lastTwoDigits >= 90) {
+      // If last two digits are 00-09, round down to nearest 99
+      if (lastTwoDigits <= 9) {
+        return priceInt - lastTwoDigits - 1;
+      } 
+      // If last two digits are 90-99, round up to nearest 99
+      else {
+        return priceInt + (100 - lastTwoDigits) - 1;
+      }
+    }
+    
+    // For other cases, use the original logic for numbers ending in 9
+    const lastDigit = priceInt % 10;
+    
+    // If already ends with 9, return as is
+    if (lastDigit === 9) return priceInt;
+    
+    // Calculate the nearest number ending with 9
+    if (lastDigit < 9) {
+      // Round down to nearest 9
+      return priceInt - lastDigit + 9;
+    } else {
+      // Round up to nearest 9 (next ten - 1)
+      return priceInt + (10 - lastDigit) - 1;
+    }
+  };
+  
+  // Function to apply psychology pricing to all selected courses
+  const applyPsychologyPricingToSelected = async () => {
+    // Get selected courses
+    const selectedCourses = courses.filter(course => course.selected);
+    if (selectedCourses.length === 0) {
+      showToast('No courses selected', 'error');
+      return;
+    }
+    
+    setSaving('psychology-pricing');
+    
+    try {
+      // Create update payloads for each course
+      const bulkUpdates = selectedCourses.map(course => {
+        // Apply the psychology pricing to each price option
+        const updatedPrices = course.prices.map(price => {
+          // Create a copy of the price to modify
+          const updatedPrice = { ...price };
+          
+          // Apply psychology pricing to individual and batch prices
+          updatedPrice.individual = applyPsychologyPricing(updatedPrice.individual);
+          updatedPrice.batch = applyPsychologyPricing(updatedPrice.batch);
+          
+          return updatedPrice;
+        });
+        
+        // Convert to the API's expected format
+        const apiPricing = updatedPrices.map(price => ({
+          currency: price.currency,
+          individual: price.individual,
+          batch: price.batch,
+          min_batch_size: price.min_batch_size || 2,
+          max_batch_size: price.max_batch_size || 10,
+          early_bird_discount: price.early_bird_discount || 0,
+          group_discount: price.group_discount || 0,
+          is_active: price.is_active
+        }));
+        
+        return {
+          courseId: course.id,
+          prices: apiPricing
+        };
+      });
+      
+      // Call the API to update the prices
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/courses/prices/bulk-update`;
+      
+      // Get authentication token from localStorage
+      const token = localStorage.getItem('token');
+      
+      const response = await axios.post(url, {
+        updates: bulkUpdates
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.data && response.data.success) {
+        // Update the courses in state with the new prices
+        setCourses(courses.map(course => {
+          const selected = selectedCourses.find(c => c.id === course.id);
+          if (!selected) return course;
+          
+          // Find the updated pricing for this course
+          const update = bulkUpdates.find(u => u.courseId === course.id);
+          if (update) {
+            // Convert back to our internal format
+            const prices: PriceDetails[] = update.prices.map(price => ({
+              currency: price.currency,
+              individual: price.individual,
+              batch: price.batch,
+              min_batch_size: price.min_batch_size || 2,
+              max_batch_size: price.max_batch_size || 10,
+              early_bird_discount: price.early_bird_discount || 0,
+              group_discount: price.group_discount || 0,
+              is_active: price.is_active
+            }));
+            
+            return {
+              ...course,
+              prices
+            };
+          }
+          return course;
+        }));
+        
+        showToast(`Applied psychology pricing to ${selectedCourses.length} courses`, 'success');
+      } else {
+        showToast(response.data?.message || 'Failed to update pricing', 'error');
+      }
+    } catch (error) {
+      console.error('Error applying psychology pricing:', error);
+      showToast('Failed to apply psychology pricing. Please try again.', 'error');
+    } finally {
+      setSaving(null);
+    }
+  };
+  
   const selectedCount = courses.filter(course => course.selected).length;
   
   const handleAddFirstPriceOption = (courseId: string) => {
@@ -1702,7 +1801,7 @@ const AdminCourseFee: React.FC = () => {
         if (response.data.filters && Array.isArray(response.data.filters.categories)) {
           // Explicit filtering to ensure only strings
           const apiCategories = response.data.filters.categories
-            .filter((cat): cat is string => typeof cat === 'string');
+            .filter((cat: any): cat is string => typeof cat === 'string');
           setCategories(apiCategories);
         } else {
           // Extract category names from the courses data with strong typing
@@ -1867,17 +1966,16 @@ const AdminCourseFee: React.FC = () => {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Course Price Management</h1>
         <div className="flex space-x-3">
-          <button 
-            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-customGreen"
+          <Button
             onClick={() => {
               fetchCourses();
               fetchCategories(); // Refresh categories when refreshing courses
             }}
             disabled={loading}
           >
-            <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className="mr-2 h-4 w-4" />
             Refresh
-          </button>
+          </Button>
         </div>
       </div>
       
@@ -1905,6 +2003,36 @@ const AdminCourseFee: React.FC = () => {
         currencies={Object.keys(currencyRates)}
         currencyRates={currencyRates}
       />
+      
+      {/* Add Psychology Pricing Button */}
+      <div className="mb-6">
+        <Card>
+          <CardHeader
+            title="Psychology Pricing"
+            subtitle="Apply psychology pricing (rounding to nearest 9) to selected courses"
+          />
+          <div className="p-6">
+            <Button
+              onClick={applyPsychologyPricingToSelected}
+              variant="primary"
+              disabled={selectedCount === 0 || saving === 'psychology-pricing'}
+              className="w-full"
+            >
+              {saving === 'psychology-pricing' ? (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                  Applying Psychology Pricing...
+                </>
+              ) : (
+                <>
+                  <DollarSign className="mr-2 h-4 w-4" />
+                  Apply Psychology Pricing (120→119, 115209→115199)
+                </>
+              )}
+            </Button>
+          </div>
+        </Card>
+      </div>
       
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">
@@ -2228,6 +2356,12 @@ const AdminCourseFee: React.FC = () => {
               Adding currency pricing to courses...
             </div>
           )}
+          {saving === 'psychology-pricing' && (
+            <div className="flex items-center text-sm text-customGreen">
+              <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+              Applying psychology pricing...
+            </div>
+          )}
         </div>
       </div>
       
@@ -2243,4 +2377,1012 @@ const AdminCourseFee: React.FC = () => {
   );
 };
 
-export default AdminCourseFee; 
+// Add home display pricing interfaces and components
+interface HomeDisplayPricingItem {
+  currency: string;
+  price: string;
+  discountPrice?: string;
+  discountPercentage?: number;
+  status: string;
+}
+
+interface HomeDisplayItem {
+  displayId: string;
+  displayTitle: string;
+  displayType?: string;
+  pricing: HomeDisplayPricingItem[];
+}
+
+interface HomeDisplayPricingListResponse {
+  success: boolean;
+  count: number;
+  data: HomeDisplayItem[];
+  message?: string;
+}
+
+interface HomeDisplayPrice {
+  id: string;
+  title: string;
+  type?: string;
+  selected: boolean;
+  prices: HomeDisplayPricingItem[];
+  isEditing: boolean;
+  editedPrices?: HomeDisplayPricingItem[];
+}
+
+interface HomeDisplayFilterParams {
+  status?: string;
+  displayType?: string;
+  search?: string;
+  display_id?: string;
+  pricing_status?: string;
+  has_pricing?: string;
+  currency?: string;
+}
+
+const HomeDisplayPricing = () => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [displayItems, setDisplayItems] = useState<HomeDisplayPrice[]>([]);
+  const [filteredDisplayItems, setFilteredDisplayItems] = useState<HomeDisplayPrice[]>([]);
+  const [displayTypes, setDisplayTypes] = useState<string[]>([]);
+  const [currencies, setCurrencies] = useState<string[]>(["USD", "INR"]);
+  const [currencyRates, setCurrencyRates] = useState<CurrencyRates>({
+    USD: { symbol: '$', name: 'US Dollar', rate: 1 },
+    INR: { symbol: '₹', name: 'Indian Rupee', rate: 84.47 }
+  });
+  const [expandedRows, setExpandedRows] = useState<ExpandedRows>({});
+  const [selectedAll, setSelectedAll] = useState(false);
+  const [sortState, setSortState] = useState<SortState>({ field: 'title', direction: null });
+  const [bulkConfig, setBulkConfig] = useState<BulkUpdateConfig>({
+    type: '',
+    value: '',
+    priceType: 'both'
+  });
+  const [toastState, setToastState] = useState<{ visible: boolean, message: string, type: 'success' | 'error' | 'info' }>({
+    visible: false,
+    message: '',
+    type: 'info'
+  });
+  const [filterParams, setFilterParams] = useState<HomeDisplayFilterParams>({
+    status: 'Published'
+  });
+
+  // Add currency rates editor state
+  const [isEditingRates, setIsEditingRates] = useState(false);
+  const [editedRates, setEditedRates] = useState<CurrencyRates>(currencyRates);
+
+  // Update fetchCurrencyRates to use the same API as the main currency feature
+  const fetchCurrencyRates = async () => {
+    try {
+      setIsLoading(true);
+      const response = await getAllCurrencies();
+      
+      // Start with default rates to ensure we always have USD
+      const rates: CurrencyRates = {
+        USD: { symbol: "$", name: "US Dollar", rate: 1 }
+      };
+      
+      // Add all currencies from the API
+      response.forEach((currency) => {
+        if (currency.countryCode) {
+          rates[currency.countryCode] = {
+            symbol: currency.symbol,
+            name: currency.country,
+            rate: currency.valueWrtUSD
+          };
+        }
+      });
+      
+      // Only update if we got currencies back from API
+      if (Object.keys(rates).length > 1) {
+        setCurrencyRates(rates);
+        setCurrencies(Object.keys(rates));
+      }
+      
+    } catch (error) {
+      console.error("Error fetching currencies:", error);
+      showToast('Failed to fetch currency rates', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Update handleCurrencyRateUpdate to use the same API
+  const handleCurrencyRateUpdate = async (newRates: CurrencyRates) => {
+    try {
+      setIsLoading(true);
+      const updates = Object.entries(newRates).map(([code, data]) => ({
+        countryCode: code,
+        country: data.name,
+        valueWrtUSD: data.rate,
+        symbol: data.symbol
+      }));
+
+      const promises = updates.map(update => 
+        updateCurrency(update.countryCode, update)
+      );
+
+      await Promise.all(promises);
+      setCurrencyRates(newRates);
+      showToast('Currency rates updated successfully', 'success');
+    } catch (error) {
+      console.error('Error updating currency rates:', error);
+      showToast('Failed to update currency rates', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Add useEffect to fetch currency rates on component mount
+  useEffect(() => {
+    fetchCurrencyRates();
+  }, []);
+
+  // Fetch home display items with prices
+  const fetchHomeDisplays = async () => {
+    try {
+      setIsLoading(true);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        showToast('Authentication token not found', 'error');
+        return;
+      }
+
+      const url = new URL(apiUrls.home.getAllHomeDisplaysWithPrices, window.location.origin);
+      Object.entries(filterParams).forEach(([key, value]) => {
+        if (value) url.searchParams.append(key, value);
+      });
+
+      const response = await fetch(url.toString(), {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch home display items');
+      }
+
+      const data: HomeDisplayPricingListResponse = await response.json();
+      
+      if (data.success) {
+        // Transform the data for our UI
+        const displayItemsWithUI = data.data.map(item => ({
+          id: item.displayId,
+          title: item.displayTitle,
+          type: item.displayType || 'Default',
+          selected: false,
+          prices: item.pricing || [],
+          isEditing: false
+        }));
+
+        setDisplayItems(displayItemsWithUI);
+        setFilteredDisplayItems(displayItemsWithUI);
+        
+        // Extract display types from data
+        const types = Array.from(new Set(data.data.map(item => item.displayType || 'Default')));
+        setDisplayTypes(types);
+      } else {
+        showToast(data.message || 'Failed to fetch home display items', 'error');
+      }
+    } catch (error) {
+      console.error('Error fetching home display items:', error);
+      showToast('Failed to fetch home display items', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleFilterChange = (filters: HomeDisplayFilterParams) => {
+    setFilterParams(filters);
+  };
+
+  // Apply bulk update to home display items
+  const applyBulkUpdate = async () => {
+    try {
+      if (!bulkConfig.type || !bulkConfig.value) {
+        showToast('Please select update type and enter a value', 'error');
+        return;
+      }
+
+      const selectedItems = filteredDisplayItems.filter(item => item.selected);
+      if (selectedItems.length === 0) {
+        showToast('Please select at least one home display item', 'error');
+        return;
+      }
+
+      setIsLoading(true);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        showToast('Authentication token not found', 'error');
+        return;
+      }
+
+      // Helper function for price updates - adding missing function
+      const applyPriceUpdate = (currentPrice: number, updateType: string, value: number): number => {
+        switch (updateType) {
+          case 'fixed':
+            return value;
+          case 'increase_percent':
+            return currentPrice * (1 + value / 100);
+          case 'decrease_percent':
+            return currentPrice * (1 - value / 100);
+          case 'increase_amount':
+            return currentPrice + value;
+          case 'decrease_amount':
+            return Math.max(0, currentPrice - value);
+          default:
+            return currentPrice;
+        }
+      };
+
+      // Prepare updated prices for selected items
+      const updatedDisplayItems = selectedItems.map(item => {
+        const updatedPrices = item.prices.map(price => {
+          if (!bulkConfig.currency || price.currency === bulkConfig.currency) {
+            const currentPrice = parseFloat(price.price) || 0;
+            const updatedPrice = applyPriceUpdate(currentPrice, bulkConfig.type, parseFloat(bulkConfig.value) || 0);
+            
+            // If discount price exists, also update it
+            let updatedDiscountPrice = undefined;
+            if (price.discountPrice) {
+              const currentDiscountPrice = parseFloat(price.discountPrice) || 0;
+              updatedDiscountPrice = applyPriceUpdate(currentDiscountPrice, bulkConfig.type, parseFloat(bulkConfig.value) || 0);
+            }
+
+            return {
+              ...price,
+              price: updatedPrice.toFixed(2),
+              discountPrice: updatedDiscountPrice ? updatedDiscountPrice.toFixed(2) : price.discountPrice
+            };
+          }
+          return price;
+        });
+
+        return {
+          displayId: item.id,
+          pricing: updatedPrices
+        };
+      });
+
+      // Send bulk update request
+      const response = await fetch(apiUrls.home.bulkUpdateHomeDisplayPrices, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          displayItems: updatedDisplayItems
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update home display prices');
+      }
+
+      const result = await response.json();
+      
+      if (result.success) {
+        showToast('Home display prices updated successfully', 'success');
+        fetchHomeDisplays(); // Refresh the data
+      } else {
+        showToast(result.message || 'Failed to update home display prices', 'error');
+      }
+    } catch (error) {
+      console.error('Error updating home display prices:', error);
+      showToast('Failed to update home display prices', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Toggle edit mode for a home display item
+  const toggleEditMode = (displayId: string) => {
+    setFilteredDisplayItems(prev => 
+      prev.map(item => {
+        if (item.id === displayId) {
+          return {
+            ...item,
+            isEditing: !item.isEditing,
+            editedPrices: !item.isEditing ? [...item.prices] : undefined
+          };
+        }
+        return item;
+      })
+    );
+  };
+
+  // Save home display pricing
+  const saveHomeDisplayPricing = async (displayId: string) => {
+    try {
+      const displayItem = filteredDisplayItems.find(item => item.id === displayId);
+      if (!displayItem || !displayItem.editedPrices) {
+        return;
+      }
+
+      setIsLoading(true);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        showToast('Authentication token not found', 'error');
+        return;
+      }
+
+      const response = await fetch(`${apiUrls.home.getHomeDisplayPrices(displayId)}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          displayId,
+          pricing: displayItem.editedPrices
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update home display prices');
+      }
+
+      const result = await response.json();
+      
+      if (result.success) {
+        showToast('Home display prices updated successfully', 'success');
+        
+        // Update local state with the edited prices
+        setFilteredDisplayItems(prev => 
+          prev.map(item => {
+            if (item.id === displayId) {
+              return {
+                ...item,
+                isEditing: false,
+                prices: item.editedPrices || item.prices
+              };
+            }
+            return item;
+          })
+        );
+      } else {
+        showToast(result.message || 'Failed to update home display prices', 'error');
+      }
+    } catch (error) {
+      console.error('Error updating home display prices:', error);
+      showToast('Failed to update home display prices', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Cancel editing for a home display item
+  const cancelEditing = (displayId: string) => {
+    setFilteredDisplayItems(prev => 
+      prev.map(item => {
+        if (item.id === displayId) {
+          return {
+            ...item,
+            isEditing: false,
+            editedPrices: undefined
+          };
+        }
+        return item;
+      })
+    );
+  };
+
+  // Handle price change for a home display item
+  const handlePriceChange = (displayId: string, priceIndex: number, updatedPrice: HomeDisplayPricingItem) => {
+    setFilteredDisplayItems(prev => 
+      prev.map(item => {
+        if (item.id === displayId && item.editedPrices) {
+          const newPrices = [...item.editedPrices];
+          newPrices[priceIndex] = updatedPrice;
+          return {
+            ...item,
+            editedPrices: newPrices
+          };
+        }
+        return item;
+      })
+    );
+  };
+
+  // Add a new price option for a home display item
+  const handleAddPriceOption = (displayId: string) => {
+    setFilteredDisplayItems(prev => 
+      prev.map(item => {
+        if (item.id === displayId && item.editedPrices) {
+          // Determine which currencies are already used
+          const existingCurrencies = item.editedPrices.map(price => price.currency);
+          
+          // Find the first available currency
+          const availableCurrency = currencies.find(curr => !existingCurrencies.includes(curr)) || 'USD';
+          
+          const newPrice: HomeDisplayPricingItem = {
+            currency: availableCurrency,
+            price: '0.00',
+            status: 'active'
+          };
+          
+          return {
+            ...item,
+            editedPrices: [...item.editedPrices, newPrice]
+          };
+        }
+        return item;
+      })
+    );
+  };
+
+  // Remove a price option for a home display item
+  const handleRemovePriceOption = (displayId: string, priceIndex: number) => {
+    setFilteredDisplayItems(prev => 
+      prev.map(item => {
+        if (item.id === displayId && item.editedPrices) {
+          const newPrices = [...item.editedPrices];
+          newPrices.splice(priceIndex, 1);
+          return {
+            ...item,
+            editedPrices: newPrices
+          };
+        }
+        return item;
+      })
+    );
+  };
+
+  // Show toast notification
+  const showToast = (message: string, type: 'success' | 'error' | 'info') => {
+    setToastState({
+      visible: true,
+      message,
+      type
+    });
+    
+    // Auto-hide toast after 3 seconds
+    setTimeout(() => {
+      setToastState(prev => ({ ...prev, visible: false }));
+    }, 3000);
+  };
+
+  useEffect(() => {
+    fetchHomeDisplays();
+    // Use existing currency data instead of calling fetchCurrencies
+    const fetchCurrenciesData = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        
+        const response = await fetch(`${apiBaseUrl}/currencies`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (!response.ok) return;
+        
+        const data = await response.json();
+        if (data.success && data.data.currencies) {
+          const currencyCodes = data.data.currencies.map((curr: any) => curr.countryCode);
+          setCurrencies(currencyCodes);
+          
+          // Update exchange rates
+          const rates: CurrencyRates = {};
+          data.data.currencies.forEach((curr: any) => {
+            rates[curr.countryCode] = {
+              symbol: curr.symbol || curr.countryCode,
+              name: curr.country || curr.countryCode,
+              rate: curr.valueWrtUSD || 1
+            };
+          });
+          setCurrencyRates(rates);
+        }
+      } catch (error) {
+        console.error('Error fetching currencies:', error);
+      }
+    };
+    
+    fetchCurrenciesData();
+  }, [filterParams]);
+
+  // Add missing functions
+  const handleSelectAll = (checked: boolean) => {
+    setSelectedAll(checked);
+    setFilteredDisplayItems(prev => prev.map(item => ({ ...item, selected: checked })));
+  };
+
+  const handleSort = (field: 'title' | 'category') => {
+    const direction = sortState.field === field && sortState.direction === 'asc' ? 'desc' : 'asc';
+    setSortState({ field, direction });
+    
+    setFilteredDisplayItems(prev => 
+      [...prev].sort((a, b) => {
+        const aValue = field === 'title' ? a.title : a.type || '';
+        const bValue = field === 'title' ? b.title : b.type || '';
+        return direction === 'asc' 
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      })
+    );
+  };
+
+  const handleSelectItem = (id: string, checked: boolean) => {
+    setFilteredDisplayItems(prev => 
+      prev.map(item => item.id === id ? { ...item, selected: checked } : item)
+    );
+    
+    // Update selectedAll state
+    const updatedItems = filteredDisplayItems.map(item => 
+      item.id === id ? { ...item, selected: checked } : item
+    );
+    setSelectedAll(updatedItems.every(item => item.selected));
+  };
+
+  // Update handleBulkAddCurrencyPricing to use the new currency rates
+  const handleBulkAddCurrencyPricing = async (currencyCode: string) => {
+    try {
+      if (!currencyCode) {
+        showToast('Please select a currency', 'error');
+        return;
+      }
+
+      setIsLoading(true);
+      const currencyRate = currencyRates[currencyCode];
+      if (!currencyRate) {
+        showToast(`Currency rate not found for ${currencyCode}`, 'error');
+        return;
+      }
+
+      // Filter items that don't have pricing in the selected currency
+      const itemsNeedingPricing = filteredDisplayItems.filter(item => 
+        !item.prices.some(price => price.currency === currencyCode)
+      );
+
+      if (itemsNeedingPricing.length === 0) {
+        showToast(`All items already have pricing in ${currencyCode}`, 'success');
+        setIsLoading(false);
+        return;
+      }
+
+      // Create updates for these items
+      const bulkUpdates = itemsNeedingPricing.map(item => {
+        // Find USD price to use as base for conversion
+        const usdPrice = item.prices.find(price => price.currency === 'USD');
+        if (!usdPrice) return null;
+
+        // Create new price based on USD
+        const newPrice: HomeDisplayPricingItem = {
+          currency: currencyCode,
+          price: (parseFloat(usdPrice.price) * currencyRate.rate).toFixed(2),
+          status: 'active'
+        };
+
+        return {
+          displayId: item.id,
+          prices: [...item.prices, newPrice]
+        };
+      }).filter(Boolean);
+
+      if (bulkUpdates.length === 0) {
+        showToast('No items found with USD pricing to convert from', 'error');
+        setIsLoading(false);
+        return;
+      }
+
+      // Call API to update prices
+      const response = await fetch(apiUrls.home.bulkUpdateHomeDisplayPrices, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ updates: bulkUpdates })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update prices');
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        showToast(`Successfully added ${currencyCode} pricing to ${bulkUpdates.length} items`, 'success');
+        fetchHomeDisplays(); // Refresh the list
+      } else {
+        showToast(result.message || 'Failed to update prices', 'error');
+      }
+    } catch (error) {
+      console.error('Error in bulk adding currency pricing:', error);
+      showToast('Failed to add currency pricing', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Add currency list display section
+  const CurrencyList = () => (
+    <Card className="mb-6">
+      <CardHeader 
+        title="Available Currencies" 
+        subtitle="Current exchange rates for all supported currencies"
+      />
+      <div className="p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {Object.entries(currencyRates).map(([code, currency]) => (
+            <div key={code} className="p-4 border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-medium text-lg">{code}</span>
+                <span className="text-2xl">{currency.symbol}</span>
+              </div>
+              <div className="text-sm text-gray-600">{currency.name}</div>
+              <div className="mt-2 text-sm font-medium">
+                1 USD = {currency.rate.toFixed(2)} {code}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Card>
+  );
+
+  // Add toggleRowExpansion function
+  const toggleRowExpansion = (itemId: string) => {
+    setExpandedRows(prev => ({
+      ...prev,
+      [itemId]: !prev[itemId]
+    }));
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Currency List Section */}
+      <CurrencyList />
+
+      {/* Currency Rate Editor */}
+      <CurrencyRateEditor
+        rates={currencyRates}
+        onSave={handleCurrencyRateUpdate}
+        isLoading={isLoading}
+        onRefresh={fetchCurrencyRates}
+        onBulkAddCurrencyPricing={(currency) => handleBulkAddCurrencyPricing(currency)}
+      />
+
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Home Display Price Management</h1>
+        <div className="flex space-x-3">
+          <Button
+            onClick={() => {
+              fetchHomeDisplays();
+              fetchCurrencyRates();
+            }}
+            variant="default"
+            icon={RefreshCw}
+            disabled={isLoading}
+          >
+            Refresh
+          </Button>
+        </div>
+      </div>
+
+      {/* Filter Section */}
+      <Card className="mb-6">
+        <CardHeader
+          title="Filter Home Display Items"
+          subtitle="Filter the display items to update their prices"
+        />
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Search
+              </label>
+              <div className="relative">
+                <Input
+                  value={filterParams.search || ''}
+                  onChange={(value) => handleFilterChange({ ...filterParams, search: value })}
+                  placeholder="Search display items..."
+                  className="pl-10"
+                />
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Display Type
+              </label>
+              <Select
+                value={filterParams.displayType || ''}
+                onChange={(value) => handleFilterChange({ ...filterParams, displayType: value })}
+                options={displayTypes.map(type => ({ value: type, label: type }))}
+                placeholder="Select display type"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Currency
+              </label>
+              <Select
+                value={filterParams.currency || ''}
+                onChange={(value) => handleFilterChange({ ...filterParams, currency: value })}
+                options={Object.entries(currencyRates).map(([code, currency]) => ({
+                  value: code,
+                  label: `${code} (${currency.symbol})`
+                }))}
+                placeholder="Select currency"
+              />
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* Bulk Update Section */}
+      <Card className="mb-6">
+        <CardHeader
+          title="Bulk Update Display Pricing"
+          subtitle={selectedAll ? 'Update pricing for all items' : `Update pricing for ${displayItems.filter(item => item.selected).length} selected items`}
+        />
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Update Type
+              </label>
+              <Select
+                value={bulkConfig.type}
+                onChange={(value) => setBulkConfig({ ...bulkConfig, type: value as BulkUpdateConfig['type'] })}
+                options={[
+                  { value: 'fixed', label: 'Set Fixed Amount' },
+                  { value: 'increase_percent', label: 'Increase by Percentage' },
+                  { value: 'decrease_percent', label: 'Decrease by Percentage' },
+                  { value: 'increase_amount', label: 'Increase by Amount' },
+                  { value: 'decrease_amount', label: 'Decrease by Amount' }
+                ]}
+                placeholder="Select update type"
+                disabled={!displayItems.some(item => item.selected)}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Value
+              </label>
+              <Input
+                value={bulkConfig.value}
+                onChange={(value) => setBulkConfig({ ...bulkConfig, value })}
+                type="number"
+                placeholder={bulkConfig.type.includes('percent') ? 'Enter percentage' : 'Enter amount'}
+                className="w-full"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Currency
+              </label>
+              <Select
+                value={bulkConfig.currency || ''}
+                onChange={(value) => setBulkConfig({ ...bulkConfig, currency: value })}
+                options={Object.entries(currencyRates).map(([code, currency]) => ({
+                  value: code,
+                  label: `${code} (${currency.symbol})`
+                }))}
+                placeholder="All Currencies"
+                disabled={!displayItems.some(item => item.selected)}
+              />
+            </div>
+
+            <div className="flex items-end">
+              <Button
+                onClick={applyBulkUpdate}
+                variant="success"
+                disabled={!displayItems.some(item => item.selected) || !bulkConfig.type || !bulkConfig.value}
+                className="w-full"
+              >
+                Apply to Selected
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* Display Items Table */}
+      <Card>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <input
+                    type="checkbox"
+                    checked={selectedAll}
+                    onChange={(e) => handleSelectAll(e.target.checked)}
+                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                  />
+                </th>
+                <th 
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                  onClick={() => handleSort('title')}
+                >
+                  <div className="flex items-center space-x-1">
+                    <span>Title</span>
+                    {sortState.field === 'title' && (
+                      sortState.direction === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />
+                    )}
+                  </div>
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Type
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredDisplayItems.map((item) => (
+                <Fragment key={item.id}>
+                  <tr className={expandedRows[item.id] ? 'bg-gray-50' : ''}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <input
+                        type="checkbox"
+                        checked={item.selected}
+                        onChange={(e) => handleSelectItem(item.id, e.target.checked)}
+                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                      />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center">
+                        <button
+                          onClick={() => toggleRowExpansion(item.id)}
+                          className="mr-2 text-gray-500 hover:text-gray-700"
+                        >
+                          {expandedRows[item.id] ? (
+                            <ChevronUp className="h-4 w-4" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4" />
+                          )}
+                        </button>
+                        {item.title}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {item.type || 'Default'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex space-x-2">
+                        <Button
+                          onClick={() => toggleEditMode(item.id)}
+                          variant={item.isEditing ? 'success' : 'default'}
+                          icon={item.isEditing ? Check : Edit}
+                        >
+                          {item.isEditing ? 'Save' : 'Edit'}
+                        </Button>
+                        {item.isEditing && (
+                          <Button
+                            onClick={() => cancelEditing(item.id)}
+                            variant="danger"
+                            icon={XIcon}
+                          >
+                            Cancel
+                          </Button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                  {expandedRows[item.id] && (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-4 bg-gray-50">
+                        <div className="space-y-4">
+                          {item.prices.map((price, index) => (
+                            <div key={index} className="flex items-center space-x-4">
+                              <div className="flex-1">
+                                <Input
+                                  value={price.price}
+                                  onChange={(value) => handlePriceChange(item.id, index, { ...price, price: value })}
+                                  placeholder="Enter price"
+                                  disabled={!item.isEditing}
+                                  type="number"
+                                />
+                              </div>
+                              <div className="flex-1">
+                                <Input
+                                  value={price.discountPrice || ''}
+                                  onChange={(value) => handlePriceChange(item.id, index, { ...price, discountPrice: value })}
+                                  placeholder="Enter discount price"
+                                  disabled={!item.isEditing}
+                                  type="number"
+                                />
+                              </div>
+                              <div className="w-32">
+                                <Select
+                                  value={price.currency}
+                                  onChange={(value) => handlePriceChange(item.id, index, { ...price, currency: value })}
+                                  options={Object.entries(currencyRates).map(([code, currency]) => ({
+                                    value: code,
+                                    label: `${code} (${currency.symbol})`
+                                  }))}
+                                  disabled={!item.isEditing}
+                                />
+                              </div>
+                              {item.isEditing && (
+                                <Button
+                                  onClick={() => handleRemovePriceOption(item.id, index)}
+                                  variant="danger"
+                                  icon={Trash}
+                                >
+                                  Remove
+                                </Button>
+                              )}
+                            </div>
+                          ))}
+                          {item.isEditing && (
+                            <Button
+                              onClick={() => handleAddPriceOption(item.id)}
+                              variant="default"
+                              icon={Plus}
+                            >
+                              Add Price Option
+                            </Button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      {toastState.visible && (
+        <Toast
+          message={toastState.message}
+          type={toastState.type}
+          onClose={() => setToastState({ ...toastState, visible: false })}
+        />
+      )}
+    </div>
+  );
+};
+
+const AdminHomeDisplayTabs: React.FC = () => {
+  const [activeTab, setActiveTab] = useState('courseFee');
+
+  return (
+    <div className="container mx-auto px-4 py-6">
+      <div className="mb-6">
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8">
+            <button
+              onClick={() => setActiveTab('courseFee')}
+              className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'courseFee'
+                  ? 'border-customGreen text-customGreen'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Course Pricing
+            </button>
+            <button
+              onClick={() => setActiveTab('homeDisplay')}
+              className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'homeDisplay'
+                  ? 'border-customGreen text-customGreen'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Home Display Pricing
+            </button>
+          </nav>
+        </div>
+      </div>
+
+      {activeTab === 'courseFee' ? <AdminCourseFee /> : <HomeDisplayPricing />}
+    </div>
+  );
+};
+
+export default AdminHomeDisplayTabs; 
