@@ -1025,7 +1025,7 @@ const HomeCourseSection = ({
                     prices: course.prices || [],
                     course_fee: displayPrice || 1499,
                     price_suffix: "Onwards",
-                    custom_url: `/course-details/${course._id || course.id}`,
+                    custom_url: `${course.url}`,
                     href: `/course-details/${course._id || course.id}`,
                     no_of_Sessions: typeof course.no_of_Sessions === 'string' ? parseInt(course.no_of_Sessions) : (course.no_of_Sessions || videoCount + qnaSessions || 24),
                     effort_hours: course.effort_hours || course.efforts_per_Week || "6-8",
