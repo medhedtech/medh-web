@@ -30,9 +30,20 @@ import {
   Tag
 } from "lucide-react";
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
 import { useTheme } from 'next-themes';
 import { toast } from 'react-hot-toast';
+
+// Function to dynamically import jspdf-autotable
+const loadAutoTable = async () => {
+  try {
+    // Dynamic import for jspdf-autotable
+    const autoTableModule = await import('jspdf-autotable');
+    return autoTableModule.default;
+  } catch (error) {
+    console.error('Failed to load jspdf-autotable:', error);
+    return null;
+  }
+};
 
 // Auth helper function to get token - using x-access-token format
 const getAuthToken = () => {
@@ -190,12 +201,14 @@ const PaymentTable = () => {
   // Fetch payments when studentId or page/filter parameters change
   useEffect(() => {
     if (studentId && authToken) {
+      console.log("Fetching payments with studentId:", studentId, "activeTab:", activeTab);
       fetchPayments();
     }
   }, [studentId, authToken, page, limit, activeTab]);
 
   // Apply filters when filter parameters change
   useEffect(() => {
+    console.log("Applying filters. Payments count:", payments.length);
     filterAndSortData();
   }, [searchQuery, selectedStatus, sortOrder, payments, dateRange, priceRange, courseType, batchFilter]);
 
@@ -245,76 +258,104 @@ const PaymentTable = () => {
       }),
       headers,
       onSuccess: (response) => {
-        if (response?.success) {
-          // New data structure mapping based on the updated API response format
-          const allPayments = [];
+        console.log("API Response:", response); // Debug log
+        
+        // Check if response is an array (direct data)
+        if (Array.isArray(response)) {
+          console.log("Processing direct array response:", response.length);
           
-          // Process enrollments if they exist
-          if (response.data.enrollments && response.data.enrollments.length > 0) {
-            const formattedEnrollments = response.data.enrollments.map((enrollment) => ({
-              id: enrollment._id,
-              orderId: enrollment._id,
-              price: enrollment.course_id?.course_fee || 0,
-              course: enrollment.course_id?.course_title || "N/A",
-              courseId: enrollment.course_id?._id || null,
-              joinDate: enrollment.enrollment_date || enrollment.createdAt || "N/A",
-              status: enrollment.payment_status || enrollment.status || "N/A",
-              paymentType: "enrollment",
-              receiptUrl: null, // Will need to generate
-              paymentMethod: enrollment.payment_details?.payment_method || "Card",
-              transactionId: enrollment._id || "N/A",
-              currency: enrollment.payment_details?.currency || "USD",
-              studentName: enrollment.student_id?.full_name || "N/A",
-              expiryDate: enrollment.expiry_date || null,
-              batch_size: enrollment.batch_size || 1,
-              is_self_paced: enrollment.is_self_paced
-            }));
-            
-            allPayments.push(...formattedEnrollments);
-          }
+          const formattedPayments = response.map((item) => ({
+            id: item.id,
+            orderId: item.orderId || (item.id ? `ORD-${item.id.substring(0, 8)}` : "N/A"),
+            price: item.price?.amount || 0,
+            course: item.course || item.course_id?.course_title || "Unknown Course",
+            courseId: item.course_id?._id || null,
+            courseImage: item.courseImage || item.course_id?.course_image || "",
+            joinDate: item.enrollmentDate || item.enrollment_date || "N/A",
+            status: item.status || item.enrollmentStatus || "N/A",
+            paymentType: item.type || "Course Enrollment",
+            receiptUrl: null, // Will need to generate
+            paymentMethod: item.paymentMethod || "Card",
+            transactionId: item.id || "N/A",
+            currency: item.price?.currency || "INR",
+            studentName: item.studentName || "N/A",
+            expiryDate: item.expiryDate || null,
+            batch_size: item.paymentType === "batch" ? 2 : 1,
+            is_self_paced: item.is_self_paced || false,
+            progress: item.progress || 0,
+            isCertified: item.isCertified || false
+          }));
           
-          // Process subscriptions if they exist
-          if (response.data.subscriptions && response.data.subscriptions.length > 0) {
-            const formattedSubscriptions = response.data.subscriptions.map((subscription) => ({
-              id: subscription._id,
-              orderId: subscription._id,
-              price: subscription.amount || 0,
-              course: subscription.plan_name || "Subscription Plan",
-              courseId: null,
-              joinDate: subscription.start_date || subscription.createdAt || "N/A",
-              status: subscription.status || "N/A",
-              paymentType: "subscription",
-              receiptUrl: null, // Will need to generate
-              paymentMethod: subscription.payment_method || "Card",
-              transactionId: subscription._id || "N/A",
-              currency: subscription.currency || "USD",
-              studentName: subscription.student_id?.full_name || "N/A",
-              expiryDate: subscription.end_date || null
-            }));
-            
-            allPayments.push(...formattedSubscriptions);
-          }
+          console.log("Formatted payments:", formattedPayments.length);
+          setPayments(formattedPayments);
           
-          setPayments(allPayments);
-          setTotalPages(Math.ceil(response.data.total / limit));
+          // Update pagination
+          setTotalPages(Math.ceil(response.length / limit));
           
           // Update payment statistics
           if (activeTab === "all") {
-            updatePaymentStatistics(response.data);
+            updatePaymentStatistics({ data: response });
           }
           
           // Clear any auth errors if request was successful
           setAuthError(false);
-        } else {
-          console.error("Failed to fetch payments:", response?.message);
+        } 
+        // Check if response has a data property
+        else if (response?.data) {
+          console.log("Processing response with data property");
           
-          // Set auth error if authentication fails
-          if (response?.message?.includes("Authentication failed") || 
-              response?.message?.includes("No token provided") ||
-              response?.message?.includes("Unauthorized")) {
-            setAuthError(true);
+          // Process the data array
+          if (Array.isArray(response.data)) {
+            console.log("Processing data array:", response.data.length);
+            
+            const formattedPayments = response.data.map((item) => ({
+              id: item.id,
+              orderId: item.orderId || (item.id ? `ORD-${item.id.substring(0, 8)}` : "N/A"),
+              price: item.price?.amount || 0,
+              course: item.course || item.course_id?.course_title || "Unknown Course",
+              courseId: item.course_id?._id || null,
+              courseImage: item.courseImage || item.course_id?.course_image || "",
+              joinDate: item.enrollmentDate || item.enrollment_date || "N/A",
+              status: item.status || item.enrollmentStatus || "N/A",
+              paymentType: item.type || "Course Enrollment",
+              receiptUrl: null, // Will need to generate
+              paymentMethod: item.paymentMethod || "Card",
+              transactionId: item.id || "N/A",
+              currency: item.price?.currency || "INR",
+              studentName: item.studentName || "N/A",
+              expiryDate: item.expiryDate || null,
+              batch_size: item.paymentType === "batch" ? 2 : 1,
+              is_self_paced: item.is_self_paced || false,
+              progress: item.progress || 0,
+              isCertified: item.isCertified || false
+            }));
+            
+            console.log("Formatted payments:", formattedPayments.length);
+            setPayments(formattedPayments);
+            
+            // Update pagination from the API response
+            if (response.pagination) {
+              setTotalPages(response.pagination.totalPages || Math.ceil(response.pagination.total / limit));
+            } else {
+              setTotalPages(Math.ceil(response.data.length / limit));
+            }
+            
+            // Update payment statistics
+            if (activeTab === "all") {
+              updatePaymentStatistics(response);
+            }
+            
+            // Clear any auth errors if request was successful
+            setAuthError(false);
+          } else {
+            console.error("Response data is not an array:", response.data);
+            setPayments([]);
           }
+        } else {
+          console.error("Unexpected API response format:", response);
+          setPayments([]);
         }
+        
         setLoading(false);
       },
       onFail: (error) => {
@@ -334,54 +375,44 @@ const PaymentTable = () => {
 
   // Update payment statistics from API response
   const updatePaymentStatistics = (data) => {
-    // Calculate statistics from the enrollment and subscription data
-    const enrollments = data.enrollments || [];
-    const subscriptions = data.subscriptions || [];
+    // Get the data array from the response
+    const paymentsData = Array.isArray(data) ? data : (data.data || []);
     
-    // Calculate total spent with currency conversion
-    const totalEnrollmentSpent = enrollments.reduce((total, enrollment) => {
-      const amount = enrollment.course_id?.course_fee || 0;
-      const currency = enrollment.payment_details?.currency || 'USD';
+    // Calculate statistics from the payment data
+    const totalSpent = paymentsData.reduce((total, payment) => {
+      const amount = payment.price?.amount || 0;
+      const currency = payment.price?.currency || 'INR';
       // Convert to USD if different currency
       const amountInUSD = amount * (currencyRates[currency] || 1);
       return total + amountInUSD;
     }, 0);
-    
-    const totalSubscriptionSpent = subscriptions.reduce((total, subscription) => {
-      const amount = subscription.amount || 0;
-      const currency = subscription.currency || 'USD';
-      // Convert to USD if different currency
-      const amountInUSD = amount * (currencyRates[currency] || 1);
-      return total + amountInUSD;
-    }, 0);
-    
-    const totalSpent = totalEnrollmentSpent + totalSubscriptionSpent;
     
     // Get the most recent payment date
-    const allDates = [
-      ...enrollments.map(e => e.enrollment_date || e.createdAt),
-      ...subscriptions.map(s => s.start_date || s.createdAt)
-    ].filter(date => date);
+    const allDates = paymentsData
+      .map(p => p.enrollmentDate || p.enrollment_date)
+      .filter(date => date);
     
     const lastPaymentDate = allDates.length > 0 
       ? new Date(Math.max(...allDates.map(date => new Date(date).getTime()))).toISOString() 
       : '';
     
-    // Count active subscriptions
-    const activeSubscriptions = subscriptions.filter(s => 
-      s.status === 'active' || s.status === 'completed'
+    // Count active subscriptions/enrollments
+    const activeEnrollments = paymentsData.filter(p => 
+      p.status === 'active' || p.status === 'completed' || p.enrollmentStatus === 'active'
     ).length;
     
     setPaymentStats({
       totalSpent,
-      totalPayments: enrollments.length + subscriptions.length,
+      totalPayments: paymentsData.length,
       lastPaymentDate,
-      activeSubscriptions
+      activeSubscriptions: activeEnrollments
     });
   };
 
   // Filter and sort payment data based on search query, status, and sort order
   const filterAndSortData = () => {
+    console.log("Filtering data. Payments count:", payments.length); // Debug log
+    
     let filteredData = [...payments];
 
     // Filter by search query (course, price, and order ID)
@@ -459,6 +490,7 @@ const PaymentTable = () => {
       filteredData.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
     }
 
+    console.log("Filtered data count:", filteredData.length); // Debug log
     setFilteredPayments(filteredData);
   };
 
@@ -481,8 +513,11 @@ const PaymentTable = () => {
 
   // Handle tab change
   const handleTabChange = (tab) => {
+    console.log("Changing tab to:", tab);
     setActiveTab(tab);
     setPage(1);
+    // Reset filters when changing tabs to ensure we show all data for the new tab
+    resetFilters();
   };
 
   // Reset filters
@@ -500,7 +535,18 @@ const PaymentTable = () => {
   // Update the generatePDFReceipt function
   const generatePDFReceipt = async (payment) => {
     try {
+      // Create a new jsPDF instance
       const doc = new jsPDF();
+      
+      // Dynamically load the autoTable plugin
+      const autoTable = await loadAutoTable();
+      
+      if (!autoTable) {
+        console.error('jspdf-autotable plugin not properly loaded');
+        // Fallback to a simpler receipt without tables
+        return generateSimpleReceipt(doc, payment);
+      }
+      
       const pageWidth = doc.internal.pageSize.getWidth();
       const pageHeight = doc.internal.pageSize.getHeight();
       
@@ -549,7 +595,8 @@ const PaymentTable = () => {
         ]
       ];
       
-      doc.autoTable({
+      // Use the dynamically loaded autoTable function
+      autoTable(doc, {
         startY: 120,
         head: [['Description', 'Amount']],
         body: tableData,
@@ -601,6 +648,91 @@ const PaymentTable = () => {
       console.error('Error generating PDF:', error);
       throw new Error('Failed to generate receipt');
     }
+  };
+
+  // Fallback function for when autoTable is not available
+  const generateSimpleReceipt = (doc, payment) => {
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    
+    // Add header with company info
+    doc.setFontSize(20);
+    doc.setTextColor(44, 62, 80);
+    doc.text('MEDH', 15, 20);
+    
+    // Add receipt title and info
+    doc.setFontSize(24);
+    doc.setTextColor(44, 62, 80);
+    doc.text('RECEIPT', pageWidth - 70, 30);
+    
+    // Add receipt number and date
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Receipt #: ${payment.orderId?.substring(0, 8) || 'N/A'}`, pageWidth - 70, 40);
+    doc.text(`Date: ${new Date(payment.joinDate).toLocaleDateString()}`, pageWidth - 70, 45);
+    
+    // Add company info
+    doc.setFontSize(10);
+    doc.setTextColor(70, 70, 70);
+    doc.text('Medh Education Technologies', 15, 50);
+    doc.text('123 Education Street', 15, 55);
+    doc.text('Bangalore, Karnataka 560001', 15, 60);
+    doc.text('India', 15, 65);
+    doc.text('GST: 29AABCU9603R1ZJ', 15, 70);
+    
+    // Add line
+    doc.setDrawColor(220, 220, 220);
+    doc.line(15, 80, pageWidth - 15, 80);
+    
+    // Add student info
+    doc.setFontSize(12);
+    doc.setTextColor(44, 62, 80);
+    doc.text('Billed To:', 15, 95);
+    doc.setFontSize(10);
+    doc.setTextColor(70, 70, 70);
+    doc.text(payment.studentName || 'Student Name', 15, 105);
+    
+    // Add payment details without table
+    doc.setFontSize(12);
+    doc.setTextColor(44, 62, 80);
+    doc.text('Description', 15, 120);
+    doc.text('Amount', pageWidth - 50, 120);
+    
+    // Add line
+    doc.setDrawColor(220, 220, 220);
+    doc.line(15, 125, pageWidth - 15, 125);
+    
+    // Add course and price
+    doc.setFontSize(10);
+    doc.setTextColor(70, 70, 70);
+    doc.text(payment.course || 'Course Name', 15, 135);
+    doc.text(`${payment.currency === 'INR' ? '₹' : '$'}${parseFloat(payment.price || 0).toFixed(2)}`, pageWidth - 50, 135, { align: 'right' });
+    
+    // Add total
+    doc.setFontSize(10);
+    doc.setTextColor(44, 62, 80);
+    doc.text('Subtotal:', pageWidth - 80, 155);
+    doc.text(`${payment.currency === 'INR' ? '₹' : '$'}${parseFloat(payment.price || 0).toFixed(2)}`, pageWidth - 30, 155, { align: 'right' });
+    doc.text('Tax:', pageWidth - 80, 162);
+    doc.text('0.00', pageWidth - 30, 162, { align: 'right' });
+    doc.setFontSize(12);
+    doc.setFont(undefined, 'bold');
+    doc.text('Total:', pageWidth - 80, 170);
+    doc.text(`${payment.currency === 'INR' ? '₹' : '$'}${parseFloat(payment.price || 0).toFixed(2)}`, pageWidth - 30, 170, { align: 'right' });
+    
+    // Add payment info
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    doc.text(`Payment Method: ${payment.paymentMethod || 'N/A'}`, 15, 185);
+    doc.text(`Transaction ID: ${payment.transactionId || 'N/A'}`, 15, 192);
+    doc.text(`Status: ${payment.status || 'N/A'}`, 15, 199);
+    
+    // Add footer
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text('This is a computer generated receipt and does not require a signature.', pageWidth/2, pageHeight - 20, { align: 'center' });
+    
+    return doc;
   };
 
   // Update the handleGenerateReceipt function
@@ -708,13 +840,24 @@ const PaymentTable = () => {
       render: (row) => (
         <div className="font-medium space-y-1">
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-900 dark:text-white font-mono">
-              {row.orderId.substring(0, 8)}...
-            </span>
+            {row.orderId && row.orderId !== "N/A" ? (
+              <div className="group relative">
+                <span className="text-sm text-gray-900 dark:text-white font-mono cursor-help">
+                  {`${row.orderId.substring(0, 8)}...`}
+                </span>
+                <div className="absolute left-0 top-full mt-1 z-10 hidden group-hover:block bg-gray-800 text-white text-xs rounded p-2 whitespace-nowrap">
+                  {row.orderId}
+                </div>
+              </div>
+            ) : (
+              <span className="text-sm text-gray-500 dark:text-gray-400 italic">
+                {row.id ? `ID: ${row.id.substring(0, 8)}...` : "No ID available"}
+              </span>
+            )}
           </div>
           <span className="block text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
             <Calendar className="w-3.5 h-3.5" />
-            {new Date(row.joinDate).toLocaleDateString()}
+            {row.joinDate && row.joinDate !== "N/A" ? new Date(row.joinDate).toLocaleDateString() : "N/A"}
           </span>
         </div>
       )
@@ -726,9 +869,22 @@ const PaymentTable = () => {
       icon: <BookOpen className="w-4 h-4" />,
       render: (row) => (
         <div className="max-w-[180px] space-y-1.5" title={row.course}>
-          <p className="font-medium text-gray-900 dark:text-white truncate">
-            {row.course}
-          </p>
+          <div className="flex items-center gap-2">
+            {row.courseImage && (
+              <div className="w-8 h-8 rounded-md overflow-hidden flex-shrink-0">
+                <Image 
+                  src={row.courseImage} 
+                  alt={row.course} 
+                  width={32} 
+                  height={32}
+                  className="object-cover"
+                />
+              </div>
+            )}
+            <p className="font-medium text-gray-900 dark:text-white truncate">
+              {row.course}
+            </p>
+          </div>
           <div className="flex flex-wrap gap-1.5">
             {row.is_self_paced !== undefined && (
               <span className={`text-xs px-2 py-0.5 rounded-full flex items-center gap-1 ${
@@ -752,7 +908,13 @@ const PaymentTable = () => {
             {row.batch_size > 1 && (
               <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400 flex items-center gap-1">
                 <Users className="w-3 h-3" />
-                {row.batch_size}
+                Batch
+              </span>
+            )}
+            {row.progress !== undefined && (
+              <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400 flex items-center gap-1">
+                <Activity className="w-3 h-3" />
+                {row.progress}%
               </span>
             )}
           </div>
@@ -765,12 +927,12 @@ const PaymentTable = () => {
       width: 120,
       icon: <DollarSign className="w-4 h-4" />,
       render: (row) => {
-        const currency = row.currency || 'USD';
+        const currency = row.currency || 'INR';
         const currencySymbol = currency === 'INR' ? '₹' : '$';
         return (
           <div className="font-medium space-y-1">
             <span className="text-gray-900 dark:text-white flex items-center gap-1">
-              {currencySymbol}{parseFloat(row.price).toFixed(2)}
+              {currencySymbol}{parseFloat(row.price || 0).toFixed(2)}
             </span>
             <span className="block text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
               <Activity className="w-3.5 h-3.5" />
@@ -788,11 +950,11 @@ const PaymentTable = () => {
       render: (row) => (
         <div className="flex items-center gap-2">
           <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${
-            row.paymentType === "subscription"
+            row.paymentType === "Subscription"
               ? "bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400"
               : "bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400"
           }`}>
-            {row.paymentType === "subscription" ? (
+            {row.paymentType === "Subscription" ? (
               <>
                 <MdOutlineReceiptLong className="w-4 h-4" />
                 Subscription
@@ -800,7 +962,7 @@ const PaymentTable = () => {
             ) : (
               <>
                 <BookOpen className="w-4 h-4" />
-                Enrollment
+                {row.paymentType || "Enrollment"}
               </>
             )}
           </span>
@@ -812,7 +974,7 @@ const PaymentTable = () => {
       accessor: "status",
       icon: <Activity className="w-4 h-4" />,
       render: (row) => {
-        const statusLower = row.status.toLowerCase();
+        const statusLower = (row.status || "").toLowerCase();
         let statusConfig = {
           icon: null,
           className: ""
@@ -839,7 +1001,7 @@ const PaymentTable = () => {
           <div className="flex justify-center">
             <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${statusConfig.className}`}>
               {statusConfig.icon}
-              {row.status.charAt(0).toUpperCase() + row.status.slice(1).toLowerCase()}
+              {row.status ? row.status.charAt(0).toUpperCase() + row.status.slice(1).toLowerCase() : "N/A"}
             </span>
           </div>
         );
@@ -1223,7 +1385,7 @@ const PaymentTable = () => {
                     <div>
                       <p className="text-sm font-medium text-gray-500">Type</p>
                       <p className="mt-1 text-sm text-gray-900">
-                        {selectedPayment.paymentType === "subscription" ? "Subscription" : "Enrollment"}
+                        {selectedPayment.paymentType === "Subscription" ? "Subscription" : "Enrollment"}
                       </p>
                     </div>
                     
@@ -1622,15 +1784,31 @@ const PaymentTable = () => {
                 animate={{ opacity: 1 }}
                 className="flex flex-col items-center justify-center min-h-[400px] text-center p-8"
               >
-                <div className="w-16 h-16 mb-6 rounded-full bg-gray-100 dark:bg-gray-700/50 flex items-center justify-center">
-                  <FaReceipt className="w-8 h-8 text-gray-400" />
+                <div className="w-20 h-20 mb-6 rounded-full bg-gray-100 dark:bg-gray-700/50 flex items-center justify-center">
+                  <FaReceipt className="w-10 h-10 text-gray-400" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                   No Payments Found
                 </h3>
-                <p className="text-gray-500 dark:text-gray-400 max-w-md">
-                  We couldn't find any payments matching your criteria. Try adjusting your filters or search terms.
+                <p className="text-gray-500 dark:text-gray-400 max-w-md mb-6">
+                  {payments.length === 0 
+                    ? "You don't have any payments yet. Enroll in a course to see your payments here."
+                    : "We couldn't find any payments matching your criteria. Try adjusting your filters or search terms."}
                 </p>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <button
+                    onClick={resetFilters}
+                    className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+                  >
+                    Reset Filters
+                  </button>
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    Clear Search
+                  </button>
+                </div>
               </motion.div>
             ) : (
               <>
