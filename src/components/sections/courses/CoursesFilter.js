@@ -1246,7 +1246,7 @@ const CoursesFilter = ({
                 </div>
               </div>
             )}
-            {/* Features (static placeholders) */}
+            Features (static placeholders)
             <div className="space-y-3">
               <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">
                 Course Features
