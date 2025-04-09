@@ -310,6 +310,7 @@ export const apiUrls = {
     delete: "/auth/delete",
     getDetailsbyId: "/auth/get",
     getAll: "/auth/get-all",
+    getAllStudents: "/auth/get-all-students",
     updateByEmail: "/auth/update-by-email",
     toggleStudentStatus: "/auth/toggle-status",
     sendResetEmail: "/auth/forgot-password",
@@ -953,6 +954,159 @@ export const apiUrls = {
       if (!id) throw new Error('Currency ID is required');
       return `${apiBaseUrl}/currencies/${id}/toggle-status`;
     },
+  },
+  zoom: {
+    // Meeting endpoints
+    createMeeting: `${apiBaseUrl}/zoom/meetings`,
+    getMeeting: (meetingId: string): string => {
+      if (!meetingId) throw new Error('Meeting ID is required');
+      return `${apiBaseUrl}/zoom/meetings/${meetingId}`;
+    },
+    updateMeeting: (meetingId: string): string => {
+      if (!meetingId) throw new Error('Meeting ID is required');
+      return `${apiBaseUrl}/zoom/meetings/${meetingId}`;
+    },
+    deleteMeeting: (meetingId: string): string => {
+      if (!meetingId) throw new Error('Meeting ID is required');
+      return `${apiBaseUrl}/zoom/meetings/${meetingId}`;
+    },
+    
+    // User meeting endpoints
+    listUserMeetings: (userId: string, options: { type?: string; page_size?: number; page_number?: number } = {}): string => {
+      if (!userId) throw new Error('User ID is required');
+      const queryParams = new URLSearchParams();
+      if (options.type) queryParams.append('type', options.type);
+      if (options.page_size) queryParams.append('page_size', String(options.page_size));
+      if (options.page_number) queryParams.append('page_number', String(options.page_number));
+      const queryString = queryParams.toString();
+      return `${apiBaseUrl}/zoom/users/${userId}/meetings${queryString ? '?' + queryString : ''}`;
+    },
+    listCurrentUserMeetings: (options: { type?: string; page_size?: number; page_number?: number } = {}): string => {
+      const queryParams = new URLSearchParams();
+      if (options.type) queryParams.append('type', options.type);
+      if (options.page_size) queryParams.append('page_size', String(options.page_size));
+      if (options.page_number) queryParams.append('page_number', String(options.page_number));
+      const queryString = queryParams.toString();
+      return `${apiBaseUrl}/zoom/me/meetings${queryString ? '?' + queryString : ''}`;
+    },
+    
+    // Signature and webhook
+    signature: `${apiBaseUrl}/zoom/signature`,
+    webhook: `${apiBaseUrl}/zoom/webhook`,
+    webhookValidation: `${apiBaseUrl}/zoom/webhook`,
+    
+    // Recordings
+    listUserRecordings: (userId: string, options: any = {}): string => {
+      if (!userId) throw new Error('User ID is required');
+      const queryParams = new URLSearchParams();
+      Object.entries(options).forEach(([key, value]) => {
+        if (value !== null && value !== undefined) {
+          queryParams.append(key, String(value));
+        }
+      });
+      const queryString = queryParams.toString();
+      return `${apiBaseUrl}/zoom/users/${userId}/recordings${queryString ? '?' + queryString : ''}`;
+    },
+    listCurrentUserRecordings: (options: any = {}): string => {
+      const queryParams = new URLSearchParams();
+      Object.entries(options).forEach(([key, value]) => {
+        if (value !== null && value !== undefined) {
+          queryParams.append(key, String(value));
+        }
+      });
+      const queryString = queryParams.toString();
+      return `${apiBaseUrl}/zoom/me/recordings${queryString ? '?' + queryString : ''}`;
+    },
+    getMeetingRecordings: (meetingId: string): string => {
+      if (!meetingId) throw new Error('Meeting ID is required');
+      return `${apiBaseUrl}/zoom/meetings/${meetingId}/recordings`;
+    },
+    deleteRecording: (meetingId: string, recordingId: string): string => {
+      if (!meetingId) throw new Error('Meeting ID is required');
+      if (!recordingId) throw new Error('Recording ID is required');
+      return `${apiBaseUrl}/zoom/meetings/${meetingId}/recordings/${recordingId}`;
+    },
+    getRecordingSettings: (meetingId: string): string => {
+      if (!meetingId) throw new Error('Meeting ID is required');
+      return `${apiBaseUrl}/zoom/meetings/${meetingId}/recordings/settings`;
+    },
+    updateRecordingSettings: (meetingId: string): string => {
+      if (!meetingId) throw new Error('Meeting ID is required');
+      return `${apiBaseUrl}/zoom/meetings/${meetingId}/recordings/settings`;
+    },
+    getMeetingTranscript: (meetingId: string): string => {
+      if (!meetingId) throw new Error('Meeting ID is required');
+      return `${apiBaseUrl}/zoom/meetings/${meetingId}/recordings/transcript`;
+    },
+    
+    // User management
+    listUsers: (options: any = {}): string => {
+      const queryParams = new URLSearchParams();
+      Object.entries(options).forEach(([key, value]) => {
+        if (value !== null && value !== undefined) {
+          queryParams.append(key, String(value));
+        }
+      });
+      const queryString = queryParams.toString();
+      return `${apiBaseUrl}/zoom/users${queryString ? '?' + queryString : ''}`;
+    },
+    getUser: (userId: string): string => {
+      if (!userId) throw new Error('User ID is required');
+      return `${apiBaseUrl}/zoom/users/${userId}`;
+    },
+    createUser: `${apiBaseUrl}/zoom/users`,
+    updateUser: (userId: string): string => {
+      if (!userId) throw new Error('User ID is required');
+      return `${apiBaseUrl}/zoom/users/${userId}`;
+    },
+    deleteUser: (userId: string, action?: string): string => {
+      if (!userId) throw new Error('User ID is required');
+      const queryParams = new URLSearchParams();
+      if (action) queryParams.append('action', action);
+      const queryString = queryParams.toString();
+      return `${apiBaseUrl}/zoom/users/${userId}${queryString ? '?' + queryString : ''}`;
+    },
+    
+    // Classroom management
+    createClassroomMeeting: (userId: string = 'me'): string => {
+      return `${apiBaseUrl}/zoom/classroom/meetings?userId=${userId}`;
+    },
+    
+    // Registrants
+    getRegistrants: (meetingId: string, options: any = {}): string => {
+      if (!meetingId) throw new Error('Meeting ID is required');
+      const queryParams = new URLSearchParams();
+      Object.entries(options).forEach(([key, value]) => {
+        if (value !== null && value !== undefined) {
+          queryParams.append(key, String(value));
+        }
+      });
+      const queryString = queryParams.toString();
+      return `${apiBaseUrl}/zoom/meetings/${meetingId}/registrants${queryString ? '?' + queryString : ''}`;
+    },
+    addRegistrant: (meetingId: string): string => {
+      if (!meetingId) throw new Error('Meeting ID is required');
+      return `${apiBaseUrl}/zoom/meetings/${meetingId}/registrants`;
+    },
+    updateRegistrantStatus: (meetingId: string): string => {
+      if (!meetingId) throw new Error('Meeting ID is required');
+      return `${apiBaseUrl}/zoom/meetings/${meetingId}/registrants/status`;
+    },
+    generateJoinLink: (meetingId: string, registrantId: string): string => {
+      if (!meetingId) throw new Error('Meeting ID is required');
+      if (!registrantId) throw new Error('Registrant ID is required');
+      return `${apiBaseUrl}/zoom/meetings/${meetingId}/join/${registrantId}`;
+    },
+    
+    // Invitation
+    getInvitation: (meetingId: string): string => {
+      if (!meetingId) throw new Error('Meeting ID is required');
+      return `${apiBaseUrl}/zoom/meetings/${meetingId}/invitation`;
+    },
+    
+    // User roles
+    createInstructorUser: `${apiBaseUrl}/zoom/users/instructor`,
+    createStudentUser: `${apiBaseUrl}/zoom/users/student`,
   },
 };
 
