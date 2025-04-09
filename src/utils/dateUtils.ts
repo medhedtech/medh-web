@@ -1,14 +1,26 @@
-import { format, parse } from 'date-fns';
+import { format, parse, isValid } from 'date-fns';
 
 export const formatZoomDateTime = (dateString: string): string => {
   try {
     // Remove any leading/trailing spaces and handle the format "MMM dd,yyyy"
     const cleanDateString = dateString.trim();
+    
+    // Check if the date string is valid before parsing
+    if (!cleanDateString) {
+      return 'Date not available';
+    }
+    
     const date = parse(cleanDateString, 'MMM dd,yyyy', new Date());
+    
+    // Check if the parsed date is valid
+    if (!isValid(date)) {
+      return dateString;
+    }
+    
     return format(date, 'MMM dd, yyyy');
   } catch (error) {
     console.error('Error formatting date:', error);
-    return dateString;
+    return dateString || 'Date not available';
   }
 };
 
