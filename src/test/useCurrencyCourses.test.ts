@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-hooks';
+import { renderHook } from '@testing-library/react';
 import { useCurrencyCourses } from '../hooks/useCurrencyCourses';
 import axios from 'axios';
 import { apiBaseUrl } from '../apis';
