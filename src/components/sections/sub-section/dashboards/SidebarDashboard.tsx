@@ -78,7 +78,7 @@ import {
   LayoutDashboard,
   ChevronRight
 } from "lucide-react";
-import { setCookie } from "nookies";
+import Cookies from 'js-cookie';
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import logo from "@/assets/images/logo/medh_logo-2.png";
@@ -302,7 +302,7 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
   // Handle logout function
   const handleLogout = () => {
     // Clear cookies and localStorage
-    setCookie(null, "token", "", { path: "/" });
+    Cookies.remove("token");
     localStorage.removeItem("userId");
     localStorage.removeItem("token");
     localStorage.removeItem("permissions");
