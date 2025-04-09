@@ -10,7 +10,7 @@ export type {
   CourseProgress,
   LessonProgress,
   EnrolledCourse,
-  StorageOptions
+  StorageOptions,
 } from './useStorage';
 
 // Storage keys constant for direct import
@@ -169,7 +169,7 @@ export type {
 } from './useCourseLesson.hook';
 
 // External API integration hooks
-export { default as useZoomClient } from './useZoomClient';
+export { useZoomClient } from './useZoomClient';
 export type {
   ZoomMeetingDetails,
   ZoomMeetingStatus,
