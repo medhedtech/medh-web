@@ -16,7 +16,7 @@ export const useZoomClient = () => {
   useEffect(() => {
     // Only import and initialize Zoom on the client side
     if (typeof window !== 'undefined' && !isInitialized && !error) {
-      import('@zoomus/websdk').then(({ ZoomMtg: ZoomMtgModule }) => {
+      import('@zoom/meetingsdk').then((ZoomMtgModule) => {
         setZoomMtg(ZoomMtgModule);
         initializeZoom(ZoomMtgModule);
       }).catch(err => {
@@ -28,21 +28,28 @@ export const useZoomClient = () => {
 
   const initializeZoom = async (ZoomMtgInstance: any) => {
     try {
-      ZoomMtgInstance.setZoomJSLib('https://source.zoom.us/2.18.0/lib', '/av');
-      ZoomMtgInstance.preLoadWasm();
-      ZoomMtgInstance.prepareWebSDK();
-      
-      await ZoomMtgInstance.init({
-        leaveUrl: window.location.origin,
-        success: () => {
-          setIsInitialized(true);
-          console.log('Zoom initialized successfully');
-        },
-        error: (err: any) => {
-          setError(new Error(err.toString()));
-          console.error('Failed to initialize Zoom:', err);
+      // Initialize Zoom client
+      ZoomMtgInstance.init({
+        zoomAppRoot: document.getElementById('zmmtg-root'),
+        language: 'en-US',
+        customize: {
+          meetingInfo: ['topic', 'host', 'mn', 'pwd', 'telPwd', 'invite', 'participant', 'dc', 'enctype'],
+          toolbar: {
+            buttons: [
+              {
+                text: 'Custom Button',
+                className: 'CustomButton',
+                onClick: () => {
+                  console.log('custom button');
+                }
+              }
+            ]
+          }
         }
       });
+
+      setIsInitialized(true);
+      console.log('Zoom initialized successfully');
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to initialize Zoom'));
       console.error('Failed to initialize Zoom:', err);
@@ -57,7 +64,8 @@ export const useZoomClient = () => {
       try {
         await ZoomMtg.init({
           ...config,
-          leaveUrl: window.location.origin,
+          zoomAppRoot: document.getElementById('zmmtg-root'),
+          language: 'en-US',
         });
         setIsInitialized(true);
       } catch (err) {
@@ -114,8 +122,8 @@ export const useZoomClient = () => {
             signature,
             meetingNumber,
             userName: 'Test User', // TODO: Get from user context
-            apiKey: ZOOM_CONFIG.apiKey,
-            passWord: password,
+            sdkKey: ZOOM_CONFIG.sdkKey,
+            password: password,
             success: (success: any) => {
               console.log('Joined meeting successfully:', success);
               resolve(success);
