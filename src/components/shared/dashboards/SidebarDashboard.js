@@ -17,9 +17,9 @@ import {
   FaBriefcase,
   FaUsersCog,
 } from "react-icons/fa";
-import { setCookie } from "nookies";
 import { useEffect, useState, useCallback } from "react";
 import NavbarLogo from "@/components/layout/header/NavbarLogo";
+import Cookies from 'js-cookie';
 
 const SidebarDashboard = ({ children }) => {
   const pathname = usePathname();
