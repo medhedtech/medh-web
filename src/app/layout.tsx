@@ -6,6 +6,7 @@ import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import './globals.css';
 import 'react-toastify/dist/ReactToastify.css';
+import '@/components/sidebar/sidebar-styles.css';
 import ThemeController from '@/components/shared/others/ThemeController';
 import GoogleAnalytics from '@/components/shared/analytics/GoogleAnalytics';
 import { Suspense } from 'react';

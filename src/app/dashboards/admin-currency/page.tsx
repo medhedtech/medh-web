@@ -10,8 +10,8 @@ const AdminCurrencyPage = () => {
   const router = useRouter();
   
   useEffect(() => {
-    // Redirect to admin dashboard with the correct view parameter
-    router.push('/dashboards/admin-dashboard?view=admin-currency');
+    // Redirect to admin dashboard with the hash parameter
+    router.push('/dashboards/admin#admin-currency');
   }, [router]);
   
   return (

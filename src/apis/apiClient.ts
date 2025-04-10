@@ -1,213 +1,268 @@
-import axios, {
-  AxiosInstance,
-  AxiosRequestConfig,
-  AxiosError,
-  AxiosResponse,
-  InternalAxiosRequestConfig
-} from 'axios';
-import axiosRetry, { isNetworkError } from 'axios-retry';
 import { apiBaseUrl } from './config';
-import { logger } from '../utils/logger';
 
-// Determine environment
-const isDevelopment: boolean = process.env.NODE_ENV !== 'production';
-
-// Precompute configuration values
-const API_TIMEOUT: number = parseInt(
-  process.env.NEXT_PUBLIC_API_TIMEOUT || '30000',
-  10
-);
-const RETRY_COUNT: number = parseInt(
-  process.env.NEXT_PUBLIC_API_RETRY_COUNT || '3',
-  10
-);
-const BASE_DELAY: number = parseInt(
-  process.env.NEXT_PUBLIC_API_RETRY_DELAY || '1000',
-  10
-);
-
-// Extend AxiosInstance with custom utility methods
-interface CustomAxiosInstance extends AxiosInstance {
-  checkEndpoint(url: string): Promise<{ exists: boolean; error: any | null }>;
-  testCorsConfiguration(): Promise<{
-    success: boolean;
-    headers?: any;
-    message: string;
-    error?: string;
-  }>;
+/**
+ * API Client configuration options
+ */
+export interface IApiClientOptions {
+  baseUrl?: string;
+  headers?: Record<string, string>;
+  timeout?: number;
+  credentials?: RequestCredentials;
+  mode?: RequestMode;
 }
 
-// Cache token to avoid repeated storage reads
-let cachedToken: string | null = null;
-function getToken(): string | null {
-  if (cachedToken) return cachedToken;
-  cachedToken = localStorage.getItem('token') || sessionStorage.getItem('token');
-  return cachedToken;
-}
-export function updateToken(newToken: string): void {
-  cachedToken = newToken;
-}
-
-// Create a custom Axios instance with default settings
-const api = axios.create({
-  baseURL: apiBaseUrl,
-  withCredentials: true,
-  headers: {
-    'Content-Type': 'application/json',
-    Accept: 'application/json',
-  },
-  timeout: API_TIMEOUT,
-}) as CustomAxiosInstance;
-
-// Configure axios-retry with exponential backoff strategy
-axiosRetry(api, {
-  retries: RETRY_COUNT,
-  retryDelay: (retryCount: number) => BASE_DELAY * Math.pow(2, retryCount - 1),
-  retryCondition: (error: AxiosError) => {
-    // Do not retry CORS (status 0) errors
-    if (error.response && error.response.status === 0) {
-      return false;
-    }
-    // Retry on network errors or 5xx responses
-    return isNetworkError(error) || (error.response ? error.response.status >= 500 : false);
-  },
-});
-
-// Request interceptor: add auth tokens and log requests in development
-api.interceptors.request.use(
-  (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
-    try {
-      const token = getToken();
-      if (token) {
-        if (config.headers) {
-          config.headers['Authorization'] = `Bearer ${token}`;
-          config.headers['x-access-token'] = token;
-        }
-        if (isDevelopment) {
-          logger.log('Auth token applied');
-        }
-      } else if (isDevelopment) {
-        logger.log('No auth token found');
-      }
-      if (isDevelopment) {
-        logger.log('REQUEST', config);
-      }
-    } catch (err) {
-      if (isDevelopment) {
-        logger.log('Storage read error', err);
-      }
-    }
-    return config;
-  },
-  (error) => {
-    if (isDevelopment) {
-      logger.log('REQUEST_ERROR', error);
-    }
-    return Promise.reject(error);
-  }
-);
-
-// Response interceptor: log responses and handle errors gracefully
-api.interceptors.response.use(
-  (response: AxiosResponse): AxiosResponse => {
-    if (isDevelopment) {
-      logger.log('RESPONSE', response);
-    }
-    return response;
-  },
-  (error: AxiosError) => {
-    // Handle network/CORS errors
-    if (error.message && error.message.includes('Network Error')) {
-      if (isDevelopment) {
-        logger.log('CORS_ERROR', 'Possible CORS issue detected');
-      }
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(
-          new CustomEvent('api:cors-error', {
-            detail: {
-              url: error.config?.url,
-              message:
-                'Request failed due to CORS policy. Please contact support if this persists.',
-            },
-          })
-        );
-      }
-      return Promise.reject({
-        ...error,
-        isCorsError: true,
-        friendlyMessage:
-          'Unable to connect to the API due to cross-origin restrictions.',
-      });
-    }
-
-    // Handle response errors (e.g., 401 Unauthorized)
-    if (error.response) {
-      const detail: string =
-        (error.response.data as any)?.detail || 'Unknown Error';
-      if (isDevelopment) {
-        logger.log('RESPONSE_ERROR', detail);
-      }
-      if (error.response.status === 401) {
-        if (isDevelopment) {
-          logger.log('Authentication error - re-login may be required');
-        }
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(
-            new CustomEvent('auth:error', {
-              detail: { status: 401, message: 'Authentication required' },
-            })
-          );
-        }
-      }
-    } else {
-      if (isDevelopment) {
-        logger.log('NETWORK_ERROR', error);
-      }
-    }
-    return Promise.reject(error);
-  }
-);
-
-// Utility method: check if an endpoint exists by performing a HEAD request
-api.checkEndpoint = async (url: string): Promise<{
-  exists: boolean;
-  error: any | null;
-}> => {
-  try {
-    await api.head(url);
-    return { exists: true, error: null };
-  } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      if (error.response.status === 404) {
-        return { exists: false, error };
-      }
-      return { exists: true, error };
-    }
-    return { exists: false, error };
-  }
-};
-
-// Utility method: test the CORS configuration via an OPTIONS request
-api.testCorsConfiguration = async (): Promise<{
-  success: boolean;
-  headers?: any;
-  message: string;
+/**
+ * Standard API response format
+ */
+export interface IApiResponse<T = any> {
+  status: string;
+  data?: T;
   error?: string;
-}> => {
-  try {
-    const response = await api.options(`${apiBaseUrl}/cors-test`);
-    return {
-      success: true,
-      headers: response.headers,
-      message: 'CORS configuration is working correctly',
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: (error as Error).message,
-      message: 'CORS configuration test failed',
-    };
-  }
-};
+  message?: string;
+  results?: number;
+}
 
-export default api;
+/**
+ * Configurable API client for making HTTP requests
+ */
+export class ApiClient {
+  private baseUrl: string;
+  private defaultHeaders: Record<string, string>;
+  private timeout: number;
+  private credentials: RequestCredentials;
+  private mode: RequestMode;
+
+  /**
+   * Create a new API client instance
+   * @param options - Configuration options
+   */
+  constructor(options: IApiClientOptions = {}) {
+    this.baseUrl = options.baseUrl || apiBaseUrl;
+    this.defaultHeaders = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      ...options.headers
+    };
+    this.timeout = options.timeout || 30000; // 30 seconds default
+    this.credentials = options.credentials || 'include';
+    this.mode = options.mode || 'cors';
+  }
+
+  /**
+   * Set authorization token for future requests
+   * @param token - JWT or other auth token
+   */
+  setAuthToken(token: string): void {
+    this.defaultHeaders['Authorization'] = `Bearer ${token}`;
+  }
+
+  /**
+   * Clear authorization token
+   */
+  clearAuthToken(): void {
+    delete this.defaultHeaders['Authorization'];
+  }
+
+  /**
+   * Make a GET request
+   * @param endpoint - API endpoint
+   * @param params - Query parameters
+   * @param options - Additional fetch options
+   * @returns Promise with response data
+   */
+  async get<T = any>(endpoint: string, params: Record<string, any> = {}, options: RequestInit = {}): Promise<IApiResponse<T>> {
+    const url = this.buildUrl(endpoint, params);
+    return this.request<T>(url, {
+      method: 'GET',
+      ...options
+    });
+  }
+
+  /**
+   * Make a POST request
+   * @param endpoint - API endpoint
+   * @param data - Request body data
+   * @param options - Additional fetch options
+   * @returns Promise with response data
+   */
+  async post<T = any>(endpoint: string, data: any = {}, options: RequestInit = {}): Promise<IApiResponse<T>> {
+    const url = this.buildUrl(endpoint);
+    return this.request<T>(url, {
+      method: 'POST',
+      body: JSON.stringify(data),
+      ...options
+    });
+  }
+
+  /**
+   * Make a PUT request
+   * @param endpoint - API endpoint
+   * @param data - Request body data
+   * @param options - Additional fetch options
+   * @returns Promise with response data
+   */
+  async put<T = any>(endpoint: string, data: any = {}, options: RequestInit = {}): Promise<IApiResponse<T>> {
+    const url = this.buildUrl(endpoint);
+    return this.request<T>(url, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+      ...options
+    });
+  }
+
+  /**
+   * Make a PATCH request
+   * @param endpoint - API endpoint
+   * @param data - Request body data
+   * @param options - Additional fetch options
+   * @returns Promise with response data
+   */
+  async patch<T = any>(endpoint: string, data: any = {}, options: RequestInit = {}): Promise<IApiResponse<T>> {
+    const url = this.buildUrl(endpoint);
+    return this.request<T>(url, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+      ...options
+    });
+  }
+
+  /**
+   * Make a DELETE request
+   * @param endpoint - API endpoint
+   * @param options - Additional fetch options
+   * @returns Promise with response data
+   */
+  async delete<T = any>(endpoint: string, options: RequestInit = {}): Promise<IApiResponse<T>> {
+    const url = this.buildUrl(endpoint);
+    return this.request<T>(url, {
+      method: 'DELETE',
+      ...options
+    });
+  }
+
+  /**
+   * Upload a file or multiple files
+   * @param endpoint - API endpoint
+   * @param formData - FormData with files and other fields
+   * @param options - Additional fetch options
+   * @returns Promise with response data
+   */
+  async upload<T = any>(endpoint: string, formData: FormData, options: RequestInit = {}): Promise<IApiResponse<T>> {
+    const url = this.buildUrl(endpoint);
+    // Don't set Content-Type header for FormData, browser will set it with boundary
+    const { 'Content-Type': _, ...headers } = this.defaultHeaders;
+    
+    return this.request<T>(url, {
+      method: 'POST',
+      body: formData,
+      headers,
+      ...options
+    });
+  }
+
+  /**
+   * Make a request with the AbortController for timeout handling
+   * @param url - Full URL to request
+   * @param options - Fetch options
+   * @returns Promise with response data
+   */
+  private async request<T = any>(url: string, options: RequestInit = {}): Promise<IApiResponse<T>> {
+    const controller = new AbortController();
+    const { signal } = controller;
+    
+    // Set up timeout
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, this.timeout);
+
+    try {
+      const response = await fetch(url, {
+        ...options,
+        headers: {
+          ...this.defaultHeaders,
+          ...options.headers
+        },
+        credentials: this.credentials,
+        mode: this.mode,
+        signal
+      });
+
+      clearTimeout(timeoutId);
+
+      // Handle different response types
+      const contentType = response.headers.get('content-type');
+      let data: any;
+
+      if (contentType?.includes('application/json')) {
+        data = await response.json();
+      } else if (contentType?.includes('text/')) {
+        data = await response.text();
+      } else {
+        data = await response.blob();
+      }
+
+      // Handle non-2xx responses
+      if (!response.ok) {
+        return {
+          status: 'error',
+          error: data.error || data.message || 'An error occurred',
+          message: data.message || 'Request failed',
+          data
+        };
+      }
+
+      return {
+        status: 'success',
+        data,
+        message: data.message || 'Request successful'
+      };
+    } catch (error: any) {
+      clearTimeout(timeoutId);
+      
+      if (error.name === 'AbortError') {
+        return {
+          status: 'error',
+          error: 'Request timeout',
+          message: `Request exceeded timeout of ${this.timeout}ms`
+        };
+      }
+
+      return {
+        status: 'error',
+        error: error.message || 'An unexpected error occurred',
+        message: 'Request failed'
+      };
+    }
+  }
+
+  /**
+   * Build a URL with query parameters
+   * @param endpoint - API endpoint
+   * @param params - Query parameters
+   * @returns Full URL
+   */
+  private buildUrl(endpoint: string, params: Record<string, any> = {}): string {
+    // If endpoint already starts with http:// or https://, use as is
+    const baseUrl = endpoint.startsWith('http') ? '' : this.baseUrl;
+    const url = new URL(`${baseUrl}${endpoint}`);
+    
+    // Add query parameters
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== null && value !== undefined) {
+        if (Array.isArray(value)) {
+          value.forEach(item => url.searchParams.append(key, String(item)));
+        } else {
+          url.searchParams.append(key, String(value));
+        }
+      }
+    });
+    
+    return url.toString();
+  }
+}
+
+// Create and export a default API client
+export const apiClient = new ApiClient();
+
+// Export a factory function to create custom API clients
+export const createApiClient = (options: IApiClientOptions) => new ApiClient(options);

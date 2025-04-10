@@ -64,6 +64,7 @@ const calculatePasswordStrength = (password: string | undefined): { score: numbe
 
 export interface AddStudentFormProps {
   onCancel: () => void;
+  onSuccess?: () => void;
 }
 
 interface FormValues {
@@ -102,7 +103,7 @@ const schema = yup.object().shape({
   user_image: yup.string().optional(),
 });
 
-const AddStudentForm: React.FC<AddStudentFormProps> = ({ onCancel }) => {
+const AddStudentForm: React.FC<AddStudentFormProps> = ({ onCancel, onSuccess }) => {
   const router = useRouter();
   const { user } = useAuth();
   const [loading, setLoading] = useState<boolean>(false);
@@ -228,12 +229,15 @@ const AddStudentForm: React.FC<AddStudentFormProps> = ({ onCancel }) => {
       // Wait a moment before returning to the student management page
       setTimeout(() => {
         onCancel();
+        if (onSuccess) {
+          onSuccess();
+        }
       }, 2000);
     } catch (error) {
       console.error('Error adding student:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to add student');
     }
-  }, [reset, onCancel, generatedPassword]);
+  }, [reset, onCancel, generatedPassword, onSuccess]);
 
   // Show loading state only when loading, don't check auth here
   if (loading) {

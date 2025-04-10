@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosError, CancelTokenSource } from 'axios';
-import apiClient from '../apis/apiClient';
+import { apiClient } from '../apis/apiClient';
 import apiWithAuth from '../utils/apiWithAuth';
 import { getAuthToken } from '../utils/auth';
 import { toast } from 'react-toastify';
