@@ -158,4 +158,91 @@ const RecordedSessionCard: React.FC<{ session: RecordedSession }> = ({ session }
       )}
     </div>
   </motion.div>
-); 
+);
+
+// Main component
+const RecordedSessions: React.FC = () => {
+  const [sessions, setSessions] = useState<RecordedSession[]>([]);
+  const [userId, setUserId] = useState("");
+  const { getQuery, loading, error } = useGetQuery();
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedUserId = localStorage.getItem("userId");
+      if (storedUserId) {
+        setUserId(storedUserId);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const fetchRecordedSessions = async () => {
+      if (!userId) return;
+      
+      try {
+        getQuery({
+          url: apiUrls?.courses?.getRecordedVideosForUser(userId),
+          onSuccess: (res) => {
+            setSessions(res?.recordedVideos || []);
+          },
+          onFail: (err) => {
+            console.error("Error fetching recorded sessions:", err);
+          }
+        });
+      } catch (error) {
+        console.error('Fetch error:', error);
+      }
+    };
+
+    fetchRecordedSessions();
+    return () => controller.abort();
+  }, [userId]);
+
+  if (loading) {
+    return (
+      <div className="p-6 bg-white dark:bg-gray-800 rounded-2xl">
+        <div className="animate-pulse space-y-4">
+          {[1, 2].map((item) => (
+            <div key={item} className="bg-gray-200 dark:bg-gray-700 h-48 rounded-xl"></div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 bg-white dark:bg-gray-800 rounded-2xl text-center">
+        <p className="text-red-500 dark:text-red-400">
+          Failed to load recorded sessions
+        </p>
+      </div>
+    );
+  }
+
+  if (sessions.length === 0) {
+    return <EmptyState />;
+  }
+
+  return (
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="p-6 bg-white dark:bg-gray-800 rounded-2xl"
+    >
+      <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">
+        Recorded Sessions
+      </h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {sessions.map((session) => (
+          <RecordedSessionCard key={session._id} session={session} />
+        ))}
+      </div>
+    </motion.div>
+  );
+};
+
+export default RecordedSessions; 

@@ -1,9 +1,8 @@
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
-import React, { Suspense, lazy } from "react";
-
-const AssignedDemoClass = lazy(() => import("./AssignedDemoClass"));
-const LiveDemoClass = lazy(() => import("./LiveDemoClass"));
-const RecordedSession = lazy(() => import("./RecordedSessions"));
+import React, { Suspense } from "react";
+import AssignedDemoClass from "./AssignedDemoClass";
+import LiveDemoClass from "./LiveDemoClass";
+import RecordedSessions from "./RecordedSessions";
 
 const LoadingFallback = () => (
   <div className="animate-pulse bg-gray-200 dark:bg-gray-700 rounded-lg h-48"></div>
@@ -21,7 +20,7 @@ const DemoClasses = () => {
           <LiveDemoClass />
         </Suspense>
         <Suspense fallback={<LoadingFallback />}>
-          <RecordedSession />
+          <RecordedSessions />
         </Suspense>
       </div>
     </div>

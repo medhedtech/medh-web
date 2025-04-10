@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import apiClient from "../apis/apiClient";
+import { apiClient } from "../apis/apiClient";
 import apiWithAuth from "../utils/apiWithAuth";
 import { toast } from "react-toastify";
 import { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";

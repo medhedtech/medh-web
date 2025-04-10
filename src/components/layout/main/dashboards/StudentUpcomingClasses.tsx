@@ -200,6 +200,10 @@ const StudentUpcomingClasses: React.FC = () => {
 
   // Filter classes based on the selected tab
   const getFilteredClasses = () => {
+    if (!classes || !Array.isArray(classes)) {
+      return [];
+    }
+    
     const today = moment().startOf('day');
     const tomorrow = moment().add(1, 'day').startOf('day');
 
