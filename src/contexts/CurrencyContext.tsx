@@ -1,5 +1,5 @@
 "use client";
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import axios from 'axios';
 
 // Define currency interface
@@ -27,6 +27,9 @@ interface CurrencyContextState {
   getAvailableCurrencies: () => Array<Currency & { code: string }>;
   getCurrentCurrency: () => (Currency & { code: string }) | null;
   refreshRates: () => Promise<void>;
+  updateCurrencies: (currenciesObject: Record<string, Currency>) => void;
+  setAutoDetectPreference: (value: boolean) => void;
+  autoDetect: boolean;
 }
 
 // Define provider props interface
@@ -63,9 +66,11 @@ const DEFAULT_CURRENCY: CurrencyInfo = { code: 'INR', symbol: '₹' };
 const CurrencyContext = createContext<CurrencyContextState | undefined>(undefined);
 
 export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) => {
-  const [currency, setCurrency] = useState<CurrencyInfo>(DEFAULT_CURRENCY);
+  const [currency, setCurrency] = useState<CurrencyInfo>({ code: 'USD', symbol: '$' });
+  const [currencies, setCurrencies] = useState<Record<string, Currency>>(CURRENCIES);
   const [exchangeRates, setExchangeRates] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState<boolean>(true);
+  const [autoDetect, setAutoDetect] = useState<boolean>(true);
   const [lastRatesUpdate, setLastRatesUpdate] = useState<number>(0);
 
   // Fetch exchange rates using our proxy API
@@ -235,6 +240,18 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) 
     }
   };
 
+  // Update the currencies object with new values
+  const updateCurrencies = useCallback((currenciesObject: Record<string, Currency>) => {
+    setCurrencies(currenciesObject);
+    localStorage.setItem('appCurrencies', JSON.stringify(currenciesObject));
+  }, []);
+
+  // Set auto detect preference
+  const setAutoDetectPreference = useCallback((value: boolean) => {
+    setAutoDetect(value);
+    localStorage.setItem('autoDetectCurrency', JSON.stringify(value));
+  }, []);
+
   // Setup initial currency and exchange rates
   useEffect(() => {
     setInitialCurrency();
@@ -245,6 +262,19 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) 
     }, 60 * 60 * 1000); // 1 hour
     
     return () => clearInterval(refreshInterval);
+  }, []);
+
+  // Initial setup
+  useEffect(() => {
+    const storedAutoDetect = localStorage.getItem('autoDetectCurrency');
+    if (storedAutoDetect !== null) {
+      setAutoDetect(JSON.parse(storedAutoDetect));
+    }
+    
+    const storedCurrencies = localStorage.getItem('appCurrencies');
+    if (storedCurrencies) {
+      setCurrencies(JSON.parse(storedCurrencies));
+    }
   }, []);
 
   // Convert price from USD to selected currency using real-time rates
@@ -293,7 +323,7 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) 
     <CurrencyContext.Provider
       value={{
         currency,
-        currencies: CURRENCIES,
+        currencies,
         exchangeRates,
         loading,
         convertPrice,
@@ -301,7 +331,10 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) 
         changeCurrency,
         getAvailableCurrencies,
         getCurrentCurrency,
-        refreshRates
+        refreshRates,
+        updateCurrencies,
+        setAutoDetectPreference,
+        autoDetect
       }}
     >
       {children}

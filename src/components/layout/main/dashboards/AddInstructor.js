@@ -9,7 +9,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { toast } from "react-toastify";
 import useGetQuery from "@/hooks/getQuery.hook";
 import Preloader from "@/components/shared/others/Preloader";
-import InstructorTable from "./InstructoreManage";
+import InstructorTable from "./InstructorManage";
 import Image from "next/image";
 import lock from "@/assets/images/log-sign/lock.svg";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
