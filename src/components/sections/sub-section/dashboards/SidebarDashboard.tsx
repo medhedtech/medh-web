@@ -82,6 +82,7 @@ import Cookies from 'js-cookie';
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import logo from "@/assets/images/logo/medh_logo-2.png";
+import "@/components/sidebar/sidebar-styles.css";
 import { 
   Home as HomeIcon, 
   BookOpen as BookOpenIcon, 
@@ -94,6 +95,15 @@ import {
   MessageCircle as ChatAlt2Icon, 
   LogOut as LogoutIcon 
 } from 'lucide-react';
+
+// Import the new sidebar components
+import {
+  SidebarHeader,
+  SidebarSearch,
+  SidebarSection,
+  SidebarFooter,
+  SidebarSubMenuItem
+} from "@/components/sidebar";
 
 // Define interfaces for the items structure
 interface SubItem {
@@ -188,8 +198,9 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
   const [openSubMenu, setOpenSubMenu] = useState<string | null>(null);
   const [mounted, setMounted] = useState<boolean>(false);
   const [isMobileDevice, setIsMobileDevice] = useState<boolean>(false);
+  const [searchTerm, setSearchTerm] = useState<string>("");
   
-  // Determine user role from URL path
+  // Initialize component
   useEffect(() => {
     setMounted(true);
     
@@ -217,17 +228,51 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
       userRole = roleFromStorage;
     }
     
-    // Set active menu based on currentView prop
-    if (activeMenu) {
-      // Find the menu that matches the current view
-      const menuMatch = findMenuMatchingView(activeMenu);
-      if (menuMatch) {
-        setActiveMenu(menuMatch);
+    // Hash-based navigation handling
+    const handleHashChange = () => {
+      const newHash = window.location.hash.replace("#", "");
+      if (newHash) {
+        const decodedNewHash = decodeURIComponent(newHash);
+        setActiveMenu(decodedNewHash);
+        
+        // Find and trigger the menu item based on hash
+        const menuItem = findMenuItemByName(decodedNewHash);
+        if (menuItem && menuItem.subItems) {
+          // Trigger the onMenuClick with the appropriate subitems
+          onMenuClick(decodedNewHash, menuItem.subItems as SubItem[]);
+        }
+      } else {
+        setActiveMenu(null);
       }
+    };
+    
+    // Initial hash processing on component mount
+    if (typeof window !== "undefined") {
+      const hash = window.location.hash.replace("#", "");
+      if (hash) {
+        const decodedHash = decodeURIComponent(hash);
+        setActiveMenu(decodedHash);
+        
+        // Find and trigger the menu item based on initial hash
+        const menuItem = findMenuItemByName(decodedHash);
+        if (menuItem && menuItem.subItems) {
+          // Trigger the onMenuClick with the appropriate subitems
+          onMenuClick(decodedHash, menuItem.subItems as SubItem[]);
+        }
+      }
+      
+      // Listen for hash changes
+      window.addEventListener("hashchange", handleHashChange);
     }
     
-    return () => window.removeEventListener("resize", checkMobile);
-  }, [activeMenu]);
+    // Clean up event listeners
+    return () => {
+      window.removeEventListener("resize", checkMobile);
+      if (typeof window !== "undefined") {
+        window.removeEventListener("hashchange", handleHashChange);
+      }
+    };
+  }, []);
 
   // Helper function to find the menu name that corresponds to a view
   const findMenuMatchingView = (view: string): string | null => {
@@ -299,13 +344,11 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
     isPathCorporate = false;
   }
 
-  // Handle logout function
+  // Handle logout
   const handleLogout = () => {
     // Clear cookies and localStorage
     Cookies.remove("token");
     localStorage.removeItem("userId");
-    localStorage.removeItem("token");
-    localStorage.removeItem("permissions");
     localStorage.removeItem("role");
     localStorage.removeItem("full_name");
     
@@ -313,24 +356,23 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
     router.push("/login");
   };
 
-  // Handle menu clicks
-  const handleMenuClick = (menuName: string, items: SubItem[]) => {
-    console.log("Menu clicked:", menuName, "with items:", items); // Debug log
-    onMenuClick(menuName, items);
-  };
-
   // Helper function to find menu item by name
   const findMenuItemByName = (menuName: string): MenuItem | undefined => {
-    // Determine which sidebar to search in
-    const activeSidebar = isPathAdmin ? adminSidebar : 
-                          isPathInstructor ? [] : 
-                          isPathCorporate ? [] : 
-                          isPathCorporateEmp ? [] : 
-                          studentSidebar;
+    // Determine which sidebar to search based on user role
+    let sidebarToSearch: ItemSection[] = [];
+    
+    if (userRole === "admin") {
+      sidebarToSearch = adminSidebar;
+    } else if (userRole === "student") {
+      sidebarToSearch = studentSidebar;
+    } else if (userRole === "parent") {
+      sidebarToSearch = parentSidebar;
+    }
+    // Other roles not included as they might not exist in this component
     
     // Search through all sections and items
-    for (const section of activeSidebar) {
-      const foundItem = section.items.find(item => item.name === menuName);
+    for (const section of sidebarToSearch) {
+      const foundItem = section.items.find((item: MenuItem) => item.name === menuName);
       if (foundItem) {
         return foundItem;
       }
@@ -339,11 +381,38 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
     return undefined;
   };
 
+  // Handle menu clicks
+  const handleMenuClick = (menuName: string, items: SubItem[]) => {
+    // If clicking the same menu that's already active, toggle it closed
+    if (activeMenu === menuName) {
+      setActiveMenu(null);
+      // Remove hash from URL
+      if (typeof window !== "undefined") {
+        window.history.pushState(null, "", window.location.pathname + window.location.search);
+      }
+    } else {
+      setActiveMenu(menuName);
+      // Set hash in URL for direct access
+      if (typeof window !== "undefined") {
+        window.location.hash = encodeURIComponent(menuName);
+      }
+    }
+    
+    // Pass to parent component to update content
+    onMenuClick(menuName, items);
+  };
+
   // Handle submenu clicks
   const handleSubMenuClick = (subItem: SubItem) => {
     if (subItem.comingSoon) {
       // If the feature is coming soon, navigate to coming soon page with title and return path
-      router.push(`/coming-soon?title=${encodeURIComponent(subItem.name)}&returnPath=/dashboards/student`);
+      const returnPath = userRole === "admin" 
+        ? "/dashboards/admin" 
+        : userRole === "instructor" 
+        ? "/dashboards/instructor-dashboard" 
+        : "/dashboards/student";
+      
+      router.push(`/coming-soon?title=${encodeURIComponent(subItem.name)}&returnPath=${returnPath}`);
       return;
     }
     
@@ -376,14 +445,12 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
             {
               name: "My Profile",
               path: "/dashboards/student-profile",
-              icon: <UserCircle className="w-4 h-4" />,
-              comingSoon: true
+              icon: <UserCircle className="w-4 h-4" />
             },
             {
               name: "Upcoming Classes",
               path: "/dashboards/student-upcoming-classes",
-              icon: <CalendarDays className="w-4 h-4" />,
-              comingSoon: true
+              icon: <CalendarDays className="w-4 h-4" />
             },
             {
               name: "Recent Announcements",
@@ -394,14 +461,12 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
             {
               name: "Progress Overview",
               path: "/dashboards/student-progress-overview",
-              icon: <TrendingUp className="w-4 h-4" />,
-              comingSoon: true
+              icon: <TrendingUp className="w-4 h-4" />
             },
             {
               name: "Free Courses",
-              path: "/dashboards/student-free-courses",
-              icon: <Gift className="w-4 h-4" />,
-              comingSoon: true
+              path: "/dashboards/students-free-courses",
+              icon: <Gift className="w-4 h-4" />
             },
             {
               name: "Add Social Icon",
@@ -418,40 +483,14 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
             {
               name: "My Wishlist",
               path: "/dashboards/student-wishlist",
-              icon: <Heart className="w-4 h-4" />,
-              comingSoon: true
+              icon: <Heart className="w-4 h-4" />
             },
           ]
         },
         {
           name: "My Demo Classes",
           icon: <MonitorPlay className="w-5 h-5" />,
-          subItems: [
-            {
-              name: "Demo Scheduled Details",
-              path: "/dashboards/student-demo-schedule",
-              icon: <CalendarDays className="w-4 h-4" />,
-              comingSoon: true
-            },
-            {
-              name: "Demo Attend Details",
-              path: "/dashboards/student-demo-attendance",
-              icon: <CheckSquare className="w-4 h-4" />,
-              comingSoon: true
-            },
-            {
-              name: "Demo Attend Certificate",
-              path: "/dashboards/student-demo-certificate",
-              icon: <Award className="w-4 h-4" />,
-              comingSoon: true
-            },
-            {
-              name: "Demo Feedback/Summary",
-              path: "/dashboards/student-demo-feedback",
-              icon: <MessageSquare className="w-4 h-4" />,
-              comingSoon: true
-            }
-          ]
+          onClick: () => handleMenuClick("democlasses", [])
         },
       ]
     },
@@ -461,12 +500,12 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
         {
           name: "My Courses",
           icon: <BookOpen className="w-5 h-5" />,
-          onClick: () => handleMenuClick("mycourses", [])
+          path: "/dashboards/my-courses"
         },
         {
           name: "My Membership",
           icon: <Users className="w-5 h-5" />,
-          onClick: () => handleMenuClick("membership", [])
+          path: "/dashboards/student-membership"
         },
         {
           name: "My Live Classes",
@@ -480,15 +519,13 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
             },
             {
               name: "View Scheduled Classes",
-              path: "/dashboards/student-scheduled-classes",
-              icon: <CalendarDays className="w-4 h-4" />,
-              comingSoon: true
+              path: "/dashboards/student-upcoming-classes",
+              icon: <CalendarDays className="w-4 h-4" />
             },
             {
               name: "Access Recorded Sessions",
-              path: "/dashboards/student-recorded-sessions",
-              icon: <Video className="w-4 h-4" />,
-              comingSoon: true
+              path: "/dashboards/access-recorded-sessions",
+              icon: <Video className="w-4 h-4" />
             }
           ]
         }
@@ -503,15 +540,13 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           subItems: [
             {
               name: "Course Completion Status",
-              path: "/dashboards/student-course-completion",
-              icon: <CheckCircle className="w-4 h-4" />,
-              comingSoon: true
+              path: "/dashboards/student-enrolled-courses",
+              icon: <CheckCircle className="w-4 h-4" />
             },
             {
               name: "Performance Analytics",
-              path: "/dashboards/student-performance",
-              icon: <BarChart className="w-4 h-4" />,
-              comingSoon: true
+              path: "/dashboards/student-progress-overview",
+              icon: <BarChart className="w-4 h-4" />
             },
             {
               name: "Skill Development Tracking",
@@ -527,9 +562,8 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           subItems: [
             {
               name: "Access Course Materials",
-              path: "/dashboards/student-course-materials",
-              icon: <FileText className="w-4 h-4" />,
-              comingSoon: true
+              path: "/dashboards/lesson-course-materials",
+              icon: <FileText className="w-4 h-4" />
             },
             {
               name: "View e-books",
@@ -542,7 +576,23 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
         {
           name: "Assignments & Quizzes",
           icon: <ClipboardList className="w-5 h-5" />,
-          onClick: () => handleMenuClick("quizzes", [])
+          subItems: [
+            {
+              name: "My Assignments",
+              path: "/dashboards/student-assignments",
+              icon: <Clipboard className="w-4 h-4" />
+            },
+            {
+              name: "Take Quiz",
+              path: "/dashboards/student-quiz",
+              icon: <CheckSquare className="w-4 h-4" />
+            },
+            {
+              name: "My Quiz Attempts",
+              path: "/dashboards/student-my-quiz-attempts",
+              icon: <ListChecks className="w-4 h-4" />
+            }
+          ]
         }
       ]
     },
@@ -552,22 +602,22 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
         {
           name: "Feedback & Support",
           icon: <MessageCircle className="w-5 h-5" />,
-          onClick: () => handleMenuClick("feedback", [])
+          path: "/dashboards/feedback"
         },
         {
           name: "Certificates",
           icon: <Award className="w-5 h-5" />,
-          onClick: () => handleMenuClick("certificates", [])
+          path: "/dashboards/student-certificate"
         },
         {
           name: "Payments",
           icon: <CreditCard className="w-5 h-5" />,
-          onClick: () => handleMenuClick("payments", [])
+          path: "/dashboards/student-payment"
         },
         {
           name: "Apply for Placement",
           icon: <Briefcase className="w-5 h-5" />,
-          onClick: () => handleMenuClick("placement", [])
+          path: "/dashboards/student-apply"
         }
       ]
     }
@@ -738,6 +788,127 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
     }
   ];
 
+  // Define instructor sidebar structure
+  const instructorSidebar: ItemSection[] = [
+    {
+      title: "Main",
+      items: [
+        {
+          name: "Dashboard",
+          icon: <LayoutDashboard className="w-5 h-5" />,
+          subItems: [
+            {
+              name: "Overview",
+              path: "/dashboards/instructor-dashboard",
+              icon: <LayoutGrid className="w-4 h-4" />
+            },
+            {
+              name: "My Profile",
+              path: "/dashboards/instructor-profile",
+              icon: <UserCircle className="w-4 h-4" />
+            },
+            {
+              name: "Change Password",
+              path: "/dashboards/instructor-password",
+              icon: <Key className="w-4 h-4" />,
+              comingSoon: true
+            },
+            {
+              name: "Add Social Icon",
+              path: "/dashboards/instructor-social",
+              icon: <Share2 className="w-4 h-4" />,
+              comingSoon: true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      title: "Classes",
+      items: [
+        {
+          name: "My Demo Classes",
+          icon: <MonitorPlay className="w-5 h-5" />,
+          path: "/dashboards/instructor-class"
+        },
+        {
+          name: "My Main Classes",
+          icon: <Video className="w-5 h-5" />,
+          path: "/dashboards/instructor-mainclass"
+        },
+        {
+          name: "Track Sessions",
+          icon: <History className="w-5 h-5" />,
+          path: "/dashboards/instructor-track"
+        }
+      ]
+    },
+    {
+      title: "Assignments & Assessments",
+      items: [
+        {
+          name: "Assignments & Quizzes",
+          icon: <ClipboardList className="w-5 h-5" />,
+          subItems: [
+            {
+              name: "Create Assignment",
+              path: "/dashboards/instructor-create-assignment",
+              icon: <Pencil className="w-4 h-4" />
+            },
+            {
+              name: "Create Quiz",
+              path: "/dashboards/instructor-create-quiz",
+              icon: <FileCheck className="w-4 h-4" />
+            },
+            {
+              name: "Submitted Assignments",
+              path: "/dashboards/instructor-view-assignments",
+              icon: <Clipboard className="w-4 h-4" />
+            },
+            {
+              name: "Submitted Quizzes",
+              path: "/dashboards/instructor-view-quizes",
+              icon: <CheckSquare className="w-4 h-4" />
+            },
+            {
+              name: "My Quiz Attempts",
+              path: "/dashboards/instructor-my-quiz-attempts",
+              icon: <ListChecks className="w-4 h-4" />
+            }
+          ]
+        }
+      ]
+    },
+    {
+      title: "Communication & Support",
+      items: [
+        {
+          name: "Feedback",
+          icon: <MessageCircle className="w-5 h-5" />,
+          path: "/dashboards/instructor-feedbacks"
+        },
+        {
+          name: "Student Performance",
+          icon: <TrendingUp className="w-5 h-5" />,
+          path: "/dashboards/instructor-student-performance",
+          comingSoon: true
+        },
+        {
+          name: "Schedule Classes",
+          icon: <Calendar className="w-5 h-5" />,
+          path: "/dashboards/instructor-schedule",
+          comingSoon: true
+        },
+        {
+          name: "Resources",
+          icon: <FolderOpen className="w-5 h-5" />,
+          path: "/dashboards/instructor-resources",
+          comingSoon: true
+        }
+      ]
+    }
+  ];
+
   // Define admin sidebar structure
   const adminSidebar: ItemSection[] = [
     {
@@ -749,33 +920,30 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           subItems: [
             {
               name: "Overview",
-              path: "/dashboards/admin-dashboard",
-              icon: <LayoutGrid className="w-4 h-4" />,
-              onClick: () => handleMenuClick("Dashboard", adminSidebar[0].items.map(item => item as SubItem))
+              path: "/dashboards/admin",
+              icon: <LayoutGrid className="w-4 h-4" />
             },
             {
               name: "My Profile",
-              path: "/dashboards/admin-settings",
+              path: "/dashboards/admin-profile",
               icon: <UserCircle className="w-4 h-4" />
             },
             {
               name: "Currency Management",
               path: "/dashboards/admin-currency",
-              icon: <DollarSign className="w-4 h-4" />,
-              onClick: () => {
-                onMenuClick("Dashboard", adminSidebar[0].items.map(item => item as SubItem));
-                router.push("/dashboards/admin-dashboard?view=admin-currency");
-              }
+              icon: <DollarSign className="w-4 h-4" />
             },
             {
               name: "Change Password",
               path: "/dashboards/admin-password",
-              icon: <Key className="w-4 h-4" />
+              icon: <Key className="w-4 h-4" />,
+              comingSoon: true
             },
             {
               name: "Add Social Icon",
               path: "/dashboards/admin-social",
-              icon: <Share2 className="w-4 h-4" />
+              icon: <Share2 className="w-4 h-4" />,
+              comingSoon: true
             }
           ]
         }
@@ -799,7 +967,7 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
               icon: <DollarSign className="w-4 h-4" />,
               onClick: () => {
                 onMenuClick("Location & Currency", adminSidebar[1].items.map(item => item as SubItem));
-                router.push("/dashboards/admin-dashboard?view=admin-currency");
+                router.push("/dashboards/admin#admin-currency");
               }
             },
             {
@@ -1172,11 +1340,36 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
 
   // Choose the appropriate sidebar based on role
   const activeSidebar = effectiveIsAdmin ? adminSidebar : 
-                        effectiveIsInstructor ? [] : 
+                        effectiveIsInstructor ? instructorSidebar : 
                         effectiveIsCorporate ? [] : 
                         effectiveIsCorporateEmp ? [] :
                         effectiveIsParent ? parentSidebar :
                         studentSidebar;
+
+  // Filter menu items by search term
+  const filterItemsBySearch = (sections: ItemSection[]): ItemSection[] => {
+    if (!searchTerm) return sections;
+    
+    return sections.map(section => {
+      // Filter items in each section
+      const filteredItems = section.items.filter(item =>
+        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.subItems?.some(subItem => 
+          subItem.name.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      );
+      
+      return {
+        ...section,
+        items: filteredItems
+      };
+    }).filter(section => section.items.length > 0);
+  };
+  
+  // Helper function to handle search
+  const handleSearch = (term: string) => {
+    setSearchTerm(term);
+  };
 
   if (!mounted) {
     return null;
@@ -1245,145 +1438,48 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
     );
   };
 
+  // Main return with new modular components
   return (
-    <div className="h-full flex flex-col bg-white dark:bg-gray-800 border-r dark:border-gray-700">
-      {/* Header */}
-      <div className="p-4 sm:p-6 flex flex-col space-y-4 sm:space-y-6">
-        <div className="flex items-center justify-between">
-          <Image 
-            src={logo} 
-            alt="logo" 
-            width={isMobileDevice ? 80 : 100} 
-            height={isMobileDevice ? 80 : 100} 
-            className="transition-transform hover:scale-105" 
-            onClick={() => router.push("/")}
-          />
-          <div className="flex items-center gap-2">
-            <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors relative">
-              <Bell className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-              <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500 ring-1 ring-white dark:ring-gray-800"></span>
-            </button>
-            <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-              <Settings className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-            </button>
-          </div>
-        </div>
-        
-        {/* User welcome */}
-        <div className="flex items-center gap-3 p-3 sm:p-4 bg-gradient-to-r from-primary-50 to-white dark:from-primary-900/10 dark:to-gray-800 rounded-xl border border-primary-100/50 dark:border-primary-800/20">
-          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white font-semibold shadow-sm">
-            {userName ? userName.charAt(0).toUpperCase() : (userRole || 'U').charAt(0).toUpperCase()}
-          </div>
-          <div>
-            <p className="text-sm font-medium text-primary-700 dark:text-primary-400">
-              {welcomeMessage}
-            </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              {(userRole || 'User').charAt(0).toUpperCase() + (userRole || 'User').slice(1)} Account
-            </p>
-          </div>
-        </div>
-      </div>
+    <div className="h-full flex flex-col bg-white dark:bg-gray-800 border-r dark:border-gray-700 sidebar-gen-alpha sidebar-container">
+      {/* Header component */}
+      <SidebarHeader 
+        logo={logo}
+        userName={userName}
+        userRole={userRole}
+        userNotifications={userNotifications}
+        isMobileDevice={isMobileDevice}
+      />
       
       {/* Mobile search */}
       {isMobileDevice && (
-        <div className="px-4 mb-3">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search menu..."
-              className="w-full px-3 py-1.5 pl-8 text-sm bg-gray-100 dark:bg-gray-700/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500"
-            />
-            <Search className="absolute left-2.5 top-2 w-3.5 h-3.5 text-gray-400" />
-          </div>
-        </div>
+        <SidebarSearch onSearch={handleSearch} />
       )}
       
       {/* Navigation - Scrollable */}
       <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 px-3 sm:px-4">
         <nav className="py-2 sm:py-4 space-y-4 sm:space-y-6">
           {/* Appropriate Sidebar Navigation based on role */}
-          {activeSidebar.map((section, sectionIndex) => (
-            <div key={sectionIndex}>
-              {section.title && (
-                <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 px-3">
-                  {section.title}
-                </h3>
-              )}
-              <ul className="space-y-1">
-                {section.items.map((item, itemIndex) => (
-                  <li key={itemIndex}>
-                    <button
-                      onClick={() => {
-                        if (item.subItems) {
-                          handleMenuClick(item.name, item.subItems);
-                        } else {
-                          handleMenuClick(item.name, []);
-                        }
-                      }}
-                      className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 ${
-                        activeMenu === item.name
-                          ? "bg-primary-50 text-primary-600 dark:bg-primary-900/20 dark:text-primary-400 border-l-2 border-primary-500" 
-                          : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className={`${
-                          activeMenu === item.name
-                            ? "text-primary-600 dark:text-primary-400"
-                            : "text-gray-500 dark:text-gray-400"
-                        }`}>{item.icon}</span>
-                        <span>{item.name}</span>
-                      </div>
-                      
-                      {item.subItems && (
-                        <ChevronDown 
-                          className={`w-4 h-4 transition-transform ${
-                            activeMenu === item.name ? "rotate-180 text-primary-500" : ""
-                          }`} 
-                        />
-                      )}
-                    </button>
-                    
-                    {/* Mobile optimized submenu display */}
-                    {activeMenu === item.name && isMobileDevice && renderMobileSubitems(item)}
-                    
-                    {/* Desktop indicator that opens in navbar */}
-                    {item.subItems && activeMenu === item.name && !isMobileDevice && (
-                      <div className="mt-1 ml-8 h-1 w-16 bg-gradient-to-r from-primary-300 to-purple-300 dark:from-primary-800 dark:to-purple-800 rounded-full"></div>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          <AnimatePresence initial={false} mode="wait">
+            {filterItemsBySearch(activeSidebar).map((section, sectionIndex) => (
+              <SidebarSection
+                key={sectionIndex}
+                title={section.title}
+                items={section.items as any}
+                activeMenu={activeMenu}
+                isMobileDevice={isMobileDevice}
+                onMenuClick={handleMenuClick}
+                renderMobileSubitems={renderMobileSubitems}
+              />
+            ))}
+          </AnimatePresence>
         </nav>
       </div>
       
-      {/* Action items (logout, etc) */}
-      <div className="p-4 border-t dark:border-gray-700">
-        <ul className="space-y-1">
-          {actionItems.map((item, index) => (
-            <li key={index}>
-              <button
-                onClick={item.onClick}
-                className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-red-600 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-red-400 transition-colors"
-              >
-                <span className="text-gray-500 dark:text-gray-400">{item.icon}</span>
-                <span>{item.name}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-        
-        {/* Version info - only on desktop */}
-        {!isMobileDevice && (
-          <div className="mt-6 pt-2 text-center text-xs text-gray-400 dark:text-gray-600">
-            <p>Medh v1.0</p>
-            <p className="mt-1">© 2025 Medh Education</p>
-          </div>
-        )}
-      </div>
+      {/* Footer with action items */}
+      <SidebarFooter
+        actionItems={actionItems as any}
+        isMobileDevice={isMobileDevice}
+      />
     </div>
   );
 };
