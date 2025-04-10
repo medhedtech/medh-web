@@ -10,6 +10,7 @@ import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageSquare, Star, Send, User, AlertCircle, Loader2, ThumbsUp, MessageCircle } from "lucide-react";
 
+// Define schemas for form validation
 const feedbackSchema = yup.object().shape({
   feedbackType: yup.string().required("Feedback type is required"),
   feedbackText: yup
@@ -27,7 +28,27 @@ const complaintSchema = yup.object().shape({
     .required("Complaint text is required"),
 });
 
-const FormInput = ({ label, icon: Icon, error, ...props }) => (
+// Define types for form data
+interface FeedbackFormData {
+  feedbackType: string;
+  feedbackText: string;
+  feedbackTitle: string;
+}
+
+interface ComplaintFormData {
+  complaintName: string;
+  complaintText: string;
+}
+
+// Props type for form input component
+interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label: string;
+  icon: React.ElementType;
+  error?: string;
+}
+
+// Form input component
+const FormInput: React.FC<FormInputProps> = ({ label, icon: Icon, error, ...props }) => (
   <div className="relative">
     <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
       {label}
@@ -59,15 +80,20 @@ const FormInput = ({ label, icon: Icon, error, ...props }) => (
   </div>
 );
 
-const FeedbackandSupport = () => {
+/**
+ * FeedbackAndSupport component for submitting feedback and complaints
+ */
+const FeedbackAndSupport: React.FC = () => {
   const { postQuery, loading } = usePostQuery();
+  
+  // Feedback form setup
   const {
     register: registerFeedback,
     handleSubmit: handleFeedbackSubmit,
     reset: resetFeedback,
-    formState: { errors: feedbackErrors, isDirty: isFeedbackDirty },
+    formState: { errors: feedbackErrors },
     watch,
-  } = useForm({
+  } = useForm<FeedbackFormData>({
     resolver: yupResolver(feedbackSchema),
     defaultValues: {
       feedbackType: "course",
@@ -76,14 +102,16 @@ const FeedbackandSupport = () => {
     },
   });
 
+  // Watch feedback type for conditional rendering
   const feedbackType = watch("feedbackType");
 
+  // Complaint form setup
   const {
     register: registerComplaint,
     handleSubmit: handleComplaintSubmit,
     reset: resetComplaint,
-    formState: { errors: complaintErrors, isDirty: isComplaintDirty },
-  } = useForm({
+    formState: { errors: complaintErrors },
+  } = useForm<ComplaintFormData>({
     resolver: yupResolver(complaintSchema),
     defaultValues: {
       complaintName: "",
@@ -91,7 +119,8 @@ const FeedbackandSupport = () => {
     },
   });
 
-  const onFeedbackSubmit = (data) => {
+  // Handle feedback submission
+  const onFeedbackSubmit = (data: FeedbackFormData) => {
     postQuery({
       url: apiUrls?.feedbacks?.createFeedback,
       postData: {
@@ -103,14 +132,15 @@ const FeedbackandSupport = () => {
         toast.success("Feedback submitted successfully");
         resetFeedback();
       },
-      onFail: (error) => {
+      onFail: (error: any) => {
         toast.error("Failed to submit feedback. Please try again.");
         console.error("Error submitting feedback:", error);
       },
     });
   };
 
-  const onComplaintSubmit = (data) => {
+  // Handle complaint submission
+  const onComplaintSubmit = (data: ComplaintFormData) => {
     postQuery({
       url: apiUrls?.feedbacks?.createComplaint,
       postData: {
@@ -121,7 +151,7 @@ const FeedbackandSupport = () => {
         toast.success("Complaint submitted successfully");
         resetComplaint();
       },
-      onFail: (error) => {
+      onFail: (error: any) => {
         toast.error("Failed to submit complaint. Please try again.");
         console.error("Error submitting complaint:", error);
       },
@@ -223,7 +253,7 @@ const FeedbackandSupport = () => {
                 <MessageSquare className="h-5 w-5 text-gray-400" />
               </div>
               <textarea
-                rows="4"
+                rows={4}
                 placeholder="Share your thoughts..."
                 className={`w-full pl-10 pr-4 py-2.5 rounded-lg border ${
                   feedbackErrors.feedbackText ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
@@ -245,35 +275,26 @@ const FeedbackandSupport = () => {
             </div>
           </div>
 
-          <motion.div 
-            className="flex justify-end"
-            initial={false}
-            animate={{ opacity: isFeedbackDirty ? 1 : 0.5 }}
-          >
+          <motion.div className="flex justify-end">
             <motion.button
               type="submit"
-              disabled={loading || !isFeedbackDirty}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium transition-all duration-200
-                ${isFeedbackDirty 
-                  ? 'bg-primary-500 hover:bg-primary-600 text-white' 
-                  : 'bg-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-400'}`}
+              className="flex items-center gap-2 px-5 py-2.5 bg-primary-500 text-white rounded-lg hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all duration-200"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              disabled={loading}
             >
               {loading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
-                <>
-                  <Send className="w-5 h-5" />
-                  Submit Feedback
-                </>
+                <Send className="w-5 h-5" />
               )}
+              Submit Feedback
             </motion.button>
           </motion.div>
         </form>
       </motion.div>
 
-      {/* Complaints Section */}
+      {/* Complaint Section */}
       <motion.div 
         className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg"
         initial={{ opacity: 0, y: 20 }}
@@ -281,8 +302,8 @@ const FeedbackandSupport = () => {
         transition={{ delay: 0.2 }}
       >
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-3 rounded-xl bg-red-50 dark:bg-red-900/20">
-            <AlertCircle className="w-6 h-6 text-red-500" />
+          <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20">
+            <AlertCircle className="w-6 h-6 text-amber-500" />
           </div>
           <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
             Submit a Complaint
@@ -291,8 +312,8 @@ const FeedbackandSupport = () => {
 
         <form onSubmit={handleComplaintSubmit(onComplaintSubmit)} className="space-y-6">
           <FormInput
-            label="Title"
-            icon={MessageCircle}
+            label="Your Name"
+            icon={User}
             type="text"
             error={complaintErrors.complaintName?.message}
             {...registerComplaint("complaintName")}
@@ -300,16 +321,16 @@ const FeedbackandSupport = () => {
 
           <div className="relative">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
-              Complaint Details
+              Describe your complaint
               <span className="text-red-500 ml-1">*</span>
             </label>
             <div className="relative">
               <div className="absolute top-3 left-3 pointer-events-none">
-                <AlertCircle className="h-5 w-5 text-gray-400" />
+                <MessageSquare className="h-5 w-5 text-gray-400" />
               </div>
               <textarea
-                rows="4"
-                placeholder="Describe your complaint..."
+                rows={4}
+                placeholder="Please provide details about your complaint..."
                 className={`w-full pl-10 pr-4 py-2.5 rounded-lg border ${
                   complaintErrors.complaintText ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                 } bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all duration-200`}
@@ -330,35 +351,75 @@ const FeedbackandSupport = () => {
             </div>
           </div>
 
-          <motion.div 
-            className="flex justify-end"
-            initial={false}
-            animate={{ opacity: isComplaintDirty ? 1 : 0.5 }}
-          >
+          <motion.div className="flex justify-end">
             <motion.button
               type="submit"
-              disabled={loading || !isComplaintDirty}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium transition-all duration-200
-                ${isComplaintDirty 
-                  ? 'bg-red-500 hover:bg-red-600 text-white' 
-                  : 'bg-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-400'}`}
+              className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 text-white rounded-lg hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition-all duration-200"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              disabled={loading}
             >
               {loading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
-                <>
-                  <Send className="w-5 h-5" />
-                  Submit Complaint
-                </>
+                <Send className="w-5 h-5" />
               )}
+              Submit Complaint
             </motion.button>
           </motion.div>
         </form>
+      </motion.div>
+
+      {/* Help Resources */}
+      <motion.div 
+        className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+      >
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20">
+            <MessageSquare className="w-6 h-6 text-blue-500" />
+          </div>
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
+            Help Resources
+          </h2>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-6 hover:shadow-md transition-shadow">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">
+              Frequently Asked Questions
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300 mb-4">
+              Find answers to common questions about our courses, instructors, and platform features.
+            </p>
+            <a
+              href="/faq"
+              className="text-primary-600 dark:text-primary-400 hover:underline font-medium flex items-center gap-1"
+            >
+              View FAQs <span className="text-xl">→</span>
+            </a>
+          </div>
+
+          <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-6 hover:shadow-md transition-shadow">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">
+              Contact Support Team
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300 mb-4">
+              Need direct assistance? Our support team is available to help you resolve issues.
+            </p>
+            <a
+              href="mailto:support@medh.com"
+              className="text-primary-600 dark:text-primary-400 hover:underline font-medium flex items-center gap-1"
+            >
+              Email Support <span className="text-xl">→</span>
+            </a>
+          </div>
+        </div>
       </motion.div>
     </motion.div>
   );
 };
 
-export default FeedbackandSupport;
+export default FeedbackAndSupport; 

@@ -17,9 +17,17 @@ import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
 import medhLogo from "@/assets/images/logo/medh.png";
 import { getAllCoursesWithLimits } from "@/apis/course/course";
+import { ICourse } from "@/types/course.types";
+
+// Define interfaces for component props
+interface IHeroMobileProps {
+  isLoaded: boolean;
+  featuredCourses: ICourse[];
+  loading: boolean;
+}
 
 // Mobile version of Hero component
-const HeroMobile = ({ isLoaded, featuredCourses, loading }) => {
+const HeroMobile: React.FC<IHeroMobileProps> = ({ isLoaded, featuredCourses, loading }) => {
   return (
     <div className="mobile-hero-wrapper grid grid-cols-1 gap-6 p-4">
       {/* Mobile Header */}
@@ -93,17 +101,21 @@ const HeroMobile = ({ isLoaded, featuredCourses, loading }) => {
   );
 };
 
+interface IHero1Props {
+  isCompact?: boolean;
+}
+
 // Main Hero component
-const Hero1 = ({ isCompact = false }) => {
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [featuredCourses, setFeaturedCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
+const Hero1: React.FC<IHero1Props> = ({ isCompact = false }) => {
+  const [isLoaded, setIsLoaded] = useState<boolean>(false);
+  const [featuredCourses, setFeaturedCourses] = useState<ICourse[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
   const { getQuery } = useGetQuery();
 
   // Check for mobile view
   useEffect(() => {
-    const checkIfMobile = () => {
+    const checkIfMobile = (): void => {
       setIsMobile(window.innerWidth < 768);
     };
     
@@ -123,17 +135,21 @@ const Hero1 = ({ isCompact = false }) => {
 
   // Fetch featured courses
   useEffect(() => {
-    const fetchFeaturedCourses = () => {
+    const fetchFeaturedCourses = (): void => {
       getQuery({
-        url: getAllCoursesWithLimits(1, 4, "", "", "", "Published", "", "", []),
-        onSuccess: (data) => {
+        url: getAllCoursesWithLimits({
+          page: 1,
+          limit: 4,
+          status: "Published"
+        }),
+        onSuccess: (data: { courses: ICourse[] }) => {
           const sortedCourses = (data?.courses || [])
-            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+            .sort((a: ICourse, b: ICourse) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
             .slice(0, 4);
           setFeaturedCourses(sortedCourses);
           setLoading(false);
         },
-        onFail: (error) => {
+        onFail: (error: any) => {
           console.error("Error fetching courses:", error);
           setLoading(false);
         },
@@ -141,7 +157,7 @@ const Hero1 = ({ isCompact = false }) => {
     };
 
     fetchFeaturedCourses();
-  }, []);
+  }, [getQuery]);
 
   // Conditionally render mobile or desktop version
   if (isMobile) {
@@ -366,4 +382,4 @@ const Hero1 = ({ isCompact = false }) => {
   );
 };
 
-export default Hero1;
+export default Hero1; 
