@@ -89,6 +89,18 @@ export const apiUtils = {
   },
 
   /**
+   * Adds a simple parameter to the URLSearchParams if the value exists.
+   * @param name - The parameter name.
+   * @param value - The parameter value.
+   * @param params - The URLSearchParams object to append to.
+   */
+  appendParam: (name: string, value: any, params: URLSearchParams): void => {
+    if (value !== null && value !== undefined && value !== '') {
+      params.append(name, apiUtils.safeEncode(value));
+    }
+  },
+  
+  /**
    * Creates a URLSearchParams object and adds array parameters by appending.
    * @param name - The parameter name.
    * @param value - The parameter value (array or comma-separated string).
@@ -120,18 +132,6 @@ export const apiUtils = {
       if (items.length > 0) {
         params.append(name, items.join(separator));
       }
-    }
-  },
-
-  /**
-   * Adds a simple parameter to the URLSearchParams if the value exists.
-   * @param name - The parameter name.
-   * @param value - The parameter value.
-   * @param params - The URLSearchParams object to append to.
-   */
-  appendParam: (name: string, value: any, params: URLSearchParams): void => {
-    if (value !== null && value !== undefined && value !== '') {
-      params.append(name, apiUtils.safeEncode(value));
     }
   }
 };
@@ -178,26 +178,7 @@ export interface ICourseQueryParams {
   category_type?: string;
 }
 
-export interface ICourseSearchParams {
-  page?: number;
-  limit?: number;
-  course_title?: string;
-  course_tag?: string | string[];
-  course_category?: string | string[];
-  status?: 'Draft' | 'Published' | 'Archived';
-  search?: string;
-  course_grade?: string;
-  category?: string[];
-  filters?: ICourseFilters;
-  class_type?: string;
-  course_duration?: number | { min: number; max: number };
-  course_fee?: number | { min: number; max: number };
-  course_type?: string;
-  skill_level?: string;
-  language?: string;
-  sort_by?: string;
-  sort_order?: 'asc' | 'desc';
-  category_type?: string;
+export interface ICourseSearchParams extends ICourseQueryParams {
   currency?: string;
 }
 
@@ -318,7 +299,99 @@ export const apiUrls = {
     resetPassword: "/auth/reset-password"
   },
   adminDashboard: {
-    getDashboardCount: "/dashboard/admin-dashboard-count"
+    getDashboardCount: "/dashboard/admin-dashboard-count",
+    getDetailedStats: (options: { period?: string; filter?: string } = {}): string => {
+      const { period = "month", filter = "" } = options;
+      const queryParams = new URLSearchParams();
+      queryParams.append('period', period);
+      if (filter) {
+        queryParams.append('filter', filter);
+      }
+      return `/dashboard/admin-stats?${queryParams.toString()}`;
+    },
+    getRevenueMetrics: (options: { 
+      start_date?: string; 
+      end_date?: string; 
+      granularity?: 'day' | 'week' | 'month' | 'year' 
+    } = {}): string => {
+      const queryParams = new URLSearchParams();
+      if (options.start_date) queryParams.append('start_date', options.start_date);
+      if (options.end_date) queryParams.append('end_date', options.end_date);
+      if (options.granularity) queryParams.append('granularity', options.granularity);
+      return `/dashboard/revenue-metrics?${queryParams.toString()}`;
+    },
+    getEnrollmentStats: (options: { 
+      course_id?: string; 
+      period?: string; 
+      category?: string; 
+      instructor_id?: string 
+    } = {}): string => {
+      const queryParams = new URLSearchParams();
+      if (options.course_id) queryParams.append('course_id', options.course_id);
+      if (options.period) queryParams.append('period', options.period);
+      if (options.category) queryParams.append('category', options.category);
+      if (options.instructor_id) queryParams.append('instructor_id', options.instructor_id);
+      return `/dashboard/enrollment-stats?${queryParams.toString()}`;
+    },
+    getCompletionRates: (options: { 
+      course_id?: string; 
+      category?: string; 
+      start_date?: string; 
+      end_date?: string 
+    } = {}): string => {
+      const queryParams = new URLSearchParams();
+      if (options.course_id) queryParams.append('course_id', options.course_id);
+      if (options.category) queryParams.append('category', options.category);
+      if (options.start_date) queryParams.append('start_date', options.start_date);
+      if (options.end_date) queryParams.append('end_date', options.end_date);
+      return `/dashboard/completion-rates?${queryParams.toString()}`;
+    },
+    getUserActivityTimeline: (options: {
+      user_type?: 'student' | 'instructor' | 'admin' | 'corporate';
+      user_id?: string;
+      start_date?: string;
+      end_date?: string;
+      limit?: number;
+    } = {}): string => {
+      const { limit = 20 } = options;
+      const queryParams = new URLSearchParams();
+      if (options.user_type) queryParams.append('user_type', options.user_type);
+      if (options.user_id) queryParams.append('user_id', options.user_id);
+      if (options.start_date) queryParams.append('start_date', options.start_date);
+      if (options.end_date) queryParams.append('end_date', options.end_date);
+      queryParams.append('limit', String(limit));
+      return `/dashboard/user-activity-timeline?${queryParams.toString()}`;
+    },
+    getZoomAnalytics: (options: {
+      meeting_id?: string;
+      instructor_id?: string;
+      course_id?: string;
+      period?: string;
+    } = {}): string => {
+      const queryParams = new URLSearchParams();
+      if (options.meeting_id) queryParams.append('meeting_id', options.meeting_id);
+      if (options.instructor_id) queryParams.append('instructor_id', options.instructor_id);
+      if (options.course_id) queryParams.append('course_id', options.course_id);
+      if (options.period) queryParams.append('period', options.period);
+      return `/dashboard/zoom-analytics?${queryParams.toString()}`;
+    },
+    getBlogPerformance: (options: {
+      blog_id?: string;
+      category?: string;
+      period?: string;
+      metrics?: string[];
+    } = {}): string => {
+      const queryParams = new URLSearchParams();
+      if (options.blog_id) queryParams.append('blog_id', options.blog_id);
+      if (options.category) queryParams.append('category', options.category);
+      if (options.period) queryParams.append('period', options.period);
+      apiUtils.appendArrayParam('metrics', options.metrics, queryParams);
+      return `/dashboard/blog-performance?${queryParams.toString()}`;
+    },
+    getSystemHealth: "/dashboard/system-health",
+    exportDashboardData: (format: 'csv' | 'pdf' | 'excel' = 'csv', report_type: string): string => {
+      return `/dashboard/export-data?format=${format}&report_type=${report_type}`;
+    }
   },
   upload: {
     uploadFile: "/upload",
@@ -1346,3 +1419,304 @@ export interface IBlogCommentInput {
 export * from './courses';
 export * from './blog.api';
 export * from './apiClient';
+
+// Admin Dashboard Interfaces
+export interface IDashboardCount {
+  totalStudents: number;
+  totalInstructors: number;
+  totalCourses: number;
+  totalEnrollments: number;
+  totalRevenue: number;
+  currency: string;
+  activeMeetings: number;
+  pendingComplaints: number;
+  courseCompletionRate: number;
+  totalBrochureDownloads: number;
+}
+
+export interface IRevenueMetric {
+  period: string;
+  amount: number;
+  enrollmentCount: number;
+  currency: string;
+  comparedToPrevious?: {
+    percentage: number;
+    trend: 'up' | 'down' | 'stable';
+  };
+}
+
+export interface IEnrollmentStat {
+  courseId?: string;
+  courseTitle?: string;
+  categoryId?: string;
+  categoryName?: string;
+  instructorId?: string;
+  instructorName?: string;
+  enrollmentCount: number;
+  completionCount: number;
+  completionRate: number;
+  avgRating: number;
+  revenue: number;
+  currency: string;
+}
+
+export interface ICompletionRate {
+  courseId?: string;
+  courseTitle?: string;
+  enrollmentCount: number;
+  completionCount: number;
+  completionRate: number;
+  avgTimeToComplete: number; // in days
+  dropoffPoints: Array<{
+    lessonId: string;
+    lessonTitle: string;
+    dropoffCount: number;
+    dropoffPercentage: number;
+  }>;
+}
+
+export interface IUserActivity {
+  userId: string;
+  userName: string;
+  userType: 'student' | 'instructor' | 'admin' | 'corporate';
+  activity: string;
+  activityType: 'login' | 'course_view' | 'lesson_complete' | 'meeting_join' | 'payment' | 'other';
+  timestamp: string;
+  metadata?: Record<string, any>;
+}
+
+export interface IZoomAnalytic {
+  meetingId?: string;
+  meetingTitle?: string;
+  instructorId?: string;
+  instructorName?: string;
+  courseId?: string;
+  courseTitle?: string;
+  startTime: string;
+  endTime: string;
+  duration: number; // in minutes
+  participantCount: number;
+  averageAttendanceTime: number; // in minutes
+  recordingAvailable: boolean;
+  recordingViews: number;
+}
+
+export interface IBlogPerformance {
+  blogId?: string;
+  blogTitle?: string;
+  categoryId?: string;
+  categoryName?: string;
+  views: number;
+  uniqueVisitors: number;
+  averageReadTime: number; // in seconds
+  likes: number;
+  comments: number;
+  shares: number;
+  clickthroughRate?: number;
+}
+
+export interface ISystemHealth {
+  status: 'healthy' | 'degraded' | 'critical';
+  apiLatency: number; // in ms
+  dbLatency: number; // in ms
+  errorRate: number; // percentage
+  memoryUsage: number; // percentage
+  cpuUsage: number; // percentage
+  recentErrors: Array<{
+    endpoint: string;
+    count: number;
+    lastOccurred: string;
+  }>;
+}
+
+export interface IDashboardResponse<T> {
+  status: string;
+  data: T;
+  timestamp: string;
+  metadata?: {
+    cacheStatus?: 'hit' | 'miss';
+    dataLastUpdated?: string;
+  };
+}
+
+// Dashboard Utility Functions
+export const dashboardUtils = {
+  /**
+   * Calculates the growth or decline percentage between two values
+   * @param current - The current value
+   * @param previous - The previous value to compare against
+   * @param decimals - Number of decimal places (default: 2)
+   * @returns The percentage change as a number
+   */
+  calculateGrowthPercentage: (current: number, previous: number, decimals: number = 2): number => {
+    if (previous === 0) return current > 0 ? 100 : 0;
+    const percentage = ((current - previous) / previous) * 100;
+    return Number(percentage.toFixed(decimals));
+  },
+
+  /**
+   * Determines the trend direction based on percentage change
+   * @param percentage - The percentage change value
+   * @param thresholdPercent - The percentage threshold to consider as stable (default: 1%)
+   * @returns The trend as 'up', 'down', or 'stable'
+   */
+  getTrendDirection: (percentage: number, thresholdPercent: number = 1): 'up' | 'down' | 'stable' => {
+    if (Math.abs(percentage) < thresholdPercent) return 'stable';
+    return percentage >= 0 ? 'up' : 'down';
+  },
+
+  /**
+   * Formats revenue numbers with currency symbol
+   * @param amount - The amount to format
+   * @param currency - Currency symbol or code
+   * @param locale - The locale for formatting (default: 'en-US')
+   * @returns Formatted currency string
+   */
+  formatCurrency: (amount: number, currency: string = 'USD', locale: string = 'en-US'): string => {
+    return new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(amount);
+  },
+
+  /**
+   * Groups enrollment data by category for visualization
+   * @param stats - Array of enrollment statistics
+   * @returns Object with categories as keys and aggregated values
+   */
+  groupEnrollmentsByCategory: (stats: IEnrollmentStat[]): Record<string, { count: number, revenue: number, completionRate: number }> => {
+    return stats.reduce((acc, stat) => {
+      const categoryName = stat.categoryName || 'Uncategorized';
+      
+      if (!acc[categoryName]) {
+        acc[categoryName] = {
+          count: 0,
+          revenue: 0,
+          completionRate: 0,
+          items: []
+        };
+      }
+      
+      acc[categoryName].count += stat.enrollmentCount;
+      acc[categoryName].revenue += stat.revenue;
+      acc[categoryName].items.push(stat);
+      
+      // Recalculate average completion rate
+      acc[categoryName].completionRate = acc[categoryName].items.reduce(
+        (sum, item) => sum + item.completionRate, 
+        0
+      ) / acc[categoryName].items.length;
+      
+      return acc;
+    }, {} as Record<string, { count: number, revenue: number, completionRate: number, items: IEnrollmentStat[] }>);
+  },
+
+  /**
+   * Processes time series data for charts (e.g., revenue over time)
+   * @param metrics - Array of metric data points
+   * @param valueKey - The key to use for the y-axis values
+   * @returns Processed data ready for charting libraries
+   */
+  prepareTimeSeriesData: (
+    metrics: Array<{ period: string; [key: string]: any }>, 
+    valueKey: string = 'amount'
+  ): { labels: string[], data: number[] } => {
+    const sortedMetrics = [...metrics].sort((a, b) => 
+      new Date(a.period).getTime() - new Date(b.period).getTime()
+    );
+    
+    return {
+      labels: sortedMetrics.map(item => item.period),
+      data: sortedMetrics.map(item => item[valueKey] || 0)
+    };
+  },
+
+  /**
+   * Calculates user retention metrics from activity data
+   * @param activities - Array of user activities
+   * @param periodDays - Number of days to consider for retention (default: 30)
+   * @returns Retention metrics
+   */
+  calculateRetentionMetrics: (activities: IUserActivity[], periodDays: number = 30): {
+    activeUsers: number;
+    returningUsers: number;
+    retentionRate: number;
+    avgSessionsPerUser: number;
+  } => {
+    const now = new Date();
+    const periodStart = new Date(now.getTime() - (periodDays * 24 * 60 * 60 * 1000));
+    
+    // Group activities by user
+    const userActivities = activities.reduce((acc, activity) => {
+      const activityDate = new Date(activity.timestamp);
+      if (activityDate >= periodStart) {
+        if (!acc[activity.userId]) {
+          acc[activity.userId] = [];
+        }
+        acc[activity.userId].push(activity);
+      }
+      return acc;
+    }, {} as Record<string, IUserActivity[]>);
+    
+    const userIds = Object.keys(userActivities);
+    const activeUsers = userIds.length;
+    
+    // Count users with more than one login session
+    const returningUsers = userIds.filter(userId => 
+      userActivities[userId].filter(a => a.activityType === 'login').length > 1
+    ).length;
+    
+    // Calculate average sessions per user
+    const totalSessions = userIds.reduce((sum, userId) => 
+      sum + userActivities[userId].filter(a => a.activityType === 'login').length, 
+      0
+    );
+    
+    return {
+      activeUsers,
+      returningUsers,
+      retentionRate: activeUsers > 0 ? (returningUsers / activeUsers) * 100 : 0,
+      avgSessionsPerUser: activeUsers > 0 ? totalSessions / activeUsers : 0
+    };
+  },
+
+  /**
+   * Identifies completion bottlenecks in courses
+   * @param completionRates - Array of course completion data
+   * @returns Sorted array of dropout points across courses
+   */
+  identifyCompletionBottlenecks: (completionRates: ICompletionRate[]): Array<{
+    courseId: string;
+    courseTitle: string;
+    lessonId: string;
+    lessonTitle: string;
+    dropoffPercentage: number;
+  }> => {
+    const bottlenecks: Array<{
+      courseId: string;
+      courseTitle: string;
+      lessonId: string;
+      lessonTitle: string;
+      dropoffPercentage: number;
+    }> = [];
+    
+    completionRates.forEach(course => {
+      if (course.dropoffPoints && course.dropoffPoints.length > 0) {
+        course.dropoffPoints.forEach(point => {
+          bottlenecks.push({
+            courseId: course.courseId || '',
+            courseTitle: course.courseTitle || '',
+            lessonId: point.lessonId,
+            lessonTitle: point.lessonTitle,
+            dropoffPercentage: point.dropoffPercentage
+          });
+        });
+      }
+    });
+    
+    // Sort by highest dropout percentage
+    return bottlenecks.sort((a, b) => b.dropoffPercentage - a.dropoffPercentage);
+  }
+};
