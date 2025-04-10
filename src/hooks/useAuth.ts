@@ -4,6 +4,7 @@ import { apiBaseUrl } from '@/apis';
 import { toast } from 'react-toastify';
 import { getAuthToken, saveAuthToken, clearAuthToken } from '@/utils/auth';
 import { jwtDecode } from 'jwt-decode';
+import { apiClient } from '@/apis';
 
 interface LoginResponse {
   token: string;
@@ -19,13 +20,23 @@ interface DecodedToken {
   [key: string]: any;
 }
 
+// --- Define User Type (Replace with your actual user type if available) ---
+interface IUser {
+  _id: string;
+  email: string;
+  role: string | string[];
+  name?: string;
+  // Add other user properties as needed
+}
+// --- End User Type ---
+
 /**
  * Authentication hook for Medh app
  */
 const useAuth = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<IUser | null>(null);
   const [tokenInfo, setTokenInfo] = useState<DecodedToken | null>(null);
 
   /**
@@ -43,6 +54,7 @@ const useAuth = () => {
       if (decoded.exp < currentTime) {
         console.warn('Token expired');
         clearAuthToken();
+        apiClient.clearAuthToken();
         return false;
       }
       
@@ -58,7 +70,7 @@ const useAuth = () => {
       
       // Only update user if we have some basic info
       if (Object.keys(tokenUser).length > 0) {
-        setUser(prev => ({ ...prev, ...tokenUser }));
+        setUser(prev => ({ ...(prev || {}), ...tokenUser } as IUser));
       }
       
       // Valid token even without ID
@@ -66,6 +78,7 @@ const useAuth = () => {
     } catch (error) {
       console.error('Invalid token:', error);
       clearAuthToken();
+      apiClient.clearAuthToken();
       return false;
     }
   }, []);
@@ -119,6 +132,14 @@ const useAuth = () => {
       const token = getAuthToken();
       const isValid = validateToken(token);
       
+      // --- Set/Clear token on apiClient based on initial validation --- 
+      if (isValid && token) {
+        apiClient.setAuthToken(token);
+      } else {
+        apiClient.clearAuthToken();
+      }
+      // --- End Set/Clear --- 
+      
       setIsAuthenticated(isValid);
       
       // If token is valid but we don't have user data, fetch it
@@ -155,6 +176,8 @@ const useAuth = () => {
       
       if (response.data && response.data.token) {
         saveAuthToken(response.data.token);
+        const token = response.data.token;
+        apiClient.setAuthToken(token);
         validateToken(response.data.token);
         setIsAuthenticated(true);
         setUser(response.data.user || null);
@@ -263,6 +286,7 @@ const useAuth = () => {
    */
   const logout = useCallback(() => {
     clearAuthToken();
+    apiClient.clearAuthToken();
     setIsAuthenticated(false);
     setTokenInfo(null);
     setUser(null);
