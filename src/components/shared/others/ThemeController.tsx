@@ -66,6 +66,7 @@ const ThemeController = ({ position = 'fixed' }: ThemeControllerProps) => {
               text-sm text-white bg-gray-900/95 dark:bg-gray-700/95 rounded-lg shadow-lg 
               transition-all duration-200 whitespace-nowrap backdrop-blur-sm
               ${showTooltip ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-1 pointer-events-none'}
+              hidden sm:block
             `}
           >
             <span className="block font-medium">
