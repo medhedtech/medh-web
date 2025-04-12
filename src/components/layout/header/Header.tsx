@@ -123,8 +123,8 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
   const contentMotionProps: HTMLMotionProps<"div"> = {
     className: "relative",
     animate: { 
-      y: isScrollingUp ? 0 : -100,
-      opacity: isScrollingUp ? 1 : 0
+      y: 0,
+      opacity: 1
     },
     transition: { duration: 0.3 }
   };
