@@ -8,6 +8,7 @@ import * as yup from "yup";
 import usePostQuery from "@/hooks/postQuery.hook";
 import { apiUrls } from "@/apis";
 import logo1 from "@/assets/images/logo/medh_logo-1.png";
+import logo2 from "@/assets/images/logo/logo_2.png";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, User, Mail, Phone, Lock, AlertCircle, Loader2, Moon, Sun, UserCircle, ArrowRight, CheckCircle } from "lucide-react";
@@ -17,6 +18,7 @@ import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/high-res.css';
 import Link from "next/link";
 import { parsePhoneNumber, isValidPhoneNumber, formatPhoneNumber as formatPhoneNumberIntl } from 'libphonenumber-js';
+import { useTheme } from "next-themes";
 
 interface PhoneNumberFormat {
   international: string;
@@ -129,6 +131,7 @@ const schema = yup
 
 const SignUpForm = () => {
   const router = useRouter();
+  const { theme, resolvedTheme } = useTheme();
   const [showPassword, setShowPassword] = useState(false);
   const [apiError, setApiError] = useState(null);
   const { postQuery, loading } = usePostQuery();
@@ -191,14 +194,16 @@ const SignUpForm = () => {
       window.matchMedia('(prefers-color-scheme: dark)').matches;
     
     // Set initial theme
-    if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
-      setIsDarkMode(true);
+    const isDark = resolvedTheme === 'dark' || theme === 'dark' || 
+                  (savedTheme === 'dark' || (!savedTheme && systemPrefersDark));
+    setIsDarkMode(isDark);
+    
+    if (isDark) {
       document.documentElement.classList.add('dark');
     } else {
-      setIsDarkMode(false);
       document.documentElement.classList.remove('dark');
     }
-  }, []);
+  }, [theme, resolvedTheme]);
 
   const handleRecaptchaChange = (value) => {
     setRecaptchaValue(value);
@@ -568,7 +573,7 @@ const SignUpForm = () => {
               <div className="text-center mb-6">
                 <Link href="/" className="inline-block mb-4">
                   <Image 
-                    src={logo1} 
+                    src={(resolvedTheme === 'dark' || theme === 'dark') ? logo1 : logo2} 
                     alt="Medh Logo" 
                     width={120} 
                     height={40} 
@@ -882,6 +887,11 @@ const SignUpForm = () => {
           {/* Social proof */}
           <div className="text-center mt-4 text-xs text-gray-500 dark:text-gray-400">
             <p>Join thousands of students worldwide 🌎</p>
+          </div>
+          
+          {/* Copyright notice */}
+          <div className="text-center mt-2 text-xs text-gray-400 dark:text-gray-500">
+            <p>© {new Date().getFullYear()} Medh Learning. All rights reserved.</p>
           </div>
         </div>
       </div>
