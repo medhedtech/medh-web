@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import LogIn from "@/assets/images/log-sign/logIn.png";
-import logo1 from "@/assets/images/logo/medh.png";
+import logo1 from "@/assets/images/logo/medh_logo-1.png";
 import logo2 from "@/assets/images/logo/logo_2.png";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -19,6 +19,7 @@ import CustomReCaptcha from '../ReCaptcha';
 import { useStorage } from "@/contexts/StorageContext";
 import FixedShadow from "../others/FixedShadow";
 import { events } from "@/utils/analytics";
+import { useTheme } from "next-themes";
 
 interface FormInputs {
   email: string;
@@ -43,6 +44,7 @@ const LoginForm = (): JSX.Element => {
   const router = useRouter();
   const { postQuery, loading } = usePostQuery();
   const storageManager = useStorage();
+  const { theme, resolvedTheme } = useTheme();
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [recaptchaValue, setRecaptchaValue] = useState<string | null>(null);
   const [recaptchaError, setRecaptchaError] = useState<boolean>(false);
@@ -262,7 +264,7 @@ const LoginForm = (): JSX.Element => {
             <div className="px-6 sm:px-8 pt-6 sm:pt-8 pb-3 sm:pb-4 text-center">
               <Link href="/" className="inline-block mb-4">
                 <Image 
-                  src={logo1} 
+                  src={(resolvedTheme === 'dark' || theme === 'dark') ? logo1 : logo2} 
                   alt="Medh Logo" 
                   width={120} 
                   height={40} 
@@ -442,6 +444,11 @@ const LoginForm = (): JSX.Element => {
           {/* Social proof */}
           <div className="text-center mt-4 sm:mt-6 text-xxs sm:text-xs text-gray-500 dark:text-gray-400">
             <p>Trusted by students worldwide 🌎</p>
+          </div>
+          
+          {/* Copyright notice */}
+          <div className="text-center mt-3 text-xxs sm:text-xs text-gray-400 dark:text-gray-500">
+            <p>© {new Date().getFullYear()} Medh Learning. All rights reserved.</p>
           </div>
         </div>
       </div>
