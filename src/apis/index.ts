@@ -299,7 +299,7 @@ export const apiUrls = {
     resetPassword: "/auth/reset-password"
   },
   adminDashboard: {
-    getDashboardCount: "/dashboard/admin-dashboard-count",
+    getDashboardCount: "/dashboard/counts",
     getDetailedStats: (options: { period?: string; filter?: string } = {}): string => {
       const { period = "month", filter = "" } = options;
       const queryParams = new URLSearchParams();
