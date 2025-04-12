@@ -2,28 +2,40 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Users, Layers, FileText, Calendar, DollarSign, Award, Bell, Book } from 'lucide-react';
+import { 
+  Users, 
+  Book, 
+  FileText, 
+  Calendar, 
+  Building, 
+  GraduationCap, 
+  DollarSign,
+  Bell, 
+  School,
+  Briefcase,
+  BookOpen
+} from 'lucide-react';
 import { apiUrls } from '@/apis';
 import useGetQuery from '@/hooks/getQuery.hook';
 
 interface DashboardStats {
-  totalStudents: number;
-  totalCourses: number;
+  enrolledCourses: number;
+  activeStudents: number;
   totalInstructors: number;
-  totalEnrollments: number;
-  totalRevenue: number;
-  totalCertificates: number;
+  totalCourses: number;
+  corporateEmployees: number;
+  schools: number;
 }
 
 const AdminDashboardMain = () => {
   const router = useRouter();
   const [stats, setStats] = useState<DashboardStats>({
-    totalStudents: 0,
-    totalCourses: 0,
+    enrolledCourses: 0,
+    activeStudents: 0,
     totalInstructors: 0,
-    totalEnrollments: 0,
-    totalRevenue: 0,
-    totalCertificates: 0,
+    totalCourses: 0,
+    corporateEmployees: 0,
+    schools: 0,
   });
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,29 +53,79 @@ const AdminDashboardMain = () => {
           requireAuth: true,
         });
 
-        if (response?.status === "success" && response.data) {
-          setStats({
-            totalStudents: response.data.totalStudents || 0,
-            totalCourses: response.data.totalCourses || 0,
-            totalInstructors: response.data.totalInstructors || 0,
-            totalEnrollments: response.data.totalEnrollments || 0,
-            totalRevenue: response.data.totalRevenue || 0,
-            totalCertificates: response.data.totalCertificates || 0,
-          });
+        // Check if response exists and has the expected structure
+        if (response) {
+          // Handle different possible response formats
+          if (response.counts) {
+            // Format 1: response.counts contains the stats
+            setStats({
+              enrolledCourses: response.counts.enrolledCourses || 0,
+              activeStudents: response.counts.activeStudents || 0,
+              totalInstructors: response.counts.totalInstructors || 0,
+              totalCourses: response.counts.totalCourses || 0,
+              corporateEmployees: response.counts.corporateEmployees || 0,
+              schools: response.counts.schools || 0,
+            });
+            setError(null);
+          } else if (response.data && response.data.counts) {
+            // Format 2: response.data.counts contains the stats
+            setStats({
+              enrolledCourses: response.data.counts.enrolledCourses || 0,
+              activeStudents: response.data.counts.activeStudents || 0,
+              totalInstructors: response.data.counts.totalInstructors || 0,
+              totalCourses: response.data.counts.totalCourses || 0,
+              corporateEmployees: response.data.counts.corporateEmployees || 0,
+              schools: response.data.counts.schools || 0,
+            });
+            setError(null);
+          } else if (response.data) {
+            // Format 3: response.data directly contains the stats
+            setStats({
+              enrolledCourses: response.data.enrolledCourses || 0,
+              activeStudents: response.data.activeStudents || 0,
+              totalInstructors: response.data.totalInstructors || 0,
+              totalCourses: response.data.totalCourses || 0,
+              corporateEmployees: response.data.corporateEmployees || 0,
+              schools: response.data.schools || 0,
+            });
+            setError(null);
+          } else {
+            // If we can't find the stats in the expected locations, log the response and use fallback
+            console.warn("Unexpected API response format:", response);
+            setStats({
+              enrolledCourses: 61,
+              activeStudents: 9,
+              totalInstructors: 2,
+              totalCourses: 104,
+              corporateEmployees: 13,
+              schools: 8,
+            });
+            setError("Using sample data due to unexpected API response format");
+          }
         } else {
-          throw new Error(response?.error || "Failed to fetch dashboard stats");
+          // If response is null or undefined
+          console.warn("Empty API response received");
+          setStats({
+            enrolledCourses: 61,
+            activeStudents: 9,
+            totalInstructors: 2,
+            totalCourses: 104,
+            corporateEmployees: 13,
+            schools: 8,
+          });
+          setError("Using sample data due to empty API response");
         }
       } catch (err: any) {
         console.error("Error fetching dashboard stats:", err);
         setError(err.message || "An error occurred while fetching dashboard stats");
         // Set some mock data for development
         setStats({
-          totalStudents: 120,
-          totalCourses: 45,
-          totalInstructors: 18,
-          totalEnrollments: 350,
-          totalRevenue: 25000,
-          totalCertificates: 97,
+          enrolledCourses: 61,
+          activeStudents: 9,
+          totalInstructors: 2,
+          totalCourses: 104,
+          corporateEmployees: 13,
+          schools: 8,
         });
       } finally {
         setLoading(false);
@@ -90,8 +152,8 @@ const AdminDashboardMain = () => {
 
   const statCards = [
     { 
-      title: 'Total Students', 
-      value: formatNumber(stats.totalStudents), 
+      title: 'Active Students', 
+      value: formatNumber(stats.activeStudents), 
       icon: <Users className="h-8 w-8 text-blue-500" />,
       color: 'bg-blue-100 text-blue-800',
       onClick: () => router.push('/dashboards/admin-dashboard?view=admin-studentmange')
@@ -99,37 +161,37 @@ const AdminDashboardMain = () => {
     { 
       title: 'Total Courses', 
       value: formatNumber(stats.totalCourses), 
-      icon: <Book className="h-8 w-8 text-indigo-500" />,
+      icon: <BookOpen className="h-8 w-8 text-indigo-500" />,
       color: 'bg-indigo-100 text-indigo-800',
       onClick: () => router.push('/dashboards/admin-dashboard?view=admin-listofcourse')
     },
     { 
       title: 'Total Instructors', 
       value: formatNumber(stats.totalInstructors), 
-      icon: <FileText className="h-8 w-8 text-purple-500" />,
+      icon: <GraduationCap className="h-8 w-8 text-purple-500" />,
       color: 'bg-purple-100 text-purple-800',
       onClick: () => router.push('/dashboards/admin-dashboard?view=admin-instuctoremange')
     },
     { 
-      title: 'Total Enrollments', 
-      value: formatNumber(stats.totalEnrollments), 
-      icon: <Calendar className="h-8 w-8 text-green-500" />,
+      title: 'Enrolled Courses', 
+      value: formatNumber(stats.enrolledCourses), 
+      icon: <Book className="h-8 w-8 text-green-500" />,
       color: 'bg-green-100 text-green-800',
       onClick: () => router.push('/dashboards/admin-dashboard?view=admin-enrollments')
     },
     { 
-      title: 'Total Revenue', 
-      value: formatCurrency(stats.totalRevenue), 
-      icon: <DollarSign className="h-8 w-8 text-amber-500" />,
+      title: 'Corporate Employees', 
+      value: formatNumber(stats.corporateEmployees), 
+      icon: <Briefcase className="h-8 w-8 text-amber-500" />,
       color: 'bg-amber-100 text-amber-800',
-      onClick: () => router.push('/dashboards/admin-dashboard?view=admin-course-fee')
+      onClick: () => router.push('/dashboards/admin-dashboard?view=admin-corporate')
     },
     { 
-      title: 'Total Certificates', 
-      value: formatNumber(stats.totalCertificates), 
-      icon: <Award className="h-8 w-8 text-rose-500" />,
+      title: 'Schools', 
+      value: formatNumber(stats.schools), 
+      icon: <School className="h-8 w-8 text-rose-500" />,
       color: 'bg-rose-100 text-rose-800',
-      onClick: () => router.push('/dashboards/admin-dashboard?view=admin-generatecertificate')
+      onClick: () => router.push('/dashboards/admin-dashboard?view=admin-schools')
     }
   ];
 
@@ -144,7 +206,7 @@ const AdminDashboardMain = () => {
       id: 2,
       title: 'Course Fee Updated',
       time: '5 hours ago',
-      icon: <DollarSign className="h-5 w-5 text-amber-500" />
+      icon: <Briefcase className="h-5 w-5 text-amber-500" />
     },
     { 
       id: 3,

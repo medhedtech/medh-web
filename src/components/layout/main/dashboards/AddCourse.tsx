@@ -33,6 +33,13 @@ interface CategoryItem {
   [key: string]: any;
 }
 
+// Interface for the storage utility
+interface StorageUtilType {
+  getItem: (key: string) => string | null;
+  setItem: (key: string, value: string) => boolean;
+  removeItem: (key: string) => void;
+}
+
 const formSteps = [
   {
     title: 'Overview',
@@ -268,7 +275,7 @@ const STORAGE_KEY = 'medh_course_draft';
 const STORAGE_TYPE_KEY = 'medh_storage_type';
 
 // Add a utility for storage access
-const storageUtil = {
+const storageUtil: StorageUtilType = {
   getItem: (key: string): string | null => {
     try {
       // Check if we've already determined the storage type
@@ -398,13 +405,13 @@ const NavigationModal = ({
           </button>
           <button 
             onClick={onSaveAndContinue}
-            className="px-4 py-2 border border-customGreen rounded-md text-sm font-medium text-customGreen hover:bg-green-50 dark:hover:bg-gray-700"
+            className="px-4 py-2 border border-emerald-500 rounded-md text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-gray-700"
           >
             Save & Continue
           </button>
           <button 
             onClick={onContinue}
-            className="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700"
+            className="px-4 py-2 bg-rose-600 text-white rounded-md text-sm font-medium hover:bg-rose-700"
           >
             Discard Changes
           </button>
@@ -412,6 +419,74 @@ const NavigationModal = ({
       </div>
     </div>,
     document.body
+  );
+};
+
+// Create a custom step navigator component
+const CourseStepNavigator = ({
+  steps,
+  currentStep,
+  onStepClick,
+  isStepClickable
+}: {
+  steps: typeof formSteps;
+  currentStep: number;
+  onStepClick: (step: number) => void;
+  isStepClickable: (step: number) => boolean;
+}) => {
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow mb-6 p-4">
+      <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4 border-b pb-2">
+        Course Creation Journey
+      </h3>
+      <div className="grid gap-2">
+        {steps.map((step, index) => {
+          const stepNumber = index + 1;
+          const isActive = stepNumber === currentStep;
+          const isCompleted = stepNumber < currentStep;
+          const isClickable = isStepClickable(stepNumber);
+          
+          return (
+            <button
+              key={step.hash}
+              onClick={() => isClickable && onStepClick(stepNumber)}
+              disabled={!isClickable}
+              className={`flex items-center p-3 rounded-md transition-all text-left ${
+                isActive
+                  ? 'bg-emerald-50 dark:bg-emerald-900/20 border-l-4 border-emerald-500'
+                  : isCompleted
+                  ? 'bg-gray-50 dark:bg-gray-700 border-l-4 border-gray-300 dark:border-gray-600'
+                  : 'bg-white dark:bg-gray-800 border-l-4 border-transparent'
+              } ${
+                isClickable
+                  ? 'hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer'
+                  : 'opacity-60 cursor-not-allowed'
+              }`}
+            >
+              <div className={`w-8 h-8 flex items-center justify-center rounded-full mr-3 ${
+                isActive
+                  ? 'bg-emerald-500 text-white'
+                  : isCompleted
+                  ? 'bg-gray-300 dark:bg-gray-600 text-white'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+              }`}>
+                {isCompleted ? (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : (
+                  stepNumber
+                )}
+              </div>
+              <div>
+                <div className="font-medium text-gray-900 dark:text-gray-100">{step.title}</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">{step.description}</div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 };
 
@@ -806,33 +881,48 @@ const AddCourse = () => {
     }
   };
 
+  const checkStepValidation = async (step: number): Promise<boolean> => {
+    const currentStepData = formSteps[step - 1];
+    if (!currentStepData.requiredFields.length) return true;
+
+    const isValid = await trigger(currentStepData.requiredFields as any);
+    if (!isValid) {
+      // Simplify the error handling logic
+      const missingFields = currentStepData.requiredFields
+        .filter(field => {
+          // Instead of trying to access nested properties directly
+          // Just check if the field has an error by using the trigger result
+          return !isValid && currentStepData.requiredFields.includes(field);
+        })
+        .map(field => field.split('.').pop())
+        .join(', ');
+      
+      setValidationMessage(`Please fill in required fields: ${missingFields}`);
+      return false;
+    }
+    
+    setValidationMessage('');
+    return true;
+  };
+
   const handleStepSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('%c Form Submission Started ', 'background: #34D399; color: white; padding: 2px 5px; border-radius: 2px;');
     
     try {
       const isValid = await checkStepValidation(currentStep);
-      console.log('%c Validation Result ', 'background: #34D399; color: white; padding: 2px 5px; border-radius: 2px;', isValid);
       
       if (!isValid) {
-        console.log('%c Validation Failed ', 'background: #EF4444; color: white; padding: 2px 5px; border-radius: 2px;');
         return;
       }
 
       if (currentStep === formSteps.length) {
-        console.log('%c Final Step - Submitting Form ', 'background: #34D399; color: white; padding: 2px 5px; border-radius: 2px;');
-        
         // Get all form values
         const values = watch();
-        console.log('%c Current Form Values ', 'background: #3B82F6; color: white; padding: 2px 5px; border-radius: 2px;');
-        console.log(JSON.stringify(values, null, 2));
 
         // Validate all fields before submission
         const isFormValid = await trigger();
-        console.log('%c Final Form Validation ', 'background: #34D399; color: white; padding: 2px 5px; border-radius: 2px;', isFormValid);
 
         if (!isFormValid) {
-          console.log('%c Form Validation Failed ', 'background: #EF4444; color: white; padding: 2px 5px; border-radius: 2px;');
           const errorFields = Object.keys(errors);
           setValidationMessage(`Please check the following fields: ${errorFields.join(', ')}`);
           return;
@@ -841,7 +931,6 @@ const AddCourse = () => {
         // Submit the form
         await onSubmit(values);
       } else {
-        console.log('%c Moving to Next Step ', 'background: #34D399; color: white; padding: 2px 5px; border-radius: 2px;');
         nextStep();
       }
     } catch (error) {
@@ -854,7 +943,6 @@ const AddCourse = () => {
     try {
       setIsSubmitting(true);
       setValidationMessage('');
-      console.group('%c Course Creation Data ', 'background: #3B82F6; color: white; padding: 2px 5px; border-radius: 2px;');
 
       // Validate required fields first
       if (!data.course_title || !data.course_category || !data.class_type || !data.course_image) {
@@ -880,12 +968,10 @@ const AddCourse = () => {
                 section.lessons.forEach((lesson, lessonIndex) => {
                   if (!lesson.title?.trim()) {
                     hasEmptyTitles = true;
-                    console.warn(`Empty lesson title at Week ${weekIndex + 1}, Section ${sectionIndex + 1}, Lesson ${lessonIndex + 1}`);
                   }
                   
                   if (lesson.lessonType === 'video' && !lesson.video_url?.trim()) {
                     hasEmptyVideoUrls = true;
-                    console.warn(`Empty video URL at Week ${weekIndex + 1}, Section ${sectionIndex + 1}, Lesson ${lessonIndex + 1}`);
                   }
                 });
               }
@@ -897,12 +983,10 @@ const AddCourse = () => {
             week.lessons.forEach((lesson, lessonIndex) => {
               if (!lesson.title?.trim()) {
                 hasEmptyTitles = true;
-                console.warn(`Empty direct lesson title at Week ${weekIndex + 1}, Lesson ${lessonIndex + 1}`);
               }
               
               if (lesson.lessonType === 'video' && !lesson.video_url?.trim()) {
                 hasEmptyVideoUrls = true;
-                console.warn(`Empty direct lesson video URL at Week ${weekIndex + 1}, Lesson ${lessonIndex + 1}`);
               }
             });
           }
@@ -987,20 +1071,12 @@ const AddCourse = () => {
         prices: [...(data.prices || [])]
       };
 
-      // Log the data
-      console.log('%c API Request Details ', 'background: #3B82F6; color: white; padding: 2px 5px; border-radius: 2px;');
-      console.log('URL:', apiUrls.courses.createCourse);
-      console.log('Data:', JSON.stringify(courseData, null, 2));
-
       // Make the API call
       const response = await postQuery({
         url: apiUrls.courses.createCourse,
         postData: courseData,
         requireAuth: true,
-        debug: true,
         onSuccess: (response) => {
-          console.log('%c API Success Response ', 'background: #34D399; color: white; padding: 2px 5px; border-radius: 2px;', response);
-          
           // Mark form as successfully submitted to bypass beforeunload warning
           formSubmittedSuccessfully.current = true;
           
@@ -1016,8 +1092,7 @@ const AddCourse = () => {
           setCurrentStep(1);
           window.location.hash = formSteps[0].hash;
         },
-        onError: (error) => {
-          console.log('%c API Error Response ', 'background: #EF4444; color: white; padding: 2px 5px; border-radius: 2px;', error);
+        onFail: (error) => {
           const errorMessage = error?.response?.data?.message || 'Failed to create course';
           toast.error(errorMessage);
           setValidationMessage(errorMessage);
@@ -1028,8 +1103,6 @@ const AddCourse = () => {
       if (!response) {
         throw new Error('No response from server');
       }
-
-      console.groupEnd();
     } catch (error) {
       console.error("Form submission error:", error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to create course';
@@ -1069,7 +1142,7 @@ const AddCourse = () => {
       }));
       
       // Filter out sections with no valid lessons
-      const filteredSections = validSections.filter(section => section.lessons.length > 0);
+      const filteredSections = validSections.filter((section: any) => section.lessons.length > 0);
       
       // Filter out invalid direct lessons
       const validDirectLessons = (week.lessons || [])
@@ -1207,31 +1280,8 @@ const AddCourse = () => {
     };
   };
 
-  const checkStepValidation = async (step: number): Promise<boolean> => {
-    const currentStepData = formSteps[step - 1];
-    if (!currentStepData.requiredFields.length) return true;
-
-    const isValid = await trigger(currentStepData.requiredFields as any);
-    if (!isValid) {
-      const missingFields = currentStepData.requiredFields
-        .filter(field => {
-          const error = field.includes('.')
-            ? errors[field.split('.')[0]]?.[field.split('.')[1]]
-            : errors[field];
-          return error;
-        })
-        .map(field => field.split('.').pop())
-        .join(', ');
-      
-      setValidationMessage(`Please fill in required fields: ${missingFields}`);
-      return false;
-    }
-    
-    setValidationMessage('');
-    return true;
-  };
-
   const renderStep = () => {
+    // Create a consistently styled form state object for all step components
     const formState = {
       errors,
       isDirty: false,
@@ -1242,11 +1292,11 @@ const AddCourse = () => {
       isValid: false,
       isValidating: false,
       submitCount: 0,
-      dirtyFields: {},
-      touchedFields: {},
-      defaultValues: {},
-      disabled: false,
-      validatingFields: {}
+      dirtyFields: {} as Record<string, boolean>,
+      touchedFields: {} as Record<string, boolean>,
+      defaultValues: {} as Partial<ICourseFormData>,
+      disabled: false as boolean,
+      validatingFields: {} as Record<string, boolean>
     };
 
     switch (currentStep) {
@@ -1408,7 +1458,7 @@ const AddCourse = () => {
     if (isDraftSaving) {
       return (
         <span className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-customGreen mr-2"></div>
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-emerald-500 mr-2"></div>
           Auto-saving...
         </span>
       );
@@ -1426,8 +1476,8 @@ const AddCourse = () => {
     if (hasSavedDraft && lastSaved) {
       return (
         <span className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
-          <span className="text-green-500 mr-2">✓</span>
-          Saved: {lastSaved}
+          <span className="text-emerald-500 mr-2">✓</span>
+          Auto-saved · {lastSaved}
         </span>
       );
     }
@@ -1445,117 +1495,194 @@ const AddCourse = () => {
         onSaveAndContinue={handleSaveAndContinue}
       />
     
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-6 flex justify-between items-center">
-          <div>
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center">
+          <div className="mb-4 sm:mb-0">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Add New Course</h1>
             <p className="text-gray-600 dark:text-gray-400">Create a new course using the form below</p>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
             <DraftSavingIndicator />
-            <button
-              type="button"
-              onClick={handleSaveDraft}
-              className="px-4 py-2 border border-customGreen rounded-md text-sm font-medium text-customGreen bg-white dark:bg-gray-700 hover:bg-green-50 dark:hover:bg-gray-600 transition-colors duration-300"
-              disabled={isDraftSaving || isSubmitting}
-            >
-              {isDraftSaving ? 'Saving...' : 'Save Draft'}
-            </button>
-            {hasSavedDraft && (
+            <div className="flex space-x-2">
               <button
                 type="button"
-                onClick={clearSavedDraft}
-                className="px-4 py-2 border border-red-300 dark:border-red-700 rounded-md text-sm font-medium text-red-500 dark:text-red-400 bg-white dark:bg-gray-700 hover:bg-red-50 dark:hover:bg-gray-600 transition-colors duration-300"
+                onClick={handleSaveDraft}
+                className="px-4 py-2 border border-emerald-500 rounded-md text-sm font-medium text-emerald-600 dark:text-emerald-400 bg-white dark:bg-gray-700 hover:bg-emerald-50 dark:hover:bg-gray-600 transition-colors duration-300"
                 disabled={isDraftSaving || isSubmitting}
               >
-                Clear Draft
+                {isDraftSaving ? 'Saving...' : 'Save Draft'}
               </button>
-            )}
-            <button
-              type="button"
-              onClick={exitToDashboard}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-300"
-              disabled={isSubmitting}
-            >
-              Exit
-            </button>
+              {hasSavedDraft && (
+                <button
+                  type="button"
+                  onClick={clearSavedDraft}
+                  className="px-4 py-2 border border-rose-300 dark:border-rose-700 rounded-md text-sm font-medium text-rose-500 dark:text-rose-400 bg-white dark:bg-gray-700 hover:bg-rose-50 dark:hover:bg-gray-600 transition-colors duration-300"
+                  disabled={isDraftSaving || isSubmitting}
+                >
+                  Clear Draft
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={exitToDashboard}
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-300"
+                disabled={isSubmitting}
+              >
+                Exit
+              </button>
+            </div>
           </div>
         </div>
 
-        <StepProgress
-          currentStep={currentStep}
-          totalSteps={formSteps.length}
-          steps={formSteps}
-          onStepClick={handleStepClick}
-          isStepClickable={isStepClickable}
-        />
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Left side - Step Navigator */}
+          <div className="md:w-1/3">
+            <CourseStepNavigator
+              steps={formSteps}
+              currentStep={currentStep}
+              onStepClick={handleStepClick}
+              isStepClickable={isStepClickable}
+            />
+          </div>
 
-        <div className="mt-8 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 transition-colors duration-300">
-          {isLoading && currentStep === 1 && (
-            <div className="flex justify-center items-center py-10">
-              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-500 dark:border-primary-400"></div>
-              <p className="ml-3 text-gray-600 dark:text-gray-400">Loading categories...</p>
+          {/* Right side - Form Content */}
+          <div className="md:w-2/3">
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-lg font-medium text-gray-800 dark:text-gray-200">
+                  {formSteps[currentStep - 1].title}
+                </h2>
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  Step {currentStep} of {formSteps.length}
+                </div>
+              </div>
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+                <div 
+                  className="bg-emerald-500 dark:bg-emerald-400 h-1.5 rounded-full transition-all duration-300 ease-in-out" 
+                  style={{ width: `${(currentStep / formSteps.length) * 100}%` }}
+                ></div>
+              </div>
             </div>
-          )}
-          
-          <form onSubmit={handleStepSubmit} id="course-form">
-            {renderStep()}
 
-            {validationMessage && (
-              <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-md">
-                {validationMessage}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 transition-colors duration-300">
+              {isLoading && currentStep === 1 && (
+                <div className="flex justify-center items-center py-10">
+                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-emerald-500 dark:border-emerald-400"></div>
+                  <p className="ml-3 text-gray-600 dark:text-gray-400">Loading categories...</p>
+                </div>
+              )}
+              
+              <form onSubmit={handleStepSubmit} id="course-form">
+                {renderStep()}
+
+                {validationMessage && (
+                  <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 rounded-md">
+                    {validationMessage}
+                  </div>
+                )}
+
+                <div className="mt-8 flex justify-between">
+                  {currentStep > 1 && (
+                    <button
+                      type="button"
+                      onClick={prevStep}
+                      className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-300"
+                      disabled={isSubmitting}
+                    >
+                      Go Back
+                    </button>
+                  )}
+                  <div className="flex items-center space-x-4">
+                    {currentStep === formSteps.length && hasSavedDraft && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleSaveDraft().then(() => exitToDashboard());
+                        }}
+                        className="px-4 py-2 border border-emerald-500 rounded-md text-sm font-medium text-emerald-600 dark:text-emerald-400 bg-white dark:bg-gray-700 hover:bg-emerald-50 dark:hover:bg-gray-600 transition-colors duration-300"
+                        disabled={isDraftSaving || isSubmitting}
+                      >
+                        Save as Draft & Exit
+                      </button>
+                    )}
+                    <button
+                      type="submit"
+                      form="course-form"
+                      className={`ml-auto px-4 py-2 rounded-md text-sm font-medium ${
+                        validationMessage
+                          ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed'
+                          : 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600'
+                      } text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-300`}
+                      disabled={isSubmitting || !!validationMessage}
+                      title={validationMessage || (isSubmitting ? 'Processing...' : '')}
+                    >
+                      {isSubmitting ? (
+                        <div className="flex items-center">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Submitting...
+                        </div>
+                      ) : currentStep < formSteps.length ? (
+                        'Save & Continue'
+                      ) : (
+                        'Publish Course'
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+            
+            {/* Success message for published course */}
+            {formSubmittedSuccessfully.current && (
+              <div className="mt-6 bg-emerald-50 dark:bg-emerald-900/20 p-6 rounded-lg text-center">
+                <div className="text-4xl mb-2">🎉</div>
+                <h3 className="text-lg font-medium text-emerald-700 dark:text-emerald-400 mb-2">
+                  Your course is now live!
+                </h3>
+                <div className="flex justify-center mt-4 space-x-3">
+                  <button
+                    onClick={() => window.location.href = '/instructor/courses'}
+                    className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700"
+                  >
+                    View Courses
+                  </button>
+                  <button
+                    onClick={() => window.location.href = '/instructor/dashboard'}
+                    className="px-4 py-2 border border-gray-300 text-gray-700 dark:text-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700"
+                  >
+                    Go to Dashboard
+                  </button>
+                </div>
               </div>
             )}
-
-            <div className="mt-8 flex justify-between">
-              {currentStep > 1 && (
-                <button
-                  type="button"
-                  onClick={prevStep}
-                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-300"
-                  disabled={isSubmitting}
-                >
-                  Previous
-                </button>
-              )}
-              <div className="flex items-center space-x-4">
-                {currentStep === formSteps.length && hasSavedDraft && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      handleSaveDraft().then(() => exitToDashboard());
-                    }}
-                    className="px-4 py-2 border border-customGreen rounded-md text-sm font-medium text-customGreen bg-white dark:bg-gray-700 hover:bg-green-50 dark:hover:bg-gray-600 transition-colors duration-300"
-                    disabled={isDraftSaving || isSubmitting}
-                  >
-                    Save as Draft & Exit
-                  </button>
-                )}
-                <button
-                  type="submit"
-                  form="course-form"
-                  className={`ml-auto px-4 py-2 rounded-md text-sm font-medium ${
-                    validationMessage
-                      ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed'
-                      : 'bg-primary-500 hover:bg-primary-600 dark:bg-primary-400 dark:hover:bg-primary-500'
-                  } text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-300`}
-                  disabled={isSubmitting || !!validationMessage}
-                  title={validationMessage || (isSubmitting ? 'Processing...' : '')}
-                >
-                  {isSubmitting ? (
-                    <div className="flex items-center">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Submitting...
-                    </div>
-                  ) : currentStep < formSteps.length ? (
-                    'Next'
-                  ) : (
-                    'Submit'
-                  )}
-                </button>
-              </div>
-            </div>
-          </form>
+          </div>
+        </div>
+      </div>
+      
+      {/* Mobile sticky footer */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-3 flex justify-between items-center z-10">
+        <div className="text-sm text-gray-500 dark:text-gray-400">
+          Step {currentStep} of {formSteps.length}
+        </div>
+        <div className="flex space-x-2">
+          {currentStep > 1 && (
+            <button
+              type="button"
+              onClick={prevStep}
+              className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-xs font-medium text-gray-700 dark:text-gray-300"
+              disabled={isSubmitting}
+            >
+              Back
+            </button>
+          )}
+          <button
+            type="submit"
+            form="course-form"
+            className="px-3 py-1.5 bg-emerald-600 text-white rounded text-xs font-medium"
+            disabled={isSubmitting || !!validationMessage}
+          >
+            {currentStep < formSteps.length ? 'Next' : 'Publish'}
+          </button>
         </div>
       </div>
       
