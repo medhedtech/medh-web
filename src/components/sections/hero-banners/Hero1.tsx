@@ -52,7 +52,7 @@ const HeroMobile: React.FC<IHeroMobileProps> = ({ isLoaded, featuredCourses, loa
           </h1>
         </div>
         <p className="hero-paragraph-text text-center md:mt-3 mb-6">
-          Join our expert-led professional courses and master the skills that drive industry innovation
+          Join our expert-led courses and master the skills that drive industry innovation
         </p>
 
         {/* Grid Layout for Content */}

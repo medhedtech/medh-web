@@ -14,7 +14,7 @@ import Image from "next/image";
 import { RefreshCw, AlertCircle } from "lucide-react";
 
 // Dashboard Counter Card Component
-const DashboardCard = ({ name, image, data, color, textColor }) => (
+const DashboardCard = ({ name, image, data, color, textColor, description }) => (
   <div
     className={`${color} rounded-xl p-4 sm:p-6 transition-all duration-200 hover:shadow-lg`}
   >
@@ -26,6 +26,11 @@ const DashboardCard = ({ name, image, data, color, textColor }) => (
         <h3 className={`text-2xl sm:text-3xl font-bold ${textColor} truncate`}>
           {data.toLocaleString()}
         </h3>
+        {description && (
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            {description}
+          </p>
+        )}
       </div>
       <div className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0 rounded-lg overflow-hidden bg-white dark:bg-gray-800 p-2 shadow-sm ml-4">
         <Image
@@ -48,6 +53,7 @@ const DASHBOARD_ITEMS = [
     image: counter,
     color: "bg-blue-50 dark:bg-blue-900/20",
     textColor: "text-blue-600 dark:text-blue-400",
+    description: "Total course enrollments"
   },
   {
     key: "activeStudents",
@@ -55,6 +61,7 @@ const DASHBOARD_ITEMS = [
     image: counter2,
     color: "bg-emerald-50 dark:bg-emerald-900/20",
     textColor: "text-emerald-600 dark:text-emerald-400",
+    description: "Currently active learners"
   },
   {
     key: "totalInstructors",
@@ -62,6 +69,7 @@ const DASHBOARD_ITEMS = [
     image: counter3,
     color: "bg-purple-50 dark:bg-purple-900/20",
     textColor: "text-purple-600 dark:text-purple-400",
+    description: "Teaching staff members"
   },
   {
     key: "totalCourses",
@@ -69,6 +77,7 @@ const DASHBOARD_ITEMS = [
     image: counter4,
     color: "bg-amber-50 dark:bg-amber-900/20",
     textColor: "text-amber-600 dark:text-amber-400",
+    description: "Available learning programs"
   },
   {
     key: "corporateEmployees",
@@ -76,6 +85,7 @@ const DASHBOARD_ITEMS = [
     image: counter5,
     color: "bg-rose-50 dark:bg-rose-900/20",
     textColor: "text-rose-600 dark:text-rose-400",
+    description: "Business sector learners"
   },
   {
     key: "schools",
@@ -83,6 +93,7 @@ const DASHBOARD_ITEMS = [
     image: counter6,
     color: "bg-indigo-50 dark:bg-indigo-900/20",
     textColor: "text-indigo-600 dark:text-indigo-400",
+    description: "Educational institutions"
   },
 ];
 
@@ -106,29 +117,57 @@ const CounterAdmin = ({ title = "Dashboard Overview", subtitle = "Monitor key me
   // Fetch Counts Data from API
   const fetchCounts = async (refresh = false) => {
     try {
+      setIsRefreshing(true);
+      setError(null); // Clear any previous errors
+      
       await getQuery({
         url: apiUrls?.adminDashboard?.getDashboardCount,
         onSuccess: (response) => {
-          if (response?.counts) {
-            setCounts(response.counts);
-            setLastUpdated(new Date());
-            setError(null);
+          if (response) {
+            // Handle different possible response formats
+            if (response.counts) {
+              // Format 1: response.counts contains the stats
+              setCounts(response.counts);
+              setLastUpdated(new Date());
+              setError(null);
+            } else if (response.data && response.data.counts) {
+              // Format 2: response.data.counts contains the stats
+              setCounts(response.data.counts);
+              setLastUpdated(new Date());
+              setError(null);
+            } else if (response.data) {
+              // Format 3: response.data directly contains the stats
+              setCounts(response.data);
+              setLastUpdated(new Date());
+              setError(null);
+            } else {
+              // If we can't find the stats in the expected locations, log the response and use fallback
+              console.warn("Unexpected API response format:", response);
+              setCounts(INITIAL_COUNTS);
+              setError("Invalid data format received from server");
+              toast.error("Invalid data format received");
+            }
           } else {
-            toast.error("Invalid data format received");
+            // If response is null or undefined
+            console.warn("Empty API response received");
+            setCounts(INITIAL_COUNTS);
+            setError("Empty response received from server");
+            toast.error("Empty response received");
           }
         },
         onFail: (error) => {
           console.error("Failed to fetch counts:", error);
-          toast.error("Failed to fetch dashboard data");
           setError("Failed to fetch dashboard data");
+          toast.error("Failed to fetch dashboard data");
         },
       });
     } catch (error) {
       console.error("Error fetching counts:", error);
+      setError("Something went wrong while fetching data");
       toast.error("Something went wrong!");
-      setError("Something went wrong!");
+    } finally {
+      setIsRefreshing(false);
     }
-    setIsRefreshing(false);
   };
 
   const handleRefresh = () => {
@@ -206,6 +245,7 @@ const CounterAdmin = ({ title = "Dashboard Overview", subtitle = "Monitor key me
               data={counts[item.key]}
               color={item.color}
               textColor={item.textColor}
+              description={item.description}
             />
           ))}
         </div>
