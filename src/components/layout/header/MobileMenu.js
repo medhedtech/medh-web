@@ -24,6 +24,162 @@ import Image from 'next/image';
  * - Enhanced user experience with intuitive interactions
  * - Beautiful visual hierarchy with proper spacing
  */
+
+// Centralized config data for menu options
+const MENU_CONFIG = {
+  // Quick actions configuration
+  quickActions: {
+    guest: [
+      { icon: Home, label: "Home", path: "/" },
+      { icon: Book, label: "Courses", path: "/courses" },
+    ],
+    authenticated: [
+      { icon: Home, label: "Home", path: "/" },
+      { icon: Book, label: "Courses", path: "/courses" },
+      { icon: Bell, label: "Notifications", path: "/notifications" },
+      { icon: Bookmark, label: "Saved", path: "/saved" }
+    ]
+  },
+  
+  // Primary navigation sections - updated to match NavItems2.js
+  navSections: [
+    { icon: Info, label: 'About', path: '/about-us', color: 'text-green-500', bg: 'bg-green-100 dark:bg-green-900/20', hasDropdown: false },
+    { icon: FileText, label: 'Blog', path: '/dashboards/instructor-dashboard', color: 'text-pink-500', bg: 'bg-pink-100 dark:bg-pink-900/20'},
+    { icon: Bookmark, label: 'Pages', path: '/about-us', color: 'text-purple-500', bg: 'bg-purple-100 dark:bg-purple-900/20'},
+    { icon: Mail, label: 'Contact', path: '/contact-us', color: 'text-cyan-500', bg: 'bg-cyan-100 dark:bg-cyan-900/20'},
+    { icon: Briefcase, label: 'Corporate', path: '/corporate-training-courses', color: 'text-indigo-500', bg: 'bg-indigo-100 dark:bg-indigo-900/20' },
+    { icon: Users, label: 'Hire Talent', path: '/hire-from-medh', color: 'text-orange-500', bg: 'bg-orange-100 dark:bg-orange-900/20' },
+    { icon: Bell, label: 'Updates', path: '/notifications', color: 'text-red-500', bg: 'bg-red-100 dark:bg-red-900/20' }
+  ],
+  
+  // Search suggestion types and their corresponding icons
+  suggestionTypes: {
+    course: Book,
+    blog: FileText,
+    instructor: User,
+    default: Book
+  }
+};
+
+// Reusable style classes as constants
+const STYLES = {
+  gridContainer: "grid grid-cols-4 gap-4 mb-6",
+  navContainer: "grid grid-cols-4 gap-3 mt-6",
+  quickActionItem: `
+    flex flex-col items-center justify-center p-3
+    rounded-xl bg-gray-50 dark:bg-gray-800/50
+    hover:bg-gray-100 dark:hover:bg-gray-700/50
+    transition-colors duration-200
+  `,
+  menuItem: `
+    relative group flex flex-col items-center justify-center p-3 rounded-xl
+    bg-gray-50/80 dark:bg-gray-800/50
+    hover:bg-white dark:hover:bg-gray-700/50
+    border border-gray-200/50 dark:border-gray-700/50
+    transition-all duration-300 transform 
+    hover:scale-105 hover:shadow-lg
+  `,
+  iconWrapper: `
+    flex items-center justify-center w-10 h-10 
+    rounded-xl transition-transform duration-300
+    group-hover:-translate-y-1
+  `,
+  suggestionItem: `
+    flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50
+    border-b border-gray-100 dark:border-gray-800 last:border-0
+    transition-colors duration-200
+  `
+};
+
+// Reusable UI Component Factory
+const UIComponents = {
+  // Generic link creator with consistent styling
+  createLinkItem: (props) => {
+    const { icon: Icon, label, path, onClick, className = "", children, ...rest } = props;
+    
+    return (
+      <Link href={path} onClick={onClick} className={className} {...rest}>
+        {children || (
+          <>
+            {Icon && <Icon className="h-6 w-6 mb-2 text-gray-700 dark:text-gray-300" />}
+            <span className="text-xs text-gray-600 dark:text-gray-400">{label}</span>
+          </>
+        )}
+      </Link>
+    );
+  },
+  
+  // Quick action item
+  QuickActionItem: (props) => {
+    return UIComponents.createLinkItem({
+      ...props,
+      className: STYLES.quickActionItem
+    });
+  },
+  
+  // Menu icon for navigation items
+  MenuIcon: ({ children, className = "" }) => (
+    <div className={`${STYLES.iconWrapper} ${className}`}>
+      {children}
+    </div>
+  ),
+  
+  // Full menu item with icon
+  MenuItem: (props) => {
+    const { icon: Icon, label, path, onClick, color, bg, className = "" } = props;
+    
+    return UIComponents.createLinkItem({
+      ...props,
+      className: `${STYLES.menuItem} ${className}`,
+      children: (
+        <>
+          <UIComponents.MenuIcon className={bg}>
+            <Icon className={`h-5 w-5 ${color || "text-gray-700 dark:text-gray-300"}`} />
+          </UIComponents.MenuIcon>
+          <span className="text-xs font-medium mt-1
+            text-gray-600 dark:text-gray-400
+            group-hover:text-gray-900 dark:group-hover:text-white">
+            {label}
+          </span>
+        </>
+      )
+    });
+  },
+  
+  // Search suggestion item
+  SearchSuggestion: (props) => {
+    const { type, title, path, onClick } = props;
+    const SuggestionIcon = MENU_CONFIG.suggestionTypes[type] || MENU_CONFIG.suggestionTypes.default;
+    
+    return UIComponents.createLinkItem({
+      path,
+      onClick,
+      className: STYLES.suggestionItem,
+      children: (
+        <>
+          <div className="flex-shrink-0 w-10 h-10 rounded-full
+            bg-primary-100 dark:bg-primary-900/20
+            text-primary-600 dark:text-primary-400
+            flex items-center justify-center mr-3">
+            <SuggestionIcon className="h-5 w-5" />
+          </div>
+          <div>
+            <div className="font-medium text-gray-900 dark:text-white">
+              {title}
+            </div>
+            <div className="text-sm text-gray-500 dark:text-gray-400 capitalize">
+              {type}
+            </div>
+          </div>
+        </>
+      )
+    });
+  }
+};
+
+/**
+ * Enhanced MobileMenu Component with DRY principles
+ */
 const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
   // Page detection
   const isHome2Dark = useIsTrue("/home-2-dark");
@@ -33,7 +189,6 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
   // Enhanced UI state
   const [mounted, setMounted] = useState(false);
   const [isInternalOpen, setIsInternalOpen] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
   const [activeSection, setActiveSection] = useState('main');
   const [searchQuery, setSearchQuery] = useState('');
   const [animationDirection, setAnimationDirection] = useState('right');
@@ -42,8 +197,6 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
   const [userRole, setUserRole] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
   const [recentSearches, setRecentSearches] = useState([]);
-  const [quickActions, setQuickActions] = useState([]);
-  const [notifications, setNotifications] = useState([]);
   const [menuOpacity, setMenuOpacity] = useState(0);
   const [menuScale, setMenuScale] = useState(0.98);
   
@@ -55,15 +208,11 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
   // Refs for enhanced interactions
   const menuRef = useRef(null);
   const searchInputRef = useRef(null);
-  const firstFocusableRef = useRef(null);
-  const lastFocusableRef = useRef(null);
-  const closeButtonRef = useRef(null);
-  const previousFocusRef = useRef(null);
   
   // Determine actual open state
   const isOpen = propIsOpen !== undefined ? propIsOpen : isInternalOpen;
   
-  // Handle mounting state
+  // Handle mounting state and data initialization
   useEffect(() => {
     setMounted(true);
     
@@ -84,15 +233,6 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
     if (savedSearches) {
       setRecentSearches(JSON.parse(savedSearches).slice(0, 5));
     }
-
-    // Set quick actions based on user role
-    setQuickActions(getQuickActions());
-
-    // Simulate notifications (replace with actual API call)
-    setNotifications([
-      { id: 1, title: "New course available", time: "2m ago" },
-      { id: 2, title: "Assignment due soon", time: "1h ago" },
-    ]);
   }, []);
   
   // Enhanced animation effects
@@ -107,24 +247,12 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
     }
   }, [isOpen]);
   
-  // Get quick actions based on user role
-  const getQuickActions = () => {
-    const baseActions = [
-      { icon: Home, label: "Home", path: "/" },
-      { icon: Book, label: "Courses", path: "/courses" },
-    ];
-
-    if (isLoggedIn) {
-      return [
-        ...baseActions,
-        { icon: Bell, label: "Notifications", path: "/notifications" },
-        { icon: Bookmark, label: "Saved", path: "/saved" },
-        { icon: Settings, label: "Settings", path: "/settings" },
-      ];
-    }
-
-    return baseActions;
-  };
+  // Get quick actions based on authentication status
+  const getQuickActions = useCallback(() => {
+    return isLoggedIn 
+      ? MENU_CONFIG.quickActions.authenticated 
+      : MENU_CONFIG.quickActions.guest;
+  }, [isLoggedIn]);
   
   // Enhanced search functionality
   const handleSearchChange = useCallback((e) => {
@@ -166,7 +294,6 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
   
   // Enhanced menu navigation
   const navigateToSection = useCallback((section) => {
-    setIsAnimating(true);
     setAnimationDirection('left');
     setMenuHistory(prev => [...prev, activeSection]);
     setActiveSection(section);
@@ -175,7 +302,6 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
   // Enhanced back navigation
   const goBack = useCallback(() => {
     if (menuHistory.length > 0) {
-      setIsAnimating(true);
       setAnimationDirection('right');
       const prevSection = menuHistory[menuHistory.length - 1];
       setActiveSection(prevSection);
@@ -185,8 +311,6 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
   
   // Handle logout with animation
   const handleLogout = () => {
-    setIsAnimating(true);
-    
     // Clear auth data
     localStorage.removeItem("token");
     localStorage.removeItem("userId");
@@ -292,7 +416,6 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
                     className="p-2 rounded-full text-gray-700 dark:text-gray-300
                       hover:bg-gray-100 dark:hover:bg-gray-800
                       transition-all duration-200 transform hover:scale-105 active:scale-95"
-                    ref={closeButtonRef}
                   >
                     <X className="h-5 w-5" />
                   </button>
@@ -334,31 +457,11 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
                   border border-gray-200 dark:border-gray-700 overflow-hidden
                   animate-fadeIn">
                   {searchSuggestions.map((suggestion, index) => (
-                    <Link
+                    <UIComponents.SearchSuggestion 
                       key={index}
-                      href={suggestion.path}
-                      className="flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50
-                        border-b border-gray-100 dark:border-gray-800 last:border-0
-                        transition-colors duration-200"
+                      {...suggestion}
                       onClick={closeMenu}
-                    >
-                      <div className="flex-shrink-0 w-10 h-10 rounded-full
-                        bg-primary-100 dark:bg-primary-900/20
-                        text-primary-600 dark:text-primary-400
-                        flex items-center justify-center mr-3">
-                        {suggestion.type === 'course' && <Book className="h-5 w-5" />}
-                        {suggestion.type === 'blog' && <FileText className="h-5 w-5" />}
-                        {suggestion.type === 'instructor' && <User className="h-5 w-5" />}
-                      </div>
-                      <div>
-                        <div className="font-medium text-gray-900 dark:text-white">
-                          {suggestion.title}
-                        </div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400 capitalize">
-                          {suggestion.type}
-                        </div>
-                      </div>
-                    </Link>
+                    />
                   ))}
                 </div>
               )}
@@ -395,59 +498,24 @@ const MobileMenu = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
             <div className="flex-1 overflow-y-auto overscroll-y-contain">
               <div className="px-4 py-2">
                 {/* Quick actions grid */}
-                <div className="grid grid-cols-4 gap-4 mb-6">
-                  {quickActions.map((action, index) => (
-                    <Link
+                <div className={STYLES.gridContainer}>
+                  {getQuickActions().map((action, index) => (
+                    <UIComponents.QuickActionItem
                       key={index}
-                      href={action.path}
+                      {...action}
                       onClick={closeMenu}
-                      className="flex flex-col items-center justify-center p-3
-                        rounded-xl bg-gray-50 dark:bg-gray-800/50
-                        hover:bg-gray-100 dark:hover:bg-gray-700/50
-                        transition-colors duration-200"
-                    >
-                      <action.icon className="h-6 w-6 mb-2 text-gray-700 dark:text-gray-300" />
-                      <span className="text-xs text-gray-600 dark:text-gray-400">
-                        {action.label}
-                      </span>
-                    </Link>
+                    />
                   ))}
                 </div>
 
                 {/* Navigation sections with enhanced styling */}
-                <nav className="grid grid-cols-4 gap-3 mt-6">
-                  {[
-                    { icon: Home, label: 'Home', path: '/', color: 'text-blue-500', bg: 'bg-blue-100 dark:bg-blue-900/20' },
-                    { icon: GraduationCap, label: 'Courses', path: '/courses', color: 'text-green-500', bg: 'bg-green-100 dark:bg-green-900/20' },
-                    { icon: Briefcase, label: 'Corporate', path: '/corporate-training-courses', color: 'text-amber-500', bg: 'bg-amber-100 dark:bg-amber-900/20' },
-                    { icon: Users, label: 'Hire Talent', path: '/hire-from-medh', color: 'text-purple-500', bg: 'bg-purple-100 dark:bg-purple-900/20' },
-                    { icon: FileText, label: 'Blog', path: '/blogs', color: 'text-pink-500', bg: 'bg-pink-100 dark:bg-pink-900/20' },
-                    { icon: Info, label: 'About Us', path: '/about-us', color: 'text-indigo-500', bg: 'bg-indigo-100 dark:bg-indigo-900/20' },
-                    { icon: Mail, label: 'Contact', path: '/contact-us', color: 'text-cyan-500', bg: 'bg-cyan-100 dark:bg-cyan-900/20' },
-                    { icon: Bell, label: 'Updates', path: '/notifications', color: 'text-red-500', bg: 'bg-red-100 dark:bg-red-900/20' }
-                  ].map((item, index) => (
-                    <Link
+                <nav className={STYLES.navContainer}>
+                  {MENU_CONFIG.navSections.map((item, index) => (
+                    <UIComponents.MenuItem
                       key={index}
-                      href={item.path}
+                      {...item}
                       onClick={closeMenu}
-                      className="relative group flex flex-col items-center justify-center p-3 rounded-xl
-                        bg-gray-50/80 dark:bg-gray-800/50
-                        hover:bg-white dark:hover:bg-gray-700/50
-                        border border-gray-200/50 dark:border-gray-700/50
-                        transition-all duration-300 transform 
-                        hover:scale-105 hover:shadow-lg"
-                    >
-                      <div className={`flex items-center justify-center w-10 h-10 
-                        rounded-xl transition-transform duration-300
-                        group-hover:-translate-y-1 ${item.bg}`}>
-                        <item.icon className={`h-5 w-5 ${item.color}`} />
-                      </div>
-                      <span className="text-xs font-medium mt-1
-                        text-gray-600 dark:text-gray-400
-                        group-hover:text-gray-900 dark:group-hover:text-white">
-                        {item.label}
-                      </span>
-                    </Link>
+                    />
                   ))}
                 </nav>
 
