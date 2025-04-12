@@ -22,6 +22,12 @@ export interface IApiResponse<T = any> {
   results?: number;
 }
 
+// Token interface for JWT decoding
+interface DecodedToken {
+  exp: number;
+  [key: string]: any;
+}
+
 /**
  * Configurable API client for making HTTP requests
  */
@@ -31,6 +37,7 @@ export class ApiClient {
   private timeout: number;
   private credentials: RequestCredentials;
   private mode: RequestMode;
+  private initialized: boolean = false;
 
   /**
    * Create a new API client instance
@@ -46,6 +53,29 @@ export class ApiClient {
     this.timeout = options.timeout || 30000; // 30 seconds default
     this.credentials = options.credentials || 'include';
     this.mode = options.mode || 'cors';
+    
+    // Initialize auth token from storage
+    this.initializeToken();
+  }
+
+  /**
+   * Initialize token from storage on load
+   */
+  private initializeToken(): void {
+    if (this.initialized) return;
+    
+    try {
+      // Only run in browser environment
+      if (typeof window !== 'undefined') {
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        if (token) {
+          this.setAuthToken(token);
+        }
+        this.initialized = true;
+      }
+    } catch (err) {
+      console.error('Error initializing auth token:', err);
+    }
   }
 
   /**
@@ -54,6 +84,7 @@ export class ApiClient {
    */
   setAuthToken(token: string): void {
     this.defaultHeaders['Authorization'] = `Bearer ${token}`;
+    this.defaultHeaders['x-access-token'] = token;
   }
 
   /**
@@ -61,6 +92,17 @@ export class ApiClient {
    */
   clearAuthToken(): void {
     delete this.defaultHeaders['Authorization'];
+    delete this.defaultHeaders['x-access-token'];
+  }
+
+  /**
+   * Get the current auth token from the headers
+   */
+  getAuthToken(): string | null {
+    return this.defaultHeaders['x-access-token'] || 
+           (this.defaultHeaders['Authorization']?.startsWith('Bearer ') 
+            ? this.defaultHeaders['Authorization'].substring(7) 
+            : null);
   }
 
   /**
@@ -71,6 +113,13 @@ export class ApiClient {
    * @returns Promise with response data
    */
   async get<T = any>(endpoint: string, params: Record<string, any> = {}, options: RequestInit = {}): Promise<IApiResponse<T>> {
+    // Handle cancelToken special parameter
+    if (params.cancelToken) {
+      // Remove cancelToken from params to avoid serialization issues
+      const { cancelToken, ...restParams } = params;
+      params = restParams;
+    }
+    
     const url = this.buildUrl(endpoint, params);
     return this.request<T>(url, {
       method: 'GET',
@@ -161,12 +210,130 @@ export class ApiClient {
   }
 
   /**
+   * Refresh the auth token
+   * @returns Promise resolving to true if refresh successful, false otherwise
+   */
+  async refreshToken(): Promise<boolean> {
+    const currentToken = this.getAuthToken();
+    if (!currentToken) return false;
+    
+    try {
+      // Ensure we're using the proper endpoint format with the API version
+      const refreshUrl = `${this.baseUrl}/auth/refresh-token`;
+      
+      const response = await fetch(refreshUrl, {
+        method: 'POST',
+        headers: {
+          ...this.defaultHeaders,
+          'Content-Type': 'application/json'
+        },
+        credentials: this.credentials,
+        mode: this.mode
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.token) {
+          this.setAuthToken(data.token);
+          this.saveTokenInStorage(data.token);
+          return true;
+        }
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Failed to refresh token:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Save token in storage
+   * @param token JWT token
+   */
+  private saveTokenInStorage(token: string): void {
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('token', token);
+        sessionStorage.setItem('token', token);
+      }
+    } catch (err) {
+      console.error('Error saving token:', err);
+    }
+  }
+
+  /**
+   * Handle response with retry for 401 errors
+   * @param response The fetch response
+   * @param retryCount Number of retry attempts
+   * @returns Processed response data
+   */
+  private async handleResponse<T>(response: Response, retryCount = 0, requestOptions?: RequestInit): Promise<IApiResponse<T>> {
+    const contentType = response.headers.get('content-type');
+    let data: any;
+
+    try {
+      if (contentType?.includes('application/json')) {
+        data = await response.json();
+      } else if (contentType?.includes('text/')) {
+        data = await response.text();
+      } else {
+        data = await response.blob();
+      }
+    } catch (error) {
+      // Handle parsing error
+      return {
+        status: 'error',
+        error: 'Failed to parse response',
+        message: 'Response parsing failed'
+      };
+    }
+
+    // Handle unauthorized error with token refresh
+    if (response.status === 401 && retryCount === 0) {
+      console.log('Received 401 - Attempting token refresh');
+      const refreshed = await this.refreshToken();
+      
+      if (refreshed && requestOptions) {
+        console.log('Token refreshed successfully - Retrying original request');
+        // Retry the original request with new token
+        const originalUrl = response.url;
+        return this.request<T>(originalUrl, requestOptions, 1);
+      } else {
+        console.log('Token refresh failed or no request options available');
+      }
+    }
+
+    // Handle non-2xx responses
+    if (!response.ok) {
+      return {
+        status: 'error',
+        error: data.error || data.message || 'An error occurred',
+        message: data.message || 'Request failed',
+        data
+      };
+    }
+
+    return {
+      status: 'success',
+      data,
+      message: data.message || 'Request successful'
+    };
+  }
+
+  /**
    * Make a request with the AbortController for timeout handling
    * @param url - Full URL to request
    * @param options - Fetch options
+   * @param retryCount - Number of retry attempts
    * @returns Promise with response data
    */
-  private async request<T = any>(url: string, options: RequestInit = {}): Promise<IApiResponse<T>> {
+  private async request<T = any>(url: string, options: RequestInit = {}, retryCount = 0): Promise<IApiResponse<T>> {
+    // Ensure we have a token if available in storage
+    if (!this.initialized) {
+      this.initializeToken();
+    }
+    
     const controller = new AbortController();
     const { signal } = controller;
     
@@ -188,34 +355,8 @@ export class ApiClient {
       });
 
       clearTimeout(timeoutId);
-
-      // Handle different response types
-      const contentType = response.headers.get('content-type');
-      let data: any;
-
-      if (contentType?.includes('application/json')) {
-        data = await response.json();
-      } else if (contentType?.includes('text/')) {
-        data = await response.text();
-      } else {
-        data = await response.blob();
-      }
-
-      // Handle non-2xx responses
-      if (!response.ok) {
-        return {
-          status: 'error',
-          error: data.error || data.message || 'An error occurred',
-          message: data.message || 'Request failed',
-          data
-        };
-      }
-
-      return {
-        status: 'success',
-        data,
-        message: data.message || 'Request successful'
-      };
+      
+      return this.handleResponse<T>(response, retryCount, options);
     } catch (error: any) {
       clearTimeout(timeoutId);
       
