@@ -1,10 +1,19 @@
-import React, { useState, useEffect, Fragment, useRef, useMemo } from 'react';
-import { Search, RefreshCw, Save, Filter, DollarSign, Percent, X as XIcon, ChevronDown, ChevronUp, Edit, Check, AlertCircle, Trash, Plus, ArrowUp, ArrowDown, Trash2, Edit2 } from 'lucide-react';
-import axios from 'axios';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
-  getAllCoursesWithLimits, 
-  bulkUpdateCourseFees, 
-  listAllCoursePrices, 
+  ChevronDown, 
+  ChevronUp, 
+  Edit2, 
+  Save, 
+  X, 
+  Plus, 
+  Trash2, 
+  RefreshCcw,
+  CheckCircle,
+  AlertCircle,
+  Info,
+  Loader
+} from 'lucide-react';
+import { 
   bulkUpdateCoursePrices,
   fetchCoursePrices,
   updateCoursePricing
@@ -24,6 +33,13 @@ import {
   getCurrencyByCountryCode 
 } from '@/apis/currency/currency';
 import { apiUrls, apiBaseUrl } from '@/apis/index';
+// Import the UI components
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
 
 // First, update the PriceFilterParams interface to include currency
 interface PriceFilterParams {
@@ -80,7 +96,6 @@ interface CoursePrice {
   editedPrices?: PriceDetails[];
 }
 
-// Then update the CourseFeeFilterProps interface
 interface CourseFeeFilterProps {
   onFilterChange: (filters: PriceFilterParams) => void;
   categories: string[];
@@ -95,16 +110,13 @@ interface BulkUpdateConfig {
   currency?: string;
 }
 
-// Add new type for sort direction
 type SortDirection = 'asc' | 'desc' | null;
 
-// Add new interface for sort state
 interface SortState {
   field: 'title' | 'category';
   direction: SortDirection;
 }
 
-// Add missing interfaces at the top of the file
 interface ICurrency {
   _id: string;
   country: string;
@@ -123,109 +135,11 @@ interface ICreateCurrencyInput {
   symbol: string;
 }
 
-// Shared Components
-const Card = ({ children, className = '' }: { children: React.ReactNode, className?: string }) => (
-  <div className={`bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden ${className}`}>
-    {children}
-  </div>
-);
-
-const CardHeader = ({ title, subtitle }: { title: string, subtitle?: string }) => (
-  <div className="px-6 py-4 border-b border-gray-200">
-    <h3 className="text-lg font-medium text-gray-900">{title}</h3>
-    {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
-  </div>
-);
-
-const Button = ({ 
-  onClick, 
-  variant = 'default', 
-  icon: Icon, 
-  children, 
-  disabled = false,
-  className = ''
-}: { 
-  onClick: () => void, 
-  variant?: 'default' | 'primary' | 'success' | 'danger', 
-  icon?: LucideIcon, 
-  children: React.ReactNode,
-  disabled?: boolean,
-  className?: string
-}) => {
-  const baseStyles = "inline-flex items-center px-4 py-2 border rounded-md shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors";
-  const variantStyles = {
-    default: "border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:ring-indigo-500",
-    primary: "border-transparent bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500",
-    success: "border-transparent bg-green-600 text-white hover:bg-green-700 focus:ring-green-500",
-    danger: "border-transparent bg-red-600 text-white hover:bg-red-700 focus:ring-red-500"
-  };
-
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className={`${baseStyles} ${variantStyles[variant]} ${className}`}
-    >
-      {Icon && <Icon className="w-4 h-4 mr-2" />}
-      {children}
-    </button>
-  );
-};
-
-const Input = ({ 
-  value, 
-  onChange, 
-  placeholder = '', 
-  type = 'text',
-  className = '',
-  disabled = false
-}: {
+// Create a select option type for clarity
+interface SelectOption {
   value: string;
-  onChange: (value: string) => void;
-  placeholder?: string;
-  type?: string;
-  className?: string;
-  disabled?: boolean;
-}) => (
-  <input
-    type={type}
-    value={value}
-    onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
-    placeholder={placeholder}
-    disabled={disabled}
-    className={`block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${className} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-  />
-);
-
-const Select = ({
-  value,
-  onChange,
-  options,
-  placeholder = 'Select an option',
-  className = '',
-  disabled = false
-}: {
-  value: string;
-  onChange: (value: string) => void;
-  options: { value: string; label: string }[];
-  placeholder?: string;
-  className?: string;
-  disabled?: boolean;
-}) => (
-  <select
-    value={value}
-    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onChange(e.target.value)}
-    disabled={disabled}
-    className={`block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${className} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-  >
-    <option value="">{placeholder}</option>
-    {options.map(option => (
-      <option key={option.value} value={option.value}>
-        {option.label}
-      </option>
-    ))}
-  </select>
-);
+  label: string;
+}
 
 const CourseFeeFilter: React.FC<CourseFeeFilterProps> = ({ 
   onFilterChange, 
@@ -291,7 +205,8 @@ const CourseFeeFilter: React.FC<CourseFeeFilterProps> = ({
   };
 
   // Debounced search handler
-  const handleSearchChange = (value: string) => {
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
     setSearch(value);
     setIsSearching(true);
     
@@ -306,6 +221,39 @@ const CourseFeeFilter: React.FC<CourseFeeFilterProps> = ({
     }, 500);
   };
 
+  // Event handlers for select inputs
+  const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setStatus(e.target.value);
+  };
+
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setCategory(e.target.value);
+  };
+
+  const handleCurrencyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setCurrency(e.target.value);
+  };
+
+  const handleCourseIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCourseId(e.target.value);
+  };
+
+  const handleCourseGradeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCourseGrade(e.target.value);
+  };
+
+  const handleCourseTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setCourseType(e.target.value);
+  };
+
+  const handlePricingStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setPricingStatus(e.target.value);
+  };
+
+  const handleHasPricingChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setHasPricing(e.target.value);
+  };
+
   // Clean up the timeout when component unmounts
   useEffect(() => {
     return () => {
@@ -315,725 +263,180 @@ const CourseFeeFilter: React.FC<CourseFeeFilterProps> = ({
     };
   }, []);
 
+  // Convert arrays to select options
+  const categoryOptions: SelectOption[] = categories.map(cat => ({ value: cat, label: cat }));
+  const currencyOptions: SelectOption[] = currencies.map(curr => ({ value: curr, label: curr }));
+  const classTypeOptions: SelectOption[] = classTypes.map(type => ({ value: type, label: type }));
+  const statusOptions: SelectOption[] = [
+    { value: 'Published', label: 'Published' },
+    { value: 'Draft', label: 'Draft' },
+    { value: 'Archived', label: 'Archived' }
+  ];
+  const pricingStatusOptions: SelectOption[] = [
+    { value: 'Active', label: 'Active' },
+    { value: 'Inactive', label: 'Inactive' }
+  ];
+  const hasPricingOptions: SelectOption[] = [
+    { value: 'yes', label: 'Yes' },
+    { value: 'no', label: 'No' }
+  ];
+
   return (
     <Card className="mb-6">
-      <CardHeader 
-        title="Filter Courses" 
-        subtitle="Filter the courses to update their prices" 
-      />
-      <div className="p-6">
+      <CardHeader>
+        <CardTitle>Filter Courses</CardTitle>
+        <CardDescription>Refine your course list by applying filters</CardDescription>
+      </CardHeader>
+      <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Search
-              </label>
-              <div className="relative">
-                <Input
-                  value={search}
-                  onChange={handleSearchChange}
-                  placeholder="Search courses..."
-                  className="pl-10"
-                />
-                <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-              </div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+              <Input
+                value={search}
+                onChange={handleSearchChange} 
+                placeholder="Search by title or keyword"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+              <select 
+                value={status}
+                onChange={handleStatusChange}
+                className="flex h-10 w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 transition-colors focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+              >
+                <option value="">Select Status</option>
+                {statusOptions.map(option => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Category
-              </label>
-              <Select
+              <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+              <select
                 value={category}
-                onChange={setCategory}
-                options={categories.map(cat => ({ value: cat, label: cat }))}
-                placeholder="Select category"
-              />
+                onChange={handleCategoryChange}
+                className="flex h-10 w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 transition-colors focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+              >
+                <option value="">All Categories</option>
+                {categoryOptions.map(option => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Currency
-              </label>
-              <Select
+              <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+              <select
                 value={currency}
-                onChange={setCurrency}
-                options={currencies.map(curr => ({ value: curr, label: curr }))}
-                placeholder="Select currency"
-              />
+                onChange={handleCurrencyChange}
+                className="flex h-10 w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 transition-colors focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+              >
+                <option value="">All Currencies</option>
+                {currencyOptions.map(option => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </select>
             </div>
+
+            {advancedSearch && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Course ID</label>
+                  <Input
+                    value={courseId}
+                    onChange={handleCourseIdChange} 
+                    placeholder="Enter course ID"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Course Grade</label>
+                  <Input
+                    value={courseGrade}
+                    onChange={handleCourseGradeChange} 
+                    placeholder="Enter course grade"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Course Type</label>
+                  <select
+                    value={courseType}
+                    onChange={handleCourseTypeChange}
+                    className="flex h-10 w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 transition-colors focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                  >
+                    <option value="">All Types</option>
+                    {classTypeOptions.map(option => (
+                      <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Pricing Status</label>
+                  <select
+                    value={pricingStatus}
+                    onChange={handlePricingStatusChange}
+                    className="flex h-10 w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 transition-colors focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                  >
+                    <option value="">All Statuses</option>
+                    {pricingStatusOptions.map(option => (
+                      <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Has Pricing</label>
+                  <select
+                    value={hasPricing}
+                    onChange={handleHasPricingChange}
+                    className="flex h-10 w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 transition-colors focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                  >
+                    <option value="">All Courses</option>
+                    {hasPricingOptions.map(option => (
+                      <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </>
+            )}
           </div>
 
-          {advancedSearch && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Course Type
-                </label>
-                <Select
-                  value={courseType}
-                  onChange={setCourseType}
-                  options={classTypes.map(type => ({ value: type, label: type }))}
-                  placeholder="Select course type"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Status
-                </label>
-                <Select
-                  value={status}
-                  onChange={setStatus}
-                  options={[
-                    { value: 'Published', label: 'Published' },
-                    { value: 'Draft', label: 'Draft' },
-                    { value: 'Archived', label: 'Archived' }
-                  ]}
-                  placeholder="Select status"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Pricing Status
-                </label>
-                <Select
-                  value={pricingStatus}
-                  onChange={setPricingStatus}
-                  options={[
-                    { value: 'active', label: 'Active' },
-                    { value: 'inactive', label: 'Inactive' }
-                  ]}
-                  placeholder="Select pricing status"
-                />
-              </div>
-            </div>
-          )}
-
-          <div className="flex justify-between items-center pt-4">
-            <Button
+          <div className="flex justify-between mt-4">
+            <Button 
+              type="button" 
+              variant={advancedSearch ? "secondary" : "outline"}
+              size="sm"
               onClick={() => setAdvancedSearch(!advancedSearch)}
-              icon={Filter}
-              variant="default"
             >
-              {advancedSearch ? 'Less Filters' : 'More Filters'}
+              {advancedSearch ? "Simple Search" : "Advanced Search"} 
             </Button>
-
-            <div className="space-x-3">
+            
+            <div className="space-x-2">
               <Button
+                type="button"
+                variant="outline"
+                size="sm"
                 onClick={resetFilters}
-                variant="default"
-                icon={RefreshCw}
               >
                 Reset
               </Button>
+              
               <Button
-                onClick={() => applyFilters()}
-                variant="primary"
-                icon={Search}
-                disabled={isSearching}
+                type="submit"
+                variant="default"
+                size="sm"
               >
                 Apply Filters
               </Button>
             </div>
           </div>
         </form>
-      </div>
-    </Card>
-  );
-};
-
-const BulkUpdateSection: React.FC<{
-  selectedCount: number;
-  onBulkUpdateConfig: (config: Partial<BulkUpdateConfig>) => void;
-  onApplyBulkUpdate: () => void;
-  bulkConfig: BulkUpdateConfig;
-  currencies: string[];
-  currencyRates: CurrencyRates;
-}> = ({ 
-  selectedCount, 
-  onBulkUpdateConfig, 
-  onApplyBulkUpdate, 
-  bulkConfig,
-  currencies,
-  currencyRates 
-}) => {
-  return (
-    <Card className="mb-6">
-      <CardHeader 
-        title="Bulk Update Course Pricing" 
-        subtitle={`${selectedCount > 0 ? `Update pricing for ${selectedCount} selected courses` : 'Select courses to update their prices'}`}
-      />
-      <div className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Update Type</label>
-            <Select
-              value={bulkConfig.type}
-              onChange={(value) => onBulkUpdateConfig({ type: value as BulkUpdateConfig['type'] })}
-              options={[
-                { value: '', label: 'Choose an update type' },
-                { value: 'fixed', label: 'Set Fixed Amount' },
-                { value: 'increase_percent', label: 'Increase by Percentage' },
-                { value: 'decrease_percent', label: 'Decrease by Percentage' },
-                { value: 'increase_amount', label: 'Increase by Amount' },
-                { value: 'decrease_amount', label: 'Decrease by Amount' }
-              ]}
-              placeholder="Select update type"
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Value</label>
-            <div className="relative rounded-md shadow-sm">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                {bulkConfig.type.includes('percent') ? (
-                  <Percent className="h-4 w-4 text-gray-400" />
-                ) : (
-                  <DollarSign className="h-4 w-4 text-gray-400" />
-                )}
-              </div>
-              <input
-                type="number"
-                placeholder={bulkConfig.type.includes('percent') ? "Enter percentage" : "Enter amount"}
-                value={bulkConfig.value}
-                onChange={(e) => onBulkUpdateConfig({ value: e.target.value })}
-                className="focus:ring-customGreen focus:border-customGreen block w-full pl-10 sm:text-sm border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
-                min="0"
-                step={bulkConfig.type.includes('percent') ? "0.1" : "0.01"}
-                disabled={selectedCount === 0 || !bulkConfig.type}
-              />
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Price Type</label>
-            <Select
-              value={bulkConfig.priceType}
-              onChange={(value) => onBulkUpdateConfig({ priceType: value as 'batch' | 'individual' | 'both' })}
-              options={[
-                { value: 'both', label: 'Both Batch & Individual' },
-                { value: 'batch', label: 'Only Batch Price' },
-                { value: 'individual', label: 'Only Individual Price' }
-              ]}
-              placeholder="Select price type"
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Currency</label>
-            <Select
-              value={bulkConfig.currency || ''}
-              onChange={value => onBulkUpdateConfig({ currency: value === '' ? undefined : value })}
-              options={Object.entries(currencyRates).map(([code, currency]) => ({ value: code, label: `${code} (${currency.symbol})` }))}
-              placeholder="Select currency"
-            />
-          </div>
-          
-          <div className="flex items-end">
-            <Button
-              onClick={onApplyBulkUpdate}
-              variant="success"
-              disabled={selectedCount === 0 || !bulkConfig.type || !bulkConfig.value}
-            >
-              Apply to Selected ({selectedCount})
-            </Button>
-          </div>
-        </div>
-      </div>
-    </Card>
-  );
-};
-
-// Toast notification component
-const Toast = ({ message, type, onClose }: { message: string, type: 'success' | 'error' | 'info', onClose: () => void }) => {
-  // Determine background and text color based on type
-  const bgColor = type === 'success' ? 'bg-green-100' : 
-                  type === 'error' ? 'bg-red-100' : 
-                  'bg-blue-100';
-  
-  const textColor = type === 'success' ? 'text-green-800' : 
-                    type === 'error' ? 'text-red-800' : 
-                    'text-blue-800';
-  
-  const iconColor = type === 'success' ? 'text-green-500' : 
-                    type === 'error' ? 'text-red-500' : 
-                    'text-blue-500';
-
-  return (
-    <div className={`fixed bottom-4 right-4 z-50 p-4 rounded-md shadow-lg max-w-md flex items-center justify-between ${bgColor} ${textColor}`}>
-      <div className="flex items-center">
-        <div className={`flex-shrink-0 ${iconColor}`}>
-          {type === 'success' ? (
-            <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-            </svg>
-          ) : type === 'error' ? (
-            <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-            </svg>
-          ) : (
-            <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9a1 1 0 00-1-1z" clipRule="evenodd" />
-            </svg>
-          )}
-        </div>
-        <div className="ml-3 font-medium">{message}</div>
-      </div>
-      <button onClick={onClose} className="ml-4">
-        <XIcon className="h-5 w-5" />
-      </button>
-    </div>
-  );
-};
-
-// ActionButton component
-interface ActionButtonProps {
-  icon: LucideIcon;
-  onClick: () => void;
-  title: string;
-  disabled?: boolean;
-  variant?: 'default' | 'primary' | 'success' | 'danger';
-}
-
-const ActionButton: React.FC<ActionButtonProps> = ({ 
-  icon: Icon, 
-  onClick, 
-  title,
-  disabled = false,
-  variant = 'default' 
-}) => {
-  // Define color classes based on variant
-  const variantClasses = {
-    default: 'text-gray-700 bg-gray-100 hover:bg-gray-200 border-gray-200',
-    primary: 'text-blue-700 bg-blue-50 hover:bg-blue-100 border-blue-200',
-    success: 'text-green-700 bg-green-50 hover:bg-green-100 border-green-200',
-    danger: 'text-red-700 bg-red-50 hover:bg-red-100 border-red-200'
-  };
-
-  const buttonClass = `p-2 rounded-md ${variantClasses[variant]} transition-colors ${
-    disabled ? 'opacity-50 cursor-not-allowed' : ''
-  }`;
-
-  return (
-    <button
-      onClick={onClick}
-      className={buttonClass}
-      title={title}
-      disabled={disabled}
-    >
-      <Icon className={`h-5 w-5 ${disabled && variant === 'success' ? 'animate-spin' : ''}`} />
-    </button>
-  );
-};
-
-// Price Editor component for editing a single price entry
-interface PriceEditorProps {
-  price: PriceDetails;
-  index: number;
-  onChange: (index: number, updatedPrice: PriceDetails) => void;
-  onRemove?: (index: number) => void;
-  isNew?: boolean;
-  currencyRates: CurrencyRates;
-}
-
-const PriceEditor: React.FC<PriceEditorProps> = ({ price, index, onChange, onRemove, isNew = false, currencyRates }) => {
-  return (
-    <div className={`rounded-lg p-5 ${isNew ? 'bg-green-50 border-2 border-green-200' : 'bg-white border border-gray-200 shadow-sm'}`}>
-      <div className="flex justify-between items-center mb-4">
-        <h5 className="font-medium text-gray-900">Price Option {index + 1}</h5>
-        <div className="flex items-center space-x-2">
-          <button 
-            onClick={() => onChange(index, { ...price, is_active: !price.is_active })}
-            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${price.is_active 
-              ? 'bg-green-100 text-green-800 hover:bg-green-200 border border-green-200' 
-              : 'bg-gray-100 text-gray-800 hover:bg-gray-200 border border-gray-200'}`}
-          >
-            {price.is_active ? 'Active' : 'Inactive'}
-          </button>
-          
-          {onRemove && (
-            <button 
-              onClick={() => onRemove(index)}
-              className="p-1.5 rounded-md hover:bg-red-100 text-red-500 border border-red-200"
-              title="Remove price option"
-            >
-              <XIcon className="h-5 w-5" />
-            </button>
-          )}
-        </div>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-        <div className="space-y-2 lg:col-span-1">
-          <label className="block text-sm font-medium text-gray-700">Currency</label>
-          <select
-            value={price.currency}
-            onChange={(e) => onChange(index, { ...price, currency: e.target.value })}
-            className="w-full focus:ring-customGreen focus:border-customGreen block text-base border-gray-300 rounded-md"
-          >
-            {Object.keys(currencyRates).map(code => (
-              <option key={code} value={code}>
-                {code} ({currencyRates[code].symbol})
-              </option>
-            ))}
-          </select>
-        </div>
-        
-        <div className="space-y-2 lg:col-span-2">
-          <label className="block text-sm font-medium text-gray-700">Individual Price</label>
-          <div className="relative rounded-md">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <DollarSign className="h-4 w-4 text-gray-400" />
-            </div>
-            <input
-              type="number"
-              value={price.individual}
-              onChange={(e) => onChange(index, { ...price, individual: Number(e.target.value) })}
-              className="w-full focus:ring-customGreen focus:border-customGreen block text-base border-gray-300 rounded-md pl-8"
-              min="0"
-              step="0.01"
-            />
-          </div>
-        </div>
-        
-        <div className="space-y-2 lg:col-span-2">
-          <label className="block text-sm font-medium text-gray-700">Batch Price</label>
-          <div className="relative rounded-md">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <DollarSign className="h-4 w-4 text-gray-400" />
-            </div>
-            <input
-              type="number"
-              value={price.batch}
-              onChange={(e) => onChange(index, { ...price, batch: Number(e.target.value) })}
-              className="w-full focus:ring-customGreen focus:border-customGreen block text-base border-gray-300 rounded-md pl-8"
-              min="0"
-              step="0.01"
-            />
-          </div>
-        </div>
-        
-        <div className="space-y-2 lg:col-span-1">
-          <label className="block text-sm font-medium text-gray-700">Batch Size</label>
-          <div className="flex space-x-2">
-            <input
-              type="number"
-              value={price.min_batch_size || 2}
-              onChange={(e) => onChange(index, { ...price, min_batch_size: Number(e.target.value) })}
-              className="w-full focus:ring-customGreen focus:border-customGreen block text-base border-gray-300 rounded-md"
-              min="1"
-              placeholder="Min"
-            />
-            <span className="self-center">-</span>
-            <input
-              type="number"
-              value={price.max_batch_size || 10}
-              onChange={(e) => onChange(index, { ...price, max_batch_size: Number(e.target.value) })}
-              className="w-full focus:ring-customGreen focus:border-customGreen block text-base border-gray-300 rounded-md"
-              min={(price.min_batch_size || 2) + 1}
-              placeholder="Max"
-            />
-          </div>
-        </div>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">Early Bird Discount (%)</label>
-          <div className="relative rounded-md">
-            <input
-              type="number"
-              value={price.early_bird_discount || 0}
-              onChange={(e) => onChange(index, { ...price, early_bird_discount: Number(e.target.value) })}
-              className="w-full focus:ring-customGreen focus:border-customGreen block text-base border-gray-300 rounded-md pr-10"
-              min="0"
-              max="100"
-              step="0.1"
-            />
-            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-              <Percent className="h-4 w-4 text-gray-400" />
-            </div>
-          </div>
-        </div>
-        
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">Group Discount (%)</label>
-          <div className="relative rounded-md">
-            <input
-              type="number"
-              value={price.group_discount || 0}
-              onChange={(e) => onChange(index, { ...price, group_discount: Number(e.target.value) })}
-              className="w-full focus:ring-customGreen focus:border-customGreen block text-base border-gray-300 rounded-md pr-10"
-              min="0"
-              max="100"
-              step="0.1"
-            />
-            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-              <Percent className="h-4 w-4 text-gray-400" />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Add this new interface for expanded view state
-interface ExpandedRows {
-  [key: string]: boolean;
-}
-
-// Helper function for currency formatting
-const currencyFormat = (amount: number, currency?: string) => {
-  // Validate currency code
-  const validCurrency = currency && typeof currency === 'string' && currency.trim() !== '' 
-    ? currency.trim().toUpperCase() 
-    : 'USD';
-
-  try {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: validCurrency,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    }).format(amount);
-  } catch (error) {
-    // Fallback formatting if the currency code is invalid
-    console.warn(`Invalid currency code: ${currency}, falling back to USD`);
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    }).format(amount);
-  }
-};
-
-// Currency conversion interface
-interface CurrencyRate {
-  symbol: string;
-  name: string;
-  rate: number;
-}
-
-interface CurrencyRates {
-  [key: string]: CurrencyRate;
-}
-
-// Currency Conversion Rate Editor Component
-const CurrencyRateEditor: React.FC<{
-  rates: CurrencyRates;
-  onSave: (rates: CurrencyRates) => void;
-  isLoading?: boolean;
-  onRefresh: () => void;
-  onBulkAddCurrencyPricing: (currency: string) => void;
-}> = ({ rates, onSave, isLoading = false, onRefresh, onBulkAddCurrencyPricing }) => {
-  const [editedRates, setEditedRates] = useState<CurrencyRates>(rates);
-  const [isEditing, setIsEditing] = useState(false);
-  const [newCurrency, setNewCurrency] = useState({ code: '', symbol: '', name: '', rate: 1 });
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [selectedCurrencyForBulk, setSelectedCurrencyForBulk] = useState<string>('');
-
-  const handleRateChange = (currencyCode: string, value: number) => {
-    setEditedRates({
-      ...editedRates,
-      [currencyCode]: {
-        ...editedRates[currencyCode],
-        rate: value
-      }
-    });
-  };
-
-  const handleSave = () => {
-    onSave(editedRates);
-    setIsEditing(false);
-  };
-
-  const handleCancel = () => {
-    setEditedRates(rates);
-    setIsEditing(false);
-    setShowAddForm(false);
-  };
-
-  const handleAddCurrency = () => {
-    if (!newCurrency.code || !newCurrency.name || !newCurrency.symbol) {
-      return; // Don't add if required fields are missing
-    }
-
-    setEditedRates({
-      ...editedRates,
-      [newCurrency.code]: {
-        symbol: newCurrency.symbol,
-        name: newCurrency.name,
-        rate: newCurrency.rate
-      }
-    });
-
-    // Reset the form
-    setNewCurrency({ code: '', symbol: '', name: '', rate: 1 });
-    setShowAddForm(false);
-  };
-
-  const handleRemoveCurrency = (currencyCode: string) => {
-    const updatedRates = { ...editedRates };
-    delete updatedRates[currencyCode];
-    setEditedRates(updatedRates);
-  };
-
-  return (
-    <Card className="mb-6">
-      <CardHeader 
-        title="Bulk Add Course Pricing with Currency" 
-        subtitle="Define exchange rates for different currencies (Base: USD)" 
-      />
-      <div className="p-6">
-        {isEditing ? (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {Object.entries(editedRates).map(([code, currency]) => (
-                <div key={code} className="p-4 border border-gray-200 rounded-lg">
-                  <div className="flex justify-between mb-2">
-                    <span className="font-medium">{code}</span>
-                    <button 
-                      onClick={() => handleRemoveCurrency(code)}
-                      className="text-red-500 hover:text-red-700"
-                      title="Remove currency"
-                    >
-                      <XIcon className="h-4 w-4" />
-                    </button>
-                  </div>
-                  <div className="text-sm text-gray-500 mb-2">
-                    {currency.symbol} - {currency.name}
-                  </div>
-                  <div className="flex items-center">
-                    <label className="text-sm mr-2">Rate:</label>
-                    <input
-                      type="number"
-                      value={currency.rate}
-                      onChange={(e) => handleRateChange(code, parseFloat(e.target.value))}
-                      className="w-full focus:ring-customGreen focus:border-customGreen block text-sm border-gray-300 rounded-md"
-                      min="0.01"
-                      step="0.01"
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            {showAddForm ? (
-              <div className="mt-4 p-4 border border-dashed border-blue-300 rounded-lg bg-blue-50">
-                <h4 className="text-sm font-medium text-blue-700 mb-3">Add New Currency</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Currency Code</label>
-                    <input
-                      type="text"
-                      value={newCurrency.code}
-                      onChange={(e) => setNewCurrency({...newCurrency, code: e.target.value.toUpperCase()})}
-                      placeholder="USD"
-                      maxLength={3}
-                      className="w-full focus:ring-customGreen focus:border-customGreen block text-sm border-gray-300 rounded-md"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Symbol</label>
-                    <input
-                      type="text"
-                      value={newCurrency.symbol}
-                      onChange={(e) => setNewCurrency({...newCurrency, symbol: e.target.value})}
-                      placeholder="$"
-                      className="w-full focus:ring-customGreen focus:border-customGreen block text-sm border-gray-300 rounded-md"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Name</label>
-                    <input
-                      type="text"
-                      value={newCurrency.name}
-                      onChange={(e) => setNewCurrency({...newCurrency, name: e.target.value})}
-                      placeholder="US Dollar"
-                      className="w-full focus:ring-customGreen focus:border-customGreen block text-sm border-gray-300 rounded-md"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Exchange Rate</label>
-                    <input
-                      type="number"
-                      value={newCurrency.rate}
-                      onChange={(e) => setNewCurrency({...newCurrency, rate: parseFloat(e.target.value)})}
-                      min="0.01"
-                      step="0.01"
-                      className="w-full focus:ring-customGreen focus:border-customGreen block text-sm border-gray-300 rounded-md"
-                    />
-                  </div>
-                </div>
-                <div className="mt-3 flex justify-end space-x-2">
-                  <button
-                    onClick={() => setShowAddForm(false)}
-                    className="px-3 py-1.5 text-xs bg-gray-100 text-gray-700 rounded-md font-medium"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleAddCurrency}
-                    className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded-md font-medium"
-                  >
-                    Add Currency
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex justify-center mt-3">
-                <button
-                  onClick={() => setShowAddForm(true)}
-                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-200 transition-colors flex items-center"
-                >
-                  <span className="mr-1 text-xl font-semibold">+</span> Add New Currency
-                </button>
-              </div>
-            )}
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {Object.entries(rates).map(([code, currency]) => (
-                <div key={code} className="p-4 border border-gray-200 rounded-lg">
-                  <div className="font-medium">{code}</div>
-                  <div className="text-sm text-gray-500">{currency.symbol} - {currency.name}</div>
-                  <div className="text-sm mt-1">1 USD = {currency.rate} {code}</div>
-                </div>
-              ))}
-            </div>
-            
-            <div className="mt-6 border-t border-gray-200 pt-4">
-              <h4 className="text-base font-medium text-gray-900 mb-3">Bulk Add Course Pricing with Currency</h4>
-              <div className="flex items-end gap-4">
-                <div className="flex-grow">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Select Currency</label>
-                  <Select
-                    value={selectedCurrencyForBulk}
-                    onChange={(value) => setSelectedCurrencyForBulk(value)}
-                    options={Object.entries(rates).map(([code, currency]) => ({ value: code, label: `${code} (${currency.symbol})` }))}
-                    placeholder="Select currency"
-                  />
-                  <p className="mt-1 text-xs text-gray-500">
-                    This will add pricing based on USD prices converted to the selected currency
-                  </p>
-                </div>
-                <Button
-                  onClick={() => onBulkAddCurrencyPricing(selectedCurrencyForBulk)}
-                  variant="success"
-                  disabled={!selectedCurrencyForBulk || isLoading}
-                >
-                  Bulk Add Pricing
-                </Button>
-              </div>
-            </div>
-          </>
-        )}
-      </div>
+      </CardContent>
     </Card>
   );
 };

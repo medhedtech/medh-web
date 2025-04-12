@@ -2,8 +2,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { FaCalendarAlt, FaClock, FaRegCalendarAlt } from "react-icons/fa";
 import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-import "rc-time-picker/assets/index.css";
+import "@/styles/vendor.css";
 import "@/assets/css/popup.css";
 import usePostQuery from "@/hooks/postQuery.hook";
 import useGetQuery from "@/hooks/getQuery.hook";
