@@ -62,8 +62,12 @@ export default function CourseView() {
         const processedCourse = {
           _id: courseData._id,
           title: courseData.course_title || "",
-          description: courseData.course_description || "",
-          long_description: courseData.course_description || "",
+          description: typeof courseData.course_description === 'object' ? 
+                        (courseData.course_description.text || JSON.stringify(courseData.course_description)) : 
+                        courseData.course_description || "",
+          long_description: typeof courseData.course_description === 'object' ? 
+                        (courseData.course_description.text || JSON.stringify(courseData.course_description)) : 
+                        courseData.course_description || "",
           category: courseData.course_category || "",
           grade: courseData.course_grade || "",
           thumbnail: courseData.course_image || null,
