@@ -55,7 +55,6 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { marked } from 'marked';
 import DOMPurify from 'isomorphic-dompurify';
 import dynamic from 'next/dynamic';
-import { useSession } from 'next-auth/react';
 import { formatDistanceToNow } from 'date-fns';
 import { useStorage } from '@/contexts/StorageContext';
 
@@ -1205,10 +1204,6 @@ const DiscussionTab = ({ lessonId, courseId, lessonTitle }) => {
   const [filter, setFilter] = useState("recent"); // "recent", "popular", "my"
   const commentInputRef = useRef(null);
   
-  // Using useSession with fallback for development
-  const { data: session, status } = useSession();
-  const isAuthenticated = status === "authenticated";
-  
   // Mock user for development when not authenticated
   const mockUser = {
     id: 'dev-user-123',
@@ -1218,7 +1213,7 @@ const DiscussionTab = ({ lessonId, courseId, lessonTitle }) => {
   };
   
   // Use authenticated user or mock user
-  const user = isAuthenticated ? session?.user : mockUser;
+  const user = mockUser;
   
   const [isMarkdownMode, setIsMarkdownMode] = useState(false);
 

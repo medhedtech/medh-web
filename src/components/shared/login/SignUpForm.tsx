@@ -17,7 +17,7 @@ import FixedShadow from "../others/FixedShadow";
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/high-res.css';
 import Link from "next/link";
-import { parsePhoneNumber, isValidPhoneNumber, formatPhoneNumber as formatPhoneNumberIntl } from 'libphonenumber-js';
+import { parsePhoneNumber, isValidPhoneNumber, formatNumber } from 'libphonenumber-js';
 import { useTheme } from "next-themes";
 
 interface PhoneNumberFormat {
@@ -82,18 +82,52 @@ const formatPhoneNumber = (phoneNumber: string, countryCode?: string): string | 
   }
 };
 
-interface FormInputs {
+type AgeGroup = "Under 18" | "18-24" | "25-34" | "35-44" | "45-54" | "55-64" | "65+";
+
+interface PhoneData {
+  number: string;
+  country: string;
+  countryCode: string;
+  formattedNumber: string;
+  isValid: boolean;
+  type: string | null;
+  nationalFormat: string;
+  internationalFormat: string;
+}
+
+interface SignUpFormData {
   full_name: string;
   email: string;
   password: string;
+  confirm_password: string;
   agree_terms: boolean;
-  role: string[];
-  age_group: string;
+  role: "student";
+  age_group: AgeGroup;
   status: string;
   meta: {
-    gender: string;
+    gender?: string;
+    age_group?: AgeGroup;
   };
+  phone_numbers?: string;
+  recaptcha?: string;
 }
+
+type FormFields = {
+  email: string;
+  password: string;
+  agree_terms: boolean;
+  role: "student";
+  full_name: string;
+  meta: {
+    gender?: string;
+    age_group?: AgeGroup;
+  };
+  status: string;
+  age_group: AgeGroup;
+  "meta.gender": string;
+  phone_numbers: string;
+  recaptcha: string;
+};
 
 const schema = yup
   .object({
@@ -112,9 +146,8 @@ const schema = yup
     agree_terms: yup.boolean()
       .oneOf([true], "You must accept the terms to proceed")
       .required(),
-    role: yup.array()
-      .of(yup.string().oneOf(["student"]))
-      .default(["student"])
+    role: yup.string()
+      .oneOf(["student"])
       .required("Role is required"),
     age_group: yup.string()
       .oneOf(["Under 18", "18-24", "25-34", "35-44", "45-54", "55-64", "65+"])
@@ -141,17 +174,18 @@ const SignUpForm = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
-  const [selectedAgeGroup, setSelectedAgeGroup] = useState("18-24");
-  const [phoneData, setPhoneData] = useState({
+  const [selectedAgeGroup, setSelectedAgeGroup] = useState<AgeGroup>("18-24");
+  const [phoneData, setPhoneData] = useState<PhoneData>({
     number: '',
-    country: 'IN',
-    countryCode: '91',
+    country: '',
+    countryCode: '',
     formattedNumber: '',
     isValid: false,
     type: null,
     nationalFormat: '',
     internationalFormat: ''
   });
+  const [error, setError] = useState<string | null>(null);
   
   const {
     register,
@@ -205,11 +239,10 @@ const SignUpForm = () => {
     }
   }, [theme, resolvedTheme]);
 
-  const handleRecaptchaChange = (value) => {
+  const handleRecaptchaChange = (value: string) => {
     setRecaptchaValue(value);
     setRecaptchaError(false);
     setValue('recaptcha', value);
-    trigger('recaptcha');
   };
 
   const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
@@ -229,53 +262,28 @@ const SignUpForm = () => {
   };
 
   // Enhanced phone number change handler
-  const handlePhoneChange = (value, country) => {
-    try {
-      // Remove any spaces or special characters from the phone number
-      const cleanNumber = value.replace(/\s+/g, '');
-      const phoneNumberWithPlus = cleanNumber.startsWith('+') ? cleanNumber : `+${cleanNumber}`;
-      const parsedNumber = parsePhoneNumber(phoneNumberWithPlus);
-      
-      if (parsedNumber) {
-        const formattedData = formatPhoneNumber(phoneNumberWithPlus);
-        const e164Number = parsedNumber.format('E.164');
-        
-        setPhoneData({
-          number: e164Number, // Store the E.164 format directly
-          country: parsedNumber.country,
-          countryCode: parsedNumber.countryCallingCode,
-          formattedNumber: e164Number, // Store E.164 format here too
-          isValid: parsedNumber.isValid(),
-          type: parsedNumber.getType(),
-          nationalFormat: formattedData.national,
-          internationalFormat: formattedData.international
-        });
-
-        // Update form values with the new phone_numbers array format
-        setValue('phone_numbers', [{
-          country: parsedNumber.country,
-          number: e164Number // Use E.164 format
-        }]);
-        trigger(['phone_numbers']);
-      }
-    } catch (error) {
-      console.error('Phone parsing error:', error);
-      setPhoneData(prev => ({
-        ...prev,
-        number: value,
-        isValid: false
-      }));
-    }
+  const handlePhoneChange = (value: string, country: { iso2: string; dialCode: string }) => {
+    const phoneNumber = value ? formatNumber(value, 'NATIONAL') : '';
+    setPhoneData({
+      number: value,
+      country: country.iso2,
+      countryCode: country.dialCode,
+      formattedNumber: value,
+      isValid: isValidPhoneNumber(value),
+      type: null,
+      nationalFormat: phoneNumber,
+      internationalFormat: value
+    });
   };
 
-  const handleAgeGroupChange = (e) => {
-    const value = e.target.value;
+  const handleAgeGroupChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value as AgeGroup;
     setSelectedAgeGroup(value);
     setValue('age_group', value);
     setValue('meta.age_group', value);
   };
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (data: SignUpFormData) => {
     if (!recaptchaValue) {
       setRecaptchaError(true);
       return;
@@ -369,10 +377,11 @@ const SignUpForm = () => {
         },
       });
     } catch (error) {
-      console.error("Registration Error:", error);
-      setApiError("Network error. Please check your connection and try again.");
-      toast.error("Network error. Please check your connection and try again.");
-      setRegistrationSuccess(false);
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError('An unexpected error occurred');
+      }
     }
   };
 
@@ -410,12 +419,24 @@ const SignUpForm = () => {
           letter-spacing: 0;
         }
 
-        /* Disable scrolling completely */
-        html, body {
-          overflow: hidden;
-          height: 100%;
-          position: fixed;
-          width: 100%;
+        /* Enable scrolling for mobile view only */
+        @media (max-width: 640px) {
+          html, body {
+            overflow: auto;
+            height: auto;
+            position: relative;
+            width: 100%;
+          }
+        }
+
+        /* Disable scrolling for desktop view */
+        @media (min-width: 641px) {
+          html, body {
+            overflow: hidden;
+            height: 100%;
+            position: fixed;
+            width: 100%;
+          }
         }
 
         /* Custom styles for phone input */
@@ -546,16 +567,16 @@ const SignUpForm = () => {
         }
       `}</style>
 
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-2 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-2 sm:py-4 px-3 sm:px-6 lg:px-8">
         <div className="w-full max-w-4xl relative">
-          {/* Decorative elements */}
+          {/* Decorative elements - hidden on mobile */}
           <div className="absolute -top-10 -left-10 w-20 h-20 bg-primary-300/30 dark:bg-primary-600/20 rounded-full blur-xl hidden sm:block"></div>
           <div className="absolute -bottom-12 -right-12 w-24 h-24 bg-indigo-300/30 dark:bg-indigo-600/20 rounded-full blur-xl hidden sm:block"></div>
 
           {/* Card container with glass morphism effect */}
-          <div className="signup-card bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-3xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 transition-all duration-300 flex flex-row">
+          <div className="signup-card bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl sm:rounded-3xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 transition-all duration-300 flex flex-col sm:flex-row">
             {/* Left side - Image */}
-            <div className="hidden md:flex md:w-5/12 items-center justify-center p-8 bg-gradient-to-br from-primary-50/50 to-secondary-50/50 dark:from-gray-800/50 dark:to-gray-900/50 rounded-l-3xl">
+            <div className="hidden sm:flex sm:w-5/12 items-center justify-center p-6 sm:p-8 bg-gradient-to-br from-primary-50/50 to-secondary-50/50 dark:from-gray-800/50 dark:to-gray-900/50 rounded-t-xl sm:rounded-l-3xl sm:rounded-tr-none">
               <div className="relative w-full max-w-md transform transition-all duration-700 group hover:scale-105">
                 <div className="absolute inset-0 bg-gradient-to-r from-primary-500/10 to-secondary-500/10 dark:from-primary-500/20 dark:to-secondary-500/20 rounded-xl blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
                 <Image
@@ -568,29 +589,29 @@ const SignUpForm = () => {
             </div>
 
             {/* Right side - Form */}
-            <div className="w-full md:w-7/12 p-6 sm:p-8">
+            <div className="w-full sm:w-7/12 p-3 sm:p-8">
               {/* Logo and Header */}
-              <div className="text-center mb-6">
-                <Link href="/" className="inline-block mb-4">
+              <div className="text-center mb-3 sm:mb-6">
+                <Link href="/" className="inline-block mb-2 sm:mb-4">
                   <Image 
                     src={(resolvedTheme === 'dark' || theme === 'dark') ? logo1 : logo2} 
                     alt="Medh Logo" 
-                    width={120} 
-                    height={40} 
-                    className="mx-auto"
+                    width={100} 
+                    height={32} 
+                    className="mx-auto w-20 sm:w-32"
                     priority
                   />
                 </Link>
-                <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary-600 to-indigo-600 bg-clip-text text-transparent">
+                <h2 className="text-base sm:text-2xl font-bold bg-gradient-to-r from-primary-600 to-indigo-600 bg-clip-text text-transparent">
                   Create Your Account
                 </h2>
-                <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                <p className="mt-1 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                   Join our learning community today
                 </p>
               </div>
 
               {/* Form */}
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-2.5 sm:space-y-4">
                 {/* Full Name Field */}
                 <div>
                   <div className="relative">
@@ -598,10 +619,10 @@ const SignUpForm = () => {
                       {...register("full_name")}
                       type="text"
                       placeholder="Full Name"
-                      className="w-full px-4 py-2.5 bg-gray-50/50 dark:bg-gray-700/30 rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-11"
+                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-10 sm:pl-11 text-sm sm:text-base"
                     />
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <User className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 dark:text-gray-500" />
+                      <User className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                     </div>
                   </div>
                   {errors.full_name && (
@@ -619,10 +640,10 @@ const SignUpForm = () => {
                       {...register("email")}
                       type="email"
                       placeholder="Email Address"
-                      className="w-full px-4 py-2.5 bg-gray-50/50 dark:bg-gray-700/30 rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-11"
+                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-10 sm:pl-11 text-sm sm:text-base"
                     />
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 dark:text-gray-500" />
+                      <Mail className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                     </div>
                   </div>
                   {errors.email && (
@@ -635,7 +656,7 @@ const SignUpForm = () => {
 
                 {/* Age Group Field */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Age Group
                   </label>
                   <div className="relative">
@@ -643,7 +664,7 @@ const SignUpForm = () => {
                       {...register("age_group")}
                       onChange={handleAgeGroupChange}
                       value={selectedAgeGroup}
-                      className="w-full px-4 py-2.5 bg-gray-50/50 dark:bg-gray-700/30 rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-11 appearance-none"
+                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-10 sm:pl-11 appearance-none text-sm sm:text-base"
                     >
                       <option value="Under 18">Under 18</option>
                       <option value="18-24">18-24</option>
@@ -654,10 +675,10 @@ const SignUpForm = () => {
                       <option value="65+">65+</option>
                     </select>
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <UserCircle className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 dark:text-gray-500" />
+                      <UserCircle className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                     </div>
                     <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
                       </svg>
                     </div>
@@ -672,7 +693,7 @@ const SignUpForm = () => {
 
                 {/* Phone Number Field */}
                 <div className="phone-field-container">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Phone Number
                   </label>
                   <div className="relative">
@@ -687,14 +708,14 @@ const SignUpForm = () => {
                         name: 'phone_numbers',
                         required: true,
                         className: `
-                          w-full pl-[4.5rem] pr-4 py-2.5 
+                          w-full pl-[4.5rem] pr-3 sm:pr-4 py-2 sm:py-2.5 
                           bg-gray-50/50 dark:bg-gray-700/30 
                           border border-gray-200 dark:border-gray-600 
-                          rounded-xl text-gray-900 dark:text-gray-100
+                          rounded-lg sm:rounded-xl text-gray-900 dark:text-gray-100
                           focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500
                           disabled:bg-gray-100 disabled:cursor-not-allowed
                           transition duration-150 ease-in-out
-                          text-sm
+                          text-sm sm:text-base
                         `
                       }}
                       containerClass="phone-input-container"
@@ -703,7 +724,7 @@ const SignUpForm = () => {
                         flex items-center justify-center
                         border-r border-gray-200 dark:border-gray-600
                         bg-transparent
-                        rounded-l-xl
+                        rounded-l-lg sm:rounded-l-xl
                         transition duration-150 ease-in-out
                         hover:bg-gray-50 dark:hover:bg-gray-700/30
                       `}
@@ -745,7 +766,7 @@ const SignUpForm = () => {
                 </div>
 
                 {/* Password Fields Row */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-4">
                   {/* Password Field */}
                   <div>
                     <div className="relative">
@@ -753,10 +774,10 @@ const SignUpForm = () => {
                         {...register("password")}
                         type={showPassword ? "text" : "password"}
                         placeholder="Password"
-                        className="w-full px-4 py-2.5 bg-gray-50/50 dark:bg-gray-700/30 rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-11 pr-11"
+                        className="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-10 sm:pl-11 pr-10 sm:pr-11 text-sm sm:text-base"
                       />
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Lock className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 dark:text-gray-500" />
+                        <Lock className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                       </div>
                       <button
                         type="button"
@@ -785,10 +806,10 @@ const SignUpForm = () => {
                         {...register("confirm_password")}
                         type={showConfirmPassword ? "text" : "password"}
                         placeholder="Confirm Password"
-                        className="w-full px-4 py-2.5 bg-gray-50/50 dark:bg-gray-700/30 rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-11 pr-11"
+                        className="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-10 sm:pl-11 pr-10 sm:pr-11 text-sm sm:text-base"
                       />
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Lock className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 dark:text-gray-500" />
+                        <Lock className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                       </div>
                       <button
                         type="button"
@@ -812,7 +833,7 @@ const SignUpForm = () => {
                 </div>
 
                 {/* Custom ReCAPTCHA */}
-                <div>
+                <div className="scale-90 sm:scale-100 origin-center">
                   <CustomReCaptcha
                     onChange={handleRecaptchaChange}
                     error={!!errors.recaptcha || recaptchaError}
@@ -825,7 +846,7 @@ const SignUpForm = () => {
                     <input
                       type="checkbox"
                       {...register("agree_terms")}
-                      className="mt-1 h-4 w-4 rounded-md text-primary-600 focus:ring-primary-500 border-gray-300"
+                      className="mt-1 h-3.5 w-3.5 rounded-md text-primary-600 focus:ring-primary-500 border-gray-300"
                     />
                     <span className="text-xs text-gray-600 dark:text-gray-400">
                       I accept the{" "}
@@ -835,7 +856,7 @@ const SignUpForm = () => {
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        terms of use
+                        terms
                       </a>{" "}
                       and{" "}
                       <a 
@@ -844,7 +865,7 @@ const SignUpForm = () => {
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        privacy policy
+                        privacy
                       </a>
                     </span>
                   </label>
@@ -859,18 +880,18 @@ const SignUpForm = () => {
                 {/* Submit Button */}
                 <button
                   type="submit"
-                  className="w-full py-2.5 px-4 bg-gradient-to-r from-primary-500 to-indigo-600 text-white font-medium rounded-xl shadow-lg shadow-primary-500/30 hover:shadow-primary-500/40 transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 relative overflow-hidden group"
+                  className="w-full py-2 sm:py-2.5 px-4 bg-gradient-to-r from-primary-500 to-indigo-600 text-white font-medium rounded-lg sm:rounded-xl shadow-lg shadow-primary-500/30 hover:shadow-primary-500/40 transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 relative overflow-hidden group text-sm sm:text-base"
                 >
                   <span className="relative z-10 flex items-center justify-center">
                     Sign Up
-                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    <ArrowRight className="ml-2 h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
                   </span>
                   <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-primary-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </button>
 
                 {/* Sign In Link */}
-                <div className="text-center mt-4">
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                <div className="text-center mt-2 sm:mt-4">
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
                     Already have an account?{" "}
                     <Link
                       href="/login"
@@ -885,7 +906,7 @@ const SignUpForm = () => {
           </div>
           
           {/* Social proof */}
-          <div className="text-center mt-4 text-xs text-gray-500 dark:text-gray-400">
+          <div className="text-center mt-3 sm:mt-4 text-xs text-gray-500 dark:text-gray-400">
             <p>Join thousands of students worldwide 🌎</p>
           </div>
           
