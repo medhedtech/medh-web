@@ -335,7 +335,7 @@ const CourseView: React.FC = () => {
       <div className="relative min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 category-page" data-category="course-view">
         {/* Fixed Header - Improved for mobile */}
         <header className="fixed top-0 left-0 right-0 z-30 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transform-gpu">
-          <nav className="container mx-auto px-3 sm:px-4 h-14 sm:h-16 flex items-center justify-between">
+          <nav className="container mx-auto px-2 sm:px-4 h-14 sm:h-16 flex items-center justify-between">
             <div className="flex items-center space-x-2 sm:space-x-4 overflow-hidden">
               <button 
                 onClick={() => router.back()}
@@ -381,7 +381,7 @@ const CourseView: React.FC = () => {
           ) : error ? (
             <ErrorDisplay />
           ) : (
-            <div className="container mx-auto px-3 sm:px-4">
+            <div className="container mx-auto px-3 sm:px-4 max-w-7xl">
               {/* Mobile Course Summary - Only visible on mobile */}
               {course && (
                 <div className="lg:hidden mb-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
@@ -491,7 +491,7 @@ const CourseView: React.FC = () => {
         {!loading && !error && course && (
           <div className="fixed bottom-0 left-0 right-0 z-40 lg:hidden">
             <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-lg">
-              <div className="container mx-auto px-3 py-3 flex items-center justify-between">
+              <div className="container mx-auto px-3 py-3 max-w-7xl flex items-center justify-between">
                 <div className="flex flex-col">
                   <span className="text-xs text-gray-500 dark:text-gray-400">Price</span>
                   <span className="text-base font-semibold text-emerald-600 dark:text-emerald-400">

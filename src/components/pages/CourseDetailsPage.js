@@ -1433,7 +1433,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
         return (
           <motion.section 
             id="enrollment" 
-            className="pb-6"
+            className="pb-6 px-4 sm:px-6 md:px-8"
             variants={fadeIn}
             initial="hidden"
             animate="visible"
@@ -1446,9 +1446,9 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 lg:gap-6 mb-8">
               <motion.div 
-                className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow"
+                className="bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow"
                 variants={fadeIn}
                 transition={{ delay: 0.1 }}
                 whileHover={{ y: -4 }}
@@ -1461,7 +1461,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
               </motion.div>
               
               <motion.div 
-                className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow"
+                className="bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow"
                 variants={fadeIn}
                 transition={{ delay: 0.2 }}
                 whileHover={{ y: -4 }}
@@ -1474,7 +1474,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
               </motion.div>
               
               <motion.div 
-                className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow"
+                className="bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow"
                 variants={fadeIn}
                 transition={{ delay: 0.3 }}
                 whileHover={{ y: -4 }}
@@ -1507,7 +1507,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
               <motion.div 
-                className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm"
+                className="bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow"
                 variants={fadeIn}
                 transition={{ delay: 0.4 }}
               >
@@ -1537,7 +1537,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
               </motion.div>
               
               <motion.div 
-                className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm"
+                className="bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow"
                 variants={fadeIn}
                 transition={{ delay: 0.5 }}
               >
@@ -1622,7 +1622,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
       initial="hidden"
       animate="visible"
       variants={staggerContainer}
-      className="max-w-6xl mx-auto px-3 sm:px-4 py-3 sm:py-4 md:py-8"
+      className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-3 sm:py-4 md:py-8 border-x border-transparent"
     >
       <motion.div 
         variants={fadeIn}
@@ -1766,17 +1766,6 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
                     </div>
                   </div>
                 </motion.div>
-                
-                {/* Price tag - Absolute position on mobile for better layout */}
-                {(courseDetails?.prices?.[0]?.batch !== undefined || courseDetails?.course_fee !== undefined) && (
-                  <motion.div 
-                    variants={fadeIn}
-                    className="absolute sm:relative top-4 right-4 sm:top-auto sm:right-auto bg-green-500 text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg font-bold flex items-center shadow-sm text-sm sm:text-base"
-                  >
-                    <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 text-white/80" />
-                    ₹{courseDetails?.prices?.[0]?.batch || courseDetails?.course_fee || 2999}
-                  </motion.div>
-                )}
               </div>
             </div>
           </div>
