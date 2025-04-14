@@ -130,7 +130,7 @@ const FormInput: React.FC<{
 }> = ({ id, type, placeholder, register, error, icon, onChange, value, prefix }) => (
   <div>
     <div className="relative group">
-      <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+      <div className="absolute inset-y-0 left-0 flex items-center pl-3 sm:pl-4 pointer-events-none">
         {React.cloneElement(icon as React.ReactElement, { 
           className: `${error ? 'text-red-500' : 'text-gray-400 dark:text-gray-500 group-hover:text-primary-500 dark:group-hover:text-primary-400'}`,
           size: 18 
@@ -138,7 +138,7 @@ const FormInput: React.FC<{
       </div>
       <label 
         htmlFor={id} 
-        className="absolute -top-2.5 left-10 px-2 text-xs font-medium bg-white dark:bg-gray-800 text-primary-600 dark:text-primary-400 z-10"
+        className="absolute -top-2.5 left-9 sm:left-10 px-2 text-xs font-medium bg-white dark:bg-gray-800 text-primary-600 dark:text-primary-400 z-10"
       >
         {placeholder}
       </label>
@@ -149,14 +149,14 @@ const FormInput: React.FC<{
         placeholder=""
         onChange={onChange}
         value={value}
-        className={`w-full h-[52px] pl-12 pr-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700/50 border-2 ${
+        className={`w-full h-[52px] pl-10 sm:pl-12 pr-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700/50 border-2 ${
           error 
             ? 'border-red-500 focus:ring-red-500 dark:border-red-500' 
             : 'border-gray-200 dark:border-gray-700 hover:border-primary-400 dark:hover:border-primary-500 focus:ring-primary-500 focus:border-primary-500'
-        } text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-opacity-50 focus:border-transparent transition-all duration-200 shadow-sm hover:bg-white dark:hover:bg-gray-700/70 text-base`}
+        } text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-opacity-50 focus:border-transparent transition-all duration-200 shadow-sm hover:bg-white dark:hover:bg-gray-700/70 text-sm sm:text-base`}
       />
       {prefix && (
-        <span className="absolute left-11 top-1/2 -translate-y-1/2 text-gray-600 dark:text-gray-400 text-sm">
+        <span className="absolute left-10 sm:left-11 top-1/2 -translate-y-1/2 text-gray-600 dark:text-gray-400 text-sm">
           {prefix}
         </span>
       )}
@@ -181,7 +181,7 @@ const FormSelect: React.FC<{
 }> = ({ id, value, onChange, options, error, icon }) => (
   <div>
     <div className="relative group">
-      <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none z-10">
+      <div className="absolute inset-y-0 left-0 flex items-center pl-3 sm:pl-4 pointer-events-none z-10">
         {React.cloneElement(icon as React.ReactElement, { 
           className: `${error ? 'text-red-500' : 'text-gray-400 dark:text-gray-500 group-hover:text-primary-500 dark:group-hover:text-primary-400'}`, 
           size: 18 
@@ -189,7 +189,7 @@ const FormSelect: React.FC<{
       </div>
       <label 
         htmlFor={id} 
-        className="absolute -top-2.5 left-10 px-2 text-xs font-medium bg-white dark:bg-gray-800 text-primary-600 dark:text-primary-400 z-10"
+        className="absolute -top-2.5 left-9 sm:left-10 px-2 text-xs font-medium bg-white dark:bg-gray-800 text-primary-600 dark:text-primary-400 z-10"
       >
         Select Your Country
       </label>
@@ -197,11 +197,11 @@ const FormSelect: React.FC<{
         id={id}
         onChange={onChange}
         value={value}
-        className={`w-full h-[52px] pl-12 pr-10 py-3 rounded-xl bg-gray-50 dark:bg-gray-700/50 border-2 ${
+        className={`w-full h-[52px] pl-10 sm:pl-12 pr-10 py-3 rounded-xl bg-gray-50 dark:bg-gray-700/50 border-2 ${
           error 
             ? 'border-red-500 focus:ring-red-500 dark:border-red-500' 
             : 'border-gray-200 dark:border-gray-700 hover:border-primary-400 dark:hover:border-primary-500 focus:ring-primary-500 focus:border-primary-500'
-        } text-gray-900 dark:text-white focus:ring-2 focus:ring-opacity-50 focus:border-transparent transition-all duration-200 shadow-sm appearance-none cursor-pointer hover:bg-white dark:hover:bg-gray-700/70 text-base`}
+        } text-gray-900 dark:text-white focus:ring-2 focus:ring-opacity-50 focus:border-transparent transition-all duration-200 shadow-sm appearance-none cursor-pointer hover:bg-white dark:hover:bg-gray-700/70 text-sm sm:text-base`}
         aria-invalid={error ? "true" : "false"}
       >
         <option value="" className="py-2">Select Your Country</option>
@@ -238,14 +238,14 @@ const PhoneInput: React.FC<{
     <div className="relative group">
       <label 
         htmlFor={id} 
-        className="absolute -top-2.5 left-10 px-2 text-xs font-medium bg-white dark:bg-gray-800 text-primary-600 dark:text-primary-400 z-10"
+        className="absolute -top-2.5 left-9 sm:left-10 px-2 text-xs font-medium bg-white dark:bg-gray-800 text-primary-600 dark:text-primary-400 z-10"
       >
         Mobile Number
       </label>
-      <div className="flex">
-        <div className="flex-shrink-0">
-          <div className="h-[52px] flex items-center justify-center px-3 sm:px-4 bg-primary-50 dark:bg-primary-900/30 border-2 border-r-0 border-gray-200 dark:border-gray-700 rounded-l-xl group-hover:border-primary-400 dark:group-hover:border-primary-500 group-hover:bg-primary-100 dark:group-hover:bg-primary-800/30 transition-all">
-            <span className="text-primary-700 dark:text-primary-300 font-medium whitespace-nowrap">
+      <div className="flex w-full">
+        <div className="flex-shrink-0 min-w-[70px] sm:min-w-[80px]">
+          <div className="h-[52px] flex items-center justify-center px-2 sm:px-3 md:px-4 bg-primary-50 dark:bg-primary-900/30 border-2 border-r-0 border-gray-200 dark:border-gray-700 rounded-l-xl group-hover:border-primary-400 dark:group-hover:border-primary-500 group-hover:bg-primary-100 dark:group-hover:bg-primary-800/30 transition-all">
+            <span className="text-primary-700 dark:text-primary-300 font-medium whitespace-nowrap text-sm sm:text-base">
               {countryCode}
             </span>
           </div>
@@ -265,7 +265,7 @@ const PhoneInput: React.FC<{
               error 
                 ? 'border-red-500 focus:ring-red-500 dark:border-red-500' 
                 : 'border-gray-200 dark:border-gray-700 hover:border-primary-400 dark:hover:border-primary-500 focus:ring-primary-500 focus:border-primary-500'
-            } text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-opacity-50 focus:border-transparent transition-all duration-200 shadow-sm hover:bg-white dark:hover:bg-gray-700/70 text-base`}
+            } text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-opacity-50 focus:border-transparent transition-all duration-200 shadow-sm hover:bg-white dark:hover:bg-gray-700/70 text-sm sm:text-base`}
           />
           {value && value.length > 0 && (
             <div className="absolute top-1/2 right-3 -translate-y-1/2">
@@ -297,7 +297,7 @@ const FormTextarea: React.FC<{
 }> = ({ id, placeholder, register, error, icon, value }) => (
   <div>
     <div className="relative">
-      <div className="absolute top-4 left-4 pointer-events-none">
+      <div className="absolute top-4 left-3 sm:left-4 pointer-events-none">
         {React.cloneElement(icon as React.ReactElement, { 
           className: `${error ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'}`, 
           size: 18 
@@ -307,11 +307,11 @@ const FormTextarea: React.FC<{
         {...register}
         id={id}
         placeholder={placeholder}
-        className={`w-full pl-12 pr-4 py-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 border-2 ${
+        className={`w-full pl-10 sm:pl-12 pr-4 py-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 border-2 ${
           error 
             ? 'border-red-500 focus:ring-red-500 dark:border-red-500' 
             : 'border-gray-200 dark:border-gray-700 hover:border-primary-400 dark:hover:border-primary-500 focus:ring-primary-500 focus:border-primary-500'
-        } text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-opacity-50 focus:border-transparent transition-all duration-200 shadow-sm h-32 resize-none hover:bg-white dark:hover:bg-gray-700/70`}
+        } text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-opacity-50 focus:border-transparent transition-all duration-200 shadow-sm h-32 resize-none hover:bg-white dark:hover:bg-gray-700/70 text-sm sm:text-base`}
       />
       
       {/* Character Counter */}
@@ -700,7 +700,7 @@ const Registration: React.FC<IRegistrationProps> = ({ showUploadField = false, p
         variants={containerVariants}
         className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-950"
       >
-        <div className="container mx-auto px-4 py-12 relative">
+        <div className="container mx-auto px-4 sm:px-6 py-12 relative">
           {/* Floating background elements */}
           <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
             <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary-400/10 dark:bg-primary-600/10 rounded-full blur-3xl"></div>
@@ -708,7 +708,7 @@ const Registration: React.FC<IRegistrationProps> = ({ showUploadField = false, p
           </div>
 
           <motion.div 
-            className="max-w-6xl mx-auto bg-white dark:bg-gray-800 shadow-xl rounded-2xl overflow-hidden backdrop-blur-sm transition-all relative z-10"
+            className="max-w-7xl mx-auto bg-white dark:bg-gray-800 shadow-xl rounded-2xl overflow-hidden backdrop-blur-sm transition-all relative z-10"
             variants={itemVariants}
           >
             <div className="grid md:grid-cols-2 h-full">
@@ -718,20 +718,20 @@ const Registration: React.FC<IRegistrationProps> = ({ showUploadField = false, p
               {/* Right side - Form Section */}
               <motion.div 
                 variants={itemVariants}
-                className="bg-white dark:bg-gray-800 p-8 lg:p-12 transition-all duration-700"
+                className="bg-white dark:bg-gray-800 p-5 sm:p-8 lg:p-10 xl:p-12 transition-all duration-700"
               >
-                <div className="mb-10">
-                  <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-3 bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">
+                <div className="mb-8 lg:mb-10">
+                  <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-3 bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">
                     Get in Touch
                   </h3>
-                  <p className="text-gray-600 dark:text-gray-300 text-lg">
+                  <p className="text-gray-600 dark:text-gray-300 text-base sm:text-lg">
                     Fill out the form below and our team will get back to you shortly.
                   </p>
                 </div>
                 
                 <form
                   onSubmit={handleSubmit(onSubmit)}
-                  className="space-y-7"
+                  className="space-y-6 sm:space-y-7"
                   aria-label="Contact form"
                   noValidate
                 >
@@ -753,7 +753,6 @@ const Registration: React.FC<IRegistrationProps> = ({ showUploadField = false, p
                     icon={<Mail />}
                   />
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-7">
                     <FormSelect 
                       id="country"
                       value={watchedFields.country}
@@ -770,7 +769,6 @@ const Registration: React.FC<IRegistrationProps> = ({ showUploadField = false, p
                       error={errors.phone_number}
                       countryCode={selectedCountryDialCode}
                     />
-                  </div>
 
                   <FormTextarea 
                     id="message"

@@ -433,6 +433,7 @@ const CourseView: React.FC = () => {
                       <CourseDetailsPage 
                         courseId={course._id} 
                         initialActiveSection={activeSection}
+                        classType={course.classType || course.class_type || course.course_type || 'Live'}
                       />
                     </div>
                   )}

@@ -34,7 +34,7 @@ const ContactPrimary = () => {
       title: "Office",
       content: (
         <address className="not-italic space-y-1.5">
-          <p className="font-medium text-emerald-500 dark:text-emerald-400">esampark</p>
+          <p className="font-medium text-emerald-500 dark:text-emerald-400">Esampark Tech solutions Pvt. Ltd. </p>
           <div className="text-gray-600 dark:text-gray-300">
             <p>S-8, 2nd Floor,</p>
             <p>Pinnacle Business Park,</p>
