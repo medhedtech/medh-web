@@ -1184,10 +1184,6 @@ const HomeCourseSection = ({
                       className="col-span-1"
                     >
                       <div className="relative">
-                        {/* Course Type Badge - positioned at top left */}
-                        <div className="absolute left-4 top-4 z-10">
-                          <CourseTypeTag course={{...course, classType: 'blended'}} />
-                        </div>
                         
                         {/* Render the CourseCard component with proper props */}
                         <CourseCard 
