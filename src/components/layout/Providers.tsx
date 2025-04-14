@@ -3,7 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { ToastContainer } from 'react-toastify';
 import useAuth from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
-import { ThemeProvider } from '@/contexts/ThemeContext';
+import { ThemeProvider } from 'next-themes';
 
 // Create auth context
 export const AuthContext = createContext<ReturnType<typeof useAuth> | null>(null);
@@ -68,7 +68,13 @@ interface ProvidersProps {
 
 export default function Providers({ children }: ProvidersProps) {
   return (
-    <ThemeProvider>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+      storageKey="medh-theme"
+    >
       <AuthProvider>
         <ToastContainer
           position="top-right"

@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Moon, Sun, Monitor } from 'lucide-react';
-import { useTheme } from 'next-themes';
+import { useTheme } from '@/hooks/useTheme';
+import { ThemeMode } from '@/contexts/ThemeContext';
 
 interface ThemeControllerProps {
   position?: 'fixed' | 'absolute' | 'relative' | 'static' | 'sticky';
@@ -11,39 +12,35 @@ interface ThemeControllerProps {
   size?: 'sm' | 'md' | 'lg';
 }
 
-type ThemeMode = 'light' | 'dark' | 'system';
-
 const ThemeController = ({ 
   position = 'fixed', 
   className = '',
   showLabel = false,
   size = 'md'
 }: ThemeControllerProps) => {
-  const { theme, setTheme, resolvedTheme, systemTheme } = useTheme();
+  const { theme, setTheme, resolvedTheme, systemTheme, toggleTheme } = useTheme();
   const [showTooltip, setShowTooltip] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [activeTheme, setActiveTheme] = useState<ThemeMode>(theme as ThemeMode || 'system');
+  const [activeTheme, setActiveTheme] = useState<ThemeMode>('system');
   
   // Wait for component to mount to avoid hydration mismatch
   useEffect(() => {
     setMounted(true);
     // Initialize active theme from localStorage or system preference
-    const savedTheme = localStorage.getItem('theme') as ThemeMode;
+    const savedTheme = localStorage.getItem('medh-theme') as ThemeMode;
     if (savedTheme) {
       setActiveTheme(savedTheme);
     } else {
-      // Check system preference
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setActiveTheme(prefersDark ? 'dark' : 'light');
+      setActiveTheme('system');
     }
   }, []);
 
   // Sync active theme with next-themes
   useEffect(() => {
-    if (mounted && activeTheme !== theme) {
-      setTheme(activeTheme);
+    if (mounted && theme) {
+      setActiveTheme(theme as ThemeMode);
     }
-  }, [activeTheme, mounted, setTheme, theme]);
+  }, [theme, mounted]);
 
   // Add keyboard shortcut listener
   useEffect(() => {
@@ -56,21 +53,7 @@ const ThemeController = ({
 
     document.addEventListener('keydown', handleKeyPress);
     return () => document.removeEventListener('keydown', handleKeyPress);
-  }, [activeTheme]);
-
-  // Handle system theme changes
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
-    const handleChange = (e: MediaQueryListEvent) => {
-      if (activeTheme === 'system') {
-        setTheme(e.matches ? 'dark' : 'light');
-      }
-    };
-    
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, [activeTheme, setTheme]);
+  }, [toggleTheme]);
 
   // Memoize the current theme for performance
   const currentTheme = useMemo(() => {
@@ -78,26 +61,14 @@ const ThemeController = ({
     return resolvedTheme || 'light';
   }, [mounted, resolvedTheme]);
 
-  // Toggle between themes
-  const toggleTheme = useCallback(() => {
-    setActiveTheme(prev => {
-      const newTheme = prev === 'dark' ? 'light' : 'dark';
-      localStorage.setItem('theme', newTheme);
-      return newTheme;
-    });
-  }, []);
-
   // Cycle through all themes
   const cycleTheme = useCallback(() => {
-    setActiveTheme(prev => {
-      const themes: ThemeMode[] = ['light', 'dark', 'system'];
-      const currentIndex = themes.indexOf(prev);
-      const nextIndex = (currentIndex + 1) % themes.length;
-      const newTheme = themes[nextIndex];
-      localStorage.setItem('theme', newTheme);
-      return newTheme;
-    });
-  }, []);
+    const themes: ThemeMode[] = ['light', 'dark', 'system'];
+    const currentIndex = themes.indexOf(activeTheme);
+    const nextIndex = (currentIndex + 1) % themes.length;
+    const newTheme = themes[nextIndex];
+    setTheme(newTheme);
+  }, [activeTheme, setTheme]);
 
   // Don't render anything until mounted to prevent hydration mismatch
   if (!mounted) {
@@ -132,22 +103,41 @@ const ThemeController = ({
           aria-label={`Current theme: ${activeTheme}. Click to cycle themes.`}
         >
           <div className="relative">
-            {/* Light icon */}
-            <div className={`absolute inset-0 transform transition-transform duration-500 ${isDarkMode ? 'rotate-90 opacity-0' : 'rotate-0 opacity-100'}`}>
-              <Sun className={`${iconSizes[size]} text-yellow-500`} />
+            {/* Icon Container - Much improved icon transitions */}
+            <div className="relative w-full h-full flex items-center justify-center">
+              {/* Light Icon */}
+              <Sun 
+                className={`
+                  absolute ${iconSizes[size]} 
+                  text-yellow-500 
+                  transition-all duration-300 ease-in-out 
+                  transform-gpu 
+                  ${activeTheme === 'light' ? 'scale-100 rotate-0 opacity-100' : 'scale-75 rotate-90 opacity-0'}
+                `} 
+              />
+              
+              {/* Dark Icon */}
+              <Moon 
+                className={`
+                  absolute ${iconSizes[size]} 
+                  text-indigo-600 
+                  transition-all duration-300 ease-in-out 
+                  transform-gpu 
+                  ${activeTheme === 'dark' ? 'scale-100 rotate-0 opacity-100' : 'scale-75 -rotate-90 opacity-0'}
+                `} 
+              />
+              
+              {/* System Icon */}
+              <Monitor 
+                className={`
+                  absolute ${iconSizes[size]} 
+                  text-gray-500 dark:text-gray-400 
+                  transition-all duration-300 ease-in-out 
+                  transform-gpu 
+                  ${activeTheme === 'system' ? 'scale-100 rotate-0 opacity-100' : 'scale-75 opacity-0'}
+                `} 
+              />
             </div>
-            
-            {/* Dark icon */}
-            <div className={`absolute inset-0 transform transition-transform duration-500 ${!isDarkMode ? 'rotate-90 opacity-0' : 'rotate-0 opacity-100'}`}>
-              <Moon className={`${iconSizes[size]} text-indigo-600`} />
-            </div>
-            
-            {/* System icon (shown when system theme is active) */}
-            {activeTheme === 'system' && (
-              <div className="absolute inset-0 transform transition-transform duration-500 rotate-0 opacity-100">
-                <Monitor className={`${iconSizes[size]} text-gray-500 dark:text-gray-400`} />
-              </div>
-            )}
           </div>
 
           {/* Label if enabled */}

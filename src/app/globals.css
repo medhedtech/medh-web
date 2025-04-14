@@ -130,6 +130,19 @@ img, video, canvas, svg, iframe {
   --secondary-600: #C05621;
   --secondary-700: #9C4221;
   
+  /* Orange shades for Tailwind integration */
+  --orange-50: #fff7ed;
+  --orange-100: #ffedd5;
+  --orange-200: #fed7aa;
+  --orange-300: #fdba74;
+  --orange-400: #fb923c;
+  --orange-500: #f97316;
+  --orange-600: #ea580c;
+  --orange-700: #c2410c;
+  --orange-800: #9a3412;
+  --orange-900: #7c2d12;
+  --orange-950: #431407;
+  
   /* Gray shades for Tailwind integration */
   --gray-50: #F7FAFC;
   --gray-100: #EDF2F7;
@@ -1613,4 +1626,17 @@ body {
 .accent-text {
   font-family: var(--font-accent);
   font-display: swap;
+}
+
+/* Custom utility classes for orange color palette */
+.text-orange-500 {
+  color: var(--orange-500);
+}
+
+.bg-orange-100 {
+  background-color: var(--orange-100);
+}
+
+.dark .bg-orange-900\/20 {
+  background-color: rgba(124, 45, 18, 0.2); /* --orange-900 with 20% opacity */
 }
