@@ -377,16 +377,6 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
                       </div>
                     </div>
                   </div>
-                  
-                  <div className="flex flex-wrap gap-3 mt-8">
-                    <button 
-                      onClick={() => router.push("/corporate-training")} 
-                      className="inline-flex items-center px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-lg transition-all shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50"
-                    >
-                      Learn More
-                      <ArrowRight size={18} className="ml-2" />
-                    </button>
-                  </div>
                 </div>
               </div>
               
