@@ -149,7 +149,8 @@ const ImageWrapper = ({ src, alt, onLoad, onError, priority = false }) => {
   };
 
   return (
-    <div className="relative w-full aspect-video min-h-[160px] sm:min-h-[140px] md:min-h-[150px] bg-gray-100 dark:bg-gray-800/50 overflow-hidden rounded-t-xl group">
+    <div className="relative w-full aspect-
+    min-h-[160px] sm:min-h-[140px] md:min-h-[150px] bg-gray-100 dark:bg-gray-800/50 overflow-hidden rounded-t-xl group">
       {/* Skeleton loader */}
       {isLoading && (
         <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-gray-800 dark:via-gray-700 dark:to-gray-800" />
@@ -828,7 +829,7 @@ const CourseCard = ({
           bg-white/90 dark:bg-gray-900/90 backdrop-filter backdrop-blur-sm 
           transition-all duration-300 
           ${isHovered || mobileHoverActive ? 'scale-[1.02] z-10 shadow-xl' : 'scale-100 z-0 shadow-md'}
-          ${styles.borderHover} ${styles.shadowHover} ${styles.borderLeft}
+          ${styles.borderHover} ${styles.shadowHover} ${isLiveCourse ? styles.borderLeft : ''}
           ${isMobile ? 'pb-20 last:mb-0' : ''}
           ${viewMode === 'grid' ? 'sm:mx-2 md:mx-3' : ''}
           hover:shadow-2xl`}
@@ -1000,7 +1001,7 @@ const CourseCard = ({
                 <Target size={isMobile ? 18 : 16} className="mt-0.5 mr-3 text-yellow-500 dark:text-yellow-400 flex-shrink-0" />
                 <div className="flex flex-col">
                   <p className="font-bold text-gray-900 dark:text-white text-sm">
-                    {course.effort_hours} hrs/week
+                    {course.effort_hours} {!isBlendedCourse && 'hrs/week'}
                   </p>
                   <p className="text-xs text-gray-500 font-medium mt-0.5">Required Effort</p>
                 </div>
