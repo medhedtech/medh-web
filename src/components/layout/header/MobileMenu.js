@@ -1,13 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Menu, X, ChevronRight, Search, LogOut, User, Home, Book, Bell, Settings, Info, HelpCircle, Award, Bookmark, Heart, Share2, Calendar, ChevronLeft, Sun, Moon, Users, GraduationCap, Briefcase, FileText, ExternalLink, Mail, Phone, MapPin, DollarSign, Globe, BarChart } from 'lucide-react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch, faUser, faSignOutAlt, faArrowLeft, faTimes, faCog, faSun, faMoon, faGraduationCap, faBookOpen, faBell, faHeart, faShareAlt, faTachometerAlt, faSignInAlt, faUserPlus } from '@fortawesome/free-solid-svg-icons';
-import MobileMenuItems from "./MobileItems";
-import MobileItems2 from "./MobileItems2";
-import MobileMenuSearch from "./MobileMenuSearch";
-import MobileMyAccount from "./MobileMyAccount";
-import MobileSocial from "./MobileSocial";
 import useIsTrue from "@/hooks/useIsTrue";
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -30,25 +23,25 @@ const MENU_CONFIG = {
   // Quick actions configuration
   quickActions: {
     guest: [
-      { icon: Home, label: "Home", path: "/" },
-      { icon: Book, label: "Courses", path: "/courses" },
+      { icon: Home, label: "Home", path: "/", color: 'text-blue-500', bg: 'bg-blue-100 dark:bg-blue-900/20' },
+      { icon: Book, label: "Courses", path: "/courses", color: 'text-green-500', bg: 'bg-green-100 dark:bg-green-900/20' },
     ],
     authenticated: [
-      { icon: Home, label: "Home", path: "/" },
-      { icon: Book, label: "Courses", path: "/courses" },
-      { icon: Bell, label: "Notifications", path: "/notifications" },
-      { icon: Bookmark, label: "Saved", path: "/saved" }
+      { icon: Home, label: "Home", path: "/", color: 'text-blue-500', bg: 'bg-blue-100 dark:bg-blue-900/20' },
+      { icon: Book, label: "Courses", path: "/courses", color: 'text-green-500', bg: 'bg-green-100 dark:bg-green-900/20' },
+      { icon: Bell, label: "Notifications", path: "/notifications", color: 'text-red-500', bg: 'bg-red-100 dark:bg-red-900/20' },
+      { icon: Bookmark, label: "Saved", path: "/saved", color: 'text-purple-500', bg: 'bg-purple-100 dark:bg-purple-900/20' }
     ]
   },
   
   // Primary navigation sections - updated to match NavItems2.js
   navSections: [
-    { icon: Info, label: 'About', path: '/about-us', color: 'text-green-500', bg: 'bg-green-100 dark:bg-green-900/20', hasDropdown: false },
+    { icon: Info, label: 'About', path: '/about-us', color: 'text-green-500', bg: 'bg-green-100 dark:bg-green-900/20' },
     { icon: FileText, label: 'Blog', path: '/blogs', color: 'text-pink-500', bg: 'bg-pink-100 dark:bg-pink-900/20'},
     { icon: Bookmark, label: 'Pages', path: '/about-us', color: 'text-purple-500', bg: 'bg-purple-100 dark:bg-purple-900/20'},
     { icon: Mail, label: 'Contact', path: '/contact-us', color: 'text-cyan-500', bg: 'bg-cyan-100 dark:bg-cyan-900/20'},
     { icon: Briefcase, label: 'Corporate', path: '/corporate-training-courses', color: 'text-indigo-500', bg: 'bg-indigo-100 dark:bg-indigo-900/20' },
-    { icon: Users, label: 'Hire Talent', path: '/hire-from-medh', color: 'text-orange-500', bg: 'bg-orange-100 dark:bg-orange-900/20' },
+    { icon: Users, label: 'Hire', path: '/hire-from-medh', color: 'text-orange-500', bg: 'bg-orange-100 dark:bg-orange-900/20' },
     { icon: Bell, label: 'Updates', path: '/notifications', color: 'text-red-500', bg: 'bg-red-100 dark:bg-red-900/20' }
   ],
   
@@ -99,21 +92,26 @@ const UIComponents = {
     
     return (
       <Link href={path} onClick={onClick} className={className} {...rest}>
-        {children || (
-          <>
-            {Icon && <Icon className="h-6 w-6 mb-2 text-gray-700 dark:text-gray-300" />}
-            <span className="text-xs text-gray-600 dark:text-gray-400">{label}</span>
-          </>
-        )}
+        {children}
       </Link>
     );
   },
   
   // Quick action item
   QuickActionItem: (props) => {
+    const { icon: Icon, label, path, onClick, color, bg } = props;
+    
     return UIComponents.createLinkItem({
       ...props,
-      className: STYLES.quickActionItem
+      className: STYLES.quickActionItem,
+      children: (
+        <>
+          <div className={`flex items-center justify-center w-10 h-10 rounded-xl mb-1 ${bg || 'bg-gray-200 dark:bg-gray-700'}`}>
+            <Icon className={`h-5 w-5 ${color || 'text-gray-700 dark:text-gray-300'}`} />
+          </div>
+          <span className="text-xs text-gray-600 dark:text-gray-400">{label}</span>
+        </>
+      )
     });
   },
   

@@ -1,40 +1,41 @@
 'use client';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-type Theme = 'light' | 'dark' | 'system';
+export type ThemeMode = 'light' | 'dark' | 'system';
 
 interface ThemeContextType {
-  theme: Theme;
-  setTheme: (theme: Theme) => void;
+  theme: ThemeMode;
+  setTheme: (theme: ThemeMode) => void;
   resolvedTheme: 'light' | 'dark'; // The actual theme applied (system resolves to light or dark)
+  systemTheme?: 'dark' | 'light'; // The system preference regardless of chosen theme
   isDark: boolean;
   toggleTheme: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export const useTheme = () => {
+export const useCustomTheme = () => {
   const context = useContext(ThemeContext);
   if (context === undefined) {
-    throw new Error('useTheme must be used within a ThemeProvider');
+    throw new Error('useCustomTheme must be used within a CustomThemeProvider');
   }
   return context;
 };
 
-interface ThemeProviderProps {
+interface CustomThemeProviderProps {
   children: React.ReactNode;
-  defaultTheme?: Theme;
+  defaultTheme?: ThemeMode;
 }
 
-export const ThemeProvider: React.FC<ThemeProviderProps> = ({
+export const CustomThemeProvider: React.FC<CustomThemeProviderProps> = ({
   children,
   defaultTheme = 'system'
 }) => {
-  const [theme, setThemeState] = useState<Theme>(defaultTheme);
+  const [theme, setThemeState] = useState<ThemeMode>(defaultTheme);
   const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light');
   
   // Function to set theme and save it to localStorage
-  const setTheme = (newTheme: Theme) => {
+  const setTheme = (newTheme: ThemeMode) => {
     setThemeState(newTheme);
     if (typeof window !== 'undefined') {
       localStorage.setItem('theme', newTheme);
@@ -52,14 +53,14 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     if (typeof window === 'undefined') return;
 
     // Get saved theme from localStorage or use default
-    const savedTheme = localStorage.getItem('theme') as Theme | null;
+    const savedTheme = localStorage.getItem('theme') as ThemeMode | null;
     if (savedTheme) {
       setThemeState(savedTheme);
     }
     
     // Function to update the resolved theme based on system preference or selected theme
     const updateResolvedTheme = () => {
-      const currentTheme = localStorage.getItem('theme') as Theme || theme;
+      const currentTheme = localStorage.getItem('theme') as ThemeMode || theme;
       
       if (currentTheme === 'system') {
         const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
@@ -104,6 +105,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
         theme,
         setTheme,
         resolvedTheme,
+        systemTheme: theme === 'system' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : undefined,
         isDark: resolvedTheme === 'dark',
         toggleTheme
       }}

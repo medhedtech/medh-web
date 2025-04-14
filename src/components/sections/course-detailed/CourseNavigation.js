@@ -131,7 +131,7 @@ const CourseNavigation = ({
       animate="animate"
       variants={fadeIn}
     >
-      <div className="grid grid-cols-5 sm:flex w-full sm:space-x-2">
+      <div className="grid grid-cols-5 sm:flex w-full sm:space-x-3">
         {visibleSections.map((section) => {
           const Icon = section.icon;
           const isActive = activeSection === section.id;
@@ -140,7 +140,7 @@ const CourseNavigation = ({
             <motion.button
               key={section.id}
               onClick={() => scrollToSection(section.id)}
-              className={`relative flex flex-col sm:flex-row items-center justify-center py-2.5 px-2 sm:px-3 md:px-4 rounded-lg text-xs sm:text-sm font-medium transition-all ${
+              className={`relative flex flex-col sm:flex-row items-center justify-center py-2 sm:py-2.5 px-1 sm:px-3 md:px-4 rounded-lg text-[10px] sm:text-sm font-medium transition-all ${
                 isActive 
                   ? `${getSectionBgColor(section)} shadow-sm`
                   : 'hover:bg-gray-100 dark:hover:bg-gray-700/50 text-gray-600 dark:text-gray-300'
@@ -154,9 +154,10 @@ const CourseNavigation = ({
             >
               <div className={`relative ${isActive ? 'transform scale-110' : ''} transition-transform duration-200`}>
                 <Icon 
-                  className={`h-5 w-5 sm:h-4 sm:w-4 ${
+                  className={`h-4 w-4 sm:h-[18px] sm:w-[18px] ${
                     isActive ? section.lightColor : 'text-gray-500 dark:text-gray-400'
                   } transition-colors duration-200`} 
+                  strokeWidth={2.2}
                 />
                 
                 {/* Subtle ping effect for active tab */}
@@ -165,11 +166,18 @@ const CourseNavigation = ({
                 )}
               </div>
               
-              {/* Only show text on larger screens */}
-              <span className={`hidden sm:inline-block sm:ml-2 transition-all duration-200 ${
+              {/* Only show text on larger screens with text truncation */}
+              <span className={`hidden sm:block sm:ml-2 transition-all duration-200 whitespace-nowrap max-w-[80px] md:max-w-[120px] overflow-hidden text-clip ${
                 isActive ? section.lightColor : ''
               }`}>
                 {section.label}
+              </span>
+              
+              {/* Show mobile label on small screens */}
+              <span className={`block sm:hidden text-[9px] mt-1 whitespace-nowrap overflow-hidden ${
+                isActive ? section.lightColor : ''
+              }`}>
+                {section.mobileLabel}
               </span>
               
               {/* Active indicator - visible on mobile */}

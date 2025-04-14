@@ -1,7 +1,9 @@
 import { CATEGORY_MAP } from '../utils';
 
 export async function generateMetadata({ params }) {
-  const { categoryname } = params;
+  // Await the params object before destructuring
+  const resolvedParams = await Promise.resolve(params);
+  const { categoryname } = resolvedParams;
   
   // Find the category in our map
   const normalizedCategory = categoryname.toLowerCase().replace(/\s+/g, '-');

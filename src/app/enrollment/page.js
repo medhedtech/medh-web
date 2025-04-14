@@ -72,7 +72,15 @@ function EnrollmentPage() {
       try {
         setLoading(true);
         getQuery({
-          url: getAllCoursesWithLimits(1, 100, "", "", "", "Published"),
+          url: getAllCoursesWithLimits({
+            page: 1,
+            limit: 100,
+            course_title: "",
+            course_tag: "",
+            course_category: "",
+            status: "Published",
+            search: ""
+          }),
           onSuccess: (response) => {
             const courseData = response?.courses || [];
             setCourses(courseData);
