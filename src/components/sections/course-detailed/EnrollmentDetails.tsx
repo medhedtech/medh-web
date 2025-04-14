@@ -423,157 +423,101 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
   const bgClass = categoryInfo?.bgClass || `bg-${primaryColor}-50 dark:bg-${primaryColor}-900/20`;
   const borderClass = categoryInfo?.borderClass || `border-${primaryColor}-200 dark:border-${primaryColor}-800`;
 
-  // Determine the payment currency and conversion for Razorpay
-  const getPaymentDetails = useCallback((): PaymentDetails => {
-    if (!activePricing) {
-      return {
-        originalPrice: 0,
-        originalCurrency: 'USD',
-        paymentCurrency: 'INR',
-        amountInINR: 0,
-        conversionRate: 1,
-        formattedOriginalPrice: '0'
-      };
-    }
+  // Check if a price is free
+  const isFreePrice = (price: number): boolean => {
+    return !price || price <= 0 || price < 0.01;
+  };
 
-    // Get the base price in the original currency
-    const basePrice = enrollmentType === 'individual' 
-      ? activePricing.individual
-      : activePricing.batch;
-    
-    // Apply any discounts
-    const discountPercentage = enrollmentType === 'batch' 
-      ? activePricing.group_discount
-      : activePricing.early_bird_discount;
-    
-    const priceAfterDiscount = calculateFinalPrice(basePrice, discountPercentage);
-    
-    // Razorpay primarily works with INR, so convert if needed
-    const baseCurrency = activePricing.currency;
-    const inrConversionRate = {
-      'USD': 84.47,
-      'EUR': 90.21,
-      'GBP': 106.35,
-      'INR': 1,
-      'AUD': 54.98
-    }[baseCurrency] || 84.47;
-    
-    // Convert to INR for Razorpay (amount in paise)
-    const amountInINR = Math.round(priceAfterDiscount * inrConversionRate * 100);
-    
-    return {
-      originalPrice: priceAfterDiscount,
-      originalCurrency: baseCurrency,
-      paymentCurrency: 'INR',
-      amountInINR: amountInINR,
-      conversionRate: inrConversionRate,
-      formattedOriginalPrice: formatPriceDisplay(priceAfterDiscount)
-    };
-  }, [enrollmentType, activePricing, calculateFinalPrice, formatPriceDisplay]);
-
-  // Enroll in course after successful payment
+  // Enroll course function
   const enrollCourse = async (studentId: string, courseId: string, paymentResponse: any = {}): Promise<any> => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-
-      if (!activePricing) {
-        throw new Error('No active pricing found');
-      }
-
-      // Use postQuery to call the enrolled courses API
-      const response = await postQuery({
-        url: apiUrls?.enrolledCourses?.createEnrolledCourse,
-        postData: {
-          student_id: studentId,
-          course_id: courseId,
-          enrollment_type: enrollmentType,
-          batch_size: enrollmentType === 'batch' ? activePricing.min_batch_size : 1,
-          payment_status: 'completed',
-          enrollment_date: new Date().toISOString(),
-          course_progress: 0,
-          status: 'active',
-          // Include payment details if provided
-          payment_details: paymentResponse ? {
-            payment_id: paymentResponse.razorpay_payment_id || '',
-            payment_signature: paymentResponse.razorpay_signature || '',
-            payment_order_id: paymentResponse.razorpay_order_id || '',
-            payment_method: 'razorpay',
-            amount: getFinalPrice(),
-            currency: currency.code,
-            payment_date: new Date().toISOString()
-          } : null
+      // Create enrollment data to send
+      const enrollmentData = {
+        student_id: studentId,
+        course_id: courseId,
+        enrollment_type: enrollmentType,
+        payment_information: {
+          ...paymentResponse,
+          payment_method: paymentResponse?.razorpay_payment_id ? 'razorpay' : 'free',
+          amount: getFinalPrice(),
+          currency: activePricing?.currency || 'INR'
         }
-      });
-
-      // Track enrollment progress
-      await trackEnrollmentProgress(studentId, courseId);
-
-      setIsSuccessModalOpen(true);
-      console.log("Student enrolled successfully!");
+      };
       
-      return response;
+      // Make enrollment API call
+      const response = await axios.post(
+        `${apiUrls.baseURL}/enrollments/create`,
+        enrollmentData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
+      
+      if (response.status === 201 || response.status === 200) {
+        toast.success("Successfully enrolled in the course!");
+        // Update enrollment tracking
+        await trackEnrollmentProgress(studentId, courseId);
+        setIsSuccessModalOpen(true);
+        return true;
+      } else {
+        throw new Error("Failed to enroll in the course.");
+      }
     } catch (error: any) {
-      console.error("Error enrolling course:", error);
-      toast.error(error.message || "Error enrolling in the course. Please try again!");
-      throw error;
+      console.error("Enrollment error:", error);
+      toast.error(error.response?.data?.message || "Failed to enroll in the course.");
+      return false;
     }
   };
 
   // Track enrollment progress
   const trackEnrollmentProgress = async (studentId: string, courseId: string): Promise<void> => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) return;
-
-      // Use getQuery for tracking progress
-      const progressEndpoint = enrollmentType === 'individual'
-        ? `/api/students/enrollments/progress/${studentId}/${courseId}`
-        : `/api/corporate/enrollments/progress/${studentId}/${courseId}`;
-
-      await getQuery({
-        url: progressEndpoint,
-        onSuccess: (data) => {
-          console.log("Progress tracking successful:", data);
-        },
-        onFail: (error) => {
-          console.error("Error tracking progress:", error);
+      // Create tracking data
+      const trackingData = {
+        student_id: studentId,
+        course_id: courseId,
+        progress: 0,
+        status: 'started'
+      };
+      
+      // Make API call to track progress
+      const response = await axios.post(
+        `${apiUrls.baseURL}/progress/track`,
+        trackingData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
         }
-      });
+      );
+      
+      console.log("Progress tracking started:", response.data);
     } catch (error) {
-      console.error("Error tracking progress:", error);
-      // Don't throw error as this is not critical
+      console.error("Failed to track enrollment progress:", error);
+      // Continue anyway, not critical
     }
   };
 
-  // Check if user is already enrolled
+  // Check if already enrolled
   const checkEnrollmentStatus = async (studentId: string, courseId: string): Promise<boolean> => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token || !studentId || !courseId) return false;
-
-      // Use getQuery for checking enrollment
-      const endpoint = enrollmentType === 'individual'
-        ? `/enroll-courses/student/${studentId}`
-        : `/enroll-courses/corporate/${studentId}`;
-
-      let isEnrolled = false;
-      
-      await getQuery({
-        url: endpoint,
-        onSuccess: (data) => {
-          isEnrolled = Array.isArray(data) && data.some(enrollment => enrollment.course_id === courseId);
-        },
-        onFail: (error) => {
-          console.error("Error checking enrollment status:", error);
+      const response = await axios.get(
+        `${apiUrls.baseURL}/enrollments/status?student_id=${studentId}&course_id=${courseId}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
         }
-      });
-
-      return isEnrolled;
+      );
+      
+      return response.data.enrolled || false;
     } catch (error) {
-      console.error("Error checking enrollment status:", error);
+      console.error("Failed to check enrollment status:", error);
       return false;
     }
   };
@@ -604,79 +548,6 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
       return [];
     }
   };
-
-  // Handle enrollment click with additional checks
-  const handleEnrollClick = useCallback(async () => {
-    if (!courseDetails?._id) {
-      toast.error("Course information is missing");
-      return;
-    }
-
-    if (!activePricing && !courseDetails.isFree) {
-      toast.error("Pricing information is missing");
-      return;
-    }
-    
-    try {
-      setLoading(true);
-      setError(null);
-      
-      // Check if user is logged in
-      if (!isLoggedIn) {
-        router.push(`/login?redirect=/courses/${courseDetails?._id}`);
-        return;
-      }
-
-      // Check if already enrolled
-      if (userId) {
-        const isEnrolled = await checkEnrollmentStatus(userId, courseDetails._id);
-        if (isEnrolled) {
-          toast.error("You are already enrolled in this course!");
-          router.push('/dashboards/my-courses');
-          return;
-        }
-      }
-      
-      // Create enrollment data with selected type
-      const enrollmentData = {
-        ...courseDetails,
-        enrollmentType,
-        priceId: activePricing?._id,
-        finalPrice: getFinalPrice(),
-        currencyCode: currency.code
-      };
-      
-      // If onEnrollClick prop is provided, use that
-      if (onEnrollClick) {
-        await onEnrollClick(enrollmentData);
-      } else {
-        // If course is free, directly enroll
-        if (courseDetails.isFree || isFreePrice(getFinalPrice())) {
-          if (userId) {
-            await enrollCourse(userId, courseDetails._id);
-          }
-        } else {
-          // Otherwise process payment via Razorpay
-          await handleRazorpayPayment();
-        }
-      }
-
-      // Fetch upcoming meetings after successful enrollment
-      if (userId) {
-        const meetings = await getUpcomingMeetings(userId);
-        if (meetings.length > 0) {
-          // You could store these in state or context if needed
-          console.log("Upcoming meetings:", meetings);
-        }
-      }
-    } catch (err: any) {
-      console.error("Enrollment error:", err);
-      setError(err.message || "Failed to process enrollment");
-      toast.error("Enrollment failed. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  }, [courseDetails, isLoggedIn, router, onEnrollClick, enrollmentType, activePricing, userId, getFinalPrice, currency.code]);
 
   // Handle enrollment through Razorpay
   const handleRazorpayPayment = async (): Promise<void> => {
@@ -768,6 +639,97 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
       setLoading(false);
     }
   };
+
+  // Handle enrollment click with additional checks
+  const handleEnrollClick = useCallback(async () => {
+    if (!courseDetails?._id) {
+      toast.error("Course information is missing");
+      return;
+    }
+
+    if (!activePricing && !courseDetails.isFree) {
+      toast.error("Pricing information is missing");
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Check if user is logged in
+      if (!isLoggedIn) {
+        router.push(`/login?redirect=/courses/${courseDetails?._id}`);
+        return;
+      }
+
+      // Check if already enrolled
+      if (userId) {
+        const isEnrolled = await checkEnrollmentStatus(userId, courseDetails._id);
+        if (isEnrolled) {
+          toast.error("You are already enrolled in this course!");
+          router.push('/dashboards/my-courses');
+          return;
+        }
+      } else {
+        toast.error("User identification is missing. Please log in again.");
+        router.push('/login');
+        return;
+      }
+      
+      // Create enrollment data with selected type
+      const enrollmentData = {
+        ...courseDetails,
+        enrollmentType,
+        priceId: activePricing?._id,
+        finalPrice: getFinalPrice(),
+        currencyCode: currency.code
+      };
+      
+      // If onEnrollClick prop is provided, use that
+      if (onEnrollClick) {
+        await onEnrollClick(enrollmentData);
+      } else {
+        // If course is free, directly enroll
+        if (courseDetails.isFree || isFreePrice(getFinalPrice())) {
+          if (userId) {
+            await enrollCourse(userId, courseDetails._id);
+          }
+        } else {
+          // Otherwise process payment via Razorpay
+          await handleRazorpayPayment();
+        }
+      }
+
+      // Fetch upcoming meetings after successful enrollment
+      if (userId) {
+        const meetings = await getUpcomingMeetings(userId);
+        if (meetings.length > 0) {
+          console.log("Upcoming meetings:", meetings);
+        }
+      }
+    } catch (err: any) {
+      console.error("Enrollment error:", err);
+      setError(err.message || "Failed to process enrollment");
+      toast.error("Enrollment failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }, [
+    courseDetails, 
+    isLoggedIn, 
+    userId, 
+    router, 
+    onEnrollClick, 
+    enrollmentType, 
+    activePricing, 
+    getFinalPrice, 
+    currency.code, 
+    checkEnrollmentStatus, 
+    enrollCourse, 
+    isFreePrice, 
+    handleRazorpayPayment, 
+    getUpcomingMeetings
+  ]);
 
   // Navigate to my courses page after successful enrollment
   const navigateToCourses = () => {
@@ -998,7 +960,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
             </div>
           </div>
           
-          {/* Enroll Button - Better positioning for larger screens */}
+          {/* Enroll Button - Responsive for both mobile and desktop */}
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
@@ -1006,7 +968,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
             disabled={loading}
             className={`w-full py-3.5 px-4 bg-gradient-to-r from-${primaryColor}-600 to-${primaryColor}-700 hover:from-${primaryColor}-700 hover:to-${primaryColor}-800 text-white font-medium rounded-lg flex items-center justify-center shadow-sm transition-all duration-300 ${
               loading ? 'opacity-70 cursor-not-allowed' : ''
-            } hidden lg:flex`}
+            }`}
             aria-label={isLoggedIn ? (courseDetails?.isFree ? 'Enroll for free' : 'Enroll now') : 'Login to enroll'}
           >
             {loading ? (

@@ -481,9 +481,9 @@ function CategoryEnrollmentPage({ params }) {
         getQuery({
           url: apiEndpoint,
           onSuccess: (response) => {
-            const courseData = response?.courses || [];
-            const pagination = response?.pagination || {};
-            const metadata = response?.metadata || {};
+            const courseData = response?.data?.courses || [];
+            const pagination = response?.data?.pagination || {};
+            const facets = response?.data?.facets || {};
             
             console.log("API Response:", response); // Debug log to inspect raw API response
             
@@ -492,65 +492,61 @@ function CategoryEnrollmentPage({ params }) {
               _id: course._id,
               title: course.course_title || "", // Use this field for display
               description: course.course_description || `A course on ${categoryInfo?.displayName}`,
-              long_description: course.course_description || `Comprehensive ${categoryInfo?.displayName} course designed to enhance your skills and knowledge in this field.`,
+              long_description: typeof course.course_description === 'object' 
+                ? course.course_description.program_overview 
+                : course.course_description || `Comprehensive ${categoryInfo?.displayName} course designed to enhance your skills and knowledge in this field.`,
               category: course.course_category || categoryInfo?.displayName,
               grade: course.course_grade || "",
               thumbnail: course.course_image || null,
               course_duration: formatDuration(course.course_duration) || "",
               course_duration_days: parseDuration(course.course_duration) || 30,
-              course_fee: course.course_fee || 0,
-              enrolled_students: course.enrolled_students || 0,
+              course_fee: course.prices && course.prices.length > 0 
+                ? course.prices.find(p => p.currency === "INR")?.individual || 0 
+                : 0,
+              enrolled_students: course.meta?.enrollments || 0,
+              views: course.meta?.views || 0,
               is_Certification: course.is_Certification === "Yes",
               is_Assignments: course.is_Assignments === "Yes",
               is_Projects: course.is_Projects === "Yes",
               is_Quizes: course.is_Quizes === "Yes",
               curriculum: Array.isArray(course.curriculum) ? course.curriculum : [],
               highlights: course.highlights || [],
-              learning_outcomes: course.learning_outcomes || [],
-              prerequisites: course.prerequisites || [],
-              faqs: course.faqs || [],
+              learning_outcomes: course.course_description?.learning_objectives || [],
+              prerequisites: course.course_description?.course_requirements || [],
+              faqs: course.final_evaluation?.final_faqs || [],
               no_of_Sessions: course.no_of_Sessions || 0,
               status: course.status || "Published",
               isFree: course.isFree || false,
-              hasFullDetails: true
+              hasFullDetails: true,
+              slug: course.slug || "",
+              category_type: course.category_type || ""
             }));
             
             console.log("Processed course data:", processedCourseData); // Debug log
             
             setCourses(processedCourseData);
             setTotalPages(pagination.totalPages || 1);
-            setTotalItems(pagination.totalCourses || 0);
+            setTotalItems(pagination.total || 0);
             
-            // Extract available options from metadata or courses
-            if (metadata.available_grades) {
-              setAvailableGrades(metadata.available_grades.map(grade => ({
-                id: grade.id || grade.toLowerCase().replace(/\s+/g, '-'),
-                label: grade,
-                description: `Courses for ${grade} level`
-              })));
-            } else {
-              const gradeOptions = [
-                { id: 'preschool', label: 'Pre-school', description: 'Early learning foundation' },
-                { id: 'grade1-2', label: 'Grade 1-2', description: 'Primary education basics' },
-                { id: 'grade3-4', label: 'Grade 3-4', description: 'Elementary fundamentals' },
-                { id: 'grade5-6', label: 'Grade 5-6', description: 'Upper elementary concepts' },
-                { id: 'grade7-8', label: 'Grade 7-8', description: 'Middle school advancement' },
-                { id: 'grade9-10', label: 'Grade 9-10', description: 'High school preparation' },
-                { id: 'grade11-12', label: 'Grade 11-12', description: 'College preparation' },
-                { id: 'graduate', label: 'UG - Graduate-Professional', description: 'University level' }]
-              setAvailableGrades(gradeOptions);
+            // Extract available categories from facets
+            if (facets && facets.categories) {
+              console.log("Available categories:", facets.categories);
             }
-
-            if (metadata.available_durations) {
-              setAvailableDurations(metadata.available_durations.map(duration => ({
-                id: duration.toLowerCase().replace(/\s+/g, '-'),
-                name: duration,
-                label: duration,
-                description: `${duration} duration course`
-              })));
-            } else {
-              setAvailableDurations(extractDurationOptions(processedCourseData));
-            }
+            
+            // Extract available grade options
+            const gradeOptions = [
+              { id: 'preschool', label: 'Pre-school', description: 'Early learning foundation' },
+              { id: 'grade1-2', label: 'Grade 1-2', description: 'Primary education basics' },
+              { id: 'grade3-4', label: 'Grade 3-4', description: 'Elementary fundamentals' },
+              { id: 'grade5-6', label: 'Grade 5-6', description: 'Upper elementary concepts' },
+              { id: 'grade7-8', label: 'Grade 7-8', description: 'Middle school advancement' },
+              { id: 'grade9-10', label: 'Grade 9-10', description: 'High school preparation' },
+              { id: 'grade11-12', label: 'Grade 11-12', description: 'College preparation' },
+              { id: 'graduate', label: 'UG - Graduate-Professional', description: 'University level' }];
+            setAvailableGrades(gradeOptions);
+            
+            // Extract duration options from courses
+            setAvailableDurations(extractDurationOptions(processedCourseData));
             
             setLoading(false);
           },
@@ -602,8 +598,7 @@ function CategoryEnrollmentPage({ params }) {
     setCourseLoading(true);
     
     // Use direct API endpoint for course details (adjust as needed)
-    //todo: change 
-    const courseDetailsEndpoint = `https://13.202.119.19.nip.io/api/v1/courses/${courseId}`;
+    const courseDetailsEndpoint = `${apiUrls.baseURL}/courses/${courseId}`;
     
     getQuery({
       url: courseDetailsEndpoint,
@@ -623,7 +618,9 @@ function CategoryEnrollmentPage({ params }) {
         const processedData = {
           _id: courseData._id,
           title: courseData.course_title || "",
-          description: courseData.course_description || "",
+          description: typeof courseData.course_description === 'object' ? 
+                       (courseData.course_description.text || JSON.stringify(courseData.course_description)) : 
+                       courseData.course_description || "",
           category: courseData.course_category || categoryInfo?.displayName || '',
           grade: courseData.course_grade || "",
           thumbnail: courseData.course_image || null,
