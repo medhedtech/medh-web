@@ -234,7 +234,7 @@ const getBlendedCourseSessions = (course: ICourse) => {
   // Use defined values if available
   if (course.video_count !== undefined && course.qa_sessions !== undefined) {
     return {
-      videoCount: course.video_count,
+      videoCount: course.no_of_Sessions,
       qnaSessions: course.qa_sessions
     };
   }
@@ -245,8 +245,8 @@ const getBlendedCourseSessions = (course: ICourse) => {
     const totalSessions = typeof course.no_of_Sessions === 'string' 
       ? parseInt(course.no_of_Sessions) || 0 
       : (course.no_of_Sessions as number);
-    const videoCount = Math.max(1, Math.floor(totalSessions * 0.7)); // 70% videos
-    const qnaSessions = Math.max(1, totalSessions - videoCount); // 30% Q&A
+    const videoCount =  totalSessions // 70% videos
+    const qnaSessions = 2 // 30% Q&A
     
     return { videoCount, qnaSessions };
   }
@@ -272,7 +272,7 @@ const formatBlendedLearningExperience = (videoCount: number, qnaSessions: number
       </div>
       <div className="flex items-center text-xs">
         <QnaIcon />
-        <span>{qnaSessions} Live QnA Sessions</span>
+        <span> 2 Live QnA Sessions</span>
       </div>
     </div>
   );

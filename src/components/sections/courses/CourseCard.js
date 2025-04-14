@@ -211,6 +211,9 @@ const CourseCard = ({
   // Add state to track if device is mobile
   const [isMobile, setIsMobile] = useState(false);
   
+  // Add state for brochure form flip card mode
+  const [showBrochureForm, setShowBrochureForm] = useState(false);
+  
   const cardRef = useRef(null);
   const router = useRouter();
   const { convertPrice, formatPrice: formatCurrencyPrice } = useCurrency();
@@ -293,6 +296,17 @@ const CourseCard = ({
   const handleImageError = () => setIsImageError(true);
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
+  
+  // New handler for brochure flip card
+  const handleBrochureClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowBrochureForm(true);
+  };
+  
+  const handleCloseBrochureForm = () => {
+    setShowBrochureForm(false);
+  };
 
   // Mouse and touch interaction handlers
   const resetTilt = useCallback(() => {
@@ -819,269 +833,408 @@ const CourseCard = ({
     ` : ''}
   `;
 
+  // Action buttons - consistent across both types with style variations
+  const renderActionButtons = () => (
+    <div className={`mt-auto ${isMobile ? 'pt-1' : 'pt-0.5'} flex flex-col items-center w-full`}>
+      <div className={`${isLiveCourse ? '' : 'grid grid-cols-2 gap-2'} mb-2 w-full`}>
+        {/* Only show brochure button for non-live courses */}
+        {!isLiveCourse && (
+          <button
+            onClick={handleBrochureClick}
+            className="px-4 py-2 rounded-lg font-medium transition-all flex items-center justify-center gap-1.5 
+              border border-indigo-200 text-indigo-600 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400"
+          >
+            <Download size={16} className="text-indigo-500" />
+            Brochure
+          </button>
+        )}
+        <button
+          onClick={navigateToCourse}
+          className={`px-4 py-2 rounded-lg font-medium transition-all text-white flex items-center justify-center gap-1.5
+             ${isLiveCourse 
+            ? 'bg-[#379392] hover:bg-[#2a7170] shadow-md shadow-[#379392]/20 w-full' 
+            : 'bg-indigo-500 hover:bg-indigo-600 shadow-md shadow-indigo-500/20'
+          }`}
+        >
+          {isLiveCourse ? 'Explore Course' : 'Details'}
+          <ArrowUpRight size={16} className="group-hover:rotate-12 transition-transform" />
+        </button>
+      </div>
+    </div>
+  );
+
   // Update card className to use dynamic styles
   return (
     <div className="relative">
-      <div 
-        ref={cardRef}
-        className={`course-card ${mobileCardStyles} group relative flex flex-col h-full rounded-xl overflow-hidden 
-          border border-gray-200/20 dark:border-gray-800/40 
-          bg-white/90 dark:bg-gray-900/90 backdrop-filter backdrop-blur-sm 
-          transition-all duration-300 
-          ${isHovered || mobileHoverActive ? 'scale-[1.02] z-10 shadow-xl' : 'scale-100 z-0 shadow-md'}
-          ${styles.borderHover} ${styles.shadowHover} ${isLiveCourse ? styles.borderLeft : ''}
-          ${isMobile ? 'pb-20 last:mb-0' : ''}
-          ${viewMode === 'grid' ? 'sm:mx-2 md:mx-3' : ''}
-          hover:shadow-2xl`}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        onMouseMove={handleMouseMove}
-        style={tiltStyle}
-      >
-        {/* Course type indicator tag */}
-        {getEffectiveClassType() && (!isMobile || !mobileHoverActive) && (
-          <div className={`absolute top-2 right-2 z-20 px-2.5 py-1 rounded-full text-xs font-bold 
-            ${styles.tagBg} ${styles.tagText}`}>
-            {isLiveCourse ? 'Live' : 'Self-Paced'}
-          </div>
-        )}
-
-        {/* View More button for mobile */}
-        {isMobile && !mobileHoverActive && (
-          <button 
-            onClick={openMobileHover}
-            className={`${mobileButtonStyles} ${
-              isLiveCourse 
-                ? 'bg-[#379392]/90 text-white hover:bg-[#379392]' 
-                : 'bg-indigo-500/90 text-white hover:bg-indigo-500'
-            }`}
-          >
-            View More
-            <ArrowUpRight size={14} className="text-white" />
-          </button>
-        )}
-
-        {/* Close button for mobile hover view */}
-        {isMobile && mobileHoverActive && (
-          <button 
-            onClick={closeMobileHover}
-            className={`absolute top-2 right-2 z-30 p-1.5 rounded-full bg-white dark:bg-gray-800 shadow-md ${
-              isLiveCourse 
-                ? 'text-[#379392]' 
-                : 'text-indigo-500'
-            }`}
-            aria-label="Close Details"
-          >
-            <X size={18} />
-          </button>
-        )}
-
-        {/* Pre-hover content */}
-        <div className={`flex flex-col h-full transition-opacity duration-300 ${(isHovered && !isMobile) || (mobileHoverActive && isMobile) ? 'opacity-0' : 'opacity-100'}`}>
-          {/* Updated Image section */}
-          <ImageWrapper
-            src={course?.course_image || image6}
-            alt={course?.course_title || "Course Image"}
-            onLoad={handleImageLoad}
-            onError={handleImageError}
-            priority={true}
-          />
-
-          {/* Course info - consistent style for both Live and Blended */}
-          <div className={`${mobileContentStyles} flex flex-col p-4 flex-grow justify-between`}>
-            <div className="flex flex-col items-center justify-center flex-grow py-2 min-h-[100px]">
-              {/* Course category badge */}
-              {course?.course_grade && (
-                <div className={`inline-flex mb-2 items-center text-xs font-semibold rounded-full px-3 py-1 ${
-                  isLiveCourse ? 'bg-[#379392]/10 text-[#379392]' : 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400'
-                } mx-auto`}>
-                  {isLiveCourse ? 
-                    <Play size={14} className="mr-1.5" /> : 
-                    <Layers size={14} className="mr-1.5" />
-                  }
-                  <span>{course?.course_grade}</span>
-                </div>
-              )}
-
-              {/* Course title - optimized spacing */}
-              <h3 className={`${mobileTitleStyles} text-base font-bold text-gray-900 dark:text-white line-clamp-2 text-center mx-auto max-w-[95%] ${course?.course_category ? 'mt-1.5' : 'mt-0'}`}>
-                {course?.course_title || "Course Title"}
-              </h3>
-              
-              {/* Course description - optimized spacing */}
-              {!isCompact && !hideDescription && (
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1.5 line-clamp-2 text-center mx-auto max-w-[95%]">
-                  {course?.course_description}
-                </p>
-              )}
-            </div>
-
-            {/* Course Duration/Learning Experience - adjusted spacing */}
-            {showDuration && course?.course_duration && (
-              <div className={`mx-auto ${isMobile ? 'mb-14' : 'mb-2'} w-full mt-2`}>
-                {React.isValidElement(course.course_duration) ? (
-                  <div className={`flex items-start ${styles.durationBoxBg} p-3 rounded-lg`}>
-                    {course.course_duration}
-                  </div>
-                ) : (
-                  <div className={`flex items-center ${styles.durationBoxBg} p-3 rounded-lg justify-center`}>
-                    <Clock size={18} className={`mr-2.5 ${styles.durationIconColor} flex-shrink-0`} />
-                    <div className="text-center">
-                      <span className={`${styles.durationTextColor} font-semibold text-sm`}>
-                        {isLiveCourse ? 'Course Duration' : 'Learning Experience'}
-                      </span>
-                      <p className="text-gray-700 dark:text-gray-300 font-medium text-sm mt-0.5">
-                        {course?.duration_range || formatDuration(course?.course_duration)}
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Price section - adjusted spacing */}
-            {!hidePrice && (
-              <div className="mt-1.5 text-center">
-                <div className="flex items-baseline gap-1.5 justify-center">
-                  <span className={`text-lg font-bold ${styles.priceColor}`}>
-                    {formatPrice(course.course_fee, course.batchPrice) }
-                  </span>
-                  {course?.original_fee && (
-                    <span className="text-sm text-gray-500 line-through">
-                      {formatCurrencyPrice(convertPrice(course.original_fee))}
-                    </span>
-                  )}
-                  {course?.price_suffix && course.batchPrice && (
-                    <span className="text-sm text-gray-500 font-medium">
-                      {course.price_suffix}
-                    </span>
-                  )}
-                </div>
-                {course?.fee_note && (
-                  <span className="text-xs text-gray-500 font-medium block mt-0.5">
-                    {course.fee_note}
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Hover content - similar structure for both course types */}
-        <div className={`hover-content absolute inset-0 bg-white dark:bg-gray-900 ${isMobile ? 'p-5' : 'p-4'} flex flex-col transition-opacity duration-300 ${
-          isMobile ? 'overflow-y-auto' : 'overflow-hidden'
-        } max-h-full ${
-          (isHovered && !isMobile) || (mobileHoverActive && isMobile) ? 'opacity-100 z-20' : 'opacity-0 -z-10'
-        }`}>
-          {/* Course details */}
-          <div className={`${isMobile ? 'mb-4' : 'mb-3'} flex items-center justify-center py-3 md:py-4`}>
-            <h3 className={`${isMobile ? 'text-lg' : 'text-xl'} font-extrabold text-gray-900 dark:text-white line-clamp-2 text-center max-w-[90%]`}>
-              {course?.course_title}
-            </h3>
-          </div>
-
-          {/* Consistent hover content structure for both course types */}
-          <div className={`flex flex-col ${isMobile ? 'gap-4 mb-4' : 'gap-3 mb-3'} items-stretch`}>
-            {/* Course Duration / Learning Experience Box */}
-            {/* <div className={`flex items-start ${styles.durationBoxBg} ${isMobile ? 'p-4' : 'p-3'} rounded-lg w-full`}>
-              <Clock size={isMobile ? 20 : 18} className={`mt-0.5 mr-3 ${styles.durationIconColor} flex-shrink-0`} />
-              <div className="flex flex-col">
-                <span className={`${styles.durationTextColor} font-bold text-sm`}>
-                  {isLiveCourse ? 'Course Duration' : 'Learning Experience'}
-                </span>
-                <p className="text-gray-700 dark:text-gray-300 font-medium text-sm mt-0.5">
-                  {course?.duration_range || formatDuration(course?.course_duration)}
-                </p>
-              </div>
-            </div> */}
-            
-            {/* Effort Hours - for both types */}
-            {course?.effort_hours && (
-              <div className={`flex items-start ${isMobile ? 'p-3.5' : 'p-3'} border border-gray-100 dark:border-gray-800 rounded-lg w-full`}>
-                <Target size={isMobile ? 18 : 16} className="mt-0.5 mr-3 text-yellow-500 dark:text-yellow-400 flex-shrink-0" />
-                <div className="flex flex-col">
-                  <p className="font-bold text-gray-900 dark:text-white text-sm">
-                    {course.effort_hours} {!isBlendedCourse && 'hrs/week'}
-                  </p>
-                  <p className="text-xs text-gray-500 font-medium mt-0.5">Required Effort</p>
-                </div>
-              </div>
-            )}
-            
-            {/* Sessions - for both types */}
-            {course?.no_of_Sessions && (
-              <div className={`flex items-start ${isMobile ? 'p-3.5' : 'p-3'} border border-gray-100 dark:border-gray-800 rounded-lg w-full`}>
-                <Users size={isMobile ? 18 : 16} className="mt-0.5 mr-3 text-medhgreen dark:text-medhgreen flex-shrink-0" />
-                <div className="flex flex-col">
-                  <p className="font-bold text-gray-900 dark:text-white text-sm">
-                    {course.no_of_Sessions} {isLiveCourse ? 'Sessions' : 'Classes'}
-                  </p>
-                  <p className="text-xs text-gray-500 font-medium mt-0.5">
-                    {isLiveCourse ? 'Total Live Sessions' : 'Total Learning Units'}
-                  </p>
-                </div>
-              </div>
-            )}
-            
-            {/* Special feature - Internship for specific courses */}
-            {hasInternshipOption && (
-              <div className={`flex items-start ${isMobile ? 'p-3.5' : 'p-3'} border border-gray-100 dark:border-gray-800 rounded-lg w-full`}>
-                <Briefcase size={isMobile ? 18 : 16} className="mt-0.5 mr-3 text-gray-600 dark:text-gray-400 flex-shrink-0" />
-                <div className="flex flex-col">
-                  <p className="font-bold text-gray-900 dark:text-white text-sm">
-                    Guaranteed Job
-                  </p>
-                  <p className="text-xs text-gray-500 font-medium mt-0.5">For 18 Month Course</p>
-                </div>
-              </div>
-            )}
-          </div>
-          
-          {/* Action buttons - consistent across both types with style variations */}
-          <div className={`mt-auto ${isMobile ? 'pt-1' : 'pt-0.5'} flex flex-col items-center w-full`}>
-            <div className={`${isLiveCourse ? '' : 'grid grid-cols-2 gap-2'} mb-2 w-full`}>
-              {/* Only show brochure button for non-live courses */}
-              {!isLiveCourse && (
-                <button
-                  onClick={openModal}
-                  className="px-4 py-2 rounded-lg font-medium transition-all flex items-center justify-center gap-1.5 
-                    border border-indigo-200 text-indigo-600 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400"
-                >
-                  <Download size={16} className="text-indigo-500" />
-                  Brochure
-                </button>
-              )}
-              <button
-                onClick={navigateToCourse}
-                className={`px-4 py-2 rounded-lg font-medium transition-all text-white flex items-center justify-center gap-1.5
-                   ${isLiveCourse 
-                  ? 'bg-[#379392] hover:bg-[#2a7170] shadow-md shadow-[#379392]/20 w-full' 
-                  : 'bg-indigo-500 hover:bg-indigo-600 shadow-md shadow-indigo-500/20'
-                }`}
-              >
-                {isLiveCourse ? 'Explore Course' : 'Details'}
-                <ArrowUpRight size={16} className="group-hover:rotate-12 transition-transform" />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Inline Download Brochure Modal overlay inside the card */}
-        {isModalOpen && (
+      {showBrochureForm ? (
+        <div className="h-full w-full">
           <DownloadBrochureModal
-            title={course?.course_title || "Course Brochure"}
-            isOpen={isModalOpen}
-            onClose={closeModal}
-            courseTitle={course?.course_title}
+            isOpen={showBrochureForm}
+            onClose={handleCloseBrochureForm}
+            courseTitle={course?.course_title || "Course Brochure"}
             courseId={course?._id}
-            inlineForm={true}
+            flipCard={true}
           >
-            <p className="text-xs text-gray-600 mb-3">
-              Fill in your details and we'll email you the brochure from Medh.
-            </p>
+            {/* The original card content will be displayed on the front side */}
+            <div 
+              ref={cardRef}
+              className={`course-card ${mobileCardStyles} group relative flex flex-col h-full rounded-xl overflow-hidden 
+                border border-gray-200/20 dark:border-gray-800/40 
+                bg-white/90 dark:bg-gray-900/90 backdrop-filter backdrop-blur-sm 
+                transition-all duration-300 
+                ${isHovered || mobileHoverActive ? 'scale-[1.02] z-10 shadow-xl' : 'scale-100 z-0 shadow-md'}
+                ${styles.borderHover} ${styles.shadowHover} ${isLiveCourse ? styles.borderLeft : ''}
+                ${isMobile ? 'pb-20 last:mb-0' : ''}
+                ${viewMode === 'grid' ? 'sm:mx-2 md:mx-3' : ''}
+                hover:shadow-2xl`}
+            >
+              {/* Course type indicator tag */}
+              {getEffectiveClassType() && (!isMobile || !mobileHoverActive) && (
+                <div className={`absolute top-2 right-2 z-20 px-2.5 py-1 rounded-full text-xs font-bold 
+                  ${styles.tagBg} ${styles.tagText}`}>
+                  {isLiveCourse ? 'Live' : 'Self-Paced'}
+                </div>
+              )}
+
+              {/* Image section */}
+              <ImageWrapper
+                src={course?.course_image || image6}
+                alt={course?.course_title || "Course Image"}
+                onLoad={handleImageLoad}
+                onError={handleImageError}
+                priority={true}
+              />
+
+              {/* Course info */}
+              <div className={`${mobileContentStyles} flex flex-col p-4 flex-grow justify-between`}>
+                <div className="flex flex-col items-center justify-center flex-grow py-2 min-h-[100px]">
+                  {/* Course category badge */}
+                  {course?.course_grade && (
+                    <div className={`inline-flex mb-2 items-center text-xs font-semibold rounded-full px-3 py-1 ${
+                      isLiveCourse ? 'bg-[#379392]/10 text-[#379392]' : 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400'
+                    } mx-auto`}>
+                      {isLiveCourse ? 
+                        <Play size={14} className="mr-1.5" /> : 
+                        <Layers size={14} className="mr-1.5" />
+                      }
+                      <span>{course?.course_grade}</span>
+                    </div>
+                  )}
+
+                  {/* Course title */}
+                  <h3 className={`${mobileTitleStyles} text-base font-bold text-gray-900 dark:text-white line-clamp-2 text-center mx-auto max-w-[95%] ${course?.course_category ? 'mt-1.5' : 'mt-0'}`}>
+                    {course?.course_title || "Course Title"}
+                  </h3>
+                  
+                  {/* Course description */}
+                  {!isCompact && !hideDescription && (
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1.5 line-clamp-2 text-center mx-auto max-w-[95%]">
+                      {course?.course_description}
+                    </p>
+                  )}
+                </div>
+
+                {/* Course Duration/Learning Experience */}
+                {showDuration && course?.course_duration && (
+                  <div className={`mx-auto ${isMobile ? 'mb-14' : 'mb-2'} w-full mt-2`}>
+                    {React.isValidElement(course.course_duration) ? (
+                      <div className={`flex items-start ${styles.durationBoxBg} p-3 rounded-lg`}>
+                        {course.course_duration}
+                      </div>
+                    ) : (
+                      <div className={`flex items-center ${styles.durationBoxBg} p-3 rounded-lg justify-center`}>
+                        <Clock size={18} className={`mr-2.5 ${styles.durationIconColor} flex-shrink-0`} />
+                        <div className="text-center">
+                          <span className={`${styles.durationTextColor} font-semibold text-sm`}>
+                            {isLiveCourse ? 'Course Duration' : 'Learning Experience'}
+                          </span>
+                          <p className="text-gray-700 dark:text-gray-300 font-medium text-sm mt-0.5">
+                            {course?.duration_range || formatDuration(course?.course_duration)}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Price section */}
+                {!hidePrice && (
+                  <div className="mt-1.5 text-center">
+                    <div className="flex items-baseline gap-1.5 justify-center">
+                      <span className={`text-lg font-bold ${styles.priceColor}`}>
+                        {formatPrice(course.course_fee, course.batchPrice) }
+                      </span>
+                      {course?.original_fee && (
+                        <span className="text-sm text-gray-500 line-through">
+                          {formatCurrencyPrice(convertPrice(course.original_fee))}
+                        </span>
+                      )}
+                      {course?.price_suffix && course.batchPrice && (
+                        <span className="text-sm text-gray-500 font-medium">
+                          {course.price_suffix}
+                        </span>
+                      )}
+                    </div>
+                    {course?.fee_note && (
+                      <span className="text-xs text-gray-500 font-medium block mt-0.5">
+                        {course.fee_note}
+                      </span>
+                    )}
+                  </div>
+                )}
+                
+                {/* Display action buttons */}
+                {renderActionButtons()}
+              </div>
+            </div>
           </DownloadBrochureModal>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div 
+          ref={cardRef}
+          className={`course-card ${mobileCardStyles} group relative flex flex-col h-full rounded-xl overflow-hidden 
+            border border-gray-200/20 dark:border-gray-800/40 
+            bg-white/90 dark:bg-gray-900/90 backdrop-filter backdrop-blur-sm 
+            transition-all duration-300 
+            ${isHovered || mobileHoverActive ? 'scale-[1.02] z-10 shadow-xl' : 'scale-100 z-0 shadow-md'}
+            ${styles.borderHover} ${styles.shadowHover} ${isLiveCourse ? styles.borderLeft : ''}
+            ${isMobile ? 'pb-20 last:mb-0' : ''}
+            ${viewMode === 'grid' ? 'sm:mx-2 md:mx-3' : ''}
+            hover:shadow-2xl`}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          onMouseMove={handleMouseMove}
+          style={tiltStyle}
+        >
+          {/* Course type indicator tag */}
+          {getEffectiveClassType() && (!isMobile || !mobileHoverActive) && (
+            <div className={`absolute top-2 right-2 z-20 px-2.5 py-1 rounded-full text-xs font-bold 
+              ${styles.tagBg} ${styles.tagText}`}>
+              {isLiveCourse ? 'Live' : 'Self-Paced'}
+            </div>
+          )}
+
+          {/* View More button for mobile */}
+          {isMobile && !mobileHoverActive && (
+            <button 
+              onClick={openMobileHover}
+              className={`${mobileButtonStyles} ${
+                isLiveCourse 
+                  ? 'bg-[#379392]/90 text-white hover:bg-[#379392]' 
+                  : 'bg-indigo-500/90 text-white hover:bg-indigo-500'
+              }`}
+            >
+              View More
+              <ArrowUpRight size={14} className="text-white" />
+            </button>
+          )}
+
+          {/* Close button for mobile hover view */}
+          {isMobile && mobileHoverActive && (
+            <button 
+              onClick={closeMobileHover}
+              className={`absolute top-2 right-2 z-30 p-1.5 rounded-full bg-white dark:bg-gray-800 shadow-md ${
+                isLiveCourse 
+                  ? 'text-[#379392]' 
+                  : 'text-indigo-500'
+              }`}
+              aria-label="Close Details"
+            >
+              <X size={18} />
+            </button>
+          )}
+
+          {/* Pre-hover content */}
+          <div className={`flex flex-col h-full transition-opacity duration-300 ${(isHovered && !isMobile) || (mobileHoverActive && isMobile) ? 'opacity-0' : 'opacity-100'}`}>
+            {/* Updated Image section */}
+            <ImageWrapper
+              src={course?.course_image || image6}
+              alt={course?.course_title || "Course Image"}
+              onLoad={handleImageLoad}
+              onError={handleImageError}
+              priority={true}
+            />
+
+            {/* Course info - consistent style for both Live and Blended */}
+            <div className={`${mobileContentStyles} flex flex-col p-4 flex-grow justify-between`}>
+              <div className="flex flex-col items-center justify-center flex-grow py-2 min-h-[100px]">
+                {/* Course category badge */}
+                {course?.course_grade && (
+                  <div className={`inline-flex mb-2 items-center text-xs font-semibold rounded-full px-3 py-1 ${
+                    isLiveCourse ? 'bg-[#379392]/10 text-[#379392]' : 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400'
+                  } mx-auto`}>
+                    {isLiveCourse ? 
+                      <Play size={14} className="mr-1.5" /> : 
+                      <Layers size={14} className="mr-1.5" />
+                    }
+                    <span>{course?.course_grade}</span>
+                  </div>
+                )}
+
+                {/* Course title - optimized spacing */}
+                <h3 className={`${mobileTitleStyles} text-base font-bold text-gray-900 dark:text-white line-clamp-2 text-center mx-auto max-w-[95%] ${course?.course_category ? 'mt-1.5' : 'mt-0'}`}>
+                  {course?.course_title || "Course Title"}
+                </h3>
+                
+                {/* Course description - optimized spacing */}
+                {!isCompact && !hideDescription && (
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1.5 line-clamp-2 text-center mx-auto max-w-[95%]">
+                    {course?.course_description}
+                  </p>
+                )}
+              </div>
+
+              {/* Course Duration/Learning Experience - adjusted spacing */}
+              {showDuration && course?.course_duration && (
+                <div className={`mx-auto ${isMobile ? 'mb-14' : 'mb-2'} w-full mt-2`}>
+                  {React.isValidElement(course.course_duration) ? (
+                    <div className={`flex items-start ${styles.durationBoxBg} p-3 rounded-lg`}>
+                      {course.course_duration}
+                    </div>
+                  ) : (
+                    <div className={`flex items-center ${styles.durationBoxBg} p-3 rounded-lg justify-center`}>
+                      <Clock size={18} className={`mr-2.5 ${styles.durationIconColor} flex-shrink-0`} />
+                      <div className="text-center">
+                        <span className={`${styles.durationTextColor} font-semibold text-sm`}>
+                          {isLiveCourse ? 'Course Duration' : 'Learning Experience'}
+                        </span>
+                        <p className="text-gray-700 dark:text-gray-300 font-medium text-sm mt-0.5">
+                          {course?.duration_range || formatDuration(course?.course_duration)}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Price section - adjusted spacing */}
+              {!hidePrice && (
+                <div className="mt-1.5 text-center">
+                  <div className="flex items-baseline gap-1.5 justify-center">
+                    <span className={`text-lg font-bold ${styles.priceColor}`}>
+                      {formatPrice(course.course_fee, course.batchPrice) }
+                    </span>
+                    {course?.original_fee && (
+                      <span className="text-sm text-gray-500 line-through">
+                        {formatCurrencyPrice(convertPrice(course.original_fee))}
+                      </span>
+                    )}
+                    {course?.price_suffix && course.batchPrice && (
+                      <span className="text-sm text-gray-500 font-medium">
+                        {course.price_suffix}
+                      </span>
+                    )}
+                  </div>
+                  {course?.fee_note && (
+                    <span className="text-xs text-gray-500 font-medium block mt-0.5">
+                      {course.fee_note}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Hover content - similar structure for both course types */}
+          <div className={`hover-content absolute inset-0 bg-white dark:bg-gray-900 ${isMobile ? 'p-5' : 'p-4'} flex flex-col transition-opacity duration-300 ${
+            isMobile ? 'overflow-y-auto' : 'overflow-hidden'
+          } max-h-full ${
+            (isHovered && !isMobile) || (mobileHoverActive && isMobile) ? 'opacity-100 z-20' : 'opacity-0 -z-10'
+          }`}>
+            {/* Course details */}
+            <div className={`${isMobile ? 'mb-4' : 'mb-3'} flex items-center justify-center py-3 md:py-4`}>
+              <h3 className={`${isMobile ? 'text-lg' : 'text-xl'} font-extrabold text-gray-900 dark:text-white line-clamp-2 text-center max-w-[90%]`}>
+                {course?.course_title}
+              </h3>
+            </div>
+
+            {/* Consistent hover content structure for both course types */}
+            <div className={`flex flex-col ${isMobile ? 'gap-4 mb-4' : 'gap-3 mb-3'} items-stretch`}>
+              {/* Course Duration / Learning Experience Box */}
+              {/* <div className={`flex items-start ${styles.durationBoxBg} ${isMobile ? 'p-4' : 'p-3'} rounded-lg w-full`}>
+                <Clock size={isMobile ? 20 : 18} className={`mt-0.5 mr-3 ${styles.durationIconColor} flex-shrink-0`} />
+                <div className="flex flex-col">
+                  <span className={`${styles.durationTextColor} font-bold text-sm`}>
+                    {isLiveCourse ? 'Course Duration' : 'Learning Experience'}
+                  </span>
+                  <p className="text-gray-700 dark:text-gray-300 font-medium text-sm mt-0.5">
+                    {course?.duration_range || formatDuration(course?.course_duration)}
+                  </p>
+                </div>
+              </div> */}
+              
+              {/* Effort Hours - for both types */}
+              {course?.effort_hours && (
+                <div className={`flex items-start ${isMobile ? 'p-3.5' : 'p-3'} border border-gray-100 dark:border-gray-800 rounded-lg w-full`}>
+                  <Target size={isMobile ? 18 : 16} className="mt-0.5 mr-3 text-yellow-500 dark:text-yellow-400 flex-shrink-0" />
+                  <div className="flex flex-col">
+                    <p className="font-bold text-gray-900 dark:text-white text-sm">
+                      {course.effort_hours} {!isBlendedCourse && 'hrs/week'}
+                    </p>
+                    <p className="text-xs text-gray-500 font-medium mt-0.5">Required Effort</p>
+                  </div>
+                </div>
+              )}
+              
+              {/* Sessions - for both types */}
+              {course?.no_of_Sessions && (
+                <div className={`flex items-start ${isMobile ? 'p-3.5' : 'p-3'} border border-gray-100 dark:border-gray-800 rounded-lg w-full`}>
+                  <Users size={isMobile ? 18 : 16} className="mt-0.5 mr-3 text-medhgreen dark:text-medhgreen flex-shrink-0" />
+                  <div className="flex flex-col">
+                    <p className="font-bold text-gray-900 dark:text-white text-sm">
+                      {course.no_of_Sessions} {isLiveCourse ? 'Sessions' : 'Classes'}
+                    </p>
+                    <p className="text-xs text-gray-500 font-medium mt-0.5">
+                      {isLiveCourse ? 'Total Live Sessions' : 'Total Learning Units'}
+                    </p>
+                  </div>
+                </div>
+              )}
+              
+              {/* Special feature - Internship for specific courses */}
+              {hasInternshipOption && (
+                <div className={`flex items-start ${isMobile ? 'p-3.5' : 'p-3'} border border-gray-100 dark:border-gray-800 rounded-lg w-full`}>
+                  <Briefcase size={isMobile ? 18 : 16} className="mt-0.5 mr-3 text-gray-600 dark:text-gray-400 flex-shrink-0" />
+                  <div className="flex flex-col">
+                    <p className="font-bold text-gray-900 dark:text-white text-sm">
+                      Guaranteed Job
+                    </p>
+                    <p className="text-xs text-gray-500 font-medium mt-0.5">For 18 Month Course</p>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* Action buttons - consistent across both types with style variations */}
+            <div className={`mt-auto ${isMobile ? 'pt-1' : 'pt-0.5'} flex flex-col items-center w-full`}>
+              <div className={`${isLiveCourse ? '' : 'grid grid-cols-2 gap-2'} mb-2 w-full`}>
+                {/* Only show brochure button for non-live courses */}
+                {!isLiveCourse && (
+                  <button
+                    onClick={handleBrochureClick}
+                    className="px-4 py-2 rounded-lg font-medium transition-all flex items-center justify-center gap-1.5 
+                      border border-indigo-200 text-indigo-600 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400"
+                  >
+                    <Download size={16} className="text-indigo-500" />
+                    Brochure
+                  </button>
+                )}
+                <button
+                  onClick={navigateToCourse}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all text-white flex items-center justify-center gap-1.5
+                     ${isLiveCourse 
+                    ? 'bg-[#379392] hover:bg-[#2a7170] shadow-md shadow-[#379392]/20 w-full' 
+                    : 'bg-indigo-500 hover:bg-indigo-600 shadow-md shadow-indigo-500/20'
+                  }`}
+                >
+                  {isLiveCourse ? 'Explore Course' : 'Details'}
+                  <ArrowUpRight size={16} className="group-hover:rotate-12 transition-transform" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
