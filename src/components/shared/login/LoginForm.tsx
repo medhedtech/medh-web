@@ -12,8 +12,8 @@ import usePostQuery from "@/hooks/postQuery.hook";
 import { apiUrls } from "@/apis";
 import Preloader from "../others/Preloader";
 import { toast } from "react-toastify";
-import { useRouter } from "next/navigation";
-import { jwtDecode } from "jwt-decode";
+import { useRouter, useSearchParams } from "next/navigation";
+import { jwtDecode, JwtPayload } from "jwt-decode";
 import { Eye, EyeOff, Mail, Lock, Loader2, CheckCircle, AlertCircle, Sparkles, ArrowRight } from "lucide-react";
 import CustomReCaptcha from '../ReCaptcha';
 import { useStorage } from "@/contexts/StorageContext";
@@ -25,6 +25,17 @@ interface FormInputs {
   email: string;
   password: string;
   agree_terms: boolean;
+}
+
+// Extended JWT payload interface for our custom token structure
+interface MedhJwtPayload extends JwtPayload {
+  user?: {
+    role?: string | string[];
+    full_name?: string;
+    [key: string]: any;
+  };
+  role?: string | string[];
+  [key: string]: any;
 }
 
 const schema = yup
@@ -40,8 +51,10 @@ const schema = yup
   })
   .required();
 
-const LoginForm = (): JSX.Element => {
+const LoginForm = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectPath = searchParams.get('redirect') || searchParams.get('from') || '';
   const { postQuery, loading } = usePostQuery();
   const storageManager = useStorage();
   const { theme, resolvedTheme } = useTheme();
@@ -64,7 +77,7 @@ const LoginForm = (): JSX.Element => {
     setValue,
     formState: { errors },
   } = useForm<FormInputs>({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(schema) as any,
     defaultValues: prefilledValues,
   });
 
@@ -122,7 +135,7 @@ const LoginForm = (): JSX.Element => {
         let fullName = '';
         
         try {
-          const decoded = jwtDecode(res.token);
+          const decoded = jwtDecode<MedhJwtPayload>(res.token);
           console.log("Decoded token:", decoded); // Debug log
           
           // Try different possible paths for role in the token
@@ -180,7 +193,17 @@ const LoginForm = (): JSX.Element => {
         // Track login event in Google Analytics
         events.login(userRole || 'user');
 
-        // Handle routing based on role
+        // Check if there's a redirect path to return to
+        if (redirectPath) {
+          // Validate the redirect URL (ensure it's internal or safe)
+          if (redirectPath.startsWith('/') && !redirectPath.startsWith('//')) {
+            console.log(`Redirecting to previous page: ${redirectPath}`);
+            router.push(redirectPath);
+            return;
+          }
+        }
+
+        // If no valid redirect path, fall back to role-based routing
         // Convert role to lowercase for case-insensitive comparison
         const roleLower = userRole.toLowerCase();
         if (
@@ -189,7 +212,7 @@ const LoginForm = (): JSX.Element => {
           roleLower === "student" ||
           roleLower === "coorporate"
         ) {
-          console.log(`Redirecting to /dashboards/${roleLower}-dashboard`);
+          console.log(`Redirecting to /dashboards/${roleLower}`);
           router.push(`/dashboards/${roleLower}`);
         } else if (roleLower === "coorporate-student") {
           console.log("Redirecting to /dashboards/coorporate-employee-dashboard");
