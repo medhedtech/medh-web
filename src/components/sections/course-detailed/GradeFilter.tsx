@@ -9,8 +9,44 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 
+// Types
+interface GradeOption {
+  id: string;
+  label: string;
+}
+
+interface Course {
+  _id: string;
+  title: string;
+  course_duration?: string;
+  is_Certification?: boolean;
+}
+
+interface CategoryInfo {
+  bgClass?: string;
+  colorClass?: string;
+  borderClass?: string;
+}
+
+interface ErrorFallbackProps {
+  error: string | null;
+  resetErrorBoundary: () => void;
+}
+
+interface GradeFilterProps {
+  selectedGrade?: string;
+  availableGrades?: GradeOption[];
+  filteredCourses?: Course[];
+  selectedCourse: Course | null;
+  handleGradeChange: (grade: string) => void;
+  handleCourseSelection: (course: Course) => void;
+  categoryInfo?: CategoryInfo;
+  setSelectedGrade: (grade: string) => void;
+  hideGradeSelector?: boolean;
+}
+
 // Error Boundary Component
-const ErrorFallback = ({ error, resetErrorBoundary }) => (
+const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, resetErrorBoundary }) => (
   <div className="bg-red-50 dark:bg-red-900/20 p-6 rounded-xl text-center">
     <div className="flex justify-center mb-4">
       <AlertTriangle className="h-12 w-12 text-red-500" />
@@ -53,7 +89,7 @@ const slideIn = {
   }
 };
 
-const GradeFilter = ({ 
+const GradeFilter: React.FC<GradeFilterProps> = ({ 
   selectedGrade = 'all',
   availableGrades = [],
   filteredCourses = [],
@@ -64,12 +100,12 @@ const GradeFilter = ({
   setSelectedGrade,
   hideGradeSelector = false
 }) => {
-  const [dropdownVisible, setDropdownVisible] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [error, setError] = useState(null);
+  const [dropdownVisible, setDropdownVisible] = useState<boolean>(false);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [error, setError] = useState<string | null>(null);
 
   // Function to format grade value for API
-  const formatGradeForApi = (gradeId) => {
+  const formatGradeForApi = useCallback((gradeId: string): string => {
     if (gradeId === 'all') return 'all';
     
     // Find the grade option from availableGrades
@@ -99,7 +135,7 @@ const GradeFilter = ({
     
     // Capitalize first letter for any other cases
     return label.charAt(0).toUpperCase() + label.slice(1);
-  };
+  }, [availableGrades]);
 
   // Memoized and filtered courses
   const displayCourses = useMemo(() => {
@@ -123,13 +159,13 @@ const GradeFilter = ({
 
   // Handle clicks outside the courses dropdown
   useEffect(() => {
-    const handleClickOutside = (event) => {
+    const handleClickOutside = (event: MouseEvent): void => {
       const dropdown = document.getElementById('courses-dropdown');
       const dropdownTrigger = document.getElementById('courses-dropdown-trigger');
       
       if (dropdown && dropdownTrigger &&
-          !dropdown.contains(event.target) && 
-          !dropdownTrigger.contains(event.target)) {
+          !dropdown.contains(event.target as Node) && 
+          !dropdownTrigger.contains(event.target as Node)) {
         setDropdownVisible(false);
       }
     };
@@ -141,7 +177,7 @@ const GradeFilter = ({
   }, []);
 
   // Toggle dropdown with error handling
-  const toggleDropdown = useCallback(() => {
+  const toggleDropdown = useCallback((): void => {
     try {
       setDropdownVisible(prev => !prev);
     } catch (err) {
@@ -151,7 +187,7 @@ const GradeFilter = ({
   }, []);
 
   // Reset error state
-  const resetErrorState = useCallback(() => {
+  const resetErrorState = useCallback((): void => {
     setError(null);
     setSearchTerm('');
     setSelectedGrade('all');

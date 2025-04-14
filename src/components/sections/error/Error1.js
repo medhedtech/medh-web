@@ -1,421 +1,220 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import errorImage1 from "@/assets/images/icon/error__1.png";
+import React, { useState, useEffect } from 'react';
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { 
+  Construction, 
+  ArrowLeft, 
+  RefreshCw, 
+  Home,
+  Search,
+  MapPin,
+  Sparkles
+} from 'lucide-react';
 
 const Error1 = () => {
-  const [gameStarted, setGameStarted] = useState(false);
-  const [score, setScore] = useState(0);
-  const [highScore, setHighScore] = useState(0);
-  const [playerPos, setPlayerPos] = useState({ y: 0 });
-  const [isJumping, setIsJumping] = useState(false);
-  const [obstacles, setObstacles] = useState([]);
-  const [powerUps, setPowerUps] = useState([]);
-  const [gameSpeed, setGameSpeed] = useState(5);
-  const [isShielded, setIsShielded] = useState(false);
-  const [currentTheme, setCurrentTheme] = useState('default');
+  const [mounted, setMounted] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
-  const [glowParticles, setGlowParticles] = useState([]);
-  const [isExploded, setIsExploded] = useState(false);
-  const [errorText, setErrorText] = useState("404");
-  const [isMounted, setIsMounted] = useState(false);
+  const [particles, setParticles] = useState([]);
 
-  // Game themes with different visuals
-  const themes = {
-    default: {
-      background: 'from-gray-900 to-gray-800',
-      player: 'from-cyan-500 to-blue-500',
-      obstacle: 'from-red-500 to-pink-500',
-      powerUp: 'from-yellow-400 to-yellow-600'
-    },
-    neon: {
-      background: 'from-purple-900 to-indigo-900',
-      player: 'from-neon-pink to-neon-purple',
-      obstacle: 'from-neon-green to-neon-blue',
-      powerUp: 'from-neon-yellow to-neon-orange'
-    }
-  };
-
-  // Initialize window size and mount status
+  // Mouse parallax effect
   useEffect(() => {
-    setIsMounted(true);
-    const updateWindowSize = () => {
-      setWindowSize({
-        width: window.innerWidth,
-        height: window.innerHeight
-      });
+    setMounted(true);
+    
+    const handleMouseMove = (e) => {
+      if (!mounted) return;
+      const { clientX, clientY } = e;
+      const moveX = (clientX - window.innerWidth / 2) * 0.02;
+      const moveY = (clientY - window.innerHeight / 2) * 0.02;
+      setMousePosition({ x: moveX, y: moveY });
     };
-    
-    // Initial size
-    updateWindowSize();
-    
-    // Add resize listener
-    window.addEventListener('resize', updateWindowSize);
-    
-    // Cleanup
-    return () => {
-      window.removeEventListener('resize', updateWindowSize);
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, [mounted]);
+
+  // Generate decorative particles
+  useEffect(() => {
+    const generateParticles = () => {
+      const newParticles = Array.from({ length: 20 }, () => ({
+        id: Math.random(),
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        size: Math.random() * 8 + 2,
+        duration: Math.random() * 20 + 10,
+        delay: Math.random() * 5
+      }));
+      setParticles(newParticles);
     };
+
+    generateParticles();
+
+    // Regenerate particles occasionally
+    const interval = setInterval(generateParticles, 10000);
+    return () => clearInterval(interval);
   }, []);
 
-  // Initialize game
-  const startGame = () => {
-    setGameStarted(true);
-    setScore(0);
-    setPlayerPos({ y: 0 });
-    setObstacles([]);
-    setPowerUps([]);
-    setGameSpeed(5);
-    setIsShielded(false);
-  };
-
-  // Handle jump mechanics
-  const handleJump = useCallback(() => {
-    if (!isJumping && gameStarted) {
-      setIsJumping(true);
-      setPlayerPos(prev => ({ y: prev.y - 100 }));
-      
-      // Gravity effect
-      setTimeout(() => {
-        setIsJumping(false);
-        setPlayerPos(prev => ({ y: 0 }));
-      }, 500);
-    }
-  }, [isJumping, gameStarted]);
-
-  // Handle keyboard controls
-  useEffect(() => {
-    const handleKeyPress = (e) => {
-      if (e.code === 'Space') {
-        e.preventDefault();
-        handleJump();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [handleJump]);
-
-  // Game loop
-  useEffect(() => {
-    if (!gameStarted) return;
-
-    const gameLoop = setInterval(() => {
-      // Update score
-      setScore(prev => prev + 1);
-
-      // Increase game speed over time
-      if (score % 500 === 0) {
-        setGameSpeed(prev => prev + 0.5);
-      }
-
-      // Generate obstacles
-      if (Math.random() < 0.02) {
-        setObstacles(prev => [...prev, {
-          id: Math.random(),
-          x: 100,
-          type: Math.random() > 0.7 ? 'flying' : 'ground'
-        }]);
-      }
-
-      // Generate power-ups
-      if (Math.random() < 0.005) {
-        setPowerUps(prev => [...prev, {
-          id: Math.random(),
-          x: 100,
-          type: Math.random() > 0.5 ? 'shield' : 'slowTime'
-        }]);
-      }
-
-      // Move obstacles and check collisions
-      setObstacles(prev => {
-        const newObstacles = prev
-          .map(obs => ({ ...obs, x: obs.x - gameSpeed }))
-          .filter(obs => obs.x > -10);
-
-        // Check collisions
-        newObstacles.forEach(obs => {
-          const collision = checkCollision(playerPos, obs);
-          if (collision && !isShielded) {
-            setGameStarted(false);
-            setHighScore(current => Math.max(current, score));
-          }
-        });
-
-        return newObstacles;
-      });
-
-      // Move power-ups
-      setPowerUps(prev => {
-        const newPowerUps = prev
-          .map(pow => ({ ...pow, x: pow.x - gameSpeed }))
-          .filter(pow => pow.x > -10);
-
-        // Check power-up collection
-        newPowerUps.forEach(pow => {
-          const collected = checkCollision(playerPos, pow);
-          if (collected) {
-            handlePowerUp(pow.type);
-            setPowerUps(prev => prev.filter(p => p.id !== pow.id));
-          }
-        });
-
-        return newPowerUps;
-      });
-    }, 1000 / 60);
-
-    return () => clearInterval(gameLoop);
-  }, [gameStarted, score, gameSpeed, playerPos, isShielded]);
-
-  // Handle power-up effects
-  const handlePowerUp = (type) => {
-    if (type === 'shield') {
-      setIsShielded(true);
-      setTimeout(() => setIsShielded(false), 5000);
-    } else if (type === 'slowTime') {
-      setGameSpeed(prev => prev * 0.5);
-      setTimeout(() => setGameSpeed(prev => prev * 2), 3000);
-    }
-  };
-
-  // Collision detection
-  const checkCollision = (player, object) => {
-    const playerRect = {
-      x: 20,
-      y: player.y + 250,
-      width: 40,
-      height: 40
-    };
-
-    const objectRect = {
-      x: object.x,
-      y: object.type === 'flying' ? 200 : 250,
-      width: 30,
-      height: 30
-    };
-
-    return !(playerRect.x + playerRect.width < objectRect.x ||
-             objectRect.x + objectRect.width < playerRect.x ||
-             playerRect.y + playerRect.height < objectRect.y ||
-             objectRect.y + objectRect.height < playerRect.y);
-  };
-
-  // Handle mouse movement for parallax effect
-  const handleMouseMove = (e) => {
-    if (!isMounted) return;
-    const { clientX, clientY } = e;
-    const moveX = (clientX - (windowSize.width / 2)) * 0.05;
-    const moveY = (clientY - (windowSize.height / 2)) * 0.05;
-    setMousePosition({ x: moveX, y: moveY });
-  };
-
-  // Create glow particles
-  const createGlowParticles = (x, y) => {
-    const timestamp = Date.now();
-    const particles = Array.from({ length: 15 }, (_, i) => ({
-      id: `${timestamp}_${Math.random()}_${i}`,
-      x,
-      y,
-      angle: (Math.PI * 2 * i) / 15,
-      scale: Math.random() * 0.5 + 0.5,
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
       opacity: 1,
-      color: ['#FF6B6B', '#4ECDC4', '#45B7D1'][Math.floor(Math.random() * 3)]
-    }));
-    setGlowParticles(prev => [...prev, ...particles]);
+      transition: {
+        delayChildren: 0.3,
+        staggerChildren: 0.2
+      }
+    }
   };
 
-  // Handle error text click
-  const handleErrorClick = () => {
-    setIsExploded(true);
-    const texts = ["OOPS!", "NOT FOUND", "ERROR", "404"];
-    setErrorText(texts[Math.floor(Math.random() * texts.length)]);
-    setTimeout(() => setIsExploded(false), 1000);
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] }
+    }
   };
 
-  // Clean up particles
-  useEffect(() => {
-    const cleanup = setInterval(() => {
-      setGlowParticles(prev => prev.filter(p => p.opacity > 0.1));
-    }, 100);
-    return () => clearInterval(cleanup);
-  }, []);
+  const floatVariants = {
+    animate: {
+      y: [0, -10, 0],
+      transition: {
+        duration: 4,
+        repeat: Infinity,
+        repeatType: "reverse",
+        ease: "easeInOut"
+      }
+    }
+  };
+
+  const pulseVariants = {
+    animate: {
+      scale: [1, 1.05, 1],
+      opacity: [0.7, 1, 0.7],
+      transition: {
+        duration: 3,
+        repeat: Infinity,
+        ease: "easeInOut"
+      }
+    }
+  };
 
   return (
-    <motion.section
-      className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-900 to-gray-800 relative overflow-hidden"
-      onMouseMove={handleMouseMove}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-    >
-      {/* Animated Background Grid */}
-      <div className="absolute inset-0 opacity-30">
-        <div className="absolute inset-0" style={{
-          backgroundImage: 'radial-gradient(circle, #4ECDC4 1px, transparent 1px)',
-          backgroundSize: '50px 50px',
-          transform: isMounted ? `translate(${mousePosition.x}px, ${mousePosition.y}px)` : 'none'
-        }} />
-      </div>
-
-      {/* Floating Particles */}
-      <AnimatePresence>
-        {glowParticles.map((particle) => (
-          <motion.div
-            key={particle.id}
-            initial={{ 
-              x: particle.x,
-              y: particle.y,
-              scale: particle.scale,
-              opacity: 1
-            }}
-            animate={{
-              x: particle.x + Math.cos(particle.angle) * 100,
-              y: particle.y + Math.sin(particle.angle) * 100,
-              opacity: 0,
-              scale: 0
-            }}
-            transition={{ duration: 1.5, ease: "easeOut" }}
-            className="absolute w-4 h-4 rounded-full pointer-events-none"
-            style={{
-              backgroundColor: particle.color,
-              filter: 'blur(4px)'
-            }}
-          />
-        ))}
-      </AnimatePresence>
-
-      <div className="container max-w-4xl mx-auto px-4 relative z-10">
-        <div className="text-center">
-          {/* Main Error Display */}
-          <motion.div
-            animate={{
-              scale: isExploded ? [1, 1.2, 0.8, 1] : 1,
-              rotate: isExploded ? [0, -10, 10, 0] : 0
-            }}
-            transition={{ duration: 0.4 }}
-            onClick={handleErrorClick}
-            className="cursor-pointer"
-          >
-            <motion.h1
-              className="text-8xl md:text-9xl font-bold bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 bg-clip-text text-transparent mb-8"
-              animate={{
-                backgroundPosition: ['0%', '100%'],
-              }}
-              transition={{
-                duration: 8,
-                repeat: Infinity,
-                repeatType: "reverse"
-              }}
-              style={{ backgroundSize: '200%' }}
-              onMouseMove={(e) => {
-                const rect = e.currentTarget.getBoundingClientRect();
-                createGlowParticles(
-                  e.clientX - rect.left,
-                  e.clientY - rect.top
-                );
-              }}
-            >
-              {errorText}
-            </motion.h1>
-          </motion.div>
-
-          {/* Error Message */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="mb-12"
-          >
-            <h2 className="text-2xl md:text-3xl text-gray-300 font-light mb-4">
-              Looks like you've found a glitch in the matrix
-            </h2>
-            <p className="text-gray-400">
-              The page you're looking for has slipped into another dimension
-            </p>
-          </motion.div>
-
-          {/* Interactive Image */}
-          <motion.div
-            className="relative w-64 h-64 mx-auto mb-12"
-            animate={{
-              y: [0, -10, 0],
-            }}
-            transition={{
-              duration: 4,
-              repeat: Infinity,
-              repeatType: "reverse"
-            }}
-            whileHover={{
-              scale: 1.05,
-              rotate: [0, -5, 5, 0],
-              transition: { duration: 0.5 }
-            }}
-          >
-            <Image
-              src={errorImage1}
-              alt="404 Error"
-              fill
-              className="object-contain"
-              style={{
-                filter: 'drop-shadow(0 0 20px rgba(78, 205, 196, 0.3))'
-              }}
-            />
-          </motion.div>
-
-          {/* Action Button */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-          >
-            <Link
-              href="/"
-              className="group relative inline-flex items-center px-8 py-3 overflow-hidden"
-            >
-              <span className="relative z-10 text-white font-medium">
-                Return to Reality
-                <motion.span
-                  className="inline-block ml-2"
-                  animate={{ x: [0, 5, 0] }}
-                  transition={{ repeat: Infinity, duration: 1 }}
-                >
-                  →
-                </motion.span>
-              </span>
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full"
-                whileHover={{
-                  scale: 1.05,
-                  boxShadow: "0 0 20px rgba(78, 205, 196, 0.5)"
-                }}
-              />
-            </Link>
-          </motion.div>
-        </div>
-      </div>
-
-      {/* Interactive Background Elements */}
-      <div className="absolute inset-0 pointer-events-none">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center overflow-hidden relative px-4">
+      {/* Decorative particles */}
+      {particles.map((particle) => (
         <motion.div
-          className="absolute inset-0"
-          animate={{
-            background: [
-              'radial-gradient(circle at var(--x) var(--y), rgba(78, 205, 196, 0.1) 0%, transparent 50%)',
-              'radial-gradient(circle at var(--x) var(--y), rgba(78, 205, 196, 0.15) 0%, transparent 50%)',
-            ]
+          key={particle.id}
+          className="absolute rounded-full bg-gradient-to-r from-emerald-400/20 to-blue-400/20 dark:from-emerald-400/10 dark:to-blue-400/10 blur-sm"
+          style={{ 
+            left: `${particle.x}%`, 
+            top: `${particle.y}%`,
+            width: `${particle.size}px`,
+            height: `${particle.size}px`
           }}
-          transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
-          style={{
-            '--x': isMounted ? `${50 + (mousePosition.x / windowSize.width) * 100}%` : '50%',
-            '--y': isMounted ? `${50 + (mousePosition.y / windowSize.height) * 100}%` : '50%'
+          initial={{ opacity: 0 }}
+          animate={{ 
+            opacity: [0, 0.5, 0],
+            scale: [0, 1, 0]
+          }}
+          transition={{
+            duration: particle.duration,
+            delay: particle.delay,
+            repeat: Infinity,
+            repeatDelay: Math.random() * 8
           }}
         />
-      </div>
-    </motion.section>
+      ))}
+
+      <motion.div 
+        className="relative z-10 max-w-3xl mx-auto text-center"
+        style={{ 
+          x: mousePosition.x, 
+          y: mousePosition.y 
+        }}
+        transition={{ type: "spring", stiffness: 100 }}
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        {/* 404 text */}
+        <motion.div 
+          className="text-9xl md:text-[12rem] font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-blue-600 dark:from-emerald-400 dark:to-blue-400 mb-2 md:mb-6 relative"
+          variants={itemVariants}
+        >
+          404
+          <motion.div 
+            className="absolute -right-8 -top-6 text-emerald-500 dark:text-emerald-400"
+            variants={floatVariants}
+            animate="animate"
+          >
+            <Sparkles className="h-12 w-12 opacity-70" />
+          </motion.div>
+        </motion.div>
+
+        {/* Page description */}
+        <motion.h1 
+          className="text-2xl md:text-4xl font-bold mb-4 md:mb-6 text-gray-800 dark:text-white"
+          variants={itemVariants}
+        >
+          Page Not Found
+        </motion.h1>
+
+        <motion.div 
+          className="mb-8 text-gray-600 dark:text-gray-300 max-w-xl mx-auto text-lg"
+          variants={itemVariants}
+        >
+          <p className="mb-2">This page is either under construction or you've taken a wrong turn.</p>
+          <p>We're working hard to bring more features to life.</p>
+        </motion.div>
+
+        {/* Construction icon */}
+        <motion.div 
+          className="flex justify-center mb-10"
+          variants={itemVariants}
+        >
+          <motion.div 
+            className="bg-gradient-to-r from-amber-100 to-amber-200 dark:from-amber-900/30 dark:to-amber-800/30 p-6 rounded-full shadow-inner"
+            variants={pulseVariants}
+            animate="animate"
+          >
+            <Construction className="h-14 w-14 text-amber-500 dark:text-amber-400" />
+          </motion.div>
+        </motion.div>
+
+        {/* Action buttons */}
+        <motion.div 
+          className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8"
+          variants={itemVariants}
+        >
+          <Link href="/" className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white px-6 py-3 rounded-full font-medium shadow-lg shadow-emerald-500/20 transition-all">
+            <Home className="h-4 w-4" />
+            <span>Back to Home</span>
+          </Link>
+          
+          <Link href="/enrollment" className="flex items-center gap-2 bg-white dark:bg-gray-800 px-6 py-3 rounded-full font-medium text-gray-800 dark:text-gray-100 shadow-lg hover:shadow-xl transition-all border border-gray-200 dark:border-gray-700">
+            <Search className="h-4 w-4" />
+            <span>Explore Courses</span>
+          </Link>
+        </motion.div>
+
+        {/* Back button */}
+        <motion.div 
+          className="mt-10"
+          variants={itemVariants}
+        >
+          <button 
+            onClick={() => window.history.back()} 
+            className="inline-flex items-center text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            <span>Go Back</span>
+          </button>
+        </motion.div>
+      </motion.div>
+    </div>
   );
 };
 
