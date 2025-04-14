@@ -242,47 +242,59 @@ const LoginForm = (): JSX.Element => {
           letter-spacing: 0;
         }
 
-        /* Disable scrolling completely */
-        html, body {
-          overflow: hidden;
-          height: 100%;
-          position: fixed;
-          width: 100%;
+        /* Enable scrolling for mobile view only */
+        @media (max-width: 640px) {
+          html, body {
+            overflow: auto;
+            height: auto;
+            position: relative;
+            width: 100%;
+          }
+        }
+
+        /* Disable scrolling for desktop view */
+        @media (min-width: 641px) {
+          html, body {
+            overflow: hidden;
+            height: 100%;
+            position: fixed;
+            width: 100%;
+          }
         }
       `}</style>
       
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-2 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-4 px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-md relative">
-          {/* Decorative elements */}
+          {/* Decorative elements - hidden on mobile */}
           <div className="absolute -top-10 -left-10 w-20 h-20 bg-primary-300/30 dark:bg-primary-600/20 rounded-full blur-xl hidden sm:block"></div>
           <div className="absolute -bottom-12 -right-12 w-24 h-24 bg-indigo-300/30 dark:bg-indigo-600/20 rounded-full blur-xl hidden sm:block"></div>
           
           {/* Card container with glass morphism effect */}
-          <div className="login-card bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-3xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 transition-all duration-300">
+          <div className="login-card bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-2xl sm:rounded-3xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 transition-all duration-300">
             
             {/* Header area */}
-            <div className="px-6 sm:px-8 pt-6 sm:pt-8 pb-3 sm:pb-4 text-center">
-              <Link href="/" className="inline-block mb-4">
+            <div className="px-4 sm:px-8 pt-4 sm:pt-8 pb-2 sm:pb-4 text-center">
+              <Link href="/" className="inline-block mb-2 sm:mb-4">
                 <Image 
                   src={(resolvedTheme === 'dark' || theme === 'dark') ? logo1 : logo2} 
                   alt="Medh Logo" 
-                  width={120} 
-                  height={40} 
-                  className="mx-auto"
+                  width={100} 
+                  height={32} 
+                  className="mx-auto w-24 sm:w-32"
                   priority
                 />
               </Link>
-              <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary-600 to-indigo-600 bg-clip-text text-transparent">
+              <h2 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-primary-600 to-indigo-600 bg-clip-text text-transparent">
                 Welcome Back!
               </h2>
-              <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+              <p className="mt-1 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                 Sign in to continue your learning journey
               </p>
             </div>
             
             {/* Form area */}
-            <div className="px-6 sm:px-8 pb-6 sm:pb-8">
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-5">
+            <div className="px-4 sm:px-8 pb-4 sm:pb-8">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 sm:space-y-5">
                 {/* Email field */}
                 <div>
                   <div className="relative">
@@ -291,18 +303,18 @@ const LoginForm = (): JSX.Element => {
                       type="email"
                       autoComplete="email"
                       placeholder="Email address"
-                      className={`w-full px-4 py-2.5 sm:py-3 bg-gray-50/50 dark:bg-gray-700/30 rounded-xl border ${
+                      className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border ${
                         errors.email ? 'border-red-300 dark:border-red-500' : 'border-gray-200 dark:border-gray-600'
-                      } focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-11`}
+                      } focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-10 sm:pl-11 text-sm sm:text-base`}
                       {...register("email")}
                     />
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 dark:text-gray-500" />
+                      <Mail className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                     </div>
                   </div>
                   {errors.email && (
-                    <p className="mt-1 text-xs sm:text-sm text-red-500 flex items-start" role="alert">
-                      <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 mt-0.5 mr-1.5 flex-shrink-0" />
+                    <p className="mt-1 text-xs text-red-500 flex items-start" role="alert">
+                      <AlertCircle className="h-3 w-3 mt-0.5 mr-1.5 flex-shrink-0" />
                       <span>{errors.email.message}</span>
                     </p>
                   )}
@@ -316,13 +328,13 @@ const LoginForm = (): JSX.Element => {
                       type={showPassword ? "text" : "password"}
                       autoComplete="current-password"
                       placeholder="Password"
-                      className={`w-full px-4 py-2.5 sm:py-3 bg-gray-50/50 dark:bg-gray-700/30 rounded-xl border ${
+                      className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border ${
                         errors.password ? 'border-red-300 dark:border-red-500' : 'border-gray-200 dark:border-gray-600'
-                      } focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-11 pr-11`}
+                      } focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-10 sm:pl-11 pr-10 sm:pr-11 text-sm sm:text-base`}
                       {...register("password")}
                     />
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Lock className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 dark:text-gray-500" />
+                      <Lock className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                     </div>
                     <button
                       type="button"
@@ -330,15 +342,15 @@ const LoginForm = (): JSX.Element => {
                       className="absolute inset-y-0 right-0 pr-3 flex items-center"
                     >
                       {showPassword ? (
-                        <EyeOff className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors" />
+                        <EyeOff className="h-4 w-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors" />
                       ) : (
-                        <Eye className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors" />
+                        <Eye className="h-4 w-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors" />
                       )}
                     </button>
                   </div>
                   {errors.password && (
-                    <p className="mt-1 text-xs sm:text-sm text-red-500 flex items-start" role="alert">
-                      <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 mt-0.5 mr-1.5 flex-shrink-0" />
+                    <p className="mt-1 text-xs text-red-500 flex items-start" role="alert">
+                      <AlertCircle className="h-3 w-3 mt-0.5 mr-1.5 flex-shrink-0" />
                       <span>{errors.password.message}</span>
                     </p>
                   )}
@@ -351,18 +363,18 @@ const LoginForm = (): JSX.Element => {
                       id="remember-me"
                       name="remember-me"
                       type="checkbox"
-                      className="h-3.5 w-3.5 sm:h-4 sm:w-4 rounded-md text-primary-600 focus:ring-primary-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+                      className="h-3.5 w-3.5 rounded-md text-primary-600 focus:ring-primary-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700"
                       onChange={handleRememberMeChange}
                       checked={rememberMe}
                     />
-                    <label htmlFor="remember-me" className="ml-2 block text-xs sm:text-sm text-gray-700 dark:text-gray-300">
+                    <label htmlFor="remember-me" className="ml-2 block text-xs text-gray-700 dark:text-gray-300">
                       Remember me
                     </label>
                   </div>
                   <div className="text-right">
                     <a
                       href="/forgot-password"
-                      className="text-xs sm:text-sm text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 transition-colors"
+                      className="text-xs text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 transition-colors"
                     >
                       Forgot password?
                     </a>
@@ -374,10 +386,10 @@ const LoginForm = (): JSX.Element => {
                   <label className="inline-flex items-start">
                     <input
                       type="checkbox"
-                      className="rounded-md text-primary-600 focus:ring-primary-500 h-3.5 w-3.5 sm:h-4 sm:w-4 border-gray-300 dark:border-gray-600 dark:bg-gray-700 mt-0.5 sm:mt-1"
+                      className="rounded-md text-primary-600 focus:ring-primary-500 h-3.5 w-3.5 border-gray-300 dark:border-gray-600 dark:bg-gray-700 mt-0.5"
                       {...register("agree_terms")}
                     />
-                    <span className="ml-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                    <span className="ml-2 text-xs text-gray-600 dark:text-gray-400">
                       I accept the{" "}
                       <a
                         href="/terms-and-services"
@@ -385,7 +397,7 @@ const LoginForm = (): JSX.Element => {
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        terms of use
+                        terms
                       </a>{" "}
                       and{" "}
                       <a
@@ -394,40 +406,40 @@ const LoginForm = (): JSX.Element => {
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        privacy policy
+                        privacy
                       </a>
                     </span>
                   </label>
                   {errors.agree_terms && (
-                    <p className="mt-1 text-xs sm:text-sm text-red-500 flex items-start" role="alert">
-                      <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 mt-0.5 mr-1.5 flex-shrink-0" />
+                    <p className="mt-1 text-xs text-red-500 flex items-start" role="alert">
+                      <AlertCircle className="h-3 w-3 mt-0.5 mr-1.5 flex-shrink-0" />
                       <span>{errors.agree_terms.message}</span>
                     </p>
                   )}
                 </div>
                 
                 {/* Custom ReCAPTCHA */}
-                <div>
+                <div className="scale-90 sm:scale-100 origin-center">
                   <CustomReCaptcha onChange={handleRecaptchaChange} error={!!recaptchaError} />
                 </div>
                 
                 {/* Submit Button */}
-                <div className="pt-1 sm:pt-2">
+                <div className="pt-1">
                   <button
                     type="submit"
-                    className="w-full py-2.5 sm:py-3.5 px-4 bg-gradient-to-r from-primary-500 to-indigo-600 text-white font-medium rounded-xl shadow-lg shadow-primary-500/30 hover:shadow-primary-500/40 transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 relative overflow-hidden group"
+                    className="w-full py-2 sm:py-2.5 px-4 bg-gradient-to-r from-primary-500 to-indigo-600 text-white font-medium rounded-lg sm:rounded-xl shadow-lg shadow-primary-500/30 hover:shadow-primary-500/40 transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 relative overflow-hidden group text-sm sm:text-base"
                   >
                     <span className="relative z-10 flex items-center justify-center">
                       Sign In
-                      <ArrowRight className="ml-2 h-3.5 w-3.5 sm:h-4 sm:w-4 transition-transform group-hover:translate-x-1" />
+                      <ArrowRight className="ml-2 h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
                     </span>
                     <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-primary-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   </button>
                 </div>
                 
                 {/* Sign Up Link */}
-                <div className="text-center mt-4 sm:mt-6">
-                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                <div className="text-center mt-2 sm:mt-4">
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
                     Don't have an account?{" "}
                     <a 
                       href="/signup" 
@@ -442,12 +454,12 @@ const LoginForm = (): JSX.Element => {
           </div>
           
           {/* Social proof */}
-          <div className="text-center mt-4 sm:mt-6 text-xxs sm:text-xs text-gray-500 dark:text-gray-400">
+          <div className="text-center mt-3 sm:mt-4 text-xs text-gray-500 dark:text-gray-400">
             <p>Trusted by students worldwide 🌎</p>
           </div>
           
           {/* Copyright notice */}
-          <div className="text-center mt-3 text-xxs sm:text-xs text-gray-400 dark:text-gray-500">
+          <div className="text-center mt-2 text-xs text-gray-400 dark:text-gray-500">
             <p>© {new Date().getFullYear()} Medh Learning. All rights reserved.</p>
           </div>
         </div>

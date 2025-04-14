@@ -19,7 +19,9 @@ function HireFromMedh() {
       <HireSection />
       <SkillsSection />
       <HiringProcess />
-      <Registration showUploadField={true} pageTitle="hire_from_medh" />
+      <div id="registration-form">
+        <Registration showUploadField={true} pageTitle="hire_from_medh" />
+      </div>
       <Certified />
 
       <HireFromMedhFaq />
