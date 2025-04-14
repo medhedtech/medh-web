@@ -228,10 +228,10 @@ const Courses = () => {
   // Add these helper functions for course display - memoized to prevent recreations
   const getBlendedCourseSessions = useCallback((course) => {
     const defaultVideoCount = course.lectures_count || 20;
-    const defaultQnaSessions = course.live_sessions || 2;
+    // We'll always use 2 for QnA sessions as per requirement
     return {
       videoCount: defaultVideoCount,
-      qnaSessions: defaultQnaSessions
+      qnaSessions: 2
     };
   }, []);
 
@@ -249,7 +249,7 @@ const Courses = () => {
           </div>
           <div className="flex items-center text-xs">
             <Users className="w-4 h-4 mr-1 text-[#379392]" />
-            <span>{qnaSessions} Live QnA Sessions</span>
+            <span>2 Live QnA Sessions</span>
           </div>
         </div>
       </div>
@@ -383,7 +383,7 @@ const Courses = () => {
   }), [formatCourseDuration]);
   
   const renderBlendedCourse = useCallback((course) => {
-    const { videoCount, qnaSessions } = getBlendedCourseSessions(course);
+    const { videoCount } = getBlendedCourseSessions(course);
     return {
       ...course,
       class_type: "blended", // Always enforce blended class type in this tab
@@ -393,10 +393,11 @@ const Courses = () => {
       isBlendedCourse: true,
       course_duration: formatBlendedLearningExperience(
         videoCount, 
-        qnaSessions,
+        2, // Fixed to 2 as per requirement
         formatCourseDuration(course.course_duration || course.duration)
       ),
-      duration_range: `${videoCount} Videos • ${qnaSessions} Q&A • ${course.duration_range || "Self-paced"}`,
+      duration_range: `${videoCount} Videos • 2 Q&A • ${course.duration_range || "Self-paced"}`,
+      no_of_Sessions: course.no_of_Sessions || videoCount,
       effort_hours: course.effort_hours || "3-5",
       highlights: [
         "Self-paced learning",

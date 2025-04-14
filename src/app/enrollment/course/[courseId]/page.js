@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { 
   ArrowLeft, RefreshCw, AlertCircle
 } from 'lucide-react';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 // Core components
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
@@ -28,6 +29,7 @@ export default function CourseView() {
   const router = useRouter();
   const params = useParams();
   const { courseId } = params;
+  const { currency, convertPrice, formatPrice } = useCurrency();
   
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -45,7 +47,7 @@ export default function CourseView() {
     setLoading(true);
     console.log("Fetching course:", courseId);
     
-    const courseEndpoint = getCourseById(courseId);
+    const courseEndpoint = getCourseById(courseId, "", currency.code);
     
     getQuery({
       url: courseEndpoint,
@@ -58,7 +60,12 @@ export default function CourseView() {
           return;
         }
         
-        // Process the course data
+        // Process the course data with currency conversion
+        const coursePrice = courseData.prices && courseData.prices.length > 0 
+          ? courseData.prices.find(p => p.currency === currency.code)?.individual || 
+            convertPrice(courseData.prices.find(p => p.currency === "INR")?.individual || 0)
+          : convertPrice(courseData.course_fee || 0);
+          
         const processedCourse = {
           _id: courseData._id,
           title: courseData.course_title || "",
@@ -73,7 +80,10 @@ export default function CourseView() {
           thumbnail: courseData.course_image || null,
           course_duration: formatDuration(courseData.course_duration) || "",
           course_duration_days: parseDuration(courseData.course_duration) || 30,
-          course_fee: courseData.course_fee || 0,
+          course_fee: coursePrice,
+          prices: courseData.prices || [],
+          original_prices: courseData.prices,  // Store original prices data
+          currency_code: currency.code,    // Store current currency code
           enrolled_students: courseData.enrolled_students || 0,
           is_Certification: courseData.is_Certification === "Yes",
           is_Assignments: courseData.is_Assignments === "Yes",
@@ -99,7 +109,7 @@ export default function CourseView() {
         setLoading(false);
       }
     });
-  }, [courseId, getQuery, router]);
+  }, [courseId, getQuery, router, currency]);
   
   // Error component
   const ErrorDisplay = () => (
@@ -203,6 +213,8 @@ export default function CourseView() {
                             colorClass: 'text-emerald-700 dark:text-emerald-300',
                             bgClass: 'bg-emerald-50 dark:bg-emerald-900/30'
                           }}
+                          currencyCode={currency.code}
+                          formatPriceFunc={(price) => price <= 0 ? "Free" : formatPrice(price)}
                         />
                       </motion.div>
                     )}
