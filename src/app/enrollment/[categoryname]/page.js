@@ -996,7 +996,7 @@ function CategoryEnrollmentPage({ params }) {
       <div className="flex flex-col min-h-screen w-full px-4 sm:px-6 md:px-8 lg:px-12 border-x border-transparent">
         {/* Fixed Header */}
         <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transform-gpu">
-          <nav className="w-full px-4 h-16 flex items-center justify-between">
+          <nav className="w-full max-w-8xl mx-auto px-4 h-16 flex items-center justify-between">
             <div className="flex items-center space-x-2 sm:space-x-4 overflow-hidden">
               <button 
                 onClick={() => router.back()}
@@ -1056,7 +1056,7 @@ function CategoryEnrollmentPage({ params }) {
           ) : error ? (
             <ErrorDisplay />
           ) : (
-            <div className="w-full max-w-7xl mx-auto px-4">
+            <div className="w-full max-w-8xl mx-auto px-4">
               {/* Two Column Layout - Improved mobile design */}
               <div className="flex flex-col lg:flex-row gap-4 lg:gap-8 w-full min-h-full" ref={mainContentRef}>
                 {/* Left Column - Dynamic Course Content */}
