@@ -354,6 +354,12 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
       const duration = details.duration || details.course_duration;
       
       if (duration) {
+        // Check if the duration string only contains weeks (no months)
+        if (duration.toLowerCase().match(/^\s*\d+\s*weeks?\s*$/i)) {
+          // If it's just weeks, return it directly without conversion
+          return duration;
+        }
+        
         // Use regex to extract months and weeks if they exist in the duration string
         const monthsMatch = duration.match(/(\d+)\s*months?/i);
         const weeksMatch = duration.match(/(\d+)\s*weeks?/i);
@@ -374,9 +380,8 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
         }
         
         if (!months && weeks) {
-          // Approximate 4 weeks as 1 month
-          const calculatedMonths = Math.round(parseInt(weeks) / 4);
-          return `${calculatedMonths} months / ${weeks} weeks`;
+          // If only weeks are specified, just return the weeks without converting to months
+          return `${weeks} weeks`;
         }
         
         // If no pattern matched but we have a duration string, return it as is
@@ -394,9 +399,8 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
         const calculatedWeeks = parseInt(months) * 4;
         return `${months} months / ${calculatedWeeks} weeks`;
       } else if (weeks) {
-        // Approximate 4 weeks as 1 month
-        const calculatedMonths = Math.round(parseInt(weeks) / 4);
-        return `${calculatedMonths} months / ${weeks} weeks`;
+        // If only weeks are specified, just show weeks without converting to months
+        return `${weeks} weeks`;
       }
     } catch (error) {
       console.error("Error formatting duration:", error);
@@ -1659,7 +1663,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
         </div>
       </motion.div>
       
-      {/* Mobile Action Button - Fixed at bottom for enrollment */}
+      {/* Mobile Action Button - Fixed at bottom for enrollment
       <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-3 z-40 flex justify-between items-center shadow-lg">
         <div className="flex flex-col">
           <span className="text-xs text-gray-600 dark:text-gray-400">Course Fee</span>
@@ -1673,7 +1677,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
         >
           Enroll Now
         </button>
-      </div>
+      </div> */}
       
       <DownloadBrochureModal
         isOpen={isModalOpen}

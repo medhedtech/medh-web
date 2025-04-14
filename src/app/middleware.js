@@ -1,19 +1,10 @@
 // middleware.js
 import { NextResponse } from "next/server";
 import { protectedRoutes } from "./protectedRoutes";
-import { getToken } from "next-auth/jwt";
 
-// Helper to check if the user is authenticated (works with both NextAuth and custom JWT)
+// Helper to check if the user is authenticated (works with custom JWT)
 async function isAuthenticated(req) {
-  // First try NextAuth token
-  const token = await getToken({ 
-    req, 
-    secret: process.env.NEXTAUTH_SECRET 
-  });
-  
-  if (token) return true;
-  
-  // Fall back to our custom token implementation
+  // Use only our custom token implementation
   const customToken = req.cookies.get("token")?.value;
   return !!customToken;
 }
