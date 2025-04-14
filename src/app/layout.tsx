@@ -91,7 +91,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body className={`${poppins.className} antialiased`} suppressHydrationWarning>
         <Suspense fallback={<div>Loading...</div>}>
           <Providers>
-            <ThemeController />
+            <ThemeController className="hidden sm:block" />
             {/* Google Analytics - now inside Providers to access CookieConsentProvider */}
             {GA_MEASUREMENT_ID && <GoogleAnalytics GA_MEASUREMENT_ID={GA_MEASUREMENT_ID} />}
             {children}
