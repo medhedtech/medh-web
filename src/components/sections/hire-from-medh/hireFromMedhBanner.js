@@ -74,6 +74,14 @@ function HireFromMedhBanner() {
     }
   ];
 
+  // Handle scroll to registration form
+  const handleScrollToRegistration = () => {
+    const formElement = document.getElementById('registration-form');
+    if (formElement) {
+      formElement.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <section className="relative min-h-[100dvh] bg-white dark:bg-gray-900 overflow-hidden py-8 sm:py-12 md:py-16 flex items-center justify-center">
       {/* Modern background with geometric shapes and gradients */}
@@ -155,13 +163,13 @@ function HireFromMedhBanner() {
                 variants={animations.fadeInUp}
                 className="flex flex-wrap gap-3 sm:gap-4 pt-2"
               >
-                <Link
-                  href="/contact"
+                <button
+                  onClick={handleScrollToRegistration}
                   className="inline-flex items-center px-4 sm:px-6 py-2.5 sm:py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all transform hover:-translate-y-1 shadow-lg shadow-blue-500/25 font-medium text-sm sm:text-base"
                 >
                   Let's Connect
                   <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
-                </Link>
+                </button>
               </motion.div>
             </motion.div>
 

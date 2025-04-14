@@ -44,7 +44,7 @@ const MENU_CONFIG = {
   // Primary navigation sections - updated to match NavItems2.js
   navSections: [
     { icon: Info, label: 'About', path: '/about-us', color: 'text-green-500', bg: 'bg-green-100 dark:bg-green-900/20', hasDropdown: false },
-    { icon: FileText, label: 'Blog', path: '/dashboards/instructor-dashboard', color: 'text-pink-500', bg: 'bg-pink-100 dark:bg-pink-900/20'},
+    { icon: FileText, label: 'Blog', path: '/blogs', color: 'text-pink-500', bg: 'bg-pink-100 dark:bg-pink-900/20'},
     { icon: Bookmark, label: 'Pages', path: '/about-us', color: 'text-purple-500', bg: 'bg-purple-100 dark:bg-purple-900/20'},
     { icon: Mail, label: 'Contact', path: '/contact-us', color: 'text-cyan-500', bg: 'bg-cyan-100 dark:bg-cyan-900/20'},
     { icon: Briefcase, label: 'Corporate', path: '/corporate-training-courses', color: 'text-indigo-500', bg: 'bg-indigo-100 dark:bg-indigo-900/20' },

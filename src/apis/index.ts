@@ -756,79 +756,49 @@ export const apiUrls = {
     }
   },
   enrolledCourses: {
-    createEnrolledCourse: "/enrolled/create",
-    getAllEnrolledCourses: (options: { page?: number; limit?: number; search?: string; sort_by?: string; sort_order?: string } = {}): string => {
-      const { page = 1, limit = 10, search = "", sort_by = "createdAt", sort_order = "desc" } = options;
-      const queryParams = new URLSearchParams();
-      queryParams.append('page', String(page));
-      queryParams.append('limit', String(limit));
-      if (search && search.trim() !== '') {
-        queryParams.append('search', search.trim());
-      }
-      apiUtils.appendParam('sort_by', sort_by, queryParams);
-      apiUtils.appendParam('sort_order', sort_order, queryParams);
-      return `/enrolled/get?${queryParams.toString()}`;
+    createEnrollment: `${apiBaseUrl}/enrolled/create`,
+    getAllEnrollments: `${apiBaseUrl}/enrolled/get`,
+    getEnrollmentById: (id: string): string => {
+      if (!id) throw new Error('Enrollment ID is required');
+      return `${apiBaseUrl}/enrolled/get/${id}`;
     },
-    getEnrolledCourseById: (id: string): string => {
-      if (!id) throw new Error('Enrolled course ID is required');
-      return `/enrolled/get/${id}`;
-    },
-    getEnrollmentCountsByStudentId: (studentId: string): string => {
+    getEnrollmentCountsByStudent: (studentId: string): string => {
       if (!studentId) throw new Error('Student ID is required');
-      return `/enrolled/getCount/${studentId}`;
+      return `${apiBaseUrl}/enrolled/getCount/${studentId}`;
     },
-    updateEnrolledCourse: (id: string): string => {
-      if (!id) throw new Error('Enrolled course ID is required');
-      return `/enrolled/update/${id}`;
+    updateEnrollment: (id: string): string => {
+      if (!id) throw new Error('Enrollment ID is required');
+      return `${apiBaseUrl}/enrolled/update/${id}`;
     },
-    deleteEnrolledCourse: (id: string): string => {
-      if (!id) throw new Error('Enrolled course ID is required');
-      return `/enrolled/delete/${id}`;
+    deleteEnrollment: (id: string): string => {
+      if (!id) throw new Error('Enrollment ID is required');
+      return `${apiBaseUrl}/enrolled/delete/${id}`;
     },
-    getEnrolledCourseByStudentId: (studentId: string, options: { page?: number; limit?: number; status?: string } = {}): string => {
+    getEnrollmentsByStudent: (studentId: string): string => {
       if (!studentId) throw new Error('Student ID is required');
-      const { page = 1, limit = 10, status = "" } = options;
-      const queryParams = new URLSearchParams();
-      queryParams.append('page', String(page));
-      queryParams.append('limit', String(limit));
-      if (status) {
-        queryParams.append('status', status);
-      }
-      return `/enrolled/student/${studentId}?${queryParams.toString()}`;
+      return `${apiBaseUrl}/enrolled/student/${studentId}`;
     },
-    getEnrolledStudentsByCourseId: (courseId: string, options: { page?: number; limit?: number } = {}): string => {
+    getEnrolledStudentsByCourse: (courseId: string): string => {
       if (!courseId) throw new Error('Course ID is required');
-      const { page = 1, limit = 10 } = options;
-      const queryParams = new URLSearchParams();
-      queryParams.append('page', String(page));
-      queryParams.append('limit', String(limit));
-      return `/enrolled/course/${courseId}?${queryParams.toString()}`;
+      return `${apiBaseUrl}/enrolled/course/${courseId}`;
     },
-    getUpcomingMeetingsForStudent: (studentId: string, options: { limit?: number } = {}): string => {
+    getUpcomingMeetings: (studentId: string): string => {
       if (!studentId) throw new Error('Student ID is required');
-      const { limit = 10 } = options;
-      const queryParams = new URLSearchParams();
-      queryParams.append('limit', String(limit));
-      return `/enrolled/get-upcoming-meetings/${studentId}?${queryParams.toString()}`;
+      return `${apiBaseUrl}/enrolled/get-upcoming-meetings/${studentId}`;
     },
-    markCourseAsCompleted: "/enroll/mark-completed",
-    getAllStudentsWithEnrolledCourses: (options: { page?: number; limit?: number; search?: string } = {}): string => {
-      const { page = 1, limit = 10, search = "" } = options;
-      const queryParams = new URLSearchParams();
-      queryParams.append('page', String(page));
-      queryParams.append('limit', String(limit));
-      if (search && search.trim() !== '') {
-        queryParams.append('search', search.trim());
-      }
-      return `/enrolled/get-enrolled-students?${queryParams.toString()}`;
+    markCourseAsCompleted: `${apiBaseUrl}/enrolled/mark-completed`,
+    getAllStudentsWithEnrolledCourses: `${apiBaseUrl}/enrolled/get-enrolled-students`,
+    watchVideo: `${apiBaseUrl}/enrolled/watch`,
+    
+    saveCourse: `${apiBaseUrl}/enrolled/save-course`,
+    removeSavedCourse: (courseId: string): string => {
+      if (!courseId) throw new Error('Course ID is required');
+      return `${apiBaseUrl}/enrolled/save-course/${courseId}`;
     },
-    watchVideo: (options: { courseId: string; videoId: string; studentId: string }): string => {
-      const { courseId, videoId, studentId } = options;
-      const queryParams = new URLSearchParams();
-      apiUtils.appendParam('courseId', courseId, queryParams);
-      apiUtils.appendParam('videoId', videoId, queryParams);
-      apiUtils.appendParam('studentId', studentId, queryParams);
-      return `/enrolled-courses/watch?${queryParams.toString()}`;
+    getSavedCourses: `${apiBaseUrl}/enrolled/saved-courses`,
+    convertSavedCourseToEnrollment: (courseId: string): string => {
+      if (!courseId) throw new Error('Course ID is required');
+      return `${apiBaseUrl}/enrolled/convert-saved/${courseId}`;
     }
   },
   payment: {
