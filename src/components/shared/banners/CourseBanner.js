@@ -27,6 +27,7 @@ function CourseBanner({
   mainImage,
   studentImage,
   enrollmentPath = '/enrollment',
+  onEnrollClick,
   themeClasses = {
     badge: "bg-blue-500",
     badgeContainer: "bg-blue-500/10",
@@ -195,24 +196,45 @@ function CourseBanner({
 
             {/* CTA Section */}
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-6">
-              <Link
-                href={enrollmentPath}
-                className={`
-                  w-full sm:w-auto 
-                  inline-flex items-center justify-center 
-                  px-8 py-4
-                  ${themeClasses.button} 
-                  text-white font-medium 
-                  rounded-xl
-                  transition-all duration-300 
-                  transform hover:-translate-y-1 hover:scale-105
-                  shadow-lg hover:shadow-xl 
-                  text-lg
-                `}
-              >
-                <span className="mr-2">Enroll Now</span>
-                <ChevronRight className="h-5 w-5 animate-bounce" />
-              </Link>
+              {onEnrollClick ? (
+                <button
+                  onClick={onEnrollClick}
+                  className={`
+                    w-full sm:w-auto 
+                    inline-flex items-center justify-center 
+                    px-8 py-4
+                    ${themeClasses.button} 
+                    text-white font-medium 
+                    rounded-xl
+                    transition-all duration-300 
+                    transform hover:-translate-y-1 hover:scale-105
+                    shadow-lg hover:shadow-xl 
+                    text-lg
+                  `}
+                >
+                  <span className="mr-2">Enroll Now</span>
+                  <ChevronRight className="h-5 w-5 animate-bounce" />
+                </button>
+              ) : (
+                <Link
+                  href={enrollmentPath}
+                  className={`
+                    w-full sm:w-auto 
+                    inline-flex items-center justify-center 
+                    px-8 py-4
+                    ${themeClasses.button} 
+                    text-white font-medium 
+                    rounded-xl
+                    transition-all duration-300 
+                    transform hover:-translate-y-1 hover:scale-105
+                    shadow-lg hover:shadow-xl 
+                    text-lg
+                  `}
+                >
+                  <span className="mr-2">Enroll Now</span>
+                  <ChevronRight className="h-5 w-5 animate-bounce" />
+                </Link>
+              )}
             </div>
 
             {/* Slogan */}

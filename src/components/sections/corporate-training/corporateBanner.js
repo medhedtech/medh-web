@@ -82,6 +82,14 @@ export default function CorporateBanner() {
     </div>
   );
 
+  // Handle scroll to form
+  const handleScrollToForm = () => {
+    const formElement = document.getElementById('enroll-form');
+    if (formElement) {
+      formElement.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <CourseBanner
       badge={badge}
@@ -91,7 +99,8 @@ export default function CorporateBanner() {
       features={features}
       mainImage={Banner}
       studentImage={Cource}
-      enrollmentPath="/contact"
+      enrollmentPath="#enroll-form"
+      onEnrollClick={handleScrollToForm}
       themeClasses={themeClasses}
     />
   );

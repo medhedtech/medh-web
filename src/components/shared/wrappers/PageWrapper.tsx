@@ -2,7 +2,6 @@
 import React, { useState, useEffect, ReactNode } from "react";
 import Footer from "@/components/layout/footer/Footer";
 import Header from "@/components/layout/header/Header";
-import Scrollup from "../others/Scrollup";
 
 interface PageWrapperProps {
   children: ReactNode;
@@ -12,24 +11,6 @@ const PageWrapper: React.FC<PageWrapperProps> = ({ children }) => {
   const [pageLoaded, setPageLoaded] = useState<boolean>(false);
   
   useEffect(() => {
-    // Function to handle smooth scroll to top
-    const scrollToTop = (): void => {
-      window.scrollTo({
-        top: 0,
-        left: 0,
-        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth'
-      });
-    };
-
-    // Handle initial page load
-    const handleLoad = (): void => {
-      scrollToTop();
-      setPageLoaded(true);
-    };
-
-    // Add event listeners
-    window.addEventListener('load', handleLoad);
-    
     // Initialize smooth scroll behavior for all anchor links
     const handleSmoothScroll = (e: MouseEvent): void => {
       const target = (e.target as Element).closest('a[href^="#"]');
@@ -53,14 +34,13 @@ const PageWrapper: React.FC<PageWrapperProps> = ({ children }) => {
 
     document.addEventListener('click', handleSmoothScroll as EventListener);
     
-    // Simulate a small delay for smoother transitions
+    // Set page as loaded after a small delay for smoother transitions
     const timer = setTimeout(() => {
       setPageLoaded(true);
     }, 100);
     
     // Cleanup
     return () => {
-      window.removeEventListener('load', handleLoad);
       document.removeEventListener('click', handleSmoothScroll as EventListener);
       clearTimeout(timer);
     };
@@ -82,9 +62,6 @@ const PageWrapper: React.FC<PageWrapperProps> = ({ children }) => {
       
       {/* footer - positioned at the bottom with no margin above it */}
       <Footer />
-      
-      {/* scroll to top button */}
-      <Scrollup />
     </div>
   );
 };
