@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
-import { apiUrls } from '@/apis';
+import { apiBaseUrl, apiUrls } from '@/apis';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { isFreePrice } from '@/utils/priceUtils';
 import axios from 'axios';
@@ -446,7 +446,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
       
       // Make enrollment API call
       const response = await axios.post(
-        `${apiUrls.baseURL}/enrollments/create`,
+        `${apiBaseUrl}/enrolled/create`,
         enrollmentData,
         {
           headers: {
@@ -483,9 +483,9 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
         status: 'started'
       };
       
-      // Make API call to track progress
+      // Use the progress tracking endpoint
       const response = await axios.post(
-        `${apiUrls.baseURL}/progress/track`,
+        `${apiBaseUrl}/progress/track`,
         trackingData,
         {
           headers: {
@@ -505,8 +505,9 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
   // Check if already enrolled
   const checkEnrollmentStatus = async (studentId: string, courseId: string): Promise<boolean> => {
     try {
+      // Construct URL to check enrollment status
       const response = await axios.get(
-        `${apiUrls.baseURL}/enrollments/status?student_id=${studentId}&course_id=${courseId}`,
+        `${apiBaseUrl}/enrolled/status?student_id=${studentId}&course_id=${courseId}`,
         {
           headers: {
             'Content-Type': 'application/json',
@@ -529,7 +530,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
       if (!token || !studentId) return [];
 
       // Use getQuery for upcoming meetings
-      const endpoint = `/enroll/get-upcoming-meetings/${studentId}`;
+      const endpoint = `${apiBaseUrl}/enrolled/get-upcoming-meetings/${studentId}`;
       let meetings: any[] = [];
       
       await getQuery({
@@ -817,57 +818,58 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
 
   return (
     <>
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden enrollment-section">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow border border-gray-200 dark:border-gray-700 overflow-hidden enrollment-section w-full">
         {/* Enhanced header with clearer pricing visibility */}
-        <div className={`px-4 py-3 ${bgClass} border-b ${borderClass} flex items-center justify-between`}>
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+        <div className={`px-4 sm:px-6 md:px-8 lg:px-10 py-4 ${bgClass} border-b ${borderClass} flex items-center justify-between`}>
+          <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
+            <CreditCard className="h-5 w-5 mr-2 hidden sm:inline-block" />
             Enrollment Options
           </h3>
           {!isBlendedCourse && (
-            <div className="inline-flex items-center justify-center px-2 py-1 rounded-full bg-white dark:bg-gray-700 text-xs font-medium shadow-sm">
-              <span className={`${colorClass}`}>
+            <div className="inline-flex items-center justify-center px-3 py-1.5 rounded-full bg-white dark:bg-gray-700 text-xs font-medium shadow-sm">
+              <span className={`${colorClass} font-semibold`}>
                 {enrollmentType === 'individual' ? 'Individual' : 'Batch'}
               </span>
             </div>
           )}
         </div>
         
-        <div className="p-4 space-y-5">
+        <div className="p-5 sm:p-6 md:p-8 space-y-6">
           {/* Enrollment Type Selection - Better optimized for mobile with clear touch targets */}
           {!isBlendedCourse && (
-            <div className="flex w-full rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+            <div className="flex w-full rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm">
               <button
                 onClick={() => setEnrollmentType('individual')}
-                className={`flex-1 py-3.5 px-2 flex flex-col items-center justify-center transition ${
+                className={`flex-1 py-4 px-3 flex flex-col items-center justify-center transition duration-200 ${
                   enrollmentType === 'individual' 
                     ? `${bgClass} ${colorClass} font-medium` 
-                    : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+                    : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
                 }`}
                 aria-pressed={enrollmentType === 'individual'}
                 aria-label="Select individual enrollment"
               >
-                <User className={`h-5 w-5 mb-1.5 ${enrollmentType === 'individual' ? colorClass : ''}`} />
+                <User className={`h-6 w-6 mb-2 ${enrollmentType === 'individual' ? colorClass : ''}`} />
                 <span className="text-sm font-medium">Individual</span>
                 {activePricing && (
-                  <span className="text-xs mt-1.5">
+                  <span className="text-xs mt-1.5 font-semibold">
                     {formatPriceDisplay(activePricing.individual)}
                   </span>
                 )}
               </button>
               <button
                 onClick={() => setEnrollmentType('batch')}
-                className={`flex-1 py-3.5 px-2 flex flex-col items-center justify-center transition ${
+                className={`flex-1 py-4 px-3 flex flex-col items-center justify-center transition duration-200 ${
                   enrollmentType === 'batch' 
                     ? `${bgClass} ${colorClass} font-medium` 
-                    : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+                    : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
                 }`}
                 aria-pressed={enrollmentType === 'batch'}
                 aria-label="Select batch enrollment"
               >
-                <Users className={`h-5 w-5 mb-1.5 ${enrollmentType === 'batch' ? colorClass : ''}`} />
+                <Users className={`h-6 w-6 mb-2 ${enrollmentType === 'batch' ? colorClass : ''}`} />
                 <span className="text-sm font-medium">Batch/Group</span>
                 {activePricing && (
-                  <span className="text-xs mt-1.5">
+                  <span className="text-xs mt-1.5 font-semibold">
                     {formatPriceDisplay(activePricing.batch)} per person
                   </span>
                 )}
@@ -882,14 +884,14 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="flex items-start justify-between p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-100 dark:border-gray-700"
+              className="flex items-center justify-between p-5 bg-gradient-to-br from-gray-50 to-white dark:from-gray-800/80 dark:to-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm"
             >
               <div>
-                <p className="text-gray-600 dark:text-gray-400 text-sm font-medium">
+                <p className="text-gray-600 dark:text-gray-400 text-sm font-medium mb-0.5">
                   {isBlendedCourse ? 'Individual Price' : (enrollmentType === 'individual' ? 'Individual Price' : 'Batch Price (per person)')}
                 </p>
-                <div className="flex items-baseline gap-2 flex-wrap mt-1">
-                  <h4 className="text-2xl font-bold text-gray-900 dark:text-white">
+                <div className="flex items-baseline gap-2 flex-wrap">
+                  <h4 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-200 bg-clip-text text-transparent">
                     {courseDetails?.isFree ? "Free" : formatPriceDisplay(getFinalPrice())}
                   </h4>
                   
@@ -900,61 +902,61 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
                   )}
                   
                   {discountPercentage > 0 && (
-                    <span className="text-xs font-medium text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400 px-2 py-0.5 rounded-full">
+                    <span className="text-xs font-medium text-green-600 bg-green-100 dark:bg-green-900/40 dark:text-green-400 px-2.5 py-1 rounded-full">
                       Save {discountPercentage}%
                     </span>
                   )}
                 </div>
                 {enrollmentType === 'batch' && !isBlendedCourse && activePricing && (
-                  <p className="text-xs text-gray-500 mt-1.5 flex items-center">
-                    <Users className="w-3 h-3 mr-1" />
+                  <p className="text-xs text-gray-500 mt-2 flex items-center">
+                    <Users className="w-3.5 h-3.5 mr-1.5" />
                     Min {activePricing.min_batch_size} students required
                   </p>
                 )}
               </div>
-              <div className={`p-2.5 rounded-full ${bgClass} hidden sm:flex`}>
-                <CreditCard className={`h-6 w-6 ${colorClass}`} />
+              <div className={`p-3 rounded-full ${bgClass} shadow-md`}>
+                <CreditCard className={`h-7 w-7 ${colorClass}`} />
               </div>
             </motion.div>
           </AnimatePresence>
           
           {/* Course Details List - More readable on mobile */}
-          <div className="space-y-3 border-t border-gray-200 dark:border-gray-700 pt-4">
-            <div className="flex justify-between items-center bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-100 dark:border-gray-700">
-              <span className="text-gray-600 dark:text-gray-400 text-sm flex items-center">
-                <Clock className="w-4 h-4 mr-2 text-gray-400 dark:text-gray-500" />
+          <div className="space-y-3 border-t border-gray-200 dark:border-gray-700 pt-5">
+            <div className="flex justify-between items-center bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700 hover:shadow-sm transition-shadow">
+              <span className="text-gray-700 dark:text-gray-300 font-medium flex items-center">
+                <Clock className="w-5 h-5 mr-2.5 text-gray-500 dark:text-gray-400" />
                 Duration
               </span>
-              <span className="font-medium text-gray-900 dark:text-white text-sm">{formattedDuration}</span>
+              <span className="font-semibold text-gray-900 dark:text-white">{formattedDuration}</span>
             </div>
-            <div className="flex justify-between items-center bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-100 dark:border-gray-700">
-              <span className="text-gray-600 dark:text-gray-400 text-sm flex items-center">
-                <GraduationCap className="w-4 h-4 mr-2 text-gray-400 dark:text-gray-500" />
+            <div className="flex justify-between items-center bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700 hover:shadow-sm transition-shadow">
+              <span className="text-gray-700 dark:text-gray-300 font-medium flex items-center">
+                <GraduationCap className="w-5 h-5 mr-2.5 text-gray-500 dark:text-gray-400" />
                 Grade
               </span>
-              <span className="font-medium text-gray-900 dark:text-white text-sm">
+              <span className="font-semibold text-gray-900 dark:text-white">
                 {grade}
               </span>
             </div>
           </div>
           
           {/* Course Features - Improved layout for readability */}
-          <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-            <h4 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center">
-              <ThumbsUp className="w-4 h-4 mr-2 text-green-500" />
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-5">
+            <h4 className="font-semibold text-gray-900 dark:text-white text-lg mb-4 flex items-center">
+              <ThumbsUp className="w-5 h-5 mr-2 text-green-500" />
               What you'll get
             </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {courseFeatures.map((feature, index) => (
                 <motion.div 
                   key={index}
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="flex items-center text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 p-2.5 rounded-lg border border-gray-100 dark:border-gray-700"
+                  className="flex items-center text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 p-3.5 rounded-xl border border-gray-100 dark:border-gray-700 hover:shadow-sm hover:border-gray-200 dark:hover:border-gray-600 transition-all"
                 >
-                  <CheckCircle className="w-4 h-4 mr-2 text-green-500 flex-shrink-0" />
-                  <span className="text-sm">{feature}</span>
+                  <CheckCircle className="w-5 h-5 mr-3 text-green-500 flex-shrink-0" />
+                  <span className="text-sm font-medium">{feature}</span>
                 </motion.div>
               ))}
             </div>
@@ -962,18 +964,18 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
           
           {/* Enroll Button - Responsive for both mobile and desktop */}
           <motion.button
-            whileHover={{ scale: 1.02 }}
+            whileHover={{ scale: 1.02, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)" }}
             whileTap={{ scale: 0.98 }}
             onClick={handleEnrollClick}
             disabled={loading}
-            className={`w-full py-3.5 px-4 bg-gradient-to-r from-${primaryColor}-600 to-${primaryColor}-700 hover:from-${primaryColor}-700 hover:to-${primaryColor}-800 text-white font-medium rounded-lg flex items-center justify-center shadow-sm transition-all duration-300 ${
+            className={`w-full py-4 px-5 bg-gradient-to-r from-${primaryColor}-600 to-${primaryColor}-700 hover:from-${primaryColor}-700 hover:to-${primaryColor}-800 text-white font-semibold text-lg rounded-xl flex items-center justify-center shadow-md transition-all duration-300 ${
               loading ? 'opacity-70 cursor-not-allowed' : ''
             }`}
             aria-label={isLoggedIn ? (courseDetails?.isFree ? 'Enroll for free' : 'Enroll now') : 'Login to enroll'}
           >
             {loading ? (
               <div className="flex items-center">
-                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
@@ -983,11 +985,11 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
               <>
                 {isLoggedIn ? (
                   <>
-                    {courseDetails?.isFree ? 'Enroll for Free' : (isBlendedCourse ? 'Enroll Now' : (enrollmentType === 'individual' ? 'Enroll Now' : 'Enroll in Batch'))} <ArrowRight className="w-4 h-4 ml-2" />
+                    {courseDetails?.isFree ? 'Enroll for Free' : (isBlendedCourse ? 'Enroll Now' : (enrollmentType === 'individual' ? 'Enroll Now' : 'Enroll in Batch'))} <ArrowRight className="w-5 h-5 ml-2" />
                   </>
                 ) : (
                   <>
-                    Login to Enroll <Lock className="w-4 h-4 ml-2" />
+                    Login to Enroll <Lock className="w-5 h-5 ml-2" />
                   </>
                 )}
               </>
@@ -996,9 +998,9 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
           
           {/* Payment info - Better styled for mobile */}
           {!courseDetails?.isFree && (
-            <div className="text-center text-xs text-gray-500 dark:text-gray-400 p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-100 dark:border-gray-700">
+            <div className="text-center text-xs text-gray-500 dark:text-gray-400 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700">
               <div className="flex items-center justify-center">
-                <CreditCard className="w-3.5 h-3.5 mr-1.5 text-gray-400" />
+                <CreditCard className="w-4 h-4 mr-2 text-gray-400" />
                 Secure payment powered by Razorpay
               </div>
             </div>
@@ -1006,17 +1008,17 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
           
           {/* Fast Track Option - Enhanced mobile visibility */}
           <motion.div
-            className="border-t border-gray-200 dark:border-gray-700 pt-4"
+            className="border-t border-gray-200 dark:border-gray-700 pt-5"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
           >
-            <div className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-100 dark:border-gray-700 text-center">
-              <div className="inline-flex items-center px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800/30 text-amber-700 dark:text-amber-300 text-xs font-medium mb-2">
-                <Zap className="w-3 h-3 mr-1" />
+            <div className="bg-gradient-to-r from-amber-50 to-amber-100/50 dark:from-gray-800 dark:to-amber-900/10 p-4 rounded-xl border border-amber-100 dark:border-amber-800/30 text-center">
+              <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-amber-100/80 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800/40 text-amber-700 dark:text-amber-300 text-xs font-medium mb-2.5">
+                <Zap className="w-3.5 h-3.5 mr-1.5" />
                 Fast Track Available
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-amber-800 dark:text-amber-200">
                 Fast-track options available for experienced learners.
                 Contact support for details.
               </p>

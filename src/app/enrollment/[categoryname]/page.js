@@ -10,6 +10,7 @@ import {
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { toast, Toaster } from 'react-hot-toast';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 // Core components
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
@@ -217,6 +218,7 @@ function CategoryEnrollmentPage({ params }) {
   const unwrappedParams = React.use(params);
   const { categoryname } = unwrappedParams;
   const router = useRouter();
+  const { currency, convertPrice, formatPrice } = useCurrency();
   
   // Improved: Better course ID detection with more robust parsing
   const isCourseView = categoryname?.startsWith('course');
@@ -446,37 +448,38 @@ function CategoryEnrollmentPage({ params }) {
         setLoading(true);
         console.log("Fetching courses for category:", categoryInfo?.displayName);
         
+        console.log("Category Info:", categoryInfo);
+        
         // Construct API endpoint using apiUrls helper
-        const apiEndpoint = getAllCoursesWithLimits(
-          currentPage,
-          itemsPerPage,
-          "", // course_title
-          "", // course_tag
-          categoryInfo?.displayName || "", // course_category
-          "Published", // status
-          "", // search
-          selectedGrade !== 'all' ? selectedGrade : "", // course_grade
-          [], // category array
-          {
-            // Additional filters
+        const apiEndpoint = getAllCoursesWithLimits({
+          page: currentPage,
+          limit: itemsPerPage,
+          course_title: "",
+          course_tag: "",
+          course_category: categoryInfo?.displayName || "",
+          status: "Published",
+          search: "",
+          course_grade: selectedGrade !== 'all' ? selectedGrade : "",
+          category: [],
+          filters: {
             certification: false,
             hasAssignments: false,
             hasProjects: false,
             hasQuizzes: false,
-            course_duration: selectedDuration !== 'all' ? selectedDuration : undefined,
-            sortBy: "createdAt",
-            sortOrder: "desc"
+            course_duration: selectedDuration !== 'all' ? selectedDuration : undefined
           },
-          "", // class_type
-          undefined, // course_duration
-          undefined, // course_fee
-          undefined, // course_type
-          undefined, // skill_level
-          undefined, // language
-          "createdAt", // sort_by
-          "asc", // sort_order
-          undefined // category_type
-        );
+          class_type: "",
+          course_duration: undefined,
+          course_fee: undefined,
+          course_type: categoryInfo?.courseType || undefined,
+          skill_level: undefined,
+          language: undefined,
+          sort_by: "createdAt",
+          sort_order: "asc",
+          category_type: categoryInfo?.categoryType || undefined
+        });
+        
+        console.log("API Endpoint:", apiEndpoint);
 
         getQuery({
           url: apiEndpoint,
@@ -488,39 +491,47 @@ function CategoryEnrollmentPage({ params }) {
             console.log("API Response:", response); // Debug log to inspect raw API response
             
             // Process course data
-            const processedCourseData = courseData.map(course => ({
-              _id: course._id,
-              title: course.course_title || "", // Use this field for display
-              description: course.course_description || `A course on ${categoryInfo?.displayName}`,
-              long_description: typeof course.course_description === 'object' 
-                ? course.course_description.program_overview 
-                : course.course_description || `Comprehensive ${categoryInfo?.displayName} course designed to enhance your skills and knowledge in this field.`,
-              category: course.course_category || categoryInfo?.displayName,
-              grade: course.course_grade || "",
-              thumbnail: course.course_image || null,
-              course_duration: formatDuration(course.course_duration) || "",
-              course_duration_days: parseDuration(course.course_duration) || 30,
-              course_fee: course.prices && course.prices.length > 0 
-                ? course.prices.find(p => p.currency === "INR")?.individual || 0 
-                : 0,
-              enrolled_students: course.meta?.enrollments || 0,
-              views: course.meta?.views || 0,
-              is_Certification: course.is_Certification === "Yes",
-              is_Assignments: course.is_Assignments === "Yes",
-              is_Projects: course.is_Projects === "Yes",
-              is_Quizes: course.is_Quizes === "Yes",
-              curriculum: Array.isArray(course.curriculum) ? course.curriculum : [],
-              highlights: course.highlights || [],
-              learning_outcomes: course.course_description?.learning_objectives || [],
-              prerequisites: course.course_description?.course_requirements || [],
-              faqs: course.final_evaluation?.final_faqs || [],
-              no_of_Sessions: course.no_of_Sessions || 0,
-              status: course.status || "Published",
-              isFree: course.isFree || false,
-              hasFullDetails: true,
-              slug: course.slug || "",
-              category_type: course.category_type || ""
-            }));
+            const processedCourseData = courseData.map(course => {
+              const coursePrice = course.prices && course.prices.length > 0 
+                ? course.prices.find(p => p.currency === currency.code)?.individual || 
+                  convertPrice(course.prices.find(p => p.currency === "INR")?.individual || 0)
+                : convertPrice(course.course_fee || 0);
+                
+              return {
+                _id: course._id,
+                title: course.course_title || "", // Use this field for display
+                description: course.course_description || `A course on ${categoryInfo?.displayName}`,
+                long_description: typeof course.course_description === 'object' 
+                  ? course.course_description.program_overview 
+                  : course.course_description || `Comprehensive ${categoryInfo?.displayName} course designed to enhance your skills and knowledge in this field.`,
+                category: course.course_category || categoryInfo?.displayName,
+                grade: course.course_grade || "",
+                thumbnail: course.course_image || null,
+                course_duration: formatDuration(course.course_duration) || "",
+                course_duration_days: parseDuration(course.course_duration) || 30,
+                course_fee: coursePrice,
+                prices: course.prices || [],
+                original_prices: course.prices,  // Store original prices data
+                currency_code: currency.code,    // Store current currency code
+                enrolled_students: course.meta?.enrollments || 0,
+                views: course.meta?.views || 0,
+                is_Certification: course.is_Certification === "Yes",
+                is_Assignments: course.is_Assignments === "Yes",
+                is_Projects: course.is_Projects === "Yes",
+                is_Quizes: course.is_Quizes === "Yes",
+                curriculum: Array.isArray(course.curriculum) ? course.curriculum : [],
+                highlights: course.highlights || [],
+                learning_outcomes: course.course_description?.learning_objectives || [],
+                prerequisites: course.course_description?.course_requirements || [],
+                faqs: course.final_evaluation?.final_faqs || [],
+                no_of_Sessions: course.no_of_Sessions || 0,
+                status: course.status || "Published",
+                isFree: course.isFree || false,
+                hasFullDetails: true,
+                slug: course.slug || "",
+                category_type: course.category_type || ""
+              };
+            });
             
             console.log("Processed course data:", processedCourseData); // Debug log
             
@@ -550,7 +561,7 @@ function CategoryEnrollmentPage({ params }) {
             
             setLoading(false);
           },
-          onError: (err) => {
+          onFail: (err) => {
             console.error("Error fetching courses:", err);
             setError(parseApiError(err) || `Failed to load ${categoryInfo?.displayName} courses`);
             setLoading(false);
@@ -572,7 +583,9 @@ function CategoryEnrollmentPage({ params }) {
     selectedDuration,
     getQuery,
     extractDurationOptions,
-    extractGradeOptions
+    extractGradeOptions,
+    currency,
+    convertPrice
   ]);
 
   // Handle page change
@@ -657,12 +670,12 @@ function CategoryEnrollmentPage({ params }) {
         
         setCourseLoading(false);
       },
-      onError: (err) => {
+      onFail: (err) => {
         console.error("Error fetching additional course details:", err);
         setCourseLoading(false);
       }
     });
-  }, [getQuery, selectedCourse, categoryInfo]);
+  }, [getQuery, selectedCourse, categoryInfo, currency, convertPrice]);
 
   // Handle duration selection
   const handleDurationChange = (durationId) => {
@@ -970,15 +983,20 @@ function CategoryEnrollmentPage({ params }) {
     }
   }, [normalizedCategory, router, isCourseView]);
 
+  // Display formatted price in the UI
+  const displayPrice = (price) => {
+    if (!price || price <= 0) return "Free";
+    return formatPrice(price);
+  };
+
   return (
     <PageWrapper>
       <Toaster position="bottom-center" />
       <style jsx global>{stickyStyles}</style>
-      <div className={`relative min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 category-page`} 
-           data-category={normalizedCategory || 'course-view'}>
+      <div className="flex flex-col min-h-screen w-full px-4 sm:px-6 md:px-8 lg:px-12 border-x border-transparent">
         {/* Fixed Header */}
         <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transform-gpu">
-          <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
+          <nav className="w-full px-4 h-16 flex items-center justify-between">
             <div className="flex items-center space-x-2 sm:space-x-4 overflow-hidden">
               <button 
                 onClick={() => router.back()}
@@ -1019,10 +1037,10 @@ function CategoryEnrollmentPage({ params }) {
           </nav>
         </header>
 
-        {/* Content with Header Offset */}
-        <main className="flex-grow pt-20 sm:pt-24">
+        {/* Content with Header Offset - Full width */}
+        <main className="flex-grow pt-20 flex justify-center items-center w-full">
           {loading ? (
-            <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="flex items-center justify-center min-h-[60vh] w-full">
               <div className="category-loader">
                 <div></div>
                 <div></div>
@@ -1038,14 +1056,14 @@ function CategoryEnrollmentPage({ params }) {
           ) : error ? (
             <ErrorDisplay />
           ) : (
-            <div className="container mx-auto px-4">
+            <div className="w-full max-w-7xl mx-auto px-4">
               {/* Two Column Layout - Improved mobile design */}
-              <div className="flex flex-col lg:flex-row gap-4 lg:gap-8" ref={mainContentRef}>
+              <div className="flex flex-col lg:flex-row gap-4 lg:gap-8 w-full min-h-full" ref={mainContentRef}>
                 {/* Left Column - Dynamic Course Content */}
                 <div className={`w-full ${isCourseView ? 'lg:w-8/12' : 'lg:w-8/12'} space-y-4 lg:space-y-8`}>
                   {/* CourseDetailsPage integration - show dynamically based on selected course */}
                   {selectedCourse && (
-                    <div className="relative z-10">
+                    <div className="relative z-10 w-full">
                       {/* We pass the activeSection to control which tab is visible */}
                       <CourseDetailsPage 
                         courseId={selectedCourse?._id} 
@@ -1057,10 +1075,10 @@ function CategoryEnrollmentPage({ params }) {
                 </div>
                 
                 {/* Right Column - Filters and Course Selection */}
-                <div className="w-full lg:w-4/12 mb-8 lg:mb-0">
-                  <div className="lg:sticky lg:top-24 space-y-6 transition-all duration-300">
-                    {/* Sticky Container with scroll behavior */}
-                    <div className="sticky-sidebar max-h-[calc(100vh-120px)] overflow-y-auto pr-2 pb-4 hide-scrollbar" ref={sidebarRef}>
+                <div className="w-full lg:w-4/12 mb-8 lg:mb-0 flex flex-col">
+                  <div className="flex-grow flex flex-col lg:sticky lg:top-24">
+                    {/* Remove scrolling from sidebar and fill available height */}
+                    <div className="w-full flex-grow flex flex-col" ref={sidebarRef}>
                       {/* Only show grade filter if not in course view mode */}
                       {!isCourseView && (normalizedCategory === 'vedic-mathematics' || 
                        normalizedCategory === 'personality-development') && (
@@ -1124,13 +1142,13 @@ function CategoryEnrollmentPage({ params }) {
                         </motion.div>
                       )}
 
-                      {/* Enrollment Details with improved mobile design */}
+                      {/* Enrollment Details with full height */}
                       {selectedCourse && (
                         <motion.div
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.5, delay: 0.2 }}
-                          className="pt-4 lg:pt-6"
+                          className="pt-4 lg:pt-6 flex-grow"
                         >
                           <EnrollmentDetails 
                             courseDetails={selectedCourse}
@@ -1140,6 +1158,8 @@ function CategoryEnrollmentPage({ params }) {
                               colorClass: 'text-emerald-700 dark:text-emerald-300',
                               bgClass: 'bg-emerald-50 dark:bg-emerald-900/30'
                             } : categoryInfo}
+                            currencyCode={currency.code}
+                            formatPriceFunc={displayPrice}
                           />
                         </motion.div>
                       )}

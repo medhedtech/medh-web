@@ -9,7 +9,8 @@ import {
   Clock, 
   GraduationCap,
   Award,
-  Sparkles
+  Sparkles,
+  CreditCard
 } from 'lucide-react';
 
 const CourseSelector = ({ 
@@ -19,7 +20,8 @@ const CourseSelector = ({
   categoryInfo = {},
   selectedGrade = 'all',
   onGradeChange,
-  availableGrades = []
+  availableGrades = [],
+  formatPrice = (price) => price ? `₹${price}` : 'Free'  // Default formatter
 }) => {
   const [dropdownVisible, setDropdownVisible] = useState(false);
   
@@ -188,6 +190,10 @@ const CourseSelector = ({
                               Certificate
                             </div>
                           )}
+                          <div className="text-xs text-blue-600 dark:text-blue-400 flex items-center">
+                            <CreditCard className="w-3 h-3 mr-1" />
+                            {course.isFree ? 'Free' : formatPrice(course.course_fee)}
+                          </div>
                         </div>
                       </div>
                       {selectedCourse?._id === course._id && (
