@@ -25,7 +25,8 @@ import {
   Banknote,
   ArrowRight,
   Heart,
-  Lock
+  Lock,
+  Info
 } from 'lucide-react';
 import Image from 'next/image';
 import { toast } from 'react-hot-toast';
@@ -49,7 +50,7 @@ import Preloader from '@/components/shared/others/Preloader';
 import Pdf from '@/assets/images/course-detailed/pdf-icon.svg';
 import { getCourseById } from '@/apis/course/course';
 
-const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
+const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType }) => {
   // State for active section and navigation
   const [activeSection, setActiveSection] = useState(initialActiveSection);
   const [courseDetails, setCourseDetails] = useState(null);
@@ -61,6 +62,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showClassTypeInfo, setShowClassTypeInfo] = useState(false);
   
   // Refs for component structure - we don't use these for scrolling anymore
   const aboutRef = useRef(null);
@@ -696,6 +698,14 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
 
   // Get course features
   const courseFeatures = getCourseFeatures();
+
+  // Get class type of the course
+  const getClassType = () => {
+    if (classType) return classType;
+    if (!courseDetails) return 'Live';
+    
+    return courseDetails?.class_type || courseDetails?.classType || 'Live';
+  };
 
   // Render the content for the active section
   const renderActiveSection = () => {
@@ -1623,14 +1633,151 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about' }) => {
           animate="visible"
           className="mb-3 sm:mb-4 md:mb-6"
         >
-          <CourseHeader 
-            title={courseDetails?.course_title}
-            category={courseDetails?.course_category || courseDetails?.category}
-            price={courseDetails?.prices?.[0]?.batch || 0}
-            backgroundImage={courseDetails?.course_image}
-            colorClass={getCategoryColorClasses().color}
-            bgClass={getCategoryColorClasses().bg}
-          />
+          {/* Integrated Course Header with Class Type */}
+          <div className="relative overflow-hidden rounded-lg sm:rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700">
+            {/* Background Image or Gradient - Responsive height */}
+            <div className="relative w-full h-[120px] sm:h-[150px] overflow-hidden bg-gray-100 dark:bg-gray-700">
+              {courseDetails?.course_image ? (
+                <Image
+                  src={courseDetails.course_image}
+                  alt={courseDetails?.course_title || 'Course header'}
+                  fill
+                  className="object-cover"
+                  priority
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center" 
+                  style={{ 
+                    background: `linear-gradient(to right, var(--color-primary-light), var(--color-secondary-light))` 
+                  }}
+                >
+                  <div className="flex items-center justify-center">
+                    <span className="text-6xl sm:text-8xl font-bold text-white opacity-30">
+                      {(courseDetails?.course_title || courseDetails?.course_category || '').substring(0, 1).toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+              )}
+              
+              {/* Overlay with blurred effect */}
+              <div className="absolute inset-0 bg-black/30"></div>
+            </div>
+
+            {/* Content Area - All integrated in one box */}
+            <div className="relative px-4 sm:px-6 py-4 sm:py-5">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
+                <motion.div variants={fadeIn} className="flex-1">
+                  {/* Category tag */}
+                  <div className="flex items-center mb-2">
+                    <div className={`px-2.5 sm:px-3 py-1 rounded-lg text-xs font-medium ${getCategoryColorClasses().bgClass} ${getCategoryColorClasses().color} flex items-center`}>
+                      <span>{courseDetails?.course_category || courseDetails?.category || 'Technical Skills'}</span>
+                    </div>
+                  </div>
+                  
+                  {/* Title - Responsive text size */}
+                  <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-1.5 pr-16 sm:pr-0">
+                    {courseDetails?.course_title || 'Cloud Computing'}
+                  </h1>
+                  
+                  {/* Optional subtitle */}
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mb-3">
+                    {courseDetails?.short_description || 'Master data analysis and visualization techniques'}
+                  </p>
+                  
+                  {/* Class Type Tag */}
+                  <div className="flex items-center space-x-2">
+                    <div className="inline-flex items-center">
+                      <span className="text-xs text-gray-500 dark:text-gray-400 mr-1.5">Class Type:</span>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800/30`}>
+                        {getClassType()}
+                      </span>
+                    </div>
+                    
+                    <div className="relative">
+                      <button 
+                        className="p-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors hover:text-indigo-600 dark:hover:text-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:focus:ring-indigo-500/30"
+                        onClick={() => setShowClassTypeInfo(!showClassTypeInfo)}
+                        aria-label="Class type information"
+                      >
+                        <Info className="h-3 w-3" />
+                      </button>
+                      
+                      {/* Info Tooltip - Fixed positioning */}
+                      {showClassTypeInfo && (
+                        <div className="fixed inset-0 z-[100] overflow-hidden flex items-center justify-center" onClick={() => setShowClassTypeInfo(false)}>
+                          <div className="absolute inset-0 bg-black/5" onClick={() => setShowClassTypeInfo(false)}></div>
+                          <div 
+                            className="relative z-[101] w-72 sm:w-80 p-4 bg-white dark:bg-gray-800 shadow-xl rounded-lg border border-gray-200 dark:border-gray-700 text-xs mx-4"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <button 
+                              className="absolute top-2 right-2 p-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
+                              onClick={() => setShowClassTypeInfo(false)}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                              </svg>
+                            </button>
+                            <h4 className="font-semibold text-gray-900 dark:text-white mb-3 text-sm">Class Types Explained</h4>
+                            <div className="space-y-4">
+                              <div className="pb-3 border-b border-gray-100 dark:border-gray-700">
+                                <div className="flex">
+                                  <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 mr-3 flex-shrink-0 text-[11px] font-bold">L</span>
+                                  <div>
+                                    <span className="font-medium text-indigo-600 dark:text-indigo-400 block mb-1 text-sm">Live Classes</span>
+                                    <div className="text-gray-600 dark:text-gray-300 leading-relaxed text-xs space-y-2">
+                                      <p>Real-time instructor-led sessions conducted on scheduled dates and times where you can:</p>
+                                      <ul className="list-disc pl-4 space-y-1">
+                                        <li>Interact directly with instructors and ask questions</li>
+                                        <li>Collaborate with peers during group activities</li>
+                                        <li>Get immediate feedback on your work</li>
+                                        <li>Access recordings of all sessions afterward for review</li>
+                                      </ul>
+                                      <p className="text-indigo-500 dark:text-indigo-400 font-medium">Best for: Interactive learning with direct guidance and structured schedule</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <div>
+                                <div className="flex">
+                                  <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 mr-3 flex-shrink-0 text-[11px] font-bold">B</span>
+                                  <div>
+                                    <span className="font-medium text-purple-600 dark:text-purple-400 block mb-1 text-sm">Blended Classes</span>
+                                    <div className="text-gray-600 dark:text-gray-300 leading-relaxed text-xs space-y-2">
+                                      <p>A flexible combination of scheduled live sessions and self-paced content that offers:</p>
+                                      <ul className="list-disc pl-4 space-y-1">
+                                        <li>Pre-recorded lectures you can watch anytime</li>
+                                        <li>Supplementary live sessions for Q&A and discussions</li>
+                                        <li>More flexibility in learning schedule</li>
+                                        <li>Balance between independence and instructor guidance</li>
+                                      </ul>
+                                      <p className="text-purple-500 dark:text-purple-400 font-medium">Best for: Learners who need flexibility while still wanting some live interaction</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+                
+                {/* Price tag - Absolute position on mobile for better layout */}
+                {(courseDetails?.prices?.[0]?.batch !== undefined || courseDetails?.course_fee !== undefined) && (
+                  <motion.div 
+                    variants={fadeIn}
+                    className="absolute sm:relative top-4 right-4 sm:top-auto sm:right-auto bg-green-500 text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg font-bold flex items-center shadow-sm text-sm sm:text-base"
+                  >
+                    <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 text-white/80" />
+                    ₹{courseDetails?.prices?.[0]?.batch || courseDetails?.course_fee || 2999}
+                  </motion.div>
+                )}
+              </div>
+            </div>
+          </div>
         </motion.div>
 
         {/* Mobile Stats - Visible only on mobile */}

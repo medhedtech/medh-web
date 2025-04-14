@@ -63,7 +63,7 @@ const features = [
   }
 ];
 
-function CourseAiBanner() {
+function CourseAiBanner({ onLearnMoreClick }) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [activeValue, setActiveValue] = useState(0);
 
@@ -144,11 +144,14 @@ function CourseAiBanner() {
             className="flex flex-col items-center gap-6"
           >
             <div className="flex flex-wrap gap-4 justify-center">
-              <button className="inline-flex items-center px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all transform hover:-translate-y-1 shadow-lg shadow-blue-500/25 font-medium">
+              <button 
+                onClick={onLearnMoreClick}
+                className="inline-flex items-center px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all transform hover:-translate-y-1 shadow-lg shadow-blue-500/25 font-medium"
+              >
                 Learn More
                 <ArrowRight className="ml-2 h-5 w-5" />
               </button>
-              <button  onClick={() => window.location.href = "/contact-us"} className="inline-flex items-center px-6 py-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all border border-gray-200 dark:border-gray-700 font-medium">
+              <button onClick={() => window.location.href = "/contact-us"} className="inline-flex items-center px-6 py-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all border border-gray-200 dark:border-gray-700 font-medium">
                 Contact Us
               </button>
             </div>
