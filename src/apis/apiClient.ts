@@ -384,8 +384,41 @@ export class ApiClient {
    */
   private buildUrl(endpoint: string, params: Record<string, any> = {}): string {
     // If endpoint already starts with http:// or https://, use as is
-    const baseUrl = endpoint.startsWith('http') ? '' : this.baseUrl;
-    const url = new URL(`${baseUrl}${endpoint}`);
+    const baseUrl = endpoint.startsWith('http') ? '' : (this.baseUrl || '');
+    
+    // Ensure we have a valid URL by checking if baseUrl is empty
+    let fullUrl: string;
+    if (!baseUrl) {
+      // If no baseUrl, use the endpoint directly if it's a complete URL
+      if (endpoint.startsWith('http')) {
+        fullUrl = endpoint;
+      } else {
+        // If endpoint is not a complete URL and no baseUrl, use a relative URL
+        fullUrl = endpoint;
+      }
+    } else {
+      // Combine baseUrl and endpoint, ensuring no double slashes
+      const cleanEndpoint = endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
+      const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
+      fullUrl = `${cleanBaseUrl}/${cleanEndpoint}`;
+    }
+    
+    // Create URL object only if we have a valid URL
+    let url: URL;
+    try {
+      // For relative URLs, we need to use a base URL
+      if (!fullUrl.startsWith('http')) {
+        // Use window.location.origin as the base for relative URLs
+        const base = typeof window !== 'undefined' ? window.location.origin : 'http://localhost';
+        url = new URL(fullUrl, base);
+      } else {
+        url = new URL(fullUrl);
+      }
+    } catch (error) {
+      console.error('Invalid URL:', fullUrl, error);
+      // Return a fallback URL to prevent the app from crashing
+      return fullUrl;
+    }
     
     // Add query parameters
     Object.entries(params).forEach(([key, value]) => {

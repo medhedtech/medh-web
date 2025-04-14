@@ -18,6 +18,12 @@ function CorporateTraining() {
           <CorporateBanner />
           <CorporateOverview />
           <Certified />
+          <div id="enroll-form">
+            <CorporateJourneyForm 
+              mainText="Enroll Now for Corporate Training" 
+              subText="Fill out the form below to start your corporate learning journey with us"
+            />
+          </div>
           <CorporateFaq />
         </div>
       </main>
