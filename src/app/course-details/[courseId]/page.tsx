@@ -381,48 +381,8 @@ const CourseView: React.FC = () => {
           ) : error ? (
             <ErrorDisplay />
           ) : (
-            <div className="container mx-auto px-3 sm:px-4 max-w-7xl">
-              {/* Mobile Course Summary - Only visible on mobile */}
-              {course && (
-                <div className="lg:hidden mb-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-                  <div className="p-4">
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
-                      {course.course_title}
-                    </h2>
-                    <div className="flex flex-wrap gap-3 mb-4">
-                      <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
-                        <Clock className="h-4 w-4 mr-1 text-emerald-500" />
-                        <span>{course.course_duration || '4 months'}</span>
-                      </div>
-                      <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
-                        <Users className="h-4 w-4 mr-1 text-emerald-500" />
-                        <span>{course.enrolled_students || 0} enrolled</span>
-                      </div>
-                      <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
-                        <Award className="h-4 w-4 mr-1 text-emerald-500" />
-                        <span>{course.grade || 'All Levels'}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <span className="text-xs text-gray-500 dark:text-gray-400">Price</span>
-                        <div className="text-lg font-semibold text-emerald-600 dark:text-emerald-400">
-                          {course.prices && course.prices.length > 0 
-                            ? course.prices.find(p => p.currency === userCurrency)?.batch?.toLocaleString('en-IN') || '0'
-                            : 'Free'}
-                        </div>
-                      </div>
-                      <button 
-                        onClick={handleEnrollClick} 
-                        className="py-2 px-4 rounded-lg font-medium text-white transition-all bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-sm flex items-center"
-                      >
-                        <span>{isLoggedIn ? 'Enroll Now' : 'Login to Enroll'}</span>
-                        <ArrowRight className="h-4 w-4 ml-1" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
+            <div className="container mx-auto px-3 sm:px-4">
+
               
               <div className="flex flex-col lg:flex-row gap-5 lg:gap-8">
                 {/* Left Column - Course Content */}
@@ -491,7 +451,7 @@ const CourseView: React.FC = () => {
         {!loading && !error && course && (
           <div className="fixed bottom-0 left-0 right-0 z-40 lg:hidden">
             <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-lg">
-              <div className="container mx-auto px-3 py-3 max-w-7xl flex items-center justify-between">
+              <div className="container mx-auto px-3 py-3 flex items-center justify-between">
                 <div className="flex flex-col">
                   <span className="text-xs text-gray-500 dark:text-gray-400">Price</span>
                   <span className="text-base font-semibold text-emerald-600 dark:text-emerald-400">

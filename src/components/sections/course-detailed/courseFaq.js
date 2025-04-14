@@ -194,7 +194,7 @@ export default function CourseFaq({ courseId }) {
     console.log("Attempting to fetch all FAQs as fallback");
     
     try {
-      const allFaqsResponse = await axios.get(`${apiBaseUrl}${apiUrls.faqs.getAllFaqs}`);
+      const allFaqsResponse = await axios.get(`${apiBaseUrl}/faqs/getAll`);
       console.log("All FAQs response:", allFaqsResponse);
       
       // Extract FAQs while preserving their original order from the API
@@ -233,7 +233,7 @@ export default function CourseFaq({ courseId }) {
     try {
       // Try the getAllFaqs endpoint first as it's more likely to work
       try {
-        const allFaqsResponse = await axios.get(`${apiBaseUrl}${apiUrls.faqs.getAllFaqs}`);
+        const allFaqsResponse = await axios.get(`${apiBaseUrl}/faqs/getAll`);
         console.log("All FAQs response:", allFaqsResponse);
         
         const allFaqsData = extractFaqsFromResponse(allFaqsResponse);
@@ -267,8 +267,8 @@ export default function CourseFaq({ courseId }) {
       // If we couldn't find FAQs, try the category endpoint as a backup
       if (!foundFaqs) {
         try {
-          console.log(`Trying category endpoint: ${apiBaseUrl}${apiUrls.faqs.getFaqsByCategory}/${encodedCategory}`);
-          const response = await axios.get(`${apiBaseUrl}${apiUrls.faqs.getFaqsByCategory}/${encodedCategory}`);
+          console.log(`Trying category endpoint: ${apiBaseUrl}/faqs/category/${encodedCategory}`);
+          const response = await axios.get(`${apiBaseUrl}/faqs/category/${encodedCategory}`);
           console.log("Category FAQs response:", response);
           
           const categoryFaqsData = extractFaqsFromResponse(response);
