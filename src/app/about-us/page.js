@@ -6,7 +6,7 @@ import WhyChooseMEDH from "@/components/sections/abouts/WhyChooseMEDH";
 import Brands from "@/components/sections/brands/Brands";
 import FeatureCourses from "@/components/sections/featured-courses/FeatureCourses";
 import HeroPrimary from "@/components/sections/hero-banners/HeroPrimary";
-import HeroSectionContant from "@/components/sections/hero-banners/HeroSectionContant";
+import AboutPageContent from "@/components/sections/abouts/AboutPageContent";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 
 export const metadata = {
@@ -52,7 +52,7 @@ const jsonLd = {
   }
 };
 
-const About = async () => {
+const About = () => {
   return (
     <PageWrapper>
       {/* Add JSON-LD Schema */}
@@ -61,16 +61,7 @@ const About = async () => {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       
-      {/* Hero Section */}
-      <div className="pt-16">
-        <HeroSectionContant />
-      </div>
-
-      {/* Main Content Sections */}
-      <AboutContent />
-      <WhoWeAre />
-      <AtMedh />
-      <WhyChooseMEDH />
+      <AboutPageContent />
     </PageWrapper>
   );
 };

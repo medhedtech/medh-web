@@ -8,7 +8,7 @@ import Banner from "@/assets/Header-Images/Career/career-at-medh.png";
 import Cource from "@/assets/Header-Images/Career/banner-img5.png";
 import Iso from "@/assets/images/vedic-mathematics/vedic-logo.svg";
 
-export default function CareerBanner() {
+export default function CareerBanner({ onViewPositionsClick }) {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
@@ -106,12 +106,12 @@ export default function CareerBanner() {
                 Apply Now
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
-              <Link
-                href="/careers/positions"
+              <button
+                onClick={onViewPositionsClick}
                 className="inline-flex items-center px-6 py-3 bg-white dark:bg-gray-800 text-primary-500 font-medium rounded-lg border-2 border-primary-500 hover:bg-primary-50 dark:hover:bg-gray-700 transition-all"
               >
                 View Positions
-              </Link>
+              </button>
             </div>
 
             {/* Slogan */}
