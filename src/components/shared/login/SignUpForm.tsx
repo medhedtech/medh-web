@@ -19,6 +19,7 @@ import 'react-phone-input-2/lib/high-res.css';
 import Link from "next/link";
 import { parsePhoneNumber, isValidPhoneNumber, formatNumber } from 'libphonenumber-js';
 import { useTheme } from "next-themes";
+import { Resolver, SubmitHandler } from "react-hook-form";
 
 interface PhoneNumberFormat {
   international: string;
@@ -27,8 +28,8 @@ interface PhoneNumberFormat {
   rfc3966: string;
   significant: string;
   countryCode: string;
-  country: string;
-  type: string;
+  country: string | undefined;
+  type: string | undefined;
 }
 
 // Enhanced phone number validation using libphonenumber-js
@@ -108,24 +109,30 @@ interface SignUpFormData {
     gender?: string;
     age_group?: AgeGroup;
   };
-  phone_numbers?: string;
+  phone_numbers?: {
+    country: string;
+    number: string;
+  }[];
   recaptcha?: string;
 }
 
 type FormFields = {
   email: string;
   password: string;
+  confirm_password: string;
   agree_terms: boolean;
   role: "student";
   full_name: string;
   meta: {
-    gender?: string;
+    gender: "Male" | "Female" | "Others";
     age_group?: AgeGroup;
   };
   status: string;
   age_group: AgeGroup;
-  "meta.gender": string;
-  phone_numbers: string;
+  phone_numbers: {
+    country: string;
+    number: string;
+  }[];
   recaptcha: string;
 };
 
@@ -143,6 +150,9 @@ const schema = yup
     password: yup.string()
       .required("Password is required")
       .min(8, "Password must be at least 8 characters"),
+    confirm_password: yup.string()
+      .required("Please confirm your password")
+      .oneOf([yup.ref('password')], "Passwords must match"),
     agree_terms: yup.boolean()
       .oneOf([true], "You must accept the terms to proceed")
       .required(),
@@ -157,8 +167,20 @@ const schema = yup
     meta: yup.object({
       gender: yup.string()
         .oneOf(["Male", "Female", "Others"])
-        .required("Gender is required")
-    })
+        .required("Gender is required"),
+      age_group: yup.string()
+        .oneOf(["Under 18", "18-24", "25-34", "35-44", "45-54", "55-64", "65+"])
+    }),
+    phone_numbers: yup.array()
+      .of(
+        yup.object({
+          country: yup.string().required("Country code is required"),
+          number: yup.string().required("Phone number is required")
+        })
+      )
+      .required("Phone number is required"),
+    recaptcha: yup.string()
+      .required("Please verify that you are human")
   })
   .required();
 
@@ -195,21 +217,34 @@ const SignUpForm = () => {
     watch,
     setValue,
     trigger
-  } = useForm({
-    resolver: yupResolver(schema)
+  } = useForm<FormFields>({
+    resolver: yupResolver(schema) as Resolver<FormFields>,
+    defaultValues: {
+      role: "student",
+      status: "Active",
+      age_group: "18-24",
+      meta: {
+        gender: "Male",
+        age_group: "18-24"
+      },
+      phone_numbers: [{
+        country: "in",
+        number: ""
+      }]
+    }
   });
 
   // Initialize form values
   useEffect(() => {
-    // Set default values
+    // Set phone number data
     setValue('phone_numbers', [{
       country: phoneData.country,
       number: phoneData.number
-    }]);
+    }], { shouldValidate: true });
     
     // Set default age group
     setValue('age_group', selectedAgeGroup);
-    setValue('meta.age_group', selectedAgeGroup);
+    setValue('meta.age_group', selectedAgeGroup, { shouldValidate: false });
   }, [setValue, phoneData.number, phoneData.country, selectedAgeGroup]);
 
   // Add entrance animation effect
@@ -242,7 +277,7 @@ const SignUpForm = () => {
   const handleRecaptchaChange = (value: string) => {
     setRecaptchaValue(value);
     setRecaptchaError(false);
-    setValue('recaptcha', value);
+    setValue('recaptcha', value, { shouldValidate: true });
   };
 
   const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
@@ -262,12 +297,14 @@ const SignUpForm = () => {
   };
 
   // Enhanced phone number change handler
-  const handlePhoneChange = (value: string, country: { iso2: string; dialCode: string }) => {
+  const handlePhoneChange = (value: string, country: any) => {
+    // Ensure we have the right country object structure
+    const countryObj = typeof country === 'object' ? country : { iso2: '', dialCode: '' };
     const phoneNumber = value ? formatNumber(value, 'NATIONAL') : '';
     setPhoneData({
       number: value,
-      country: country.iso2,
-      countryCode: country.dialCode,
+      country: countryObj.iso2 || '',
+      countryCode: countryObj.dialCode || '',
       formattedNumber: value,
       isValid: isValidPhoneNumber(value),
       type: null,
@@ -280,10 +317,10 @@ const SignUpForm = () => {
     const value = e.target.value as AgeGroup;
     setSelectedAgeGroup(value);
     setValue('age_group', value);
-    setValue('meta.age_group', value);
+    setValue('meta.age_group', value, { shouldValidate: false });
   };
 
-  const onSubmit = async (data: SignUpFormData) => {
+  const onSubmit = async (data: FormFields) => {
     if (!recaptchaValue) {
       setRecaptchaError(true);
       return;
@@ -297,18 +334,12 @@ const SignUpForm = () => {
         return;
       }
 
-      // Format phone number for API using E.164 format
-      const formattedPhoneNumber = {
-        country: phoneData.country,
-        number: phoneData.number // Already in E.164 format from handlePhoneChange
-      };
-
       // Prepare the request data with all required fields and their defaults
       const requestData = {
         full_name: data.full_name.trim(),
         email: data.email.toLowerCase().trim(),
         password: data.password,
-        phone_numbers: [formattedPhoneNumber],
+        phone_numbers: data.phone_numbers,
         agree_terms: data.agree_terms,
         role: ["student"],
         age_group: data.age_group,
@@ -327,6 +358,8 @@ const SignUpForm = () => {
       const response = await postQuery({
         url: apiUrls?.user?.register,
         postData: requestData,
+        requireAuth: false, // Registration doesn't need authentication
+        showToast: false, // We'll handle toasts ourselves
         onSuccess: (response) => {
           console.log('Registration Success:', response); // Add success logging
           setRecaptchaError(false);
@@ -611,7 +644,7 @@ const SignUpForm = () => {
               </div>
 
               {/* Form */}
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-2.5 sm:space-y-4">
+              <form onSubmit={handleSubmit(onSubmit as SubmitHandler<FormFields>)} className="space-y-2.5 sm:space-y-4">
                 {/* Full Name Field */}
                 <div>
                   <div className="relative">
@@ -687,6 +720,37 @@ const SignUpForm = () => {
                     <p className="mt-1 text-xs text-red-500 flex items-start">
                       <AlertCircle className="h-3 w-3 mt-0.5 mr-1.5 flex-shrink-0" />
                       <span>{errors.age_group?.message}</span>
+                    </p>
+                  )}
+                </div>
+
+                {/* Gender selection field */}
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Gender
+                  </label>
+                  <div className="relative">
+                    <select
+                      {...register("meta.gender")}
+                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-10 sm:pl-11 appearance-none text-sm sm:text-base"
+                    >
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Others">Others</option>
+                    </select>
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <UserCircle className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                    </div>
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  </div>
+                  {errors.meta?.gender && (
+                    <p className="mt-1 text-xs text-red-500 flex items-start">
+                      <AlertCircle className="h-3 w-3 mt-0.5 mr-1.5 flex-shrink-0" />
+                      <span>{errors.meta.gender.message}</span>
                     </p>
                   )}
                 </div>
