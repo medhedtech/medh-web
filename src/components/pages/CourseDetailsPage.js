@@ -803,7 +803,9 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
                           </h4>
                         </div>
                         <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed">
-                          This comprehensive {courseDetails?.course_category || courseDetails?.category || "course"} is designed to provide students with a solid foundation in the subject matter, combining theoretical knowledge with practical applications. Through interactive sessions and hands-on projects, students will develop the skills needed to excel in this field.
+                          {typeof courseDetails?.course_description === 'object' 
+                            ? (courseDetails.course_description.text || JSON.stringify(courseDetails.course_description)) 
+                            : courseDetails?.course_description || `This comprehensive ${courseDetails?.course_category || courseDetails?.category || "course"} is designed to provide students with a solid foundation in the subject matter, combining theoretical knowledge with practical applications. Through interactive sessions and hands-on projects, students will develop the skills needed to excel in this field.`}
                         </p>
                       </div>
                     )}

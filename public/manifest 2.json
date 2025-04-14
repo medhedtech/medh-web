@@ -1,7 +1,7 @@
 {
   "name": "MEDH - Upskill Your Career",
   "short_name": "MEDH",
-  "description": "Expert-led professional courses for career advancement",
+  "description": "Expert-led courses for career advancement",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
