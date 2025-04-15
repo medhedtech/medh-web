@@ -5,7 +5,16 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
-import { format } from "date-fns";
+import { 
+  format, 
+  startOfMonth, 
+  endOfMonth, 
+  eachDayOfInterval, 
+  isSameDay, 
+  parseISO, 
+  addMonths, 
+  subMonths 
+} from "date-fns";
 import { useRouter } from "next/navigation";
 import { 
   LucideCalendar, 
@@ -20,7 +29,13 @@ import {
   LucideInfo,
   LucideExternalLink,
   LucideCheck,
-  LucidePlus
+  LucidePlus,
+  LucideGrid,
+  LucideList,
+  LucideArrowLeft,
+  LucideArrowRight,
+  LucidePlay,
+  LucideStar
 } from "lucide-react";
 
 // Component imports
@@ -59,6 +74,8 @@ interface DemoClass {
     course_image: string;
     course_title: string;
   };
+  rating?: number;
+  isPopular?: boolean;
 }
 
 interface ApiResponse {
@@ -70,6 +87,13 @@ interface FilterState {
   status: string;
   instructor: string;
   searchTerm: string;
+  month?: Date;
+}
+
+interface CalendarDay {
+  date: Date;
+  isCurrentMonth: boolean;
+  events: DemoClass[];
 }
 
 // Animation variants
@@ -115,6 +139,11 @@ const StudentDemoClasses: React.FC = () => {
   const [isRegistered, setIsRegistered] = useState<boolean>(false);
   const [registering, setRegistering] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
+  
+  // View state
+  const [viewMode, setViewMode] = useState<"grid" | "calendar">("grid");
+  const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
+  const [calendarDays, setCalendarDays] = useState<CalendarDay[]>([]);
   
   // Filter and search state
   const [filters, setFilters] = useState<FilterState>({
@@ -330,6 +359,53 @@ const StudentDemoClasses: React.FC = () => {
     setActiveTab(tab);
   };
   
+  // Calendar functions
+  const generateCalendarDays = (month: Date, demoClasses: DemoClass[]) => {
+    const monthStart = startOfMonth(month);
+    const monthEnd = endOfMonth(month);
+    const dateRange = eachDayOfInterval({ start: monthStart, end: monthEnd });
+    
+    // Create calendar days with events
+    const days: CalendarDay[] = dateRange.map(date => {
+      // Find classes on this day
+      const dayEvents = demoClasses.filter(demoClass => {
+        try {
+          const classDate = parseISO(demoClass.date);
+          return isSameDay(classDate, date);
+        } catch (error) {
+          return false;
+        }
+      });
+      
+      return {
+        date,
+        isCurrentMonth: true,
+        events: dayEvents
+      };
+    });
+    
+    setCalendarDays(days);
+  };
+  
+  const handlePreviousMonth = () => {
+    const prevMonth = subMonths(currentMonth, 1);
+    setCurrentMonth(prevMonth);
+    generateCalendarDays(prevMonth, classes);
+  };
+  
+  const handleNextMonth = () => {
+    const nextMonth = addMonths(currentMonth, 1);
+    setCurrentMonth(nextMonth);
+    generateCalendarDays(nextMonth, classes);
+  };
+  
+  // Update calendar when classes data changes
+  useEffect(() => {
+    if (classes.length > 0) {
+      generateCalendarDays(currentMonth, classes);
+    }
+  }, [classes, currentMonth]);
+  
   // Get color based on status
   const getStatusColor = (status: string): string => {
     switch (status) {
@@ -354,30 +430,29 @@ const StudentDemoClasses: React.FC = () => {
         key={classItem._id}
         variants={itemVariants}
         whileHover={{ y: -5, transition: { duration: 0.2 } }}
-        className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 dark:border-gray-700"
+        className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 dark:border-gray-700 flex flex-col"
       >
-        <div className="relative overflow-hidden">
+        <div className="relative overflow-hidden h-40">
           <Image
             src={classItem.courseDetails?.course_image || DefaultClassImage}
             alt={classItem.meet_title}
             width={400}
             height={200}
-            className="w-full h-48 object-cover transform hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500"
           />
           
-          <div className="absolute top-3 right-3">
-            <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusColor}`}>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-4">
+            <span className={`self-end text-xs font-medium px-2.5 py-0.5 rounded-full mb-2 ${statusColor}`}>
               {status === "live" ? "LIVE NOW" : status.charAt(0).toUpperCase() + status.slice(1)}
             </span>
+            <h3 className="text-lg font-semibold text-white">
+              {classItem.meet_title}
+            </h3>
           </div>
         </div>
         
-        <div className="p-5">
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
-            {classItem.meet_title}
-          </h3>
-          
-          <div className="space-y-2 mb-4">
+        <div className="p-4 flex-1 flex flex-col">
+          <div className="space-y-2 flex-1">
             <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
               <LucideCalendar className="w-4 h-4 mr-2 text-primary-500" />
               <span>{formatDate(classItem.date)}</span>
@@ -395,35 +470,47 @@ const StudentDemoClasses: React.FC = () => {
                 <span>{classItem.instructor_name}</span>
               </div>
             )}
+            
+            {classItem.isPopular && (
+              <div className="flex items-center mt-2">
+                <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full flex items-center dark:bg-yellow-900/30 dark:text-yellow-500">
+                  <LucideStar className="w-3 h-3 mr-1" />
+                  Popular
+                </span>
+              </div>
+            )}
           </div>
           
-          <div className="flex flex-wrap gap-2 mt-4">
-            <button
-              onClick={() => handleViewDetails(classItem)}
-              className="flex-1 px-4 py-2 text-sm font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 dark:bg-primary-900/10 dark:text-primary-400 dark:hover:bg-primary-900/20 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
-            >
-              View Details
-            </button>
-            
+          <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
             {status === "live" ? (
               <button
                 onClick={() => handleJoinClass()}
-                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+                className="w-full py-2 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center justify-center font-medium text-sm"
               >
-                Join Now
+                <LucidePlay className="w-4 h-4 mr-2" />
+                Join Live
               </button>
             ) : status === "upcoming" ? (
-              <button
-                onClick={() => handleRegister(classItem)}
-                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
-              >
-                Register
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleViewDetails(classItem)}
+                  className="flex-1 py-2 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+                >
+                  Details
+                </button>
+                <button
+                  onClick={() => handleRegister(classItem)}
+                  className="flex-1 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors"
+                >
+                  Register
+                </button>
+              </div>
             ) : (
               <button
                 onClick={() => router.push("/dashboards/student/recorded-sessions")}
-                className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+                className="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 rounded-lg transition-colors flex items-center justify-center font-medium text-sm"
               >
+                <LucideVideo className="w-4 h-4 mr-2" />
                 View Recording
               </button>
             )}
@@ -469,22 +556,50 @@ const StudentDemoClasses: React.FC = () => {
           />
         </div>
         
-        <div className="flex flex-wrap gap-3">
-          <Select
-            label="Category"
-            options={categories.map(cat => ({ value: cat, label: cat === "all" ? "All Categories" : cat }))}
-            value={filters.category}
-            onChange={(value: string) => handleFilterChange("category", value)}
-            className="w-full sm:w-40"
-          />
+        <div className="flex items-center gap-3">
+          {/* View mode toggle */}
+          <div className="hidden md:flex bg-gray-100 dark:bg-gray-800 p-1 rounded-lg overflow-hidden">
+            <button
+              onClick={() => setViewMode("grid")}
+              className={`flex items-center px-3 py-1.5 rounded-md transition-colors text-sm ${
+                viewMode === "grid"
+                  ? "bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+              }`}
+            >
+              <LucideGrid className="w-4 h-4 mr-1.5" />
+              Grid
+            </button>
+            <button
+              onClick={() => setViewMode("calendar")}
+              className={`flex items-center px-3 py-1.5 rounded-md transition-colors text-sm ${
+                viewMode === "calendar"
+                  ? "bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+              }`}
+            >
+              <LucideCalendar className="w-4 h-4 mr-1.5" />
+              Calendar
+            </button>
+          </div>
           
-          <Select
-            label="Instructor"
-            options={instructors.map(ins => ({ value: ins, label: ins === "all" ? "All Instructors" : ins }))}
-            value={filters.instructor}
-            onChange={(value: string) => handleFilterChange("instructor", value)}
-            className="w-full sm:w-40"
-          />
+          <div className="flex flex-wrap gap-3">
+            <Select
+              label="Category"
+              options={categories.map(cat => ({ value: cat, label: cat === "all" ? "All Categories" : cat }))}
+              value={filters.category}
+              onChange={(value: string) => handleFilterChange("category", value)}
+              className="w-full sm:w-40"
+            />
+            
+            <Select
+              label="Instructor"
+              options={instructors.map(ins => ({ value: ins, label: ins === "all" ? "All Instructors" : ins }))}
+              value={filters.instructor}
+              onChange={(value: string) => handleFilterChange("instructor", value)}
+              className="w-full sm:w-40"
+            />
+          </div>
         </div>
       </div>
       
@@ -504,14 +619,94 @@ const StudentDemoClasses: React.FC = () => {
           <LoadingIndicator type="spinner" size="lg" color="primary" text="Loading demo classes..." />
         </div>
       ) : filteredClasses.length > 0 ? (
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-        >
-          {filteredClasses.map(renderClassCard)}
-        </motion.div>
+        viewMode === "grid" ? (
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+          >
+            {filteredClasses.map(renderClassCard)}
+          </motion.div>
+        ) : (
+          // Calendar View
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+              <div className="flex items-center space-x-1">
+                <button
+                  onClick={handlePreviousMonth}
+                  className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+                >
+                  <LucideArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                </button>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                  {format(currentMonth, "MMMM yyyy")}
+                </h3>
+                <button
+                  onClick={handleNextMonth}
+                  className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+                >
+                  <LucideArrowRight className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                </button>
+              </div>
+              <div>
+                <button
+                  onClick={() => setCurrentMonth(new Date())}
+                  className="px-3 py-1 text-sm bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md text-gray-700 dark:text-gray-300"
+                >
+                  Today
+                </button>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-7 text-center">
+              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+                <div 
+                  key={day} 
+                  className="py-2 border-b border-gray-200 dark:border-gray-700 font-medium text-gray-700 dark:text-gray-300"
+                >
+                  {day}
+                </div>
+              ))}
+            </div>
+            
+            <div className="grid grid-cols-7 auto-rows-fr min-h-[600px]">
+              {calendarDays.map((calendarDay, index) => (
+                <div
+                  key={calendarDay.date.toString() + index}
+                  className="p-1 border-b border-r border-gray-200 dark:border-gray-700 min-h-[100px]"
+                >
+                  <div className="text-right p-1">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {format(calendarDay.date, "d")}
+                    </span>
+                  </div>
+                  <div className="space-y-1 mt-1">
+                    {calendarDay.events.map((event) => (
+                      <div
+                        key={event._id}
+                        onClick={() => handleViewDetails(event)}
+                        className={`cursor-pointer px-2 py-1 rounded-md text-xs truncate ${
+                          getClassStatus(event) === "live"
+                            ? "bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400"
+                            : getClassStatus(event) === "upcoming"
+                            ? "bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400"
+                            : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+                        }`}
+                      >
+                        <div className="flex items-center">
+                          {getClassStatus(event) === "live" && <LucidePlay className="w-3 h-3 mr-1 flex-shrink-0" />}
+                          <span className="truncate">{event.meet_title}</span>
+                        </div>
+                        <div className="text-xs mt-0.5 opacity-80">{formatTime(event.time)}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
       ) : (
         <EmptyState
           icon={<LucideBookOpen size={48} />}

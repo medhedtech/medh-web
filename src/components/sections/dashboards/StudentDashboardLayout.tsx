@@ -106,6 +106,39 @@ const StudentDemoClasses = dynamic(
   }
 );
 
+// Add the new component imports
+const StudentProgressTracking = dynamic(
+  () => import("@/components/layout/main/dashboards/StudentProgressTracking"), 
+  { 
+    ssr: false,
+    loading: () => <SkeletonLoader type="dashboard" />
+  }
+);
+
+const LearningResources = dynamic(
+  () => import("@/components/layout/main/dashboards/LearningResources"), 
+  { 
+    ssr: false,
+    loading: () => <SkeletonLoader type="resources" />
+  }
+);
+
+const StudentAssignments = dynamic(
+  () => import("@/components/layout/main/dashboards/StudentAssignments"), 
+  { 
+    ssr: false,
+    loading: () => <SkeletonLoader type="assignments" />
+  }
+);
+
+const LiveClasses = dynamic(
+  () => import("@/components/layout/main/dashboards/LiveClasses"), 
+  { 
+    ssr: false,
+    loading: () => <SkeletonLoader type="classes" />
+  }
+);
+
 // Animation variants
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -335,7 +368,7 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
       );
     }
 
-    // View matching helpers
+    // Helper to check if view matches any of the provided patterns
     const viewMatches = (patterns: string[]): boolean => {
       const normalizedView = currentView.toLowerCase();
       return patterns.some(pattern => normalizedView.includes(pattern));
@@ -400,15 +433,19 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
       />;
     } else if (viewMatches(['democlasses', 'demo'])) {
       return <StudentDemoClasses />;
+    } else if (viewMatches(['progress', 'analytics'])) {
+      return <StudentProgressTracking />;
+    } else if (viewMatches(['resource', 'materials', 'ebooks'])) {
+      return <LearningResources />;
+    } else if (viewMatches(['assignments', 'assignment'])) {
+      return <StudentAssignments />;
+    } else if (viewMatches(['liveclasses', 'live'])) {
+      return <LiveClasses />;
     } else {
-      // Default to coming soon for unimplemented views
+      // Default to coming soon for truly unimplemented views
       return (
         <ComingSoonPage 
-          title={viewMatches(['progress', 'analytics']) ? "Progress Tracking" :
-                 viewMatches(['resource', 'materials', 'ebooks']) ? "Learning Resources" :
-                 viewMatches(['assignments', 'assignment']) ? "Assignments" :
-                 viewMatches(['liveclasses', 'live']) ? "Live Classes" :
-                 "Feature Coming Soon"}
+          title="Feature Coming Soon"
           description="We're working on this feature and it will be available soon!"
           returnPath="/dashboards/student"
         />
