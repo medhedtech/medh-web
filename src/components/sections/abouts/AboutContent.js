@@ -134,16 +134,6 @@ const AboutContent = () => {
                 individuals are fully equipped for success at every stage of life.
               </p>
             </div>
-
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              className="flex-shrink-0"
-            >
-              <div className="bg-[#F6B335] hover:bg-[#e5a52f] transition-colors flex items-center gap-2 px-6 py-4 rounded-lg cursor-pointer group">
-                <ArrowDown className="w-5 h-5 text-white transition-transform group-hover:-translate-y-1" />
-                <span className="text-white font-bold">Why Medh?</span>
-              </div>
-            </motion.div>
           </div>
         </motion.div>
       </div>

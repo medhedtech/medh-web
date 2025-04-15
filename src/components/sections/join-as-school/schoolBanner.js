@@ -44,6 +44,13 @@ const SchoolBanner = () => {
     }
   };
 
+  const scrollToRegistration = () => {
+    const registrationSection = document.getElementById('registration-section');
+    if (registrationSection) {
+      registrationSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <section className="relative bg-gradient-to-b from-primary-50 to-white dark:from-gray-900 dark:to-gray-800 overflow-hidden pt-12 md:pt-12">
       <div className="absolute inset-0 bg-grid-pattern opacity-5" />
@@ -89,7 +96,10 @@ const SchoolBanner = () => {
 
             {/* CTA Section */}
             <motion.div variants={itemVariants} className="flex items-center space-x-6">
-              <button className="px-8 py-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+              <button 
+                onClick={scrollToRegistration}
+                className="px-8 py-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl shadow-lg transition-all duration-300 transform hover:-translate-y-1"
+              >
                 Explore More
               </button>
             </motion.div>
