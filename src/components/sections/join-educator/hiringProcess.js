@@ -176,21 +176,6 @@ const HiringProcess = () => {
             <span className="text-sm font-medium text-violet-700 dark:text-violet-400">Onboarding</span>
           </div>
         </motion.div>
-        
-        {/* CTA Button */}
-        <motion.div variants={itemVariants} className="text-center mt-14">
-          <a 
-            href="#apply-now" 
-            className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-500 dark:to-violet-500 text-white font-semibold rounded-xl shadow-lg shadow-indigo-500/20 dark:shadow-indigo-700/30 hover:shadow-xl hover:shadow-indigo-500/30 dark:hover:shadow-indigo-700/40 transform hover:-translate-y-1 transition-all duration-300 text-lg group"
-          >
-            <Briefcase className="w-5 h-5 mr-3" />
-            Start Your Application
-            <ArrowRight className="w-5 h-5 ml-2 transform group-hover:translate-x-1 transition-transform duration-300" />
-          </a>
-          <p className="mt-6 text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto">
-            The average time from application to offer is approximately 2-3 weeks
-          </p>
-        </motion.div>
       </motion.div>
     </section>
   );
