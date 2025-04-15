@@ -59,6 +59,8 @@ const fallbackCategories = {
     "Language & Linguistic",
     "Legal & Compliance Skills",
     "Personal Well-Being",
+    "Sales & Marketing",
+    "Technical Skills",
   ],
   all: [
     "AI and Data Science",
@@ -77,6 +79,9 @@ const fallbackCategories = {
     "Language & Linguistic",
     "Legal & Compliance Skills",
     "Personal Well-Being",
+    "Sales & Marketing",
+    "Technical Skills",
+    ""
   ]
 };
 
@@ -305,7 +310,7 @@ const SearchInput = React.memo(({ searchTerm, handleSearch, setSearchTerm }) => 
         className="input-modern w-full py-2 pl-10 pr-4"
         aria-label="Search courses"
       />
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" size={18} />
+
       {searchTerm && (
         <button
           onClick={() => setSearchTerm("")}
@@ -440,6 +445,38 @@ const CoursesFilter = ({
   const isTablet = width >= 768 && width < 1024;
   const [responsiveGridColumns, setResponsiveGridColumns] = useState(gridColumns);
 
+  // Define all state variables at the top, before any useEffect hooks that use them
+  // Filter states
+  const [selectedCategory, setSelectedCategory] = useState([]);
+  const [selectedGrade, setSelectedGrade] = useState("");
+  const [sortOrder, setSortOrder] = useState("newest-first");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [viewMode, setViewMode] = useState(forceViewMode || "grid");
+  
+  // API data
+  const [allCourses, setAllCourses] = useState([]);
+  const [filteredCourses, setFilteredCourses] = useState([]);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+
+  // UI states
+  const [showingRelated, setShowingRelated] = useState(false);
+  const [activeFilters, setActiveFilters] = useState([]);
+  const [showFilters, setShowFilters] = useState(false);
+  const [queryError, setQueryError] = useState(null);
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const [userCurrency, setUserCurrency] = useState("USD"); // Default currency
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
+
+  // Refs
+  const sortDropdownRef = useRef(null);
+  const didInitRef = useRef(false);
+  const debounceTimer = useRef(null);
+
+  // Debounce search term
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+
   // Update grid columns based on screen size
   useEffect(() => {
     // Skip during SSR
@@ -459,14 +496,14 @@ const CoursesFilter = ({
     updateGridColumns();
   }, [isMobile, isTablet, gridColumns]);
 
-  // Filter states
-  const [selectedCategory, setSelectedCategory] = useState([]);
-  const [selectedGrade, setSelectedGrade] = useState("");
-  const [sortOrder, setSortOrder] = useState("newest-first");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  // Use forceViewMode if provided, otherwise use the state
-  const [viewMode, setViewMode] = useState(forceViewMode || "grid");
+  // Reset page number when filters change
+  useEffect(() => {
+    // Skip the initial render to avoid resetting when component first mounts
+    if (!didInitRef.current) return;
+    
+    // Reset to page 1 when any filter criteria changes
+    setCurrentPage(1);
+  }, [searchTerm, selectedCategory, selectedGrade, sortOrder]);
 
   // Effect to update viewMode if forceViewMode changes
   useEffect(() => {
@@ -474,30 +511,6 @@ const CoursesFilter = ({
       setViewMode(forceViewMode);
     }
   }, [forceViewMode]);
-
-  // API data
-  const [allCourses, setAllCourses] = useState([]);
-  const [filteredCourses, setFilteredCourses] = useState([]);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalItems, setTotalItems] = useState(0);
-
-  // UI states
-  const [showingRelated, setShowingRelated] = useState(false);
-  const [activeFilters, setActiveFilters] = useState([]);
-  const [showFilters, setShowFilters] = useState(false);
-  const [queryError, setQueryError] = useState(null);
-  const [showSortDropdown, setShowSortDropdown] = useState(false);
-
-  // Refs
-  const sortDropdownRef = useRef(null);
-  const didInitRef = useRef(false);
-  const debounceTimer = useRef(null);
-
-  // Debounce search term
-  const debouncedSearchTerm = useDebounce(searchTerm, 300);
-
-  const [userCurrency, setUserCurrency] = useState("USD"); // Default currency
-  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
 
   // Initialize currency on component mount
   useEffect(() => {
@@ -598,9 +611,21 @@ const CoursesFilter = ({
         if (sortOrder && sortOrder !== "newest-first") {
           q.set("sort", sortOrder);
         }
-        // Page
+        // Page - only include if user explicitly changed pages through pagination
+        // and not if other filters changed (since we auto-reset to page 1)
         if (currentPage > 1) {
-          q.set("page", currentPage.toString());
+          // Check if we're not in the middle of a filter change
+          const urlParams = new URLSearchParams(window.location.search);
+          const hasFilterChange = 
+            (urlParams.get("category") !== (q.get("category") || null)) || 
+            (urlParams.get("grade") !== (q.get("grade") || null)) || 
+            (urlParams.get("search") !== (q.get("search") || null)) || 
+            (urlParams.get("sort") !== (q.get("sort") || null));
+          
+          // Only keep page param if no filter changes occurred
+          if (!hasFilterChange) {
+            q.set("page", currentPage.toString());
+          }
         }
 
         const newQuery = q.toString();
@@ -1326,6 +1351,7 @@ const CoursesFilter = ({
           <nav className="mt-10 flex justify-center" aria-label="Pagination">
             {simplePagination ? (
               <SimplePaginationWrapper
+                key={`pagination-${searchTerm}-${selectedCategory.join(',')}-${selectedGrade}-${sortOrder}`}
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={handlePageChange}
@@ -1334,6 +1360,7 @@ const CoursesFilter = ({
               />
             ) : (
               <Pagination
+                key={`pagination-${searchTerm}-${selectedCategory.join(',')}-${selectedGrade}-${sortOrder}`}
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={handlePageChange}

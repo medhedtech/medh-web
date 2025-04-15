@@ -17,7 +17,9 @@ function JoinSchool() {
       <SchoolBanner />
       <KeyAdvantages />
       <AdvanceEducational />
-      <Registration  pageTitle="join_as_school" />
+      <div id="registration-section">
+        <Registration pageTitle="join_as_school" />
+      </div>
       <Certified />
       <SchoolFaq />
       
