@@ -1134,6 +1134,17 @@ const CoursesFilter = ({
       >
         {filteredCourses.map((course) => {
           const enhancedCourse = renderCourse(course);
+          // Determine if this course is in the Live Courses category
+          const isInLiveCategory = enhancedCourse.course_category && 
+                                  Array.isArray(fallbackCategories.live) && 
+                                  fallbackCategories.live.includes(enhancedCourse.course_category);
+          
+          // If course is in a Live category, force live class type
+          const effectiveClassType = isInLiveCategory ? 'live' : 
+                                    (classType && classType.toLowerCase().includes('live')) ? 'live' : 
+                                    (classType && classType.toLowerCase().includes('blend')) ? 'blended' : 
+                                    classType || enhancedCourse.class_type;
+          
           return (
             <ErrorBoundary key={enhancedCourse._id}>
               <MemoizedCourseCard 
@@ -1147,7 +1158,7 @@ const CoursesFilter = ({
                 viewMode={viewMode}
                 isCompact={isMobile}
                 preserveClassType={true}
-                classType={classType || enhancedCourse.class_type}
+                classType={effectiveClassType}
                 className={viewMode === "list" ? "border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200" : ""}
               />
             </ErrorBoundary>
@@ -1369,21 +1380,6 @@ const CoursesFilter = ({
             )}
           </nav>
         )}
-
-        {/* Bottom Action with dynamic styling */}
-        <div className="mt-12 text-center">
-          {CustomButton ? (
-            <div className="inline-block">{CustomButton}</div>
-          ) : (
-            <Link
-              href="/courses"
-              className={`btn-modern ${tabStyles.buttonColor} inline-flex items-center px-6 py-3 text-white text-sm font-medium rounded-xl transition-colors shadow-sm hover:shadow-md`}
-            >
-              <span>View All Courses</span>
-              <ChevronRight className="ml-2 w-5 h-5" />
-            </Link>
-          )}
-        </div>
       </div>
     );
   };

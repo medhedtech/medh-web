@@ -282,8 +282,11 @@ function CourseAiFaq() {
               Still have questions? Our team is here to help!
             </div>
             <a 
-              href="mailto:care@medh.co" 
+              href="mailto:care@medh.co?subject=Corporate Training Inquiry&body=Hello, I have a question about your corporate training programs."
               className="inline-flex items-center px-6 py-3 font-medium text-sm sm:text-base rounded-full bg-[#379392] text-white hover:bg-[#379392]/90 transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg"
+              aria-label="Contact Support via Email"
+              rel="noopener"
+              title="Send us an email with your questions"
             >
               <MessageCircle className="w-5 h-5 mr-2" />
               Contact Support
