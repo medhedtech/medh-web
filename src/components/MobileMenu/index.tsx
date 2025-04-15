@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Menu, X, ChevronLeft, LogOut } from 'lucide-react';
+import { Menu, X, ChevronLeft, LogOut, GraduationCap } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { MENU_CONFIG } from '@/constants/menu';
 import { STYLES } from '@/constants/uiStyles';
@@ -230,6 +230,90 @@ const MobileMenu: React.FC<IMobileMenuProps> = ({
     setActiveSection(section);
   }, [activeSection]);
   
+  // Enhanced close menu function
+  const closeMenu = useCallback(() => {
+    setMenuScale(0.98);
+    setMenuOpacity(0);
+    
+    setTimeout(() => {
+      if (propOnClose) {
+        propOnClose();
+      } else {
+        setIsInternalOpen(false);
+      }
+    }, 200);
+  }, [propOnClose]);
+  
+  // Render section content based on active section
+  const renderSectionContent = useCallback(() => {
+    switch(activeSection) {
+      case 'courses':
+        return (
+          <div className="p-4">
+            <h2 className={STYLES.sectionHeading}>Courses</h2>
+            <div className="grid grid-cols-2 gap-3 mt-3">
+              {MENU_CONFIG.industries.map((item, index) => (
+                <MenuItem key={index} {...item} />
+              ))}
+            </div>
+            <div className="mt-6">
+              <Link 
+                href="/skill-development-courses"
+                onClick={closeMenu}
+                className="inline-flex items-center px-4 py-2 rounded-lg bg-primary-500/10 text-primary-500"
+              >
+                <GraduationCap className="h-4 w-4 mr-2" />
+                <span>View All Courses</span>
+              </Link>
+            </div>
+          </div>
+        );
+      case 'pages':
+        return (
+          <div className="p-4">
+            <h2 className={STYLES.sectionHeading}>Pages</h2>
+            <div className="space-y-3 mt-3">
+              <Link 
+                href="/about-us" 
+                onClick={closeMenu}
+                className="block p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                <h3 className="font-medium">About Us</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Learn about our mission</p>
+              </Link>
+              <Link 
+                href="/contact-us" 
+                onClick={closeMenu}
+                className="block p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                <h3 className="font-medium">Contact Us</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Get in touch with us</p>
+              </Link>
+              <Link 
+                href="/join-us-as-educator" 
+                onClick={closeMenu}
+                className="block p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                <h3 className="font-medium">Join As Educator</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Become a teacher</p>
+              </Link>
+              <Link 
+                href="/hire-from-medh" 
+                onClick={closeMenu}
+                className="block p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                <h3 className="font-medium">Hire From Medh</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Find qualified talent</p>
+              </Link>
+            </div>
+          </div>
+        );
+      default:
+        // Main menu section - already handled in the main render
+        return null;
+    }
+  }, [activeSection, closeMenu, MENU_CONFIG?.industries]);
+  
   // Enhanced back navigation
   const goBack = useCallback(() => {
     if (menuHistory.length > 0) {
@@ -257,34 +341,41 @@ const MobileMenu: React.FC<IMobileMenuProps> = ({
     // Could add toast notification here
   }, [router]);
   
-  // Enhanced close menu function
-  const closeMenu = useCallback(() => {
-    setMenuScale(0.98);
-    setMenuOpacity(0);
-    
-    setTimeout(() => {
-      if (propOnClose) {
-        propOnClose();
-      } else {
-        setIsInternalOpen(false);
-      }
-    }, 200);
-  }, [propOnClose]);
-  
-  // Menu Item component for main navigation
+  // Enhanced menu item component for main navigation
   const MenuItem = useCallback(({ 
     icon: Icon, 
     label, 
     path, 
     color, 
-    bg 
+    bg,
+    isRelative,
+    dropdown
   }: IMenuItemProps) => {
     const isActive = pathname === path;
     
+    // Check if path is empty and provide a fallback
+    const linkPath = path || '/';
+    
+    const handleClick = (e: React.MouseEvent) => {
+      if (!path) {
+        e.preventDefault(); // Prevent navigation for empty paths
+        return;
+      }
+      
+      // For items with dropdown but no specific path
+      if (dropdown && isRelative) {
+        e.preventDefault(); // Prevent default navigation
+        navigateToSection(label.toLowerCase()); // Navigate to dropdown section
+        return;
+      }
+      
+      closeMenu();
+    };
+    
     return (
       <Link 
-        href={path}
-        onClick={closeMenu}
+        href={linkPath}
+        onClick={handleClick}
         className={`${STYLES.menuItem} ${isActive ? 'ring-2 ring-primary-500' : ''}`}
         aria-current={isActive ? 'page' : undefined}
       >
@@ -296,9 +387,14 @@ const MobileMenu: React.FC<IMobileMenuProps> = ({
           group-hover:text-gray-900 dark:group-hover:text-white">
           {label}
         </span>
+        {dropdown && (
+          <span className="ml-1 text-gray-400">
+            <ChevronLeft size={14} className="transform rotate-180" />
+          </span>
+        )}
       </Link>
     );
-  }, [pathname, closeMenu]);
+  }, [pathname, closeMenu, navigateToSection]);
   
   // No need to render until hydration is complete
   if (!mounted) return null;
@@ -408,29 +504,37 @@ const MobileMenu: React.FC<IMobileMenuProps> = ({
                 onClose={closeMenu} 
               />
               
-              {/* Main Navigation */}
-              <div className="px-4 py-2">
-                <h2 className={STYLES.sectionHeading}>Explore</h2>
-                <nav className={STYLES.navContainer}>
-                  {MENU_CONFIG.navSections.map((item, index) => (
-                    <MenuItem
-                      key={index}
-                      {...item}
+              {/* Conditional rendering based on active section */}
+              {activeSection === 'main' ? (
+                <>
+                  {/* Main Navigation */}
+                  <div className="px-4 py-2">
+                    <h2 className={STYLES.sectionHeading}>Explore</h2>
+                    <nav className={STYLES.navContainer}>
+                      {MENU_CONFIG.navSections.map((item, index) => (
+                        <MenuItem
+                          key={index}
+                          {...item}
+                        />
+                      ))}
+                    </nav>
+                  </div>
+                  
+                  {/* User Account */}
+                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <UserAccount 
+                      isLoggedIn={isLoggedIn}
+                      userName={userName}
+                      userRole={userRole}
+                      onClose={closeMenu}
+                      onLogout={handleLogout}
                     />
-                  ))}
-                </nav>
-              </div>
-              
-              {/* User Account */}
-              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <UserAccount 
-                  isLoggedIn={isLoggedIn}
-                  userName={userName}
-                  userRole={userRole}
-                  onClose={closeMenu}
-                  onLogout={handleLogout}
-                />
-              </div>
+                  </div>
+                </>
+              ) : (
+                // Render content for the selected section
+                renderSectionContent()
+              )}
             </div>
 
             {/* Theme Switcher */}
