@@ -1,3 +1,10 @@
+/**
+ * @license
+ * Proprietary and confidential.
+ * Copyright (c) 2025-2026 Medh. All rights reserved.
+ * Unauthorized copying of this file, via any medium is strictly prohibited.
+ */
+
 import { NextResponse } from 'next/server';
 import { securityConfig } from '@/config/security';
 
