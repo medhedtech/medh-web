@@ -686,12 +686,57 @@ const CourseCard = ({
   const getEffectiveClassType = () => {
     // If preserveClassType is true, use the course's own class_type
     // Otherwise, override with the classType prop if provided
-    return preserveClassType ? (course.class_type || "") : (classType || course.class_type || "");
+    
+    // First check if we have an explicit classType prop or class_type property
+    let effectiveType = preserveClassType ? (course.class_type || "") : (classType || course.class_type || "");
+    
+    // Handle the "all" category case - we need to determine the type from course properties
+    if (effectiveType === "all" || effectiveType === "") {
+      // Check for live courses indicators
+      if (course?.is_live_course === true || 
+          (course?.course_title && course.course_title.toLowerCase().includes('live')) ||
+          (course?.class_type && course.class_type.toLowerCase().includes('live')) ||
+          (course?.course_description && course.course_description.toLowerCase().includes('live interactive'))) {
+        return 'live';
+      }
+      
+      // Check for blended courses indicators
+      if (course?.is_blended_course === true || 
+          (course?.class_type && (course.class_type.toLowerCase().includes('blend') || course.class_type.toLowerCase().includes('hybrid'))) ||
+          (course?.course_title && (course.course_title.toLowerCase().includes('blend') || course.course_title.toLowerCase().includes('hybrid'))) ||
+          (course?.course_description && course.course_description.toLowerCase().includes('blended learning'))) {
+        return 'blended';
+      }
+      
+      // If we have no_of_Sessions but no indication of live/blended, likely self-paced
+      if (course?.no_of_Sessions || course?.video_count) {
+        return 'self-paced';
+      }
+      
+      // Default to self-paced if we can't determine
+      return 'self-paced';
+    }
+    
+    // Normalize the type to ensure consistent handling
+    effectiveType = effectiveType.toLowerCase();
+    
+    // Check for specific keywords that might identify the type
+    if (effectiveType.includes('live')) {
+      return 'live';
+    } else if (effectiveType.includes('blend') || effectiveType.includes('hybrid')) {
+      return 'blended';
+    } else if (effectiveType === 'self-paced' || effectiveType === 'self paced') {
+      return 'self-paced';
+    }
+    
+    // Default to self-paced if we can't determine
+    return effectiveType || 'self-paced';
   };
 
   // Updated to use the effective class type
-  const isLiveCourse = getEffectiveClassType().toLowerCase() === 'live';
-  const isBlendedCourse = getEffectiveClassType().toLowerCase() === 'blended';
+  const isLiveCourse = getEffectiveClassType() === 'live';
+  const isBlendedCourse = getEffectiveClassType() === 'blended';
+  const isSelfPacedCourse = getEffectiveClassType() === 'self-paced' || (!isLiveCourse && !isBlendedCourse);
 
   // Get course type specific styles
   const getCourseTypeStyles = () => {
@@ -713,7 +758,27 @@ const CourseCard = ({
         priceColor: 'text-[#379392]'
       };
     }
-    // Default to blended course styles
+    
+    if (isBlendedCourse) {
+      return {
+        tagBg: 'bg-purple-500/90',
+        tagText: 'text-white',
+        buttonBg: 'bg-purple-500 hover:bg-purple-600',
+        buttonText: 'text-white',
+        accentColor: 'text-purple-500 dark:text-purple-400',
+        borderHover: 'hover:border-purple-400/60',
+        shadowHover: 'hover:shadow-purple-200/20',
+        gradientBg: 'from-purple-50 via-white to-purple-50 dark:from-purple-900/10 dark:via-gray-900 dark:to-purple-900/10',
+        iconColor: 'text-purple-500',
+        borderLeft: 'border-l-4 border-purple-500/80',
+        durationBoxBg: 'bg-purple-50 dark:bg-purple-900/10',
+        durationIconColor: 'text-purple-500',
+        durationTextColor: 'text-purple-600',
+        priceColor: 'text-purple-600 dark:text-purple-400'
+      };
+    }
+    
+    // Default to self-paced course styles
     return {
       tagBg: 'bg-indigo-500/90',
       tagText: 'text-white',
@@ -725,9 +790,9 @@ const CourseCard = ({
       gradientBg: 'from-indigo-50 via-white to-indigo-50 dark:from-indigo-900/10 dark:via-gray-900 dark:to-indigo-900/10',
       iconColor: 'text-indigo-500',
       borderLeft: 'border-l-4 border-indigo-500/80',
-      durationBoxBg: 'bg-[#379392]/5',
+      durationBoxBg: 'bg-indigo-50 dark:bg-indigo-900/10',
       durationIconColor: 'text-indigo-500',
-      durationTextColor: 'text-[#379392]',
+      durationTextColor: 'text-indigo-600',
       priceColor: 'text-indigo-600 dark:text-indigo-400'
     };
   };
@@ -739,17 +804,35 @@ const CourseCard = ({
     if (isLiveCourse) {
       return {
         tag: 'Live',
+        tagIcon: <Play className="w-3 h-3" />,
         sessionLabel: 'Live Sessions',
+        sessionIcon: <Users size={14} />,
         durationLabel: 'Live Interactive',
         scheduleInfo: course?.schedule || 'Flexible Schedule',
         instructorLabel: 'Live Instructor',
         priceLabel: 'Per Session'
       };
     }
-    // Default to blended course content
+    
+    if (isBlendedCourse) {
+      return {
+        tag: 'Blended',
+        tagIcon: <Layers className="w-3 h-3" />,
+        sessionLabel: 'Blended Classes',
+        sessionIcon: <BookOpen size={14} />,
+        durationLabel: 'Blended Learning',
+        scheduleInfo: 'Combination of online & offline',
+        instructorLabel: 'Course Instructor',
+        priceLabel: 'Full Course'
+      };
+    }
+    
+    // Default to self-paced content
     return {
-      tag: 'Blended',
-      sessionLabel: 'Self-Paced Classes',
+      tag: 'Self-Paced',
+      tagIcon: <Play className="w-3 h-3" />,
+      sessionLabel: 'Videos',
+      sessionIcon: <Play size={14} />,
       durationLabel: 'Self-Paced Learning',
       scheduleInfo: 'Learn at your own pace',
       instructorLabel: 'Course Instructor',
@@ -889,7 +972,7 @@ const CourseCard = ({
                 hover:shadow-2xl`}
             >
               {/* Course type indicator tag - for desktop or when mobile hover is not active */}
-              {getEffectiveClassType() && (!isMobile || !mobileHoverActive) && (
+              {(isLiveCourse || isBlendedCourse) && (!isMobile || !mobileHoverActive) && (
                 <div className={`absolute top-2 right-2 z-20 px-2.5 py-1 rounded-full text-xs font-bold 
                   ${styles.tagBg} ${styles.tagText} flex items-center gap-1.5 cursor-pointer group/tag`}
                   onClick={(e) => {
@@ -898,23 +981,21 @@ const CourseCard = ({
                     setShowTooltip(!showTooltip);
                   }}
                 >
-                  {isLiveCourse ? (
-                    <>
-                      <span>Live</span>
-                      <Info size={13} className="group-hover/tag:animate-pulse" />
-                    </>
-                  ) : (
-                    <>
-                      <span>Self-Paced</span>
-                      <Info size={13} className="group-hover/tag:animate-pulse" />
-                    </>
-                  )}
+                  {content.tagIcon}
+                  <span>{content.tag}</span>
+                  <Info size={13} className="group-hover/tag:animate-pulse" />
                   
                   {/* Class Type Tooltip */}
                   {showTooltip && (
                     <div className="absolute top-full right-0 mt-2 w-60 p-3 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50 text-left text-gray-800 dark:text-gray-200 text-xs">
                       <div className="flex justify-between items-start mb-1.5">
-                        <h4 className="font-bold text-sm">{isLiveCourse ? 'Live Interactive Course' : 'Self-Paced Course'}</h4>
+                        <h4 className="font-bold text-sm">
+                          {isLiveCourse 
+                            ? 'Live Interactive Course' 
+                            : isBlendedCourse 
+                              ? 'Blended Learning Course'
+                              : 'Self-Paced Course'}
+                        </h4>
                         <button 
                           className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
                           onClick={(e) => {
@@ -928,7 +1009,9 @@ const CourseCard = ({
                       <p className="mb-2">
                         {isLiveCourse 
                           ? 'Live classes with real-time instructor interaction, scheduled sessions, and personalized feedback.' 
-                          : 'Learn at your own pace with pre-recorded videos, flexible schedule, and self-directed activities.'}
+                          : isBlendedCourse
+                            ? 'Combination of self-paced content and live interactive sessions for a comprehensive learning experience.'
+                            : 'Learn at your own pace with pre-recorded videos, flexible schedule, and self-directed activities.'}
                       </p>
                       <div className="flex flex-col gap-1 pt-1 border-t border-gray-200 dark:border-gray-700">
                         {isLiveCourse ? (
@@ -944,6 +1027,21 @@ const CourseCard = ({
                             <div className="flex items-center gap-1 text-[11px]">
                               <Target size={11} className="text-amber-500" />
                               <span>Personalized feedback</span>
+                            </div>
+                          </>
+                        ) : isBlendedCourse ? (
+                          <>
+                            <div className="flex items-center gap-1 text-[11px]">
+                              <Play size={11} className="text-purple-500" />
+                              <span>Pre-recorded content</span>
+                            </div>
+                            <div className="flex items-center gap-1 text-[11px]">
+                              <Users size={11} className="text-purple-500" />
+                              <span>Some live interaction</span>
+                            </div>
+                            <div className="flex items-center gap-1 text-[11px]">
+                              <Clock size={11} className="text-purple-500" />
+                              <span>Flexible schedule with deadlines</span>
                             </div>
                           </>
                         ) : (
@@ -974,21 +1072,16 @@ const CourseCard = ({
                   className={`absolute bottom-20 left-0 right-0 px-3 py-2 ${
                     isLiveCourse 
                       ? 'bg-gradient-to-r from-[#379392]/80 to-[#379392]/95 text-white' 
-                      : 'bg-gradient-to-r from-indigo-500/80 to-indigo-500/95 text-white'
+                      : isBlendedCourse
+                        ? 'bg-gradient-to-r from-purple-500/80 to-purple-500/95 text-white'
+                        : 'bg-gradient-to-r from-indigo-500/80 to-indigo-500/95 text-white'
                   } text-xs flex items-center justify-between z-20 shadow-md backdrop-blur-sm`}
                 >
                   <div className="flex items-center gap-1">
-                    {isLiveCourse ? (
-                      <>
-                        <Users size={14} />
-                        <span className="font-semibold">{course?.no_of_Sessions || "0"} Live Sessions</span>
-                      </>
-                    ) : (
-                      <>
-                        <Play size={14} />
-                        <span className="font-semibold">{course?.no_of_Sessions || "0"} Videos</span>
-                      </>
-                    )}
+                    {content.sessionIcon}
+                    <span className="font-semibold">
+                      {course?.no_of_Sessions || "0"} {content.sessionLabel}
+                    </span>
                   </div>
                   <button 
                     className="rounded-full bg-white/20 p-1 hover:bg-white/30 flex items-center justify-center"
@@ -1028,16 +1121,32 @@ const CourseCard = ({
                     </div>
                   )}
 
-                  {/* Course title */}
+                  {/* Course title - optimized spacing */}
                   <h3 className={`${mobileTitleStyles} text-base font-bold text-gray-900 dark:text-white line-clamp-2 text-center mx-auto max-w-[95%] ${course?.course_category ? 'mt-1.5' : 'mt-0'}`}>
                     {course?.course_title || "Course Title"}
                   </h3>
                   
-                  {/* Course description */}
+                  {/* Course description - optimized spacing */}
                   {!isCompact && !hideDescription && (
                     <p className="text-sm text-gray-600 dark:text-gray-400 mt-1.5 line-clamp-2 text-center mx-auto max-w-[95%]">
                       {course?.course_description}
                     </p>
+                  )}
+
+                  {/* Session Count Indicator - displayed in normal card view */}
+                  {course?.no_of_Sessions && (
+                    <div className="flex items-center justify-center mt-2 mb-1">
+                      <div className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs ${
+                        isLiveCourse 
+                          ? 'bg-[#379392]/10 text-[#379392]' 
+                          : isBlendedCourse
+                            ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400'
+                            : 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400'
+                      }`}>
+                        {content.sessionIcon}
+                        <span className="ml-1">{course.no_of_Sessions} {content.sessionLabel}</span>
+                      </div>
+                    </div>
                   )}
                 </div>
 
@@ -1181,6 +1290,22 @@ const CourseCard = ({
                     {course?.course_description}
                   </p>
                 )}
+
+                {/* Session Count Indicator - displayed in normal card view */}
+                {course?.no_of_Sessions && (
+                  <div className="flex items-center justify-center mt-2 mb-1">
+                    <div className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs ${
+                      isLiveCourse 
+                        ? 'bg-[#379392]/10 text-[#379392]' 
+                        : isBlendedCourse
+                          ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400'
+                          : 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400'
+                    }`}>
+                      {content.sessionIcon}
+                      <span className="ml-1">{course.no_of_Sessions} {content.sessionLabel}</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Course Duration/Learning Experience - adjusted spacing (only in pre-hover state) */}
@@ -1262,7 +1387,7 @@ const CourseCard = ({
                       {course.no_of_Sessions}
                     </p>
                     <p className="text-xs text-gray-500 font-medium mt-0.5">
-                      {isLiveCourse ? 'Total Live Sessions' : 'Total Videos'}
+                      {isLiveCourse ? 'Total Sessions' : 'Total Videos'}
                     </p>
                   </div>
                 </div>
