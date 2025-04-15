@@ -773,11 +773,11 @@ const CourseCard = ({
       rounded-lg 
       shadow-sm
       border-[0.5px]
-      min-h-[280px]
-      ${isCompact ? 'min-h-[240px]' : ''}
+      min-h-[520px]
+      ${isCompact ? 'min-h-[320px]' : ''}
       mx-auto
       w-full
-      max-w-[360px]
+      max-w-[400px]
       mb-6
       sm:mb-8
     ` : ''}
@@ -884,7 +884,7 @@ const CourseCard = ({
                 transition-all duration-300 
                 ${isHovered || mobileHoverActive ? 'scale-[1.02] z-10 shadow-xl' : 'scale-100 z-0 shadow-md'}
                 ${styles.borderHover} ${styles.shadowHover} ${isLiveCourse ? styles.borderLeft : ''}
-                ${isMobile ? 'pb-20 last:mb-0' : ''}
+                ${isMobile ? 'pb-20 last:mb-0 min-h-[520px] h-[520px] max-w-[400px] mx-auto' : 'min-h-[520px] h-[520px] max-w-[420px] mx-auto'}
                 ${viewMode === 'grid' ? 'sm:mx-2 md:mx-3' : ''}
                 hover:shadow-2xl`}
             >
@@ -998,7 +998,7 @@ const CourseCard = ({
             transition-all duration-300 
             ${isHovered || mobileHoverActive ? 'scale-[1.02] z-10 shadow-xl' : 'scale-100 z-0 shadow-md'}
             ${styles.borderHover} ${styles.shadowHover} ${isLiveCourse ? styles.borderLeft : ''}
-            ${isMobile ? 'pb-20 last:mb-0' : ''}
+            ${isMobile ? 'pb-20 last:mb-0 min-h-[520px] h-[520px] max-w-[400px] mx-auto' : 'min-h-[520px] h-[520px] max-w-[420px] mx-auto'}
             ${viewMode === 'grid' ? 'sm:mx-2 md:mx-3' : ''}
             hover:shadow-2xl`}
           onMouseEnter={handleMouseEnter}
