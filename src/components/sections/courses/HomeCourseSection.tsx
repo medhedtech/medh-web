@@ -234,26 +234,38 @@ const getBlendedCourseSessions = (course: ICourse) => {
   // Use defined values if available
   if (course.video_count !== undefined && course.qa_sessions !== undefined) {
     return {
-      videoCount: course.no_of_Sessions,
+      videoCount: course.video_count,
       qnaSessions: course.qa_sessions
     };
   }
   
   // Use no_of_Sessions from API response if available
   if (course.no_of_Sessions !== undefined) {
-    // Split the sessions between videos and Q&A
-    const totalSessions = typeof course.no_of_Sessions === 'string' 
-      ? parseInt(course.no_of_Sessions) || 0 
-      : (course.no_of_Sessions as number);
-    const videoCount =  totalSessions // 70% videos
-    const qnaSessions = 2 // 30% Q&A
+    // Handle case where no_of_Sessions is a range like "24-120"
+    if (typeof course.no_of_Sessions === 'string' && course.no_of_Sessions.includes('-')) {
+      const [minStr, maxStr] = course.no_of_Sessions.split('-');
+      const maxSessions = parseInt(maxStr, 10) || 0;
+      // For display purposes, return the max value from the range without adding QnA sessions
+      return { 
+        videoCount: maxSessions,
+        qnaSessions: 0 // Don't add additional sessions for display purposes
+      };
+    }
     
-    return { videoCount, qnaSessions };
+    // Handle case where it's a number or a string number
+    const totalSessions = typeof course.no_of_Sessions === 'string' 
+      ? parseInt(course.no_of_Sessions, 10) || 0 
+      : (course.no_of_Sessions as number);
+    
+    return { 
+      videoCount: totalSessions,
+      qnaSessions: 0 // Don't add additional sessions for display purposes
+    };
   }
   
   // Estimate if not provided directly
   const videoCount = course.lectures_count || Math.round(Math.random() * 8) + 4;
-  const qnaSessions = course.live_sessions || Math.round(Math.random() * 3) + 1;
+  const qnaSessions = 0; // Don't add additional sessions for display purposes
   
   return { videoCount, qnaSessions };
 };
@@ -276,6 +288,30 @@ const formatBlendedLearningExperience = (videoCount: number, qnaSessions: number
       </div>
     </div>
   );
+};
+
+// Format duration range for cleaner display
+const formatDurationRange = (durationRange: string | undefined): string => {
+  if (!durationRange) return "Flexible Duration";
+  
+  // If it's a range like "4-18 months", extract the maximum value
+  if (durationRange.includes('-')) {
+    const [min, maxWithUnit] = durationRange.split('-');
+    if (maxWithUnit) {
+      // Extract unit (months, weeks, etc.)
+      const unit = maxWithUnit.trim().replace(/[0-9]/g, '').trim();
+      return `Up to ${maxWithUnit.trim()}`;
+    }
+  }
+  
+  // If not a range, return as is
+  return durationRange;
+};
+
+// Format session count for cleaner display
+const formatSessionCount = (sessionCount: string | number | undefined): string => {
+  // Always return "Up to 120 Sessions" regardless of the actual count
+  return "Up to 120 Sessions";
 };
 
 // Function to get course type display text
@@ -1019,15 +1055,16 @@ const HomeCourseSection = ({
                     course_title: course.course_title,
                     course_description: course.course_description || course.description,
                     course_image: course.course_image || course.thumbnail || '/fallback-course-image.jpg',
-                    course_duration: course.duration_range || "4-18 months",
+                    course_duration: formatDurationRange(course.duration_range),
                     display_duration: true,
-                    duration_range: course.duration_range || "4-18 months",
+                    duration_range: formatDurationRange(course.duration_range) || "Flexible Duration",
                     prices: course.prices || [],
                     course_fee: displayPrice || 1499,
                     price_suffix: "Onwards",
                     custom_url: `${course.url}`,
                     href: `/course-details/${course._id || course.id}`,
-                    no_of_Sessions: typeof course.no_of_Sessions === 'string' ? parseInt(course.no_of_Sessions) : (course.no_of_Sessions || videoCount + qnaSessions || 24),
+                    no_of_Sessions: typeof course.no_of_Sessions === 'string' ? course.no_of_Sessions : videoCount,
+                    session_display: "Up to 120 Sessions", // Hard-coded display text
                     effort_hours: course.effort_hours || course.efforts_per_Week || "6-8",
                     learning_points: course.learning_points || [],
                     prerequisites: course.prerequisites || [],
@@ -1154,13 +1191,15 @@ const HomeCourseSection = ({
                     course_duration: learningExperienceText,
                     display_duration: true,
                     duration_range: `${videoCount} Videos • ${qnaSessions} Q&A`,
+                    session_display: formatSessionCount(course.no_of_Sessions),
                     // Simply use the price value directly from the first price in the array
                     price: course.prices && course.prices[0] ? course.prices[0].individual : 1499,
                     // No need for string formatting here as it will be handled by the CourseCard component
                     course_fee: course.prices && course.prices[0].batch ? course.prices[0].batch : 1499,
                     custom_url: course.custom_url || `/course-details/${course._id}`,
                     href: course.href || `/course-details/${course._id}`,
-                    no_of_Sessions: typeof course.no_of_Sessions === 'string' ? parseInt(course.no_of_Sessions) : (course.no_of_Sessions || videoCount + qnaSessions || 24),
+                    // Use safer approach for no_of_Sessions to avoid type errors
+                    no_of_Sessions: videoCount + qnaSessions,
                     effort_hours: course.effort_hours || course.efforts_per_Week || "3-5",
                     learning_points: course.learning_points || course.course_highlights || [],
                     prerequisites: course.prerequisites || [],
