@@ -15,6 +15,15 @@ export const STYLES = {
     transition-colors duration-200
   `,
   
+  quickAction: `
+    flex flex-col items-center justify-center p-2
+    rounded-lg bg-gray-50/80 dark:bg-gray-800/50
+    hover:bg-white dark:hover:bg-gray-700/50
+    border border-gray-100/50 dark:border-gray-700/50
+    transition-all duration-200 transform 
+    hover:scale-105 hover:shadow-md
+  `,
+  
   // Menu items
   menuItem: `
     relative group flex flex-col items-center justify-center p-3 rounded-xl
