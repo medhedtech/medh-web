@@ -3,7 +3,7 @@ import { X, Download, ArrowRight, Mail, CheckCircle, AlertCircle, ArrowLeft } fr
 import { apiBaseUrl, apiUrls } from "@/apis";
 import useAuth from "@/hooks/useAuth";
 
-// Add animation styles similar to CourseCard
+// Modify animation styles to create a slide-in/overlay effect rather than a complete flip
 const animationStyles = `
 @keyframes fadeIn {
   from { opacity: 0; }
@@ -20,53 +20,75 @@ const animationStyles = `
   to { transform: scale(1); opacity: 1; }
 }
 
-@keyframes flipCard {
-  0% { transform: rotateY(0deg); }
-  100% { transform: rotateY(180deg); }
+@keyframes slideOverIn {
+  0% { transform: translateY(100%); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
 }
 
-@keyframes flipCardReverse {
-  0% { transform: rotateY(180deg); }
-  100% { transform: rotateY(0deg); }
+@keyframes slideOverInMobile {
+  0% { transform: translateY(70%); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
 }
 
-.flip-container {
-  perspective: 1000px;
-  height: 100%;
-  width: 100%;
-  position: relative;
+@keyframes slideOverOut {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(100%); opacity: 0; }
 }
 
-.flipped .flipper {
-  transform: rotateY(180deg);
+@keyframes slideOverOutMobile {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(70%); opacity: 0; }
 }
 
-.flipper {
-  transition: 0.6s;
-  transform-style: preserve-3d;
+.overlay-container {
   position: relative;
   height: 100%;
   width: 100%;
+  overflow: hidden;
 }
 
-.front, .back {
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
+.content-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 0.3s ease;
+}
+
+.content-hidden {
+  opacity: 0.3;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.overlay-visible {
+  animation: slideOverIn 0.4s ease forwards;
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
+  z-index: 5;
 }
 
-.front {
-  z-index: 2;
-  transform: rotateY(0deg);
+.overlay-visible-mobile {
+  animation: slideOverInMobile 0.3s ease forwards;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 5;
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.1);
 }
 
-.back {
-  transform: rotateY(180deg);
-  z-index: 1;
+.overlay-hidden {
+  animation: slideOverOut 0.4s ease forwards;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 5;
 }
 
 .animate-fadeIn {
@@ -81,14 +103,6 @@ const animationStyles = `
   animation: scaleIn 0.3s ease forwards;
 }
 
-.animate-flipCard {
-  animation: flipCard 0.6s ease-in-out forwards;
-}
-
-.animate-flipCardReverse {
-  animation: flipCardReverse 0.6s ease-in-out forwards;
-}
-
 .delay-100 {
   animation-delay: 100ms;
 }
@@ -97,30 +111,28 @@ const animationStyles = `
   animation-delay: 200ms;
 }
 
-.sheen {
-  position: relative;
-  overflow: hidden;
+.mobile-form-container {
+  max-height: 90vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+  backdrop-filter: blur(8px);
 }
 
-.sheen::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 50%;
-  height: 100%;
-  background: linear-gradient(
-    to right,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.3) 50%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  transform: skewX(-25deg);
-  transition: all 0.75s;
-}
-
-.sheen:hover::after {
-  left: 100%;
+/* Touch-friendly mobile styles */
+@media (max-width: 640px) {
+  .touch-target {
+    min-height: 44px;
+  }
+  
+  .mobile-header {
+    backdrop-filter: blur(4px);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+  }
 }
 
 /* Responsive modal styles */
@@ -168,6 +180,9 @@ const DownloadBrochureModal = ({
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isFlipped, setIsFlipped] = useState(false);
+
+  // Add cardMode for compact styles in flipCard mode
+  const cardMode = !!flipCard;
 
   // Check if device is mobile
   useEffect(() => {
@@ -449,162 +464,165 @@ const DownloadBrochureModal = ({
 
   if (!isOpen) return null;
 
-  // Handle flip card mode
+  // Handle flip card mode (redesigned as overlay instead of flip)
   if (flipCard) {
     return (
-      <div className={`flip-container ${isFlipped ? 'flipped' : ''}`} style={{ minHeight: '400px' }}>
-        <div className="flipper">
-          <div className="front">
-            {/* This is where the CourseCard content would be displayed */}
-            {children}
-          </div>
-          <div className="back bg-white dark:bg-gray-800 rounded-xl shadow-xl" style={{ zIndex: isFlipped ? 3 : 1 }}>
-            <div className="flex flex-col h-full p-5">
-              <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-4 mb-4">
-                <div>
-                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">Download Brochure</h2>
-                  {courseTitle && (
-                    <p className="text-xs text-gray-600 dark:text-gray-400">{courseTitle}</p>
-                  )}
-                </div>
-                <button 
-                  onClick={handleBackToCard} 
-                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
-                >
-                  <ArrowLeft size={18} />
-                </button>
-              </div>
+      <div className="overlay-container">
+        {/* Original card content always visible but dimmed when form is shown */}
+        <div className={`${isFlipped ? 'content-hidden' : 'content-visible'}`}>
+          {children}
+        </div>
 
-              {/* Simplify to standard form layout without flex-1 and overflow */}
-              {isAuthenticated ? (
-                <div className="text-center py-8">
-                  {loading ? (
-                    <div className="animate-pulse">
-                      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-500 mb-4 mx-auto"></div>
-                      <p className="text-gray-600 dark:text-gray-300 text-sm">Opening brochure...</p>
-                    </div>
-                  ) : downloadSuccess ? (
-                    <div className="text-center text-green-600 animate-fadeIn">
-                      <CheckCircle size={40} className="mx-auto mb-4 text-green-500" />
-                      <p className="text-gray-800 dark:text-gray-200 font-medium">Brochure opened!</p>
-                    </div>
-                  ) : (
-                    <div>
-                      <Download size={30} className="mx-auto mb-4 text-indigo-500" />
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-5">
-                        Click below to download the course brochure
-                      </p>
-                      <button
-                        onClick={handleDirectDownload}
-                        className="px-6 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-md shadow-indigo-500/20 text-sm font-medium sheen"
-                      >
-                        Download Now
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ) : formSubmitted && downloadSuccess ? (
-                <div className="text-center py-8 animate-fadeIn">
-                  <Mail size={40} className="mx-auto mb-4 text-green-500" />
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Brochure Sent!</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    We've sent the brochure to <span className="font-semibold">{formData.email}</span>
-                  </p>
-                </div>
-              ) : (
-                <form onSubmit={handleSubmit} className="space-y-4 py-2">
+        {/* Form overlay slides in from bottom */}
+        {isFlipped && (
+          <div className={isMobile ? "overlay-visible-mobile bg-white/95 dark:bg-gray-800/95" : "overlay-visible bg-white dark:bg-gray-800 rounded-xl shadow-xl"}>
+            <div className={`flex flex-col h-full ${isMobile ? 'p-3 pt-1 mobile-form-container' : 'p-4 pt-3'} justify-between`}>
+              <div>
+                <div className={`flex justify-between items-center ${isMobile ? 'mobile-header bg-white/90 dark:bg-gray-800/90 mb-2 pb-2 pt-1' : 'border-b border-gray-200 dark:border-gray-700 pb-2 mb-2'}`}>
                   <div>
-                    <label htmlFor="flip_full_name" className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">Full Name</label>
-                    {errors.full_name && <span className="text-xs text-red-500 float-right">{errors.full_name}</span>}
-                    <input
-                      type="text"
-                      id="flip_full_name"
-                      name="full_name"
-                      placeholder="Enter your full name"
-                      value={formData.full_name}
-                      onChange={handleChange}
-                      className={`w-full px-4 py-2.5 text-sm border ${errors.full_name ? 'border-red-300' : 'border-gray-300 dark:border-gray-600'} rounded-lg focus:ring-1 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white`}
-                    />
+                    <h2 className={`${isMobile ? 'text-sm' : 'text-base'} font-bold text-gray-900 dark:text-white`}>Download Brochure</h2>
+                    {courseTitle && (
+                      <p className={`${isMobile ? 'text-[10px]' : 'text-xs'} text-gray-600 dark:text-gray-400 truncate max-w-[180px]`}>{courseTitle}</p>
+                    )}
                   </div>
-
-                  <div>
-                    <label htmlFor="flip_email" className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">Email Address</label>
-                    {errors.email && <span className="text-xs text-red-500 float-right">{errors.email}</span>}
-                    <input
-                      type="email"
-                      id="flip_email"
-                      name="email"
-                      placeholder="Enter your email address"
-                      value={formData.email}
-                      onChange={handleChange}
-                      className={`w-full px-4 py-2.5 text-sm border ${errors.email ? 'border-red-300' : 'border-gray-300 dark:border-gray-600'} rounded-lg focus:ring-1 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white`}
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="flip_phone" className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">Phone Number</label>
-                    {errors.phone_number && <span className="text-xs text-red-500 float-right">{errors.phone_number}</span>}
-                    <input
-                      type="tel"
-                      id="flip_phone"
-                      name="phone_number"
-                      placeholder="Enter your phone number"
-                      value={formData.phone_number}
-                      onChange={handleChange}
-                      className={`w-full px-4 py-2.5 text-sm border ${errors.phone_number ? 'border-red-300' : 'border-gray-300 dark:border-gray-600'} rounded-lg focus:ring-1 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white`}
-                    />
-                  </div>
-
-                  <div className="pt-2">
-                    <div className="flex items-start space-x-3">
-                      <input
-                        type="checkbox"
-                        id="flip_accepted"
-                        name="accepted"
-                        checked={formData.accepted}
-                        onChange={handleCheckboxChange}
-                        className={`h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mt-0.5 ${errors.accepted ? 'border-red-300' : ''}`}
-                      />
+                  <button 
+                    onClick={handleBackToCard} 
+                    className={`${isMobile ? 'p-2 touch-target' : 'p-1.5'} text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors`}
+                  >
+                    <ArrowLeft size={isMobile ? 14 : 16} />
+                  </button>
+                </div>
+                
+                {/* Compact form and states for card mode - better centered */}
+                {isAuthenticated ? (
+                  <div className={`text-center ${isMobile ? 'py-3' : 'py-4'}`}>
+                    {loading ? (
+                      <div className="animate-pulse">
+                        <div className="animate-spin rounded-full h-7 w-7 border-b-2 border-primary-500 mb-2 mx-auto"></div>
+                        <p className={`text-gray-600 dark:text-gray-300 ${isMobile ? 'text-xs' : 'text-sm'}`}>Opening brochure...</p>
+                      </div>
+                    ) : downloadSuccess ? (
+                      <div className="text-center text-green-600 animate-fadeIn">
+                        <CheckCircle size={isMobile ? 24 : 28} className="mx-auto mb-2 text-green-500" />
+                        <p className={`text-gray-800 dark:text-gray-200 ${isMobile ? 'text-xs' : 'text-sm'}`}>Brochure opened!</p>
+                      </div>
+                    ) : (
                       <div>
-                        <label htmlFor="flip_accepted" className="text-xs text-gray-600 dark:text-gray-300">
-                          I agree to receive communications from Medh
-                        </label>
-                        {errors.accepted && <p className="mt-0.5 text-xs text-red-500">{errors.accepted}</p>}
+                        <Download size={isMobile ? 20 : 24} className="mx-auto mb-2 text-indigo-500" />
+                        <p className={`${isMobile ? 'text-[10px] mb-2' : 'text-xs mb-3'} text-gray-600 dark:text-gray-400`}>
+                          Click below to download the course brochure
+                        </p>
+                        <button
+                          onClick={handleDirectDownload}
+                          className={`${isMobile ? 'px-3 py-2 text-xs touch-target' : 'px-4 py-2 text-sm'} bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-md shadow-indigo-500/20 font-medium sheen`}
+                        >
+                          Download Now
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : formSubmitted && downloadSuccess ? (
+                  <div className={`text-center ${isMobile ? 'py-3' : 'py-4'} animate-fadeIn`}>
+                    <Mail size={isMobile ? 24 : 28} className="mx-auto mb-2 text-green-500" />
+                    <h3 className={`${isMobile ? 'text-sm' : 'text-base'} font-bold text-gray-900 dark:text-white mb-1`}>Brochure Sent!</h3>
+                    <p className={`${isMobile ? 'text-[10px]' : 'text-xs'} text-gray-600 dark:text-gray-400`}>
+                      We've sent the brochure to <span className="font-semibold">{formData.email}</span>
+                    </p>
+                  </div>
+                ) : (
+                  <form onSubmit={handleSubmit} className={`${isMobile ? 'space-y-2.5 py-0' : 'space-y-2.5 py-1'}`}>
+                    <div>
+                      <label htmlFor="flip_full_name" className={`block ${isMobile ? 'text-[11px] mb-0.5' : 'text-xs mb-1'} font-medium text-gray-700 dark:text-gray-300`}>Full Name</label>
+                      {errors.full_name && <span className={`${isMobile ? 'text-[10px]' : 'text-xs'} text-red-500 float-right`}>{errors.full_name}</span>}
+                      <input
+                        type="text"
+                        id="flip_full_name"
+                        name="full_name"
+                        placeholder="Enter your full name"
+                        value={formData.full_name}
+                        onChange={handleChange}
+                        className={`w-full ${isMobile ? 'px-3 py-2 text-xs touch-target' : 'px-3 py-2 text-sm'} border ${errors.full_name ? 'border-red-300' : 'border-gray-300 dark:border-gray-600'} rounded-lg focus:ring-1 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white`}
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="flip_email" className={`block ${isMobile ? 'text-[11px] mb-0.5' : 'text-xs mb-1'} font-medium text-gray-700 dark:text-gray-300`}>Email Address</label>
+                      {errors.email && <span className={`${isMobile ? 'text-[10px]' : 'text-xs'} text-red-500 float-right`}>{errors.email}</span>}
+                      <input
+                        type="email"
+                        id="flip_email"
+                        name="email"
+                        placeholder="Enter your email address"
+                        value={formData.email}
+                        onChange={handleChange}
+                        className={`w-full ${isMobile ? 'px-3 py-2 text-xs touch-target' : 'px-3 py-2 text-sm'} border ${errors.email ? 'border-red-300' : 'border-gray-300 dark:border-gray-600'} rounded-lg focus:ring-1 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white`}
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="flip_phone" className={`block ${isMobile ? 'text-[11px] mb-0.5' : 'text-xs mb-1'} font-medium text-gray-700 dark:text-gray-300`}>Phone Number</label>
+                      {errors.phone_number && <span className={`${isMobile ? 'text-[10px]' : 'text-xs'} text-red-500 float-right`}>{errors.phone_number}</span>}
+                      <input
+                        type="tel"
+                        id="flip_phone"
+                        name="phone_number"
+                        placeholder="Enter your phone number"
+                        value={formData.phone_number}
+                        onChange={handleChange}
+                        className={`w-full ${isMobile ? 'px-3 py-2 text-xs touch-target' : 'px-3 py-2 text-sm'} border ${errors.phone_number ? 'border-red-300' : 'border-gray-300 dark:border-gray-600'} rounded-lg focus:ring-1 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white`}
+                      />
+                    </div>
+                    <div className={`${isMobile ? 'pt-0.5' : 'pt-1'}`}>
+                      <div className={`flex items-start ${isMobile ? 'space-x-2' : 'space-x-2'}`}>
+                        <input
+                          type="checkbox"
+                          id="flip_accepted"
+                          name="accepted"
+                          checked={formData.accepted}
+                          onChange={handleCheckboxChange}
+                          className={`${isMobile ? 'h-4 w-4' : 'h-4 w-4'} rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mt-0.5 ${errors.accepted ? 'border-red-300' : ''}`}
+                        />
+                        <div>
+                          <label htmlFor="flip_accepted" className={`${isMobile ? 'text-[11px]' : 'text-xs'} text-gray-600 dark:text-gray-300`}>
+                            I agree to receive communications from Medh
+                          </label>
+                          {errors.accepted && <p className={`mt-0.5 ${isMobile ? 'text-[10px]' : 'text-xs'} text-red-500`}>{errors.accepted}</p>}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  
-                  {errors.general && (
-                    <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                      <p className="text-xs text-red-600 dark:text-red-400">{errors.general}</p>
-                    </div>
-                  )}
-                  
-                  <div className="pt-3">
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="px-4 py-2 rounded-lg font-medium transition-all flex items-center justify-center gap-1.5 border border-indigo-200 text-indigo-600 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400 w-full disabled:opacity-75 sheen"
-                      style={{ position: isMobile ? 'sticky' : undefined, bottom: isMobile ? 0 : undefined, zIndex: isMobile ? 50 : undefined }}
-                    >
-                      {loading ? (
-                        <>
-                          <span className="mr-2 h-4 w-4 rounded-full border-2 border-indigo-600 border-t-transparent animate-spin"></span>
-                          Processing...
-                        </>
-                      ) : (
-                        <>
-                          <Download size={16} className="text-indigo-500" />
-                          Get Brochure
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </form>
+                    {errors.general && (
+                      <div className={`${isMobile ? 'p-1.5' : 'p-2'} bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg`}>
+                        <p className={`${isMobile ? 'text-[10px]' : 'text-xs'} text-red-600 dark:text-red-400`}>{errors.general}</p>
+                      </div>
+                    )}
+                  </form>
+                )}
+              </div>
+              
+              {/* Move button to bottom for better positioning */}
+              {!isAuthenticated && !formSubmitted && (
+                <div className={`${isMobile ? 'pb-4 pt-3' : 'pb-2 pt-1'}`}>
+                  <button
+                    type="submit"
+                    onClick={handleSubmit}
+                    disabled={loading}
+                    className={`w-full ${isMobile ? 'py-2.5 px-4 text-sm touch-target' : 'py-2 px-4 text-sm'} font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-75 flex items-center justify-center shadow-md shadow-indigo-500/20 sheen`}
+                  >
+                    {loading ? (
+                      <>
+                        <span className={`${isMobile ? 'mr-2 h-3.5 w-3.5' : 'mr-2 h-3.5 w-3.5'} rounded-full border-2 border-white border-t-transparent animate-spin`}></span>
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        Get Brochure
+                        <ArrowRight size={isMobile ? 16 : 16} className={`${isMobile ? 'ml-2' : 'ml-2'}`} />
+                      </>
+                    )}
+                  </button>
+                </div>
               )}
             </div>
           </div>
-        </div>
+        )}
       </div>
     );
   }
@@ -808,18 +826,17 @@ const DownloadBrochureModal = ({
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-4 py-2 rounded-lg font-medium transition-all flex items-center justify-center gap-1.5 border border-indigo-200 text-indigo-600 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400 w-full disabled:opacity-75 sheen"
-                  style={{ position: isMobile ? 'sticky' : undefined, bottom: isMobile ? 0 : undefined, zIndex: isMobile ? 50 : undefined }}
+                  className="w-full py-3 px-5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-75 flex items-center justify-center shadow-md shadow-indigo-500/20 sheen"
                 >
                   {loading ? (
                     <>
-                      <span className="mr-2 h-4 w-4 rounded-full border-2 border-indigo-600 border-t-transparent animate-spin"></span>
+                      <span className="mr-2 h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin"></span>
                       Processing...
                     </>
                   ) : (
                     <>
-                      <Download size={16} className="text-indigo-500" />
                       Get Brochure
+                      <ArrowRight size={16} className="ml-2" />
                     </>
                   )}
                 </button>
