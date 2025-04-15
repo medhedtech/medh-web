@@ -476,7 +476,8 @@ function CategoryEnrollmentPage({ params }) {
           language: undefined,
           sort_by: "createdAt",
           sort_order: "asc",
-          category_type: categoryInfo?.categoryType || undefined
+          category_type: categoryInfo?.categoryType || undefined,
+          currency: currency.code
         });
         
         console.log("API Endpoint:", apiEndpoint);
