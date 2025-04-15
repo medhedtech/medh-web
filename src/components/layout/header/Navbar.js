@@ -10,8 +10,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import NavbarSearch from "@/components/shared/search/NavbarSearch";
 
 /**
- * Main navigation component for the application
- * Handles responsive behavior, scroll effects, and layout
+ * Modern navigation component with enhanced styling and interactions
+ * Supports multiple layout variants and responsive behavior
  */
 const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => {
   // Path and page detection
@@ -51,9 +51,9 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => 
     // Auto-hide logic with threshold checks to prevent jitter
     if (currentScrollY > 100) { 
       if (currentScrollY > lastScrollY.current + 10) {
-        setHideNavbar(true); // Scrolling down - hide navbar
+        setHideNavbar(false); // We've disabled the hide behavior per requirement
       } else if (lastScrollY.current > currentScrollY + 10) {
-        setHideNavbar(false); // Scrolling up - show navbar
+        setHideNavbar(false); // Always show navbar
       }
     } else {
       setHideNavbar(false); // Always show when near top
@@ -76,8 +76,8 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => 
       window.addEventListener("scroll", handleScroll, { passive: true });
     }
     
-    // Entrance animation
-    const timer = setTimeout(() => setIsVisible(true), 100);
+    // Entrance animation with slightly delayed appearance for a smoother entrance
+    const timer = setTimeout(() => setIsVisible(true), 120);
     
     return () => {
       window.removeEventListener("scroll", handleScroll);
@@ -96,23 +96,21 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => 
     }
   })();
 
-  // Determine navbar appearance based on state
+  // Determine navbar appearance based on state (enhanced with modern glass morphism)
   const navbarAppearanceClass = (() => {
     let baseClasses = "fixed w-full transition-all duration-300 ease-in-out z-50";
     
     if (isSearchActive) {
-      baseClasses += " bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-lg dark:shadow-gray-900/30";
+      baseClasses += " bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-lg dark:shadow-gray-900/30 border-b border-gray-200/30 dark:border-gray-800/30";
     } else if (isScrolled) {
-      baseClasses += " bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg shadow-lg dark:shadow-gray-900/30 border-b border-gray-200/50 dark:border-gray-800/30";
+      baseClasses += " bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl shadow-lg dark:shadow-gray-900/30 border-b border-gray-200/20 dark:border-gray-800/20";
     } else {
-      baseClasses += " bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-800/30";
+      baseClasses += " bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200/10 dark:border-gray-800/10";
     }
     
-    // Visibility based on animation and scroll state
+    // Visibility based on animation (we keep it visible at all times per requirement)
     if (!isVisible) {
       baseClasses += " -translate-y-5 opacity-0";
-    } else if (hideNavbar && !isMobile) {
-      baseClasses += " -translate-y-full";
     } else {
       baseClasses += " translate-y-0 opacity-100";
     }
@@ -120,12 +118,12 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => 
     return baseClasses;
   })();
 
-  // Height class based on scroll state and screen size
+  // Height class based on scroll state and screen size (slightly taller for better visibility)
   const navbarHeightClass = (() => {
     if (isScrolled) {
-      return 'h-14 lg:h-16';
+      return 'h-16 lg:h-18';
     }
-    return 'h-16 lg:h-18';
+    return 'h-18 lg:h-20';
   })();
 
   // Check if the current page is the search page
@@ -136,31 +134,31 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => 
       ref={navbarRef}
       className={navbarAppearanceClass}
       style={{
-        transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease'
+        transition: 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease'
       }}
     >
       <nav className="relative w-full flex justify-center">
-        <div className={`${containerClass} mx-auto px-3 sm:px-4`}>
+        <div className={`${containerClass} mx-auto px-3 sm:px-5`}>
           {/* Top Navigation for specific pages */}
           {(isHome4 || isHome4Dark || isHome5 || isHome5Dark) && <NavbarTop />}
 
-          {/* Main Navigation */}
+          {/* Main Navigation with enhanced spacing and hover effects */}
           <div className={`flex items-center justify-between transition-all duration-300 ${navbarHeightClass}`}>
-            {/* Conditional logo rendering with improved spacing */}
+            {/* Logo section with improved styling */}
             {!isSearchActive && (
-              <div className="flex-shrink-0 mr-3 lg:mr-6">
+              <div className="flex-shrink-0 mr-3 lg:mr-8 transition-transform duration-300 hover:scale-105">
                 <NavbarLogo isScrolled={isScrolled} />
               </div>
             )}
 
-            {/* Center section with improved layout */}
+            {/* Center section with modern glass effect on hover */}
             <div className="hidden lg:flex flex-1 items-center justify-center max-w-6xl mx-auto">
               {!isSearchActive ? (
-                <div className="flex-1 px-3 lg:px-4 flex items-center justify-between">
-                  <div className="transition-all duration-300 transform flex-grow max-w-2xl xl:max-w-3xl">
+                <div className="flex-1 px-3 lg:px-5 flex items-center justify-between">
+                  <div className="transition-all duration-300 transform flex-grow max-w-2xl xl:max-w-3xl pr-4 xl:pr-6">
                     {isHome2Dark ? <NavItems2 /> : <NavItems />}
                   </div>
-                  <div className="ml-4 xl:ml-6 flex-shrink-0">
+                  <div className="ml-4 xl:ml-8 flex-shrink-0 transition-transform duration-300 hover:scale-105">
                     <NavbarSearch 
                       isScrolled={isScrolled} 
                       setIsSearchActive={setIsSearchActive}
@@ -168,7 +166,7 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => 
                   </div>
                 </div>
               ) : (
-                <div className="w-full max-w-2xl xl:max-w-3xl px-3 lg:px-4">
+                <div className="w-full max-w-2xl xl:max-w-3xl px-4 lg:px-5 py-2">
                   <NavbarSearch 
                     isScrolled={isScrolled} 
                     setIsSearchActive={setIsSearchActive}
@@ -177,18 +175,18 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => 
               )}
             </div>
 
-            {/* Right section with improved spacing */}
+            {/* Right section with enhanced styling and hover effects */}
             {!isSearchActive && (
-              <div className="flex items-center space-x-2 sm:space-x-3 lg:space-x-4">
-                <div className="flex-shrink-0">
+              <div className="flex items-center space-x-3 sm:space-x-4 lg:space-x-5">
+                <div className="flex-shrink-0 transition-transform duration-300 hover:scale-105">
                   <NavbarRight isScrolled={isScrolled} />
                 </div>
-                {/* Mobile menu button with improved styling */}
+                {/* Mobile menu button with modern styling */}
                 {typeof onMobileMenuOpen === 'function' && (
                   <button
                     type="button"
                     suppressHydrationWarning
-                    className="lg:hidden inline-flex items-center justify-center p-2 sm:p-2.5 rounded-lg sm:rounded-xl text-gray-700 hover:text-gray-900 hover:bg-gray-100/90 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800/90 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-all duration-200 transform hover:scale-105 active:scale-95"
+                    className="lg:hidden inline-flex items-center justify-center p-2.5 sm:p-3 rounded-xl sm:rounded-2xl text-gray-700 hover:text-gray-900 bg-gray-100/50 hover:bg-gray-100/90 dark:bg-gray-800/50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700/90 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-all duration-200 transform hover:scale-105 active:scale-95 backdrop-blur-sm shadow-sm"
                     onClick={onMobileMenuOpen}
                     aria-expanded="false"
                     aria-label="Open main menu"
