@@ -149,16 +149,6 @@ const Offerings = () => {
               ))}
             </div>
             
-            {/* CTA Button */}
-            <motion.div variants={itemVariants} className="pt-4">
-              <a 
-                href="#apply-now" 
-                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-primary-600 to-pink-600 text-white font-semibold rounded-xl shadow-lg shadow-primary-500/25 hover:shadow-xl hover:shadow-primary-500/40 transform hover:-translate-y-1 transition-all duration-300 text-lg group"
-              >
-                Start Your Teaching Journey
-                <ArrowRight className="w-5 h-5 ml-2 transform group-hover:translate-x-1 transition-transform duration-300" />
-              </a>
-            </motion.div>
           </motion.div>
 
           {/* Image Section */}
