@@ -1,58 +1,45 @@
 "use client";
-import { useCallback } from 'react';
+import React from 'react';
 import Link from 'next/link';
-import { MENU_CONFIG } from '@/constants/menu';
+import { IQuickActionsProps } from './types';
 import { STYLES } from '@/constants/uiStyles';
-import { IQuickActionsProps, IMenuItemProps } from './types';
+import { MENU_CONFIG } from '@/constants/menu';
 
 /**
- * QuickActions Component
- * Displays quick access menu items based on authentication status
+ * Quick Actions component for most used application features
  */
 const QuickActions: React.FC<IQuickActionsProps> = ({ 
-  isLoggedIn, 
+  isLoggedIn,
   onClose 
 }) => {
-  // Menu item component for quick actions
-  const QuickActionItem = useCallback(({ 
-    icon: Icon, 
-    label, 
-    path, 
-    color, 
-    bg 
-  }: IMenuItemProps) => {
-    return (
-      <Link 
-        href={path} 
-        onClick={onClose}
-        className={STYLES.quickActionItem}
-        aria-label={label}
-      >
-        <div className={`flex items-center justify-center w-10 h-10 rounded-xl mb-1 ${bg || 'bg-gray-200 dark:bg-gray-700'}`}>
-          <Icon className={`h-5 w-5 ${color || 'text-gray-700 dark:text-gray-300'}`} />
-        </div>
-        <span className="text-xs text-gray-600 dark:text-gray-400">{label}</span>
-      </Link>
-    );
-  }, [onClose]);
-
-  // Get quick actions based on authentication status
-  const getQuickActions = useCallback(() => {
-    return isLoggedIn 
-      ? MENU_CONFIG.quickActions.authenticated 
-      : MENU_CONFIG.quickActions.guest;
-  }, [isLoggedIn]);
+  // Get the appropriate quick actions based on authentication status
+  const quickActions = isLoggedIn 
+    ? MENU_CONFIG.quickActions.authenticated 
+    : MENU_CONFIG.quickActions.guest;
 
   return (
-    <div className="px-4 py-2">
-      <h2 className={STYLES.sectionHeading}>Quick Access</h2>
-      <div className={STYLES.gridContainer}>
-        {getQuickActions().map((action, index) => (
-          <QuickActionItem
-            key={index}
-            {...action}
-          />
-        ))}
+    <div className="px-4 py-3">
+      <h2 className={STYLES.sectionHeading}>Quick Actions</h2>
+      <div className="grid grid-cols-4 gap-3 mt-2">
+        {quickActions.map((action, index) => {
+          const Icon = action.icon;
+          
+          return (
+            <Link
+              key={index}
+              href={action.path}
+              onClick={onClose}
+              className={STYLES.quickAction}
+            >
+              <div className={`${STYLES.iconWrapper} ${action.bg || ''}`}>
+                <Icon className={`h-5 w-5 ${action.color || 'text-gray-700 dark:text-gray-300'}`} />
+              </div>
+              <span className="text-xs font-medium mt-1 text-gray-600 dark:text-gray-400">
+                {action.label}
+              </span>
+            </Link>
+          );
+        })}
       </div>
     </div>
   );
