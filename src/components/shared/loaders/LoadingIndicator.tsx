@@ -34,11 +34,24 @@ interface LoadingIndicatorProps {
    * Custom class name to apply
    */
   className?: string;
+  
+  /**
+   * Accessibility label for screen readers
+   */
+  ariaLabel?: string;
 }
 
 /**
  * A flexible loading indicator component with multiple
  * animation types, sizes, and color options.
+ * 
+ * @example
+ * // Basic spinner
+ * <LoadingIndicator />
+ * 
+ * @example
+ * // Custom dots with text
+ * <LoadingIndicator type="dots" color="secondary" text="Processing..." />
  */
 const LoadingIndicator: React.FC<LoadingIndicatorProps> = ({
   size = 'md',
@@ -46,7 +59,8 @@ const LoadingIndicator: React.FC<LoadingIndicatorProps> = ({
   color = 'primary',
   text,
   centered = false,
-  className = ''
+  className = '',
+  ariaLabel = 'Loading...'
 }) => {
   // Size mappings for different loading types
   const sizeMap = {
@@ -82,16 +96,16 @@ const LoadingIndicator: React.FC<LoadingIndicatorProps> = ({
     }
   };
   
-  // Color mappings
+  // Enhanced color mappings with dark mode support
   const colorMap = {
-    primary: 'text-primary-500 fill-primary-500',
-    secondary: 'text-secondary-500 fill-secondary-500',
-    success: 'text-green-500 fill-green-500',
-    warning: 'text-amber-500 fill-amber-500',
-    danger: 'text-red-500 fill-red-500',
-    info: 'text-blue-500 fill-blue-500',
-    light: 'text-gray-300 fill-gray-300',
-    dark: 'text-gray-800 fill-gray-800'
+    primary: 'text-primary-500 dark:text-primary-400 fill-primary-500 dark:fill-primary-400',
+    secondary: 'text-secondary-500 dark:text-secondary-400 fill-secondary-500 dark:fill-secondary-400',
+    success: 'text-green-500 dark:text-green-400 fill-green-500 dark:fill-green-400',
+    warning: 'text-amber-500 dark:text-amber-400 fill-amber-500 dark:fill-amber-400',
+    danger: 'text-red-500 dark:text-red-400 fill-red-500 dark:fill-red-400',
+    info: 'text-blue-500 dark:text-blue-400 fill-blue-500 dark:fill-blue-400',
+    light: 'text-gray-300 dark:text-gray-200 fill-gray-300 dark:fill-gray-200',
+    dark: 'text-gray-800 dark:text-gray-100 fill-gray-800 dark:fill-gray-100'
   };
   
   // Base container classes
@@ -100,9 +114,12 @@ const LoadingIndicator: React.FC<LoadingIndicatorProps> = ({
     className
   ].filter(Boolean).join(' ');
   
+  // Text style classes
+  const textClasses = 'ml-3 text-gray-700 dark:text-gray-300';
+  
   // Render spinner loading type
   const renderSpinner = () => (
-    <div role="status" className={containerClasses}>
+    <div role="status" aria-live="polite" aria-label={ariaLabel} className={containerClasses}>
       <svg 
         aria-hidden="true" 
         className={`animate-spin ${sizeMap[size].spinner} ${colorMap[color]}`} 
@@ -120,39 +137,39 @@ const LoadingIndicator: React.FC<LoadingIndicatorProps> = ({
           fill="currentFill"
         />
       </svg>
-      {text && <span className="ml-3">{text}</span>}
-      <span className="sr-only">Loading...</span>
+      {text && <span className={textClasses}>{text}</span>}
+      <span className="sr-only">{ariaLabel}</span>
     </div>
   );
   
   // Render dots loading type
   const renderDots = () => (
-    <div role="status" className={containerClasses}>
+    <div role="status" aria-live="polite" aria-label={ariaLabel} className={containerClasses}>
       <div className="flex">
         <div className={`${sizeMap[size].dots} ${colorMap[color]} rounded-full animate-bounce-delay-1`}></div>
         <div className={`${sizeMap[size].dots} ${colorMap[color]} rounded-full animate-bounce-delay-2`}></div>
         <div className={`${sizeMap[size].dots} ${colorMap[color]} rounded-full animate-bounce-delay-3`}></div>
       </div>
-      {text && <span className="ml-3">{text}</span>}
-      <span className="sr-only">Loading...</span>
+      {text && <span className={textClasses}>{text}</span>}
+      <span className="sr-only">{ariaLabel}</span>
     </div>
   );
   
   // Render pulse loading type
   const renderPulse = () => (
-    <div role="status" className={containerClasses}>
+    <div role="status" aria-live="polite" aria-label={ariaLabel} className={containerClasses}>
       <div className={`${sizeMap[size].pulse} ${colorMap[color]} rounded-full animate-pulse-scale`}></div>
-      {text && <span className="ml-3">{text}</span>}
-      <span className="sr-only">Loading...</span>
+      {text && <span className={textClasses}>{text}</span>}
+      <span className="sr-only">{ariaLabel}</span>
     </div>
   );
   
   // Render skeleton loading type
   const renderSkeleton = () => (
-    <div role="status" className={containerClasses}>
+    <div role="status" aria-live="polite" aria-label={ariaLabel} className={containerClasses}>
       <div className={`animate-pulse bg-gray-200 dark:bg-gray-700 rounded ${sizeMap[size].skeleton} w-24`}></div>
       {text && <span className="ml-3 text-gray-500 dark:text-gray-400">{text}</span>}
-      <span className="sr-only">Loading...</span>
+      <span className="sr-only">{ariaLabel}</span>
     </div>
   );
   
@@ -199,6 +216,19 @@ const globalStyles = `
   }
   .animate-pulse-scale {
     animation: pulse-scale 1.5s infinite ease-in-out;
+  }
+  
+  /* Respect user's reduced motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-bounce-delay-1,
+    .animate-bounce-delay-2,
+    .animate-bounce-delay-3,
+    .animate-pulse-scale,
+    .animate-spin {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 `;
 

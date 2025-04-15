@@ -95,15 +95,6 @@ function BannerNewsCourse() {
                       <Mail className="mr-2" size={18} />
                       {course.buttonText}
                     </motion.button>
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => router.push("/news")}
-                      className="inline-flex items-center px-6 py-3 bg-white dark:bg-gray-700 text-[#F6B335] border-2 border-[#F6B335] hover:bg-[#F6B335]/10 font-medium rounded-lg transition-all"
-                    >
-                      Latest News
-                      <ArrowRight size={18} className="ml-2" />
-                    </motion.button>
                   </div>
                 </motion.div>
               </div>
