@@ -634,11 +634,6 @@ const Courses = () => {
                 <CoursesFilter 
                   CustomText="EXPLORE LEARNING PATHS CONFIDENTLY"
                   hideSearch={false}
-                  CustomButton={
-                    <div className="inline-flex items-center px-6 py-3 bg-primary-600 hover:bg-primary-700 dark:bg-primary-700 dark:hover:bg-primary-600 text-white text-sm font-medium rounded-xl transition-colors shadow-sm hover:shadow-md">
-                      View All Categories
-                    </div>
-                  }
                   description="Comprehensive Skill Development Courses Tailored for Diverse Professional Aspirations"
                   renderCourse={renderAllCourse}
                 />
