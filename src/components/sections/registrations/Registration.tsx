@@ -693,8 +693,9 @@ const Registration: React.FC<IRegistrationProps> = ({ showUploadField = false, p
     : '';
 
   return (
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       <motion.section 
+        key="registration-section"
         initial="hidden"
         animate="visible"
         variants={containerVariants}
@@ -871,7 +872,7 @@ const Registration: React.FC<IRegistrationProps> = ({ showUploadField = false, p
       </motion.section>
       
       {/* Success Modal */}
-      <SuccessModal showModal={showModal} setShowModal={setShowModal} />
+      <SuccessModal key="success-modal" showModal={showModal} setShowModal={setShowModal} />
     </AnimatePresence>
   );
 };
