@@ -14,6 +14,8 @@ export interface IMenuItemProps {
   color?: string;
   bg?: string;
   onClick?: () => void;
+  isRelative?: boolean;
+  dropdown?: React.ReactNode;
 }
 
 // Mobile menu props

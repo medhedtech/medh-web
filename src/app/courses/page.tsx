@@ -72,19 +72,6 @@ const Courses = () => {
   const cachedState = typeof window !== 'undefined' ? cacheManager.get() : null;
   
   const [activeTab, setActiveTab] = useState(cachedState?.activeTab || "all"); // "all", "live", or "blended"
-  const [liveCourseFilters, setLiveCourseFilters] = useState(cachedState?.liveCourseFilters || {
-    upcoming: false,
-    popular: false,
-    latest: false
-  });
-  const [blendedCourseFilters, setBlendedCourseFilters] = useState(cachedState?.blendedCourseFilters || {
-    popular: false,
-    latest: false,
-    beginner: false
-  });
-
-  const [showLiveFilters, setShowLiveFilters] = useState(cachedState?.showLiveFilters !== undefined ? cachedState.showLiveFilters : true);
-  const [showBlendedFilters, setShowBlendedFilters] = useState(cachedState?.showBlendedFilters !== undefined ? cachedState.showBlendedFilters : true);
   const [isVisible, setIsVisible] = useState(false);
   const [isClient, setIsClient] = useState(false);
 
@@ -96,15 +83,11 @@ const Courses = () => {
   // Update cache when state changes
   useEffect(() => {
     const stateToCache = {
-      activeTab,
-      liveCourseFilters,
-      blendedCourseFilters,
-      showLiveFilters,
-      showBlendedFilters
+      activeTab
     };
     
     cacheManager.set(stateToCache);
-  }, [activeTab, liveCourseFilters, blendedCourseFilters, showLiveFilters, showBlendedFilters]);
+  }, [activeTab]);
 
   // Animation variants - memoized to prevent unnecessary recreations
   const containerVariants = useMemo(() => ({
@@ -168,55 +151,10 @@ const Courses = () => {
     }
   ], []);
 
-  // Toggle filters - memoized callbacks to prevent unnecessary recreations
-  const toggleLiveFilter = useCallback((filter) => {
-    setLiveCourseFilters(prev => ({
-      ...prev,
-      [filter]: !prev[filter]
-    }));
-  }, []);
-
-  const toggleBlendedFilter = useCallback((filter) => {
-    setBlendedCourseFilters(prev => ({
-      ...prev,
-      [filter]: !prev[filter]
-    }));
-  }, []);
-
   // Set active tab with memoized callback
   const handleTabChange = useCallback((tab) => {
     setActiveTab(tab);
   }, []);
-
-  // Filter button component - memoized to prevent unnecessary recreations
-  const FilterButton = React.memo(({ active, icon, label, onClick, color="teal" }) => {
-    const colorClasses = {
-      rose: {
-        active: "bg-rose-500 text-white font-semibold",
-        inactive: "bg-rose-100 text-rose-600 hover:bg-rose-200 dark:bg-rose-900/30 dark:text-rose-300 dark:hover:bg-rose-800/40 font-medium"
-      },
-      indigo: {
-        active: "bg-indigo-500 text-white font-semibold",
-        inactive: "bg-indigo-100 text-indigo-600 hover:bg-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 dark:hover:bg-indigo-800/40 font-medium"
-      },
-      teal: {
-        active: "bg-[#379392] text-white font-semibold",
-        inactive: "bg-[#379392]/10 text-[#379392] hover:bg-[#379392]/20 dark:bg-[#379392]/30 dark:text-[#379392]/80 dark:hover:bg-[#379392]/40 font-medium"
-      }
-    };
-    
-    return (
-      <button
-        onClick={onClick}
-        className={`flex items-center space-x-2 px-4 py-2 rounded-full text-sm transition-all duration-200 ${
-          active ? colorClasses[color].active : colorClasses[color].inactive
-        }`}
-      >
-        {React.cloneElement(icon, { className: "w-5 h-5" })}
-        <span>{label}</span>
-      </button>
-    );
-  });
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -233,27 +171,6 @@ const Courses = () => {
       videoCount: defaultVideoCount,
       qnaSessions: 2
     };
-  }, []);
-
-  const formatBlendedLearningExperience = useCallback((videoCount, qnaSessions, duration) => {
-    return (
-      <div className="flex flex-col space-y-2">
-        <div className="flex items-center text-xs">
-          <Clock className="w-4 h-4 mr-1 text-[#379392]" />
-          <span>Duration: {duration || "Flexible"}</span>
-        </div>
-        <div className="flex flex-col space-y-1">
-          <div className="flex items-center text-xs">
-            <Video className="w-4 h-4 mr-1 text-rose-500" />
-            <span>{videoCount} Video Lessons</span>
-          </div>
-          <div className="flex items-center text-xs">
-            <Users className="w-4 h-4 mr-1 text-[#379392]" />
-            <span>2 Live QnA Sessions</span>
-          </div>
-        </div>
-      </div>
-    );
   }, []);
 
   // Format course duration to display as "4 Months (16 Weeks)" when both are provided
@@ -317,10 +234,11 @@ const Courses = () => {
       const { videoCount, qnaSessions } = getBlendedCourseSessions(course);
       
       typedProps = {
-        course_duration: formatBlendedLearningExperience(
-          videoCount, 
-          qnaSessions,
-          formatCourseDuration(course.course_duration || course.duration)
+        course_duration: (
+          <div className="flex items-center text-sm">
+            <Clock className="w-4 h-4 mr-1 text-rose-500" />
+            <span>{formatCourseDuration(course.course_duration || course.duration)}</span>
+          </div>
         ),
         duration_range: `${videoCount} Videos • ${qnaSessions} Q&A • ${course.duration_range || "Self-paced"}`,
         no_of_Sessions: course.no_of_Sessions || videoCount,
@@ -357,7 +275,7 @@ const Courses = () => {
       isBlendedCourse: isBlended,
       highlights: typedProps.highlights || course.highlights || []
     };
-  }, [formatCourseDuration, formatBlendedLearningExperience, getBlendedCourseSessions]);
+  }, [formatCourseDuration, getBlendedCourseSessions]);
   
   const renderLiveCourse = useCallback((course) => ({
     ...course,
@@ -391,10 +309,11 @@ const Courses = () => {
       cardStyle: 'blended',
       isLiveCourse: false,
       isBlendedCourse: true,
-      course_duration: formatBlendedLearningExperience(
-        videoCount, 
-        2, // Fixed to 2 as per requirement
-        formatCourseDuration(course.course_duration || course.duration)
+      course_duration: (
+        <div className="flex items-center text-sm">
+          <Clock className="w-4 h-4 mr-1 text-rose-500" />
+          <span>{formatCourseDuration(course.course_duration || course.duration)}</span>
+        </div>
       ),
       duration_range: `${videoCount} Videos • 2 Q&A • ${course.duration_range || "Self-paced"}`,
       no_of_Sessions: course.no_of_Sessions || videoCount,
@@ -405,25 +324,7 @@ const Courses = () => {
         ...(course.highlights || [])
       ]
     };
-  }, [getBlendedCourseSessions, formatBlendedLearningExperience, formatCourseDuration]);
-
-  // Memoize the show filters for blended and live courses
-  const showOnlyLive = useCallback((course) => {
-    const courseType = (course.class_type || '').toLowerCase();
-    return courseType.includes('live') || 
-           (course.format && course.format.toLowerCase().includes('live'));
-  }, []);
-  
-  const showOnlyBlended = useCallback((course) => {
-    const courseType = (course.class_type || '').toLowerCase();
-    return courseType.includes('blend') || 
-           courseType.includes('hybrid') || 
-           (course.format && (
-             course.format.toLowerCase().includes('blend') || 
-             course.format.toLowerCase().includes('hybrid')
-           )) ||
-           (course.lectures_count && course.live_sessions);
-  }, []);
+  }, [getBlendedCourseSessions, formatCourseDuration]);
 
   // Memoized preloader component
   const CoursePreloader = useMemo(() => {
@@ -510,122 +411,6 @@ const Courses = () => {
           </div>
         </section>
 
-        {/* Filter Section - Live Courses - Full Width */}
-        {isClient && activeTab === "live" && (
-          <section className="w-full py-6 bg-rose-50/80 dark:bg-rose-900/10 border-b border-rose-100 dark:border-rose-900/20 transition-colors duration-300">
-            <div className="max-w-full px-4 sm:px-6 lg:px-8">
-              <div className="flex items-center justify-between mb-4">
-                <button
-                  onClick={() => setShowLiveFilters(!showLiveFilters)}
-                  className="flex items-center gap-2 text-rose-700 dark:text-rose-300 hover:text-rose-800 dark:hover:text-rose-200 transition-colors px-4 py-2"
-                >
-                  <Filter className="w-6 h-6" />
-                  <span className="text-base font-medium">
-                    {showLiveFilters ? 'Hide Filters' : 'Show Filters'}
-                  </span>
-                  <ChevronRight className={`w-5 h-5 transition-transform duration-200 ${showLiveFilters ? 'rotate-90' : ''}`} />
-                </button>
-                <span className="hidden md:inline-flex items-center text-sm text-rose-700 dark:text-rose-300">
-                  <Filter className="w-4 h-4 mr-1" />
-                  {showLiveFilters ? 'Select filters to refine results' : `${Object.values(liveCourseFilters).filter(Boolean).length} filters applied`}
-                </span>
-              </div>
-              <motion.div
-                initial={false}
-                animate={{ 
-                  height: showLiveFilters ? 'auto' : 0,
-                  opacity: showLiveFilters ? 1 : 0
-                }}
-                transition={{ duration: 0.2 }}
-                className="overflow-hidden"
-              >
-                <div className="flex flex-wrap justify-center md:justify-start gap-4 py-4">
-                  <h3 className="sr-only">Live Course Filters</h3>
-                  <FilterButton 
-                    active={liveCourseFilters.upcoming}
-                    icon={<Calendar className="w-4 h-4" />}
-                    label="Upcoming"
-                    onClick={() => toggleLiveFilter('upcoming')}
-                    color="rose"
-                  />
-                  <FilterButton 
-                    active={liveCourseFilters.popular}
-                    icon={<Users className="w-4 h-4" />}
-                    label="Popular"
-                    onClick={() => toggleLiveFilter('popular')}
-                    color="rose"
-                  />
-                  <FilterButton 
-                    active={liveCourseFilters.latest}
-                    icon={<Sparkles className="w-4 h-4" />}
-                    label="Latest"
-                    onClick={() => toggleLiveFilter('latest')}
-                    color="rose"
-                  />
-                </div>
-              </motion.div>
-            </div>
-          </section>
-        )}
-
-        {/* Filter Section - Blended Courses - Full Width */}
-        {isClient && activeTab === "blended" && (
-          <section className="w-full py-6 bg-indigo-50/80 dark:bg-indigo-900/10 border-b border-indigo-100 dark:border-indigo-900/20 transition-colors duration-300">
-            <div className="max-w-full px-4 sm:px-6 lg:px-8">
-              <div className="flex items-center justify-between mb-4">
-                <button
-                  onClick={() => setShowBlendedFilters(!showBlendedFilters)}
-                  className="flex items-center gap-2 text-indigo-700 dark:text-indigo-300 hover:text-indigo-800 dark:hover:text-indigo-200 transition-colors px-4 py-2"
-                >
-                  <Filter className="w-6 h-6" />
-                  <span className="text-base font-medium">
-                    {showBlendedFilters ? 'Hide Filters' : 'Show Filters'}
-                  </span>
-                  <ChevronRight className={`w-5 h-5 transition-transform duration-200 ${showBlendedFilters ? 'rotate-90' : ''}`} />
-                </button>
-                <span className="hidden md:inline-flex items-center text-sm text-indigo-700 dark:text-indigo-300">
-                  <Filter className="w-4 h-4 mr-1" />
-                  {showBlendedFilters ? 'Select filters to refine results' : `${Object.values(blendedCourseFilters).filter(Boolean).length} filters applied`}
-                </span>
-              </div>
-              <motion.div
-                initial={false}
-                animate={{ 
-                  height: showBlendedFilters ? 'auto' : 0,
-                  opacity: showBlendedFilters ? 1 : 0
-                }}
-                transition={{ duration: 0.2 }}
-                className="overflow-hidden"
-              >
-                <div className="flex flex-wrap justify-center md:justify-start gap-4 py-4">
-                  <h3 className="sr-only">Blended Course Filters</h3>
-                  <FilterButton 
-                    active={blendedCourseFilters.popular}
-                    icon={<Users className="w-4 h-4" />}
-                    label="Popular"
-                    onClick={() => toggleBlendedFilter('popular')}
-                    color="indigo"
-                  />
-                  <FilterButton 
-                    active={blendedCourseFilters.latest}
-                    icon={<Sparkles className="w-4 h-4" />}
-                    label="Latest"
-                    onClick={() => toggleBlendedFilter('latest')}
-                    color="indigo"
-                  />
-                  <FilterButton 
-                    active={blendedCourseFilters.beginner}
-                    icon={<BookOpen className="w-4 h-4" />}
-                    label="Beginner Friendly"
-                    onClick={() => toggleBlendedFilter('beginner')}
-                    color="indigo"
-                  />
-                </div>
-              </motion.div>
-            </div>
-          </section>
-        )}
-
         {/* Courses Section */}
         <section id="courses-section" className="w-full py-12 bg-gray-50/80 dark:bg-gray-900/80 transition-colors duration-300">
           <div className="w-full">
@@ -650,7 +435,6 @@ const Courses = () => {
                     </div>
                   }
                   classType="live"
-                  filterState={liveCourseFilters}
                   description="Join interactive sessions with industry experts for real-time learning and direct feedback."
                   renderCourse={renderLiveCourse}
                 />
@@ -668,7 +452,6 @@ const Courses = () => {
                     </div>
                   }
                   classType="blended"
-                  filterState={blendedCourseFilters}
                   description="Flexible self-paced learning with interactive content and practical assignments."
                   renderCourse={renderBlendedCourse}
                 />
