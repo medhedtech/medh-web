@@ -584,17 +584,18 @@ const DownloadBrochureModal = ({
                     <button
                       type="submit"
                       disabled={loading}
-                      className="w-full py-2.5 px-5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-75 flex items-center justify-center shadow-md shadow-indigo-500/20 sheen"
+                      className="px-4 py-2 rounded-lg font-medium transition-all flex items-center justify-center gap-1.5 border border-indigo-200 text-indigo-600 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400 w-full disabled:opacity-75 sheen"
+                      style={{ position: isMobile ? 'sticky' : undefined, bottom: isMobile ? 0 : undefined, zIndex: isMobile ? 50 : undefined }}
                     >
                       {loading ? (
                         <>
-                          <span className="mr-2 h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin"></span>
-                          Sending...
+                          <span className="mr-2 h-4 w-4 rounded-full border-2 border-indigo-600 border-t-transparent animate-spin"></span>
+                          Processing...
                         </>
                       ) : (
                         <>
+                          <Download size={16} className="text-indigo-500" />
                           Get Brochure
-                          <ArrowRight size={16} className="ml-2" />
                         </>
                       )}
                     </button>
@@ -807,17 +808,18 @@ const DownloadBrochureModal = ({
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3 px-5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-75 flex items-center justify-center shadow-md shadow-indigo-500/20 sheen"
+                  className="px-4 py-2 rounded-lg font-medium transition-all flex items-center justify-center gap-1.5 border border-indigo-200 text-indigo-600 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400 w-full disabled:opacity-75 sheen"
+                  style={{ position: isMobile ? 'sticky' : undefined, bottom: isMobile ? 0 : undefined, zIndex: isMobile ? 50 : undefined }}
                 >
                   {loading ? (
                     <>
-                      <span className="mr-2 h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin"></span>
+                      <span className="mr-2 h-4 w-4 rounded-full border-2 border-indigo-600 border-t-transparent animate-spin"></span>
                       Processing...
                     </>
                   ) : (
                     <>
+                      <Download size={16} className="text-indigo-500" />
                       Get Brochure
-                      <ArrowRight size={16} className="ml-2" />
                     </>
                   )}
                 </button>
