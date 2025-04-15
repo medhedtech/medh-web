@@ -1,12 +1,27 @@
 "use client";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import logoImage from "@/assets/images/logo/medh_logo-1.png";
-import { BookOpen, Sparkles, Target, TrendingUp } from "lucide-react";
+import { Sparkles } from "lucide-react";
 
-const Preloader = () => {
-  const [loading, setLoading] = useState(true);
-  const [progress, setProgress] = useState(0);
+interface PreloaderProps {
+  /**
+   * Minimum duration to show the preloader (in ms)
+   */
+  minDuration?: number;
+  
+  /**
+   * Speed of progress simulation (higher means faster progress)
+   */
+  progressSpeed?: number;
+}
+
+const Preloader: React.FC<PreloaderProps> = ({
+  minDuration = 1500,
+  progressSpeed = 15,
+}) => {
+  const [loading, setLoading] = useState<boolean>(true);
+  const [progress, setProgress] = useState<number>(0);
 
   useEffect(() => {
     // Simulate loading progress
@@ -16,29 +31,31 @@ const Preloader = () => {
           clearInterval(progressInterval);
           return 100;
         }
-        return prev + Math.random() * 15;
+        return prev + Math.random() * progressSpeed;
       });
     }, 200);
 
     // Simulate minimum loading time for better UX
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 1500);
+    }, minDuration);
 
     return () => {
       clearTimeout(timer);
       clearInterval(progressInterval);
     };
-  }, []);
+  }, [minDuration, progressSpeed]);
 
   return (
     <div 
       className={`fixed inset-0 bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 flex flex-col items-center justify-center z-50 transition-all duration-700 ${
         loading ? "opacity-100" : "opacity-0 pointer-events-none"
       }`}
+      role="status"
+      aria-live="polite"
     >
       {/* Advanced Background Effects */}
-      <div className="absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
         {/* Animated Gradient Orbs */}
         <div className="absolute top-1/4 -left-32 w-96 h-96 bg-gradient-conic from-primary-500/30 via-purple-500/20 to-secondary-500/30 rounded-full mix-blend-overlay filter blur-3xl opacity-70 animate-spin-slow"></div>
         <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-gradient-conic from-secondary-500/30 via-pink-500/20 to-primary-500/30 rounded-full mix-blend-overlay filter blur-3xl opacity-70 animate-spin-slow-reverse"></div>
@@ -63,15 +80,19 @@ const Preloader = () => {
               sizes="(max-width: 768px) 160px, 200px"
             />
             {/* Sparkle Effects */}
-            <Sparkles className="absolute -top-2 -right-2 w-5 h-5 text-primary-400 animate-pulse" />
-            <Sparkles className="absolute -bottom-2 -left-2 w-5 h-5 text-secondary-400 animate-pulse animation-delay-700" />
+            <Sparkles className="absolute -top-2 -right-2 w-5 h-5 text-primary-400 animate-pulse" aria-hidden="true" />
+            <Sparkles className="absolute -bottom-2 -left-2 w-5 h-5 text-secondary-400 animate-pulse animation-delay-700" aria-hidden="true" />
           </div>
         </div>
         
         {/* Enhanced Progress Bar */}
         <div className="relative w-72 perspective">
           {/* Progress Container */}
-          <div className="relative w-full h-2 bg-gray-800/50 rounded-full overflow-hidden backdrop-blur-sm mb-8 transform hover:scale-105 transition-transform duration-300">
+          <div className="relative w-full h-2 bg-gray-800/50 rounded-full overflow-hidden backdrop-blur-sm mb-8 transform hover:scale-105 transition-transform duration-300" 
+               role="progressbar" 
+               aria-valuenow={Math.round(progress)} 
+               aria-valuemin={0} 
+               aria-valuemax={100}>
             {/* Animated Background */}
             <div className="absolute inset-0 bg-gradient-conic from-primary-500/20 via-purple-500/20 to-secondary-500/20 animate-spin-slow"></div>
             
@@ -103,7 +124,7 @@ const Preloader = () => {
         </div>
 
         {/* Enhanced Decorative Elements */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
           {/* Animated Particles */}
           <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-gradient-to-r from-primary-400 to-purple-400 rounded-full animate-float-particle"></div>
           <div className="absolute top-1/3 right-1/3 w-2 h-2 bg-gradient-to-r from-secondary-400 to-pink-400 rounded-full animate-float-particle animation-delay-1000"></div>

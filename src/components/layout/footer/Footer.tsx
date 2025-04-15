@@ -1,47 +1,68 @@
 "use client";
+import React, { useState, useEffect, useCallback } from "react";
 import FooterNavList from "./FooterNavList";
 import CopyRight from "./CopyRight";
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
 import Image from "next/image";
 import Logo from "@/assets/images/logo/medh_logo-1.png";
 import QRCode from "@/assets/images/footer/qr.png";
 
-const Footer = () => {
+interface FooterProps {
+  /**
+   * Optional custom className
+   */
+  className?: string;
+}
+
+const Footer: React.FC<FooterProps> = ({ className = "" }) => {
   const pathname = usePathname();
-  const [isVisible, setIsVisible] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isVisible, setIsVisible] = useState<boolean>(false);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+  
+  // Memoized function to check mobile viewport
+  const checkMobile = useCallback(() => {
+    setIsMobile(window.innerWidth < 640);
+  }, []);
   
   useEffect(() => {
     // Add entrance animation effect with a slight delay
     const timer = setTimeout(() => setIsVisible(true), 300);
     
-    // Check for mobile viewport
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 640);
-    };
-    
     // Initial check
     checkMobile();
     
+    // Optimized resize listener with debounce
+    let resizeTimer: NodeJS.Timeout;
+    const handleResize = () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        checkMobile();
+      }, 100);
+    };
+    
     // Listen for resize events
-    window.addEventListener('resize', checkMobile);
+    window.addEventListener('resize', handleResize);
     
     return () => {
       clearTimeout(timer);
-      window.removeEventListener('resize', checkMobile);
+      clearTimeout(resizeTimer);
+      window.removeEventListener('resize', handleResize);
     };
-  }, []);
+  }, [checkMobile]);
 
   return (
-    <footer className={`w-full relative transition-all duration-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+    <footer 
+      className={`w-full relative transition-all duration-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'} ${className}`}
+      role="contentinfo"
+      aria-label="Site footer"
+    >
       {/* Enhanced modern gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-gray-900 to-black z-0 overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-gray-900 to-black dark:from-gray-950 dark:via-gray-950 dark:to-black z-0 overflow-hidden">
         {/* Subtle animated radial gradient overlay */}
         <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_50%_-20%,rgba(76,175,80,0.15),rgba(0,0,0,0))]"></div>
         
         {/* Animated dot pattern */}
-        <div className="absolute inset-0 opacity-5">
+        <div className="absolute inset-0 opacity-5" aria-hidden="true">
           <div className="absolute w-full h-full" 
                style={{
                  backgroundImage: `radial-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 1px)`,
@@ -53,7 +74,7 @@ const Footer = () => {
       </div>
       
       {/* Enhanced accent line at top with animation */}
-      <div className="absolute top-0 left-0 right-0 h-0.5 z-10">
+      <div className="absolute top-0 left-0 right-0 h-0.5 z-10" aria-hidden="true">
         <div className="h-full w-full bg-gradient-to-r from-transparent via-primary-500 to-transparent opacity-70 animate-pulse"></div>
       </div>
       
@@ -61,7 +82,7 @@ const Footer = () => {
       {isMobile ? (
         // Enhanced mobile footer - full width with glass-morphism effect
         <div className="relative z-10 w-full pt-6 pb-3 font-body">
-          <div className="w-full backdrop-blur-sm bg-black/30 border-t border-white/5 px-3 py-4 shadow-lg">
+          <div className="w-full backdrop-blur-sm bg-black/30 dark:bg-black/40 border-t border-white/5 px-3 py-4 shadow-lg">
             {/* Mobile footer main content */}
             <div className="relative">
               <FooterNavList logoImage={Logo} isMobile={true} />
@@ -77,9 +98,9 @@ const Footer = () => {
       ) : (
         // Enhanced desktop footer - full width with glass-morphism effect
         <div className="relative z-10 w-full pt-10 pb-4 font-body">
-          <div className="w-full backdrop-blur-sm bg-black/20 border-t border-white/5 py-6 md:py-8 shadow-xl">
+          <div className="w-full backdrop-blur-sm bg-black/20 dark:bg-black/30 border-t border-white/5 py-6 md:py-8 shadow-xl">
             {/* Enhanced glow effect for desktop */}
-            <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-1/3 h-1 bg-gradient-to-r from-transparent via-primary-400/50 to-transparent blur-xl"></div>
+            <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-1/3 h-1 bg-gradient-to-r from-transparent via-primary-400/50 to-transparent blur-xl" aria-hidden="true"></div>
             
             {/* Footer main content - centered with max width for readability */}
             <div className="max-w-[1920px] mx-auto px-4 md:px-8 lg:px-12">
@@ -101,3 +122,4 @@ const Footer = () => {
 };
 
 export default Footer;
+
