@@ -940,24 +940,23 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
             </div>
           </div>
           
-          {/* Course Features - Improved layout for readability */}
-          <div className="border-t border-gray-200 dark:border-gray-700 pt-5">
-            <h4 className="font-semibold text-gray-900 dark:text-white text-lg mb-4 flex items-center">
-              <ThumbsUp className="w-5 h-5 mr-2 text-green-500" />
+          {/* Course Features - More compact and well structured */}
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+            <h4 className="font-semibold text-gray-900 dark:text-white text-md mb-3 flex items-center">
+              <ThumbsUp className="w-4 h-4 mr-2 text-green-500" />
               What you'll get
             </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="flex flex-wrap -mx-1">
               {courseFeatures.map((feature, index) => (
-                <motion.div 
+                <div 
                   key={index}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  className="flex items-center text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 p-3.5 rounded-xl border border-gray-100 dark:border-gray-700 hover:shadow-sm hover:border-gray-200 dark:hover:border-gray-600 transition-all"
+                  className="w-full sm:w-1/2 px-1 mb-2"
                 >
-                  <CheckCircle className="w-5 h-5 mr-3 text-green-500 flex-shrink-0" />
-                  <span className="text-sm font-medium">{feature}</span>
-                </motion.div>
+                  <div className="flex items-center text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 p-2.5 rounded-lg border border-gray-100 dark:border-gray-700">
+                    <CheckCircle2 className="w-4 h-4 mr-2 text-green-500 flex-shrink-0" />
+                    <span className="text-xs font-medium">{feature}</span>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
