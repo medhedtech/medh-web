@@ -279,21 +279,6 @@ const Benefits = () => {
               </div>
             </motion.div> */}
           </motion.div>
-          
-          {/* CTA Section */}
-          <motion.div variants={itemVariants} className="text-center">
-            <a 
-              href="#apply-educator" 
-              className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-500 dark:to-indigo-500 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/20 dark:shadow-blue-700/30 hover:shadow-xl hover:shadow-blue-500/30 dark:hover:shadow-blue-700/40 transform hover:-translate-y-1 transition-all duration-300 text-lg group"
-            >
-              <CheckCircle className="w-5 h-5 mr-3" />
-              Begin Your Educator Journey
-              <ArrowRight className="w-5 h-5 ml-2 transform group-hover:translate-x-1 transition-transform duration-300" />
-            </a>
-            <p className="mt-6 text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto">
-              Join thousands of educators who have transformed their teaching careers with Medh's innovative platform.
-            </p>
-          </motion.div>
         </motion.div>
       </div>
     </section>

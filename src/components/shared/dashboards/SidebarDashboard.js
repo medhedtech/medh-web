@@ -8,7 +8,12 @@ import {
   MdFeedback,
   MdCategory,
   MdMenu,
-  MdClose
+  MdClose,
+  MdSearch,
+  MdNotifications,
+  MdDashboard,
+  MdAccountCircle,
+  MdLogout
 } from "react-icons/md";
 import {
   FaUsers,
@@ -16,17 +21,23 @@ import {
   FaUserGraduate,
   FaBriefcase,
   FaUsersCog,
+  FaBars
 } from "react-icons/fa";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import NavbarLogo from "@/components/layout/header/NavbarLogo";
+import MobileMenu from "@/components/MobileMenu";
 import Cookies from 'js-cookie';
 
 const SidebarDashboard = ({ children }) => {
   const pathname = usePathname();
   const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isNavbarExpanded, setIsNavbarExpanded] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [userName, setUserName] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const userDropdownRef = useRef(null);
 
   useEffect(() => {
     setMounted(true);
@@ -35,6 +46,18 @@ const SidebarDashboard = ({ children }) => {
     if (storedUserName) {
       setUserName(storedUserName);
     }
+
+    // Close dropdown when clicking outside
+    const handleClickOutside = (event) => {
+      if (userDropdownRef.current && !userDropdownRef.current.contains(event.target)) {
+        setShowUserDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
   const partOfPathNaem = pathname.split("/")[2]?.split("-")[0] || '';
@@ -1377,6 +1400,7 @@ const SidebarDashboard = ({ children }) => {
     const handleEscape = (e) => {
       if (e.key === 'Escape') {
         closeMobileMenu();
+        setShowUserDropdown(false);
       }
     };
 
@@ -1396,11 +1420,26 @@ const SidebarDashboard = ({ children }) => {
     };
   }, [isMobileMenuOpen]);
 
+  // Handle search submit
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      // Implement search functionality here
+      console.log(`Searching for: ${searchQuery}`);
+      setSearchQuery("");
+    }
+  };
+
+  // Toggle navbar expansion for mobile
+  const toggleNavbar = () => {
+    setIsNavbarExpanded(!isNavbarExpanded);
+  };
+
   // Sidebar content component to avoid duplication
   const SidebarContent = () => (
     <div className="h-full flex flex-col">
-      <div className="p-4 md:p-10 border-b border-gray-200 dark:border-gray-800">
-        {/* <NavbarLogo /> */}
+      <div className="p-4 md:p-6 border-b border-gray-200 dark:border-gray-800 flex items-center justify-center">
+        <NavbarLogo />
       </div>
 
       <nav className="flex-1 overflow-y-auto">
@@ -1488,57 +1527,165 @@ const SidebarDashboard = ({ children }) => {
   if (!mounted) return null;
 
   return (
-    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Desktop Sidebar */}
-      <aside className="hidden md:block w-72 min-h-screen bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800">
-        <div className="sticky top-0 h-screen">
-          <SidebarContent />
+    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Top Navigation Bar */}
+      <header className="sticky top-0 z-30 w-full bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-800">
+        <div className="container px-4 mx-auto">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo and mobile menu trigger */}
+            <div className="flex items-center">
+              <button
+                onClick={toggleMobileMenu}
+                className="p-2 mr-2 rounded-lg md:hidden text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                aria-label="Open menu"
+              >
+                <FaBars className="w-5 h-5" />
+              </button>
+              
+              <div className="md:hidden">
+                <NavbarLogo />
+              </div>
+            </div>
+            
+            {/* Search & Actions - Desktop */}
+            <div className="hidden md:flex items-center flex-1 mx-8">
+              <form onSubmit={handleSearchSubmit} className="max-w-md w-full mx-auto">
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <MdSearch className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Search courses, resources..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                  />
+                </div>
+              </form>
+            </div>
+            
+            {/* User Menu & Actions */}
+            <div className="flex items-center">
+              {/* Notification Bell */}
+              <button className="p-2 text-gray-600 dark:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
+                <MdNotifications className="w-6 h-6" />
+              </button>
+              
+              {/* User Profile Dropdown */}
+              <div className="relative ml-3" ref={userDropdownRef}>
+                <button 
+                  onClick={() => setShowUserDropdown(!showUserDropdown)}
+                  className="flex items-center text-sm rounded-full focus:outline-none"
+                >
+                  <div className="flex items-center">
+                    <div className="h-8 w-8 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center text-primary-600 dark:text-primary-400">
+                      {userName ? userName.charAt(0).toUpperCase() : "U"}
+                    </div>
+                    <span className="ml-2 text-gray-700 dark:text-gray-300 hidden sm:block">{userName}</span>
+                  </div>
+                </button>
+                
+                {/* Dropdown Menu */}
+                {showUserDropdown && (
+                  <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 dark:divide-gray-700">
+                    <div className="py-1">
+                      <Link 
+                        href="/dashboards/profile" 
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        onClick={() => setShowUserDropdown(false)}
+                      >
+                        <MdAccountCircle className="mr-3 h-5 w-5 text-gray-500 dark:text-gray-400" />
+                        Profile
+                      </Link>
+                      <Link 
+                        href="/dashboards" 
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        onClick={() => setShowUserDropdown(false)}
+                      >
+                        <MdDashboard className="mr-3 h-5 w-5 text-gray-500 dark:text-gray-400" />
+                        Dashboard
+                      </Link>
+                    </div>
+                    <div className="py-1">
+                      <button
+                        onClick={() => {
+                          setShowUserDropdown(false);
+                          handleLogout();
+                        }}
+                        className="flex w-full items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      >
+                        <MdLogout className="mr-3 h-5 w-5 text-gray-500 dark:text-gray-400" />
+                        Sign out
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          {/* Mobile Search - Expandable */}
+          <div className={`md:hidden pb-3 ${isNavbarExpanded ? 'block' : 'hidden'}`}>
+            <form onSubmit={handleSearchSubmit} className="w-full">
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <MdSearch className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                />
+              </div>
+            </form>
+          </div>
+          
+          {/* Mobile Nav Expand Toggle */}
+          <div className="md:hidden border-t border-gray-200 dark:border-gray-800 flex justify-center">
+            <button 
+              onClick={toggleNavbar}
+              className="px-4 py-2 text-gray-500 dark:text-gray-400"
+            >
+              {isNavbarExpanded ? (
+                <span className="flex items-center">
+                  <MdClose className="w-4 h-4 mr-1" />
+                  Close
+                </span>
+              ) : (
+                <span className="flex items-center">
+                  <MdSearch className="w-4 h-4 mr-1" />
+                  Search
+                </span>
+              )}
+            </button>
+          </div>
         </div>
-      </aside>
+      </header>
 
-      {/* Mobile Menu Button */}
-      <button
-        onClick={toggleMobileMenu}
-        className="fixed top-4 right-4 z-50 md:hidden p-2 rounded-lg bg-white dark:bg-gray-800 shadow-lg transition-transform duration-200 hover:scale-105"
-        aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
-      >
-        {isMobileMenuOpen ? (
-          <MdClose className="w-6 h-6" />
-        ) : (
-          <MdMenu className="w-6 h-6" />
-        )}
-      </button>
-
-      {/* Mobile Sidebar */}
-      <div 
-        className={`fixed inset-0 z-40 md:hidden transition-opacity duration-300 ${
-          isMobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
-      >
-        {/* Backdrop */}
-        <div 
-          className={`fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300 ${
-            isMobileMenuOpen ? 'opacity-100' : 'opacity-0'
-          }`}
-          onClick={closeMobileMenu}
-        />
-        
-        {/* Sidebar */}
-        <aside 
-          className={`fixed inset-y-0 left-0 w-72 bg-white dark:bg-gray-900 shadow-xl transform transition-transform duration-300 ease-in-out ${
-            isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-          }`}
-        >
-          <SidebarContent />
+      <div className="flex flex-1">
+        {/* Desktop Sidebar */}
+        <aside className="hidden md:block w-72 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800">
+          <div className="sticky top-16 h-[calc(100vh-4rem)]">
+            <SidebarContent />
+          </div>
         </aside>
-      </div>
 
-      {/* Main Content */}
-      <main className="flex-1 min-w-0 overflow-hidden">
-        <div className="container mx-auto px-4 py-8">
-          {children}
-        </div>
-      </main>
+        {/* MobileMenu Integration */}
+        <MobileMenu 
+          isOpen={isMobileMenuOpen} 
+          onClose={closeMobileMenu}
+        />
+
+        {/* Main Content */}
+        <main className="flex-1 min-w-0 overflow-hidden">
+          <div className="container mx-auto px-4 py-6">
+            {children}
+          </div>
+        </main>
+      </div>
     </div>
   );
 };
