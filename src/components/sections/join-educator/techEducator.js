@@ -135,7 +135,7 @@ const TechEducator = () => {
           className="mt-20 text-center"
         >
           <a
-            href="#join-now"
+            href="#registration-section"
             className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-semibold rounded-xl shadow-lg shadow-primary-500/25 hover:shadow-xl hover:shadow-primary-500/40 transform hover:-translate-y-1 transition-all duration-300 text-lg group"
           >
             <Users className="w-5 h-5 mr-3" />

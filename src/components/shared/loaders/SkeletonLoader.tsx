@@ -1,6 +1,6 @@
 import React from 'react';
 
-type SkeletonType = 'dashboard' | 'courses' | 'membership' | 'quiz' | 'form' | 'certificates' | 'payments' | 'calendar' | 'classes' | 'default';
+type SkeletonType = 'dashboard' | 'courses' | 'membership' | 'quiz' | 'form' | 'certificates' | 'payments' | 'calendar' | 'classes' | 'resources' | 'assignments' | 'default';
 
 interface SkeletonLoaderProps {
   /**
