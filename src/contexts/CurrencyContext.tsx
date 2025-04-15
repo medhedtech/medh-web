@@ -109,7 +109,14 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) 
   // Fetch external currencies from the API
   const fetchExternalCurrencies = async (): Promise<ICurrency[]> => {
     try {
-      const response = await axios.get('/api/proxy/currencies', { timeout: 8000 });
+      // Import apiUrls here to avoid circular dependencies
+      const { apiUrls, apiBaseUrl } = await import('@/apis');
+      
+      // Use the proper endpoint from the apiUrls object
+      const response = await axios.get(apiBaseUrl + '/currencies', { 
+        timeout: 8000 
+      });
+      
       const validatedData = z.object({
         status: z.string(),
         results: z.number(),
@@ -136,6 +143,11 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) 
       throw new Error('Invalid response format from currencies API');
     } catch (error) {
       console.error('Error fetching external currencies:', error instanceof Error ? error.message : String(error));
+      // Return previously cached currencies if available
+      if (externalCurrencies.length > 0) {
+        console.log('Using cached currencies due to API error');
+        return externalCurrencies;
+      }
       return [];
     }
   };
