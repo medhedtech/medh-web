@@ -888,11 +888,118 @@ const CourseCard = ({
                 ${viewMode === 'grid' ? 'sm:mx-2 md:mx-3' : ''}
                 hover:shadow-2xl`}
             >
-              {/* Course type indicator tag */}
+              {/* Course type indicator tag - for desktop or when mobile hover is not active */}
               {getEffectiveClassType() && (!isMobile || !mobileHoverActive) && (
                 <div className={`absolute top-2 right-2 z-20 px-2.5 py-1 rounded-full text-xs font-bold 
-                  ${styles.tagBg} ${styles.tagText}`}>
-                  {isLiveCourse ? 'Live' : 'Self-Paced'}
+                  ${styles.tagBg} ${styles.tagText} flex items-center gap-1.5 cursor-pointer group/tag`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    setShowTooltip(!showTooltip);
+                  }}
+                >
+                  {isLiveCourse ? (
+                    <>
+                      <span>Live</span>
+                      <Info size={13} className="group-hover/tag:animate-pulse" />
+                    </>
+                  ) : (
+                    <>
+                      <span>Self-Paced</span>
+                      <Info size={13} className="group-hover/tag:animate-pulse" />
+                    </>
+                  )}
+                  
+                  {/* Class Type Tooltip */}
+                  {showTooltip && (
+                    <div className="absolute top-full right-0 mt-2 w-60 p-3 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50 text-left text-gray-800 dark:text-gray-200 text-xs">
+                      <div className="flex justify-between items-start mb-1.5">
+                        <h4 className="font-bold text-sm">{isLiveCourse ? 'Live Interactive Course' : 'Self-Paced Course'}</h4>
+                        <button 
+                          className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowTooltip(false);
+                          }}
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                      <p className="mb-2">
+                        {isLiveCourse 
+                          ? 'Live classes with real-time instructor interaction, scheduled sessions, and personalized feedback.' 
+                          : 'Learn at your own pace with pre-recorded videos, flexible schedule, and self-directed activities.'}
+                      </p>
+                      <div className="flex flex-col gap-1 pt-1 border-t border-gray-200 dark:border-gray-700">
+                        {isLiveCourse ? (
+                          <>
+                            <div className="flex items-center gap-1 text-[11px]">
+                              <Users size={11} className="text-medhgreen" />
+                              <span>Live instructor interaction</span>
+                            </div>
+                            <div className="flex items-center gap-1 text-[11px]">
+                              <Calendar size={11} className="text-purple-500" />
+                              <span>Scheduled sessions</span>
+                            </div>
+                            <div className="flex items-center gap-1 text-[11px]">
+                              <Target size={11} className="text-amber-500" />
+                              <span>Personalized feedback</span>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="flex items-center gap-1 text-[11px]">
+                              <Play size={11} className="text-indigo-500" />
+                              <span>Pre-recorded videos</span>
+                            </div>
+                            <div className="flex items-center gap-1 text-[11px]">
+                              <Clock size={11} className="text-teal-500" />
+                              <span>Flexible schedule</span>
+                            </div>
+                            <div className="flex items-center gap-1 text-[11px]">
+                              <BookOpen size={11} className="text-blue-500" />
+                              <span>Self-directed learning</span>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Mobile-specific Class Type Banner */}
+              {isMobile && !mobileHoverActive && (
+                <div 
+                  className={`absolute bottom-20 left-0 right-0 px-3 py-2 ${
+                    isLiveCourse 
+                      ? 'bg-gradient-to-r from-[#379392]/80 to-[#379392]/95 text-white' 
+                      : 'bg-gradient-to-r from-indigo-500/80 to-indigo-500/95 text-white'
+                  } text-xs flex items-center justify-between z-20 shadow-md backdrop-blur-sm`}
+                >
+                  <div className="flex items-center gap-1">
+                    {isLiveCourse ? (
+                      <>
+                        <Users size={14} />
+                        <span className="font-semibold">{course?.no_of_Sessions || "0"} Live Sessions</span>
+                      </>
+                    ) : (
+                      <>
+                        <Play size={14} />
+                        <span className="font-semibold">{course?.no_of_Sessions || "0"} Videos</span>
+                      </>
+                    )}
+                  </div>
+                  <button 
+                    className="rounded-full bg-white/20 p-1 hover:bg-white/30 flex items-center justify-center"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      setShowTooltip(!showTooltip);
+                    }}
+                  >
+                    <Info size={12} />
+                  </button>
                 </div>
               )}
 
@@ -1006,14 +1113,6 @@ const CourseCard = ({
           onMouseMove={handleMouseMove}
           style={tiltStyle}
         >
-          {/* Course type indicator tag */}
-          {getEffectiveClassType() && (!isMobile || !mobileHoverActive) && (
-            <div className={`absolute top-2 right-2 z-20 px-2.5 py-1 rounded-full text-xs font-bold 
-              ${styles.tagBg} ${styles.tagText}`}>
-              {isLiveCourse ? 'Live' : 'Self-Paced'}
-            </div>
-          )}
-
           {/* View More button for mobile */}
           {isMobile && !mobileHoverActive && (
             <button 
