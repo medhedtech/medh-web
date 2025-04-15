@@ -1406,37 +1406,47 @@ const CourseCard = ({
                 </div>
               )}
               
-              {/* Projects, Assignments, Job Assistance as simple pointers in 2 columns */}
-              <div className="grid gap-x-4 gap-y-2 mt-1 mb-1 w-full">
-                {/* Projects */}
-                <div className="flex items-center">
-                  <CheckCircle size={isMobile ? 16 : 14} className="mr-2 text-purple-500 dark:text-purple-400 flex-shrink-0" />
-                  <div className="flex items-center">
-                    <span className="font-medium text-gray-900 dark:text-white text-sm mr-1">Projects</span>
-                    <span className="text-sm text-green-600 dark:text-green-400">Yes</span>
-                  </div>
-                </div>
-
-                {/* Assignments */}
-                <div className="flex items-center">
-                  <CheckCircle size={isMobile ? 16 : 14} className="mr-2 text-indigo-500 dark:text-indigo-400 flex-shrink-0" />
-                  <div className="flex items-center">
-                    <span className="font-medium text-gray-900 dark:text-white text-sm mr-1">Assignments</span>
-                    <span className="text-sm text-green-600 dark:text-green-400">Yes</span>
-                  </div>
-                </div>
-
-                {/* Combined Job Assistance and Job Guarantee */}
-                <div className="flex items-center">
-                  <CheckCircle size={isMobile ? 16 : 14} className="mr-2 text-teal-500 dark:text-teal-400 flex-shrink-0" />
-                  <div className="flex flex-col">
-                    <div className="flex items-center">
-                      <span className="font-medium text-gray-900 dark:text-white text-sm mr-1">Job Assistance</span>
-                      <span className="text-sm text-green-600 dark:text-green-400">Yes</span>
-                    </div>
+              {/* Course Features - Compact Display */}
+              <div className={`flex items-start ${isMobile ? 'p-3' : 'p-2.5'} border border-gray-100 dark:border-gray-800 rounded-lg w-full`}>
+                <Briefcase size={isMobile ? 18 : 16} className="mt-0.5 mr-3 text-indigo-500 dark:text-indigo-400 flex-shrink-0" />
+                <div className="flex flex-col w-full">
+                  <div className="flex flex-wrap gap-1.5">
+                    {/* Different features based on course type */}
+                    {isBlendedCourse ? (
+                      /* Blended course specific features */
+                      <>
+                        <span className="inline-flex items-center px-2 py-1 rounded-md bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-xs font-medium">
+                          <CheckCircle size={10} className="mr-1" />
+                          Assignments
+                        </span>
+                        <span className="inline-flex items-center px-2 py-1 rounded-md bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 text-xs font-medium">
+                          <Users size={10} className="mr-1" />
+                          2 Live QnA Sessions
+                        </span>
+                      </>
+                    ) : (
+                      /* Standard features for non-blended courses */
+                      <>
+                        <span className="inline-flex items-center px-2 py-1 rounded-md bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 text-xs font-medium">
+                          <CheckCircle size={10} className="mr-1" />
+                          Projects
+                        </span>
+                        <span className="inline-flex items-center px-2 py-1 rounded-md bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-xs font-medium">
+                          <CheckCircle size={10} className="mr-1" />
+                          Assignments
+                        </span>
+                        <span className="inline-flex items-center px-2 py-1 rounded-md bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 text-xs font-medium">
+                          <CheckCircle size={10} className="mr-1" />
+                          Job Assistance
+                        </span>
+                      </>
+                    )}
+                    
+                    {/* Job Guarantee badge (only for eligible live courses) */}
                     {isLiveCourse && course?.course_duration && (typeof course.course_duration === 'string' && course.course_duration.toLowerCase().includes('18')) && (
-                      <span className="text-xs text-amber-500 dark:text-amber-400 font-medium mt-0.5">
-                        Job Guarantee for 18-month courses
+                      <span className="inline-flex items-center px-2 py-1 rounded-md bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-xs font-medium">
+                        <Target size={10} className="mr-1" />
+                        Job Guarantee (18 Months)
                       </span>
                     )}
                   </div>
