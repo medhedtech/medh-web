@@ -98,7 +98,18 @@ const MobileMenu: React.FC<IMobileMenuProps> = ({
       
       // Additional handling for iOS Safari to prevent rubberbanding
       const preventScroll = (e: Event) => {
-        e.preventDefault();
+        // Only prevent default for specific elements that might cause pull-to-refresh
+        // Don't prevent default on interactive elements like buttons and links
+        const target = e.target as HTMLElement;
+        const isInteractive = target.tagName === 'BUTTON' || 
+                             target.tagName === 'A' || 
+                             target.tagName === 'INPUT' ||
+                             target.closest('button') || 
+                             target.closest('a');
+        
+        if (!isInteractive && !menuRef.current?.contains(target)) {
+          e.preventDefault();
+        }
       };
       
       // Prevent pull-to-refresh on mobile (mainly iOS)
@@ -428,7 +439,6 @@ const MobileMenu: React.FC<IMobileMenuProps> = ({
             className={`fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[998] transition-opacity duration-300
               ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
             onClick={closeMenu}
-            onTouchMove={(e) => e.preventDefault()}
             aria-hidden="true"
           />
 

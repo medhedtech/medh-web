@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import LogIn from "@/assets/images/log-sign/logIn.png";
@@ -14,7 +14,7 @@ import Preloader from "../others/Preloader";
 import { toast } from "react-toastify";
 import { useRouter, useSearchParams } from "next/navigation";
 import { jwtDecode, JwtPayload } from "jwt-decode";
-import { Eye, EyeOff, Mail, Lock, Loader2, CheckCircle, AlertCircle, Sparkles, ArrowRight } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, Loader2, CheckCircle, AlertCircle, Sparkles, ArrowRight, ChevronLeft, Home } from "lucide-react";
 import CustomReCaptcha from '../ReCaptcha';
 import { useStorage } from "@/contexts/StorageContext";
 import FixedShadow from "../others/FixedShadow";
@@ -117,11 +117,41 @@ const LoginForm = () => {
     setRememberMe(e.target.checked);
   };
 
+  // Create a reference for focusing after errors
+  const emailInputRef = useRef<HTMLInputElement>(null);
+  
+  // Define role-based redirects
+  const getRoleBasedRedirectPath = (role: string): string => {
+    const roleLower = role.toLowerCase();
+    const roleMap: Record<string, string> = {
+      "admin": "/dashboards/admin",
+      "super-admin": "/dashboards/admin",
+      "instructor": "/dashboards/instructor",
+      "student": "/dashboards/student",
+      "coorporate": "/dashboards/coorporate",
+      "coorporate-student": "/dashboards/coorporate-employee-dashboard"
+    };
+    
+    return roleMap[roleLower] || "/";
+  };
+
+  // Enhanced keyboard support for form navigation
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Allow users to submit form with Ctrl+Enter
+    if (e.key === 'Enter' && e.ctrlKey) {
+      handleSubmit(onSubmit)();
+    }
+  };
+  
+  // Simplified and improved submit handler
   const onSubmit = async (data: FormInputs): Promise<void> => {
     if (!recaptchaValue) {
       setRecaptchaError(true);
+      // Focus on the first field with error
+      setTimeout(() => emailInputRef.current?.focus(), 100);
       return;
     }
+    
     await postQuery({
       url: apiUrls?.user?.login,
       postData: {
@@ -130,55 +160,32 @@ const LoginForm = () => {
         agree_terms: data?.agree_terms,
       },
       onSuccess: (res) => {
-        // Decode token and extract user role with better error handling
+        // Extract user information with better error handling
         let userRole = '';
         let fullName = '';
         
         try {
           const decoded = jwtDecode<MedhJwtPayload>(res.token);
-          console.log("Decoded token:", decoded); // Debug log
           
-          // Try different possible paths for role in the token
-          if (decoded.user && decoded.user.role) {
-            // If role is an array, take the first one, otherwise use it directly
-            userRole = Array.isArray(decoded.user.role) 
-              ? decoded.user.role[0] 
-              : decoded.user.role;
-            
-            // Extract full name
-            if (decoded.user.full_name) {
-              fullName = decoded.user.full_name;
-            }
+          // Extract role with fallbacks
+          if (decoded.user?.role) {
+            userRole = Array.isArray(decoded.user.role) ? decoded.user.role[0] : decoded.user.role;
+            fullName = decoded.user.full_name || '';
           } else if (decoded.role) {
-            // Alternative path: directly in the token
-            userRole = Array.isArray(decoded.role) 
-              ? decoded.role[0] 
-              : decoded.role;
+            userRole = Array.isArray(decoded.role) ? decoded.role[0] : decoded.role;
           }
           
-          // Additional fallback: check if the role is returned directly in the response
-          if (!userRole && res.role) {
-            userRole = res.role;
-          }
-
-          // Store user's full name
-          if (decoded.user && decoded.user.full_name) {
-            fullName = decoded.user.full_name;
-          } else if (res.full_name) {
-            fullName = res.full_name;
-          }
+          // Additional fallbacks
+          if (!userRole) userRole = res.role || '';
+          if (!fullName) fullName = res.full_name || '';
+          
         } catch (error) {
-          console.error("Error decoding token or extracting role:", error);
-          // Fallback to using role from response if available
+          console.error("Error processing token:", error);
           userRole = res.role || '';
-          
-          // Still try to store full name from response if available
-          if (res.full_name) {
-            fullName = res.full_name;
-          }
+          fullName = res.full_name || '';
         }
         
-        // Use our storage manager to store all auth data
+        // Store auth data
         storageManager.login({
           token: res.token,
           userId: res.id,
@@ -190,45 +197,34 @@ const LoginForm = () => {
           rememberMe: rememberMe
         });
 
-        // Track login event in Google Analytics
+        // Track login event
         events.login(userRole || 'user');
-
-        // Check if there's a redirect path to return to
-        if (redirectPath) {
-          // Validate the redirect URL (ensure it's internal or safe)
-          if (redirectPath.startsWith('/') && !redirectPath.startsWith('//')) {
-            console.log(`Redirecting to previous page: ${redirectPath}`);
-            router.push(redirectPath);
-            return;
-          }
-        }
-
-        // If no valid redirect path, fall back to role-based routing
-        // Convert role to lowercase for case-insensitive comparison
-        const roleLower = userRole.toLowerCase();
-        if (
-          roleLower === "admin" || roleLower === "super-admin" ||
-          roleLower === "instructor" ||
-          roleLower === "student" ||
-          roleLower === "coorporate"
-        ) {
-          console.log(`Redirecting to /dashboards/${roleLower}`);
-          router.push(`/dashboards/${roleLower}`);
-        } else if (roleLower === "coorporate-student") {
-          console.log("Redirecting to /dashboards/coorporate-employee-dashboard");
-          router.push(`/dashboards/coorporate-employee-dashboard`);
+        
+        // Handle navigation with toast feedback
+        toast.success("Login successful! Redirecting...");
+        
+        // Navigation priority:
+        // 1. Valid redirect parameter from URL
+        // 2. Role-based dashboard
+        // 3. Homepage as fallback
+        
+        // Safe redirect handling
+        if (redirectPath && redirectPath.startsWith('/') && !redirectPath.startsWith('//')) {
+          router.push(redirectPath);
         } else {
-          console.log("Role not recognized, redirecting to home page:", userRole);
-          // Default case if the role doesn't match any predefined roles
-          router.push("/");
+          const dashboardPath = getRoleBasedRedirectPath(userRole);
+          router.push(dashboardPath);
         }
-        toast.success("Login successful!");
+        
+        // Reset form state
         setRecaptchaError(false);
         setRecaptchaValue(null);
       },
       onFail: (error) => {
-        toast.error("Invalid Credentials!");
-        console.log(error);
+        toast.error("Login failed. Please check your credentials.");
+        console.error("Login error:", error);
+        // Focus on email field for retry
+        setTimeout(() => emailInputRef.current?.focus(), 100);
       },
     });
   };
@@ -295,8 +291,18 @@ const LoginForm = () => {
           {/* Card container with glass morphism effect */}
           <div className="login-card bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-2xl sm:rounded-3xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 transition-all duration-300">
             
-            {/* Header area */}
-            <div className="px-4 sm:px-8 pt-4 sm:pt-8 pb-2 sm:pb-4 text-center">
+            {/* Header area with navigation */}
+            <div className="px-4 sm:px-8 pt-4 sm:pt-8 pb-2 sm:pb-4 text-center relative">
+              {/* Back to Home link */}
+              <Link 
+                href="/"
+                className="absolute left-4 top-4 sm:left-6 sm:top-6 text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors flex items-center text-xs"
+                aria-label="Back to homepage"
+              >
+                <ChevronLeft className="h-3.5 w-3.5 mr-1" />
+                <span className="hidden sm:inline">Back</span>
+              </Link>
+              
               <Link href="/" className="inline-block mb-2 sm:mb-4">
                 <Image 
                   src={(resolvedTheme === 'dark' || theme === 'dark') ? logo1 : logo2} 
@@ -317,7 +323,11 @@ const LoginForm = () => {
             
             {/* Form area */}
             <div className="px-4 sm:px-8 pb-4 sm:pb-8">
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 sm:space-y-5">
+              <form 
+                onSubmit={handleSubmit(onSubmit)} 
+                className="space-y-3 sm:space-y-5"
+                onKeyDown={handleKeyDown}
+              >
                 {/* Email field */}
                 <div>
                   <div className="relative">
@@ -329,7 +339,11 @@ const LoginForm = () => {
                       className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border ${
                         errors.email ? 'border-red-300 dark:border-red-500' : 'border-gray-200 dark:border-gray-600'
                       } focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-10 sm:pl-11 text-sm sm:text-base`}
-                      {...register("email")}
+                      {...register("email", {
+                        required: true,
+                        ref: emailInputRef
+                      })}
+                      aria-invalid={errors.email ? "true" : "false"}
                     />
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <Mail className="h-4 w-4 text-gray-400 dark:text-gray-500" />

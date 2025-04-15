@@ -6,6 +6,7 @@ import { ChevronRight, Sparkles, BookOpen, Tag } from "lucide-react";
 import { useRouter } from "next/navigation";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
+import { getAllCoursesWithLimits } from "@/apis/course/course";
 import Image from "next/image";
 
 const FreeCourses = () => {
@@ -45,18 +46,14 @@ const FreeCourses = () => {
   useEffect(() => {
     const fetchCourses = () => {
       getQuery({
-        url: apiUrls?.courses?.getAllCoursesWithLimits(
+        url: getAllCoursesWithLimits({
           page,
           limit,
-          "",
-          "",
-          "",
-          "Upcoming",
-          "",
-          "",
-          "",
-          true
-        ),
+          status: "Published",
+          filters: {
+            isFree: true
+          }
+        }),
         onSuccess: (res) => {
           const freeCourses = res?.courses?.filter((course) => course.isFree === true) || [];
           setFreeCourses(freeCourses.slice(0, 4));
