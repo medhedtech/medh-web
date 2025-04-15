@@ -971,7 +971,23 @@ module.exports = {
             filter: 'drop-shadow(0 0 8px rgba(56,178,172,0.8))',
             opacity: 0.8,
           },
-        }
+        },
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        fadeOutRotate: {
+          '0%': { opacity: '1', transform: 'rotate(0deg)' },
+          '100%': { opacity: '0', transform: 'rotate(180deg)' },
+        },
+        slideIn: {
+          '0%': { transform: 'translateX(100%)' },
+          '100%': { transform: 'translateX(0)' },
+        },
+        slideOut: {
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(100%)' },
+        },
       },
       animation: {
         "spin-slow": "spin-slow 6s linear 0s infinite alternate",
@@ -989,6 +1005,10 @@ module.exports = {
         'bounce-slow': 'bounce 3s infinite',
         'shimmer': 'shimmer 3s infinite',
         'neon-pulse': 'neon-pulse 4s ease-in-out infinite',
+        fadeIn: 'fadeIn 0.3s ease-in-out',
+        fadeOutRotate: 'fadeOutRotate 0.3s ease-in-out',
+        slideIn: 'slideIn 0.3s ease-out',
+        slideOut: 'slideOut 0.3s ease-in',
       },
     },
   },
