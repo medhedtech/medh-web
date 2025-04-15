@@ -30,7 +30,10 @@ import {
   Clock,
   Upload,
   Building,
-  BookOpen
+  BookOpen,
+  Check,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import type { 
   FieldArrayWithId, 
@@ -1476,15 +1479,20 @@ const PlacementForm: React.FC<PlacementFormProps> = ({ isOpen, onClose }) => {
   }, [isOpen, reset, getQuery]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md overflow-y-auto">
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="w-full max-w-5xl m-4 bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden"
+        transition={{ duration: 0.3, ease: "easeOut" }}
+        className="w-full max-w-5xl m-4 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-gray-100 dark:border-gray-700"
       >
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Placement Application Form</h2>
+        {/* Form Header with gradient background */}
+        <div className="bg-gradient-to-r from-primary-600/90 to-primary-500/90 p-6 border-b border-white/10 flex justify-between items-center">
+          <div>
+            <h2 className="text-2xl font-bold text-white">Placement Application Form</h2>
+            <p className="text-white/80 text-sm mt-1">Complete all sections to apply for placement opportunities</p>
+          </div>
           <button
             type="button"
             onClick={(e) => {
@@ -1492,184 +1500,243 @@ const PlacementForm: React.FC<PlacementFormProps> = ({ isOpen, onClose }) => {
               e.stopPropagation();
               onClose();
             }}
-            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white"
+            className="text-white/70 hover:text-white p-2 rounded-full hover:bg-white/10 transition-all duration-200"
+            aria-label="Close form"
           >
             <X className="w-6 h-6" />
           </button>
         </div>
         
+        {/* Form Progress Bar */}
+        <div className="w-full h-1 bg-gray-100 dark:bg-gray-700">
+          <div 
+            className="h-full bg-primary-500 transition-all duration-500"
+            style={{ width: `${((activeTab + 1) / tabs.length) * 100}%` }}
+          ></div>
+        </div>
+        
         {/* Tab Navigation */}
-        <div className="w-full p-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
-          <div className="flex items-center min-w-max">
+        <div className="w-full bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 overflow-x-auto sticky top-0 z-10 shadow-sm">
+          <div className="flex items-center min-w-max p-2">
             {tabs.map((tab, index) => (
               <button
                 key={index}
                 type="button"
                 onClick={() => setActiveTab(index)}
-                className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium mr-2 transition-colors ${
+                className={`flex items-center px-4 py-3 rounded-xl text-sm font-medium mr-2 transition-all duration-200 relative ${
                   activeTab === index
-                    ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400'
-                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white'
+                    ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400 shadow-sm'
+                    : index < activeTab 
+                      ? 'text-primary-600 hover:bg-primary-50/50 dark:text-primary-400 dark:hover:bg-primary-900/10'
+                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700/30'
                 }`}
               >
-                <tab.icon className={`w-5 h-5 mr-1.5 ${activeTab === index ? 'text-primary-500' : ''}`} />
-                {tab.label}
+                <div className={`flex items-center justify-center w-6 h-6 rounded-full mr-2 
+                  ${activeTab === index 
+                    ? 'bg-primary-500 text-white' 
+                    : index < activeTab
+                      ? 'bg-primary-100 text-primary-600 dark:bg-primary-900/50 dark:text-primary-400'
+                      : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
+                  }`}>
+                  {index < activeTab ? (
+                    <Check className="w-3.5 h-3.5" />
+                  ) : (
+                    <span className="text-xs">{index + 1}</span>
+                  )}
+                </div>
+                <span>{tab.label}</span>
+                {activeTab === index && (
+                  <motion.div 
+                    layoutId="activeTabIndicator"
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-500 dark:bg-primary-400"
+                    transition={{ duration: 0.3 }}
+                  />
+                )}
               </button>
             ))}
           </div>
         </div>
         
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6">
-          {/* Tab 1: Personal Info */}
-          {activeTab === 0 && (
-            <div className="space-y-8">
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-                  Basic Information
-                </h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <FormInput
-                    label="First Name"
-                    icon={User}
-                    type="text"
-                    placeholder="Enter your first name"
-                    error={errors.firstname?.message}
-                    {...register("firstname")}
-                  />
-
-                  <FormInput
-                    label="Last Name"
-                    icon={User}
-                    type="text"
-                    placeholder="Enter your last name"
-                    error={errors.lastname?.message}
-                    {...register("lastname")}
-                  />
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col flex-1 overflow-hidden">
+          <motion.div 
+            key={activeTab}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
+            className="flex-1 overflow-y-auto p-6 md:p-8"
+          >
+            {/* Tab 1: Personal Info */}
+            {activeTab === 0 && (
+              <div className="space-y-8">
+                <div>
+                  <div className="flex items-center space-x-3 mb-6">
+                    <div className="bg-primary-100 dark:bg-primary-900/30 p-2 rounded-lg">
+                      <User className="h-5 w-5 text-primary-500 dark:text-primary-400" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                      Basic Information
+                    </h3>
+                  </div>
                   
-                  <FormInput
-                    label="Email"
-                    icon={Mail}
-                    type="email"
-                    placeholder="your.email@example.com"
-                    error={errors.email?.message}
-                    {...register("email")}
-                  />
-                  
-                  <FormInput
-                    label="Phone Number"
-                    icon={Phone}
-                    type="tel"
-                    placeholder="10-digit phone number"
-                    error={errors.phone_number?.message}
-                    {...register("phone_number")}
-                  />
-                  
-                  <FormFileUpload
-                    label="Resume/CV"
-                    accept=".pdf,.doc,.docx"
-                    error={errors.resumeFile?.message}
-                    {...register("resumeFile")}
-                  />
-                  
-                  <div className="col-span-1 md:col-span-2">
-                    <h4 className="text-md font-medium text-gray-800 dark:text-white mb-3">Online Presence</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-6 shadow-sm">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <FormInput
-                        label="LinkedIn Profile"
-                        icon={LinkIcon}
-                        type="url"
-                        placeholder="https://linkedin.com/in/yourprofile"
-                        error={errors.linkedin_profile?.message}
-                        {...register("linkedin_profile")}
+                        label="First Name"
+                        icon={User}
+                        type="text"
+                        placeholder="Enter your first name"
+                        error={errors.firstname?.message}
+                        {...register("firstname")}
                       />
-                      
                       <FormInput
-                        label="GitHub Profile"
-                        icon={Code}
-                        type="url"
-                        placeholder="https://github.com/yourusername"
-                        error={errors.github_profile?.message}
-                        {...register("github_profile")}
+                        label="Last Name"
+                        icon={User}
+                        type="text"
+                        placeholder="Enter your last name"
+                        error={errors.lastname?.message}
+                        {...register("lastname")}
                       />
-                      
                       <FormInput
-                        label="Portfolio Website"
-                        icon={LinkIcon}
-                        type="url"
-                        placeholder="https://yourportfolio.com"
-                        error={errors.portfolio_url?.message}
-                        {...register("portfolio_url")}
+                        label="Email"
+                        icon={Mail}
+                        type="email"
+                        placeholder="your.email@example.com"
+                        error={errors.email?.message}
+                        {...register("email")}
                       />
+                      <FormInput
+                        label="Phone Number"
+                        icon={Phone}
+                        type="tel"
+                        placeholder="10-digit phone number"
+                        error={errors.phone_number?.message}
+                        {...register("phone_number")}
+                      />
+                      <FormFileUpload
+                        label="Resume/CV"
+                        accept=".pdf,.doc,.docx"
+                        error={errors.resumeFile?.message}
+                        {...register("resumeFile")}
+                      />
+                      <div className="col-span-1 md:col-span-2">
+                        <h4 className="text-md font-medium text-gray-800 dark:text-white mb-3">Online Presence</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <FormInput
+                            label="LinkedIn Profile"
+                            icon={LinkIcon}
+                            type="url"
+                            placeholder="https://linkedin.com/in/yourprofile"
+                            error={errors.linkedin_profile?.message}
+                            {...register("linkedin_profile")}
+                          />
+                          <FormInput
+                            label="GitHub Profile"
+                            icon={Code}
+                            type="url"
+                            placeholder="https://github.com/yourusername"
+                            error={errors.github_profile?.message}
+                            {...register("github_profile")}
+                          />
+                          <FormInput
+                            label="Portfolio Website"
+                            icon={LinkIcon}
+                            type="url"
+                            placeholder="https://yourportfolio.com"
+                            error={errors.portfolio_url?.message}
+                            {...register("portfolio_url")}
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
-          
-          {/* Tab 2: Education & Skills */}
-          {activeTab === 1 && (
-            <EducationTab register={register} errors={errors} />
-          )}
-          
-          {/* Tab 3: Experience */}
-          {activeTab === 2 && (
-            <WorkExperienceTab
-              workExpFields={workExpFields}
-              appendWorkExp={appendWorkExp}
-              removeWorkExp={removeWorkExp}
-              internshipFields={internshipFields}
-              appendInternship={appendInternship}
-              removeInternship={removeInternship}
-              register={register}
-              errors={errors}
-              getValues={getValues}
-            />
-          )}
+            )}
+            
+            {/* Tab 2: Education & Skills */}
+            {activeTab === 1 && (
+              <EducationTab register={register} errors={errors} />
+            )}
+            
+            {/* Tab 3: Experience */}
+            {activeTab === 2 && (
+              <WorkExperienceTab
+                workExpFields={workExpFields}
+                appendWorkExp={appendWorkExp}
+                removeWorkExp={removeWorkExp}
+                internshipFields={internshipFields}
+                appendInternship={appendInternship}
+                removeInternship={removeInternship}
+                register={register}
+                errors={errors}
+                getValues={getValues}
+              />
+            )}
 
-          {/* Tab 4: Projects */}
-          {activeTab === 3 && (
-            <ProjectsTab
-              projectFields={projectFields}
-              appendProject={appendProject}
-              removeProject={removeProject}
-              register={register}
-              errors={errors}
-            />
-          )}
+            {/* Tab 4: Projects */}
+            {activeTab === 3 && (
+              <ProjectsTab
+                projectFields={projectFields}
+                appendProject={appendProject}
+                removeProject={removeProject}
+                register={register}
+                errors={errors}
+              />
+            )}
 
-          {/* Tab 5: Achievements */}
-          {activeTab === 4 && (
-            <AchievementsTab
-              achievementFields={achievementFields}
-              appendAchievement={appendAchievement}
-              removeAchievement={removeAchievement}
-              register={register}
-              errors={errors}
-            />
-          )}
+            {/* Tab 5: Achievements */}
+            {activeTab === 4 && (
+              <AchievementsTab
+                achievementFields={achievementFields}
+                appendAchievement={appendAchievement}
+                removeAchievement={removeAchievement}
+                register={register}
+                errors={errors}
+              />
+            )}
 
-          {/* Tab 6: Additional Details */}
-          {activeTab === 5 && (
-            <AdditionalDetailsTab
-              register={register}
-              errors={errors}
-            />
-          )}
+            {/* Tab 6: Additional Details */}
+            {activeTab === 5 && (
+              <AdditionalDetailsTab
+                register={register}
+                errors={errors}
+              />
+            )}
+          </motion.div>
           
-          {/* Navigation Buttons */}
-          <div className="flex justify-between items-center pt-2 mt-8">
-            <button
+          {/* Navigation Buttons - Fixed at bottom */}
+          <div className="flex justify-between items-center p-6 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 sticky bottom-0 z-10 shadow-lg">
+            <motion.button
               type="button"
               onClick={(e) => {
                 e.preventDefault();
                 activeTab === 0 ? onClose() : prevTab();
               }}
-              className="px-6 py-3 rounded-xl font-medium text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white transition-colors"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium 
+                ${activeTab === 0 
+                  ? 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300' 
+                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700'} 
+                transition-all duration-200`}
             >
-              {activeTab === 0 ? 'Cancel' : 'Previous'}
-            </button>
+              {activeTab === 0 ? (
+                <>
+                  <X className="w-4 h-4 mr-1" />
+                  Cancel
+                </>
+              ) : (
+                <>
+                  <ChevronLeft className="w-4 h-4 mr-1" />
+                  Previous
+                </>
+              )}
+            </motion.button>
+            
+            <div className="text-sm text-gray-500 dark:text-gray-400 hidden sm:block">
+              Step {activeTab + 1} of {tabs.length}
+            </div>
             
             {activeTab < tabs.length - 1 ? (
               <motion.button
@@ -1677,9 +1744,10 @@ const PlacementForm: React.FC<PlacementFormProps> = ({ isOpen, onClose }) => {
                 onClick={nextTab}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="flex items-center gap-2 px-8 py-3 rounded-xl font-medium bg-primary-500 hover:bg-primary-600 text-white shadow-lg shadow-primary-500/25 transition-all duration-200"
+                className="flex items-center gap-2 px-8 py-3 rounded-xl font-medium bg-primary-500 hover:bg-primary-600 text-white shadow-lg shadow-primary-500/20 transition-all duration-200"
               >
                 Next
+                <ChevronRight className="w-4 h-4 ml-1" />
               </motion.button>
             ) : (
               <motion.button
@@ -1690,10 +1758,13 @@ const PlacementForm: React.FC<PlacementFormProps> = ({ isOpen, onClose }) => {
                 className={`flex items-center gap-2 px-8 py-3 rounded-xl font-medium transition-all duration-200
                   ${loading || !isDirty 
                     ? 'bg-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-400' 
-                    : 'bg-primary-500 hover:bg-primary-600 text-white shadow-lg shadow-primary-500/25'}`}
+                    : 'bg-primary-500 hover:bg-primary-600 text-white shadow-lg shadow-primary-500/20'}`}
               >
                 {loading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Processing...
+                  </>
                 ) : (
                   <>
                     <Send className="w-5 h-5" />
