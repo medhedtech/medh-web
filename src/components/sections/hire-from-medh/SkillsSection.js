@@ -66,11 +66,6 @@ const SkillsSection = () => {
                 </div>
               ))}
             </div>
-
-            {/* CTA Button */}
-            <button className="px-8 py-3 bg-[#F6B335] text-white rounded-lg hover:bg-[#e5a730] transition-all transform hover:-translate-y-1 shadow-lg shadow-[#F6B335]/25">
-              Hire Skilled Professionals
-            </button>
           </div>
         </div>
       </div>
