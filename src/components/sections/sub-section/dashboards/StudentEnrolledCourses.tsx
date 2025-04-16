@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import defaultCourseImage from "@/assets/images/resources/img5.png";
+import { getUserId, sanitizeAuthData } from "@/utils/auth";
 
 interface Resource {
   url: string;
@@ -85,24 +86,34 @@ const StudentEnrolledCourses: React.FC = () => {
         setIsLoading(true);
         setError(null);
         
-        const storedUserId = localStorage.getItem("userId");
-        if (!storedUserId) {
-          setError("User ID not found. Please log in again.");
+        // First sanitize any invalid auth data
+        sanitizeAuthData();
+        
+        const userId = getUserId();
+        if (!userId) {
+          console.error("User ID not found");
+          setError("Please log in to view your enrolled courses");
           setIsLoading(false);
+          
+          // Redirect to login after a short delay
+          setTimeout(() => {
+            window.location.href = "/login?redirect=" + encodeURIComponent(window.location.pathname);
+          }, 2000);
           return;
         }
 
-        if (!apiUrls?.enrolledCourses?.getEnrollmentCountsByStudentId) {
+        if (!apiUrls?.enrolledCourses?.getEnrollmentCountsByStudent) {
           setError("API endpoint not configured properly");
           setIsLoading(false);
           return;
         }
 
-        await fetchEnrolledCourses(storedUserId);
-        await fetchSelfPacedCourses(storedUserId);
+        await fetchEnrolledCourses(userId);
+        await fetchSelfPacedCourses(userId);
       } catch (err) {
         console.error("Error fetching courses:", err);
         setError("Failed to load courses. Please try again later.");
+        setIsLoading(false);
       } finally {
         setIsLoading(false);
       }
@@ -112,9 +123,14 @@ const StudentEnrolledCourses: React.FC = () => {
   }, []);
 
   const fetchEnrolledCourses = async (studentId: string) => {
+    if (!studentId || studentId === "undefined") {
+      console.error("Cannot fetch enrolled courses: studentId is invalid", studentId);
+      return null;
+    }
+    
     try {
       const response = await getQuery({
-        url: `${apiUrls.enrolledCourses.getEnrollmentCountsByStudentId}/${studentId}`,
+        url: apiUrls.enrolledCourses.getEnrollmentCountsByStudent(studentId),
         onSuccess: (data) => {
           if (!data) {
             console.warn("No data received from enrolled courses API");
@@ -186,9 +202,14 @@ const StudentEnrolledCourses: React.FC = () => {
   };
 
   const fetchSelfPacedCourses = async (studentId: string) => {
+    if (!studentId || studentId === "undefined") {
+      console.error("Cannot fetch self-paced courses: studentId is invalid", studentId);
+      return null;
+    }
+    
     try {
       const response = await getQuery({
-        url: `${apiUrls.enrolledCourses.getEnrollmentCountsByStudentId}/${studentId}`,
+        url: apiUrls.enrolledCourses.getEnrollmentCountsByStudent(studentId),
         onSuccess: (data) => {
           if (!data) {
             console.warn("No data received from self-paced courses API");

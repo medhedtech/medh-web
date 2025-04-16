@@ -84,11 +84,12 @@ export default function RootLayout({ children }: RootLayoutProps) {
   const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || '';
   
   return (
-    <html lang="en" className={`${montserrat.variable} ${poppins.variable} ${hind.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${montserrat.variable} ${poppins.variable} ${hind.variable} h-full scroll-smooth`} suppressHydrationWarning>
       <head>
-        {/* Removing preload links as we're now using Google Fonts */}
+        {/* Updated viewport meta tag with proper settings */}
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
       </head>
-      <body className={`${poppins.className} antialiased`} suppressHydrationWarning>
+      <body className={`${poppins.className} antialiased min-h-screen overflow-x-hidden`} suppressHydrationWarning>
         <Suspense fallback={<div>Loading...</div>}>
           <Providers>
             <ThemeController className="hidden sm:block" />

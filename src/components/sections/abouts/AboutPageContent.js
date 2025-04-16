@@ -16,11 +16,7 @@ const AboutPageContent = () => {
 
   return (
     <>
-      {/* Hero Section */}
-      <div className="pt-16">
-        <HeroSectionContant onLearnMoreClick={scrollToAboutContent} />
-      </div>
-
+      <HeroSectionContant onLearnMoreClick={scrollToAboutContent} />
       {/* Main Content Sections */}
       <div ref={aboutContentRef} id="about-content">
         <AboutContent />

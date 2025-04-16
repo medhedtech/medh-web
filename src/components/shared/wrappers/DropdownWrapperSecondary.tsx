@@ -1,4 +1,14 @@
-const DropdownWrapperSecondary = ({ children, isHeaderTop }) => {
+import React, { ReactNode } from "react";
+
+interface DropdownWrapperSecondaryProps {
+  children: ReactNode;
+  isHeaderTop?: boolean;
+}
+
+const DropdownWrapperSecondary: React.FC<DropdownWrapperSecondaryProps> = ({ 
+  children, 
+  isHeaderTop 
+}) => {
   return (
     <div
       className={`absolute top-full right-0 ${

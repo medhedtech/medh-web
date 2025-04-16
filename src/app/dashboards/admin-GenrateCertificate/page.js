@@ -2,7 +2,7 @@ import GenrateCertificate from "@/components/layout/main/dashboards/GenrateCerti
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 
-import DsahboardWrapper from "@/components/shared/wrappers/DsahboardWrapper";
+import DashboardWrapper from "@/components/shared/wrappers/DashboardWrapper";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import Previewdetail from "@/components/layout/main/dashboards/Previewdetail";
 import ProtectedPage from "@/app/protectedRoutes";
@@ -16,7 +16,7 @@ const Admin_Reviews = () => {
     // <PageWrapper>
     <ProtectedPage>
       <main>
-        {/* <DsahboardWrapper> */}
+        {/* <DashboardWrapper> */}
         <DashboardContainer>
           <div>
             <HeadingDashboard />
@@ -24,7 +24,7 @@ const Admin_Reviews = () => {
           {/* <Previewdetail /> */}
           <GenrateCertificate />
         </DashboardContainer>
-        {/* </DsahboardWrapper> */}
+        {/* </DashboardWrapper> */}
         
       </main>
     </ProtectedPage>

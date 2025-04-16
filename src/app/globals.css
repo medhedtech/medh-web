@@ -1640,3 +1640,21 @@ body {
 .dark .bg-orange-900\/20 {
   background-color: rgba(124, 45, 18, 0.2); /* --orange-900 with 20% opacity */
 }
+
+/* Fix for body element styling issues */
+body {
+  position: relative !important;
+  top: unset !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 100vh !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+
+/* Remove any auto-generated classes that might interfere */
+body[class*="__className_"] {
+  position: relative !important;
+  width: 100% !important;
+  height: auto !important;
+}
