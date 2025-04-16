@@ -296,7 +296,9 @@ export const apiUrls = {
     toggleStudentStatus: "/auth/toggle-status",
     sendResetEmail: "/auth/forgot-password",
     verfiySystemPassword: "/auth/verify-temp-password",
-    resetPassword: "/auth/reset-password"
+    resetPassword: "/auth/reset-password",
+    verifyEmail: '/auth/verify-email',
+    resendOTP: '/auth/resend-verification',
   },
   adminDashboard: {
     getDashboardCount: "/dashboard/counts",
@@ -1690,3 +1692,58 @@ export const dashboardUtils = {
     return bottlenecks.sort((a, b) => b.dropoffPercentage - a.dropoffPercentage);
   }
 };
+
+// Add new interfaces for authentication after IDashboardResponse
+
+export interface IAuthResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    id?: string;
+    full_name?: string;
+    email?: string;
+    role?: string[];
+    admin_role?: string;
+    permissions?: string[];
+    status?: string;
+  };
+  token?: string;
+}
+
+export interface IRegisterData {
+  full_name: string;
+  email: string;
+  password: string;
+  phone_numbers: [{
+    country: string;
+    number: string;
+  }];
+  agree_terms: boolean;
+  role?: string[];
+  meta?: {
+    gender?: string;
+    age?: string;
+    age_group?: string;
+    category?: string;
+    [key: string]: any;
+  };
+}
+
+export interface ILoginData {
+  email: string;
+  password: string;
+}
+
+export interface IVerifyEmailData {
+  email: string;
+  otp: string;
+}
+
+export interface IResendVerificationData {
+  email: string;
+}
+
+export interface IOTPVerificationResponse {
+  success: boolean;
+  message: string;
+}
