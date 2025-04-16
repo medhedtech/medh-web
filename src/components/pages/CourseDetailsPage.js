@@ -1715,58 +1715,80 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
                         <Info className="h-3 w-3" fill="currentColor" fillOpacity={0.2} />
                       </button>
                       
-                      {/* Info Tooltip - Fixed positioning */}
+                      {/* Info Tooltip - Centered positioning for mobile */}
                       {showClassTypeInfo && (
-                        <div className="fixed inset-0 z-[100] overflow-hidden flex items-center justify-center" onClick={() => setShowClassTypeInfo(false)}>
-                          <div className="absolute inset-0 bg-black/5" onClick={() => setShowClassTypeInfo(false)}></div>
+                        <div className="fixed inset-0 z-[100] overflow-hidden flex items-center justify-center px-4 sm:px-0" onClick={() => setShowClassTypeInfo(false)}>
+                          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setShowClassTypeInfo(false)}></div>
                           <div 
-                            className="relative z-[101] w-72 sm:w-80 p-4 bg-white dark:bg-gray-800 shadow-xl rounded-lg border border-gray-200 dark:border-gray-700 text-xs mx-4"
+                            className="relative z-[101] w-full max-w-[320px] p-4 bg-white dark:bg-gray-800 shadow-xl rounded-xl border border-gray-200 dark:border-gray-700 text-sm mx-auto transform transition-all"
                             onClick={(e) => e.stopPropagation()}
                           >
-                            <button 
-                              className="absolute top-2 right-2 p-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
-                              onClick={() => setShowClassTypeInfo(false)}
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <line x1="18" y1="6" x2="6" y2="18"></line>
-                                <line x1="6" y1="6" x2="18" y2="18"></line>
-                              </svg>
-                            </button>
-                            <h4 className="font-semibold text-gray-900 dark:text-white mb-3 text-sm">Class Types Explained</h4>
+                            <div className="flex items-center justify-between mb-4">
+                              <h4 className="font-semibold text-gray-900 dark:text-white text-base">Class Types</h4>
+                              <button 
+                                className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400"
+                                onClick={() => setShowClassTypeInfo(false)}
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                              </button>
+                            </div>
+
                             <div className="space-y-4">
-                              <div className="pb-3 border-b border-gray-100 dark:border-gray-700">
-                                <div className="flex">
-                                  <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 mr-3 flex-shrink-0 text-[11px] font-bold">L</span>
+                              {/* Live Classes */}
+                              <div className="pb-4 border-b border-gray-100 dark:border-gray-700">
+                                <div className="flex items-start">
+                                  <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 mr-3 flex-shrink-0 text-sm font-bold">L</span>
                                   <div>
-                                    <span className="font-medium text-indigo-600 dark:text-indigo-400 block mb-1 text-sm">Live Classes</span>
-                                    <div className="text-gray-600 dark:text-gray-300 leading-relaxed text-xs space-y-2">
-                                      <p>Real-time instructor-led sessions conducted on scheduled dates and times where you can:</p>
-                                      <ul className="list-disc pl-4 space-y-1">
-                                        <li>Interact directly with instructors and ask questions</li>
-                                        <li>Collaborate with peers during group activities</li>
-                                        <li>Get immediate feedback on your work</li>
-                                        <li>Access recordings of all sessions afterward for review</li>
-                                      </ul>
-                                      <p className="text-indigo-500 dark:text-indigo-400 font-medium">Best for: Interactive learning with direct guidance and structured schedule</p>
-                                    </div>
+                                    <span className="font-medium text-indigo-600 dark:text-indigo-400 block mb-2">Live Classes</span>
+                                    <ul className="space-y-1.5 text-sm text-gray-600 dark:text-gray-300">
+                                      <li className="flex items-start">
+                                        <span className="mr-2">•</span>
+                                        <span>Real-time sessions with instructors</span>
+                                      </li>
+                                      <li className="flex items-start">
+                                        <span className="mr-2">•</span>
+                                        <span>Direct Q&A and feedback</span>
+                                      </li>
+                                      <li className="flex items-start">
+                                        <span className="mr-2">•</span>
+                                        <span>Group activities & discussions</span>
+                                      </li>
+                                      <li className="flex items-start">
+                                        <span className="mr-2">•</span>
+                                        <span>Session recordings available</span>
+                                      </li>
+                                    </ul>
                                   </div>
                                 </div>
                               </div>
+
+                              {/* Blended Classes */}
                               <div>
-                                <div className="flex">
-                                  <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 mr-3 flex-shrink-0 text-[11px] font-bold">B</span>
+                                <div className="flex items-start">
+                                  <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 mr-3 flex-shrink-0 text-sm font-bold">B</span>
                                   <div>
-                                    <span className="font-medium text-purple-600 dark:text-purple-400 block mb-1 text-sm">Blended Classes</span>
-                                    <div className="text-gray-600 dark:text-gray-300 leading-relaxed text-xs space-y-2">
-                                      <p>A flexible combination of scheduled live sessions and self-paced content that offers:</p>
-                                      <ul className="list-disc pl-4 space-y-1">
-                                        <li>Pre-recorded lectures you can watch anytime</li>
-                                        <li>Supplementary live sessions for Q&A and discussions</li>
-                                        <li>More flexibility in learning schedule</li>
-                                        <li>Balance between independence and instructor guidance</li>
-                                      </ul>
-                                      <p className="text-purple-500 dark:text-purple-400 font-medium">Best for: Learners who need flexibility while still wanting some live interaction</p>
-                                    </div>
+                                    <span className="font-medium text-purple-600 dark:text-purple-400 block mb-2">Blended Classes</span>
+                                    <ul className="space-y-1.5 text-sm text-gray-600 dark:text-gray-300">
+                                      <li className="flex items-start">
+                                        <span className="mr-2">•</span>
+                                        <span>Self-paced video lectures</span>
+                                      </li>
+                                      <li className="flex items-start">
+                                        <span className="mr-2">•</span>
+                                        <span>Flexible learning schedule</span>
+                                      </li>
+                                      <li className="flex items-start">
+                                        <span className="mr-2">•</span>
+                                        <span>Live Q&A sessions</span>
+                                      </li>
+                                      <li className="flex items-start">
+                                        <span className="mr-2">•</span>
+                                        <span>Mix of live & recorded content</span>
+                                      </li>
+                                    </ul>
                                   </div>
                                 </div>
                               </div>
