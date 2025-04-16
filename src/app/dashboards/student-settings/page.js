@@ -2,7 +2,7 @@ import ProtectedPage from "@/app/protectedRoutes";
 import StudentSettingsMain from "@/components/layout/main/dashboards/StudentSettingsMain";
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
 
-import DsahboardWrapper from "@/components/shared/wrappers/DsahboardWrapper";
+import DashboardWrapper from "@/components/shared/wrappers/DashboardWrapper";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 export const metadata = {
   title: "Student Settings | Medh - Education",
@@ -13,11 +13,11 @@ const Student_Settings = () => {
     <ProtectedPage>
       <PageWrapper>
         <main>
-          <DsahboardWrapper>
+          <DashboardWrapper>
             <DashboardContainer>
               <StudentSettingsMain />
             </DashboardContainer>
-          </DsahboardWrapper>
+          </DashboardWrapper>
           
         </main>
       </PageWrapper>

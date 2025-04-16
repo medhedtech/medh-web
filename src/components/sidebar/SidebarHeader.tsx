@@ -12,6 +12,7 @@ interface SidebarHeaderProps {
   userRole: string;
   userNotifications: number;
   isMobileDevice: boolean;
+  welcomeMessage?: string;
 }
 
 const SidebarHeader: React.FC<SidebarHeaderProps> = ({
@@ -19,14 +20,15 @@ const SidebarHeader: React.FC<SidebarHeaderProps> = ({
   userName,
   userRole,
   userNotifications,
-  isMobileDevice
+  isMobileDevice,
+  welcomeMessage: customWelcomeMessage
 }) => {
   const router = useRouter();
   
-  // Create personalized welcome message
-  const welcomeMessage = userName 
+  // Create personalized welcome message if not provided
+  const welcomeMessage = customWelcomeMessage || (userName 
     ? `Hello, ${userName.split(' ')[0]}` 
-    : `Hello, ${(userRole || 'User').charAt(0).toUpperCase() + (userRole || 'User').slice(1)}`;
+    : `Hello, ${(userRole || 'User').charAt(0).toUpperCase() + (userRole || 'User').slice(1)}`);
 
   // Animation variants
   const logoVariants = {

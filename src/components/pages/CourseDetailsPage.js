@@ -261,6 +261,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
           icon: Calendar,
           color: "text-purple-500 dark:text-purple-400",
           bgColor: "bg-purple-50 dark:bg-purple-900/30",
+          fillOpacity: 0.2,
         },
         {
           label: "Live Sessions",
@@ -268,6 +269,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
           icon: Users,
           color: "text-blue-500 dark:text-blue-400",
           bgColor: "bg-blue-50 dark:bg-blue-900/30",
+          fillOpacity: 0.2,
         },
         {
           label: "Format",
@@ -278,6 +280,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
           icon: Sparkles,
           color: "text-amber-500 dark:text-amber-400",
           bgColor: "bg-amber-50 dark:bg-amber-900/30",
+          fillOpacity: 0.2,
         },
         {
           label: "Time Commitment",
@@ -285,6 +288,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
           icon: Clock,
           color: "text-green-500 dark:text-green-400",
           bgColor: "bg-green-50 dark:bg-green-900/30",
+          fillOpacity: 0.2,
         },
       ];
 
@@ -296,6 +300,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
           icon: FileText,
           color: "text-indigo-500 dark:text-indigo-400",
           bgColor: "bg-indigo-50 dark:bg-indigo-900/30",
+          fillOpacity: 0.2,
         });
       }
 
@@ -307,6 +312,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
           icon: Award,
           color: "text-emerald-500 dark:text-emerald-400",
           bgColor: "bg-emerald-50 dark:bg-emerald-900/30",
+          fillOpacity: 0.2,
         });
       }
 
@@ -321,6 +327,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
           icon: Calendar,
           color: "text-purple-500 dark:text-purple-400",
           bgColor: "bg-purple-50 dark:bg-purple-900/30",
+          fillOpacity: 0.2,
         },
         {
           label: "Live Sessions",
@@ -328,6 +335,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
           icon: Users,
           color: "text-blue-500 dark:text-blue-400",
           bgColor: "bg-blue-50 dark:bg-blue-900/30",
+          fillOpacity: 0.2,
         },
         {
           label: "Format",
@@ -335,6 +343,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
           icon: Sparkles,
           color: "text-amber-500 dark:text-amber-400",
           bgColor: "bg-amber-50 dark:bg-amber-900/30",
+          fillOpacity: 0.2,
         },
         {
           label: "Time Commitment",
@@ -342,6 +351,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
           icon: Clock,
           color: "text-green-500 dark:text-green-400",
           bgColor: "bg-green-50 dark:bg-green-900/30",
+          fillOpacity: 0.2,
         },
       ];
     }
@@ -542,27 +552,27 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
     
     switch(iconName?.toLowerCase()) {
       case 'target':
-        return <Target className="w-6 h-6" />;
+        return <Target className="w-6 h-6" fill="currentColor" fillOpacity={0.2} />;
       case 'certificate':
-        return <Award className="w-6 h-6" />;
+        return <Award className="w-6 h-6" fill="currentColor" fillOpacity={0.2} />;
       case 'briefcase':
-        return <BriefcaseBusiness className="w-6 h-6" />;
+        return <BriefcaseBusiness className="w-6 h-6" fill="currentColor" fillOpacity={0.2} />;
       case 'calendar':
-        return <Calendar className="w-6 h-6" />;
+        return <Calendar className="w-6 h-6" fill="currentColor" fillOpacity={0.2} />;
       case 'graph':
-        return <BarChart className="w-6 h-6" />;
+        return <BarChart className="w-6 h-6" fill="currentColor" fillOpacity={0.2} />;
       case 'book':
-        return <BookOpen className="w-6 h-6" />;
+        return <BookOpen className="w-6 h-6" fill="currentColor" fillOpacity={0.2} />;
       case 'star':
-        return <Star className="w-6 h-6" />;
+        return <Star className="w-6 h-6" fill="currentColor" fillOpacity={0.2} />;
       case 'check':
-        return <CheckCircle className="w-6 h-6" />;
+        return <CheckCircle className="w-6 h-6" fill="currentColor" fillOpacity={0.2} />;
       case 'brain':
-        return <Brain className="w-6 h-6" />;
+        return <Brain className="w-6 h-6" fill="currentColor" fillOpacity={0.2} />;
       case 'sparkles':
-        return <Sparkles className="w-6 h-6" />;
+        return <Sparkles className="w-6 h-6" fill="currentColor" fillOpacity={0.2} />;
       default:
-        return <Star className="w-6 h-6" />;
+        return <Star className="w-6 h-6" fill="currentColor" fillOpacity={0.2} />;
     }
   };
 
@@ -689,7 +699,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
             transition={{ repeat: Infinity, duration: 2, times: [0, 0.5, 1] }}
             className="absolute -top-8 sm:-top-10 -right-8 sm:-right-10"
           >
-            <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-400" />
+            <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-400" fill="currentColor" fillOpacity={0.3} />
           </motion.div>
         </div>
       </div>
@@ -734,6 +744,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
                 sessions={courseDetails?.no_of_Sessions || "72"}
                 hasCertificate={hasCertificate()}
                 primaryColor={getCategoryColorClasses().primaryColor}
+                fillOpacity={0.2}
               />
             </motion.div>
 
@@ -784,7 +795,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
                       <div className={`mb-8 bg-gradient-to-r from-${colorClasses.primaryColor}-50/70 to-${colorClasses.primaryColor}-50/20 dark:from-${colorClasses.primaryColor}-900/20 dark:to-${colorClasses.primaryColor}-900/10 p-5 sm:p-6 rounded-xl border border-${colorClasses.primaryColor}-100 dark:border-${colorClasses.primaryColor}-800/30 shadow-sm`}>
                         <div className="flex items-start sm:items-center mb-4">
                           <div className={`flex-shrink-0 p-2 rounded-full bg-${colorClasses.primaryColor}-100 dark:bg-${colorClasses.primaryColor}-900/50 mr-3 shadow-sm`}>
-                            <BookOpen className={`h-5 w-5 text-${colorClasses.primaryColor}-500 dark:text-${colorClasses.primaryColor}-400`} />
+                            <BookOpen className={`h-5 w-5 text-${colorClasses.primaryColor}-500 dark:text-${colorClasses.primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
                           </div>
                           <h4 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100">
                             About This Course
@@ -796,7 +807,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
                       <div className={`mb-8 bg-gradient-to-r from-${colorClasses.primaryColor}-50/70 to-${colorClasses.primaryColor}-50/20 dark:from-${colorClasses.primaryColor}-900/20 dark:to-${colorClasses.primaryColor}-900/10 p-5 sm:p-6 rounded-xl border border-${colorClasses.primaryColor}-100 dark:border-${colorClasses.primaryColor}-800/30 shadow-sm`}>
                         <div className="flex items-start sm:items-center mb-4">
                           <div className={`flex-shrink-0 p-2 rounded-full bg-${colorClasses.primaryColor}-100 dark:bg-${colorClasses.primaryColor}-900/50 mr-3 shadow-sm`}>
-                            <BookOpen className={`h-5 w-5 text-${colorClasses.primaryColor}-500 dark:text-${colorClasses.primaryColor}-400`} />
+                            <BookOpen className={`h-5 w-5 text-${colorClasses.primaryColor}-500 dark:text-${colorClasses.primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
                           </div>
                           <h4 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100">
                             About This Course
@@ -840,7 +851,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
                                   whileHover={{ y: -2 }}
                                 >
                                   <div className={`p-2 rounded-full bg-${colorClasses.primaryColor}-100 dark:bg-${colorClasses.primaryColor}-900/30 mr-3 flex-shrink-0`}>
-                                    <Check className={`h-4 w-4 ${colorClasses.color}`} />
+                                    <Check className={`h-4 w-4 ${colorClasses.color}`} fill="currentColor" fillOpacity={0.2} />
                                   </div>
                                   <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300">{bullet}</p>
                                 </motion.div>
@@ -860,7 +871,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
                       <div className="mt-10 pt-6 border-t border-gray-100 dark:border-gray-800">
                         <div className="flex items-center mb-5 bg-gradient-to-r from-amber-50 to-transparent dark:from-amber-900/20 dark:to-transparent p-3 rounded-lg">
                           <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/30 mr-3 shadow-sm">
-                            <Star className="h-5 w-5 text-amber-500 dark:text-amber-400" />
+                            <Star className="h-5 w-5 text-amber-500 dark:text-amber-400" fill="currentColor" fillOpacity={0.2} />
                           </div>
                           <h4 className="text-lg sm:text-xl font-bold text-amber-700 dark:text-amber-400">
                             Course Highlights
@@ -878,7 +889,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
                               whileHover={{ y: -2 }}
                             >
                               <div className="p-2 rounded-full bg-amber-100 dark:bg-amber-900/30 mr-3 flex-shrink-0">
-                                <Star className="h-4 w-4 text-amber-500 dark:text-amber-400" />
+                                <Star className="h-4 w-4 text-amber-500 dark:text-amber-400" fill="currentColor" fillOpacity={0.2} />
                               </div>
                               <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300">{highlight}</p>
                             </motion.div>
@@ -932,7 +943,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
                       whileTap={hasBrochure() ? { scale: 0.95 } : {}}
                       disabled={!hasBrochure()}
                     >
-                      <DownloadIcon size={18} className="mr-2 text-white" />
+                      <DownloadIcon size={18} className="mr-2 text-white" fill="currentColor" fillOpacity={0.2} />
                       {hasBrochure() ? "Download" : "Coming Soon"}
                     </motion.button>
                   ) : (
@@ -940,7 +951,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
                       href="/login"
                       className={`flex items-center px-5 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-500 to-${getCategoryColorClasses().primaryColor}-600 hover:from-${getCategoryColorClasses().primaryColor}-600 hover:to-${getCategoryColorClasses().primaryColor}-700 text-white font-medium rounded-lg transition-all duration-300 shadow-md w-full sm:w-auto`}
                     >
-                      <Lock size={18} className="mr-2 text-white" />
+                      <Lock size={18} className="mr-2 text-white" fill="currentColor" fillOpacity={0.2} />
                       Login to Download
                     </Link>
                   )}
@@ -971,7 +982,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
             <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden mb-6 sm:mb-8">
               <div className={`bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-50 to-${getCategoryColorClasses().primaryColor}-100/30 dark:from-${getCategoryColorClasses().primaryColor}-900/20 dark:to-${getCategoryColorClasses().primaryColor}-900/10 px-3 sm:px-4 py-2.5 sm:py-3 border-b border-gray-200 dark:border-gray-600`}>
                 <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center">
-                  <GraduationCap className={`w-4 h-4 sm:w-5 sm:h-5 mr-2 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} />
+                  <GraduationCap className={`w-4 h-4 sm:w-5 sm:h-5 mr-2 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
                   Course Modules
                 </h3>
               </div>
@@ -998,9 +1009,9 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
                             }}
                           >
                             {openAccordions === index ? (
-                              <BookOpen size={16} className="sm:w-[18px] sm:h-[18px]" />
+                              <BookOpen size={16} className="sm:w-[18px] sm:h-[18px]" fill="currentColor" fillOpacity={0.2} />
                             ) : (
-                              <Calendar size={16} className="sm:w-[18px] sm:h-[18px]" />
+                              <Calendar size={16} className="sm:w-[18px] sm:h-[18px]" fill="currentColor" fillOpacity={0.2} />
                             )}
                           </motion.div>
                           <span className={`text-xs sm:text-sm md:text-base font-medium truncate ${
@@ -1020,7 +1031,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
                           animate={openAccordions === index ? { rotate: 180 } : { rotate: 0 }}
                           transition={{ duration: 0.3 }}
                         >
-                          <ChevronDown size={14} className="sm:w-4 sm:h-4" />
+                          <ChevronDown size={14} className="sm:w-4 sm:h-4" fill="currentColor" fillOpacity={0.2} />
                         </motion.div>
                       </motion.button>
                       
@@ -1048,7 +1059,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
                 ) : (
                   <div className="p-4 sm:p-6 text-center">
                     <div className="inline-flex items-center justify-center p-2 sm:p-3 bg-gray-50 dark:bg-gray-700 rounded-full mb-3 sm:mb-4">
-                      <AlertTriangle className={`h-5 w-5 sm:h-6 sm:w-6 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} />
+                      <AlertTriangle className={`h-5 w-5 sm:h-6 sm:w-6 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
                     </div>
                     <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-2">
                       Curriculum Coming Soon
@@ -1069,7 +1080,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
               >
                 <div className={`bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-50 to-${getCategoryColorClasses().primaryColor}-50/70 dark:from-${getCategoryColorClasses().primaryColor}-900/20 dark:to-${getCategoryColorClasses().primaryColor}-900/10 px-3 sm:px-4 py-2.5 sm:py-3 border-b border-gray-200 dark:border-gray-600`}>
                   <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center">
-                    <Sparkles className={`w-4 h-4 sm:w-5 sm:h-5 mr-2 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} />
+                    <Sparkles className={`w-4 h-4 sm:w-5 sm:h-5 mr-2 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
                     Tools & Technologies
                   </h3>
                 </div>
@@ -1106,7 +1117,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
               >
                 <div className={`bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-50 to-${getCategoryColorClasses().primaryColor}-100/30 dark:from-${getCategoryColorClasses().primaryColor}-900/20 dark:to-${getCategoryColorClasses().primaryColor}-900/10 px-3 sm:px-4 py-2.5 sm:py-3 border-b border-gray-200 dark:border-gray-600`}>
                   <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center">
-                    <Star className={`w-4 h-4 sm:w-5 sm:h-5 mr-2 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} />
+                    <Star className={`w-4 h-4 sm:w-5 sm:h-5 mr-2 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
                     Bonus Modules
                   </h3>
                 </div>
@@ -1125,7 +1136,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
                           className={`p-1.5 sm:p-2 rounded-full bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-400 to-${getCategoryColorClasses().primaryColor}-500 text-white mr-2 sm:mr-3 mt-0.5 shadow-sm`}
                           whileHover={{ rotate: 15 }}
                         >
-                          <BookOpen size={14} className="sm:w-4 sm:h-4" />
+                          <BookOpen size={14} className="sm:w-4 sm:h-4" fill="currentColor" fillOpacity={0.2} />
                         </motion.div>
                         <div>
                           <h4 className="text-sm sm:text-base font-medium text-gray-800 dark:text-gray-200">{module.title}</h4>
@@ -1178,7 +1189,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ delay: 0.2 }}
                   >
-                    <Star size={32} className="text-amber-400" />
+                    <Star size={32} className="text-amber-400" fill="currentColor" fillOpacity={0.4} />
                   </motion.div>
                   <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-2">No Reviews Yet</h3>
                   <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
@@ -1287,7 +1298,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
               ) : (
                 <div className="col-span-1 md:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm text-center">
                   <div className="inline-flex items-center justify-center p-3 bg-gray-50 dark:bg-gray-700 rounded-full mb-4">
-                    <AlertTriangle className={`h-6 w-6 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} />
+                    <AlertTriangle className={`h-6 w-6 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
                   </div>
                   <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
                     No Highlights Available
@@ -1382,7 +1393,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
               <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 overflow-hidden mb-8 shadow-sm">
                 <div className={`bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-50 to-${getCategoryColorClasses().primaryColor}-50/70 dark:from-${getCategoryColorClasses().primaryColor}-900/20 dark:to-${getCategoryColorClasses().primaryColor}-900/10 px-6 py-4 border-b border-gray-200 dark:border-gray-600`}>
                   <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center">
-                    <CheckCircle className={`w-5 h-5 mr-2 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} />
+                    <CheckCircle className={`w-5 h-5 mr-2 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
                     What You'll Learn
                   </h3>
                 </div>
@@ -1398,7 +1409,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
                             transition={{ delay: index * 0.08 }}
                           >
                             <span className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center mt-0.5 bg-${getCategoryColorClasses().primaryColor}-50 dark:bg-${getCategoryColorClasses().primaryColor}-900/30`}>
-                              <Check className={`h-3.5 w-3.5 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} />
+                              <Check className={`h-3.5 w-3.5 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
                             </span>
                             <span className="text-gray-700 dark:text-gray-300">
                               {benefit.content}
@@ -1454,7 +1465,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
                 whileHover={{ y: -4 }}
               >
                 <div className={`w-12 h-12 rounded-full bg-${getCategoryColorClasses().primaryColor}-50 dark:bg-${getCategoryColorClasses().primaryColor}-900/30 flex items-center justify-center mb-4`}>
-                  <Calendar className={`h-6 w-6 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} />
+                  <Calendar className={`h-6 w-6 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Duration</h3>
                 <p className="text-gray-600 dark:text-gray-300">{duration || 'Flexible'}</p>
@@ -1467,7 +1478,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
                 whileHover={{ y: -4 }}
               >
                 <div className={`w-12 h-12 rounded-full bg-${getCategoryColorClasses().primaryColor}-50 dark:bg-${getCategoryColorClasses().primaryColor}-900/30 flex items-center justify-center mb-4`}>
-                  <Clock className={`h-6 w-6 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} />
+                  <Clock className={`h-6 w-6 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Time Commitment</h3>
                 <p className="text-gray-600 dark:text-gray-300">{commitment || '10-15 hours/week'}</p>
@@ -1480,7 +1491,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
                 whileHover={{ y: -4 }}
               >
                 <div className={`w-12 h-12 rounded-full bg-${getCategoryColorClasses().primaryColor}-50 dark:bg-${getCategoryColorClasses().primaryColor}-900/30 flex items-center justify-center mb-4`}>
-                  <Banknote className={`h-6 w-6 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} />
+                  <Banknote className={`h-6 w-6 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Price</h3>
                 <p className="text-gray-600 dark:text-gray-300">
@@ -1512,7 +1523,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
                 transition={{ delay: 0.4 }}
               >
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
-                  <Users className={`h-5 w-5 mr-2 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} />
+                  <Users className={`h-5 w-5 mr-2 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
                   Prerequisites
                 </h3>
                 {prerequisites && prerequisites.length > 0 ? (
@@ -1524,7 +1535,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
                         variants={fadeIn}
                         transition={{ delay: 0.4 + (index * 0.1) }}
                       >
-                        <ArrowRight className={`h-4 w-4 mt-1 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400 flex-shrink-0`} />
+                        <ArrowRight className={`h-4 w-4 mt-1 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400 flex-shrink-0`} fill="currentColor" fillOpacity={0.2} />
                         <span className="text-gray-600 dark:text-gray-300">
                           {prereq}
                         </span>
@@ -1542,7 +1553,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
                 transition={{ delay: 0.5 }}
               >
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
-                  <Award className={`h-5 w-5 mr-2 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} />
+                  <Award className={`h-5 w-5 mr-2 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
                   Certification
                 </h3>
                 <p className="text-gray-600 dark:text-gray-300 mb-4">
@@ -1550,7 +1561,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
                 </p>
                 {hasCertificate && (
                   <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-${getCategoryColorClasses().primaryColor}-50 dark:bg-${getCategoryColorClasses().primaryColor}-900/30 text-${getCategoryColorClasses().primaryColor}-700 dark:text-${getCategoryColorClasses().primaryColor}-300`}>
-                    <CheckCircle className="w-4 h-4 mr-1.5" />
+                    <CheckCircle className="w-4 h-4 mr-1.5" fill="currentColor" fillOpacity={0.2} />
                     Industry Recognized Certificate
                   </span>
                 )}
@@ -1564,7 +1575,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
                 transition={{ delay: 0.6 }}
               >
                 <div className={`p-2 rounded-full bg-${getCategoryColorClasses().primaryColor}-100 dark:bg-${getCategoryColorClasses().primaryColor}-900/30 mr-3`}>
-                  <Clock className={`h-5 w-5 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} />
+                  <Clock className={`h-5 w-5 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
                 </div>
                 <div>
                   <p className="text-gray-700 dark:text-gray-300">
@@ -1592,7 +1603,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
                 transition={{ delay: 0.8 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <Heart className={`w-5 h-5 mr-2 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} />
+                <Heart className={`w-5 h-5 mr-2 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
                 Add to Wishlist
               </motion.button>
             </div>
@@ -1607,7 +1618,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
             initial="hidden"
             animate="visible"
           >
-            <AlertTriangle className="w-12 h-12 mx-auto text-amber-500 mb-4" />
+            <AlertTriangle className="w-12 h-12 mx-auto text-amber-500 mb-4" fill="currentColor" fillOpacity={0.2} />
             <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-2">Section Not Found</h3>
             <p className="text-gray-600 dark:text-gray-400">
               The requested section could not be found. Please select a different tab.
@@ -1701,7 +1712,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
                         onClick={() => setShowClassTypeInfo(!showClassTypeInfo)}
                         aria-label="Class type information"
                       >
-                        <Info className="h-3 w-3" />
+                        <Info className="h-3 w-3" fill="currentColor" fillOpacity={0.2} />
                       </button>
                       
                       {/* Info Tooltip - Fixed positioning */}
@@ -1779,6 +1790,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
             sessions={courseDetails?.no_of_Sessions || "72"}
             hasCertificate={hasCertificate()}
             primaryColor={getCategoryColorClasses().primaryColor}
+            fillOpacity={0.2}
           />
         </div>
 

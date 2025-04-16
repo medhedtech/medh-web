@@ -1,16 +1,21 @@
 "use client";
 
+import React, { ReactNode, useEffect } from "react";
 import Aos from "aos";
-import { useEffect } from "react";
 import VanillaTilt from "vanilla-tilt";
 
-const TiltWrapper = ({ children }) => {
+interface TiltWrapperProps {
+  children: ReactNode;
+}
+
+const TiltWrapper: React.FC<TiltWrapperProps> = ({ children }) => {
   useEffect(() => {
-    //hover effect parallex
+    // hover effect parallax
     VanillaTilt.init(document.querySelectorAll(".tilt"), {
       perspective: 1000,
     });
   }, []);
+  
   return children;
 };
 

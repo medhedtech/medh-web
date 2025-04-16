@@ -2,7 +2,7 @@ import ProtectedPage from "@/app/protectedRoutes";
 import InstructorReviewsMain from "@/components/layout/main/dashboards/InstructorReviewsMain";
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
 
-import DsahboardWrapper from "@/components/shared/wrappers/DsahboardWrapper";
+import DashboardWrapper from "@/components/shared/wrappers/DashboardWrapper";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 export const metadata = {
   title: "Instructor Reviews | Medh - Education LMS Template",
@@ -13,11 +13,11 @@ const Instructor_Reviews = () => {
     <ProtectedPage>
       <PageWrapper>
         <main>
-          <DsahboardWrapper>
+          <DashboardWrapper>
             <DashboardContainer>
               <InstructorReviewsMain />
             </DashboardContainer>
-          </DsahboardWrapper>
+          </DashboardWrapper>
           
         </main>
       </PageWrapper>

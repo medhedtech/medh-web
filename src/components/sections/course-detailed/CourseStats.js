@@ -23,11 +23,13 @@ const scaleIn = {
 };
 
 const CourseStats = ({ 
-  duration = '4 months 16 weeks', 
+  duration = '3 weeks', 
   students = '75+',
-  sessions = '32',
+  sessions = '20',
   hasCertificate = true,
-  primaryColor = 'primary'
+  primaryColor = 'primary',
+  fillOpacity = 0.2,
+  compact = false
 }) => {
   // Get the appropriate color classes based on primaryColor
   const getColorClasses = () => {
@@ -74,55 +76,71 @@ const CourseStats = ({
 
   return (
     <motion.div 
-      className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm border border-gray-200 dark:border-gray-700"
+      className={`grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-4 bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl ${compact ? 'p-2 sm:p-3' : 'p-3 sm:p-4'} shadow-sm border border-gray-200 dark:border-gray-700`}
       variants={staggerContainer}
       initial="initial"
       animate="animate"
     >
       {/* Duration */}
       <motion.div 
-        className="flex flex-col items-center p-2 sm:p-3 rounded-lg bg-gray-50 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-700"
+        className={`flex flex-col items-center ${compact ? 'p-1.5 sm:p-2' : 'p-2 sm:p-3'} rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800`}
         variants={scaleIn}
       >
-        <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500 dark:text-gray-400 mb-0.5 sm:mb-1" />
-        <span className="text-2xs sm:text-xs font-medium text-gray-700 dark:text-gray-300">Duration</span>
-        <span className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white text-center">
+        <Clock 
+          className={`${compact ? 'h-3.5 w-3.5 sm:h-4 sm:w-4' : 'h-4 w-4 sm:h-5 sm:w-5'} text-blue-500 dark:text-blue-400 mb-0.5 sm:mb-1`} 
+          fill="currentColor" 
+          fillOpacity={fillOpacity} 
+        />
+        <span className={`${compact ? 'text-[8px] sm:text-2xs' : 'text-2xs sm:text-xs'} font-medium text-blue-700 dark:text-blue-300`}>Duration</span>
+        <span className={`${compact ? 'text-[10px] sm:text-xs' : 'text-xs sm:text-sm'} font-bold text-blue-900 dark:text-blue-100 text-center`}>
           {duration}
         </span>
       </motion.div>
       
       {/* Students Enrolled */}
       <motion.div 
-        className="flex flex-col items-center p-2 sm:p-3 rounded-lg bg-gray-50 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-700"
+        className={`flex flex-col items-center ${compact ? 'p-1.5 sm:p-2' : 'p-2 sm:p-3'} rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800`}
         variants={scaleIn}
       >
-        <Users className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500 dark:text-gray-400 mb-0.5 sm:mb-1" />
-        <span className="text-2xs sm:text-xs font-medium text-gray-700 dark:text-gray-300">Students</span>
-        <span className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white">
+        <Users 
+          className={`${compact ? 'h-3.5 w-3.5 sm:h-4 sm:w-4' : 'h-4 w-4 sm:h-5 sm:w-5'} text-purple-500 dark:text-purple-400 mb-0.5 sm:mb-1`} 
+          fill="currentColor" 
+          fillOpacity={fillOpacity} 
+        />
+        <span className={`${compact ? 'text-[8px] sm:text-2xs' : 'text-2xs sm:text-xs'} font-medium text-purple-700 dark:text-purple-300`}>Students</span>
+        <span className={`${compact ? 'text-[10px] sm:text-xs' : 'text-xs sm:text-sm'} font-bold text-purple-900 dark:text-purple-100`}>
           {students}
         </span>
       </motion.div>
       
       {/* Sessions */}
       <motion.div 
-        className="flex flex-col items-center p-2 sm:p-3 rounded-lg bg-gray-50 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-700"
+        className={`flex flex-col items-center ${compact ? 'p-1.5 sm:p-2' : 'p-2 sm:p-3'} rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800`}
         variants={scaleIn}
       >
-        <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500 dark:text-gray-400 mb-0.5 sm:mb-1" />
-        <span className="text-2xs sm:text-xs font-medium text-gray-700 dark:text-gray-300">Sessions</span>
-        <span className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white">
+        <Calendar 
+          className={`${compact ? 'h-3.5 w-3.5 sm:h-4 sm:w-4' : 'h-4 w-4 sm:h-5 sm:w-5'} text-amber-500 dark:text-amber-400 mb-0.5 sm:mb-1`} 
+          fill="currentColor" 
+          fillOpacity={fillOpacity} 
+        />
+        <span className={`${compact ? 'text-[8px] sm:text-2xs' : 'text-2xs sm:text-xs'} font-medium text-amber-700 dark:text-amber-300`}>Sessions</span>
+        <span className={`${compact ? 'text-[10px] sm:text-xs' : 'text-xs sm:text-sm'} font-bold text-amber-900 dark:text-amber-100`}>
           {sessions}
         </span>
       </motion.div>
       
       {/* Certification */}
       <motion.div 
-        className={`flex flex-col items-center p-2 sm:p-3 rounded-lg ${hasCertificate ? colorClasses.bg + ' ' + colorClasses.border : 'bg-gray-50 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-700'}`}
+        className={`flex flex-col items-center ${compact ? 'p-1.5 sm:p-2' : 'p-2 sm:p-3'} rounded-lg ${hasCertificate ? 'bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800' : 'bg-gray-50 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-700'}`}
         variants={scaleIn}
       >
-        <Award className={`h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1 ${hasCertificate ? colorClasses.text : 'text-gray-500 dark:text-gray-400'}`} />
-        <span className="text-2xs sm:text-xs font-medium text-gray-700 dark:text-gray-300">Certificate</span>
-        <span className={`text-xs sm:text-sm font-bold ${hasCertificate ? colorClasses.textBold : 'text-gray-900 dark:text-white'}`}>
+        <Award 
+          className={`${compact ? 'h-3.5 w-3.5 sm:h-4 sm:w-4' : 'h-4 w-4 sm:h-5 sm:w-5'} mb-0.5 sm:mb-1 ${hasCertificate ? 'text-emerald-500 dark:text-emerald-400' : 'text-gray-500 dark:text-gray-400'}`}
+          fill="currentColor" 
+          fillOpacity={fillOpacity} 
+        />
+        <span className={`${compact ? 'text-[8px] sm:text-2xs' : 'text-2xs sm:text-xs'} font-medium ${hasCertificate ? 'text-emerald-700 dark:text-emerald-300' : 'text-gray-700 dark:text-gray-300'}`}>Certificate</span>
+        <span className={`${compact ? 'text-[10px] sm:text-xs' : 'text-xs sm:text-sm'} font-bold ${hasCertificate ? 'text-emerald-900 dark:text-emerald-100' : 'text-gray-900 dark:text-white'}`}>
           {hasCertificate ? "Included" : "Not Available"}
         </span>
       </motion.div>

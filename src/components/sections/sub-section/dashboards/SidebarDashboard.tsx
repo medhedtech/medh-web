@@ -95,6 +95,7 @@ import {
   MessageCircle as ChatAlt2Icon, 
   LogOut as LogoutIcon 
 } from 'lucide-react';
+import { jwtDecode } from "jwt-decode";
 
 // Import the new sidebar components
 import {
@@ -130,7 +131,7 @@ interface ItemSection {
 
 interface SidebarDashboardProps {
   userRole: string;
-  userName: string;
+  fullName: string;
   userEmail: string;
   userImage: string;
   userNotifications: number;
@@ -185,7 +186,7 @@ const sidebarStyles = `
 
 const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
   userRole,
-  userName,
+  fullName,
   userEmail,
   userImage,
   userNotifications,
@@ -212,21 +213,87 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
     checkMobile();
     window.addEventListener("resize", checkMobile);
     
-    // Get user name from localStorage
-    const storedUserName = localStorage.getItem("full_name");
-    if (storedUserName) {
-      userName = storedUserName;
-    }
+    // Get user name from localStorage with better fallbacks
+    const getUserName = () => {
+      try {
+        // Try standard key first, then legacy key
+        const storedFullName = localStorage.getItem("fullName");
+        const legacyName = localStorage.getItem("full_name");
+        
+        if (storedFullName) {
+          return storedFullName;
+        } else if (legacyName) {
+          // Migrate to new key if using legacy
+          localStorage.setItem("fullName", legacyName);
+          return legacyName;
+        }
+        
+        // If no name in storage, try to extract from token
+        const token = localStorage.getItem("token");
+        if (token) {
+          try {
+            const decoded = jwtDecode<any>(token);
+            let name = "";
+            
+            if (decoded.user?.full_name) {
+              name = decoded.user.full_name;
+            } else if (decoded.user?.name) {
+              name = decoded.user.name;
+            } else if (decoded.name) {
+              name = decoded.name;
+            } else if (decoded.user?.email) {
+              name = decoded.user.email.split('@')[0]; // Use part before @ as name
+            }
+            
+            if (name) {
+              // Store for future use
+              localStorage.setItem("fullName", name);
+              return name;
+            }
+          } catch (tokenError) {
+            console.error("Error decoding token:", tokenError);
+          }
+        }
+        
+        // Generate a name based on role if available
+        const roleFromStorage = localStorage.getItem("role");
+        if (roleFromStorage) {
+          const role = roleFromStorage.toLowerCase();
+          const roleName = role === "admin" ? 
+            "Administrator" : 
+            role.charAt(0).toUpperCase() + role.slice(1);
+          return roleName;
+        }
+        
+        return "User"; // Default fallback
+      } catch (error) {
+        console.error("Error accessing localStorage:", error);
+        return "User"; // Final fallback
+      }
+    };
+    
+    // Apply the user name to the component state
+    fullName = getUserName();
     
     // Get permissions from localStorage
-    const perm = localStorage.getItem("permissions");
-    const roleFromStorage = localStorage.getItem("role");
-    if (perm) {
-      localStorage.setItem("permissions", perm);
-    }
-    if (roleFromStorage) {
-      userRole = roleFromStorage;
-    }
+    const getPermissionsAndRole = () => {
+      try {
+        const perm = localStorage.getItem("permissions");
+        const roleFromStorage = localStorage.getItem("role");
+        
+        if (perm) {
+          localStorage.setItem("permissions", perm);
+        }
+        
+        if (roleFromStorage) {
+          userRole = roleFromStorage;
+        }
+      } catch (error) {
+        console.error("Error accessing permissions/role from localStorage:", error);
+      }
+    };
+    
+    getPermissionsAndRole();
     
     // Hash-based navigation handling
     const handleHashChange = () => {
@@ -346,14 +413,33 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
 
   // Handle logout
   const handleLogout = () => {
-    // Clear cookies and localStorage
-    Cookies.remove("token");
-    localStorage.removeItem("userId");
-    localStorage.removeItem("role");
-    localStorage.removeItem("full_name");
-    
-    // Redirect to login page
-    router.push("/login");
+    try {
+      // Clear localStorage items
+      const keysToRemove = [
+        "userId", 
+        "token", 
+        "fullName", 
+        "full_name", 
+        "role", 
+        "permissions",
+        "email",
+        "password",
+        "rememberMe"
+      ];
+      
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+      
+      // Clear cookies
+      Cookies.remove("token");
+      Cookies.remove("userId");
+      
+      // Redirect to login page
+      router.push("/login");
+    } catch (error) {
+      console.error("Error during logout:", error);
+      // If error, still try to redirect
+      router.push("/login");
+    }
   };
 
   // Helper function to find menu item by name
@@ -429,9 +515,26 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
   };
 
   // Create personalized welcome message
-  const welcomeMessage = userName 
-    ? `Hello, ${userName.split(' ')[0]}` 
-    : `Hello, ${(userRole || 'User').charAt(0).toUpperCase() + (userRole || 'User').slice(1)}`;
+  const welcomeMessage = () => {
+    // If no name is provided or available
+    if (!fullName) {
+      // If we know the role is student, use student-specific greeting
+      if (userRole?.toLowerCase() === 'student') {
+        return 'Hello, Student';
+      }
+      // Otherwise use role-based greeting
+      return `Hello, ${(userRole || 'User').charAt(0).toUpperCase() + (userRole || 'User').slice(1)}`;
+    }
+    
+    // If name is available, create a personalized greeting
+    // For students, show exact format "Hello, abhi (Student)"
+    if (userRole?.toLowerCase() === 'student') {
+      return `Hello, ${fullName.split(' ')[0]} (Student)`;
+    }
+    
+    // For other roles, just use first name
+    return `Hello, ${fullName.split(' ')[0]}`;
+  };
 
   // Define the complete sidebar structure for student role
   const studentSidebar: ItemSection[] = [
@@ -1444,10 +1547,11 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
       {/* Header component */}
       <SidebarHeader 
         logo={logo}
-        userName={userName}
+        userName={fullName}
         userRole={userRole}
         userNotifications={userNotifications}
         isMobileDevice={isMobileDevice}
+        welcomeMessage={welcomeMessage()}
       />
       
       {/* Mobile search */}

@@ -340,7 +340,7 @@ const Courses = () => {
 
   return (
     <PageWrapper>
-      <main className="min-h-screen w-full bg-gradient-to-b from-gray-50/80 via-white to-gray-50/80 dark:from-gray-900 dark:via-gray-850 dark:to-gray-900 transition-colors duration-300">
+      <main className="bg-gradient-to-b from-gray-50/80 via-white to-gray-50/80 dark:from-gray-900 dark:via-gray-850 dark:to-gray-900 transition-colors duration-300">
         {/* Course Header & Tabs Section */}
         <section className="relative w-full py-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 transition-colors duration-300 overflow-hidden">
           {/* Background decoration */}
