@@ -214,6 +214,16 @@ const CourseCard = ({
   // Add state for brochure form flip card mode
   const [showBrochureForm, setShowBrochureForm] = useState(false);
   
+  // Update the showBrochureForm state to include form data
+  const [brochureFormData, setBrochureFormData] = useState({
+    name: '',
+    email: '',
+    phone: ''
+  });
+
+  // Add state for flip animation
+  const [isFlipping, setIsFlipping] = useState(false);
+  
   const cardRef = useRef(null);
   const router = useRouter();
   const { convertPrice, formatPrice: formatCurrencyPrice } = useCurrency();
@@ -297,15 +307,36 @@ const CourseCard = ({
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
   
-  // New handler for brochure flip card
+  // Update handleBrochureClick to handle flip animation
   const handleBrochureClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
+    setIsFlipping(true);
     setShowBrochureForm(true);
+    
+    // Reset form data
+    setBrochureFormData({
+      name: '',
+      email: '',
+      phone: ''
+    });
   };
   
+  // Add handler for form submission
+  const handleBrochureSubmit = async (e) => {
+    e.preventDefault();
+    // Here you would typically handle the form submission
+    // For now, we'll just close the form
+    handleCloseBrochureForm();
+  };
+
+  // Update handleCloseBrochureForm to handle flip animation
   const handleCloseBrochureForm = () => {
-    setShowBrochureForm(false);
+    setIsFlipping(true);
+    setTimeout(() => {
+      setShowBrochureForm(false);
+      setIsFlipping(false);
+    }, 600); // Match the flip animation duration
   };
 
   // Mouse and touch interaction handlers
@@ -958,7 +989,7 @@ const CourseCard = ({
             courseId={course?._id}
             flipCard={true}
           >
-            {/* The original card content will be displayed on the front side */}
+            {/* Pass the original card content as children */}
             <div 
               ref={cardRef}
               className={`course-card ${mobileCardStyles} group relative flex flex-col h-full rounded-xl overflow-hidden 
@@ -969,7 +1000,8 @@ const CourseCard = ({
                 ${styles.borderHover} ${styles.shadowHover} ${isLiveCourse ? styles.borderLeft : ''}
                 ${isMobile ? 'pb-20 last:mb-0' : ''}
                 ${viewMode === 'grid' ? 'sm:mx-2 md:mx-3' : ''}
-                hover:shadow-2xl`}
+                hover:shadow-2xl
+                ${isFlipping ? 'pointer-events-none' : ''}`}
             >
               {/* Course type indicator tag - for desktop or when mobile hover is not active */}
               {(isLiveCourse || isBlendedCourse) && (!isMobile || !mobileHoverActive) && (

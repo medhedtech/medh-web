@@ -6,6 +6,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LogIn, User, LogOut, ChevronDown } from "lucide-react";
 import { jwtDecode } from "jwt-decode";
+import { getAuthToken, getUserId, clearAuthData, sanitizeAuthData } from "@/utils/auth";
 
 const LoginButton = () => {
   const isHome2Dark = useIsTrue("/home-2-dark");
@@ -22,9 +23,13 @@ const LoginButton = () => {
     
     // Only run on client-side
     if (typeof window !== "undefined") {
-      const token = localStorage.getItem("token");
+      // Sanitize any invalid auth data first
+      sanitizeAuthData();
       
-      if (token) {
+      const token = getAuthToken();
+      const userId = getUserId();
+      
+      if (token && userId) {
         try {
           // Attempt to decode the token to get user info
           const decoded = jwtDecode(token);
@@ -53,8 +58,8 @@ const LoginButton = () => {
         } catch (error) {
           console.error("Invalid token:", error);
           setIsLoggedIn(false);
-          // Clear potentially corrupted token
-          localStorage.removeItem("token");
+          // Clear potentially corrupted auth data
+          clearAuthData();
         }
       } else {
         setIsLoggedIn(false);
@@ -64,19 +69,15 @@ const LoginButton = () => {
 
   // Handle logout
   const handleLogout = () => {
-    // Clear all auth data
-    localStorage.removeItem("token");
-    localStorage.removeItem("userId");
+    // Clear all auth data using the utility function, but keep remember me settings
+    const keepRememberMe = true; // This preserves email for next login
+    clearAuthData(keepRememberMe);
+    
+    // Clear additional data that might be stored
     localStorage.removeItem("role");
     localStorage.removeItem("permissions");
     localStorage.removeItem("email");
     localStorage.removeItem("password");
-    
-    // Remove cookies if they exist
-    if (document.cookie.includes("token")) {
-      document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      document.cookie = "userId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    }
     
     setIsLoggedIn(false);
     setIsMenuOpen(false);

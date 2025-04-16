@@ -370,7 +370,7 @@ const CourseView: React.FC = () => {
         </header>
 
         {/* Content with Header Offset */}
-        <main className="flex-grow pt-14 sm:pt-16 md:pt-20 relative z-10">
+        <main className="flex-grow pt-12 sm:pt-6 md:pt-8 relative z-10">
           {loading ? (
             <div className="flex items-center justify-center min-h-[60vh]">
               <div className="text-center">
@@ -400,7 +400,7 @@ const CourseView: React.FC = () => {
                 </div>
                 
                 {/* Right Column - Enrollment Details */}
-                <div className="w-full lg:w-4/12 mb-8 lg:mb-0">
+                <div className="w-full lg:w-4/12 mb-8 lg:mb-0 pt-8">
                   <div className="lg:sticky lg:top-24 space-y-5 sm:space-y-6 relative z-20">
                     {/* Enrollment Details */}
                     {course && (

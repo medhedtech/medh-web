@@ -20,6 +20,124 @@ export const saveAuthToken = (token: string): void => {
 };
 
 /**
+ * Saves user ID to both localStorage and sessionStorage
+ * @param userId User ID string
+ */
+export const saveUserId = (userId: string): void => {
+  try {
+    // Validate userId before saving
+    if (!userId || userId === 'undefined' || userId === 'null') {
+      console.error('Invalid user ID:', userId);
+      return;
+    }
+    
+    // Store in both storage types for redundancy
+    localStorage.setItem('userId', userId);
+    sessionStorage.setItem('userId', userId);
+    
+    // Also set a cookie for server-side access
+    document.cookie = `userId=${userId}; path=/; max-age=86400; SameSite=Lax`;
+  } catch (err) {
+    console.error('Error saving user ID:', err);
+  }
+};
+
+/**
+ * Saves user's full name to localStorage and sessionStorage
+ * @param fullName User's full name
+ */
+export const saveFullName = (fullName: string): void => {
+  try {
+    if (!fullName) return;
+    
+    localStorage.setItem('fullName', fullName);
+    sessionStorage.setItem('fullName', fullName);
+  } catch (err) {
+    console.error('Error saving full name:', err);
+  }
+};
+
+/**
+ * Gets the user's full name from storage
+ * @returns The user's full name or empty string if not found
+ */
+export const getFullName = (): string => {
+  try {
+    // Try localStorage first
+    let fullName = localStorage.getItem('fullName');
+    
+    // Fall back to sessionStorage if not in localStorage
+    if (!fullName) {
+      fullName = sessionStorage.getItem('fullName');
+    }
+    
+    return fullName || '';
+  } catch (err) {
+    console.error('Error retrieving full name:', err);
+    return '';
+  }
+};
+
+/**
+ * Sets the remember me flag and securely stores the email if requested
+ * @param rememberMe Whether to remember the user
+ * @param email The user's email
+ */
+export const setRememberMe = (rememberMe: boolean, email?: string): void => {
+  try {
+    if (rememberMe) {
+      localStorage.setItem('rememberMe', 'true');
+      
+      // Only store email if provided and remember me is true
+      if (email) {
+        localStorage.setItem('rememberedEmail', email);
+      }
+      
+      // Set a long-lived cookie for the remember me setting
+      const expiryDate = new Date();
+      expiryDate.setDate(expiryDate.getDate() + 30); // 30 days expiry
+      document.cookie = `rememberMe=true; path=/; expires=${expiryDate.toUTCString()}; SameSite=Lax`;
+    } else {
+      // Clear remember me data
+      localStorage.removeItem('rememberMe');
+      localStorage.removeItem('rememberedEmail');
+      document.cookie = 'rememberMe=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
+    }
+  } catch (err) {
+    console.error('Error setting remember me:', err);
+  }
+};
+
+/**
+ * Checks if remember me is enabled
+ * @returns Whether remember me is enabled
+ */
+export const isRememberMeEnabled = (): boolean => {
+  try {
+    return localStorage.getItem('rememberMe') === 'true';
+  } catch (err) {
+    console.error('Error checking remember me:', err);
+    return false;
+  }
+};
+
+/**
+ * Gets the remembered email if available
+ * @returns The remembered email or empty string
+ */
+export const getRememberedEmail = (): string => {
+  try {
+    if (isRememberMeEnabled()) {
+      return localStorage.getItem('rememberedEmail') || '';
+    }
+    return '';
+  } catch (err) {
+    console.error('Error getting remembered email:', err);
+    return '';
+  }
+};
+
+/**
  * Gets the authentication token from storage
  * @returns The JWT token string or null if not found
  */
@@ -41,11 +159,37 @@ export const getAuthToken = (): string | null => {
 };
 
 /**
+ * Gets the user ID from storage
+ * @returns The user ID string or null if not found
+ */
+export const getUserId = (): string | null => {
+  try {
+    // Try localStorage first
+    let userId = localStorage.getItem('userId');
+    
+    // Fall back to sessionStorage if not in localStorage
+    if (!userId) {
+      userId = sessionStorage.getItem('userId');
+    }
+    
+    // Return null for invalid values
+    if (userId === 'undefined' || userId === 'null') {
+      return null;
+    }
+    
+    return userId;
+  } catch (err) {
+    console.error('Error retrieving user ID:', err);
+    return null;
+  }
+};
+
+/**
  * Checks if the user is authenticated (has token)
  * @returns True if authenticated, false otherwise
  */
 export const isAuthenticated = (): boolean => {
-  return !!getAuthToken();
+  return !!getAuthToken() && !!getUserId();
 };
 
 /**
@@ -64,11 +208,121 @@ export const clearAuthToken = (): void => {
 };
 
 /**
+ * Clear user ID from all storage
+ */
+export const clearUserId = (): void => {
+  try {
+    localStorage.removeItem('userId');
+    sessionStorage.removeItem('userId');
+    
+    // Also clear the cookie
+    document.cookie = 'userId=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
+  } catch (err) {
+    console.error('Error clearing user ID:', err);
+  }
+};
+
+/**
+ * Clear full name from storage
+ */
+export const clearFullName = (): void => {
+  try {
+    localStorage.removeItem('fullName');
+    sessionStorage.removeItem('fullName');
+  } catch (err) {
+    console.error('Error clearing full name:', err);
+  }
+};
+
+/**
+ * Clear all auth data from storage
+ * @param keepRememberMe Whether to preserve the remember me setting
+ */
+export const clearAuthData = (keepRememberMe: boolean = false): void => {
+  clearAuthToken();
+  clearUserId();
+  clearFullName();
+  
+  // Clear remember me data unless explicitly told to keep it
+  if (!keepRememberMe) {
+    localStorage.removeItem('rememberMe');
+    localStorage.removeItem('rememberedEmail');
+    document.cookie = 'rememberMe=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
+  }
+};
+
+/**
  * Store the provided token directly in the local variable and storage
  * @param token The JWT token from the x-access-token header
  */
 export const storeExternalToken = (token: string): void => {
   if (token) {
     saveAuthToken(token);
+  }
+};
+
+/**
+ * Store authentication data from login response
+ * @param data Login response containing token and user ID
+ * @param rememberMe Whether to remember the user
+ * @param email User email for remember me functionality
+ * @param fullName User's full name
+ */
+export const storeAuthData = (
+  data: { token?: string; id?: string; full_name?: string; name?: string },
+  rememberMe: boolean = false,
+  email?: string,
+): boolean => {
+  try {
+    if (!data?.token || !data?.id) {
+      return false;
+    }
+    
+    saveAuthToken(data.token);
+    saveUserId(data.id);
+    
+    // Save full name if available
+    const fullName = data.full_name || data.name || '';
+    if (fullName) {
+      saveFullName(fullName);
+    }
+    
+    // Handle remember me functionality
+    setRememberMe(rememberMe, email);
+    
+    return true;
+  } catch (err) {
+    console.error('Error storing auth data:', err);
+    return false;
+  }
+};
+
+/**
+ * Sanitize auth data by removing invalid values
+ * Call this at app initialization to clean up any bad values
+ */
+export const sanitizeAuthData = (): void => {
+  try {
+    if (typeof window === 'undefined') return;
+    
+    // Check for invalid user ID values
+    const userId = localStorage.getItem('userId');
+    if (userId === 'undefined' || userId === 'null' || userId === '') {
+      console.warn('Removing invalid userId from storage:', userId);
+      localStorage.removeItem('userId');
+      sessionStorage.removeItem('userId');
+      document.cookie = 'userId=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
+    }
+    
+    // Check for invalid token values
+    const token = localStorage.getItem('token');
+    if (token === 'undefined' || token === 'null' || token === '') {
+      console.warn('Removing invalid token from storage:', token);
+      localStorage.removeItem('token');
+      sessionStorage.removeItem('token');
+      document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
+    }
+  } catch (err) {
+    console.error('Error sanitizing auth data:', err);
   }
 }; 
