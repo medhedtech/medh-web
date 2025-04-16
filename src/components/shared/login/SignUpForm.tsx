@@ -188,10 +188,10 @@ const SignUpForm = () => {
   const router = useRouter();
   const { theme, resolvedTheme } = useTheme();
   const [showPassword, setShowPassword] = useState(false);
-  const [apiError, setApiError] = useState(null);
+  const [apiError, setApiError] = useState<string | null>(null);
   const { postQuery, loading } = usePostQuery();
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [recaptchaValue, setRecaptchaValue] = useState(null);
+  const [recaptchaValue, setRecaptchaValue] = useState<string | null>(null);
   const [recaptchaError, setRecaptchaError] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -274,10 +274,12 @@ const SignUpForm = () => {
     }
   }, [theme, resolvedTheme]);
 
-  const handleRecaptchaChange = (value: string) => {
+  const handleRecaptchaChange = (value: string | null) => {
     setRecaptchaValue(value);
     setRecaptchaError(false);
-    setValue('recaptcha', value, { shouldValidate: true });
+    if (value) {
+      setValue('recaptcha', value, { shouldValidate: true });
+    }
   };
 
   const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
@@ -300,17 +302,44 @@ const SignUpForm = () => {
   const handlePhoneChange = (value: string, country: any) => {
     // Ensure we have the right country object structure
     const countryObj = typeof country === 'object' ? country : { iso2: '', dialCode: '' };
-    const phoneNumber = value ? formatNumber(value, 'NATIONAL') : '';
-    setPhoneData({
-      number: value,
-      country: countryObj.iso2 || '',
-      countryCode: countryObj.dialCode || '',
-      formattedNumber: value,
-      isValid: isValidPhoneNumber(value),
-      type: null,
-      nationalFormat: phoneNumber,
-      internationalFormat: value
-    });
+    
+    try {
+      // Format the phone number
+      const phoneNumberWithPlus = value.startsWith('+') ? value : `+${value}`;
+      const isValid = validatePhoneNumber(phoneNumberWithPlus);
+      
+      const formattedNumber = formatPhoneNumber(phoneNumberWithPlus) as PhoneNumberFormat;
+      
+      setPhoneData({
+        number: phoneNumberWithPlus,
+        country: countryObj.iso2 || '',
+        countryCode: countryObj.dialCode || '',
+        formattedNumber: formattedNumber.international,
+        isValid: isValid,
+        type: formattedNumber.type || null,
+        nationalFormat: formattedNumber.national,
+        internationalFormat: formattedNumber.international
+      });
+
+      // Update form value
+      setValue('phone_numbers', [{
+        country: countryObj.iso2 || '',
+        number: phoneNumberWithPlus
+      }], { shouldValidate: true });
+
+    } catch (error) {
+      console.error('Phone formatting error:', error);
+      setPhoneData({
+        number: value,
+        country: countryObj.iso2 || '',
+        countryCode: countryObj.dialCode || '',
+        formattedNumber: value,
+        isValid: false,
+        type: null,
+        nationalFormat: value,
+        internationalFormat: value
+      });
+    }
   };
 
   const handleAgeGroupChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -339,7 +368,10 @@ const SignUpForm = () => {
         full_name: data.full_name.trim(),
         email: data.email.toLowerCase().trim(),
         password: data.password,
-        phone_numbers: data.phone_numbers,
+        phone_numbers: [{
+          country: phoneData.country,
+          number: phoneData.number
+        }],
         agree_terms: data.agree_terms,
         role: ["student"],
         age_group: data.age_group,
