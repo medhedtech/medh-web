@@ -52,10 +52,8 @@ const SectionLoader = ({ text }) => (
 export default function MembershipPage() {
   return (
     <PageWrapper>
-      <main className="min-h-screen pt-12">
        <PrimeMembership />
        <MembershipFeatures />
-      </main>
     </PageWrapper>
   );
 }

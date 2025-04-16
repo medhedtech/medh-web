@@ -11,7 +11,7 @@ const Admin_Reviews = () => {
   return (
     <ProtectedPage>
       <main>
-        {/* <DsahboardWrapper> */}
+        {/* <DashboardWrapper> */}
         <DashboardContainer>
           <div>
             <HeadingDashboard />
@@ -19,7 +19,7 @@ const Admin_Reviews = () => {
 
           <AddCourse />
         </DashboardContainer>
-        {/* </DsahboardWrapper> */}
+        {/* </DashboardWrapper> */}
         
       </main>
     </ProtectedPage>

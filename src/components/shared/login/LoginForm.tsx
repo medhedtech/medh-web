@@ -20,6 +20,15 @@ import { useStorage } from "@/contexts/StorageContext";
 import FixedShadow from "../others/FixedShadow";
 import { events } from "@/utils/analytics";
 import { useTheme } from "next-themes";
+import { 
+  sanitizeAuthData, 
+  storeAuthData, 
+  saveUserId, 
+  saveAuthToken,
+  isRememberMeEnabled,
+  getRememberedEmail,
+  setRememberMe
+} from "@/utils/auth";
 
 interface FormInputs {
   email: string;
@@ -40,7 +49,7 @@ interface MedhJwtPayload extends JwtPayload {
 
 const schema = yup
   .object({
-    email: yup.string().email("Please enter a valid email").required("Email is required"),
+    email: yup.string().trim().email("Please enter a valid email").required("Email is required"),
     password: yup
       .string()
       .min(8, "Password must be at least 8 characters")
@@ -76,10 +85,23 @@ const LoginForm = () => {
     handleSubmit,
     setValue,
     formState: { errors },
+    trigger,
+    reset,
+    getValues,
+    clearErrors
   } = useForm<FormInputs>({
     resolver: yupResolver(schema) as any,
     defaultValues: prefilledValues,
+    mode: "onChange",
+    reValidateMode: "onChange",
   });
+
+  // Sanitize any invalid auth data when component mounts
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      sanitizeAuthData();
+    }
+  }, []);
 
   // Add entrance animation effect
   useEffect(() => {
@@ -87,25 +109,47 @@ const LoginForm = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Prefill email and password from localStorage if previously stored with remember me
+  // Prefill email from auth utility if remember me was previously enabled
   useEffect(() => {
-    // Check if rememberMe was set in previous sessions
-    const rememberedUser = storageManager.getCurrentUser();
-    const isRemembered = storageManager.getPreference(storageManager.STORAGE_KEYS.REMEMBER_ME, false);
-    
-    if (isRemembered && rememberedUser && rememberedUser.email) {
-      setPrefilledValues({
-        email: rememberedUser.email,
-        password: "", // For security, don't prefill password in the form
-      });
-      setRememberMe(true);
+    if (typeof window !== 'undefined') {
+      const isRemembered = isRememberMeEnabled();
+      const rememberedEmail = getRememberedEmail();
+      
+      if (isRemembered && rememberedEmail) {
+        setPrefilledValues({
+          email: rememberedEmail,
+          password: "", // For security, don't prefill password in the form
+        });
+        setRememberMe(true);
+      }
+      
+      // Also check the storage manager as a fallback during transition
+      if (!rememberedEmail) {
+        const rememberedUser = storageManager.getCurrentUser();
+        const isStorageRemembered = storageManager.getPreference(storageManager.STORAGE_KEYS.REMEMBER_ME, false);
+        
+        if (isStorageRemembered && rememberedUser && rememberedUser.email) {
+          setPrefilledValues({
+            email: rememberedUser.email,
+            password: "", // For security, don't prefill password in the form
+          });
+          setRememberMe(true);
+        }
+      }
     }
   }, [storageManager]);
 
+  // Update form values when prefilledValues change
   useEffect(() => {
-    setValue("email", prefilledValues.email);
-    setValue("password", prefilledValues.password);
-  }, [prefilledValues, setValue]);
+    if (prefilledValues.email) {
+      setValue("email", prefilledValues.email, { shouldValidate: true });
+      setValue("password", prefilledValues.password);
+      // Clear email error if value exists
+      if (errors.email && prefilledValues.email) {
+        clearErrors("email");
+      }
+    }
+  }, [prefilledValues, setValue, errors.email, clearErrors]);
 
   const handleRecaptchaChange = (value: string): void => {
     setRecaptchaValue(value);
@@ -143,7 +187,7 @@ const LoginForm = () => {
     }
   };
   
-  // Simplified and improved submit handler
+  // Updated submit handler using the enhanced auth utilities
   const onSubmit = async (data: FormInputs): Promise<void> => {
     if (!recaptchaValue) {
       setRecaptchaError(true);
@@ -160,6 +204,24 @@ const LoginForm = () => {
         agree_terms: data?.agree_terms,
       },
       onSuccess: (res) => {
+        // Debug log
+        console.log('Login response:', res);
+        const authSuccess = storeAuthData(
+          {
+            token: res.token,
+            id: res.data?.id,
+            full_name: res.data?.full_name,
+            name: res.data?.name
+          },
+          rememberMe,
+          data.email
+        );
+        console.log('storeAuthData result:', authSuccess);
+        if (!authSuccess) {
+          toast.error("Failed to save authentication data. Please try again.");
+          return;
+        }
+        
         // Extract user information with better error handling
         let userRole = '';
         let fullName = '';
@@ -175,9 +237,19 @@ const LoginForm = () => {
             userRole = Array.isArray(decoded.role) ? decoded.role[0] : decoded.role;
           }
           
-          // Additional fallbacks
+          // Additional fallbacks for role and name
           if (!userRole) userRole = res.role || '';
-          if (!fullName) fullName = res.full_name || '';
+          if (!fullName) fullName = res.full_name || res.name || '';
+          
+          // Store additional user information
+          if (userRole) {
+            localStorage.setItem("role", userRole);
+          }
+          
+          // Store full name in localStorage for easy access in different components
+          if (fullName) {
+            localStorage.setItem("fullName", fullName);
+          }
           
         } catch (error) {
           console.error("Error processing token:", error);
@@ -185,10 +257,10 @@ const LoginForm = () => {
           fullName = res.full_name || '';
         }
         
-        // Store auth data
+        // Continue using the existing storage manager for non-auth data
         storageManager.login({
           token: res.token,
-          userId: res.id,
+          userId: res.data?.id,
           email: data.email,
           password: rememberMe ? data.password : undefined,
           role: userRole,
@@ -341,8 +413,17 @@ const LoginForm = () => {
                       } focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-10 sm:pl-11 text-sm sm:text-base`}
                       {...register("email", {
                         required: true,
-                        ref: emailInputRef
+                        onChange: (e) => {
+                          // Trim value on change
+                          e.target.value = e.target.value.trimStart();
+                          setTimeout(() => trigger("email"), 100);
+                        },
+                        onBlur: (e) => {
+                          // Trim value on blur
+                          setValue("email", e.target.value.trim(), { shouldValidate: true });
+                        }
                       })}
+                      ref={emailInputRef}
                       aria-invalid={errors.email ? "true" : "false"}
                     />
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

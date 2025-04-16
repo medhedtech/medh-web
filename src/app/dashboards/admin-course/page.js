@@ -3,7 +3,7 @@ import AdminCourseMain from "@/components/layout/main/dashboards/AdminCourseMain
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
 
 
-import DsahboardWrapper from "@/components/shared/wrappers/DsahboardWrapper";
+import DashboardWrapper from "@/components/shared/wrappers/DashboardWrapper";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 export const metadata = {
   title: "Admin Course | Medh - Education LMS Template",
@@ -14,11 +14,11 @@ const Admin_Course = () => {
     <ProtectedPage>
       <PageWrapper>
         <main>
-          <DsahboardWrapper>
+          <DashboardWrapper>
             <DashboardContainer>
               <AdminCourseMain />
             </DashboardContainer>
-          </DsahboardWrapper>
+          </DashboardWrapper>
           
         </main>
       </PageWrapper>

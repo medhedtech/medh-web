@@ -834,7 +834,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
           )}
         </div>
         
-        <div className="p-5 sm:p-6 md:p-8 space-y-6">
+        <div className="p-5 sm:p-6 md:p-4 space-y-6">
           {/* Enrollment Type Selection - Better optimized for mobile with clear touch targets */}
           {!isBlendedCourse && (
             <div className="flex w-full rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm">

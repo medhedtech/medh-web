@@ -1053,7 +1053,7 @@
 ./src/components/shared/wrappers DropdownWrapper
 ./src/components/shared/wrappers DropdownWrapperPrimary
 ./src/components/shared/wrappers DropdownWrapperSecondary
-./src/components/shared/wrappers DsahboardWrapper
+./src/components/shared/wrappers DashboardWrapper
 ./src/components/shared/wrappers FilterControllerWrapper
 ./src/components/shared/wrappers SectionWrapper
 ./src/components/shared/wrappers TabContentWrapper
