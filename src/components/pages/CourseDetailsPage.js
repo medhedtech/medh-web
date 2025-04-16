@@ -63,6 +63,7 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showClassTypeInfo, setShowClassTypeInfo] = useState(false);
+  const [theme, setTheme] = useState('light');
   
   // Refs for component structure - we don't use these for scrolling anymore
   const aboutRef = useRef(null);
@@ -232,6 +233,37 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
       setIsLoggedIn(!!token && (!!userId || !!user));
     }
   }, []);
+
+  // Add debug logging for modal state changes
+  useEffect(() => {
+    if (showClassTypeInfo) {
+      console.log('🔍 Class Types Modal: Opened');
+      console.log('📱 Device Type:', window.innerWidth <= 768 ? 'Mobile' : 'Desktop');
+      console.log('🎨 Theme:', theme);
+    } else {
+      console.log('🔍 Class Types Modal: Closed');
+    }
+  }, [showClassTypeInfo, theme]);
+
+  // Enhanced modal toggle with debug logging
+  const toggleClassTypeInfo = (event) => {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    console.log('🔄 Toggling Class Types Modal:', !showClassTypeInfo);
+    setShowClassTypeInfo(!showClassTypeInfo);
+  };
+
+  // Enhanced modal close with debug logging
+  const handleCloseModal = (event, source = 'button') => {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    console.log(`🔒 Closing Class Types Modal (Source: ${source})`);
+    setShowClassTypeInfo(false);
+  };
 
   const toggleAccordion = (index) => {
     setOpenAccordions(openAccordions === index ? null : index);
@@ -1717,17 +1749,33 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
                       
                       {/* Info Tooltip - Centered positioning for mobile */}
                       {showClassTypeInfo && (
-                        <div className="fixed inset-0 z-[100] overflow-hidden flex items-center justify-center px-4 sm:px-0" onClick={() => setShowClassTypeInfo(false)}>
-                          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setShowClassTypeInfo(false)}></div>
+                        <div 
+                          className="fixed inset-0 z-[100] overflow-hidden flex items-center justify-center px-4 sm:px-0" 
+                          onClick={(e) => handleCloseModal(e, 'overlay')}
+                        >
+                          <div 
+                            className="absolute inset-0 bg-black/30 backdrop-blur-sm" 
+                            onClick={(e) => handleCloseModal(e, 'backdrop')}
+                          />
                           <div 
                             className="relative z-[101] w-full max-w-[320px] p-4 bg-white dark:bg-gray-800 shadow-xl rounded-xl border border-gray-200 dark:border-gray-700 text-sm mx-auto transform transition-all"
-                            onClick={(e) => e.stopPropagation()}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              console.log('🎯 Modal Content Clicked');
+                            }}
                           >
                             <div className="flex items-center justify-between mb-4">
                               <h4 className="font-semibold text-gray-900 dark:text-white text-base">Class Types</h4>
                               <button 
                                 className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400"
-                                onClick={() => setShowClassTypeInfo(false)}
+                                onClick={(e) => handleCloseModal(e, 'close-button')}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Escape') {
+                                    console.log('⌨️ Escape key pressed');
+                                    handleCloseModal(e, 'keyboard');
+                                  }
+                                }}
+                                aria-label="Close modal"
                               >
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                   <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -1736,11 +1784,21 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
                               </button>
                             </div>
 
-                            <div className="space-y-4">
+                            <div 
+                              className="space-y-4"
+                              role="dialog"
+                              aria-modal="true"
+                              aria-labelledby="class-types-title"
+                            >
                               {/* Live Classes */}
-                              <div className="pb-4 border-b border-gray-100 dark:border-gray-700">
+                              <div 
+                                className="pb-4 border-b border-gray-100 dark:border-gray-700"
+                                onClick={() => console.log('📚 Live Classes Section Clicked')}
+                              >
                                 <div className="flex items-start">
-                                  <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 mr-3 flex-shrink-0 text-sm font-bold">L</span>
+                                  <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 mr-3 flex-shrink-0 text-sm font-bold">
+                                    L
+                                  </span>
                                   <div>
                                     <span className="font-medium text-indigo-600 dark:text-indigo-400 block mb-2">Live Classes</span>
                                     <ul className="space-y-1.5 text-sm text-gray-600 dark:text-gray-300">
@@ -1766,9 +1824,13 @@ const CourseDetailsPage = ({ courseId, initialActiveSection = 'about', classType
                               </div>
 
                               {/* Blended Classes */}
-                              <div>
+                              <div
+                                onClick={() => console.log('🔄 Blended Classes Section Clicked')}
+                              >
                                 <div className="flex items-start">
-                                  <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 mr-3 flex-shrink-0 text-sm font-bold">B</span>
+                                  <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 mr-3 flex-shrink-0 text-sm font-bold">
+                                    B
+                                  </span>
                                   <div>
                                     <span className="font-medium text-purple-600 dark:text-purple-400 block mb-2">Blended Classes</span>
                                     <ul className="space-y-1.5 text-sm text-gray-600 dark:text-gray-300">
