@@ -11,14 +11,14 @@ const Admin_Reviews = () => {
   return (
     <ProtectedPage>
       <main>
-        {/* <DsahboardWrapper> */}
+        {/* <DashboardWrapper> */}
         <DashboardContainer>
           <div>
             <HeadingDashboard />
           </div>
           <AssignInst />
         </DashboardContainer>
-        {/* </DsahboardWrapper> */}
+        {/* </DashboardWrapper> */}
         
       </main>
     </ProtectedPage>

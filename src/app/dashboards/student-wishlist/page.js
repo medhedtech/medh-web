@@ -2,7 +2,7 @@ import ProtectedPage from "@/app/protectedRoutes";
 import StudentWishlistMain from "@/components/layout/main/dashboards/StudentWishlistMain";
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
 
-import DsahboardWrapper from "@/components/shared/wrappers/DsahboardWrapper";
+import DashboardWrapper from "@/components/shared/wrappers/DashboardWrapper";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 export const metadata = {
   title: "Student Wishlist | Medh - Education LMS Template",
@@ -13,11 +13,11 @@ const Student_Wishlist = () => {
     <ProtectedPage>
       <PageWrapper>
         <main>
-          <DsahboardWrapper>
+          <DashboardWrapper>
             <DashboardContainer>
               <StudentWishlistMain />
             </DashboardContainer>
-          </DsahboardWrapper>
+          </DashboardWrapper>
           
         </main>
       </PageWrapper>

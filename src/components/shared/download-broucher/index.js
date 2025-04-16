@@ -633,7 +633,7 @@ const DownloadBrochureModal = ({
       <div className="fixed inset-0 z-[1000] flex items-center justify-center">
         <div className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-fadeIn" onClick={onClose} />
         <div 
-          className="relative w-[95%] sm:w-[400px] p-6 sm:p-8 bg-white dark:bg-gray-800 rounded-xl shadow-2xl transform transition-all animate-scaleIn modal-content-responsive"
+          className="relative w-[95%] sm:w-[400px] p-6 sm:p-8 bg-white dark:bg-gray-800 rounded-xl shadow-2xl transform transition-all animate-scaleIn modal-content-responsive border border-gray-200 dark:border-gray-700 download-brochure-modal"
           onClick={handleModalClick}
         >
           <div className="flex justify-between items-center border-b pb-4 mb-5">
@@ -698,7 +698,7 @@ const DownloadBrochureModal = ({
         />
       )}
       <div 
-        className={contentClass} 
+        className={`${contentClass} border border-gray-200 dark:border-gray-700 download-brochure-modal`} 
         onClick={handleModalClick}
         style={inlineForm ? {position: 'absolute', zIndex: 1000} : {}}
       >

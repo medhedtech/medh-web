@@ -6,6 +6,7 @@ import { User, LogOut, ChevronRight, Settings, BookOpen, Heart, ShoppingBag } fr
 import { jwtDecode } from "jwt-decode";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
+import { clearAuthData } from "@/utils/auth";
 
 /**
  * Enhanced MobileMyAccount component
@@ -86,9 +87,11 @@ const MobileMyAccount = ({ onClose }) => {
 
   // Handle logout
   const handleLogout = useCallback(() => {
-    // Clear all auth data
-    localStorage.removeItem("token");
-    localStorage.removeItem("userId");
+    // Clear all auth data, but keep remember me settings
+    const keepRememberMe = true; // This preserves email for next login
+    clearAuthData(keepRememberMe);
+    
+    // Clear additional data that might be stored
     localStorage.removeItem("role");
     localStorage.removeItem("permissions");
     localStorage.removeItem("email");

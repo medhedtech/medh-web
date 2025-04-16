@@ -259,9 +259,9 @@ export const apiUrls = {
       const queryString = queryParams.toString();
       return `${apiBaseUrl}/courses/${id}${queryString ? '?' + queryString : ''}`;
     },
-    getRecordedVideosForUser: (studentId: string): string => {
-      if (!studentId) throw new Error('Student ID cannot be empty');
-      return `${apiBaseUrl}/courses/recorded-videos/${studentId}`;
+    getRecordedVideosForUser: (id: string): string => {
+      if (!id) throw new Error('Student ID cannot be empty');
+      return `${apiBaseUrl}/courses/recorded-videos/${id}`;
     },
     getRecorderVideosForUser: "/courses/recorded-videos",
     createCourse: `${apiBaseUrl}/courses/create`,
@@ -277,12 +277,12 @@ export const apiUrls = {
     searchSuggestions: (query: string): string => `${apiBaseUrl}/courses/search-suggestions?q=${encodeURIComponent(query)}`
   },
   faqs: {
-    getAllFaqs: "/faqs/getAll",
-    getFaqsByCategory: "/faqs/category",
-    getAllCategories: "/faqs/categories",
-    createFaq: "/faqs/create",
-    updateFaq: "/faqs/update",
-    deleteFaq: "/faqs/delete"
+    getAllFaqs: "/faq/getAll",
+    getFaqsByCategory: "/faq/category",
+    getAllCategories: "/faq/categories",
+    createFaq: "/faq/create",
+    updateFaq: "/faq/update",
+    deleteFaq: "/faq/delete"
   },
   user: {
     register: "/auth/register",
