@@ -7,6 +7,7 @@ import Banner from "@/assets/Header-Images/News-and-media/Home_Banner_2_e7389bb9
 import Cource from "@/assets/Header-Images/News-and-media/city-committed-education.jpg";
 import Iso from "@/assets/images/vedic-mathematics/vedic-logo.svg";
 import { ArrowRight, ChevronDown, Newspaper, Globe, Sparkles, Rss, Share2, TrendingUp } from 'lucide-react';
+import Link from 'next/link';
 
 // Animation variants
 const animations = {
@@ -145,10 +146,10 @@ export default function BannerNews() {
             className="flex flex-col items-center gap-6"
           >
             <div className="flex flex-wrap gap-4 justify-center">
-              <button className="inline-flex items-center px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all transform hover:-translate-y-1 shadow-lg shadow-blue-500/25 font-medium">
+              <Link href="/contact-us/" className="inline-flex items-center px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all transform hover:-translate-y-1 shadow-lg shadow-blue-500/25 font-medium">
                 Let's Connect
                 <ArrowRight className="ml-2 h-5 w-5" />
-              </button>
+              </Link>
             </div>
 
             {/* Enhanced Slogan */}

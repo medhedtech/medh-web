@@ -3,7 +3,7 @@ import AdminReviewsMain from "@/components/layout/main/dashboards/AdminReviewsMa
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
 
 
-import DsahboardWrapper from "@/components/shared/wrappers/DsahboardWrapper";
+import DashboardWrapper from "@/components/shared/wrappers/DashboardWrapper";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 export const metadata = {
   title: "Admin Reviews | Medh - Education LMS Template",
@@ -14,11 +14,11 @@ const Admin_Reviews = () => {
     <ProtectedPage>
       <PageWrapper>
         <main>
-          <DsahboardWrapper>
+          <DashboardWrapper>
             <DashboardContainer>
               <AdminReviewsMain />
             </DashboardContainer>
-          </DsahboardWrapper>
+          </DashboardWrapper>
           
         </main>
       </PageWrapper>
