@@ -3,7 +3,7 @@ import AdminMessageMain from "@/components/layout/main/dashboards/AdminMessageMa
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
 
 
-import DsahboardWrapper from "@/components/shared/wrappers/DsahboardWrapper";
+import DashboardWrapper from "@/components/shared/wrappers/DashboardWrapper";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 export const metadata = {
   title: "Admin Message | Medh - Education LMS Template",
@@ -14,11 +14,11 @@ const Admin_Message = () => {
     <ProtectedPage>
       <PageWrapper>
         <main>
-          <DsahboardWrapper>
+          <DashboardWrapper>
             <DashboardContainer>
               <AdminMessageMain />
             </DashboardContainer>
-          </DsahboardWrapper>
+          </DashboardWrapper>
           
         </main>
       </PageWrapper>

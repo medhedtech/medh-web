@@ -5,7 +5,9 @@ import * as yup from "yup";
 import usePostQuery from "@/hooks/postQuery.hook";
 import { apiUrls } from "@/apis";
 import { toast } from "react-toastify";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { storeAuthData, sanitizeAuthData } from "@/utils/auth";
+import { jwtDecode } from "jwt-decode";
 
 const schema = yup
   .object({
@@ -28,6 +30,13 @@ const SignInModal = ({ isOpen, onClose }) => {
     resolver: yupResolver(schema),
   });
 
+  // Clean up any invalid auth data when the modal opens
+  useEffect(() => {
+    if (isOpen && typeof window !== "undefined") {
+      sanitizeAuthData();
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const onSubmit = async (data) => {
@@ -39,15 +48,65 @@ const SignInModal = ({ isOpen, onClose }) => {
         password: data.password,
       },
       onSuccess: (res) => {
-        // Save token and userId to localStorage
-        if (res?.token && res?.id) {
-          localStorage.setItem("token", res.token);
-          localStorage.setItem("userId", res.id);
-          toast.success("Success!");
-          setErrorMessage("");
-          onClose();
-        } else {
-          setErrorMessage("Unexpected response structure from server!");
+        try {
+          // Save token and userId using the auth utility
+          if (res?.token && res?.id) {
+            // Extract user information from token or response
+            let fullName = "";
+            let role = "";
+            
+            try {
+              // Try to get user name and role from JWT token
+              const decoded = jwtDecode(res.token);
+              if (decoded.user) {
+                fullName = decoded.user.full_name || decoded.user.name || "";
+                role = Array.isArray(decoded.user.role) 
+                  ? decoded.user.role[0] 
+                  : decoded.user.role || "";
+              }
+            } catch (error) {
+              console.error("Error parsing token:", error);
+            }
+            
+            // Use response data as fallback
+            if (!fullName) {
+              fullName = res.full_name || res.name || "";
+            }
+            
+            if (!role) {
+              role = res.role || "";
+            }
+            
+            // Store auth data with full name
+            const rememberMe = false; // We're not using remember me in this modal
+            const authSuccess = storeAuthData(
+              { 
+                token: res.token, 
+                id: res.id,
+                full_name: fullName
+              },
+              rememberMe,
+              data.email
+            );
+            
+            if (authSuccess) {
+              // Store additional user information
+              if (role) {
+                localStorage.setItem("role", role);
+              }
+              
+              toast.success("Success!");
+              setErrorMessage("");
+              onClose();
+            } else {
+              setErrorMessage("Failed to store authentication data");
+            }
+          } else {
+            setErrorMessage("Unexpected response structure from server!");
+          }
+        } catch (error) {
+          console.error("Error during login:", error);
+          setErrorMessage("An error occurred during login");
         }
       },
       onFail: (error) => {

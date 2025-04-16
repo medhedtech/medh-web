@@ -3,7 +3,7 @@ import AdminQuizAttemptsMain from "@/components/layout/main/dashboards/AdminQuiz
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
 
 
-import DsahboardWrapper from "@/components/shared/wrappers/DsahboardWrapper";
+import DashboardWrapper from "@/components/shared/wrappers/DashboardWrapper";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 export const metadata = {
   title: "Admin Quiz Attempts | Medh - Education LMS Template",
@@ -14,11 +14,11 @@ const Admin_Quiz_Attempts = () => {
     <ProtectedPage>
       <PageWrapper>
         <main>
-          <DsahboardWrapper>
+          <DashboardWrapper>
             <DashboardContainer>
               <AdminQuizAttemptsMain />
             </DashboardContainer>
-          </DsahboardWrapper>
+          </DashboardWrapper>
           
         </main>
       </PageWrapper>

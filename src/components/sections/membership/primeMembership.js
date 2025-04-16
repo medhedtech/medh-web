@@ -1,9 +1,9 @@
 "use client";
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Crown, Star, ArrowRight, CheckCircle, AlertCircle } from "lucide-react";
+import { Crown, Star, ArrowRight, CheckCircle, AlertCircle, X } from "lucide-react";
 import SelectCourseModal from "@/components/layout/main/dashboards/SelectCourseModal";
-import SignInModal from "@/components/shared/signin-modal";
+import LoginForm from "@/components/shared/login/LoginForm";
 
 const membershipData = [
   {
@@ -266,11 +266,31 @@ const PrimeMembership = () => {
           closeParent={() => setSelectCourseModalOpen(false)}
         />
       )}
+      
+      {/* Login Modal */}
       {isLoginModalOpen && (
-        <SignInModal
-          isOpen={isLoginModalOpen}
-          onClose={() => setLoginModalOpen(false)}
-        />
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setLoginModalOpen(false)}
+          ></div>
+          
+          {/* Modal Container */}
+          <div className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-md mx-4 z-50 overflow-hidden animate-fadeIn">
+            {/* Close Button */}
+            <button 
+              className="absolute top-4 right-4 p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors z-10"
+              onClick={() => setLoginModalOpen(false)}
+              aria-label="Close login form"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            
+            {/* LoginForm Component */}
+            <LoginForm />
+          </div>
+        </div>
       )}
     </section>
   );

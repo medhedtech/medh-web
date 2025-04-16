@@ -1,7 +1,7 @@
 "use client";
-import React from 'react';
-import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
+import React from "react";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import CourseBanner from "@/components/course-banner/courseBanner";
 import CourseBannerImg from "@/assets/images/personality/coursebannerimg.png";
 import VerticalIcon from "@/assets/images/news-media/vertical-white.svg";
@@ -22,9 +22,9 @@ function CareerCourseBanner() {
 
   const handleEnrollClick = () => {
     // Smooth scroll to job openings section
-    const jobSection = document.getElementById('enroll-section');
+    const jobSection = document.getElementById("enroll-section");
     if (jobSection) {
-      jobSection.scrollIntoView({ behavior: 'smooth' });
+      jobSection.scrollIntoView({ behavior: "smooth" });
     }
   };
 
