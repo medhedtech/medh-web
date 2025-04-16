@@ -27,6 +27,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import NavbarLogo from "@/components/layout/header/NavbarLogo";
 import MobileMenu from "@/components/MobileMenu";
 import Cookies from 'js-cookie';
+import jwtDecode from 'jwt-decode';
 
 const SidebarDashboard = ({ children }) => {
   const pathname = usePathname();
@@ -41,10 +42,44 @@ const SidebarDashboard = ({ children }) => {
 
   useEffect(() => {
     setMounted(true);
-    // Get user name from localStorage
-    const storedUserName = localStorage.getItem("full_name");
-    if (storedUserName) {
-      setUserName(storedUserName);
+    // Get user name from localStorage with better fallbacks
+    const fullName = localStorage.getItem("fullName"); // Primary key
+    const legacyName = localStorage.getItem("full_name"); // Legacy key
+    
+    // Use first available name with fallbacks
+    if (fullName) {
+      setUserName(fullName);
+    } else if (legacyName) {
+      setUserName(legacyName);
+      // Migrate to standard key
+      localStorage.setItem("fullName", legacyName);
+    } else {
+      // Try to get name from JWT token
+      try {
+        const token = localStorage.getItem("token");
+        if (token) {
+          const decoded = jwtDecode(token);
+          const name = 
+            decoded.user?.full_name || 
+            decoded.user?.name || 
+            decoded.name || 
+            (decoded.user?.email ? decoded.user.email.split('@')[0] : "");
+          
+          if (name) {
+            setUserName(name);
+            localStorage.setItem("fullName", name);
+          } else {
+            // Fallback to role-based name
+            const role = localStorage.getItem("role");
+            const roleName = role ? 
+              role.charAt(0).toUpperCase() + role.slice(1) : 
+              "User";
+            setUserName(roleName);
+          }
+        }
+      } catch (error) {
+        console.error("Error extracting name from token:", error);
+      }
     }
 
     // Close dropdown when clicking outside
@@ -73,12 +108,22 @@ const SidebarDashboard = ({ children }) => {
   }
 
   const handleLogout = () => {
+    // Clear all auth-related data
     localStorage.removeItem("userId");
     localStorage.removeItem("token");
     localStorage.removeItem("permissions");
     localStorage.removeItem("role");
-    localStorage.removeItem("full_name");
-
+    localStorage.removeItem("full_name"); // Legacy key
+    localStorage.removeItem("fullName"); // Standard key
+    
+    // Clear cookies as well
+    Cookies.remove("token");
+    Cookies.remove("userId");
+    
+    // Clear additional data
+    localStorage.removeItem("email");
+    localStorage.removeItem("password");
+    
     router.push("/login");
   };
 

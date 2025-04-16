@@ -1,138 +1,55 @@
 "use client";
 
-import { Montserrat, Poppins } from "next/font/google";
-import localFont from "next/font/local";
 import "@/assets/css/icofont.min.css";
 import "@/assets/css/popup.css";
 import "@/assets/css/video-modal.css";
 import "aos/dist/aos.css";
 import "./globals.css";
-import FixedShadow from "@/components/shared/others/FixedShadow";
-import PreloaderPrimary from "@/components/shared/others/PreloaderPrimary";
+import { useEffect } from "react";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useEffect, useState } from "react";
-// import ThemeController from "@/components/shared/others/ThemeController";
+import dynamic from "next/dynamic";
+
+// Import centralized font config
+import { poppins, montserrat, hind } from "@/lib/fonts";
+
+// Import extracted components
+import ScrollProgress from "@/components/shared/ui/ScrollProgress";
+import ScrollToTop from "@/components/shared/ui/ScrollToTop";
+
+// Import other components
+import FixedShadow from "@/components/shared/others/FixedShadow";
 import CookieConsent from "@/components/shared/gdpr/CookieConsent";
 import Providers from "./Providers";
-import { ChevronUp } from "lucide-react";
 import GoogleAnalytics from "@/components/shared/analytics/GoogleAnalytics";
-import { events } from "@/utils/analytics";
 
-// Font configuration
-const poppins = Poppins({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  display: "swap",
-  variable: "--font-poppins",
-});
+// Custom hooks
+import { useAnalyticsPageTracking } from "@/hooks/useAnalyticsPageTracking";
+import { useDocumentBodyReset, useFixBodyClasses } from "@/hooks/useDocumentBodyReset";
 
-// Modern heading font
-const montserrat = Montserrat({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
-  display: "swap",
-  variable: "--font-montserrat",
-});
+// Dynamically import components that aren't needed immediately
+const PreloaderPrimary = dynamic(
+  () => import("@/components/shared/others/PreloaderPrimary"),
+  { ssr: false }
+);
 
-// Using local font instead of Google Fonts to avoid build issues
-const hind = localFont({
-  src: [
-    {
-      path: '../assets/fonts/Hind-Light.woff2',
-      weight: '300',
-      style: 'normal',
-    },
-    {
-      path: '../assets/fonts/Hind-Regular.woff2',
-      weight: '400',
-      style: 'normal',
-    },
-    {
-      path: '../assets/fonts/Hind-Medium.woff2',
-      weight: '500',
-      style: 'normal',
-    },
-    {
-      path: '../assets/fonts/Hind-SemiBold.woff2',
-      weight: '600',
-      style: 'normal',
-    },
-    {
-      path: '../assets/fonts/Hind-Bold.woff2',
-      weight: '700',
-      style: 'normal',
-    },
-  ],
-  display: "swap",
-  variable: "--font-hind",
-});
+// Constants
+const MAIN_CONTENT_ID = "main-content";
 
 interface ClientLayoutProps {
   children: React.ReactNode;
 }
 
-// Scroll Progress Component
-const ScrollProgress = () => {
-  const [progress, setProgress] = useState(0);
-
-  useEffect(() => {
-    const updateProgress = () => {
-      const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
-      const scrolled = (window.scrollY / scrollHeight) * 100;
-      setProgress(scrolled);
-    };
-
-    window.addEventListener('scroll', updateProgress);
-    return () => window.removeEventListener('scroll', updateProgress);
-  }, []);
-
-  return (
-    <div className="fixed top-0 left-0 w-full h-1 z-50">
-      <div 
-        className="h-full bg-primary transition-all duration-300 ease-out"
-        style={{ width: `${progress}%` }}
-      />
-    </div>
-  );
-};
-
-// Scroll To Top Component
-const ScrollToTop = () => {
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    const toggleVisibility = () => {
-      setIsVisible(window.scrollY > 500);
-    };
-
-    window.addEventListener('scroll', toggleVisibility);
-    return () => window.removeEventListener('scroll', toggleVisibility);
-  }, []);
-
-  const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
-  };
-
-  return (
-    <button
-      onClick={scrollToTop}
-      className={`fixed bottom-8 right-8 p-3 rounded-full bg-primary hover:bg-primary/90 text-white shadow-lg transition-all duration-300 transform ${
-        isVisible ? 'translate-y-0 opacity-100' : 'translate-y-16 opacity-0'
-      } z-50`}
-      aria-label="Scroll to top"
-    >
-      <ChevronUp className="w-6 h-6" />
-    </button>
-  );
-};
-
 export default function ClientLayout({ children }: ClientLayoutProps) {
   // Get Google Analytics measurement ID from environment variable
   const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || '';
+  
+  // Use custom hook for analytics page tracking (initial + route changes)
+  useAnalyticsPageTracking();
+  
+  // Use hooks to fix body styling issues
+  useDocumentBodyReset();
+  useFixBodyClasses();
   
   useEffect(() => {
     // Initialize smooth scrolling behavior
@@ -143,18 +60,15 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
       // Apply smooth scrolling to html element
       document.documentElement.style.scrollBehavior = prefersReducedMotion ? 'auto' : 'smooth';
       
-      // Prevent double scrollbars
-      document.documentElement.style.overflow = 'hidden';
-      document.body.style.overflow = 'auto';
-      document.body.style.height = '100vh';
+      // Fix for body element styling
+      if (typeof window !== 'undefined') {
+        // Ensure proper overflow settings
+        document.documentElement.style.overflowX = 'hidden';
+        document.documentElement.style.overflowY = 'auto';
+      }
     };
 
     initSmoothScroll();
-
-    // Track page view when component mounts (client-side navigation)
-    if (GA_MEASUREMENT_ID) {
-      events.pageView(window.location.pathname + window.location.search);
-    }
 
     // Listen for changes in reduced motion preference
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -166,12 +80,8 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
 
     return () => {
       mediaQuery.removeEventListener('change', handleMotionPreference);
-      // Reset overflow styles
-      document.documentElement.style.overflow = '';
-      document.body.style.overflow = '';
-      document.body.style.height = '';
     };
-  }, [GA_MEASUREMENT_ID]);
+  }, []);
 
   return (
     <html 
@@ -179,11 +89,23 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
       suppressHydrationWarning 
       className={`${hind.variable} ${poppins.variable} ${montserrat.variable} h-full`}
     >
-      <body className="relative bg-bodyBg dark:bg-bodyBg-dark text-gray-700 dark:text-gray-200 min-h-screen font-sans antialiased">
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+        <meta name="theme-color" content="#ffffff" />
+      </head>
+      <body className="relative bg-bodyBg dark:bg-bodyBg-dark text-gray-700 dark:text-gray-200 min-h-screen font-sans antialiased overflow-x-hidden">
         {/* Google Analytics */}
         {GA_MEASUREMENT_ID && <GoogleAnalytics GA_MEASUREMENT_ID={GA_MEASUREMENT_ID} />}
         
         <Providers>
+          {/* Skip to content link for accessibility */}
+          <a 
+            href={`#${MAIN_CONTENT_ID}`}
+            className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-primary focus:text-white focus:top-0 focus:left-0"
+          >
+            Skip to content
+          </a>
+          
           {/* Scroll Progress Bar */}
           <ScrollProgress />
           
@@ -191,7 +113,11 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
           <PreloaderPrimary />
           
           {/* Main Content - No Width Constraints */}
-          <div className="relative flex flex-col min-h-screen w-full z-10">
+          <div 
+            id={MAIN_CONTENT_ID}
+            className="relative flex flex-col min-h-screen w-full z-10"
+            tabIndex={-1}
+          >
             {children}
           </div>
 
@@ -203,9 +129,6 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
           
           {/* Cookie Consent Banner */}
           <CookieConsent />
-          
-          {/* Theme Controller */}
-          {/* <ThemeController /> */}
           
           {/* Scroll to Top Button */}
           <ScrollToTop />

@@ -10,6 +10,7 @@ function CourseAiFaq() {
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const prefersReducedMotion = useReducedMotion();
   const containerRef = useRef(null);
+  const faqContentRefs = useRef([]);
   
   // Optimize animations based on device capability
   useEffect(() => {
@@ -155,18 +156,33 @@ function CourseAiFaq() {
     }
   };
   
+  // Improved content variants for smoother animations
   const contentVariants = {
-    hidden: { opacity: 0, height: 0, scale: 0.98 },
+    hidden: { 
+      opacity: 0, 
+      height: 0,
+      transition: { 
+        height: { 
+          duration: 0.3,
+          ease: [0.33, 1, 0.68, 1] // Custom easing for height
+        },
+        opacity: { 
+          duration: 0.15 
+        }
+      }
+    },
     visible: { 
       opacity: 1, 
       height: "auto",
-      scale: 1,
       transition: { 
-        type: "spring",
-        stiffness: 400,
-        damping: 30,
-        mass: 0.8,
-        opacity: { duration: 0.2 }
+        height: { 
+          duration: 0.4,
+          ease: [0.33, 1, 0.68, 1]
+        },
+        opacity: { 
+          duration: 0.25,
+          delay: 0.1
+        }
       }
     }
   };
@@ -238,9 +254,9 @@ function CourseAiFaq() {
                 willChange: hoveredIndex === index ? "transform, box-shadow" : "auto",
                 translateZ: 0
               }}
-              layout="position"
-              layoutDependency={openIndex}
-              layoutId={`faq-${index}`}
+              layout
+              layoutRoot
+              ref={el => faqContentRefs.current[index] = el}
             >
               <motion.div
                 className="absolute top-0 right-0 w-20 h-20 -mr-10 -mt-10 rounded-full opacity-10"
@@ -280,7 +296,8 @@ function CourseAiFaq() {
                   transition={{ 
                     duration: 0.2,
                     type: "spring",
-                    stiffness: 500
+                    stiffness: 500,
+                    damping: 25
                   }}
                   style={{ 
                     transformOrigin: "center",
@@ -295,34 +312,27 @@ function CourseAiFaq() {
                 </motion.div>
               </div>
               
-              <AnimatePresence>
+              <AnimatePresence initial={false} mode="sync">
                 {openIndex === index && (
                   <motion.div
+                    key={`content-${index}`}
                     variants={contentVariants}
                     initial="hidden"
                     animate="visible"
                     exit="hidden"
                     className="px-5 pb-5 pt-1 relative z-10"
                     style={{ 
-                      willChange: "height, opacity, transform",
+                      willChange: "height, opacity",
                       transformOrigin: "top",
                       overflow: "hidden"
                     }}
                   >
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ 
-                        duration: 0.3, 
-                        delay: 0.1,
-                        ease: "easeOut"
-                      }}
+                    <div
                       className="text-gray-600 dark:text-gray-300 prose prose-sm sm:prose-base max-w-none dark:prose-invert"
-                      style={{ transformOrigin: "top center" }}
                       dangerouslySetInnerHTML={{
                         __html: DOMPurify.sanitize(faq.answer),
                       }}
-                    ></motion.div>
+                    ></div>
                   </motion.div>
                 )}
               </AnimatePresence>

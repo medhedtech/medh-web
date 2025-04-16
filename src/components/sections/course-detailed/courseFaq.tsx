@@ -2,54 +2,99 @@
 import React, { useEffect, useState, useRef } from "react";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls, apiBaseUrl } from "@/apis";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion, Variants } from "framer-motion";
 import { ChevronDown, ChevronRight, HelpCircle, AlertCircle, Search, RefreshCw, ExternalLink, BookOpen, Clock } from "lucide-react";
 import axios from "axios";
 import DOMPurify from "dompurify";
 import { getCourseById } from "@/apis/course/course";
 
-export default function CourseFaq({ courseId }) {
-  const [openIndex, setOpenIndex] = useState(null);
-  const [hoveredIndex, setHoveredIndex] = useState(null);
+// Define interfaces for our data types
+interface FAQ {
+  id: string;
+  question: string;
+  answer: string;
+  category?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+interface CourseDetails {
+  id: string;
+  category?: string;
+  course_category?: string;
+  courseCategory?: string;
+  [key: string]: any; // For other potential properties
+}
+
+interface ThemeColors {
+  primary: {
+    light: string;
+    medium: string;
+    dark: string;
+  };
+  secondary: {
+    light: string;
+    medium: string;
+    dark: string;
+  };
+  accent: {
+    light: string;
+    medium: string;
+    dark: string;
+  };
+  neutral: {
+    light: string;
+    medium: string;
+    dark: string;
+  };
+}
+
+interface CourseFaqProps {
+  courseId: string;
+}
+
+export default function CourseFaq({ courseId }: CourseFaqProps) {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const { getQuery, loading: courseLoading } = useGetQuery();
-  const [courseDetails, setCourseDetails] = useState(null);
-  const [faqs, setFaqs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [noFaqsFound, setNoFaqsFound] = useState(false);
-  const [showFaqSection, setShowFaqSection] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filteredFaqs, setFilteredFaqs] = useState([]);
-  const [retrying, setRetrying] = useState(false);
-  const containerRef = useRef(null);
+  const [courseDetails, setCourseDetails] = useState<CourseDetails | null>(null);
+  const [faqs, setFaqs] = useState<FAQ[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [noFaqsFound, setNoFaqsFound] = useState<boolean>(false);
+  const [showFaqSection, setShowFaqSection] = useState<boolean>(true);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [filteredFaqs, setFilteredFaqs] = useState<FAQ[]>([]);
+  const [retrying, setRetrying] = useState<boolean>(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   const prefersReducedMotion = useReducedMotion();
 
   // Theme colors - centralized for consistency with other FAQ components
-  const themeColors = {
+  const themeColors: ThemeColors = {
     primary: {
-      light: '#10b981', // Emerald 500 - Course primary
-      medium: '#059669', // Emerald 600
-      dark: '#047857', // Emerald 700
+      light: '#10b981',
+      medium: '#059669',
+      dark: '#047857',
     },
     secondary: {
-      light: '#3b82f6', // Blue 500
-      medium: '#2563eb', // Blue 600
-      dark: '#1d4ed8', // Blue 700
+      light: '#3b82f6',
+      medium: '#2563eb',
+      dark: '#1d4ed8',
     },
     accent: {
-      light: '#8b5cf6', // Violet 500
-      medium: '#7c3aed', // Violet 600
-      dark: '#6d28d9', // Violet 700
+      light: '#8b5cf6',
+      medium: '#7c3aed',
+      dark: '#6d28d9',
     },
     neutral: {
-      light: '#f3f4f6', // Gray 100
-      medium: '#9ca3af', // Gray 400
-      dark: '#4b5563', // Gray 600
+      light: '#f3f4f6',
+      medium: '#9ca3af',
+      dark: '#4b5563',
     }
   };
 
   // Animation variants
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: { 
       opacity: 1, 
@@ -60,7 +105,7 @@ export default function CourseFaq({ courseId }) {
     }
   };
   
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: prefersReducedMotion ? 0 : 15 },
     visible: { 
       opacity: 1, 
@@ -74,7 +119,7 @@ export default function CourseFaq({ courseId }) {
     }
   };
   
-  const contentVariants = {
+  const contentVariants: Variants = {
     hidden: { opacity: 0, height: 0, scale: 0.98 },
     visible: { 
       opacity: 1, 
@@ -91,13 +136,13 @@ export default function CourseFaq({ courseId }) {
   };
 
   // Function to get gradient background colors based on index
-  const getGradientColors = (index) => {
-    const palettes = [
-      ['#10b981', '#059669'], // Emerald to Emerald
-      ['#3b82f6', '#2563eb'], // Blue to Blue
-      ['#8b5cf6', '#7c3aed'], // Violet to Violet
-      ['#f59e0b', '#d97706'], // Amber to Amber
-      ['#ec4899', '#db2777'], // Pink to Pink
+  const getGradientColors = (index: number): [string, string] => {
+    const palettes: [string, string][] = [
+      ['#10b981', '#059669'],
+      ['#3b82f6', '#2563eb'],
+      ['#8b5cf6', '#7c3aed'],
+      ['#f59e0b', '#d97706'],
+      ['#ec4899', '#db2777'],
     ];
     
     return palettes[index % palettes.length];
@@ -110,30 +155,14 @@ export default function CourseFaq({ courseId }) {
     }
   }, [courseId]);
 
-  // Fetch FAQs based on course category
-  useEffect(() => {
-    if (courseDetails) {
-      // Check all possible category field names
-      const category = courseDetails.category || courseDetails.course_category || courseDetails.courseCategory;
-      if (category) {
-        fetchFaqsByCategory(category);
-      } else {
-        console.log("No category found in course details:", courseDetails);
-        // Try fetching general FAQs instead of hiding immediately
-        fetchAllFaqs();
-      }
-    }
-  }, [courseDetails, retrying]);
-
-  // Filter FAQs based on search query - preserves original order
+  // Filter FAQs based on search query
   useEffect(() => {
     if (searchQuery.trim() === "") {
-      setFilteredFaqs(faqs); // Keep original order from API
+      setFilteredFaqs(faqs);
       return;
     }
     
     const lowercasedQuery = searchQuery.toLowerCase();
-    // Filter while maintaining original order from the API
     const filtered = faqs.filter(
       faq => 
         faq.question.toLowerCase().includes(lowercasedQuery) || 
@@ -143,66 +172,81 @@ export default function CourseFaq({ courseId }) {
     setFilteredFaqs(filtered);
   }, [searchQuery, faqs]);
 
-  const fetchCourseDetails = async (id) => {
+  const fetchCourseDetails = async (id: string): Promise<void> => {
     try {
+      console.log("Fetching course details for ID:", id);
       await getQuery({
         url: getCourseById(id),
-        onSuccess: (data) => {
-          console.log("FAQ data received:", data?.course || data);
-          // Support different data structures we might receive
-          setCourseDetails(data);
+        onSuccess: (response: any) => {
+          console.log("Raw course data received:", response);
+          const courseData = response?.data || {};
+          console.log("Processed course data:", courseData);
+          
+          // Extract category from the correct path
+          const category = courseData.course_category || courseData.category || courseData.courseCategory;
+          console.log("Course category:", category);
+          
+          if (!category) {
+            console.error("No category found in course data");
+            setError("Unable to find course category");
+            setShowFaqSection(true);
+            setFaqs([]);
+            setFilteredFaqs([]);
+            return;
+          }
+          
+          setCourseDetails(courseData);
+          fetchFaqsByCategory(category);
         },
-        onFail: (err) => {
+        onFail: (err: Error) => {
           console.error("Error fetching course details:", err);
-          // Try fetching general FAQs instead of hiding immediately
-          fetchAllFaqs();
+          setError("Unable to fetch course details");
+          setShowFaqSection(true);
+          setFaqs([]);
+          setFilteredFaqs([]);
         },
       });
     } catch (error) {
-      console.error("Error in fetching course details:", error);
-      // Try fetching general FAQs instead of hiding immediately
-      fetchAllFaqs();
+      console.error("Exception in fetching course details:", error);
+      setError("Unable to fetch course details");
+      setShowFaqSection(true);
+      setFaqs([]);
+      setFilteredFaqs([]);
     }
   };
 
-  // Helper function to safely extract FAQs from various response formats
-  // Preserves the original order from the API response
-  const extractFaqsFromResponse = (response) => {
+  const extractFaqsFromResponse = (response: any): FAQ[] => {
     console.log("Extracting FAQs from response:", response);
     
     if (!response || !response.data) {
       return [];
     }
     
-    // Handle different possible response structures while preserving order
     if (Array.isArray(response.data)) {
-      return response.data; // Maintain original order
+      return response.data;
     } else if (response.data.faqs && Array.isArray(response.data.faqs)) {
-      return response.data.faqs; // Maintain original order
+      return response.data.faqs;
     } else if (response.data.data && Array.isArray(response.data.data)) {
-      // This is the format we're seeing in the logs - faqs are in response.data.data
       console.log("Found FAQs in response.data.data:", response.data.data);
-      return response.data.data; // Maintain original order
+      return response.data.data;
     }
     
     return [];
   };
 
-  const fetchAllFaqs = async () => {
+  const fetchAllFaqs = async (): Promise<void> => {
     setLoading(true);
     setError(null);
     console.log("Attempting to fetch all FAQs as fallback");
     
     try {
-      const allFaqsResponse = await axios.get(`${apiBaseUrl}/faqs/getAll`);
+      const allFaqsResponse = await axios.get(`${apiBaseUrl}/faq/getAll`);
       console.log("All FAQs response:", allFaqsResponse);
       
-      // Extract FAQs while preserving their original order from the API
       const extractedFaqs = extractFaqsFromResponse(allFaqsResponse);
       console.log("Extracted all FAQs:", extractedFaqs);
       
       if (extractedFaqs.length > 0) {
-        // Set FAQs in their original upload order
         setFaqs(extractedFaqs);
         setFilteredFaqs(extractedFaqs);
         setShowFaqSection(true);
@@ -210,109 +254,69 @@ export default function CourseFaq({ courseId }) {
       } else {
         console.log("No FAQs found in the response");
         setNoFaqsFound(true);
-        setShowFaqSection(true); // Still show the section, just with a message
+        setShowFaqSection(true);
       }
     } catch (err) {
       console.error("Error fetching all FAQs:", err);
-      setShowFaqSection(true); // Show section with error message
+      setShowFaqSection(true);
       setError("Unable to load FAQs at this time");
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchFaqsByCategory = async (category) => {
+  const fetchFaqsByCategory = async (category: string): Promise<void> => {
     setLoading(true);
     setError(null);
-    let foundFaqs = false;
-    console.log("Trying to fetch FAQs for category:", category);
+    console.log("Fetching FAQs for category:", category);
     
-    // Properly encode the category name for URL
     const encodedCategory = encodeURIComponent(category);
     
     try {
-      // Try the getAllFaqs endpoint first as it's more likely to work
-      try {
-        const allFaqsResponse = await axios.get(`${apiBaseUrl}/faqs/getAll`);
-        console.log("All FAQs response:", allFaqsResponse);
-        
-        const allFaqsData = extractFaqsFromResponse(allFaqsResponse);
-        console.log("Processed FAQs data:", allFaqsData);
-        
-        if (allFaqsData.length > 0) {
-          // Filter by category while preserving original order
-          const categoryFaqs = allFaqsData.filter(
-            faq => faq.category && faq.category.toLowerCase() === category.toLowerCase()
-          );
-          
-          console.log(`Found ${categoryFaqs.length} FAQs for category ${category}:`, categoryFaqs);
-          
-          if (categoryFaqs.length > 0) {
-            // Set category FAQs in their original order
-            setFaqs(categoryFaqs);
-            setFilteredFaqs(categoryFaqs);
-            foundFaqs = true;
-          } else {
-            // Use all FAQs in their original order if no category-specific FAQs found
-            console.log("No category-specific FAQs found, using all FAQs:", allFaqsData);
-            setFaqs(allFaqsData);
-            setFilteredFaqs(allFaqsData);
-            foundFaqs = true;
-          }
-        }
-      } catch (err) {
-        console.error("Error fetching all FAQs:", err);
+      console.log(`Fetching from category endpoint: ${apiBaseUrl}/faq/category/${encodedCategory}`);
+      const response = await axios.get(`${apiBaseUrl}/faq/category/${encodedCategory}`);
+      console.log("Category FAQs response:", response);
+      
+      const categoryFaqsData = extractFaqsFromResponse(response);
+      console.log("Processed category FAQs data:", categoryFaqsData);
+      
+      if (categoryFaqsData.length > 0) {
+        console.log("Setting category FAQs:", categoryFaqsData);
+        setFaqs(categoryFaqsData);
+        setFilteredFaqs(categoryFaqsData);
+        setNoFaqsFound(false);
+      } else {
+        console.log("No FAQs found for this category");
+        setNoFaqsFound(true);
+        setFaqs([]);
+        setFilteredFaqs([]);
       }
       
-      // If we couldn't find FAQs, try the category endpoint as a backup
-      if (!foundFaqs) {
-        try {
-          console.log(`Trying category endpoint: ${apiBaseUrl}/faqs/category/${encodedCategory}`);
-          const response = await axios.get(`${apiBaseUrl}/faqs/category/${encodedCategory}`);
-          console.log("Category FAQs response:", response);
-          
-          const categoryFaqsData = extractFaqsFromResponse(response);
-          console.log("Processed category FAQs data:", categoryFaqsData);
-          
-          if (categoryFaqsData.length > 0) {
-            console.log("Setting category FAQs:", categoryFaqsData);
-            // Set category FAQs in their original order from API
-            setFaqs(categoryFaqsData);
-            setFilteredFaqs(categoryFaqsData);
-            foundFaqs = true;
-          }
-        } catch (err) {
-          console.error(`Error fetching FAQs for category ${category}:`, err);
-        }
-      }
-      
-      // Even if we don't find FAQs, show the section with a message
-      console.log("Final foundFaqs state:", foundFaqs);
-      setNoFaqsFound(!foundFaqs);
-      setShowFaqSection(true); // Always show the section now
+      setShowFaqSection(true);
       setLoading(false);
     } catch (err) {
       console.error("Error in FAQ fetching process:", err);
-      setError("Unable to load FAQs at this time");
-      setShowFaqSection(true); // Show with error message
+      setError("Unable to load FAQs for this course category");
+      setShowFaqSection(true);
+      setFaqs([]);
+      setFilteredFaqs([]);
       setLoading(false);
     }
   };
 
-  const toggleFAQ = (index) => {
+  const toggleFAQ = (index: number): void => {
     setOpenIndex(openIndex === index ? null : index);
   };
 
-  const handleSearch = (e) => {
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>): void => {
     setSearchQuery(e.target.value);
   };
 
-  const handleRetry = () => {
+  const handleRetry = (): void => {
     setRetrying(prev => !prev);
   };
 
-  // Function to determine appropriate icon for a FAQ based on content
-  const getIconForQuestion = (question) => {
+  const getIconForQuestion = (question: string) => {
     const color = themeColors.primary.light;
     
     if (question.toLowerCase().includes("course") || question.toLowerCase().includes("learn")) 
@@ -322,33 +326,6 @@ export default function CourseFaq({ courseId }) {
     
     return <HelpCircle className="w-5 h-5" style={{ color }} />;
   };
-
-  // Loading skeletons
-  const LoadingSkeleton = () => (
-    <div className="space-y-4 mt-6">
-      {[1, 2, 3].map((item) => (
-        <div key={item} className="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <div className="p-4 flex justify-between items-center">
-            <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-3/4 skeleton-pulse"></div>
-            <div className="h-5 w-5 bg-gray-200 dark:bg-gray-700 rounded-full skeleton-pulse"></div>
-          </div>
-          <div className="h-px bg-gray-200 dark:bg-gray-700"></div>
-          <div className="p-4">
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full mb-3 skeleton-pulse"></div>
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6 mb-3 skeleton-pulse"></div>
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-4/6 skeleton-pulse"></div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-
-  console.log("Current state - loading:", loading, "courseLoading:", courseLoading, "showFaqSection:", showFaqSection, "faqs:", faqs, "noFaqsFound:", noFaqsFound);
-
-  if (!showFaqSection) {
-    console.log("Not showing FAQ section because showFaqSection is false");
-    return null;
-  }
 
   // Find the category to display
   const displayCategory = courseDetails?.category || courseDetails?.course_category || "";
@@ -369,20 +346,6 @@ export default function CourseFaq({ courseId }) {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8"
           >
-            <div className="flex items-center mb-4 sm:mb-0">
-              <div className="w-1.5 h-10 bg-gradient-to-b from-emerald-400 to-emerald-600 rounded-sm mr-3"></div>
-              <div>
-                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-blue-600 dark:from-emerald-400 dark:to-blue-400">
-                  Frequently Asked Questions
-                </h2>
-                {displayCategory && (
-                  <p className="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400 mt-1">
-                    Category: <span className="text-emerald-600 dark:text-emerald-400">{displayCategory}</span>
-                  </p>
-                )}
-              </div>
-            </div>
-
             {/* Search input */}
             {faqs.length > 0 && (
               <div className="relative w-full sm:w-64 flex-shrink-0">
@@ -401,7 +364,7 @@ export default function CourseFaq({ courseId }) {
             )}
           </motion.div>
 
-          {/* Order notice - shows that FAQs are displayed in the original upload order */}
+          {/* Order notice */}
           {filteredFaqs.length > 0 && !loading && !courseLoading && !searchQuery && (
             <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-4 flex items-center">
               <Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-1" /> 
@@ -410,7 +373,24 @@ export default function CourseFaq({ courseId }) {
           )}
 
           {/* Loading state */}
-          {(courseLoading || loading) && <LoadingSkeleton />}
+          {(courseLoading || loading) && (
+            <div className="space-y-4 mt-6">
+              {[1, 2, 3].map((item) => (
+                <div key={item} className="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                  <div className="p-4 flex justify-between items-center">
+                    <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-3/4 skeleton-pulse"></div>
+                    <div className="h-5 w-5 bg-gray-200 dark:bg-gray-700 rounded-full skeleton-pulse"></div>
+                  </div>
+                  <div className="h-px bg-gray-200 dark:bg-gray-700"></div>
+                  <div className="p-4">
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full mb-3 skeleton-pulse"></div>
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6 mb-3 skeleton-pulse"></div>
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-4/6 skeleton-pulse"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Error state */}
           {error && !loading && !courseLoading && (
@@ -453,7 +433,7 @@ export default function CourseFaq({ courseId }) {
             </motion.div>
           )}
 
-          {/* FAQs list - displayed in the original order they were uploaded */}
+          {/* FAQs list */}
           {filteredFaqs.length > 0 && !loading && !courseLoading && (
             <motion.div
               ref={containerRef}
@@ -462,7 +442,6 @@ export default function CourseFaq({ courseId }) {
               animate="visible"
               className="space-y-3 sm:space-y-4"
             >
-              {/* Map through FAQs in their original order from the API */}
               {filteredFaqs.map((faq, index) => {
                 const [startColor, endColor] = getGradientColors(index);
                 return (
@@ -595,4 +574,4 @@ export default function CourseFaq({ courseId }) {
       </motion.div>
     </section>
   );
-}
+} 

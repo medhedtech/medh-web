@@ -81,7 +81,7 @@ const Footer: React.FC<FooterProps> = ({ className = "" }) => {
       {/* Mobile-optimized or desktop footer based on viewport */}
       {isMobile ? (
         // Enhanced mobile footer - full width with glass-morphism effect
-        <div className="relative z-10 w-full pt-6 pb-3 font-body">
+        <div className="relative z-10 w-full pt-6 pb-0 font-body">
           <div className="w-full backdrop-blur-sm bg-black/30 dark:bg-black/40 border-t border-white/5 px-3 py-4 shadow-lg">
             {/* Mobile footer main content */}
             <div className="relative">
@@ -97,7 +97,7 @@ const Footer: React.FC<FooterProps> = ({ className = "" }) => {
         </div>
       ) : (
         // Enhanced desktop footer - full width with glass-morphism effect
-        <div className="relative z-10 w-full pt-10 pb-4 font-body">
+        <div className="relative z-10 w-full pt-10 pb-0 font-body">
           <div className="w-full backdrop-blur-sm bg-black/20 dark:bg-black/30 border-t border-white/5 py-6 md:py-8 shadow-xl">
             {/* Enhanced glow effect for desktop */}
             <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-1/3 h-1 bg-gradient-to-r from-transparent via-primary-400/50 to-transparent blur-xl" aria-hidden="true"></div>

@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
+import { clearAuthData } from "@/utils/auth";
 // import CurrencySelector from "@/components/shared/currency/CurrencySelector";
 
 const NavbarRight = ({ isScrolled }) => {
@@ -32,53 +33,100 @@ const NavbarRight = ({ isScrolled }) => {
     setIsLoggedIn(!!token && !!userId);
 
     if (token && userId) {
-      // Fetch user details from API
-      getQuery({
-        url: `${apiUrls?.user?.getDetailsbyId}/${userId}`,
-        onSuccess: (response) => {
-          if (response?.data) {
-            const userData = response.data;
-            // Set user name - prefer full name if available
-            setUserName(userData.name || userData.email?.split('@')[0] || "");
-            // Set user role - ensure it's a string
-            setUserRole(String(userData.role || ""));
-          }
-        },
-        onFail: (error) => {
-          console.error("Failed to fetch user details:", error);
-          // Fallback to token data if API fails
+      // First try to get user info from localStorage
+      try {
+        const storedFullName = localStorage.getItem("fullName");
+        const storedRole = localStorage.getItem("role");
+        
+        // If we have both name and role in localStorage, use them directly
+        if (storedFullName && storedRole) {
+          setUserName(storedFullName);
+          setUserRole(storedRole);
+        } else {
+          // If not in localStorage, try to decode from token
           try {
             const decoded = jwtDecode(token);
             let name = "";
-            if (decoded.user && decoded.user.name) {
+            if (decoded.user?.full_name) {
+              name = decoded.user.full_name;
+            } else if (decoded.user?.name) {
               name = decoded.user.name;
             } else if (decoded.name) {
               name = decoded.name;
-            } else if (decoded.user && decoded.user.email) {
+            } else if (decoded.user?.email) {
               name = decoded.user.email.split('@')[0];
             }
-            setUserName(name);
-
-            // Ensure role is always a string
-            let role = String(localStorage.getItem("role") || "");
-            if (!role && decoded.user && decoded.user.role) {
-              role = String(Array.isArray(decoded.user.role) ? decoded.user.role[0] : decoded.user.role);
-            } else if (!role && decoded.role) {
-              role = String(Array.isArray(decoded.role) ? decoded.role[0] : decoded.role);
+            
+            if (name) {
+              setUserName(name);
+              // Store in localStorage for future use
+              localStorage.setItem("fullName", name);
             }
-            setUserRole(role);
-          } catch (error) {
-            console.error("Invalid token:", error);
+            
+            // Get role from token if not in localStorage
+            if (!storedRole) {
+              let role = "";
+              if (decoded.user?.role) {
+                role = String(Array.isArray(decoded.user.role) ? decoded.user.role[0] : decoded.user.role);
+              } else if (decoded.role) {
+                role = String(Array.isArray(decoded.role) ? decoded.role[0] : decoded.role);
+              }
+              
+              if (role) {
+                setUserRole(role);
+                // Store in localStorage for future use
+                localStorage.setItem("role", role);
+              }
+            }
+          } catch (tokenError) {
+            console.error("Invalid token:", tokenError);
           }
-        },
-      });
+        }
+        
+        // Optional: Fetch from API for most up-to-date info
+        getQuery({
+          url: `${apiUrls?.user?.getDetailsbyId}/${userId}`,
+          requireAuth: true, // Add this flag to ensure token is sent properly
+          onSuccess: (response) => {
+            if (response?.data) {
+              const userData = response.data;
+              // Update with latest data from API
+              const newName = userData.fullName || userData.name || userData.email?.split('@')[0] || "";
+              const newRole = String(userData.role || "");
+              
+              if (newName && newName !== userName) {
+                setUserName(newName);
+                localStorage.setItem("fullName", newName);
+              }
+              
+              if (newRole && newRole !== userRole) {
+                setUserRole(newRole);
+                localStorage.setItem("role", newRole);
+              }
+            }
+          },
+          onFail: (error) => {
+            console.error("Failed to fetch user details:", error);
+            // We already tried localStorage and token, so no need for additional fallback
+          },
+        });
+      } catch (error) {
+        console.error("Error accessing localStorage:", error);
+      }
     }
 
     // Add event listener for storage changes
-    const handleStorageChange = () => {
-      const newToken = localStorage.getItem("token");
-      const newUserId = localStorage.getItem("userId");
-      setIsLoggedIn(!!newToken && !!newUserId);
+    const handleStorageChange = (e) => {
+      // Check if relevant items changed
+      if (e.key === "token" || e.key === "userId") {
+        const newToken = localStorage.getItem("token");
+        const newUserId = localStorage.getItem("userId");
+        setIsLoggedIn(!!newToken && !!newUserId);
+      } else if (e.key === "fullName") {
+        setUserName(localStorage.getItem("fullName") || "");
+      } else if (e.key === "role") {
+        setUserRole(localStorage.getItem("role") || "");
+      }
     };
 
     // Handle clicks outside dropdown
@@ -98,9 +146,11 @@ const NavbarRight = ({ isScrolled }) => {
   }, []);
 
   const handleLogout = () => {
-    // Clear all auth data
-    localStorage.removeItem("token");
-    localStorage.removeItem("userId");
+    // Clear all auth data using auth utility, but keep remember me settings
+    const keepRememberMe = true; // This preserves email for next login
+    clearAuthData(keepRememberMe);
+    
+    // Clear additional data that might be stored
     localStorage.removeItem("role");
     localStorage.removeItem("permissions");
     localStorage.removeItem("email");

@@ -1053,7 +1053,7 @@
 ./src/components/shared/wrappers/DropdownWrapper.js
 ./src/components/shared/wrappers/DropdownWrapperPrimary.js
 ./src/components/shared/wrappers/DropdownWrapperSecondary.js
-./src/components/shared/wrappers/DsahboardWrapper.js
+./src/components/shared/wrappers/DashboardWrapper.js
 ./src/components/shared/wrappers/FilterControllerWrapper.js
 ./src/components/shared/wrappers/SectionWrapper.js
 ./src/components/shared/wrappers/TabContentWrapper.js
