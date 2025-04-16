@@ -6,12 +6,12 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import usePostQuery from "@/hooks/postQuery.hook";
-import { apiUrls } from "@/apis";
+import { apiUrls, IRegisterData, IAuthResponse, IVerifyEmailData, IResendVerificationData } from "@/apis";
 import logo1 from "@/assets/images/logo/medh_logo-1.png";
 import logo2 from "@/assets/images/logo/logo_2.png";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, User, Mail, Phone, Lock, AlertCircle, Loader2, Moon, Sun, UserCircle, ArrowRight, CheckCircle } from "lucide-react";
+import { Eye, EyeOff, User, Mail, Phone, Lock, AlertCircle, Loader2, Moon, Sun, UserCircle, ArrowRight, CheckCircle, RefreshCw, ChevronRight, Check } from "lucide-react";
 import CustomReCaptcha from '../ReCaptcha';
 import FixedShadow from "../others/FixedShadow";
 import PhoneInput from 'react-phone-input-2';
@@ -20,6 +20,15 @@ import Link from "next/link";
 import { parsePhoneNumber, isValidPhoneNumber, formatNumber } from 'libphonenumber-js';
 import { useTheme } from "next-themes";
 import { Resolver, SubmitHandler } from "react-hook-form";
+import OTPVerification from './OTPVerification';
+
+declare global {
+  interface Window {
+    grecaptcha?: {
+      reset: () => void;
+    };
+  }
+}
 
 interface PhoneNumberFormat {
   international: string;
@@ -45,9 +54,8 @@ const validatePhoneNumber = (phoneNumber: string, countryCode?: string): boolean
     
     if (!parsedNumber) return false;
 
-    // Check if the number is valid for the given country
-    return parsedNumber.isValid() && 
-           (!countryCode || parsedNumber.country === countryCode.toUpperCase());
+    // Less strict validation - just check if the number is valid
+    return parsedNumber.isValid();
   } catch (error) {
     console.error('Phone validation error:', error);
     return false;
@@ -114,6 +122,7 @@ interface SignUpFormData {
     number: string;
   }[];
   recaptcha?: string;
+  is_email_verified?: boolean;
 }
 
 type FormFields = {
@@ -134,6 +143,7 @@ type FormFields = {
     number: string;
   }[];
   recaptcha: string;
+  is_email_verified?: boolean;
 };
 
 const schema = yup
@@ -180,9 +190,43 @@ const schema = yup
       )
       .required("Phone number is required"),
     recaptcha: yup.string()
-      .required("Please verify that you are human")
+      .required("Please verify that you are human"),
+    is_email_verified: yup.boolean().default(false),
   })
   .required();
+
+// Calculate password strength
+const calculatePasswordStrength = (password: string): { score: number; message: string; color: string } => {
+  if (!password) return { score: 0, message: "", color: "gray" };
+  
+  let score = 0;
+  let message = "";
+  let color = "gray";
+
+  // Length check
+  if (password.length >= 8) score += 1;
+  if (password.length >= 12) score += 1;
+
+  // Character type checks
+  if (/[a-z]/.test(password)) score += 1; // lowercase
+  if (/[A-Z]/.test(password)) score += 1; // uppercase
+  if (/\d/.test(password)) score += 1; // number
+  if (/[@$!%*?&]/.test(password)) score += 1; // special character
+
+  // Determine strength message and color
+  if (score < 3) {
+    message = "Weak";
+    color = "red";
+  } else if (score < 5) {
+    message = "Medium";
+    color = "orange";
+  } else {
+    message = "Strong";
+    color = "green";
+  }
+
+  return { score, message, color };
+};
 
 const SignUpForm = () => {
   const router = useRouter();
@@ -208,6 +252,22 @@ const SignUpForm = () => {
     internationalFormat: ''
   });
   const [error, setError] = useState<string | null>(null);
+  const [showOTPVerification, setShowOTPVerification] = useState(false);
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isRegistered, setIsRegistered] = useState(false);
+  
+  // Add new state for stepper
+  const [currentStep, setCurrentStep] = useState(1);
+  const totalSteps = 2;
+  
+  // Add state for password
+  const [passwordStrength, setPasswordStrength] = useState({
+    score: 0,
+    message: "",
+    color: "gray"
+  });
   
   const {
     register,
@@ -216,7 +276,8 @@ const SignUpForm = () => {
     reset,
     watch,
     setValue,
-    trigger
+    trigger,
+    getValues
   } = useForm<FormFields>({
     resolver: yupResolver(schema) as Resolver<FormFields>,
     defaultValues: {
@@ -233,6 +294,18 @@ const SignUpForm = () => {
       }]
     }
   });
+
+  // Watch password for strength meter
+  const watchPassword = watch("password");
+  
+  // Update password strength when password changes
+  useEffect(() => {
+    if (watchPassword) {
+      setPasswordStrength(calculatePasswordStrength(watchPassword));
+    } else {
+      setPasswordStrength({ score: 0, message: "", color: "gray" });
+    }
+  }, [watchPassword]);
 
   // Initialize form values
   useEffect(() => {
@@ -273,6 +346,135 @@ const SignUpForm = () => {
       document.documentElement.classList.remove('dark');
     }
   }, [theme, resolvedTheme]);
+
+  // Handle email field blur
+  const handleEmailBlur = async () => {
+    const email = watch('email');
+    if (email && !errors.email) {
+      await trigger('email');
+      if (!errors.email) {
+        setVerificationEmail(email);
+      }
+    }
+  };
+
+  // Function to register and proceed to verification
+  const proceedToVerification = async () => {
+    // Validate required fields
+    const isValid = await trigger(['email', 'full_name', 'password', 'confirm_password', 'agree_terms']);
+    if (!isValid) {
+      toast.error('Please fill in all required fields correctly');
+      return;
+    }
+    
+    setIsSubmitting(true);
+    setApiError(null); // Clear any previous errors
+    
+    try {
+      if (!phoneData.number) {
+        toast.error("Please enter a phone number");
+        setIsSubmitting(false);
+        return;
+      }
+
+      const requestData: IRegisterData = {
+        full_name: watch('full_name').trim(),
+        email: watch('email').toLowerCase().trim(),
+        password: watch('password'),
+        phone_numbers: [{
+          country: phoneData.country || 'in',
+          number: phoneData.number
+        }],
+        agree_terms: watch('agree_terms'),
+        role: ["student"],
+        meta: {
+          gender: watch('meta.gender') || "Male",
+          age_group: watch('age_group'),
+          upload_resume: []
+        }
+      };
+
+      await postQuery({
+        url: apiUrls?.user?.register,
+        postData: requestData,
+        requireAuth: false,
+        showToast: false, // Don't show automatic toast, we'll handle it
+        onSuccess: (response) => {
+          setIsRegistered(true);
+          setCurrentStep(2);
+          setShowOTPVerification(true);
+          toast.success("Registration successful! Please verify your email with the code sent to your inbox.");
+        },
+        onFail: (error) => {
+          const errorResponse = error?.response?.data;
+          const errorMessage = errorResponse?.message || errorResponse?.error;
+          const isUserExists = errorMessage === "User already exists" || 
+                              errorMessage?.includes("already exists") || 
+                              errorMessage?.includes("already registered");
+
+          if (isUserExists) {
+            // Handle "User already exists" specifically
+            setApiError("This email is already registered");
+            
+            // Create a custom toast with a login button
+            toast.error(
+              <div>
+                <p>This email is already registered. You can login instead.</p>
+                <button 
+                  onClick={() => router.push('/login')}
+                  className="mt-2 bg-white text-primary-600 px-3 py-1 rounded-md text-sm font-medium hover:bg-primary-50 transition-colors"
+                >
+                  Go to Login
+                </button>
+              </div>,
+              {
+                autoClose: 10000, // Give more time for user to click the login button
+                closeOnClick: false,
+              }
+            );
+            
+            // Add error styling to email field
+            const emailField = document.getElementById('email-field');
+            if (emailField) {
+              emailField.classList.add('border-red-500', 'ring-red-400');
+              emailField.focus();
+            }
+          } else {
+            // Handle other errors
+            if (typeof errorMessage === 'string') {
+              toast.error(errorMessage || "Registration failed. Please try again.");
+            } else {
+              toast.error("An unexpected error occurred. Please try again later.");
+            }
+            setApiError(errorMessage || "Registration failed. Please try again.");
+          }
+        },
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+        toast.error(error.message);
+      } else {
+        setError('An unexpected error occurred');
+        toast.error('An unexpected error occurred. Please try again.');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Handle verification success
+  const handleVerificationSuccess = () => {
+    setIsEmailVerified(true);
+    setShowOTPVerification(false);
+    setValue('is_email_verified', true, { shouldValidate: false });
+    
+    // Redirect to login page after verification
+    toast.success("Email successfully verified! You can now log in to your account.");
+    setTimeout(() => {
+      router.push("/login");
+    }, 2000);
+  };
 
   const handleRecaptchaChange = (value: string | null) => {
     setRecaptchaValue(value);
@@ -350,105 +552,54 @@ const SignUpForm = () => {
   };
 
   const onSubmit = async (data: FormFields) => {
-    if (!recaptchaValue) {
-      setRecaptchaError(true);
-      return;
-    }
-    setApiError(null);
-
-    try {
-      // Validate phone number
-      if (!phoneData.number || !phoneData.isValid) {
-        toast.error("Please enter a valid phone number");
-        return;
-      }
-
-      // Prepare the request data with all required fields and their defaults
-      const requestData = {
-        full_name: data.full_name.trim(),
-        email: data.email.toLowerCase().trim(),
-        password: data.password,
-        phone_numbers: [{
-          country: phoneData.country,
-          number: phoneData.number
-        }],
-        agree_terms: data.agree_terms,
-        role: ["student"],
-        age_group: data.age_group,
-        status: "Active",
-        meta: {
-          gender: data.meta?.gender || "Male",
-          age_group: data.age_group,
-          upload_resume: []
-        }
-      };
-
-      // Log the request data for debugging
-      console.log('Request Data:', JSON.stringify(requestData, null, 2));
-
-      // Make the API call
-      const response = await postQuery({
-        url: apiUrls?.user?.register,
-        postData: requestData,
-        requireAuth: false, // Registration doesn't need authentication
-        showToast: false, // We'll handle toasts ourselves
-        onSuccess: (response) => {
-          console.log('Registration Success:', response); // Add success logging
-          setRecaptchaError(false);
-          setRecaptchaValue(null);
-          setRegistrationSuccess(true);
-          
-          toast.success("Registration successful! Please check your email for login credentials.");
-          
-          // Reset form
-          reset();
-          
-          // Delay redirect slightly to show success message
-          setTimeout(() => {
-            router.push("/login");
-          }, 2000);
-        },
-        onFail: (error) => {
-          console.error("Registration Error:", error);
-          console.log('Error Response:', error?.response?.data); // Detailed error logging
-          setRegistrationSuccess(false);
-
-          // Handle specific error cases
-          const errorResponse = error?.response?.data;
-          const errorMessage = errorResponse?.message || errorResponse?.error;
-
-          if (typeof errorMessage === 'string') {
-            if (errorMessage.includes('already exists')) {
-              toast.error("This email is already registered. Please try logging in instead.");
-            } else if (errorMessage.toLowerCase().includes('validation')) {
-              toast.error("Please check your input and try again.");
-            } else if (errorMessage.toLowerCase().includes('phone')) {
-              toast.error("Please enter a valid phone number in international format (E.164).");
-            } else if (errorMessage.toLowerCase().includes('recaptcha')) {
-              toast.error("ReCAPTCHA verification failed. Please try again.");
-              setRecaptchaError(true);
-            } else {
-              toast.error(errorMessage || "Registration failed. Please try again.");
-            }
-          } else {
-            toast.error("An unexpected error occurred. Please try again later.");
-          }
-
-          setApiError(errorMessage || "Registration failed. Please try again.");
-          
-          if (errorMessage?.toLowerCase().includes('recaptcha')) {
-            setRecaptchaValue(null);
-          }
-        },
-      });
-    } catch (error) {
-      if (error instanceof Error) {
-        setError(error.message);
-      } else {
-        setError('An unexpected error occurred');
-      }
-    }
+    // This function is no longer used directly since we're handling registration in proceedToVerification
+    // Keeping it for reference or future modifications
   };
+
+  if (showOTPVerification) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-2 sm:py-4 px-3 sm:px-6 lg:px-8">
+        <div className="w-full max-w-md">
+          <div className="bg-white dark:bg-gray-800 shadow-xl rounded-2xl p-6 sm:p-8">
+            {/* Stepper UI */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between">
+                <div className="flex flex-col items-center">
+                  <div className="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 flex items-center justify-center">
+                    <Check className="w-4 h-4" />
+                  </div>
+                  <span className="text-xs mt-1 text-primary-600 dark:text-primary-400 font-medium">Registration</span>
+                </div>
+                <div className="flex-1 mx-2">
+                  <div className="h-1 bg-primary-500"></div>
+                </div>
+                <div className="flex flex-col items-center">
+                  <div className="w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center">
+                    <span className="text-xs font-medium">2</span>
+                  </div>
+                  <span className="text-xs mt-1 text-primary-600 dark:text-primary-400 font-medium">Verification</span>
+                </div>
+              </div>
+            </div>
+            <div className="mb-4 text-center">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white">Email Verification</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Please enter the 6-digit code sent to {verificationEmail || watch('email')}
+              </p>
+            </div>
+            <OTPVerification
+              email={verificationEmail || watch('email')}
+              onVerificationSuccess={handleVerificationSuccess}
+              onBack={() => {
+                setShowOTPVerification(false);
+                setCurrentStep(1);
+              }}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -674,56 +825,115 @@ const SignUpForm = () => {
                   Join our learning community today
                 </p>
               </div>
+              
+              {/* Stepper UI */}
+              <div className="mb-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex flex-col items-center">
+                    <div className={`w-8 h-8 rounded-full ${currentStep === 1 ? 'bg-primary-500 text-white' : 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'} flex items-center justify-center`}>
+                      {currentStep > 1 ? <Check className="w-4 h-4" /> : <span className="text-xs font-medium">1</span>}
+                    </div>
+                    <span className="text-xs mt-1 text-primary-600 dark:text-primary-400 font-medium">Registration</span>
+                  </div>
+                  <div className="flex-1 mx-2">
+                    <div className={`h-1 ${currentStep > 1 ? 'bg-primary-500' : 'bg-gray-200 dark:bg-gray-700'}`}></div>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <div className={`w-8 h-8 rounded-full ${currentStep === 2 ? 'bg-primary-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500'} flex items-center justify-center`}>
+                      <span className="text-xs font-medium">2</span>
+                    </div>
+                    <span className="text-xs mt-1 text-gray-600 dark:text-gray-400 font-medium">Verification</span>
+                  </div>
+                </div>
+              </div>
 
               {/* Form */}
-              <form onSubmit={handleSubmit(onSubmit as SubmitHandler<FormFields>)} className="space-y-2.5 sm:space-y-4">
-                {/* Full Name Field */}
-                <div>
-                  <div className="relative">
-                    <input
-                      {...register("full_name")}
-                      type="text"
-                      placeholder="Full Name"
-                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-10 sm:pl-11 text-sm sm:text-base"
-                    />
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <User className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-                    </div>
+              <form className="space-y-2.5 sm:space-y-4">
+                {/* Email */}
+                <div className="relative">
+                  <input
+                    {...register("email")}
+                    id="email-field"
+                    type="email"
+                    placeholder="Email Address"
+                    className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 ${apiError?.includes("email") ? 'bg-red-50 dark:bg-red-900/10 border-red-300 dark:border-red-800 ring-red-400/30' : 'bg-gray-50/50 dark:bg-gray-700/30 border-gray-200 dark:border-gray-600'} rounded-lg sm:rounded-xl border focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-10 sm:pl-11 text-sm sm:text-base`}
+                    onBlur={handleEmailBlur}
+                  />
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Mail className={`h-4 w-4 ${apiError?.includes("email") ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'}`} />
                   </div>
-                  {errors.full_name && (
-                    <p className="mt-1 text-xs text-red-500 flex items-start">
-                      <AlertCircle className="h-3 w-3 mt-0.5 mr-1.5 flex-shrink-0" />
-                      <span>{errors.full_name?.message}</span>
-                    </p>
+                  {apiError?.includes("email") && (
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                      <AlertCircle className="h-4 w-4 text-red-500" />
+                    </div>
                   )}
                 </div>
-
-                {/* Email Field */}
-                <div>
-                  <div className="relative">
-                    <input
-                      {...register("email")}
-                      type="email"
-                      placeholder="Email Address"
-                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-10 sm:pl-11 text-sm sm:text-base"
-                    />
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Mail className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-                    </div>
-                  </div>
-                  {errors.email && (
-                    <p className="mt-1 text-xs text-red-500 flex items-start">
+                {errors.email && (
+                  <p className="mt-1 text-xs text-red-500 flex items-start">
+                    <AlertCircle className="h-3 w-3 mt-0.5 mr-1.5 flex-shrink-0" />
+                    <span>{errors.email?.message}</span>
+                  </p>
+                )}
+                {apiError && apiError.includes("email") && (
+                  <div className="mt-1 flex items-start justify-between">
+                    <p className="text-xs text-red-500 flex items-start">
                       <AlertCircle className="h-3 w-3 mt-0.5 mr-1.5 flex-shrink-0" />
-                      <span>{errors.email?.message}</span>
+                      <span>This email is already registered</span>
                     </p>
-                  )}
+                    <Link 
+                      href="/login" 
+                      className="text-xs font-medium text-primary-600 hover:text-primary-500 transition-colors"
+                    >
+                      Login instead
+                    </Link>
+                  </div>
+                )}
+
+                {/* Full Name */}
+                <div className="relative">
+                  <input
+                    {...register("full_name")}
+                    type="text"
+                    placeholder="Full Name"
+                    className="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-10 sm:pl-11 text-sm sm:text-base"
+                  />
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <User className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                  </div>
+                </div>
+                {errors.full_name && (
+                  <p className="mt-1 text-xs text-red-500 flex items-start">
+                    <AlertCircle className="h-3 w-3 mt-0.5 mr-1.5 flex-shrink-0" />
+                    <span>{errors.full_name?.message}</span>
+                  </p>
+                )}
+                
+                {/* Phone Number Field */}
+                <div className="phone-field-container">
+                  <PhoneInput
+                    country={'in'}
+                    value={phoneData.number}
+                    onChange={(value, country) => handlePhoneChange(value, country)}
+                    enableSearch={true}
+                    searchPlaceholder="Search countries..."
+                    searchNotFound="No country found"
+                    inputProps={{
+                      name: 'phone_numbers',
+                      required: true,
+                      className: `w-full pl-[4.5rem] pr-3 sm:pr-4 py-2 sm:py-2.5 
+                        bg-gray-50/50 dark:bg-gray-700/30 
+                        border border-gray-200 dark:border-gray-600 
+                        rounded-lg sm:rounded-xl text-gray-900 dark:text-gray-100
+                        focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500
+                        disabled:bg-gray-100 disabled:cursor-not-allowed
+                        transition duration-150 ease-in-out
+                        text-sm sm:text-base`
+                    }}
+                  />
                 </div>
 
-                {/* Age Group Field */}
+                {/* Age Group Dropdown */}
                 <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Age Group
-                  </label>
                   <div className="relative">
                     <select
                       {...register("age_group")}
@@ -743,192 +953,100 @@ const SignUpForm = () => {
                       <UserCircle className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                     </div>
                     <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                      </svg>
+                      <ChevronRight className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                     </div>
                   </div>
-                  {errors.age_group && (
-                    <p className="mt-1 text-xs text-red-500 flex items-start">
-                      <AlertCircle className="h-3 w-3 mt-0.5 mr-1.5 flex-shrink-0" />
-                      <span>{errors.age_group?.message}</span>
-                    </p>
-                  )}
                 </div>
 
-                {/* Gender selection field */}
+                {/* Password with Strength Meter */}
                 <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Gender
-                  </label>
                   <div className="relative">
-                    <select
-                      {...register("meta.gender")}
-                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-10 sm:pl-11 appearance-none text-sm sm:text-base"
-                    >
-                      <option value="Male">Male</option>
-                      <option value="Female">Female</option>
-                      <option value="Others">Others</option>
-                    </select>
+                    <input
+                      {...register("password")}
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Password"
+                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-10 sm:pl-11 pr-10 text-sm sm:text-base"
+                    />
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <UserCircle className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                      <Lock className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                     </div>
-                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                      </svg>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={togglePasswordVisibility}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                      )}
+                    </button>
                   </div>
-                  {errors.meta?.gender && (
+                  {errors.password && (
                     <p className="mt-1 text-xs text-red-500 flex items-start">
                       <AlertCircle className="h-3 w-3 mt-0.5 mr-1.5 flex-shrink-0" />
-                      <span>{errors.meta.gender.message}</span>
+                      <span>{errors.password?.message}</span>
                     </p>
+                  )}
+                  
+                  {/* Password Strength Meter */}
+                  {watchPassword && (
+                    <div className="mt-2">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs text-gray-600 dark:text-gray-400">Password strength:</span>
+                        <span className={`text-xs font-medium ${
+                          passwordStrength.color === "red" ? 'text-red-500' : 
+                          passwordStrength.color === "orange" ? 'text-yellow-500' : 
+                          passwordStrength.color === "green" ? 'text-green-500' : 'text-gray-400'
+                        }`}>
+                          {passwordStrength.message}
+                        </span>
+                      </div>
+                      <div className="h-1.5 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full ${
+                            passwordStrength.color === "red" ? 'bg-red-500' : 
+                            passwordStrength.color === "orange" ? 'bg-yellow-500' : 
+                            passwordStrength.color === "green" ? 'bg-green-500' : 'bg-gray-400'
+                          }`} 
+                          style={{ width: `${Math.min(100, (passwordStrength.score / 6) * 100)}%` }}
+                        ></div>
+                      </div>
+                    </div>
                   )}
                 </div>
 
-                {/* Phone Number Field */}
-                <div className="phone-field-container">
-                  <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Phone Number
-                  </label>
-                  <div className="relative">
-                    <PhoneInput
-                      country={'in'}
-                      value={phoneData.number}
-                      onChange={(value, country) => handlePhoneChange(value, country)}
-                      enableSearch={true}
-                      searchPlaceholder="Search countries..."
-                      searchNotFound="No country found"
-                      inputProps={{
-                        name: 'phone_numbers',
-                        required: true,
-                        className: `
-                          w-full pl-[4.5rem] pr-3 sm:pr-4 py-2 sm:py-2.5 
-                          bg-gray-50/50 dark:bg-gray-700/30 
-                          border border-gray-200 dark:border-gray-600 
-                          rounded-lg sm:rounded-xl text-gray-900 dark:text-gray-100
-                          focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500
-                          disabled:bg-gray-100 disabled:cursor-not-allowed
-                          transition duration-150 ease-in-out
-                          text-sm sm:text-base
-                        `
-                      }}
-                      containerClass="phone-input-container"
-                      buttonClass={`
-                        absolute left-0 top-0 bottom-0 px-3
-                        flex items-center justify-center
-                        border-r border-gray-200 dark:border-gray-600
-                        bg-transparent
-                        rounded-l-lg sm:rounded-l-xl
-                        transition duration-150 ease-in-out
-                        hover:bg-gray-50 dark:hover:bg-gray-700/30
-                      `}
-                      dropdownClass={`
-                        country-dropdown
-                        absolute z-50 mt-1
-                        bg-white dark:bg-gray-800
-                        border border-gray-200 dark:border-gray-700
-                        rounded-lg shadow-lg
-                        overflow-hidden
-                      `}
-                      searchClass={`
-                        search-box
-                        w-full px-3 py-2
-                        bg-gray-50 dark:bg-gray-700
-                        border-b border-gray-200 dark:border-gray-600
-                        text-gray-900 dark:text-gray-100
-                        focus:outline-none
-                      `}
-                    />
-
-                    {/* Formatted number display */}
-                    {phoneData.isValid && (
-                      <div className="mt-1 space-y-0.5">
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          {phoneData.nationalFormat}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Error message */}
-                    {errors.phone_numbers && (
-                      <p className="mt-1 text-xs text-red-500 flex items-start">
-                        <AlertCircle className="h-3 w-3 mt-0.5 mr-1.5" />
-                        <span>{errors.phone_numbers?.message}</span>
-                      </p>
-                    )}
+                {/* Confirm Password */}
+                <div className="relative">
+                  <input
+                    {...register("confirm_password")}
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="Confirm Password"
+                    className="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-10 sm:pl-11 pr-10 text-sm sm:text-base"
+                  />
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                   </div>
+                  <button
+                    type="button"
+                    onClick={toggleConfirmPasswordVisibility}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                    )}
+                  </button>
                 </div>
+                {errors.confirm_password && (
+                  <p className="mt-1 text-xs text-red-500 flex items-start">
+                    <AlertCircle className="h-3 w-3 mt-0.5 mr-1.5 flex-shrink-0" />
+                    <span>{errors.confirm_password?.message}</span>
+                  </p>
+                )}
 
-                {/* Password Fields Row */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-4">
-                  {/* Password Field */}
-                  <div>
-                    <div className="relative">
-                      <input
-                        {...register("password")}
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Password"
-                        className="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-10 sm:pl-11 pr-10 sm:pr-11 text-sm sm:text-base"
-                      />
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Lock className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-                      </div>
-                      <button
-                        type="button"
-                        onClick={togglePasswordVisibility}
-                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                      >
-                        {showPassword ? (
-                          <EyeOff className="h-4 w-4 text-gray-400 hover:text-gray-600" />
-                        ) : (
-                          <Eye className="h-4 w-4 text-gray-400 hover:text-gray-600" />
-                        )}
-                      </button>
-                    </div>
-                    {errors.password && (
-                      <p className="mt-1 text-xs text-red-500 flex items-start">
-                        <AlertCircle className="h-3 w-3 mt-0.5 mr-1.5 flex-shrink-0" />
-                        <span>{errors.password?.message}</span>
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Confirm Password Field */}
-                  <div>
-                    <div className="relative">
-                      <input
-                        {...register("confirm_password")}
-                        type={showConfirmPassword ? "text" : "password"}
-                        placeholder="Confirm Password"
-                        className="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-10 sm:pl-11 pr-10 sm:pr-11 text-sm sm:text-base"
-                      />
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Lock className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-                      </div>
-                      <button
-                        type="button"
-                        onClick={toggleConfirmPasswordVisibility}
-                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                      >
-                        {showConfirmPassword ? (
-                          <EyeOff className="h-4 w-4 text-gray-400 hover:text-gray-600" />
-                        ) : (
-                          <Eye className="h-4 w-4 text-gray-400 hover:text-gray-600" />
-                        )}
-                      </button>
-                    </div>
-                    {errors.confirm_password && (
-                      <p className="mt-1 text-xs text-red-500 flex items-start">
-                        <AlertCircle className="h-3 w-3 mt-0.5 mr-1.5 flex-shrink-0" />
-                        <span>{errors.confirm_password?.message}</span>
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Custom ReCAPTCHA */}
+                {/* reCAPTCHA */}
                 <div className="scale-90 sm:scale-100 origin-center">
                   <CustomReCaptcha
                     onChange={handleRecaptchaChange}
@@ -950,7 +1068,6 @@ const SignUpForm = () => {
                         href="/terms-and-services" 
                         className="text-primary-600 hover:text-primary-500"
                         target="_blank"
-                        rel="noopener noreferrer"
                       >
                         terms
                       </a>{" "}
@@ -959,7 +1076,6 @@ const SignUpForm = () => {
                         href="/privacy-policy" 
                         className="text-primary-600 hover:text-primary-500"
                         target="_blank"
-                        rel="noopener noreferrer"
                       >
                         privacy
                       </a>
@@ -973,14 +1089,25 @@ const SignUpForm = () => {
                   )}
                 </div>
 
-                {/* Submit Button */}
+                {/* Submit Button - Changed to "Register & Verify" */}
                 <button
-                  type="submit"
-                  className="w-full py-2 sm:py-2.5 px-4 bg-gradient-to-r from-primary-500 to-indigo-600 text-white font-medium rounded-lg sm:rounded-xl shadow-lg shadow-primary-500/30 hover:shadow-primary-500/40 transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 relative overflow-hidden group text-sm sm:text-base"
+                  type="button"
+                  onClick={proceedToVerification}
+                  disabled={isSubmitting}
+                  className="w-full py-2 sm:py-2.5 px-4 bg-gradient-to-r from-primary-500 to-indigo-600 text-white font-medium rounded-lg sm:rounded-xl shadow-lg shadow-primary-500/30 hover:shadow-primary-500/40 transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 relative overflow-hidden group text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span className="relative z-10 flex items-center justify-center">
-                    Sign Up
-                    <ArrowRight className="ml-2 h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        Register & Verify
+                        <ArrowRight className="ml-2 h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+                      </>
+                    )}
                   </span>
                   <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-primary-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </button>
@@ -1022,7 +1149,7 @@ const SignUpForm = () => {
                 Registration Successful!
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                Please check your email for your login credentials.
+                Please check your email for the verification code.
               </p>
               <button
                 onClick={() => router.push('/login')}
