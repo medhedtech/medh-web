@@ -108,10 +108,10 @@ const SidebarSubMenuItem: React.FC<SubMenuProps> = ({
           whileTap={{ scale: 0.98 }}
           disabled={subItem.comingSoon}
         >
-          <span className="w-3.5 h-3.5 mr-1.5 text-primary-500">{subItem.icon}</span>
-          <span className="truncate">{subItem.name}</span>
+          <span className="flex-shrink-0 w-3.5 h-3.5 mr-1.5 text-primary-500">{subItem.icon}</span>
+          <span className="truncate whitespace-nowrap text-left">{subItem.name}</span>
           {subItem.comingSoon && (
-            <span className="ml-1 px-1 text-[10px] rounded-full bg-gray-100 dark:bg-gray-700">
+            <span className="flex-shrink-0 ml-1 px-1 text-[10px] rounded-full bg-gray-100 dark:bg-gray-700">
               Soon
             </span>
           )}
@@ -125,8 +125,8 @@ const SidebarSubMenuItem: React.FC<SubMenuProps> = ({
           variants={itemVariants}
           whileHover={{ x: 3 }}
         >
-          <span>View all {item.subItems.length} options</span>
-          <ChevronRight className="w-3 h-3 ml-0.5" />
+          <span className="whitespace-nowrap text-left">View all {item.subItems.length} options</span>
+          <ChevronRight className="flex-shrink-0 w-3 h-3 ml-0.5" />
         </motion.button>
       )}
     </motion.div>
