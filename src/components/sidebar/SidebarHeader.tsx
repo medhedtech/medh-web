@@ -96,20 +96,20 @@ const SidebarHeader: React.FC<SidebarHeaderProps> = ({
       
       {/* User welcome card */}
       <motion.div 
-        className="flex items-center gap-3 p-3 sm:p-4 bg-gradient-to-r from-primary-50 to-white dark:from-primary-900/10 dark:to-gray-800 rounded-xl border border-primary-100/50 dark:border-primary-800/20 shadow-sm"
+        className="flex items-center gap-3 p-3 sm:p-4 bg-gradient-to-r from-primary-50 to-white dark:from-primary-900/10 dark:to-gray-800 rounded-xl border border-primary-100/50 dark:border-primary-800/20 shadow-sm overflow-hidden"
         variants={profileVariants}
         initial="initial"
         animate="animate"
         whileHover={{ y: -3, transition: { duration: 0.2 } }}
       >
-        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white font-semibold shadow-sm">
+        <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white font-semibold shadow-sm">
           {userName ? userName.charAt(0).toUpperCase() : (userRole || 'U').charAt(0).toUpperCase()}
         </div>
-        <div>
-          <p className="text-sm font-medium text-primary-700 dark:text-primary-400">
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-primary-700 dark:text-primary-400 whitespace-nowrap truncate text-left">
             {welcomeMessage}
           </p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
+          <p className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap truncate text-left">
             {(userRole || 'User').charAt(0).toUpperCase() + (userRole || 'User').slice(1)} Account
           </p>
         </div>

@@ -1510,10 +1510,10 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
                 : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
             }`}
           >
-            <span className="w-3.5 h-3.5 mr-1.5 text-primary-500">{subItem.icon}</span>
-            <span className="truncate">{subItem.name}</span>
+            <span className="flex-shrink-0 w-3.5 h-3.5 mr-1.5 text-primary-500">{subItem.icon}</span>
+            <span className="truncate whitespace-nowrap text-left">{subItem.name}</span>
             {subItem.comingSoon && (
-              <span className="ml-1 px-1 text-[10px] rounded-full bg-gray-100 dark:bg-gray-700">
+              <span className="flex-shrink-0 ml-1 px-1 text-[10px] rounded-full bg-gray-100 dark:bg-gray-700">
                 Soon
               </span>
             )}
@@ -1533,8 +1533,8 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
             }}
             className="ml-4 flex items-center w-full text-xs font-medium text-primary-600 dark:text-primary-400 hover:underline"
           >
-            <span>View all {item.subItems.length} options</span>
-            <ChevronRight className="w-3 h-3 ml-0.5" />
+            <span className="whitespace-nowrap text-left">View all {item.subItems.length} options</span>
+            <ChevronRight className="flex-shrink-0 w-3 h-3 ml-0.5" />
           </button>
         )}
       </div>
