@@ -79,18 +79,18 @@ const SidebarMenuItem: React.FC<MenuItemProps> = ({
         aria-expanded={isActive}
         aria-label={`Menu: ${item.name}`}
       >
-        <div className="flex items-center gap-3">
-          <span className={`transition-colors ${
+        <div className="flex items-center gap-3 overflow-hidden">
+          <span className={`flex-shrink-0 transition-colors ${
             isActive
               ? "text-primary-600 dark:text-primary-400"
               : "text-gray-500 dark:text-gray-400"
           }`}>
             {item.icon}
           </span>
-          <span>{item.name}</span>
+          <span className="text-left truncate whitespace-nowrap">{item.name}</span>
           
           {item.comingSoon && (
-            <span className="ml-2 px-1.5 py-0.5 text-[10px] rounded-full bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-300 font-medium">
+            <span className="ml-2 px-1.5 py-0.5 text-[10px] rounded-full bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-300 font-medium flex-shrink-0">
               Soon
             </span>
           )}
@@ -100,7 +100,7 @@ const SidebarMenuItem: React.FC<MenuItemProps> = ({
           <motion.span
             animate={{ rotate: isActive ? 180 : 0 }}
             transition={{ duration: 0.3 }}
-            className={`${isActive ? "text-primary-500" : ""}`}
+            className={`${isActive ? "text-primary-500" : ""} flex-shrink-0 ml-1`}
           >
             <ChevronDown className="w-4 h-4" />
           </motion.span>
