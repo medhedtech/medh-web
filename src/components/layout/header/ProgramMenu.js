@@ -46,7 +46,7 @@ const ProgramsMenu = ({ programMenuOpen, toggleProgramMenu }) => {
 
         {/* View Other Courses */}
         <Link
-          href="/skill-development-courses"
+          href="/courses/"
           className="focus:text-green-400 text-[#252525] font-Poppins"
         >
           ~View Other Courses~

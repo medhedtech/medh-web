@@ -1168,16 +1168,27 @@ const CourseCard = ({
                   {/* Session Count Indicator - displayed in normal card view */}
                   {course?.no_of_Sessions && (
                     <div className="flex items-center justify-center mt-2 mb-1">
-                      <div className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs ${
-                        isLiveCourse 
-                          ? 'bg-[#379392]/10 text-[#379392]' 
-                          : isBlendedCourse
-                            ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400'
+                      {isBlendedCourse ? (
+                        <div className="flex flex-col items-center gap-1">
+                          <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400">
+                            <Play size={14} className="mr-1 text-purple-500" />
+                            <span>{course.no_of_Sessions} Video Sessions</span>
+                          </div>
+                          <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs bg-[#379392]/10 text-[#379392]">
+                            <Users size={14} className="mr-1 text-[#379392]" />
+                            <span>02 Q&A Live Sessions</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs ${
+                          isLiveCourse 
+                            ? 'bg-[#379392]/10 text-[#379392]' 
                             : 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400'
-                      }`}>
-                        {content.sessionIcon}
-                        <span className="ml-1">{course.no_of_Sessions} {content.sessionLabel}</span>
-                      </div>
+                        }`}>
+                          {content.sessionIcon}
+                          <span className="ml-1">{course.no_of_Sessions} {content.sessionLabel}</span>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -1326,16 +1337,27 @@ const CourseCard = ({
                 {/* Session Count Indicator - displayed in normal card view */}
                 {course?.no_of_Sessions && (
                   <div className="flex items-center justify-center mt-2 mb-1">
-                    <div className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs ${
-                      isLiveCourse 
-                        ? 'bg-[#379392]/10 text-[#379392]' 
-                        : isBlendedCourse
-                          ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400'
+                    {isBlendedCourse ? (
+                      <div className="flex flex-col items-center gap-1">
+                        <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400">
+                          <Play size={14} className="mr-1 text-purple-500" />
+                          <span>{course.no_of_Sessions} Video Sessions</span>
+                        </div>
+                        <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs bg-[#379392]/10 text-[#379392]">
+                          <Users size={14} className="mr-1 text-[#379392]" />
+                          <span>02 Q&A Live Sessions</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs ${
+                        isLiveCourse 
+                          ? 'bg-[#379392]/10 text-[#379392]' 
                           : 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400'
-                    }`}>
-                      {content.sessionIcon}
-                      <span className="ml-1">{course.no_of_Sessions} {content.sessionLabel}</span>
-                    </div>
+                      }`}>
+                        {content.sessionIcon}
+                        <span className="ml-1">{course.no_of_Sessions} {content.sessionLabel}</span>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

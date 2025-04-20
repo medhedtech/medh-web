@@ -154,7 +154,7 @@ const About1 = () => {
         {/* Action button */}
         <div className="mt-12 text-center">
           <Link 
-            href="/skill-development-courses" 
+            href="/courses/" 
             className="inline-flex items-center px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-full transition-all shadow-md hover:shadow-lg transform hover:-translate-y-1"
           >
             View All Courses

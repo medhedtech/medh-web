@@ -269,7 +269,7 @@ const MobileMenu: React.FC<IMobileMenuProps> = ({
             </div>
             <div className="mt-6">
               <Link 
-                href="/skill-development-courses"
+                href="/courses"
                 onClick={closeMenu}
                 className="inline-flex items-center px-4 py-2 rounded-lg bg-primary-500/10 text-primary-500"
               >
