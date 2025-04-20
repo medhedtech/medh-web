@@ -204,7 +204,7 @@ const FooterNavList = ({ logoImage, isMobile }) => {
         { name: "Digital Marketing", path: "/digital-marketing-with-data-analytics-course" },
         { name: "Personality Development", path: "/personality-development-course" },
         { name: "Vedic Mathematics", path: "/vedic-mathematics-course" },
-        { name: "View All Courses", path: "//courses/" },
+        { name: "View All Courses", path: "/courses/" },
       ],
     },
   ];
