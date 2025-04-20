@@ -21,7 +21,7 @@ const BrandHero = () => {
       title: "Level Up with 50+ Epic Courses",
       description: "Jump into the future with AI, Cybersecurity, and more! Your adventure in tech mastery starts here. 🚀",
       linkText: "Start Your Journey",
-      linkUrl: "/skill-development-courses",
+      linkUrl: "/courses/",
       bgColor: "bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700",
       icon: <Rocket className="w-8 h-8 text-white mb-4" />,
       hoverEffect: "hover:scale-105 hover:shadow-xl hover:shadow-primary-500/25",

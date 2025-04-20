@@ -80,7 +80,7 @@ const BrowseCategories = () => {
           </div>
           
           <button
-            onClick={() => router.push("/skill-development-courses")}
+            onClick={() => router.push("/courses/")}
             className="inline-flex items-center px-5 py-2.5 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-lg transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
             aria-label="View all courses"
           >
