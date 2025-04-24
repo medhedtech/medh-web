@@ -20,6 +20,9 @@ const CustomReCaptcha: React.FC<CustomReCaptchaProps> = ({
   const recaptchaId = useRef<number | null>(null);
 
   useEffect(() => {
+    // Ensure we're in browser environment
+    if (typeof window === 'undefined') return;
+    
     // Load reCAPTCHA script if not already loaded
     if (!window.grecaptcha) {
       const script = document.createElement('script');
@@ -37,25 +40,32 @@ const CustomReCaptcha: React.FC<CustomReCaptchaProps> = ({
     }
 
     return () => {
+      // Ensure we're in browser environment
+      if (typeof window === 'undefined') return;
+      
       // Reset reCAPTCHA if it was rendered
       if (recaptchaId.current !== null && window.grecaptcha) {
-        window.grecaptcha.reset(recaptchaId.current);
+        // Use type assertion to allow an argument
+        (window.grecaptcha as any).reset(recaptchaId.current);
       }
     };
   }, [disabled]);
 
   const renderReCaptcha = () => {
+    // Ensure we're in browser environment
+    if (typeof window === 'undefined') return;
+    
     if (recaptchaRef.current && window.grecaptcha) {
       // If already rendered, reset it
       if (recaptchaId.current !== null) {
-        window.grecaptcha.reset(recaptchaId.current);
+        (window.grecaptcha as any).reset();
       }
       
       // Render the reCAPTCHA
       setTimeout(() => {
-        if (window.grecaptcha && window.grecaptcha.render) {
+        if (window.grecaptcha && (window.grecaptcha as any).render) {
           try {
-            recaptchaId.current = window.grecaptcha.render(recaptchaRef.current!, {
+            recaptchaId.current = (window.grecaptcha as any).render(recaptchaRef.current!, {
               sitekey: siteKey,
               callback: onChange,
               'expired-callback': () => onChange(null),
