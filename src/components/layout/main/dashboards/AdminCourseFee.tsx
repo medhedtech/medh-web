@@ -1,17 +1,23 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { 
+import React, { useState, useEffect, useRef, useMemo, Fragment, ChangeEvent } from 'react';
+import axios from 'axios';
+import {
   ChevronDown, 
   ChevronUp, 
   Edit2, 
   Save, 
-  X, 
+  X as XIcon, 
   Plus, 
   Trash2, 
   RefreshCcw,
   CheckCircle,
   AlertCircle,
+  RefreshCw,
   Info,
-  Loader
+  Loader,
+  Check,
+  Edit,
+  DollarSign,
+  LucideIcon
 } from 'lucide-react';
 import { 
   bulkUpdateCoursePrices,
@@ -25,7 +31,7 @@ import {
   BulkPriceUpdateResponse, 
   ErrorResponse
 } from '@/types/api-responses';
-import { LucideIcon } from 'lucide-react';
+import { PriceEditor } from '@/components/shared/currency/PriceEditor';
 import { 
   getAllCurrencies, 
   createCurrency, 
@@ -34,12 +40,23 @@ import {
 } from '@/apis/currency/currency';
 import { apiUrls, apiBaseUrl } from '@/apis/index';
 // Import the UI components
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import { CurrencyRateEditor } from '@/components/shared/currency/CurrencyRateEditor';
+import { BulkUpdateSection } from '@/components/shared/sections/BulkUpdateSection';
+import Toast from '@/components/shared/ui/Toast';
+import ActionButton from '@/components/shared/buttons/ActionButton';
 
 // First, update the PriceFilterParams interface to include currency
 interface PriceFilterParams {
@@ -101,6 +118,7 @@ interface CourseFeeFilterProps {
   categories: string[];
   currencies?: string[];
   classTypes?: string[];
+  loading?: boolean;
 }
 
 interface BulkUpdateConfig {
@@ -141,35 +159,58 @@ interface SelectOption {
   label: string;
 }
 
+interface CurrencyRate {
+  valueWrtUSD: number;
+  symbol: string;
+  name: string;
+  rate: number;
+}
+
+interface CurrencyRates {
+  [key: string]: CurrencyRate;
+}
+
+// Add currency format helper function
+const currencyFormat = (amount: number | string, currency: string): string => {
+  const formatter = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: currency,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
+  return formatter.format(Number(amount));
+};
+
 const CourseFeeFilter: React.FC<CourseFeeFilterProps> = ({ 
   onFilterChange, 
   categories, 
   currencies = ["USD", "INR"],
-  classTypes = ["Live Courses", "Blended Courses", "Pre-Recorded"]
+  classTypes = ["Live Courses", "Blended Courses", "Pre-Recorded"],
+  loading = false
 }) => {
-  const [status, setStatus] = useState('Published');
-  const [category, setCategory] = useState('');
-  const [search, setSearch] = useState('');
-  const [courseId, setCourseId] = useState('');
-  const [courseGrade, setCourseGrade] = useState('');
-  const [courseType, setCourseType] = useState('');
-  const [pricingStatus, setPricingStatus] = useState('');
-  const [hasPricing, setHasPricing] = useState('');
-  const [currency, setCurrency] = useState('');
-  const [advancedSearch, setAdvancedSearch] = useState(false);
-  const [isSearching, setIsSearching] = useState(false);
+  const [status, setStatus] = useState<string>('Published');
+  const [category, setCategory] = useState<string>('');
+  const [search, setSearch] = useState<string>('');
+  const [courseId, setCourseId] = useState<string>('');
+  const [courseGrade, setCourseGrade] = useState<string>('');
+  const [courseType, setCourseType] = useState<string>('');
+  const [pricingStatus, setPricingStatus] = useState<string>('');
+  const [hasPricing, setHasPricing] = useState<string>('');
+  const [currency, setCurrency] = useState<string>('');
+  const [advancedSearch, setAdvancedSearch] = useState<boolean>(false);
+  const [isSearching, setIsSearching] = useState<boolean>(false);
 
   // Use a ref to store the timeout ID for debounce
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
     applyFilters();
   };
 
   // Apply filters with current state values
-  const applyFilters = () => {
+  const applyFilters = (): void => {
     setIsSearching(false);
     onFilterChange({ 
       status, 
@@ -185,7 +226,7 @@ const CourseFeeFilter: React.FC<CourseFeeFilterProps> = ({
   };
 
   // Reset all filters
-  const resetFilters = () => {
+  const resetFilters = (): void => {
     setStatus('Published');
     setCategory('');
     setSearch('');
@@ -205,7 +246,7 @@ const CourseFeeFilter: React.FC<CourseFeeFilterProps> = ({
   };
 
   // Debounced search handler
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const value = e.target.value;
     setSearch(value);
     setIsSearching(true);
@@ -214,44 +255,52 @@ const CourseFeeFilter: React.FC<CourseFeeFilterProps> = ({
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
-    
-    // Set a new timeout to apply filters after 500ms of no typing
+
+    // Set a new timeout
     searchTimeoutRef.current = setTimeout(() => {
       applyFilters();
     }, 500);
   };
 
   // Event handlers for select inputs
-  const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleStatusChange = (e: ChangeEvent<HTMLSelectElement>): void => {
     setStatus(e.target.value);
+    setIsSearching(true);
   };
 
-  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleCategoryChange = (e: ChangeEvent<HTMLSelectElement>): void => {
     setCategory(e.target.value);
+    setIsSearching(true);
   };
 
-  const handleCurrencyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleCurrencyChange = (e: ChangeEvent<HTMLSelectElement>): void => {
     setCurrency(e.target.value);
+    setIsSearching(true);
   };
 
-  const handleCourseIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCourseIdChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     setCourseId(e.target.value);
+    setIsSearching(true);
   };
 
-  const handleCourseGradeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCourseGradeChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     setCourseGrade(e.target.value);
+    setIsSearching(true);
   };
 
-  const handleCourseTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleCourseTypeChange = (e: ChangeEvent<HTMLSelectElement>): void => {
     setCourseType(e.target.value);
+    setIsSearching(true);
   };
 
-  const handlePricingStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handlePricingStatusChange = (e: ChangeEvent<HTMLSelectElement>): void => {
     setPricingStatus(e.target.value);
+    setIsSearching(true);
   };
 
-  const handleHasPricingChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleHasPricingChange = (e: ChangeEvent<HTMLSelectElement>): void => {
     setHasPricing(e.target.value);
+    setIsSearching(true);
   };
 
   // Clean up the timeout when component unmounts
@@ -282,211 +331,228 @@ const CourseFeeFilter: React.FC<CourseFeeFilterProps> = ({
   ];
 
   return (
-    <Card className="mb-6">
-      <CardHeader>
-        <CardTitle>Filter Courses</CardTitle>
-        <CardDescription>Refine your course list by applying filters</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <div className="mb-4 bg-white p-6 rounded-lg shadow-sm">
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+          <input
+            type="text"
+            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+            value={search}
+            onChange={handleSearchChange}
+            placeholder="Search by title or keyword"
+            disabled={loading}
+          />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+          <select
+            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+            value={status}
+            onChange={handleStatusChange}
+            disabled={loading}
+          >
+            {statusOptions.map((option, index) => (
+              <option key={`status-${index}-${option.value}`} value={option.value}>{option.label}</option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+          <select
+            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+            value={category}
+            onChange={handleCategoryChange}
+            disabled={loading}
+          >
+            {categoryOptions.map((option, index) => (
+              <option key={`category-${index}-${option.value}`} value={option.value}>{option.label}</option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+          <select
+            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+            value={currency}
+            onChange={handleCurrencyChange}
+            disabled={loading}
+          >
+            {currencyOptions.map((option, index) => (
+              <option key={`currency-${index}-${option.value}`} value={option.value}>{option.label}</option>
+            ))}
+          </select>
+        </div>
+
+        {advancedSearch && (
+          <>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Course ID</label>
               <Input
-                value={search}
-                onChange={handleSearchChange} 
-                placeholder="Search by title or keyword"
+                value={courseId}
+                onChange={handleCourseIdChange} 
+                placeholder="Enter course ID"
               />
             </div>
-            
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-              <select 
-                value={status}
-                onChange={handleStatusChange}
-                className="flex h-10 w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 transition-colors focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
-              >
-                <option value="">Select Status</option>
-                {statusOptions.map(option => (
-                  <option key={option.value} value={option.value}>{option.label}</option>
-                ))}
-              </select>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Course Grade</label>
+              <Input
+                value={courseGrade}
+                onChange={handleCourseGradeChange} 
+                placeholder="Enter course grade"
+              />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Course Type</label>
               <select
-                value={category}
-                onChange={handleCategoryChange}
-                className="flex h-10 w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 transition-colors focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                value={courseType}
+                onChange={handleCourseTypeChange}
+                disabled={loading}
               >
-                <option value="">All Categories</option>
-                {categoryOptions.map(option => (
-                  <option key={option.value} value={option.value}>{option.label}</option>
+                {classTypeOptions.map((option, index) => (
+                  <option key={`courseType-${index}-${option.value}`} value={option.value}>{option.label}</option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Pricing Status</label>
               <select
-                value={currency}
-                onChange={handleCurrencyChange}
-                className="flex h-10 w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 transition-colors focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                value={pricingStatus}
+                onChange={handlePricingStatusChange}
+                disabled={loading}
               >
-                <option value="">All Currencies</option>
-                {currencyOptions.map(option => (
-                  <option key={option.value} value={option.value}>{option.label}</option>
+                {pricingStatusOptions.map((option, index) => (
+                  <option key={`pricingStatus-${index}-${option.value}`} value={option.value}>{option.label}</option>
                 ))}
               </select>
             </div>
 
-            {advancedSearch && (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Course ID</label>
-                  <Input
-                    value={courseId}
-                    onChange={handleCourseIdChange} 
-                    placeholder="Enter course ID"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Course Grade</label>
-                  <Input
-                    value={courseGrade}
-                    onChange={handleCourseGradeChange} 
-                    placeholder="Enter course grade"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Course Type</label>
-                  <select
-                    value={courseType}
-                    onChange={handleCourseTypeChange}
-                    className="flex h-10 w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 transition-colors focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
-                  >
-                    <option value="">All Types</option>
-                    {classTypeOptions.map(option => (
-                      <option key={option.value} value={option.value}>{option.label}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Pricing Status</label>
-                  <select
-                    value={pricingStatus}
-                    onChange={handlePricingStatusChange}
-                    className="flex h-10 w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 transition-colors focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
-                  >
-                    <option value="">All Statuses</option>
-                    {pricingStatusOptions.map(option => (
-                      <option key={option.value} value={option.value}>{option.label}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Has Pricing</label>
-                  <select
-                    value={hasPricing}
-                    onChange={handleHasPricingChange}
-                    className="flex h-10 w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 transition-colors focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
-                  >
-                    <option value="">All Courses</option>
-                    {hasPricingOptions.map(option => (
-                      <option key={option.value} value={option.value}>{option.label}</option>
-                    ))}
-                  </select>
-                </div>
-              </>
-            )}
-          </div>
-
-          <div className="flex justify-between mt-4">
-            <Button 
-              type="button" 
-              variant={advancedSearch ? "secondary" : "outline"}
-              size="sm"
-              onClick={() => setAdvancedSearch(!advancedSearch)}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Has Pricing</label>
+              <select
+                className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                value={hasPricing}
+                onChange={handleHasPricingChange}
+                disabled={loading}
+              >
+                {hasPricingOptions.map((option, index) => (
+                  <option key={`hasPricing-${index}-${option.value}`} value={option.value}>{option.label}</option>
+                ))}
+              </select>
+            </div>
+          </>
+        )}
+        
+        <div className="col-span-1 md:col-span-3 flex justify-between mt-4">
+          <button
+            type="button"
+            className={`px-3 py-2 text-sm font-medium rounded-md ${advancedSearch ? 'bg-gray-200 text-gray-800' : 'bg-white border border-gray-300 text-gray-700'}`}
+            onClick={() => setAdvancedSearch(!advancedSearch)}
+          >
+            {advancedSearch ? "Simple Search" : "Advanced Search"}
+          </button>
+          
+          <div className="space-x-2">
+            <button
+              type="button"
+              className="px-3 py-2 text-sm font-medium border border-gray-300 rounded-md bg-white text-gray-700"
+              onClick={resetFilters}
+              disabled={loading}
             >
-              {advancedSearch ? "Simple Search" : "Advanced Search"} 
-            </Button>
+              Reset
+            </button>
             
-            <div className="space-x-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={resetFilters}
-              >
-                Reset
-              </Button>
-              
-              <Button
-                type="submit"
-                variant="default"
-                size="sm"
-              >
-                Apply Filters
-              </Button>
-            </div>
+            <button
+              type="submit"
+              className="px-3 py-2 text-sm font-medium rounded-md bg-indigo-600 text-white"
+              disabled={loading}
+            >
+              {loading ? "Loading..." : "Apply Filters"}
+            </button>
           </div>
-        </form>
-      </CardContent>
-    </Card>
+        </div>
+      </form>
+    </div>
   );
 };
 
+// Add Filters interface before the AdminCourseFee component
+interface Filters extends PriceFilterParams {
+  status: string;
+  category: string;
+  search: string;
+}
+
+interface ExpandedRows {
+  [key: string]: boolean;
+}
+
 const AdminCourseFee: React.FC = () => {
-  const [courses, setCourses] = useState<CoursePrice[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState<string | null>(null);
-  const [filters, setFilters] = useState<PriceFilterParams>({ status: 'Published' });
-  const [selectAll, setSelectAll] = useState(false);
-  const [bulkConfig, setBulkConfig] = useState<BulkUpdateConfig>({ 
-    type: '', 
-    value: '', 
+  const [filters, setFilters] = useState<Filters>({
+    status: 'all',
+    category: 'all',
+    search: ''
+  });
+  const [loading, setLoading] = useState<boolean>(false);
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [selectedCourses, setSelectedCourses] = useState<Set<string>>(new Set());
+  const [categories, setCategories] = useState<string[]>([]);
+  const [currencies, setCurrencies] = useState<ICurrency[]>([]);
+  const [currencyRates, setCurrencyRates] = useState<CurrencyRates>({});
+  const [bulkConfig, setBulkUpdateConfig] = useState<BulkUpdateConfig>({
+    type: '',
+    value: '',
     priceType: 'both',
     currency: undefined
   });
-  const [categories, setCategories] = useState<string[]>([]);
-  const [expandedRows, setExpandedRows] = useState<{[key: string]: boolean}>({});
-  const [toast, setToast] = useState<{show: boolean, message: string, type: 'success' | 'error' | 'info'}>({
+  const [sortState, setSortState] = useState<SortState>({
+    field: 'title',
+    direction: null
+  });
+  const [toastConfig, setToastConfig] = useState<{
+    show: boolean;
+    message: string;
+    type: 'success' | 'error' | 'info';
+  }>({
     show: false,
     message: '',
-    type: 'success'
+    type: 'info'
   });
-  const [currencyRates, setCurrencyRates] = useState<CurrencyRates>({
-    USD: { symbol: "$", name: "US Dollar", rate: 1 },
-    INR: { symbol: "₹", name: "Indian Rupee", rate: 83.5 },
-    EUR: { symbol: "€", name: "Euro", rate: 0.92 },
-    GBP: { symbol: "£", name: "British Pound", rate: 0.80 },
-    AED: { symbol: "د.إ‎", name: "UAE Dirham", rate: 3.67 }
-  });
-  const [isCurrencyLoading, setIsCurrencyLoading] = useState(false);
-  const [sortState, setSortState] = useState<SortState>({ field: 'title', direction: 'asc' });
-  
+  const [courses, setCourses] = useState<CoursePrice[]>([]);
+  const [saving, setSaving] = useState<string | null>(null);
+  const [selectAll, setSelectAll] = useState<boolean>(false);
+  const [selectedCurrency, setSelectedCurrency] = useState<string>('USD');
+
   // ======= Currency Management Functions =======
   
   // Fetch currencies from API
   const fetchCurrencies = async () => {
-    setIsCurrencyLoading(true);
+    setLoading(true);
     try {
-      // Get the token from localStorage
       const currencies = await getAllCurrencies();
       
       // Start with default rates to ensure we always have USD
       const rates: CurrencyRates = {
-        USD: { symbol: "$", name: "US Dollar", rate: 1 }
+        USD: { 
+          valueWrtUSD: 1,
+          symbol: "$", 
+          name: "US Dollar", 
+          rate: 1 
+        }
       };
       
       // Add all currencies from the API
       currencies.forEach((currency) => {
         rates[currency.countryCode] = {
+          valueWrtUSD: currency.valueWrtUSD,
           symbol: currency.symbol,
           name: currency.country,
           rate: currency.valueWrtUSD
@@ -500,10 +566,8 @@ const AdminCourseFee: React.FC = () => {
       
     } catch (error) {
       console.error("Error fetching currencies:", error);
-      // Keep using existing rates on error - don't show error toast as it's not critical
-      // This way the component still functions with default rates
     } finally {
-      setIsCurrencyLoading(false);
+      setLoading(false);
     }
   };
   
@@ -514,56 +578,21 @@ const AdminCourseFee: React.FC = () => {
   
   // Handle currency rates update
   const handleCurrencyRatesUpdate = async (newRates: CurrencyRates) => {
-    setIsCurrencyLoading(true);
     try {
-      // Process each currency that needs updating
-      const updatePromises = Object.entries(newRates).map(async ([code, currency]) => {
-        // Skip USD as it's our base currency
-        if (code === "USD") return;
-        
-        // Check if the currency already exists in our current state
-        const currentCurrency = currencyRates[code];
-        
-        // If it's a new currency, create it
-        if (!currentCurrency) {
-          await createCurrency({
-            country: currency.name,
-            countryCode: code,
-            valueWrtUSD: currency.rate,
-            symbol: currency.symbol
-          });
-          return;
-        }
-        
-        // If rate has changed, update it
-        if (currentCurrency.rate !== currency.rate) {
-          // We'd need to fetch the currency first to get its ID
-          // This is simplified for now
-          const currencies = await getAllCurrencies();
-          const existingCurrency = currencies.find(c => c.countryCode === code);
-          
-          if (existingCurrency) {
-            await updateCurrency(existingCurrency._id, {
-              valueWrtUSD: currency.rate,
-              // Update other fields if they've changed
-              symbol: currency.symbol,
-              country: currency.name
-            });
-          }
-        }
+      const updatedRates: CurrencyRates = {};
+      Object.entries(newRates).forEach(([code, rate]) => {
+        updatedRates[code] = {
+          ...rate,
+          valueWrtUSD: rate.rate // Use rate as valueWrtUSD
+        };
       });
-      
-      // Wait for all updates to complete
-      await Promise.all(updatePromises);
-      
-      // Set the new currency rates in state
-      setCurrencyRates(newRates);
+      setCurrencyRates(updatedRates);
       showToast("Currency conversion rates updated successfully", "success");
     } catch (error) {
-      console.error("Error updating currencies:", error);
-      showToast("Failed to update currency rates", "error");
+      console.error('Error updating currency rates:', error);
+      showToast('Failed to update currency rates', 'error');
     } finally {
-      setIsCurrencyLoading(false);
+      setLoading(false);
     }
   };
 
@@ -576,9 +605,9 @@ const AdminCourseFee: React.FC = () => {
   
   // Update the showToast function to accept 'info' as a valid type
   const showToast = (message: string, type: 'success' | 'error' | 'info') => {
-    setToast({ show: true, message, type });
+    setToastConfig({ show: true, message, type });
     setTimeout(() => {
-      setToast(prev => ({ ...prev, show: false }));
+      setToastConfig(prev => ({ ...prev, show: false }));
     }, 5000);
   };
   
@@ -676,105 +705,131 @@ const AdminCourseFee: React.FC = () => {
   };
   
   const handleSelectAll = (checked: boolean) => {
-    setSelectAll(checked);
-    setCourses(courses.map(course => ({ ...course, selected: checked })));
+    setSelectedCourses(prev => {
+      const newSet = new Set(prev);
+      if (checked) {
+        courses.forEach(course => newSet.add(course.id));
+      }
+      return newSet;
+    });
   };
   
   const handleSelectCourse = (id: string, checked: boolean) => {
-    setCourses(courses.map(course => 
-      course.id === id ? { ...course, selected: checked } : course
-    ));
-    
-    // Update selectAll state based on if all courses are selected
-    const allSelected = courses.every(course => 
-      course.id === id ? checked : course.selected
-    );
-    setSelectAll(allSelected);
+    setSelectedCourses(prev => {
+      const newSet = new Set(prev);
+      if (checked) {
+        newSet.add(id);
+      } else {
+        newSet.delete(id);
+      }
+      return newSet;
+    });
   };
   
   const toggleRowExpansion = (courseId: string) => {
-    setExpandedRows(prev => ({
-      ...prev,
-      [courseId]: !prev[courseId]
-    }));
+    setExpandedRows(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(courseId)) {
+        newSet.delete(courseId);
+      } else {
+        newSet.add(courseId);
+      }
+      return newSet;
+    });
   };
   
   const toggleEditMode = (courseId: string) => {
-    setCourses(courses.map(course => {
-      if (course.id === courseId) {
-        // When entering edit mode, create a deep copy of prices for editing
-        // When exiting edit mode, remove editedPrices
-        return { 
-          ...course, 
-          isEditing: !course.isEditing,
-          editedPrices: !course.isEditing ? JSON.parse(JSON.stringify(course.prices)) : undefined
-        };
-      }
-      return course;
-    }));
+    setCourses(prev => {
+      const updatedCourses = prev.map(course => {
+        if (course.id === courseId) {
+          // When entering edit mode, create a deep copy of prices for editing
+          // When exiting edit mode, remove editedPrices
+          return { 
+            ...course, 
+            isEditing: !course.isEditing,
+            editedPrices: !course.isEditing ? JSON.parse(JSON.stringify(course.prices)) : undefined
+          };
+        }
+        return course;
+      });
+      return updatedCourses;
+    });
 
     // Auto-expand the row when entering edit mode
     if (!courses.find(c => c.id === courseId)?.isEditing) {
-      setExpandedRows(prev => ({
-        ...prev,
-        [courseId]: true
-      }));
+      setExpandedRows(prev => {
+        const newSet = new Set(prev);
+        newSet.add(courseId);
+        return newSet;
+      });
     }
   };
   
-  const handlePriceChange = (courseId: string, priceIndex: number, updatedPrice: PriceDetails) => {
-    setCourses(courses.map(course => {
-      if (course.id === courseId && course.editedPrices) {
-        const newEditedPrices = [...course.editedPrices];
-        newEditedPrices[priceIndex] = updatedPrice;
-        return { ...course, editedPrices: newEditedPrices };
-      }
-      return course;
-    }));
+  const handlePriceChange = (courseId: string, priceIndex: number, updatedPrice: Partial<PriceDetails>) => {
+    setCourses(prev => {
+      const updatedCourses = prev.map(course => {
+        if (course.id === courseId && course.editedPrices) {
+          const newEditedPrices = [...course.editedPrices];
+          const existingPrice = newEditedPrices[priceIndex] || {
+            individual: 0,
+            batch: 0,
+            currency: '',
+            prices: [],
+            batchSize: 0,
+            discounts: []
+          };
+          newEditedPrices[priceIndex] = {
+            ...existingPrice,
+            ...updatedPrice
+          };
+          return { ...course, editedPrices: newEditedPrices };
+        }
+        return course;
+      });
+      return updatedCourses;
+    });
   };
   
   const handleAddPriceOption = (courseId: string) => {
-    setCourses(courses.map(course => {
-      if (course.id === courseId && course.editedPrices) {
-        // Create a new price option with defaults
-        // Use the first available currency from our rates or USD as fallback
-        const defaultCurrency = Object.keys(currencyRates)[0] || 'USD';
-        const newPrice: PriceDetails = {
-          currency: defaultCurrency,
-          individual: 0,
-          batch: 0,
-          min_batch_size: 2,
-          max_batch_size: 10,
-          early_bird_discount: 0,
-          group_discount: 0,
-          is_active: true
-        };
-        
-        return { 
-          ...course, 
-          editedPrices: [...course.editedPrices, newPrice]
-        };
-      }
-      return course;
-    }));
+    setCourses(prev => {
+      const updatedCourses = prev.map(course => {
+        if (course.id === courseId) {
+          const newEditedPrices = course.editedPrices ? [...course.editedPrices] : [];
+          newEditedPrices.push({
+            individual: 0,
+            batch: 0,
+            currency: selectedCurrency,
+            prices: [],
+            batchSize: 0,
+            discounts: []
+          });
+          return { ...course, editedPrices: newEditedPrices };
+        }
+        return course;
+      });
+      return updatedCourses;
+    });
   };
   
   const handleRemovePriceOption = (courseId: string, priceIndex: number) => {
-    setCourses(courses.map(course => {
-      if (course.id === courseId && course.editedPrices && course.editedPrices.length > 1) {
-        const newEditedPrices = [...course.editedPrices];
-        newEditedPrices.splice(priceIndex, 1);
-        return { ...course, editedPrices: newEditedPrices };
-      }
-      return course;
-    }));
+    setCourses(prev => {
+      const updatedCourses = prev.map(course => {
+        if (course.id === courseId && course.editedPrices) {
+          const newEditedPrices = [...course.editedPrices];
+          newEditedPrices.splice(priceIndex, 1);
+          return { ...course, editedPrices: newEditedPrices };
+        }
+        return course;
+      });
+      return updatedCourses;
+    });
   };
   
   const saveCoursePricing = async (courseId: string) => {
     const course = courses.find(c => c.id === courseId);
     if (!course || !course.editedPrices) return;
     
-    setSaving(courseId);
+    setLoading(true);
     
     try {
       // Convert from our internal PriceDetails format to the API's expected format
@@ -808,17 +863,20 @@ const AdminCourseFee: React.FC = () => {
       
       if (response.data && response.data.success) {
         // Update the course in state with the new prices
-        setCourses(courses.map(c => {
-          if (c.id === courseId) {
-          return {
-              ...c,
-              prices: course.editedPrices as PriceDetails[],
-              isEditing: false,
-              editedPrices: undefined
-            };
-          }
-          return c;
-        }));
+        setCourses(prev => {
+          const updatedCourses = prev.map(c => {
+            if (c.id === courseId) {
+              return {
+                ...c,
+                prices: course.editedPrices as PriceDetails[],
+                isEditing: false,
+                editedPrices: undefined
+              };
+            }
+            return c;
+          });
+          return updatedCourses;
+        });
         
         showToast(`Updated pricing for "${course.title}"`, 'success');
       } else {
@@ -828,25 +886,28 @@ const AdminCourseFee: React.FC = () => {
       console.error('Error updating course pricing:', error);
       showToast('Failed to update pricing. Please try again.', 'error');
     } finally {
-      setSaving(null);
+      setLoading(false);
     }
   };
   
   const cancelEditing = (courseId: string) => {
-    setCourses(courses.map(course => {
-      if (course.id === courseId) {
-        return {
-          ...course,
-          isEditing: false,
-          editedPrices: undefined
-        };
-      }
-      return course;
-    }));
+    setCourses(prev => {
+      const updatedCourses = prev.map(course => {
+        if (course.id === courseId) {
+          return {
+            ...course,
+            isEditing: false,
+            editedPrices: undefined
+          };
+        }
+        return course;
+      });
+      return updatedCourses;
+    });
   };
   
   const handleBulkUpdateConfig = (config: Partial<BulkUpdateConfig>) => {
-    setBulkConfig(prevConfig => ({
+    setBulkUpdateConfig(prevConfig => ({
       ...prevConfig,
       ...config
     }));
@@ -859,13 +920,13 @@ const AdminCourseFee: React.FC = () => {
     }
     
     // Get selected courses
-    const selectedCourses = courses.filter(course => course.selected);
+    const selectedCourses = courses.filter(course => selectedCourses.has(course.id));
     if (selectedCourses.length === 0) {
       showToast('No courses selected', 'error');
       return;
     }
     
-    setSaving('bulk');
+    setLoading(true);
     
     try {
       // Create update payloads for each course
@@ -928,226 +989,42 @@ const AdminCourseFee: React.FC = () => {
       
       if (response.data && response.data.success) {
         // Update the courses in state with the new prices
-        setCourses(courses.map(course => {
-          const selected = selectedCourses.find(c => c.id === course.id);
-          if (!selected) return course;
-          
-          // Find the updated pricing for this course
-          const update = bulkUpdates.find(u => u.courseId === course.id);
-          if (update) {
-            // Convert back to our internal format
-            const prices: PriceDetails[] = update.prices.map(price => ({
-              currency: price.currency,
-              individual: price.individual,
-              batch: price.batch,
-              min_batch_size: price.min_batch_size || 2,
-              max_batch_size: price.max_batch_size || 10,
-              early_bird_discount: price.early_bird_discount || 0,
-              group_discount: price.group_discount || 0,
-              is_active: price.is_active
-            }));
+        setCourses(prev => {
+          const updatedCourses = prev.map(course => {
+            const selected = selectedCourses.has(course.id);
+            if (!selected) return course;
             
-            return {
-              ...course,
-              prices
-            };
-          }
-          return course;
-        }));
+            // Find the updated pricing for this course
+            const update = bulkUpdates.find(u => u.courseId === course.id);
+            if (update) {
+              // Convert back to our internal format
+              const prices: PriceDetails[] = update.prices.map(price => ({
+                currency: price.currency,
+                individual: price.individual,
+                batch: price.batch,
+                min_batch_size: price.min_batch_size || 2,
+                max_batch_size: price.max_batch_size || 10,
+                early_bird_discount: price.early_bird_discount || 0,
+                group_discount: price.group_discount || 0,
+                is_active: price.is_active
+              }));
+              
+              return {
+                ...course,
+                prices
+              };
+            }
+            return course;
+          });
+          return updatedCourses;
+        });
         
-        showToast(`Updated pricing for ${selectedCourses.length} courses`, 'success');
+        showToast(`Updated pricing for ${selectedCourses.size} courses`, 'success');
       } else {
         showToast(response.data?.message || 'Failed to update pricing', 'error');
       }
     } catch (error) {
       console.error('Error applying bulk update:', error);
-      showToast('Failed to apply bulk updates. Please try again.', 'error');
-    } finally {
-      setSaving(null);
-    }
-  };
-  
-  // New function to apply bulk update with provided data
-  const applyBulkUpdateWithData = async (updatesData: any) => {
-    setSaving('bulk-with-data');
-    
-    try {
-      // Get authentication token from localStorage
-      const token = localStorage.getItem('token');
-      
-      // Call the API to update the prices
-      const url = `${process.env.NEXT_PUBLIC_API_URL}/home-display/prices/bulk-update`;
-      
-      const response = await axios.post(url, updatesData, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (response.data && response.data.success) {
-        // Refresh the courses to get the updated data
-        await fetchCourses();
-        showToast(`Updated pricing for ${updatesData.updates.length} courses`, 'success');
-      } else {
-        showToast(response.data?.message || 'Failed to update pricing', 'error');
-      }
-    } catch (error) {
-      console.error('Error applying bulk update with data:', error);
-      showToast('Failed to apply bulk updates. Please try again.', 'error');
-    } finally {
-      setSaving(null);
-    }
-  };
-  
-  // Helper function to apply price updates based on the update type
-  const applyPriceUpdate = (currentPrice: number, updateType: string, value: number): number => {
-    switch (updateType) {
-      case 'fixed':
-        return value;
-      case 'increase_percent':
-        return currentPrice * (1 + value / 100);
-      case 'decrease_percent':
-        return currentPrice * (1 - value / 100);
-      case 'increase_amount':
-        return currentPrice + value;
-      case 'decrease_amount':
-        return Math.max(0, currentPrice - value);
-      default:
-        return currentPrice;
-    }
-  };
-  
-  // New function to apply psychology pricing (rounding to nearest 9)
-  const applyPsychologyPricing = (price: number): number => {
-    // Convert to integer for easier manipulation
-    const priceInt = Math.round(price);
-    
-    // Get the last two digits
-    const lastTwoDigits = priceInt % 100;
-    
-    // Check if the price is close to a number ending in 99
-    // If the last two digits are between 00-09 or 90-99, round to nearest 99
-    if (lastTwoDigits <= 9 || lastTwoDigits >= 90) {
-      // If last two digits are 00-09, round down to nearest 99
-      if (lastTwoDigits <= 9) {
-        return priceInt - lastTwoDigits - 1;
-      } 
-      // If last two digits are 90-99, round up to nearest 99
-      else {
-        return priceInt + (100 - lastTwoDigits) - 1;
-      }
-    }
-    
-    // For other cases, use the original logic for numbers ending in 9
-    const lastDigit = priceInt % 10;
-    
-    // If already ends with 9, return as is
-    if (lastDigit === 9) return priceInt;
-    
-    // Calculate the nearest number ending with 9
-    if (lastDigit < 9) {
-      // Round down to nearest 9
-      return priceInt - lastDigit + 9;
-    } else {
-      // Round up to nearest 9 (next ten - 1)
-      return priceInt + (10 - lastDigit) - 1;
-    }
-  };
-  
-  // Function to apply psychology pricing to all selected courses
-  const applyPsychologyPricingToSelected = async () => {
-    // Get selected courses
-    const selectedCourses = courses.filter(course => course.selected);
-    if (selectedCourses.length === 0) {
-      showToast('No courses selected', 'error');
-      return;
-    }
-    
-    setSaving('psychology-pricing');
-    
-    try {
-      // Create update payloads for each course
-      const bulkUpdates = selectedCourses.map(course => {
-        // Apply the psychology pricing to each price option
-        const updatedPrices = course.prices.map(price => {
-          // Create a copy of the price to modify
-          const updatedPrice = { ...price };
-          
-          // Apply psychology pricing to individual and batch prices
-          updatedPrice.individual = applyPsychologyPricing(updatedPrice.individual);
-          updatedPrice.batch = applyPsychologyPricing(updatedPrice.batch);
-          
-          return updatedPrice;
-        });
-        
-        // Convert to the API's expected format
-        const apiPricing = updatedPrices.map(price => ({
-          currency: price.currency,
-          individual: price.individual,
-          batch: price.batch,
-          min_batch_size: price.min_batch_size || 2,
-          max_batch_size: price.max_batch_size || 10,
-          early_bird_discount: price.early_bird_discount || 0,
-          group_discount: price.group_discount || 0,
-          is_active: price.is_active
-        }));
-        
-        return {
-          courseId: course.id,
-          prices: apiPricing
-        };
-      });
-      
-      // Call the API to update the prices
-      const url = `${process.env.NEXT_PUBLIC_API_URL}/courses/prices/bulk-update`;
-      
-      // Get authentication token from localStorage
-      const token = localStorage.getItem('token');
-      
-      const response = await axios.post(url, {
-        updates: bulkUpdates
-      }, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (response.data && response.data.success) {
-        // Update the courses in state with the new prices
-        setCourses(courses.map(course => {
-          const selected = selectedCourses.find(c => c.id === course.id);
-          if (!selected) return course;
-          
-          // Find the updated pricing for this course
-          const update = bulkUpdates.find(u => u.courseId === course.id);
-          if (update) {
-            // Convert back to our internal format
-            const prices: PriceDetails[] = update.prices.map(price => ({
-              currency: price.currency,
-              individual: price.individual,
-              batch: price.batch,
-              min_batch_size: price.min_batch_size || 2,
-              max_batch_size: price.max_batch_size || 10,
-              early_bird_discount: price.early_bird_discount || 0,
-              group_discount: price.group_discount || 0,
-              is_active: price.is_active
-            }));
-            
-            return {
-              ...course,
-              prices
-            };
-          }
-          return course;
-        }));
-        
-        showToast(`Applied psychology pricing to ${selectedCourses.length} courses`, 'success');
-      } else {
-        showToast(response.data?.message || 'Failed to update pricing', 'error');
-      }
-    } catch (error) {
       console.error('Error applying psychology pricing:', error);
       showToast('Failed to apply psychology pricing. Please try again.', 'error');
     } finally {
@@ -1223,44 +1100,12 @@ const AdminCourseFee: React.FC = () => {
   // Add function to fetch categories
   const fetchCategories = async () => {
     try {
-      const token = localStorage.getItem('token');
-      // Use the courses/prices endpoint which contains category information
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/courses/prices`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
+      const response = await axios.get(`${apiBaseUrl}/categories`);
       if (response.data && response.data.success) {
-        // Check if the filters field contains categories
-        if (response.data.filters && Array.isArray(response.data.filters.categories)) {
-          // Explicit filtering to ensure only strings
-          const apiCategories = response.data.filters.categories
-            .filter((cat: any): cat is string => typeof cat === 'string');
-          setCategories(apiCategories);
-        } else {
-          // Extract category names from the courses data with strong typing
-          const apiCourses = response.data.data || [];
-          const categoryList: string[] = [];
-          
-          // Safely extract categories
-          for (const course of apiCourses) {
-            if (course && typeof course.courseCategory === 'string' && course.courseCategory) {
-              categoryList.push(course.courseCategory);
-            }
-          }
-          
-          // Remove duplicates
-          const uniqueCategories = [...new Set(categoryList)];
-          setCategories(uniqueCategories);
-        }
-      } else {
-        console.error('Failed to fetch categories:', response.data?.message);
+        setCategories(response.data.data.map((cat: any) => cat.name));
       }
     } catch (error) {
       console.error('Error fetching categories:', error);
-      showToast('Failed to fetch categories', 'error');
     }
   };
 
@@ -1397,38 +1242,122 @@ const AdminCourseFee: React.FC = () => {
     }
   };
 
-  return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Course Price Management</h1>
-        <div className="flex space-x-3">
-          <Button
-            onClick={() => {
-              fetchCourses();
-              fetchCategories(); // Refresh categories when refreshing courses
-            }}
-            disabled={loading}
-          >
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Refresh
-          </Button>
-        </div>
-      </div>
+  const applyPsychologyPricingToSelected = async () => {
+    setSaving('psychology-pricing');
+    
+    // Get selected courses
+    const selectedCoursesList = courses.filter(course => selectedCourses.has(course.id));
+    if (selectedCoursesList.length === 0) {
+      showToast('No courses selected', 'error');
+      setSaving('');
+      return;
+    }
+
+    try {
+      // Apply psychology pricing to each selected course
+      const psychologyUpdates = selectedCoursesList.map(course => {
+        // Apply psychology pricing to each price option
+        const updatedPrices = course.prices.map((price: PriceDetails) => {
+          const updatedPrice = { ...price };
+          
+          // Round individual price to end with 9
+          if (updatedPrice.individual) {
+            const numValue = parseFloat(updatedPrice.individual);
+            if (numValue > 0) {
+              const rounded = Math.floor(numValue) - 0.01;
+              updatedPrice.individual = rounded.toFixed(2);
+            }
+          }
+          
+          // Round batch price to end with 9
+          if (updatedPrice.batch) {
+            const numValue = parseFloat(updatedPrice.batch);
+            if (numValue > 0) {
+              const rounded = Math.floor(numValue) - 0.01;
+              updatedPrice.batch = rounded.toFixed(2);
+            }
+          }
+          
+          return updatedPrice;
+        });
+        
+        // Convert to the API's expected format
+        const apiPricing = updatedPrices.map((price: PriceDetails) => ({
+          currency: price.currency,
+          prices: {
+            individual: price.individual,
+            batch: price.batch
+          },
+          discounts: {
+            earlyBird: price.earlyBird || "0",
+            group: price.groupDiscount || "0"
+          },
+          batchSize: {
+            min: price.minBatchSize || 0,
+            max: price.maxBatchSize || 0
+          },
+          status: "active"
+        }));
+        
+        return {
+          courseId: course.id,
+          prices: updatedPrices,
+          apiPricing
+        };
+      });
       
-      {/* Add the Currency Rate Editor above the filter section */}
-      <CurrencyRateEditor 
-        rates={currencyRates} 
-        onSave={handleCurrencyRatesUpdate} 
-        isLoading={isCurrencyLoading}
-        onRefresh={fetchCurrencies}
-        onBulkAddCurrencyPricing={handleBulkAddCurrencyPricing}
-      />
+      // Save updated pricing to the API
+      let successCount = 0;
+      for (const update of psychologyUpdates) {
+        try {
+          const response = await axios.post('/api/courses/pricing', {
+            courseId: update.courseId,
+            pricing: update.apiPricing
+          });
+          
+          if (response.data.success) {
+            successCount++;
+            
+            // Update local state
+            setCourses(prevCourses => 
+              prevCourses.map(course => 
+                course.id === update.courseId 
+                  ? { ...course, prices: update.prices } 
+                  : course
+              )
+            );
+          }
+        } catch (error) {
+          console.error(`Failed to update course ${update.courseId}:`, error);
+        }
+      }
+      
+      // Show success message
+      if (successCount > 0) {
+        showToast(`Applied psychology pricing to ${successCount} of ${psychologyUpdates.length} courses`, 'success');
+      } else {
+        showToast('Failed to apply psychology pricing. Please try again.', 'error');
+      }
+    } catch (error) {
+      console.error('Error applying psychology pricing:', error);
+      showToast('Error applying psychology pricing. Please try again.', 'error');
+    } finally {
+      setSaving('');
+    }
+  };
+
+  return (
+    <div className="space-y-8">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Course Pricing Management</h1>
+      </div>
       
       <CourseFeeFilter 
         onFilterChange={setFilters} 
         categories={categories} 
         currencies={Object.keys(currencyRates)}
         classTypes={["Live Courses", "Blended Courses", "Pre-Recorded"]}
+        loading={loading || saving !== ''}
       />
       
       <BulkUpdateSection 
@@ -1450,13 +1379,13 @@ const AdminCourseFee: React.FC = () => {
           <div className="p-6">
             <Button
               onClick={applyPsychologyPricingToSelected}
-              variant="primary"
+              variant="default"
               disabled={selectedCount === 0 || saving === 'psychology-pricing'}
               className="w-full"
             >
               {saving === 'psychology-pricing' ? (
                 <>
-                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                  <RefreshCcw className="mr-2 h-4 w-4 animate-spin" />
                   Applying Psychology Pricing...
                 </>
               ) : (
@@ -1529,7 +1458,7 @@ const AdminCourseFee: React.FC = () => {
                 <tr>
                   <td colSpan={5} className="text-center py-12">
                     <div className="flex flex-col items-center">
-                      <RefreshCw className="animate-spin h-10 w-10 text-customGreen mb-3" />
+                      <RefreshCcw className="animate-spin h-10 w-10 text-customGreen mb-3" />
                       <span className="text-base">Loading courses...</span>
                     </div>
                   </td>
@@ -1782,19 +1711,19 @@ const AdminCourseFee: React.FC = () => {
           </p>
           {saving === 'bulk' && (
             <div className="flex items-center text-sm text-customGreen">
-              <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+              <RefreshCcw className="mr-2 h-4 w-4 animate-spin" />
               Applying bulk updates...
             </div>
           )}
           {saving === 'bulk-currency' && (
             <div className="flex items-center text-sm text-customGreen">
-              <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+              <RefreshCcw className="mr-2 h-4 w-4 animate-spin" />
               Adding currency pricing to courses...
             </div>
           )}
           {saving === 'psychology-pricing' && (
             <div className="flex items-center text-sm text-customGreen">
-              <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+              <RefreshCcw className="mr-2 h-4 w-4 animate-spin" />
               Applying psychology pricing...
             </div>
           )}
@@ -1802,11 +1731,11 @@ const AdminCourseFee: React.FC = () => {
       </div>
       
       {/* Toast notification */}
-      {toast.show && (
+      {toastConfig.show && (
         <Toast 
-          message={toast.message} 
-          type={toast.type} 
-          onClose={() => setToast(prev => ({ ...prev, show: false }))} 
+          message={toastConfig.message} 
+          type={toastConfig.type} 
+          onClose={() => setToastConfig(prev => ({ ...prev, show: false }))} 
         />
       )}
     </div>
@@ -2083,8 +2012,18 @@ const HomeDisplayPricing = () => {
   const [displayTypes, setDisplayTypes] = useState<string[]>([]);
   const [currencies, setCurrencies] = useState<string[]>(["USD", "INR"]);
   const [currencyRates, setCurrencyRates] = useState<CurrencyRates>({
-    USD: { symbol: '$', name: 'US Dollar', rate: 1 },
-    INR: { symbol: '₹', name: 'Indian Rupee', rate: 84.47 }
+    USD: {
+      valueWrtUSD: 1,
+      symbol: '$',
+      name: 'US Dollar',
+      rate: 1
+    },
+    INR: {
+      valueWrtUSD: 0.012,
+      symbol: '₹',
+      name: 'Indian Rupee',
+      rate: 83.33
+    }
   });
   const [selectedCurrencyForBulk, setSelectedCurrencyForBulk] = useState<string>('');
   const [expandedRows, setExpandedRows] = useState<ExpandedRows>({});
@@ -2130,13 +2069,19 @@ const HomeDisplayPricing = () => {
       
       // Start with default rates to ensure we always have USD
       const rates: CurrencyRates = {
-        USD: { symbol: "$", name: "US Dollar", rate: 1 }
+        USD: { 
+          valueWrtUSD: 1,
+          symbol: "$", 
+          name: "US Dollar", 
+          rate: 1 
+        }
       };
       
       // Add all currencies from the API
       response.forEach((currency) => {
         if (currency.countryCode) {
           rates[currency.countryCode] = {
+            valueWrtUSD: currency.valueWrtUSD,
             symbol: currency.symbol,
             name: currency.country,
             rate: currency.valueWrtUSD
@@ -2147,12 +2092,10 @@ const HomeDisplayPricing = () => {
       // Only update if we got currencies back from API
       if (Object.keys(rates).length > 1) {
         setCurrencyRates(rates);
-        setCurrencies(Object.keys(rates));
       }
       
     } catch (error) {
       console.error("Error fetching currencies:", error);
-      showToast('Failed to fetch currency rates', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -2346,9 +2289,9 @@ const HomeDisplayPricing = () => {
       }
     } catch (error) {
       console.error('Error updating home display prices:', error);
-      showToast('Failed to update home display prices', 'error');
+      showToast('Error updating home display prices. Please try again.', 'error');
     } finally {
-      setIsLoading(false);
+      setSaving('');
     }
   };
 
@@ -2798,41 +2741,32 @@ const HomeDisplayPricing = () => {
   );
 };
 
+// Combine HomeDisplayPricing and AdminCourseFee in a single component
 const AdminHomeDisplayTabs: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('courseFee');
+  const [activeTab, setActiveTab] = useState<'pricing' | 'home-display'>('pricing');
 
   return (
-    <div className="container mx-auto px-4 py-6">
-      <div className="mb-6">
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
-            <button
-              onClick={() => setActiveTab('courseFee')}
-              className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'courseFee'
-                  ? 'border-customGreen text-customGreen'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              Course Pricing
-            </button>
-            <button
-              onClick={() => setActiveTab('homeDisplay')}
-              className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'homeDisplay'
-                  ? 'border-customGreen text-customGreen'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              Home Display Pricing
-            </button>
-          </nav>
-        </div>
+    <div className="w-full">
+      <div className="flex border-b border-gray-200 mb-6">
+        <button 
+          className={`px-4 py-2 font-medium ${activeTab === 'pricing' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+          onClick={() => setActiveTab('pricing')}
+        >
+          Course Pricing
+        </button>
+        <button 
+          className={`px-4 py-2 font-medium ${activeTab === 'home-display' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+          onClick={() => setActiveTab('home-display')}
+        >
+          Home Display Pricing
+        </button>
       </div>
-
-      {activeTab === 'courseFee' ? <AdminCourseFee /> : <HomeDisplayPricing />}
+      
+      {activeTab === 'pricing' && <AdminCourseFee />}
+      {activeTab === 'home-display' && <HomeDisplayPricing />}
     </div>
   );
 };
 
 export default AdminHomeDisplayTabs; 
+
