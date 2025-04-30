@@ -482,6 +482,8 @@ const CourseCard = ({
       // Extract values and units
       const durationParts = [];
       let totalWeeks = 0;
+      let monthValue = 0;
+      let weekValue = 0;
       
       // Process each part of the duration string
       for (let i = 0; i < parts.length; i += 2) {
@@ -497,10 +499,12 @@ const CourseCard = ({
               totalWeeks += value * 52;
               break;
             case 'month':
+              monthValue = value;
               durationParts.push(`${Math.round(value)} ${Math.round(value) === 1 ? 'Month' : 'Months'}`);
               totalWeeks += value * 4;
               break;
             case 'week':
+              weekValue = value;
               durationParts.push(`${Math.round(value)} ${Math.round(value) === 1 ? 'Week' : 'Weeks'}`);
               totalWeeks += value;
               break;
@@ -521,6 +525,11 @@ const CourseCard = ({
         // If all values are zero, find the largest non-zero unit
         if (durationParts.length === 0) {
           return "Self-paced";
+        }
+        
+        // Special case: if we have both months and weeks, format as "X months / Y weeks"
+        if (monthValue > 0 && weekValue > 0) {
+          return `${Math.round(monthValue)} ${Math.round(monthValue) === 1 ? 'Month' : 'Months'} / ${Math.round(weekValue)} ${Math.round(weekValue) === 1 ? 'Week' : 'Weeks'}`;
         }
         
         // For combined formats, display the significant parts
@@ -571,7 +580,7 @@ const CourseCard = ({
       }
       
       // Add equivalent in weeks
-      return `${formattedDuration} (${Math.round(totalWeeks)} weeks)`;
+      return `${formattedDuration} / ${Math.round(totalWeeks)} weeks`;
     } else if (durationLower.includes("day")) {
       // Add parsing for days
       const dayMatches = durationLower.match(/(\d+[\.\d]*)/);
@@ -582,7 +591,7 @@ const CourseCard = ({
       
       // Only show week equivalent if it's significant (more than 1 week)
       if (totalWeeks >= 1) {
-        return `${formattedDuration} (${Math.round(totalWeeks)} weeks)`;
+        return `${formattedDuration} / ${Math.round(totalWeeks)} weeks`;
       }
       return formattedDuration;
     } else if (durationLower.includes("hour")) {
@@ -874,11 +883,12 @@ const CourseCard = ({
   const content = getCourseTypeContent();
 
   // Check if this is one of the special courses that should show internship
-  const hasInternshipOption = course?.course_title && (
-    course.course_title.toLowerCase().includes('ai & data science') ||
-    course.course_title.toLowerCase().includes('artificial intelligence') ||
-    course.course_title.toLowerCase().includes('digital marketing')
-  );
+  const hasInternshipOption = (isLiveCourse && course?.course_duration && typeof course.course_duration === 'string' && course.course_duration.toLowerCase().includes('18')) || 
+    (course?.course_title && (
+      course.course_title.toLowerCase().includes('ai & data science') ||
+      course.course_title.toLowerCase().includes('artificial intelligence') ||
+      course.course_title.toLowerCase().includes('digital marketing')
+    ));
 
   // Mobile-specific stylesi
   const mobileCardStyles = `
@@ -1218,7 +1228,7 @@ const CourseCard = ({
 
                 {/* Price section */}
                 {!hidePrice && (
-                  <div className="mt-1.5 text-center">
+                  <div className={`mt-1.5 text-center`}>
                     <div className="flex items-baseline gap-1.5 justify-center">
                       <span className={`text-lg font-bold ${styles.priceColor}`}>
                         {formatPrice(course.course_fee, course.batchPrice) }
@@ -1226,11 +1236,6 @@ const CourseCard = ({
                       {course?.original_fee && (
                         <span className="text-sm text-gray-500 line-through">
                           {formatCurrencyPrice(convertPrice(course.original_fee))}
-                        </span>
-                      )}
-                      {course?.price_suffix && course.batchPrice && (
-                        <span className="text-sm text-gray-500 font-medium">
-                          {course.price_suffix}
                         </span>
                       )}
                     </div>
@@ -1385,29 +1390,43 @@ const CourseCard = ({
                 </div>
               )}
 
-              {/* Price section - adjusted spacing */}
+              {/* Price section - Added for hover state - More compact */}
               {!hidePrice && (
-                <div className="mt-1.5 text-center">
-                  <div className="flex items-baseline gap-1.5 justify-center">
-                    <span className={`text-lg font-bold ${styles.priceColor}`}>
-                      {formatPrice(course.course_fee, course.batchPrice) }
-                    </span>
-                    {course?.original_fee && (
-                      <span className="text-sm text-gray-500 line-through">
-                        {formatCurrencyPrice(convertPrice(course.original_fee))}
+                <div className={`mt-2 mb-2 py-2 px-3 border border-gray-100 dark:border-gray-800 rounded-lg ${
+                  isLiveCourse ? 'bg-[#379392]/5' : 'bg-indigo-50 dark:bg-indigo-900/10'
+                }`}>
+                  <div className="flex items-center justify-center">
+                    <div className="flex items-baseline gap-1.5 text-center">
+                      <span className={`text-base font-bold ${styles.priceColor}`}>
+                        {formatPrice(course.course_fee, course.batchPrice)}
                       </span>
-                    )}
-                    {course?.price_suffix && course.batchPrice && (
-                      <span className="text-sm text-gray-500 font-medium">
-                        {course.price_suffix}
-                      </span>
+                      {isLiveCourse && (
+                        <span className="text-xs text-gray-500 font-medium">onwards</span>
+                      )}
+                      {course?.original_fee && (
+                        <span className="text-xs text-gray-500 line-through ml-1">
+                          {formatCurrencyPrice(convertPrice(course.original_fee))}
+                        </span>
+                      )}
+                    </div>
+                    {(course?.isFree === true || (course?.prices && course.prices.length > 0 && course.prices[0].early_bird_discount > 0)) && (
+                      <div className="ml-2">
+                        {course?.isFree === true ? (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400 text-xs font-medium">
+                            <Sparkles size={10} className="mr-1" />
+                            Free
+                          </span>
+                        ) : (
+                          course?.prices && course.prices.length > 0 && course.prices[0].early_bird_discount > 0 && (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 text-xs font-medium">
+                              <Tag size={10} className="mr-1" />
+                              {course.prices[0].early_bird_discount}% off
+                            </span>
+                          )
+                        )}
+                      </div>
                     )}
                   </div>
-                  {course?.fee_note && (
-                    <span className="text-xs text-gray-500 font-medium block mt-0.5">
-                      {course.fee_note}
-                    </span>
-                  )}
                 </div>
               )}
             </div>
@@ -1420,12 +1439,16 @@ const CourseCard = ({
             (isHovered && !isMobile) || (mobileHoverActive && isMobile) ? 'opacity-100 z-20' : 'opacity-0 -z-10'
           }`}>
             {/* Course details */}
-            <div className={`${isMobile ? 'mb-4' : 'mb-3'} flex items-center justify-center py-3 md:py-4`}>
-              <h3 className={`${isMobile ? 'text-lg' : 'text-xl'} font-extrabold text-gray-900 dark:text-white line-clamp-2 text-center max-w-[90%]`}>
+            <div className={`${isMobile ? 'mb-3' : 'mb-2'} flex items-center justify-center py-2 md:py-3`}>
+              <h3 className={`${isMobile ? 'text-sm' : 'text-base'} font-semibold text-center px-2 py-1 rounded-md ${
+                isLiveCourse 
+                  ? 'bg-[#379392]/10 text-[#379392]' 
+                  : 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400'
+              } max-w-[95%] leading-tight`}>
                 {course?.course_title}
               </h3>
             </div>
-
+            
             {/* Updated hover content structure for both course types with small pointers */}
             <div className={`flex flex-col ${isMobile ? 'gap-3 mb-4' : 'gap-2 mb-3'} items-stretch`}>
               {/* Live Sessions for Live courses / Total Videos for Blended courses */}
@@ -1489,10 +1512,17 @@ const CourseCard = ({
                           <CheckCircle size={10} className="mr-1" />
                           Assignments
                         </span>
-                        <span className="inline-flex items-center px-2 py-1 rounded-md bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 text-xs font-medium">
-                          <CheckCircle size={10} className="mr-1" />
-                          Job Assistance
-                        </span>
+                        {isLiveCourse && course?.course_duration && (typeof course.course_duration === 'string' && course.course_duration.toLowerCase().includes('18')) ? (
+                          <span className="inline-flex items-center px-2 py-1 rounded-md bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 text-xs font-medium">
+                            <CheckCircle size={10} className="mr-1" />
+                            3 months internship
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-1 rounded-md bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 text-xs font-medium">
+                            <CheckCircle size={10} className="mr-1" />
+                            Job Assistance
+                          </span>
+                        )}
                       </>
                     )}
                     
@@ -1507,6 +1537,46 @@ const CourseCard = ({
                 </div>
               </div>
             </div>
+            
+            {/* Pricing section - Added for hover state - More compact */}
+            {!hidePrice && (
+              <div className={`mt-2 mb-2 py-2 px-3 border border-gray-100 dark:border-gray-800 rounded-lg ${
+                isLiveCourse ? 'bg-[#379392]/5' : 'bg-indigo-50 dark:bg-indigo-900/10'
+              }`}>
+                <div className="flex items-center justify-center">
+                  <div className="flex items-baseline gap-1.5 text-center">
+                    <span className={`text-base font-bold ${styles.priceColor}`}>
+                      {formatPrice(course.course_fee, course.batchPrice)}
+                    </span>
+                    {isLiveCourse && (
+                      <span className="text-xs text-gray-500 font-medium">onwards</span>
+                    )}
+                    {course?.original_fee && (
+                      <span className="text-xs text-gray-500 line-through ml-1">
+                        {formatCurrencyPrice(convertPrice(course.original_fee))}
+                      </span>
+                    )}
+                  </div>
+                  {(course?.isFree === true || (course?.prices && course.prices.length > 0 && course.prices[0].early_bird_discount > 0)) && (
+                    <div className="ml-2">
+                      {course?.isFree === true ? (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400 text-xs font-medium">
+                          <Sparkles size={10} className="mr-1" />
+                          Free
+                        </span>
+                      ) : (
+                        course?.prices && course.prices.length > 0 && course.prices[0].early_bird_discount > 0 && (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 text-xs font-medium">
+                            <Tag size={10} className="mr-1" />
+                            {course.prices[0].early_bird_discount}% off
+                          </span>
+                        )
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
             
             {/* Action buttons - consistent across both types with style variations */}
             <div className={`mt-auto ${isMobile ? 'pt-1' : 'pt-0.5'} flex flex-col items-center w-full`}>

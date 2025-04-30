@@ -265,24 +265,43 @@ interface SubItem {
 interface AdminDashboardLayoutProps {
   userRole: string;
   children?: React.ReactNode;
+  activeMenu?: string | null;
+  activeSubItems?: SubItem[];
+  onMenuClick?: (menuName: string, items: SubItem[]) => void;
 }
 
-const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ userRole, children }) => {
+const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ 
+  userRole, 
+  children,
+  activeMenu: propActiveMenu,
+  activeSubItems: propActiveSubItems,
+  onMenuClick: propOnMenuClick
+}) => {
   const searchParams = useSearchParams();
   
   // Use screen size hook for responsive design
   const { isMobile, isTablet, isDesktop, current: breakpoint } = useScreenSize();
   
-  // State management
+  // State for managing content
   const [currentView, setCurrentView] = useState<string>("overview");
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(!isMobile);
   const [isDebug, setIsDebug] = useState<boolean>(false);
   const [comingSoonTitle, setComingSoonTitle] = useState<string>("Coming Soon");
   const [componentProps, setComponentProps] = useState<any>({});
-  const [activeMenu, setActiveMenu] = useState<string>("Dashboard");
-  const [activeSubItems, setActiveSubItems] = useState<SubItem[]>([]);
+  const [activeMenu, setActiveMenu] = useState<string>(propActiveMenu || "Dashboard");
+  const [activeSubItems, setActiveSubItems] = useState<SubItem[]>(propActiveSubItems || []);
   const [userName, setUserName] = useState<string>("Admin User");
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  // Use effect to sync with props if they change
+  useEffect(() => {
+    if (propActiveMenu) {
+      setActiveMenu(propActiveMenu);
+    }
+    if (propActiveSubItems) {
+      setActiveSubItems(propActiveSubItems);
+    }
+  }, [propActiveMenu, propActiveSubItems]);
 
   // Check if device is mobile and handle coming soon params
   useEffect(() => {
@@ -347,7 +366,7 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ userRole, c
     isTablet,
     isDesktop,
     breakpoint,
-    sidebarOpen,
+    sidebarOpen: sidebarOpen,
     setSidebarOpen,
     activeMenu,
     setActiveMenu,
@@ -675,6 +694,12 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ userRole, c
     }
     
     setIsLoading(true);
+    
+    // Call the provided onMenuClick if available
+    if (propOnMenuClick) {
+      propOnMenuClick(menuName, items);
+    }
+    
     setActiveMenu(menuName);
     
     // Use predefined items based on menu name if available, otherwise use provided items
