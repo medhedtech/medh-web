@@ -2,6 +2,8 @@
  * Auth utility functions for token management
  */
 
+import { jwtDecode } from 'jwt-decode';
+
 /**
  * Saves authentication token to both localStorage and sessionStorage
  * @param token JWT token string
@@ -269,7 +271,13 @@ export const storeExternalToken = (token: string): void => {
  * @param fullName User's full name
  */
 export const storeAuthData = (
-  data: { token?: string; id?: string; full_name?: string; name?: string },
+  data: { 
+    token?: string; 
+    refresh_token?: string;
+    id?: string; 
+    full_name?: string; 
+    name?: string 
+  },
   rememberMe: boolean = false,
   email?: string,
 ): boolean => {
@@ -279,15 +287,16 @@ export const storeAuthData = (
     }
     
     saveAuthToken(data.token);
+    if (data.refresh_token) {
+      saveRefreshToken(data.refresh_token);
+    }
     saveUserId(data.id);
     
-    // Save full name if available
     const fullName = data.full_name || data.name || '';
     if (fullName) {
       saveFullName(fullName);
     }
     
-    // Handle remember me functionality
     setRememberMe(rememberMe, email);
     
     return true;
@@ -324,5 +333,134 @@ export const sanitizeAuthData = (): void => {
     }
   } catch (err) {
     console.error('Error sanitizing auth data:', err);
+  }
+};
+
+/**
+ * Saves refresh token to storage
+ * @param refreshToken Refresh token string
+ */
+export const saveRefreshToken = (refreshToken: string): void => {
+  try {
+    localStorage.setItem('refreshToken', refreshToken);
+    document.cookie = `refreshToken=${refreshToken}; path=/; max-age=2592000; SameSite=Lax`; // 30 days
+  } catch (err) {
+    console.error('Error saving refresh token:', err);
+  }
+};
+
+/**
+ * Gets the refresh token from storage
+ * @returns The refresh token string or null if not found
+ */
+export const getRefreshToken = (): string | null => {
+  try {
+    return localStorage.getItem('refreshToken');
+  } catch (err) {
+    console.error('Error retrieving refresh token:', err);
+    return null;
+  }
+};
+
+/**
+ * Clear refresh token from storage
+ */
+export const clearRefreshToken = (): void => {
+  try {
+    localStorage.removeItem('refreshToken');
+    document.cookie = 'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
+  } catch (err) {
+    console.error('Error clearing refresh token:', err);
+  }
+};
+
+/**
+ * Attempts to refresh the authentication token
+ * @returns Promise that resolves to new token or null if refresh failed
+ */
+export const refreshAuthToken = async (): Promise<string | null> => {
+  try {
+    const currentToken = getAuthToken();
+    const refreshToken = getRefreshToken();
+    
+    if (!currentToken || !refreshToken) {
+      console.warn('Cannot refresh token: Missing current token or refresh token');
+      return null;
+    }
+    
+    // Avoid refresh if token is still valid
+    if (!needsTokenRefresh()) {
+      return currentToken;
+    }
+    
+    console.log('Attempting to refresh auth token');
+    
+    // Add baseUrl check to handle development environments
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.medh.co/api/v1';
+    
+    const response = await fetch(`${baseUrl}/auth/refresh-token`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${currentToken}`,
+        'x-access-token': currentToken,
+        'x-refresh-token': refreshToken
+      },
+      body: JSON.stringify({ refresh_token: refreshToken })
+    });
+    
+    if (!response.ok) {
+      console.error('Token refresh failed with status:', response.status);
+      // Clear invalid tokens on 401/403 responses
+      if (response.status === 401 || response.status === 403) {
+        clearAuthToken();
+        clearRefreshToken();
+      }
+      return null;
+    }
+    
+    const data = await response.json();
+    
+    if (data && data.token) {
+      saveAuthToken(data.token);
+      
+      // Also save refresh token if it was returned
+      if (data.refresh_token) {
+        saveRefreshToken(data.refresh_token);
+      }
+      
+      console.log('Token refreshed successfully');
+      return data.token;
+    }
+    
+    console.warn('Refresh response did not contain a token:', data);
+    return null;
+  } catch (error) {
+    console.error('Error refreshing auth token:', {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : 'Unknown Error'
+    });
+    return null;
+  }
+};
+
+/**
+ * Checks if the current token needs refresh
+ * @returns boolean True if token needs refresh
+ */
+export const needsTokenRefresh = (): boolean => {
+  try {
+    const token = getAuthToken();
+    if (!token) return false;
+
+    const decoded = jwtDecode<{ exp: number }>(token);
+    const currentTime = Math.floor(Date.now() / 1000);
+    
+    // Refresh if token expires in less than 5 minutes
+    return decoded.exp - currentTime < 300;
+  } catch (err) {
+    console.error('Error checking token expiration:', err);
+    return false;
   }
 }; 
