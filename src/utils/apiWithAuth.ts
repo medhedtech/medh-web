@@ -19,11 +19,22 @@ const isTokenExpired = (token: string, thresholdSeconds = 300): boolean => {
 
 // Refresh token if needed
 const refreshTokenIfNeeded = async (token: string): Promise<string> => {
+  if (!token) {
+    console.warn('No token provided to refreshTokenIfNeeded');
+    return token;
+  }
+  
   if (!isTokenExpired(token)) {
     return token; // Return existing token if it's not expired
   }
   
   try {
+    console.log('Attempting to refresh token:', {
+      tokenLength: token?.length,
+      tokenStart: token?.substring(0, 10),
+      isExpired: isTokenExpired(token)
+    });
+
     // Call refresh token endpoint
     const response = await axios.post(
       `${apiBaseUrl}/auth/refresh-token`,
@@ -32,19 +43,32 @@ const refreshTokenIfNeeded = async (token: string): Promise<string> => {
         headers: {
           Authorization: `Bearer ${token}`,
           'x-access-token': token
-        }
+        },
+        timeout: 10000 // 10 second timeout
       }
     );
     
     if (response.data && response.data.token) {
+      console.log('Token refresh successful:', {
+        newTokenLength: response.data.token?.length,
+        newTokenStart: response.data.token?.substring(0, 10)
+      });
       // Save the new token and return it
       saveAuthToken(response.data.token);
       return response.data.token;
     }
     
+    console.warn('Token refresh failed: No token in response', response.data);
     return token; // Return original token if refresh failed
   } catch (error) {
-    console.error('Error refreshing token:', error);
+    // More detailed error logging
+    console.error('Error refreshing token:', {
+      message: error?.message || 'Unknown error',
+      status: error?.response?.status,
+      data: error?.response?.data,
+      isAxiosError: error?.isAxiosError || false,
+      stack: error?.stack
+    });
     return token; // Return original token if refresh failed
   }
 };
@@ -55,26 +79,50 @@ const refreshTokenIfNeeded = async (token: string): Promise<string> => {
  */
 export const createAuthClient = (): AxiosInstance => {
   const axiosInstance = axios.create({
-    baseURL: apiBaseUrl
+    baseURL: apiBaseUrl,
+    timeout: 30000 // Default 30 second timeout
   });
   
   // Request interceptor to add auth headers and refresh token if needed
   axiosInstance.interceptors.request.use(
     async (config) => {
-      let token = getAuthToken();
-      
-      if (token) {
-        // Try to refresh token if it's expired or close to expiring
-        token = await refreshTokenIfNeeded(token);
+      try {
+        let token = getAuthToken();
         
-        // Add both authorization header formats
-        config.headers['Authorization'] = `Bearer ${token}`;
-        config.headers['x-access-token'] = token;
+        if (token) {
+          // Try to refresh token if it's expired or close to expiring
+          token = await refreshTokenIfNeeded(token);
+          
+          // Add both authorization header formats
+          config.headers['Authorization'] = `Bearer ${token}`;
+          config.headers['x-access-token'] = token;
+        }
+        
+        return config;
+      } catch (error) {
+        console.error('Error in auth interceptor:', error);
+        // Continue with the request even if token refresh fails
+        return config;
+      }
+    },
+    (error) => {
+      console.error('Request interceptor error:', error);
+      return Promise.reject(error);
+    }
+  );
+
+  // Add response interceptor to handle common errors
+  axiosInstance.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      // Handle authentication errors (401)
+      if (error.response?.status === 401) {
+        console.warn('Authentication failed or token expired');
+        // Could emit an event or trigger a logout here if needed
       }
       
-      return config;
-    },
-    (error) => Promise.reject(error)
+      return Promise.reject(error);
+    }
   );
   
   return axiosInstance;
