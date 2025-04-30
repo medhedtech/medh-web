@@ -25,9 +25,9 @@ const NavItems = () => {
     },
     {
       id: 3,
-      name: "Hire From Us",
-      path: "/hire-from-medh",
-      dropdown: null,
+      name: "Membership",
+      path: "/medh-membership/",
+      dropdown: null  ,
       isRelative: true,
     },
     {
