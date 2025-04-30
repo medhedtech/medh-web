@@ -12,6 +12,7 @@ import mobileMenu from "@/libs/mobileMenu";
 import { getCoursePriceValue, getMinBatchSize } from '@/utils/priceUtils';
 import axios from 'axios';
 import { apiBaseUrl, apiUrls } from '@/apis/index';
+import { useCourseCardSettings } from '@/contexts/CourseCardSettingsContext';
 
 // List of specific course durations to display (in weeks)
 const TARGET_DURATIONS = [
@@ -480,6 +481,9 @@ const HomeCourseSection = ({
   hideGradeFilter?: boolean;
   showOnlyLive?: boolean;
 }) => {
+  const { settings } = useCourseCardSettings();
+  const { selectedLiveCourseIds, selectedBlendedCourseIds, cardConfig } = settings;
+
   const [blendedCourses, setBlendedCourses] = useState<ICourse[]>([]);
   const [liveCourses, setLiveCourses] = useState<ICourse[]>([]);
   const [activeBlendedFilters, setActiveBlendedFilters] = useState({
@@ -791,6 +795,83 @@ const HomeCourseSection = ({
     return prices;
   }, [userCurrency]);
 
+  // Determine which live courses to render (filter by admin selection if set)
+  const liveToRender = selectedLiveCourseIds && selectedLiveCourseIds.length > 0
+    ? liveCourses.filter(course => selectedLiveCourseIds.includes(course._id))
+    : liveCourses;
+
+  // Empty or error state uses liveToRender
+  // Replace liveCourses.map(...) with liveToRender.map(...)
+
+  // Determine blended courses after filters and admin selection
+  const filteredBlended = useMemo(() => {
+    console.log("Filtering blended courses with filters:", activeBlendedFilters);
+    console.log("Starting with blended courses count:", blendedCourses.length);
+    
+    // Base filter for not showing placeholder courses
+    let filtered = blendedCourses.filter(course => !course.is_placeholder);
+    console.log("After removing placeholders:", filtered.length);
+    
+    // If no filters are active, return all courses
+    const noFiltersActive = !activeBlendedFilters.popular && !activeBlendedFilters.latest && !activeBlendedFilters.beginner;
+    
+    if (noFiltersActive) {
+      console.log("No filters active, returning all courses:", filtered.length);
+      return filtered;
+    }
+    
+    // Copy the filtered courses to apply active filters
+    let appliedFilteredCourses = [...filtered];
+    
+    // Apply active filters - but don't reduce to empty result set
+    if (activeBlendedFilters.popular) {
+      const popularCourses = filtered.filter(course => course.popular === true);
+      console.log("Popular courses:", popularCourses.length);
+      
+      // Only apply filter if it doesn't eliminate all courses
+      if (popularCourses.length > 0) {
+        appliedFilteredCourses = popularCourses;
+      } else {
+        console.log("No courses match 'popular' filter, using all courses instead");
+      }
+    }
+    
+    if (activeBlendedFilters.latest) {
+      const latestCourses = appliedFilteredCourses.filter(course => course.latest === true);
+      console.log("Latest courses:", latestCourses.length);
+      
+      // Only apply filter if it doesn't eliminate all courses
+      if (latestCourses.length > 0) {
+        appliedFilteredCourses = latestCourses;
+      } else {
+        console.log("No courses match 'latest' filter, keeping previous filter results");
+      }
+    }
+    
+    if (activeBlendedFilters.beginner) {
+      const beginnerCourses = appliedFilteredCourses.filter(course => 
+        course.level === 'Beginner' || 
+        course.difficulty === 'Easy' ||
+        course.difficulty === 'Beginner'
+      );
+      console.log("Beginner courses:", beginnerCourses.length);
+      
+      // Only apply filter if it doesn't eliminate all courses
+      if (beginnerCourses.length > 0) {
+        appliedFilteredCourses = beginnerCourses;
+      } else {
+        console.log("No courses match 'beginner' filter, keeping previous filter results");
+      }
+    }
+    
+    console.log("Final filtered courses count:", appliedFilteredCourses.length);
+    return appliedFilteredCourses;
+  }, [blendedCourses, activeBlendedFilters]);
+
+  const blendedToRender = selectedBlendedCourseIds && selectedBlendedCourseIds.length > 0
+    ? filteredBlended.filter(course => selectedBlendedCourseIds.includes(course._id))
+    : filteredBlended;
+
   if (error) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center bg-white dark:bg-gray-900 rounded-2xl shadow-sm">
@@ -897,71 +978,6 @@ const HomeCourseSection = ({
     );
   };
 
-  // Apply the filters to the blended courses
-  const filteredBlendedCourses = useMemo(() => {
-    console.log("Filtering blended courses with filters:", activeBlendedFilters);
-    console.log("Starting with blended courses count:", blendedCourses.length);
-    
-    // Base filter for not showing placeholder courses
-    let filtered = blendedCourses.filter(course => !course.is_placeholder);
-    console.log("After removing placeholders:", filtered.length);
-    
-    // If no filters are active, return all courses
-    const noFiltersActive = !activeBlendedFilters.popular && !activeBlendedFilters.latest && !activeBlendedFilters.beginner;
-    
-    if (noFiltersActive) {
-      console.log("No filters active, returning all courses:", filtered.length);
-      return filtered;
-    }
-    
-    // Copy the filtered courses to apply active filters
-    let appliedFilteredCourses = [...filtered];
-    
-    // Apply active filters - but don't reduce to empty result set
-    if (activeBlendedFilters.popular) {
-      const popularCourses = filtered.filter(course => course.popular === true);
-      console.log("Popular courses:", popularCourses.length);
-      
-      // Only apply filter if it doesn't eliminate all courses
-      if (popularCourses.length > 0) {
-        appliedFilteredCourses = popularCourses;
-      } else {
-        console.log("No courses match 'popular' filter, using all courses instead");
-      }
-    }
-    
-    if (activeBlendedFilters.latest) {
-      const latestCourses = appliedFilteredCourses.filter(course => course.latest === true);
-      console.log("Latest courses:", latestCourses.length);
-      
-      // Only apply filter if it doesn't eliminate all courses
-      if (latestCourses.length > 0) {
-        appliedFilteredCourses = latestCourses;
-      } else {
-        console.log("No courses match 'latest' filter, keeping previous filter results");
-      }
-    }
-    
-    if (activeBlendedFilters.beginner) {
-      const beginnerCourses = appliedFilteredCourses.filter(course => 
-        course.level === 'Beginner' || 
-        course.difficulty === 'Easy' ||
-        course.difficulty === 'Beginner'
-      );
-      console.log("Beginner courses:", beginnerCourses.length);
-      
-      // Only apply filter if it doesn't eliminate all courses
-      if (beginnerCourses.length > 0) {
-        appliedFilteredCourses = beginnerCourses;
-      } else {
-        console.log("No courses match 'beginner' filter, keeping previous filter results");
-      }
-    }
-    
-    console.log("Final filtered courses count:", appliedFilteredCourses.length);
-    return appliedFilteredCourses;
-  }, [blendedCourses, activeBlendedFilters]);
-
   if (loading) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center bg-white dark:bg-gray-900 rounded-2xl shadow-sm">
@@ -1027,7 +1043,7 @@ const HomeCourseSection = ({
             initial="hidden"
             animate="visible"
           >
-            {liveCourses.map((course) => {
+            {liveToRender.map((course) => {
               // Get video and QnA session info for the live course
               const { videoCount, qnaSessions } = getBlendedCourseSessions(course);
               
@@ -1068,8 +1084,10 @@ const HomeCourseSection = ({
                     batchPrice: batchPrice,
                     minBatchSize: minBatchSize
                   }} 
-                  classType="live" 
-                  showDuration={true}
+                  classType={cardConfig.classType || 'live'}
+                  showDuration={cardConfig.showDuration}
+                  hidePrice={cardConfig.hidePrice}
+                  hideDescription={cardConfig.hideDescription}
                 />
               </motion.div>
             )})}
@@ -1136,7 +1154,7 @@ const HomeCourseSection = ({
               <Preloader2 />
             </div>
           ) : (() => { // IIFE to calculate filtered courses inline
-            let coursesToRender = [...filteredBlendedCourses];
+            let coursesToRender = [...blendedToRender];
 
             if (activeBlendedFilters.popular) {
               coursesToRender = coursesToRender.sort((a, b) => (b.enrollmentCount || 0) - (a.enrollmentCount || 0));
@@ -1220,7 +1238,10 @@ const HomeCourseSection = ({
                         {/* Render the CourseCard component with proper props */}
                         <CourseCard 
                           course={enhancedCourse}
-                          classType="blended"
+                          classType={cardConfig.classType || 'blended'}
+                          showDuration={cardConfig.showDuration}
+                          hidePrice={cardConfig.hidePrice}
+                          hideDescription={cardConfig.hideDescription}
                         />
                       </div>
                     </motion.div>

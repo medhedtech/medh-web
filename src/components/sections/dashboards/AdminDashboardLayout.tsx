@@ -264,9 +264,10 @@ interface SubItem {
 
 interface AdminDashboardLayoutProps {
   userRole: string;
+  children?: React.ReactNode;
 }
 
-const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ userRole }) => {
+const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ userRole, children }) => {
   const searchParams = useSearchParams();
   
   // Use screen size hook for responsive design
@@ -1081,7 +1082,7 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ userRole })
         >
           <SidebarDashboard
             userRole={userRole || "admin"}
-            userName={userName}
+            fullName={userName}
             userEmail=""
             userImage=""
             userNotifications={0}
@@ -1149,7 +1150,7 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ userRole })
                 transition={{ duration: 0.3 }}
                 className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden"
               >
-                {renderComponent()}
+                {children ? children : renderComponent()}
               </motion.div>
             </AnimatePresence>
           </div>

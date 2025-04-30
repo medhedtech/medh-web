@@ -547,7 +547,7 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           subItems: [
             {
               name: "My Profile",
-              path: "/dashboards/student-profile",
+              path: "/dashboards/profile",
               icon: <UserCircle className="w-4 h-4" />
             },
             {
@@ -737,7 +737,7 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           subItems: [
             {
               name: "My Profile",
-              path: "/dashboards/parent-profile",
+              path: "/dashboards/profile",
               icon: <UserCircle className="w-4 h-4" />
             },
             {
@@ -907,7 +907,7 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
             },
             {
               name: "My Profile",
-              path: "/dashboards/instructor-profile",
+              path: "/dashboards/profile",
               icon: <UserCircle className="w-4 h-4" />
             },
             {
@@ -1028,7 +1028,7 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
             },
             {
               name: "My Profile",
-              path: "/dashboards/admin-profile",
+              path: "/dashboards/profile",
               icon: <UserCircle className="w-4 h-4" />
             },
             {

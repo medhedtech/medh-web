@@ -46,6 +46,9 @@ interface CourseProps {
   brochures?: CourseBrochure[];
   meta?: CourseMeta;
   class_type?: string;
+  showDuration?: boolean;
+  hidePrice?: boolean;
+  hideDescription?: boolean;
 }
 
 const formatPrice = (price: number, currency: string): string => {
@@ -101,6 +104,9 @@ const CourseCard: React.FC<CourseProps> = ({
   brochures,
   meta,
   class_type = "Blended",
+  showDuration = true,
+  hidePrice = false,
+  hideDescription = false,
 }) => {
   const [selectedPricing, setSelectedPricing] = useState<"individual" | "batch">(
     class_type === "Live" ? "batch" : "individual"
@@ -191,8 +197,6 @@ const CourseCard: React.FC<CourseProps> = ({
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-    } catch (error) {
-      console.error("Error downloading brochure:", error);
     } finally {
       setIsDownloading(false);
     }
@@ -231,6 +235,23 @@ const CourseCard: React.FC<CourseProps> = ({
         <div className={`absolute top-2 left-2 ${bgColor} px-2 py-1 rounded text-xs font-medium`}>
           {course_category}
         </div>
+        
+        {/* Price badge on top right */}
+        {!hidePrice && !isPriceLoading && !priceError && !isTrulyFree && (
+          <div className="absolute top-2 right-2 bg-primaryColor text-white px-3 py-1 rounded-full text-sm font-semibold">
+            {formatPrice(
+              selectedPricing === "individual" ? discountedIndividualPrice : discountedBatchPrice,
+              currency
+            )}
+          </div>
+        )}
+        
+        {/* Free badge for free courses */}
+        {!hidePrice && !isPriceLoading && !priceError && isTrulyFree && (
+          <div className="absolute top-2 right-2 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+            Free
+          </div>
+        )}
       </div>
 
       <div className="p-4">
@@ -240,80 +261,129 @@ const CourseCard: React.FC<CourseProps> = ({
           </h3>
         </Link>
 
-        <div className="text-sm text-gray-600 dark:text-gray-300 mb-3 line-clamp-2">
-          {course_description}
-        </div>
+        {!hideDescription && (
+          <div className="text-sm text-gray-600 dark:text-gray-300 mb-3 line-clamp-2">
+            {course_description}
+          </div>
+        )}
 
         <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-3">
-          <div className="flex items-center gap-1">
-            <span>Duration:</span>
-            <span className="font-medium">{course_duration}</span>
-          </div>
+          {showDuration && (
+            <div className="flex items-center gap-1">
+              <span>Duration:</span>
+              <span className="font-medium">{course_duration}</span>
+            </div>
+          )}
           <div className="flex items-center gap-1">
             <span>Sessions:</span>
             <span className="font-medium">{course_sessions}</span>
           </div>
         </div>
 
-        <div className="mb-4">
-          {isPriceLoading ? (
-            <div className="h-8 w-24 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></div>
-          ) : priceError ? (
-            <div className="text-sm text-amber-600 dark:text-amber-400">
-              {priceError}
-            </div>
-          ) : isTrulyFree ? (
-            <span className="text-2xl font-bold text-green-600">Free</span>
-          ) : (
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setSelectedPricing("individual")}
-                  className={`px-3 py-1 rounded-full text-sm ${
-                    selectedPricing === "individual"
-                      ? "bg-blue-100 text-blue-600"
-                      : "bg-gray-100 text-gray-600"
-                  }`}
-                >
-                  Individual
-                </button>
-                <button
-                  onClick={() => setSelectedPricing("batch")}
-                  className={`px-3 py-1 rounded-full text-sm ${
-                    selectedPricing === "batch"
-                      ? "bg-blue-100 text-blue-600"
-                      : "bg-gray-100 text-gray-600"
-                  }`}
-                >
-                  Batch
-                </button>
+        {!hidePrice && (
+          <div className="mb-4 border-t border-gray-200 pt-3">
+            {isPriceLoading ? (
+              <div className="h-8 w-24 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></div>
+            ) : priceError ? (
+              <div className="text-sm text-amber-600 dark:text-amber-400">
+                {priceError}
               </div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold">
-                  {formatPrice(
-                    selectedPricing === "individual" ? discountedIndividualPrice : discountedBatchPrice,
-                    currency
+            ) : isTrulyFree ? (
+              <div className="flex justify-between items-center">
+                <span className="text-2xl font-bold text-green-600">Free</span>
+                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">No Cost</span>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-medium text-gray-700">Pricing Options:</span>
+                  <div className="flex">
+                    <button
+                      onClick={() => setSelectedPricing("individual")}
+                      className={`px-3 py-1 rounded-l-full text-xs ${
+                        selectedPricing === "individual"
+                          ? "bg-blue-100 text-blue-600"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      Individual
+                    </button>
+                    <button
+                      onClick={() => setSelectedPricing("batch")}
+                      className={`px-3 py-1 rounded-r-full text-xs ${
+                        selectedPricing === "batch"
+                          ? "bg-blue-100 text-blue-600"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      Batch
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="flex flex-col">
+                  {/* Price display */}
+                  <div className="flex items-baseline justify-between">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-2xl font-bold text-primaryColor">
+                        {formatPrice(
+                          selectedPricing === "individual" ? discountedIndividualPrice : discountedBatchPrice,
+                          currency
+                        )}
+                      </span>
+                      
+                      {/* Show original price if there's a discount */}
+                      {(selectedPricing === "individual" && earlyBirdDiscount > 0) && (
+                        <span className="text-sm line-through text-gray-500">
+                          {formatPrice(individualPriceValue, currency)}
+                        </span>
+                      )}
+                      {(selectedPricing === "batch" && groupDiscount > 0) && (
+                        <span className="text-sm line-through text-gray-500">
+                          {formatPrice(batchPriceValue, currency)}
+                        </span>
+                      )}
+                    </div>
+                    
+                    {/* Discount badge */}
+                    {selectedPricing === "individual" && individualDiscountPercentage > 0 && (
+                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                        {individualDiscountPercentage}% off
+                      </span>
+                    )}
+                    {selectedPricing === "batch" && batchDiscountPercentage > 0 && (
+                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                        {batchDiscountPercentage}% off
+                      </span>
+                    )}
+                  </div>
+                  
+                  {/* Additional pricing information */}
+                  {selectedPricing === "batch" && (
+                    <div className="text-xs text-gray-600 mt-1">
+                      <span className="font-medium">Batch details:</span> 
+                      {actualMinBatchSize > 0 && ` Min ${actualMinBatchSize} students`}
+                      {actualMaxBatchSize > 0 && ` · Max ${actualMaxBatchSize} students`}
+                      {/* Per student price calculation */}
+                      {actualMinBatchSize > 0 && (
+                        <div className="mt-1">
+                          <span className="font-medium">Per student:</span> 
+                          {formatPrice(discountedBatchPrice / Math.max(actualMinBatchSize, 1), currency)}
+                        </div>
+                      )}
+                    </div>
                   )}
-                </span>
-                {selectedPricing === "individual" && individualDiscountPercentage > 0 && (
-                  <span className="text-sm text-green-600">
-                    {individualDiscountPercentage}% off
-                  </span>
-                )}
-                {selectedPricing === "batch" && batchDiscountPercentage > 0 && (
-                  <span className="text-sm text-green-600">
-                    {batchDiscountPercentage}% off
-                  </span>
-                )}
+                  
+                  {selectedPricing === "individual" && earlyBirdDiscount > 0 && (
+                    <div className="text-xs text-gray-600 mt-1">
+                      <span className="font-medium">Early bird discount:</span> Save {earlyBirdDiscount}% 
+                    </div>
+                  )}
+                </div>
               </div>
-              {selectedPricing === "batch" && actualMinBatchSize > 0 && (
-                <span className="text-sm text-gray-600">
-                  Min. {actualMinBatchSize}+ students
-                </span>
-              )}
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
 
         <div className="flex flex-wrap gap-2 mb-4">
           {is_Certification === "Yes" && (
@@ -362,7 +432,9 @@ const CourseCard: React.FC<CourseProps> = ({
         courseTitle={course_title}
         courseId={_id}
         brochureId={brochures?.[0]?._id || ""}
-      />
+      >
+        {/* Empty children to fix the linter error */}
+      </DownloadBrochureModal>
     </div>
   );
 };
