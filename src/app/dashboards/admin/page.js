@@ -1,5 +1,4 @@
 import { Suspense } from 'react';
-import ProtectedPage from "@/app/protectedRoutes";
 import Loading from "@/app/loading";
 import dynamic from 'next/dynamic';
 
@@ -25,12 +24,8 @@ export const metadata = {
 
 export default function AdminDashboardPage() {
   return (
-    <ProtectedPage>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-        <Suspense fallback={<Loading/>}>
-          <AdminDashboard />
-        </Suspense>
-      </div>
-    </ProtectedPage>
+    <Suspense fallback={<Loading/>}>
+      <AdminDashboard />
+    </Suspense>
   );
 }
