@@ -35,8 +35,8 @@ const DropdownMore = ({ isMenuOpen, onMenuToggle }) => {
           path: "/news-and-media",
         },
         {
-          name: "Membership",
-          path: "/medh-membership",
+          name: "Hire From Us",
+          path: "/hire-from-medh",
         },
         {
           name: "Team",
