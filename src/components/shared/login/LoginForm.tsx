@@ -47,6 +47,44 @@ interface MedhJwtPayload extends JwtPayload {
   [key: string]: any;
 }
 
+// Update the interfaces to match the exact API response structure
+interface LoginResponseData {
+  id: string;
+  email: string;
+  full_name: string;
+  role: string[];
+  permissions: string[];
+  access_token: string;
+  refresh_token: string;
+}
+
+interface LoginResponse {
+  success: boolean;
+  message: string;
+  data: LoginResponseData;
+}
+
+// Update the interfaces for auth data
+interface AuthData {
+  token: string;
+  refresh_token: string;
+  id: string;
+  full_name: string;
+  email: string;
+}
+
+interface StorageManagerLoginData {
+  token: string;
+  refresh_token: string;
+  userId: string;
+  email: string;
+  password?: string;
+  role?: string;
+  fullName?: string;
+  permissions?: string[];
+  rememberMe?: boolean;
+}
+
 const schema = yup
   .object({
     email: yup.string().trim().email("Please enter a valid email").required("Email is required"),
@@ -191,7 +229,6 @@ const LoginForm = () => {
   const onSubmit = async (data: FormInputs): Promise<void> => {
     if (!recaptchaValue) {
       setRecaptchaError(true);
-      // Focus on the first field with error
       setTimeout(() => emailInputRef.current?.focus(), 100);
       return;
     }
@@ -203,84 +240,62 @@ const LoginForm = () => {
         password: data.password,
         agree_terms: data?.agree_terms,
       },
-      onSuccess: (res) => {
-        // Debug log
+      onSuccess: (res: LoginResponse) => {
         console.log('Login response:', res);
+        
+        // Prepare auth data with the exact structure
+        const authData: AuthData = {
+          token: res.data.access_token,
+          refresh_token: res.data.refresh_token,
+          id: res.data.id,
+          full_name: res.data.full_name,
+          email: res.data.email
+        };
+
         const authSuccess = storeAuthData(
-          {
-            token: res.token,
-            id: res.data?.id,
-            full_name: res.data?.full_name,
-            name: res.data?.name
-          },
+          authData,
           rememberMe,
           data.email
         );
-        console.log('storeAuthData result:', authSuccess);
+
         if (!authSuccess) {
           toast.error("Failed to save authentication data. Please try again.");
           return;
         }
-        
-        // Extract user information with better error handling
-        let userRole = '';
-        let fullName = '';
-        
-        try {
-          const decoded = jwtDecode<MedhJwtPayload>(res.token);
-          
-          // Extract role with fallbacks
-          if (decoded.user?.role) {
-            userRole = Array.isArray(decoded.user.role) ? decoded.user.role[0] : decoded.user.role;
-            fullName = decoded.user.full_name || '';
-          } else if (decoded.role) {
-            userRole = Array.isArray(decoded.role) ? decoded.role[0] : decoded.role;
-          }
-          
-          // Additional fallbacks for role and name
-          if (!userRole) userRole = res.role || '';
-          if (!fullName) fullName = res.full_name || res.name || '';
-          
-          // Store additional user information
-          if (userRole) {
-            localStorage.setItem("role", userRole);
-          }
-          
-          // Store full name in localStorage for easy access in different components
-          if (fullName) {
-            localStorage.setItem("fullName", fullName);
-          }
-          
-        } catch (error) {
-          console.error("Error processing token:", error);
-          userRole = res.role || '';
-          fullName = res.full_name || '';
+
+        // Extract user role from the response
+        const userRole = Array.isArray(res.data.role) ? res.data.role[0] : res.data.role;
+        const fullName = res.data.full_name;
+
+        // Store role and full name in localStorage
+        if (userRole) {
+          localStorage.setItem("role", userRole);
         }
-        
-        // Continue using the existing storage manager for non-auth data
-        storageManager.login({
-          token: res.token,
-          userId: res.data?.id,
-          email: data.email,
+        if (fullName) {
+          localStorage.setItem("fullName", fullName);
+        }
+
+        // Store data in storage manager
+        const storageData: StorageManagerLoginData = {
+          token: res.data.access_token,
+          refresh_token: res.data.refresh_token,
+          userId: res.data.id,
+          email: res.data.email,
           password: rememberMe ? data.password : undefined,
           role: userRole,
           fullName: fullName,
-          permissions: res.permissions || [],
+          permissions: res.data.permissions,
           rememberMe: rememberMe
-        });
+        };
+
+        storageManager.login(storageData);
 
         // Track login event
         events.login(userRole || 'user');
         
-        // Handle navigation with toast feedback
-        toast.success("Login successful! Redirecting...");
+        // Show success message and redirect
+        toast.success(res.message || "Login successful! Redirecting...");
         
-        // Navigation priority:
-        // 1. Valid redirect parameter from URL
-        // 2. Role-based dashboard
-        // 3. Homepage as fallback
-        
-        // Safe redirect handling
         if (redirectPath && redirectPath.startsWith('/') && !redirectPath.startsWith('//')) {
           router.push(redirectPath);
         } else {
@@ -288,14 +303,12 @@ const LoginForm = () => {
           router.push(dashboardPath);
         }
         
-        // Reset form state
         setRecaptchaError(false);
         setRecaptchaValue(null);
       },
       onFail: (error) => {
-        toast.error("Login failed. Please check your credentials.");
+        toast.error(error?.message || "Login failed. Please check your credentials.");
         console.error("Login error:", error);
-        // Focus on email field for retry
         setTimeout(() => emailInputRef.current?.focus(), 100);
       },
     });
