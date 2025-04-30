@@ -9,10 +9,11 @@ import Link from "next/link";
 const NavbarMenu = ({ menuOpen, toggleMenu }) => {
   const menuItems = [
     { href: "/corporate-training-courses", label: "Corporate Training" },
+    { href: "/medh-membership", label: "Medh Membership" },
     { href: "/hire-from-medh", label: "Hire From Us" },
     { href: "/about-us", label: "About Us" },
     { href: "/news-and-media", label: "News & Media" },
-    { href: "/medh-membership", label: "Medh Membership" },
+  
     { href: "/medh-team", label: "Medh Team" },
     { href: "/join-us-as-educator", label: "Join Us as an Educator" },
     { href: "/join-us-as-school-institute", label: "Join Us as a School / Institute" },

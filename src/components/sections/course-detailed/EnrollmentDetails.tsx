@@ -4,7 +4,8 @@ import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   CreditCard, ArrowRight, ThumbsUp, AlertTriangle, 
-  Lock, Zap, CheckCircle, Users, User, Info, CheckCircle2, Clock, GraduationCap
+  Lock, Zap, CheckCircle, Users, User, Info, CheckCircle2, Clock, GraduationCap,
+  CalendarClock, Calculator
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
@@ -144,7 +145,55 @@ interface PaymentDetails {
   formattedOriginalPrice: string;
 }
 
+interface EMIOption {
+  bank: string;
+  term: number;
+  interestRate: number;
+  monthlyAmount: number;
+}
+
+interface InstallmentPlan {
+  installments: number;
+  amount: number;
+  processingFee: number;
+  installmentAmount: number;
+}
+
 type EnrollmentType = 'individual' | 'batch';
+
+// Add extended options interface for Razorpay with EMI support
+interface RazorpayOptions {
+  key: string;
+  amount: number;
+  currency: string;
+  name: string;
+  description: string;
+  image: string;
+  handler: (response: any) => Promise<void>;
+  prefill: {
+    name: string;
+    email: string;
+    contact: string;
+  };
+  notes: {
+    enrollment_type: string;
+    course_id: string;
+    price_id: string;
+    user_id: string;
+    currency: string;
+    price: string;
+    installment_id?: string;
+    installment_number?: string;
+    total_installments?: string;
+  };
+  theme: {
+    color: string;
+  };
+  modal: {
+    ondismiss: () => void;
+  };
+  method?: string;
+}
 
 // Error Boundary Component
 const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, resetErrorBoundary }) => (
@@ -247,6 +296,8 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     isLoading: razorpayLoading, 
     error: razorpayError 
   } = useRazorpay();
+  const [showInstallmentOptions, setShowInstallmentOptions] = useState<boolean>(false);
+  const [selectedInstallmentPlan, setSelectedInstallmentPlan] = useState<InstallmentPlan | null>(null);
 
   // Check login status on component mount
   useEffect(() => {
@@ -298,8 +349,8 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
         return `${weeks} week${weeks !== 1 ? 's' : ''}`;
       }
       
-      // Otherwise show months with weeks in parentheses
-      return `${months} month${months !== 1 ? 's' : ''} (${weeks} week${weeks !== 1 ? 's' : ''})`;
+      // Otherwise show months with weeks in a slash format
+      return `${months} month${months !== 1 ? 's' : ''} / ${weeks} week${weeks !== 1 ? 's' : ''}`;
     }
     
     // Return original string if it doesn't match expected format
@@ -428,6 +479,185 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     return !price || price <= 0 || price < 0.01;
   };
 
+  // Calculate Installment options based on final price
+  const calculateInstallmentPlans = useCallback((finalPrice: number): InstallmentPlan[] => {
+    if (!finalPrice || finalPrice < 2000) {
+      // Installments usually available for amounts above 2000 INR
+      return [];
+    }
+    
+    // Processing fee (3% for installment plans)
+    const processingFeePercentage = 3;
+    const calculateFee = (amount: number) => Math.round(amount * processingFeePercentage / 100);
+    
+    // Create installment plans with 3, 4, and 6 installments
+    const installmentPlans: InstallmentPlan[] = [
+      {
+        installments: 3,
+        amount: finalPrice,
+        processingFee: calculateFee(finalPrice),
+        installmentAmount: Math.ceil(finalPrice / 3 + calculateFee(finalPrice) / 3)
+      },
+      {
+        installments: 4,
+        amount: finalPrice,
+        processingFee: calculateFee(finalPrice),
+        installmentAmount: Math.ceil(finalPrice / 4 + calculateFee(finalPrice) / 4)
+      },
+      {
+        installments: 6,
+        amount: finalPrice,
+        processingFee: calculateFee(finalPrice),
+        installmentAmount: Math.ceil(finalPrice / 6 + calculateFee(finalPrice) / 6)
+      }
+    ];
+    
+    return installmentPlans;
+  }, []);
+  
+  // Get available installment options
+  const installmentPlans = useMemo(() => {
+    // Only show installments for non-free courses with adequate price
+    if (
+      courseDetails?.isFree || 
+      isFreePrice(getFinalPrice()) || 
+      getFinalPrice() < 2000
+    ) {
+      return [];
+    }
+    
+    return calculateInstallmentPlans(getFinalPrice());
+  }, [courseDetails, getFinalPrice, isFreePrice, calculateInstallmentPlans]);
+  
+  // Toggle installment options display
+  const toggleInstallmentOptions = () => {
+    setShowInstallmentOptions(!showInstallmentOptions);
+  };
+  
+  // Select an installment plan
+  const selectInstallmentPlan = (plan: InstallmentPlan) => {
+    setSelectedInstallmentPlan(plan);
+  };
+  
+  // Check if installments are available
+  const isInstallmentAvailable = useMemo(() => {
+    return installmentPlans.length > 0;
+  }, [installmentPlans]);
+  
+  // Handle enrollment through Razorpay with Installment support
+  const handleRazorpayPayment = async (): Promise<void> => {
+    if (!courseDetails?._id) {
+      toast.error("Course information is missing");
+      return;
+    }
+
+    if (!activePricing) {
+      toast.error("Pricing information is missing");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      
+      // Get the final price in the original currency
+      const finalPrice = getFinalPrice();
+      const originalCurrency = activePricing.currency;
+      
+      // Get user info from profile if available
+      const userEmail = userProfile?.email || RAZORPAY_CONFIG.prefill.email;
+      const userName = userProfile?.full_name || userProfile?.name || RAZORPAY_CONFIG.prefill.name;
+      const userPhone = userProfile?.phone_number || userProfile?.mobile || RAZORPAY_CONFIG.prefill.contact;
+
+      // Import functions for currency handling
+      const { getRazorpayConfigForCurrency, isCurrencySupported } = await import('@/config/razorpay');
+      
+      // Get Razorpay configuration for the course currency
+      const razorpayConfig = await getRazorpayConfigForCurrency(
+        originalCurrency,
+        userId || undefined
+      );
+      
+      // Determine payment amount based on full payment or installment
+      let paymentAmount = Math.round(finalPrice * 100); // Full payment in smallest currency unit
+      let paymentDescription = `Payment for ${courseDetails?.course_title || "Course"} (${enrollmentType} enrollment)`;
+      
+      // If installment plan is selected, only charge first installment
+      if (selectedInstallmentPlan) {
+        paymentAmount = Math.round(selectedInstallmentPlan.installmentAmount * 100);
+        paymentDescription = `First installment (1/${selectedInstallmentPlan.installments}) for ${courseDetails?.course_title || "Course"}`;
+      }
+      
+      // Create a unique installment ID if using installments
+      const installmentId = selectedInstallmentPlan ? `INST-${Date.now()}-${Math.random().toString(36).substring(2, 8)}` : undefined;
+      
+      // Configure Razorpay options
+      const options: RazorpayOptions = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || razorpayConfig.key,
+        amount: paymentAmount,
+        currency: originalCurrency,
+        name: courseDetails?.course_title || "Course Enrollment",
+        description: paymentDescription,
+        image: "/images/logo.png", // Use local image path instead of external URL
+        handler: async function (response: any) {
+          toast.success("Payment Successful!");
+          
+          // Add installment info to payment response if applicable
+          if (selectedInstallmentPlan) {
+            response.installment_id = installmentId;
+            response.installment_number = '1';
+            response.total_installments = selectedInstallmentPlan.installments.toString();
+          }
+          
+          // Call enrollment API directly with payment details
+          if (userId) {
+            await enrollCourse(
+              userId, 
+              courseDetails._id, 
+              response
+            );
+          }
+        },
+        prefill: {
+          name: userName,
+          email: userEmail,
+          contact: userPhone,
+        },
+        notes: {
+          enrollment_type: enrollmentType,
+          course_id: courseDetails._id,
+          price_id: activePricing?._id || '',
+          user_id: userId || '',
+          currency: originalCurrency,
+          price: finalPrice.toString(),
+        },
+        theme: {
+          color: razorpayConfig.theme.color,
+        },
+        modal: {
+          ondismiss: function() {
+            setLoading(false);
+          }
+        }
+      };
+      
+      // Add installment details to notes if applicable
+      if (selectedInstallmentPlan && installmentId) {
+        options.notes.installment_id = installmentId;
+        options.notes.installment_number = '1';
+        options.notes.total_installments = selectedInstallmentPlan.installments.toString();
+      }
+
+      // Use the hook to handle Razorpay checkout with the proper types
+      await openRazorpayCheckout(options);
+    } catch (err: any) {
+      console.error("Enrollment error:", err);
+      setError(err.message || "Failed to process enrollment");
+      toast.error("Enrollment failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Enroll course function
   const enrollCourse = async (studentId: string, courseId: string, paymentResponse: any = {}): Promise<any> => {
     try {
@@ -439,8 +669,18 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
         payment_information: {
           ...paymentResponse,
           payment_method: paymentResponse?.razorpay_payment_id ? 'razorpay' : 'free',
-          amount: getFinalPrice(),
-          currency: activePricing?.currency || 'INR'
+          amount: selectedInstallmentPlan ? selectedInstallmentPlan.installmentAmount : getFinalPrice(),
+          currency: activePricing?.currency || 'INR',
+          is_installment: !!selectedInstallmentPlan,
+          installment_plan: selectedInstallmentPlan ? {
+            total_amount: getFinalPrice(),
+            processing_fee: selectedInstallmentPlan.processingFee,
+            total_installments: selectedInstallmentPlan.installments,
+            current_installment: 1,
+            installment_amount: selectedInstallmentPlan.installmentAmount,
+            installment_id: paymentResponse.installment_id || null,
+            remaining_amount: getFinalPrice() - selectedInstallmentPlan.installmentAmount,
+          } : null
         }
       };
       
@@ -547,97 +787,6 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     } catch (error) {
       console.error("Error fetching upcoming meetings:", error);
       return [];
-    }
-  };
-
-  // Handle enrollment through Razorpay
-  const handleRazorpayPayment = async (): Promise<void> => {
-    if (!courseDetails?._id) {
-      toast.error("Course information is missing");
-      return;
-    }
-
-    if (!activePricing) {
-      toast.error("Pricing information is missing");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      
-      // Get the final price in the original currency
-      const finalPrice = getFinalPrice();
-      const originalCurrency = activePricing.currency;
-      
-      // Get user info from profile if available
-      const userEmail = userProfile?.email || RAZORPAY_CONFIG.prefill.email;
-      const userName = userProfile?.full_name || userProfile?.name || RAZORPAY_CONFIG.prefill.name;
-      const userPhone = userProfile?.phone_number || userProfile?.mobile || RAZORPAY_CONFIG.prefill.contact;
-
-      // Import functions for currency handling
-      const { getRazorpayConfigForCurrency, isCurrencySupported } = await import('@/config/razorpay');
-      
-      // Get Razorpay configuration for the course currency
-      const razorpayConfig = await getRazorpayConfigForCurrency(
-        originalCurrency,
-        userId || undefined
-      );
-      
-      // Use the original currency and price without conversion
-      // Note: Razorpay requires the amount in paise (smallest unit)
-      const finalAmount = Math.round(finalPrice * 100);
-      
-      // Configure Razorpay options
-      const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || razorpayConfig.key,
-        amount: finalAmount,
-        currency: originalCurrency,
-        name: courseDetails?.course_title || "Course Enrollment",
-        description: `Payment for ${courseDetails?.course_title || "Course"} (${enrollmentType} enrollment)`,
-        image: "/images/logo.png", // Use local image path instead of external URL
-        handler: async function (response: any) {
-          toast.success("Payment Successful!");
-          
-          // Call enrollment API directly with payment details
-          if (userId) {
-            await enrollCourse(
-              userId, 
-              courseDetails._id, 
-              response
-            );
-          }
-        },
-        prefill: {
-          name: userName,
-          email: userEmail,
-          contact: userPhone,
-        },
-        notes: {
-          enrollment_type: enrollmentType,
-          course_id: courseDetails._id,
-          price_id: activePricing?._id || '',
-          user_id: userId || '',
-          currency: originalCurrency,
-          price: finalPrice.toString()
-        },
-        theme: {
-          color: razorpayConfig.theme.color,
-        },
-        modal: {
-          ondismiss: function() {
-            setLoading(false);
-          }
-        }
-      };
-
-      // Use the hook to handle Razorpay checkout with the proper types
-      await openRazorpayCheckout(options);
-    } catch (err: any) {
-      console.error("Enrollment error:", err);
-      setError(err.message || "Failed to process enrollment");
-      toast.error("Enrollment failed. Please try again.");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -920,6 +1069,76 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
             </motion.div>
           </AnimatePresence>
           
+          {/* EMI Payment Options replaced with Installment plans */}
+          {isInstallmentAvailable && (
+            <div className="px-5 pt-3">
+              <button
+                onClick={toggleInstallmentOptions}
+                className="flex w-full items-center justify-between bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 px-4 py-3 rounded-lg text-sm font-medium hover:bg-blue-100 dark:hover:bg-blue-800/30 transition"
+              >
+                <div className="flex items-center">
+                  <CalendarClock className="w-4 h-4 mr-2" />
+                  <span>Pay in installments from ₹{installmentPlans[2]?.installmentAmount || Math.round(getFinalPrice() / 6)}/month</span>
+                </div>
+                <span className="text-xs">
+                  {showInstallmentOptions ? 'Hide Options' : 'View Plans'}
+                </span>
+              </button>
+              
+              {showInstallmentOptions && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="mt-3 border border-blue-100 dark:border-blue-800 rounded-lg overflow-hidden"
+                >
+                  <div className="bg-blue-50 dark:bg-blue-900/20 px-4 py-2 border-b border-blue-100 dark:border-blue-800 flex justify-between items-center">
+                    <h4 className="text-blue-800 dark:text-blue-300 text-sm font-medium">Medh Installment Plans</h4>
+                    <span className="text-xs text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-800/40 px-2 py-0.5 rounded-full">Interest Free</span>
+                  </div>
+                  <div className="p-3 space-y-2">
+                    {installmentPlans.map((plan, index) => (
+                      <div 
+                        key={index}
+                        className={`p-3 rounded-lg border cursor-pointer transition ${
+                          selectedInstallmentPlan?.installments === plan.installments
+                            ? 'bg-blue-100 dark:bg-blue-800/40 border-blue-300 dark:border-blue-600'
+                            : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+                        }`}
+                        onClick={() => selectInstallmentPlan(plan)}
+                      >
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="font-medium text-sm">Pay in {plan.installments} installments</span>
+                          <span className="font-semibold text-blue-700 dark:text-blue-300">
+                            ₹{plan.installmentAmount}/mo
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
+                          <span>Processing fee: ₹{plan.processingFee}</span>
+                          <span>Total: ₹{plan.amount + plan.processingFee}</span>
+                        </div>
+                        <div className="mt-2 grid grid-cols-6 gap-1">
+                          {Array.from({ length: plan.installments }).map((_, i) => (
+                            <div 
+                              key={i} 
+                              className={`h-1.5 rounded-full ${i === 0 
+                                ? 'bg-green-500 dark:bg-green-400' 
+                                : 'bg-gray-200 dark:bg-gray-600'}`}
+                            ></div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="bg-blue-50 dark:bg-blue-900/20 px-4 py-3 border-t border-blue-100 dark:border-blue-800 text-xs text-gray-600 dark:text-gray-400">
+                    <p>• First installment today, remaining monthly</p>
+                    <p>• Pay remaining installments flexibly via your student dashboard</p>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          )}
+          
           {/* Course Details List - More readable on mobile */}
           <div className="space-y-3 border-t border-gray-200 dark:border-gray-700 pt-5">
             <div className="flex justify-between items-center bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700 hover:shadow-sm transition-shadow">
@@ -961,7 +1180,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
             </div>
           </div>
           
-          {/* Enroll Button - Responsive for both mobile and desktop */}
+          {/* Enroll Button - Modified to show installment selection if available */}
           <motion.button
             whileHover={{ scale: 1.02, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)" }}
             whileTap={{ scale: 0.98 }}
@@ -984,7 +1203,10 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
               <>
                 {isLoggedIn ? (
                   <>
-                    {courseDetails?.isFree ? 'Enroll for Free' : (isBlendedCourse ? 'Enroll Now' : (enrollmentType === 'individual' ? 'Enroll Now' : 'Enroll in Batch'))} <ArrowRight className="w-5 h-5 ml-2" />
+                    {courseDetails?.isFree ? 'Enroll for Free' : 
+                      selectedInstallmentPlan ? `Pay ₹${selectedInstallmentPlan.installmentAmount} now - ${selectedInstallmentPlan.installments} installments` : 
+                      (isBlendedCourse ? 'Enroll Now' : 
+                      (enrollmentType === 'individual' ? 'Enroll Now' : 'Enroll in Batch'))} <ArrowRight className="w-5 h-5 ml-2" />
                   </>
                 ) : (
                   <>
@@ -995,13 +1217,20 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
             )}
           </motion.button>
           
-          {/* Payment info - Better styled for mobile */}
+          {/* Payment info with installment badge */}
           {!courseDetails?.isFree && (
-            <div className="text-center text-xs text-gray-500 dark:text-gray-400 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700">
-              <div className="flex items-center justify-center">
+            <div className="text-center text-xs p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700">
+              <div className="flex items-center justify-center mb-1.5">
                 <CreditCard className="w-4 h-4 mr-2 text-gray-400" />
-                Secure payment powered by Razorpay
+                <span className="text-gray-500 dark:text-gray-400">Secure payment powered by Razorpay</span>
               </div>
+              {isInstallmentAvailable && (
+                <div className="flex items-center justify-center gap-2">
+                  <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded text-xs">Installments</span>
+                  <span className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 py-0.5 rounded text-xs">Credit Card</span>
+                  <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded text-xs">UPI</span>
+                </div>
+              )}
             </div>
           )}
           
