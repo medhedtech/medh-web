@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, createContext, useContext, useMemo } from "react";
+import React, { useState, useEffect, createContext, useContext, useMemo, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import SidebarDashboard from "@/components/sections/sub-section/dashboards/SidebarDashboard";
@@ -58,9 +58,9 @@ const AdminFeedbackComplaints = dynamic(() => import("@/components/layout/main/d
 });
 
 // Placement Management
-const AdminPlacements = dynamic(() => import("@/components/layout/main/dashboards/Admin-Placements"), { 
+const AdminPlacements = dynamic(() => import("@/components/layout/main/dashboards/AdminPlacements"), { 
   ssr: false,
-  loading: () => <SkeletonLoader type="default" />
+  loading: () => <SkeletonLoader type="dashboard" />
 });
 
 // Blog Management
@@ -130,13 +130,11 @@ const QuizBuilder = dynamic(() => import("@/components/layout/main/dashboards/Qu
 });
 
 // Forms Management
-const AdminEnrollmentForm = dynamic(() => import("@/components/layout/main/dashboards/AdminEnrollent-Form"), { 
-  ssr: false,
-  loading: () => <SkeletonLoader type="form" />
+const AdminEnrolments = dynamic(() => import("@/components/layout/main/dashboards/AdminEnrollent-Form"), {
+  loading: () => <SkeletonLoader type="dashboard" />,
 });
-const AdminGetInTouch = dynamic(() => import("@/components/layout/main/dashboards/AdminGetInTouch"), { 
-  ssr: false,
-  loading: () => <SkeletonLoader type="form" />
+const AdminGetInTouch = dynamic(() => import("@/components/layout/main/dashboards/AdminGetInTouch"), {
+  loading: () => <SkeletonLoader type="dashboard" />,
 });
 const AdminJobApplicants = dynamic(() => import("@/components/layout/main/dashboards/AdminJobApplicants"), { 
   ssr: false,
@@ -269,6 +267,153 @@ interface AdminDashboardLayoutProps {
   activeSubItems?: SubItem[];
   onMenuClick?: (menuName: string, items: SubItem[]) => void;
 }
+
+// Add this utility function outside the component to make it cleaner
+const getComponentForView = (
+  view: string, 
+  componentProps: any = {}, 
+  isDebug: boolean = false
+) => {
+  // Helper function to check if view matches patterns
+  const viewMatches = (patterns: string[]): boolean => {
+    if (!view) return false;
+    const normalizedView = view.toLowerCase();
+    return patterns.some(pattern => normalizedView.includes(pattern.toLowerCase()));
+  };
+  
+  try {
+    // Main Dashboard
+    if (viewMatches(['overview', 'dashboard'])) {
+      return { component: AdminDashboardMain, props: componentProps };
+    } 
+    
+    // Currency Management
+    else if (viewMatches(['admin-currency', 'currency-settings'])) {
+      return { component: AdminCurrency, props: componentProps };
+    }
+    
+    // Course Management
+    else if (viewMatches(['admin-course-categories', 'categories'])) {
+      return { component: CategoryManagement, props: componentProps };
+    }
+    else if (viewMatches(['add-course', 'admin-addcourse', 'newcourse'])) {
+      return { component: AddCourse, props: componentProps };
+    }
+    else if (viewMatches(['admin-listofcourse', 'listcourse', 'edit-courses'])) {
+      return { component: ListOfCourses, props: componentProps };
+    }
+    else if (viewMatches(['admin-course-fee', 'course-fees', 'pricing'])) {
+      return { component: AdminCourseFee, props: componentProps };
+    }
+    else if (viewMatches(['update-course'])) {
+      return { component: UpdateCourse, props: componentProps };
+    }
+    else if (viewMatches(['preview-detail'])) {
+      return { component: PreviewDetail, props: componentProps };
+    }
+    else if (viewMatches(['preview-update-detail'])) {
+      return { component: PreviewUpdateDetail, props: componentProps };
+    }
+    else if (viewMatches(['course-detail'])) {
+      return { component: CourseDetails, props: componentProps };
+    }
+    else if (viewMatches(['coursestatus'])) {
+      return { component: DashboardCoursesTab, props: componentProps };
+    }
+    else if (viewMatches(['admin-add-category'])) {
+      return { component: AdminCategories, props: { selectedCategory: null, ...componentProps } };
+    }
+    
+    // Student Management
+    else if (viewMatches(['admin-studentmange', 'studentmange', 'view-students'])) {
+      return { component: StudentManagement, props: componentProps };
+    }
+    else if (viewMatches(['add-student'])) {
+      return { component: AddStudent, props: componentProps };
+    }
+    
+    // Instructor Management
+    else if (viewMatches(['admin-instuctoremange', 'instuctoremange', 'view-instructors'])) {
+      return { component: InstructorManagement, props: componentProps };
+    }
+    else if (viewMatches(['add-instructor'])) {
+      return { component: AddInstructor, props: componentProps };
+    }
+    else if (viewMatches(['admin-assigninstructor', 'assign-instructor'])) {
+      return { component: AssignInstructor, props: componentProps };
+    }
+    
+    // Certificate Management
+    else if (viewMatches(['admin-generatecertificate', 'certificate'])) {
+      return { component: GenerateCertificate, props: componentProps };
+    }
+    
+    // Class Management
+    else if (viewMatches(['online-class', 'admin-schonlineclass'])) {
+      return { component: OnlineClass, props: componentProps };
+    }
+    else if (viewMatches(['live-demo-class'])) {
+      return { component: LiveDemoClass, props: componentProps };
+    }
+    else if (viewMatches(['demo-classes'])) {
+      return { component: DemoClasses, props: componentProps };
+    }
+    else if (viewMatches(['main-class'])) {
+      return { component: MainClass, props: componentProps };
+    }
+    else if (viewMatches(['all-main-classes'])) {
+      return { component: AllMainClasses, props: componentProps };
+    }
+    
+    // Blogs Management
+    else if (viewMatches(['admin-blogs', 'blog'])) {
+      return { component: AdminBlogsManagement, props: componentProps };
+    }
+    else if (viewMatches(['add-blog'])) {
+      return { component: AdminBlogsManagement, props: componentProps };
+    }
+    
+    // Forms Management
+    else if (viewMatches(['admin-enrollments', 'enrollment-forms'])) {
+      return { component: AdminEnrolments, props: componentProps };
+    }
+    else if (viewMatches(['admin-get-in-touch', 'contacts'])) {
+      return { component: AdminGetInTouch, props: componentProps };
+    }
+    else if (viewMatches(['admin-job-applicants', 'applicants'])) {
+      return { component: AdminJobApplicants, props: componentProps };
+    }
+    
+    // Feedback Management
+    else if (viewMatches(['admin-feedback-and-complaints', 'complaints', 'feedback'])) {
+      return { component: AdminFeedbackComplaints, props: componentProps };
+    }
+    
+    // Placement Management
+    else if (viewMatches(['admin-placements', 'corporate', 'placement'])) {
+      return { component: AdminPlacements, props: componentProps };
+    }
+    
+    // Corporate Management
+    else if (viewMatches(['add-corporate-admin'])) {
+      return { component: AddCorporateAdmin, props: componentProps };
+    }
+    else if (viewMatches(['corporate-admin-table'])) {
+      return { component: CorporateAdminTable, props: componentProps };
+    }
+    
+    // Notifications
+    else if (viewMatches(['notifications'])) {
+      return { component: AdminNotifications, props: componentProps };
+    }
+    
+    // No matching component found
+    return { component: null, props: {} };
+  } catch (error) {
+    console.error("Error finding component for view:", error);
+    return { component: null, props: {}, error };
+  }
+};
 
 const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ 
   userRole, 
@@ -884,160 +1029,70 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
     }
     
     try {
-      // Main Dashboard
-      if (viewMatches(['overview', 'dashboard'])) {
-        return <AdminDashboardMain />;
-      } 
+      // Get the component using our utility function
+      const { component: Component, props, error } = getComponentForView(currentView, componentProps, isDebug);
       
-      // Currency Management
-      else if (viewMatches(['admin-currency', 'currency-settings'])) {
-        return <AdminCurrency />;
-      }
-      
-      // Course Management
-      else if (viewMatches(['admin-course-categories', 'categories'])) {
-        return <CategoryManagement />;
-      }
-      else if (viewMatches(['add-course', 'admin-addcourse', 'newcourse'])) {
-        return <AddCourse />;
-      }
-      else if (viewMatches(['admin-listofcourse', 'listcourse', 'edit-courses'])) {
-        return <ListOfCourses />;
-      }
-      else if (viewMatches(['admin-course-fee', 'course-fees', 'pricing'])) {
-        return <AdminCourseFee />;
-      }
-      else if (viewMatches(['update-course'])) {
-        return <UpdateCourse {...componentProps} />;
-      }
-      else if (viewMatches(['preview-detail'])) {
-        return <PreviewDetail />;
-      }
-      else if (viewMatches(['preview-update-detail'])) {
-        return <PreviewUpdateDetail />;
-      }
-      else if (viewMatches(['course-detail'])) {
-        return <CourseDetails {...componentProps} />;
-      }
-      else if (viewMatches(['coursestatus'])) {
-        return <DashboardCoursesTab />;
-      }
-      else if (viewMatches(['admin-add-category'])) {
-        return <AdminCategories selectedCategory={null} />;
-      }
-      
-      // Student Management
-      else if (viewMatches(['admin-studentmange', 'studentmange', 'view-students'])) {
-        return <StudentManagement />;
-      }
-      else if (viewMatches(['add-student'])) {
-        return <AddStudent />;
-      }
-      
-      // Instructor Management
-      else if (viewMatches(['admin-instuctoremange', 'instuctoremange', 'view-instructors'])) {
-        return <InstructorManagement />;
-      }
-      else if (viewMatches(['add-instructor'])) {
-        return <AddInstructor />;
-      }
-      else if (viewMatches(['admin-assigninstructor', 'assign-instructor'])) {
-        return <AssignInstructor />;
-      }
-      
-      // Certificate Management
-      else if (viewMatches(['admin-generatecertificate', 'certificate'])) {
-        return <GenerateCertificate />;
-      }
-      
-      // Class Management
-      else if (viewMatches(['online-class', 'admin-schonlineclass'])) {
-        return <OnlineClass />;
-      }
-      else if (viewMatches(['live-demo-class'])) {
-        return <LiveDemoClass />;
-      }
-      else if (viewMatches(['demo-classes'])) {
-        return <DemoClasses />;
-      }
-      else if (viewMatches(['main-class'])) {
-        return <MainClass />;
-      }
-      else if (viewMatches(['all-main-classes'])) {
-        return <AllMainClasses />;
-      }
-      
-      // Blogs Management
-      else if (viewMatches(['admin-blogs', 'blog'])) {
-        return <AdminBlogsManagement />;
-      }
-      else if (viewMatches(['add-blog'])) {
-        return <AdminBlogsManagement />; // Redirect to blogs management instead
-      }
-      
-      // Forms Management
-      else if (viewMatches(['admin-enrollments', 'enrollment-forms'])) {
-        return <AdminEnrollmentForm />;
-      }
-      else if (viewMatches(['admin-get-in-touch', 'contacts'])) {
-        return <AdminGetInTouch />;
-      }
-      else if (viewMatches(['admin-job-applicants', 'applicants'])) {
-        return <AdminJobApplicants />;
-      }
-      
-      // Feedback Management
-      else if (viewMatches(['admin-feedback-and-complaints', 'complaints', 'feedback'])) {
-        return <AdminFeedbackComplaints />;
-      }
-      
-      // Placement Management
-      else if (viewMatches(['admin-placements', 'corporate', 'placement'])) {
-        return <AdminPlacements />;
-      }
-      
-      // Corporate Management
-      else if (viewMatches(['add-corporate-admin'])) {
-        return <AddCorporateAdmin />;
-      }
-      else if (viewMatches(['corporate-admin-table'])) {
-        return <CorporateAdminTable />;
-      }
-      
-      // Notifications
-      else if (viewMatches(['notifications'])) {
-        return <AdminNotifications />;
-      }
-      
-      // Fallback for debug mode
-      else if (isDebug) {
-        return (
-          <div className="p-8 text-center">
-            <h2 className="text-xl font-medium mb-4">Debug View</h2>
-            <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg mb-4">
-              <p className="text-red-700 dark:text-red-300">Unknown view: {currentView}</p>
+      // Handle no matching component
+      if (!Component) {
+        if (error) {
+          // If there was an error finding a component
+          return (
+            <div className="p-8 text-center">
+              <h2 className="text-xl font-medium mb-4 text-red-600">Something went wrong</h2>
+              <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg mb-4">
+                <p className="text-red-700 dark:text-red-300">
+                  {error instanceof Error ? error.message : "An error occurred finding the component"}
+                </p>
+              </div>
+              <button 
+                onClick={() => {
+                  setIsLoading(true);
+                  setCurrentView("overview");
+                  setTimeout(() => setIsLoading(false), 500);
+                }} 
+                className="px-4 py-2 bg-primary-100 text-primary-700 rounded-lg"
+                aria-label="Return to overview"
+              >
+                Return to Overview
+              </button>
             </div>
-            <button 
-              onClick={() => {
-                setIsLoading(true);
-                setCurrentView("overview");
-                setTimeout(() => setIsLoading(false), 500);
-              }} 
-              className="px-4 py-2 bg-primary-100 text-primary-700 rounded-lg"
-              aria-label="Return to overview"
-            >
-              Return to Overview
-            </button>
-          </div>
-        );
-      } else {
-        // Default to ComingSoon page for unimplemented views
-        return <ComingSoonPage 
-          title={`Feature: ${currentView}`}
-          description="This admin feature is under development and will be available soon!"
-          returnPath="/dashboards/admin"
-        />;
+          );
+        }
+        
+        if (isDebug) {
+          // Show debug info in debug mode
+          return (
+            <div className="p-8 text-center">
+              <h2 className="text-xl font-medium mb-4">Debug View</h2>
+              <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg mb-4">
+                <p className="text-red-700 dark:text-red-300">Unknown view: {currentView}</p>
+              </div>
+              <button 
+                onClick={() => {
+                  setIsLoading(true);
+                  setCurrentView("overview");
+                  setTimeout(() => setIsLoading(false), 500);
+                }} 
+                className="px-4 py-2 bg-primary-100 text-primary-700 rounded-lg"
+                aria-label="Return to overview"
+              >
+                Return to Overview
+              </button>
+            </div>
+          );
+        } else {
+          // Default to ComingSoon page for unimplemented views
+          return <ComingSoonPage 
+            title={`Feature: ${currentView}`}
+            description="This admin feature is under development and will be available soon!"
+            returnPath="/dashboards/admin"
+          />;
+        }
       }
+      
+      // Render the actual component with its props
+      return <Component {...props} />;
+      
     } catch (error) {
       console.error("Error rendering component:", error);
       return (
