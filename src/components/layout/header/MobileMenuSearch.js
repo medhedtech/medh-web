@@ -19,7 +19,7 @@ const MobileMenuSearch = () => {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search courses, lessons..."
+            placeholder="Search..."
             className="w-full h-12 bg-gray-100 dark:bg-gray-800 border-0 rounded-lg pl-10 pr-12 focus:ring-2 focus:ring-primary-500 text-gray-900 dark:text-white dark:placeholder-gray-400"
           />
           

@@ -111,7 +111,6 @@ interface SubItem {
   name: string;
   path?: string;
   icon: React.ReactNode;
-  comingSoon?: boolean;
   onClick?: () => void;
 }
 
@@ -121,7 +120,6 @@ interface MenuItem {
   icon: React.ReactNode;
   onClick?: () => void;
   subItems?: SubItem[];
-  comingSoon?: boolean;
 }
 
 interface ItemSection {
@@ -411,6 +409,13 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
     isPathCorporate = false;
   }
 
+  // First, create a helper function to format routes
+  const formatRoute = (role: string, pageName: string): string => {
+    // Remove any existing "role-" prefix from pageName if it exists
+    const cleanPageName = pageName.replace(/^(admin|student|instructor|parent|coorporate)-/, '');
+    return `/dashboards/${role}/${cleanPageName}/`;
+  };
+
   // Handle logout
   const handleLogout = () => {
     try {
@@ -433,12 +438,12 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
       Cookies.remove("token");
       Cookies.remove("userId");
       
-      // Redirect to login page
-      router.push("/login");
+      // Use the new path format for redirecting to login
+      router.push("/login/");
     } catch (error) {
       console.error("Error during logout:", error);
       // If error, still try to redirect
-      router.push("/login");
+      router.push("/login/");
     }
   };
 
@@ -469,46 +474,26 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
 
   // Handle menu clicks
   const handleMenuClick = (menuName: string, items: SubItem[]) => {
-    // If clicking the same menu that's already active, toggle it closed
+    // Toggle dropdown visibility without changing layout
     if (activeMenu === menuName) {
       setActiveMenu(null);
-      // Remove hash from URL
-      if (typeof window !== "undefined") {
-        window.history.pushState(null, "", window.location.pathname + window.location.search);
-      }
     } else {
       setActiveMenu(menuName);
-      // Set hash in URL for direct access
-      if (typeof window !== "undefined") {
-        window.location.hash = encodeURIComponent(menuName);
-      }
     }
     
-    // Pass to parent component to update content
-    onMenuClick(menuName, items);
+    // We no longer pass items to parent component to update content
+    // as we want direct navigation instead of layout changes
   };
 
   // Handle submenu clicks
   const handleSubMenuClick = (subItem: SubItem) => {
-    if (subItem.comingSoon) {
-      // If the feature is coming soon, navigate to coming soon page with title and return path
-      const returnPath = userRole === "admin" 
-        ? "/dashboards/admin" 
-        : userRole === "instructor" 
-        ? "/dashboards/instructor-dashboard" 
-        : "/dashboards/student";
-      
-      router.push(`/coming-soon?title=${encodeURIComponent(subItem.name)}&returnPath=${returnPath}`);
-      return;
-    }
-    
     // If item has an onClick handler, use that
     if (subItem.onClick) {
       subItem.onClick();
       return;
     }
     
-    // Otherwise navigate to the actual path
+    // Otherwise navigate to the actual path in the same page
     if (subItem.path) {
       router.push(subItem.path);
     }
@@ -547,45 +532,42 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           subItems: [
             {
               name: "My Profile",
-              path: "/dashboards/profile",
+              path: formatRoute("student", "profile"),
               icon: <UserCircle className="w-4 h-4" />
             },
             {
               name: "Upcoming Classes",
-              path: "/dashboards/student-upcoming-classes",
+              path: formatRoute("student", "upcoming-classes"),
               icon: <CalendarDays className="w-4 h-4" />
             },
             {
               name: "Recent Announcements",
-              path: "/dashboards/student-announcements",
-              icon: <Bell className="w-4 h-4" />,
-              comingSoon: true
+              path: formatRoute("student", "announcements"),
+              icon: <Bell className="w-4 h-4" />
             },
             {
               name: "Progress Overview",
-              path: "/dashboards/student-progress-overview",
+              path: formatRoute("student", "progress-overview"),
               icon: <TrendingUp className="w-4 h-4" />
             },
             {
               name: "Free Courses",
-              path: "/dashboards/students-free-courses",
+              path: formatRoute("student", "free-courses"),
               icon: <Gift className="w-4 h-4" />
             },
             {
               name: "Add Social Icon",
-              path: "/dashboards/student-social",
-              icon: <Share2 className="w-4 h-4" />,
-              comingSoon: true
+              path: formatRoute("student", "social"),
+              icon: <Share2 className="w-4 h-4" />
             },
             {
               name: "Change Password",
-              path: "/dashboards/student-password",
-              icon: <Key className="w-4 h-4" />,
-              comingSoon: true
+              path: formatRoute("student", "password"),
+              icon: <Key className="w-4 h-4" />
             },
             {
               name: "My Wishlist",
-              path: "/dashboards/student-wishlist",
+              path: formatRoute("student", "wishlist"),
               icon: <Heart className="w-4 h-4" />
             },
           ]
@@ -603,12 +585,12 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
         {
           name: "My Courses",
           icon: <BookOpen className="w-5 h-5" />,
-          path: "/dashboards/my-courses"
+          path: formatRoute("student", "my-courses")
         },
         {
           name: "My Membership",
           icon: <Users className="w-5 h-5" />,
-          path: "/dashboards/student-membership"
+          path: formatRoute("student", "membership")
         },
         {
           name: "My Live Classes",
@@ -616,18 +598,17 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           subItems: [
             {
               name: "Join Live Class",
-              path: "/dashboards/student-join-live",
-              icon: <Play className="w-4 h-4" />,
-              comingSoon: true
+              path: formatRoute("student", "join-live"),
+              icon: <Play className="w-4 h-4" />
             },
             {
               name: "View Scheduled Classes",
-              path: "/dashboards/student-upcoming-classes",
+              path: formatRoute("student", "upcoming-classes"),
               icon: <CalendarDays className="w-4 h-4" />
             },
             {
               name: "Access Recorded Sessions",
-              path: "/dashboards/access-recorded-sessions",
+              path: formatRoute("student", "access-recorded-sessions"),
               icon: <Video className="w-4 h-4" />
             }
           ]
@@ -643,19 +624,18 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           subItems: [
             {
               name: "Course Completion Status",
-              path: "/dashboards/student-enrolled-courses",
+              path: formatRoute("student", "enrolled-courses"),
               icon: <CheckCircle className="w-4 h-4" />
             },
             {
               name: "Performance Analytics",
-              path: "/dashboards/student-progress-overview",
+              path: formatRoute("student", "progress-overview"),
               icon: <BarChart className="w-4 h-4" />
             },
             {
               name: "Skill Development Tracking",
-              path: "/dashboards/student-skills",
-              icon: <Target className="w-4 h-4" />,
-              comingSoon: true
+              path: formatRoute("student", "skills"),
+              icon: <Target className="w-4 h-4" />
             }
           ]
         },
@@ -665,14 +645,13 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           subItems: [
             {
               name: "Access Course Materials",
-              path: "/dashboards/lesson-course-materials",
+              path: formatRoute("student", "lesson-course-materials"),
               icon: <FileText className="w-4 h-4" />
             },
             {
               name: "View e-books",
-              path: "/dashboards/student-ebooks",
-              icon: <Book className="w-4 h-4" />,
-              comingSoon: true
+              path: formatRoute("student", "ebooks"),
+              icon: <Book className="w-4 h-4" />
             }
           ]
         },
@@ -682,17 +661,17 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           subItems: [
             {
               name: "My Assignments",
-              path: "/dashboards/student-assignments",
+              path: formatRoute("student", "assignments"),
               icon: <Clipboard className="w-4 h-4" />
             },
             {
               name: "Take Quiz",
-              path: "/dashboards/student-quiz",
+              path: formatRoute("student", "quiz"),
               icon: <CheckSquare className="w-4 h-4" />
             },
             {
               name: "My Quiz Attempts",
-              path: "/dashboards/student-my-quiz-attempts",
+              path: formatRoute("student", "my-quiz-attempts"),
               icon: <ListChecks className="w-4 h-4" />
             }
           ]
@@ -705,22 +684,22 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
         {
           name: "Feedback & Support",
           icon: <MessageCircle className="w-5 h-5" />,
-          path: "/dashboards/feedback"
+          path: formatRoute("student", "feedback")
         },
         {
           name: "Certificates",
           icon: <Award className="w-5 h-5" />,
-          path: "/dashboards/student-certificate"
+          path: formatRoute("student", "certificate")
         },
         {
           name: "Payments",
           icon: <CreditCard className="w-5 h-5" />,
-          path: "/dashboards/student-payment"
+          path: formatRoute("student", "payment")
         },
         {
           name: "Apply for Placement",
           icon: <Briefcase className="w-5 h-5" />,
-          path: "/dashboards/student-apply"
+          path: formatRoute("student", "apply")
         }
       ]
     }
@@ -737,32 +716,32 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           subItems: [
             {
               name: "My Profile",
-              path: "/dashboards/profile",
+              path: formatRoute("parent", "profile"),
               icon: <UserCircle className="w-4 h-4" />
             },
             {
               name: "Child's Upcoming Classes",
-              path: "/dashboards/parent-upcoming-classes",
+              path: formatRoute("parent", "upcoming-classes"),
               icon: <CalendarDays className="w-4 h-4" />
             },
             {
               name: "Recent Performance Updates",
-              path: "/dashboards/parent-performance-updates",
+              path: formatRoute("parent", "performance-updates"),
               icon: <TrendingUp className="w-4 h-4" />
             },
             {
               name: "Quick Access",
-              path: "/dashboards/parent-quick-access",
+              path: formatRoute("parent", "quick-access"),
               icon: <Zap className="w-4 h-4" />
             },
             {
               name: "Add Social Icon",
-              path: "/dashboards/parent-social",
+              path: formatRoute("parent", "social"),
               icon: <Share2 className="w-4 h-4" />
             },
             {
               name: "Change Password",
-              path: "/dashboards/parent-password",
+              path: formatRoute("parent", "password"),
               icon: <Key className="w-4 h-4" />
             }
           ]
@@ -778,27 +757,27 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           subItems: [
             {
               name: "View Timetable",
-              path: "/dashboards/parent-timetable",
+              path: formatRoute("parent", "timetable"),
               icon: <Calendar className="w-4 h-4" />
             },
             {
               name: "View Attendance",
-              path: "/dashboards/parent-attendance",
+              path: formatRoute("parent", "attendance"),
               icon: <CheckSquare className="w-4 h-4" />
             },
             {
               name: "Upcoming Classes",
-              path: "/dashboards/parent-classes",
+              path: formatRoute("parent", "classes"),
               icon: <Clock className="w-4 h-4" />
             },
             {
               name: "Recorded Sessions",
-              path: "/dashboards/parent-recordings",
+              path: formatRoute("parent", "recordings"),
               icon: <Video className="w-4 h-4" />
             },
             {
               name: "Track Performance",
-              path: "/dashboards/parent-track-performance",
+              path: formatRoute("parent", "track-performance"),
               icon: <LineChart className="w-4 h-4" />
             }
           ]
@@ -809,12 +788,12 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           subItems: [
             {
               name: "Pending Assignments",
-              path: "/dashboards/parent-pending-assignments",
+              path: formatRoute("parent", "pending-assignments"),
               icon: <AlertCircle className="w-4 h-4" />
             },
             {
               name: "View Grades",
-              path: "/dashboards/parent-grades",
+              path: formatRoute("parent", "grades"),
               icon: <Award className="w-4 h-4" />
             }
           ]
@@ -830,17 +809,17 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           subItems: [
             {
               name: "Message Instructors",
-              path: "/dashboards/parent-message-instructors",
+              path: formatRoute("parent", "message-instructors"),
               icon: <Mail className="w-4 h-4" />
             },
             {
               name: "Announcements",
-              path: "/dashboards/parent-announcements",
+              path: formatRoute("parent", "announcements"),
               icon: <Bell className="w-4 h-4" />
             },
             {
               name: "Schedule Meetings",
-              path: "/dashboards/parent-schedule-meetings",
+              path: formatRoute("parent", "schedule-meetings"),
               icon: <CalendarClock className="w-4 h-4" />
             }
           ]
@@ -851,17 +830,17 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           subItems: [
             {
               name: "Fee Structure",
-              path: "/dashboards/parent-fee-structure",
+              path: formatRoute("parent", "fee-structure"),
               icon: <FileText className="w-4 h-4" />
             },
             {
               name: "Make Payments",
-              path: "/dashboards/parent-make-payments",
+              path: formatRoute("parent", "make-payments"),
               icon: <DollarSign className="w-4 h-4" />
             },
             {
               name: "Download Invoices",
-              path: "/dashboards/parent-invoices",
+              path: formatRoute("parent", "invoices"),
               icon: <Download className="w-4 h-4" />
             }
           ]
@@ -872,17 +851,17 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           subItems: [
             {
               name: "Submit Feedback",
-              path: "/dashboards/parent-submit-feedback",
+              path: formatRoute("parent", "submit-feedback"),
               icon: <ThumbsUp className="w-4 h-4" />
             },
             {
               name: "Raise Concerns",
-              path: "/dashboards/parent-raise-concerns",
+              path: formatRoute("parent", "raise-concerns"),
               icon: <AlertTriangle className="w-4 h-4" />
             },
             {
               name: "Track Resolution",
-              path: "/dashboards/parent-track-resolution",
+              path: formatRoute("parent", "track-resolution"),
               icon: <History className="w-4 h-4" />
             }
           ]
@@ -902,25 +881,23 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           subItems: [
             {
               name: "Overview",
-              path: "/dashboards/instructor-dashboard",
+              path: formatRoute("instructor", "dashboard"),
               icon: <LayoutGrid className="w-4 h-4" />
             },
             {
               name: "My Profile",
-              path: "/dashboards/profile",
+              path: formatRoute("instructor", "profile"),
               icon: <UserCircle className="w-4 h-4" />
             },
             {
               name: "Change Password",
-              path: "/dashboards/instructor-password",
-              icon: <Key className="w-4 h-4" />,
-              comingSoon: true
+              path: formatRoute("instructor", "password"),
+              icon: <Key className="w-4 h-4" />
             },
             {
               name: "Add Social Icon",
-              path: "/dashboards/instructor-social",
-              icon: <Share2 className="w-4 h-4" />,
-              comingSoon: true
+              path: formatRoute("instructor", "social"),
+              icon: <Share2 className="w-4 h-4" />
             }
           ]
         }
@@ -932,17 +909,17 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
         {
           name: "My Demo Classes",
           icon: <MonitorPlay className="w-5 h-5" />,
-          path: "/dashboards/instructor-class"
+          path: formatRoute("instructor", "class")
         },
         {
           name: "My Main Classes",
           icon: <Video className="w-5 h-5" />,
-          path: "/dashboards/instructor-mainclass"
+          path: formatRoute("instructor", "mainclass")
         },
         {
           name: "Track Sessions",
           icon: <History className="w-5 h-5" />,
-          path: "/dashboards/instructor-track"
+          path: formatRoute("instructor", "track")
         }
       ]
     },
@@ -955,27 +932,27 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           subItems: [
             {
               name: "Create Assignment",
-              path: "/dashboards/instructor-create-assignment",
+              path: formatRoute("instructor", "create-assignment"),
               icon: <Pencil className="w-4 h-4" />
             },
             {
               name: "Create Quiz",
-              path: "/dashboards/instructor-create-quiz",
+              path: formatRoute("instructor", "create-quiz"),
               icon: <FileCheck className="w-4 h-4" />
             },
             {
               name: "Submitted Assignments",
-              path: "/dashboards/instructor-view-assignments",
+              path: formatRoute("instructor", "view-assignments"),
               icon: <Clipboard className="w-4 h-4" />
             },
             {
               name: "Submitted Quizzes",
-              path: "/dashboards/instructor-view-quizes",
+              path: formatRoute("instructor", "view-quizes"),
               icon: <CheckSquare className="w-4 h-4" />
             },
             {
               name: "My Quiz Attempts",
-              path: "/dashboards/instructor-my-quiz-attempts",
+              path: formatRoute("instructor", "my-quiz-attempts"),
               icon: <ListChecks className="w-4 h-4" />
             }
           ]
@@ -988,25 +965,22 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
         {
           name: "Feedback",
           icon: <MessageCircle className="w-5 h-5" />,
-          path: "/dashboards/instructor-feedbacks"
+          path: formatRoute("instructor", "feedbacks")
         },
         {
           name: "Student Performance",
           icon: <TrendingUp className="w-5 h-5" />,
-          path: "/dashboards/instructor-student-performance",
-          comingSoon: true
+          path: formatRoute("instructor", "student-performance")
         },
         {
           name: "Schedule Classes",
           icon: <Calendar className="w-5 h-5" />,
-          path: "/dashboards/instructor-schedule",
-          comingSoon: true
+          path: formatRoute("instructor", "schedule")
         },
         {
           name: "Resources",
           icon: <FolderOpen className="w-5 h-5" />,
-          path: "/dashboards/instructor-resources",
-          comingSoon: true
+          path: formatRoute("instructor", "resources")
         }
       ]
     }
@@ -1023,30 +997,42 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           subItems: [
             {
               name: "Overview",
-              path: "/dashboards/admin",
+              path: formatRoute("admin", "dashboard"),
               icon: <LayoutGrid className="w-4 h-4" />
             },
             {
               name: "My Profile",
-              path: "/dashboards/profile",
+              path: formatRoute("admin", "profile"),
               icon: <UserCircle className="w-4 h-4" />
             },
             {
+              name: "Task Management",
+              path: formatRoute("admin", "task-management"),
+              icon: <CheckSquare className="w-4 h-4" />
+            },
+            {
+              name: "Home Page Editor",
+              path: formatRoute("admin", "home-editor"),
+              icon: <Pencil className="w-4 h-4" />
+            },
+            {
               name: "Currency Management",
-              path: "/dashboards/admin-currency",
-              icon: <DollarSign className="w-4 h-4" />
+              path: formatRoute("admin", "currency"),
+              icon: <DollarSign className="w-4 h-4" />,
+              onClick: () => {
+                onMenuClick("Location & Currency", adminSidebar[1].items.map(item => item as SubItem));
+                router.push(formatRoute("admin", "currency"));
+              }
             },
             {
               name: "Change Password",
-              path: "/dashboards/admin-password",
-              icon: <Key className="w-4 h-4" />,
-              comingSoon: true
+              path: formatRoute("admin", "password"),
+              icon: <Key className="w-4 h-4" />
             },
             {
               name: "Add Social Icon",
-              path: "/dashboards/admin-social",
-              icon: <Share2 className="w-4 h-4" />,
-              comingSoon: true
+              path: formatRoute("admin", "social"),
+              icon: <Share2 className="w-4 h-4" />
             }
           ]
         }
@@ -1061,26 +1047,26 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           subItems: [
             {
               name: "Country/Geography",
-              path: "/dashboards/admin-country",
+              path: formatRoute("admin", "country"),
               icon: <Globe className="w-4 h-4" />
             },
             {
               name: "Currency Master",
-              path: "/dashboards/admin-currency",
+              path: formatRoute("admin", "currency"),
               icon: <DollarSign className="w-4 h-4" />,
               onClick: () => {
                 onMenuClick("Location & Currency", adminSidebar[1].items.map(item => item as SubItem));
-                router.push("/dashboards/admin#admin-currency");
+                router.push(formatRoute("admin", "currency"));
               }
             },
             {
               name: "Time Zone",
-              path: "/dashboards/admin-timezone",
+              path: formatRoute("admin", "timezone"),
               icon: <Clock className="w-4 h-4" />
             },
             {
               name: "Language",
-              path: "/dashboards/admin-language",
+              path: formatRoute("admin", "language"),
               icon: <MessageCircle className="w-4 h-4" />
             }
           ]
@@ -1091,12 +1077,12 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           subItems: [
             {
               name: "Certificate Type",
-              path: "/dashboards/admin-certificate-type",
+              path: formatRoute("admin", "certificate-type"),
               icon: <Award className="w-4 h-4" />
             },
             {
               name: "Status Management",
-              path: "/dashboards/admin-status",
+              path: formatRoute("admin", "status"),
               icon: <AlertCircle className="w-4 h-4" />
             }
           ]
@@ -1107,22 +1093,22 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           subItems: [
             {
               name: "Age Group",
-              path: "/dashboards/admin-age-group",
+              path: formatRoute("admin", "age-group"),
               icon: <Users className="w-4 h-4" />
             },
             {
               name: "Duration",
-              path: "/dashboards/admin-duration",
+              path: formatRoute("admin", "duration"),
               icon: <CalendarDays className="w-4 h-4" />
             },
             {
               name: "Grade Group",
-              path: "/dashboards/admin-grade-group",
+              path: formatRoute("admin", "grade-group"),
               icon: <GraduationCap className="w-4 h-4" />
             },
             {
               name: "Batch",
-              path: "/dashboards/admin-batch",
+              path: formatRoute("admin", "batch"),
               icon: <Users className="w-4 h-4" />
             }
           ]
@@ -1138,17 +1124,17 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           subItems: [
             {
               name: "Education Level",
-              path: "/dashboards/admin-education-level",
+              path: formatRoute("admin", "education-level"),
               icon: <ArrowUpDown className="w-4 h-4" />
             },
             {
               name: "Education Type",
-              path: "/dashboards/admin-education-type",
+              path: formatRoute("admin", "education-type"),
               icon: <FolderTree className="w-4 h-4" />
             },
             {
               name: "Education Title",
-              path: "/dashboards/admin-education-title",
+              path: formatRoute("admin", "education-title"),
               icon: <FileText className="w-4 h-4" />
             }
           ]
@@ -1159,17 +1145,17 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           subItems: [
             {
               name: "Age Wise",
-              path: "/dashboards/admin-filter-age",
+              path: formatRoute("admin", "filter-age"),
               icon: <Users className="w-4 h-4" />
             },
             {
               name: "Duration Wise",
-              path: "/dashboards/admin-filter-duration",
+              path: formatRoute("admin", "filter-duration"),
               icon: <CalendarDays className="w-4 h-4" />
             },
             {
               name: "Grade Wise",
-              path: "/dashboards/admin-filter-grade",
+              path: formatRoute("admin", "filter-grade"),
               icon: <GraduationCap className="w-4 h-4" />
             }
           ]
@@ -1186,17 +1172,17 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
             {
               name: "Course Categories",
               icon: <FolderTree className="w-4 h-4" />,
-              onClick: () => handleMenuClick("Course Setup", adminSidebar[3].items.map(item => item as SubItem))
+              path: formatRoute("admin", "course-categories")
             },
             {
-              name: "Create New Course",
+              name: "Add Course",
               icon: <Plus className="w-4 h-4" />,
-              onClick: () => handleMenuClick("Course Setup", adminSidebar[3].items.map(item => item as SubItem))
+              path: formatRoute("admin", "add-courses")
             },
             {
-              name: "Edit/Archive Courses",
+              name: "Edit Courses",
               icon: <Pencil className="w-4 h-4" />,
-              onClick: () => handleMenuClick("Course Setup", adminSidebar[3].items.map(item => item as SubItem))
+              path: formatRoute("admin", "edit-courses")
             }
           ]
         },
@@ -1206,12 +1192,12 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           subItems: [
             {
               name: "Set Course Fee",
-              path: "/dashboards/admin-course-fee",
+              path: formatRoute("admin", "course-fee"),
               icon: <DollarSign className="w-4 h-4" />
             },
             {
               name: "Fee Structures",
-              path: "/dashboards/admin-fee-structures",
+              path: formatRoute("admin", "fee-structures"),
               icon: <FileSpreadsheet className="w-4 h-4" />
             }
           ]
@@ -1222,12 +1208,12 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           subItems: [
             {
               name: "Upload Brochure",
-              path: "/dashboards/admin-upload-brochure",
+              path: formatRoute("admin", "upload-brochure"),
               icon: <Upload className="w-4 h-4" />
             },
             {
               name: "Upload Intro Video",
-              path: "/dashboards/admin-upload-video",
+              path: formatRoute("admin", "upload-video"),
               icon: <Video className="w-4 h-4" />
             }
           ]
@@ -1243,22 +1229,22 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           subItems: [
             {
               name: "View All Students",
-              icon: <Users className="w-4 h-4" />,
-              onClick: () => handleMenuClick("Student Management", adminSidebar[6].items.map(item => item as SubItem))
+              path: formatRoute("admin", "students"),
+              icon: <Users className="w-4 h-4" />
             },
             {
               name: "Add New Student",
-              icon: <UserPlus className="w-4 h-4" />,
-              onClick: () => handleMenuClick("Student Management", adminSidebar[6].items.map(item => item as SubItem))
+              path: formatRoute("admin", "add-student"),
+              icon: <UserPlus className="w-4 h-4" />
             },
             {
-              name: "Edit Student Profiles",
-              path: "/dashboards/admin-edit-student",
+              name: "Edit Student",
+              path: formatRoute("admin", "edit-student"),
               icon: <UserCog className="w-4 h-4" />
             },
             {
               name: "Assign Courses/Batch",
-              path: "/dashboards/admin-assign-student",
+              path: formatRoute("admin", "assign-student"),
               icon: <FileCheck className="w-4 h-4" />
             }
           ]
@@ -1275,21 +1261,21 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
             {
               name: "Add New Instructor",
               icon: <UserPlus className="w-4 h-4" />,
-              onClick: () => handleMenuClick("Instructor Management", adminSidebar[7].items.map(item => item as SubItem))
+              path: formatRoute("admin", "add-instructor")
             },
             {
               name: "Edit Instructor Profiles",
-              path: "/dashboards/admin-edit-instructor",
+              path: formatRoute("admin", "edit-instructor"),
               icon: <UserCog className="w-4 h-4" />
             },
             {
               name: "Batch Assignment",
               icon: <FileCheck className="w-4 h-4" />,
-              onClick: () => handleMenuClick("Instructor Management", adminSidebar[7].items.map(item => item as SubItem))
+              path: formatRoute("admin", "batch-assignment")
             },
             {
               name: "Instructor Payouts",
-              path: "/dashboards/admin-instructor-payouts",
+              path: formatRoute("admin", "instructor-payouts"),
               icon: <CreditCard className="w-4 h-4" />
             }
           ]
@@ -1300,17 +1286,17 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           subItems: [
             {
               name: "Create Users",
-              path: "/dashboards/admin-create-users",
+              path: formatRoute("admin", "create-users"),
               icon: <UserPlus className="w-4 h-4" />
             },
             {
               name: "Manage Access Rights",
-              path: "/dashboards/admin-access-rights",
+              path: formatRoute("admin", "access-rights"),
               icon: <Key className="w-4 h-4" />
             },
             {
               name: "Edit User Roles",
-              path: "/dashboards/admin-edit-roles",
+              path: formatRoute("admin", "edit-roles"),
               icon: <UserCog className="w-4 h-4" />
             }
           ]
@@ -1406,17 +1392,17 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           subItems: [
             {
               name: "System Reports",
-              path: "/dashboards/admin-system-reports",
+              path: formatRoute("admin", "system-reports"),
               icon: <FileSpreadsheet className="w-4 h-4" />
             },
             {
               name: "User Engagement",
-              path: "/dashboards/admin-user-engagement",
+              path: formatRoute("admin", "user-engagement"),
               icon: <LineChart className="w-4 h-4" />
             },
             {
               name: "Revenue Analytics",
-              path: "/dashboards/admin-revenue",
+              path: formatRoute("admin", "revenue"),
               icon: <TrendingUp className="w-4 h-4" />
             }
           ]
@@ -1478,69 +1464,6 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
     return null;
   }
 
-  // Helper to show preview of subitems on mobile
-  const renderMobileSubitems = (item: MenuItem) => {
-    if (!item.subItems || item.subItems.length === 0) return null;
-    
-    return (
-      <div className="mt-2 ml-6 pb-2 space-y-1">
-        {item.subItems.slice(0, 3).map((subItem, idx) => (
-          <button
-            key={idx}
-            onClick={() => {
-              if (subItem.comingSoon) {
-                router.push(`/coming-soon?title=${encodeURIComponent(subItem.name)}&returnPath=/dashboards/student`);
-              } else if (subItem.onClick) {
-                subItem.onClick();
-              } else if (subItem.path) {
-                router.push(subItem.path);
-              }
-              
-              // Also pass to parent to update main content
-              if (onMenuClick) {
-                onMenuClick(
-                  item.name,
-                  item.subItems?.map(i => i as SubItem) || []
-                );
-              }
-            }}
-            className={`flex items-center w-full text-left pl-4 pr-2 py-1.5 text-xs rounded-md ${
-              subItem.comingSoon 
-                ? "text-gray-400 cursor-not-allowed" 
-                : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
-            }`}
-          >
-            <span className="flex-shrink-0 w-3.5 h-3.5 mr-1.5 text-primary-500">{subItem.icon}</span>
-            <span className="truncate whitespace-nowrap text-left">{subItem.name}</span>
-            {subItem.comingSoon && (
-              <span className="flex-shrink-0 ml-1 px-1 text-[10px] rounded-full bg-gray-100 dark:bg-gray-700">
-                Soon
-              </span>
-            )}
-          </button>
-        ))}
-        
-        {item.subItems.length > 3 && (
-          <button
-            onClick={() => {
-              // Pass all subitems to parent to handle in main content
-              if (onMenuClick) {
-                onMenuClick(
-                  item.name,
-                  item.subItems?.map(i => i as SubItem) || []
-                );
-              }
-            }}
-            className="ml-4 flex items-center w-full text-xs font-medium text-primary-600 dark:text-primary-400 hover:underline"
-          >
-            <span className="whitespace-nowrap text-left">View all {item.subItems.length} options</span>
-            <ChevronRight className="flex-shrink-0 w-3 h-3 ml-0.5" />
-          </button>
-        )}
-      </div>
-    );
-  };
-
   // Main return with new modular components
   return (
     <div className="h-full flex flex-col bg-white dark:bg-gray-800 border-r dark:border-gray-700 sidebar-gen-alpha sidebar-container">
@@ -1561,29 +1484,109 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
       
       {/* Navigation - Scrollable */}
       <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 px-3 sm:px-4">
-        <nav className="py-2 sm:py-4 space-y-4 sm:space-y-6">
+        <div className="py-2 sm:py-4 space-y-4 sm:space-y-6">
           {/* Appropriate Sidebar Navigation based on role */}
           <AnimatePresence initial={false} mode="wait">
             {filterItemsBySearch(activeSidebar).map((section, sectionIndex) => (
-              <SidebarSection
-                key={sectionIndex}
-                title={section.title}
-                items={section.items as any}
-                activeMenu={activeMenu}
-                isMobileDevice={isMobileDevice}
-                onMenuClick={handleMenuClick}
-                renderMobileSubitems={renderMobileSubitems}
-              />
+              <div key={sectionIndex} className="mb-6">
+                {section.title && (
+                  <h3 className="font-medium text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3 px-3">
+                    {section.title}
+                  </h3>
+                )}
+                <div className="space-y-1">
+                  {section.items.map((item, itemIndex) => {
+                    const isActive = activeMenu === item.name;
+                    const hasSubItems = item.subItems && item.subItems.length > 0;
+                    
+                    return (
+                      <div key={itemIndex} className="select-none">
+                        {/* Menu Item Button */}
+                        <button
+                          onClick={() => {
+                            if (hasSubItems) {
+                              handleMenuClick(item.name, item.subItems as SubItem[]);
+                            } else if (item.onClick) {
+                              item.onClick();
+                            } else if (item.path) {
+                              router.push(item.path);
+                            }
+                          }}
+                          className={`flex items-center justify-between w-full px-3 py-2.5 rounded-md transition-all menu-item-hover ${
+                            isActive
+                              ? "menu-item-active text-gray-900 dark:text-gray-100 font-medium"
+                              : "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
+                          }`}
+                        >
+                          <div className="flex items-center">
+                            <span className="w-5 h-5 mr-3 text-gray-500 dark:text-gray-400">
+                              {item.icon}
+                            </span>
+                            <span className="text-sm">{item.name}</span>
+                          </div>
+                          {hasSubItems && (
+                            <ChevronDown
+                              className={`w-4 h-4 transition-transform duration-200 ${
+                                isActive ? "transform rotate-180" : ""
+                              }`}
+                            />
+                          )}
+                        </button>
+                        
+                        {/* Dropdown Content */}
+                        <AnimatePresence>
+                          {isActive && hasSubItems && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.2 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="pl-10 pr-3 py-1 space-y-1">
+                                {item.subItems?.map((subItem, subItemIndex) => (
+                                  <button
+                                    key={subItemIndex}
+                                    onClick={() => handleSubMenuClick(subItem)}
+                                    className="flex items-center w-full text-left px-3 py-2 text-sm rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100"
+                                  >
+                                    <span className="w-4 h-4 mr-3 text-gray-400 dark:text-gray-500">
+                                      {subItem.icon}
+                                    </span>
+                                    <span className="truncate">{subItem.name}</span>
+                                  </button>
+                                ))}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             ))}
           </AnimatePresence>
-        </nav>
+        </div>
       </div>
       
       {/* Footer with action items */}
-      <SidebarFooter
-        actionItems={actionItems as any}
-        isMobileDevice={isMobileDevice}
-      />
+      <div className="mt-auto pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="px-3 py-2">
+          {actionItems.map((item, index) => (
+            <button
+              key={index}
+              onClick={item.onClick}
+              className="flex items-center w-full px-3 py-2.5 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            >
+              <span className="w-5 h-5 mr-3 text-gray-500 dark:text-gray-400">
+                {item.icon}
+              </span>
+              <span className="text-sm">{item.name}</span>
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

@@ -482,7 +482,7 @@ const HomeCourseSection = ({
   showOnlyLive?: boolean;
 }) => {
   const { settings } = useCourseCardSettings();
-  const { selectedLiveCourseIds, selectedBlendedCourseIds, cardConfig } = settings;
+  const { selectedLiveCourseIds, selectedBlendedCourseIds, cardConfig, textCustomization } = settings;
 
   const [blendedCourses, setBlendedCourses] = useState<ICourse[]>([]);
   const [liveCourses, setLiveCourses] = useState<ICourse[]>([]);
@@ -1001,10 +1001,10 @@ const HomeCourseSection = ({
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 md:mb-6 lg:mb-7">
         <div>
           <h2 className="text-sm md:text-2xl lg:text-base font-extrabold mb-2  dark:text-gray-300 max-w-2xl font-medium">
-            {CustomText}
+            {textCustomization?.sectionTitle || CustomText}
           </h2>
           <p className="text-2xl md:text-base lg:text-3xl text-gray-600 text-gray-800 dark:text-white text:bol">
-            {CustomDescription}
+            {textCustomization?.sectionDescription || CustomDescription}
           </p>
         </div>
         {/* Desktop View All Courses button */}
@@ -1019,12 +1019,16 @@ const HomeCourseSection = ({
       {/* Live Courses Section */}
       <div 
         className={`relative overflow-hidden rounded-xl bg-gradient-to-r from-[#379392]/10 via-white to-[#379392]/10 dark:from-[#379392]/25 dark:via-gray-800 dark:to-[#379392]/25 p-4 sm:p-5 md:p-6 lg:p-7 mb-8 md:mb-8 lg:mb-10 shadow-md transition-all duration-500`}
+        style={{
+          borderRadius: cardConfig?.borderRadius ? `${cardConfig.borderRadius}px` : undefined,
+          boxShadow: cardConfig?.shadowIntensity ? `0 ${cardConfig.shadowIntensity * 4}px ${cardConfig.shadowIntensity * 8}px rgba(0,0,0,${cardConfig.shadowIntensity * 0.05})` : undefined
+        }}
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 md:mb-5 lg:mb-6">
           <div className="flex items-center mb-3 sm:mb-0">
             <Video className="w-6 h-6 mr-2.5 text-[#379392]" />
             <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-800 dark:text-white">
-              Live Interactive Courses
+              {textCustomization?.liveCoursesTitle || "Live Interactive Courses"}
               <span className="hidden sm:inline"> (Weekend / Weekday Classes Available)</span>
               <span className="block sm:hidden text-sm font-medium text-gray-600 dark:text-gray-400 mt-1">Weekend / Weekday Classes Available</span>
             </h3>
@@ -1102,12 +1106,16 @@ const HomeCourseSection = ({
         <div 
           ref={blendedRef}
           className={`relative overflow-hidden rounded-xl bg-gradient-to-r from-[#379392]/10 via-white to-[#379392]/10 dark:from-[#379392]/20 dark:via-gray-800 dark:to-[#379392]/20 p-4 sm:p-5 md:p-6 lg:p-7 shadow-md transition-all duration-500`}
+          style={{
+            borderRadius: cardConfig?.borderRadius ? `${cardConfig.borderRadius}px` : undefined,
+            boxShadow: cardConfig?.shadowIntensity ? `0 ${cardConfig.shadowIntensity * 4}px ${cardConfig.shadowIntensity * 8}px rgba(0,0,0,${cardConfig.shadowIntensity * 0.05})` : undefined
+          }}
         >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 md:mb-5 lg:mb-6">
             <div className="flex items-center mb-3 sm:mb-0">
               <Layers className="w-6 h-6 mr-2.5 text-[#379392]" />
               <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-800 dark:text-white">
-                Blended Self Paced Certification Courses 
+                {textCustomization?.blendedCoursesTitle || "Blended Self Paced Certification Courses"}
               </h3>
             </div>
             
