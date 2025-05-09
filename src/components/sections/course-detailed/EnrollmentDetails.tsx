@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   CreditCard, ArrowRight, ThumbsUp, AlertTriangle, 
   Lock, Zap, CheckCircle, Users, User, Info, CheckCircle2, Clock, GraduationCap,
-  CalendarClock, Calculator
+  CalendarClock, Calculator, ChevronDown
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
@@ -145,11 +145,48 @@ interface PaymentDetails {
   formattedOriginalPrice: string;
 }
 
+interface EMISchedule {
+  installmentNumber: number;
+  dueDate: Date;
+  amount: number;
+  status: 'pending' | 'paid' | 'overdue' | 'failed';
+  paidDate?: Date;
+  transactionId?: string;
+  paymentMethod?: string;
+  reminderSent?: boolean;
+  gracePeriodEnds?: Date;
+}
+
+interface EMIDetails {
+  totalAmount: number;
+  downPayment: number;
+  numberOfInstallments: number;
+  installmentAmount: number;
+  interestRate: number;
+  processingFee: number;
+  startDate: Date;
+  gracePeriodDays: number;
+  status: 'active' | 'completed' | 'defaulted' | 'cancelled';
+  schedule: EMISchedule[];
+  lastPaymentDate?: Date;
+  nextPaymentDate?: Date;
+  missedPayments: number;
+  autoDebitEnabled: boolean;
+  autoDebitDetails?: {
+    mandateId: string;
+    bankAccount: string;
+    validUntil: Date;
+  };
+}
+
 interface EMIOption {
   bank: string;
   term: number;
   interestRate: number;
   monthlyAmount: number;
+  totalAmount: number;
+  processingFee: number;
+  downPayment: number;
 }
 
 interface InstallmentPlan {
@@ -157,6 +194,9 @@ interface InstallmentPlan {
   amount: number;
   processingFee: number;
   installmentAmount: number;
+  downPayment: number;
+  gracePeriodDays: number;
+  interestRate: number;
 }
 
 type EnrollmentType = 'individual' | 'batch';
@@ -490,25 +530,66 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     const processingFeePercentage = 3;
     const calculateFee = (amount: number) => Math.round(amount * processingFeePercentage / 100);
     
-    // Create installment plans with 3, 4, and 6 installments
+    // Standard grace period in days
+    const gracePeriodDays = 5;
+    
+    // Calculate down payment (typically 20% of the total amount)
+    const calculateDownPayment = (amount: number) => Math.round(amount * 0.2);
+    
+    // Interest rates for different plans (0% for 3-month, 3% for 6-month, 6% for 9-month)
+    const interestRates = {
+      3: 0,    // 0% for 3 months
+      6: 3,    // 3% for 6 months
+      9: 6,    // 6% for 9 months
+      12: 9    // 9% for 12 months
+    };
+    
+    // Create installment plans with 3, 6, 9, and 12 installments
     const installmentPlans: InstallmentPlan[] = [
       {
         installments: 3,
         amount: finalPrice,
         processingFee: calculateFee(finalPrice),
-        installmentAmount: Math.ceil(finalPrice / 3 + calculateFee(finalPrice) / 3)
-      },
-      {
-        installments: 4,
-        amount: finalPrice,
-        processingFee: calculateFee(finalPrice),
-        installmentAmount: Math.ceil(finalPrice / 4 + calculateFee(finalPrice) / 4)
+        downPayment: calculateDownPayment(finalPrice),
+        gracePeriodDays,
+        interestRate: interestRates[3],
+        installmentAmount: Math.ceil((finalPrice - calculateDownPayment(finalPrice)) / 3 + calculateFee(finalPrice) / 3)
       },
       {
         installments: 6,
         amount: finalPrice,
         processingFee: calculateFee(finalPrice),
-        installmentAmount: Math.ceil(finalPrice / 6 + calculateFee(finalPrice) / 6)
+        downPayment: calculateDownPayment(finalPrice),
+        gracePeriodDays,
+        interestRate: interestRates[6],
+        installmentAmount: Math.ceil(
+          ((finalPrice - calculateDownPayment(finalPrice)) * (1 + interestRates[6] / 100)) / 6 + 
+          calculateFee(finalPrice) / 6
+        )
+      },
+      {
+        installments: 9,
+        amount: finalPrice,
+        processingFee: calculateFee(finalPrice),
+        downPayment: calculateDownPayment(finalPrice),
+        gracePeriodDays,
+        interestRate: interestRates[9],
+        installmentAmount: Math.ceil(
+          ((finalPrice - calculateDownPayment(finalPrice)) * (1 + interestRates[9] / 100)) / 9 + 
+          calculateFee(finalPrice) / 9
+        )
+      },
+      {
+        installments: 12,
+        amount: finalPrice,
+        processingFee: calculateFee(finalPrice),
+        downPayment: calculateDownPayment(finalPrice),
+        gracePeriodDays,
+        interestRate: interestRates[12],
+        installmentAmount: Math.ceil(
+          ((finalPrice - calculateDownPayment(finalPrice)) * (1 + interestRates[12] / 100)) / 12 + 
+          calculateFee(finalPrice) / 12
+        )
       }
     ];
     
@@ -577,18 +658,23 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
         userId || undefined
       );
       
-      // Determine payment amount based on full payment or installment
+      // Determine payment amount based on full payment or EMI
       let paymentAmount = Math.round(finalPrice * 100); // Full payment in smallest currency unit
       let paymentDescription = `Payment for ${courseDetails?.course_title || "Course"} (${enrollmentType} enrollment)`;
       
-      // If installment plan is selected, only charge first installment
+      // If installment plan is selected, only charge down payment first
       if (selectedInstallmentPlan) {
-        paymentAmount = Math.round(selectedInstallmentPlan.installmentAmount * 100);
-        paymentDescription = `First installment (1/${selectedInstallmentPlan.installments}) for ${courseDetails?.course_title || "Course"}`;
+        paymentAmount = Math.round(selectedInstallmentPlan.downPayment * 100);
+        paymentDescription = `Down payment for ${courseDetails?.course_title || "Course"} (EMI plan: ${selectedInstallmentPlan.installments} months)`;
       }
       
-      // Create a unique installment ID if using installments
-      const installmentId = selectedInstallmentPlan ? `INST-${Date.now()}-${Math.random().toString(36).substring(2, 8)}` : undefined;
+      // Create a unique EMI ID if using installments
+      const emiId = selectedInstallmentPlan ? `EMI-${Date.now()}-${Math.random().toString(36).substring(2, 8)}` : undefined;
+      
+      // Start date for EMI (first day of next month)
+      const startDate = new Date();
+      startDate.setDate(1); // Set to 1st of current month
+      startDate.setMonth(startDate.getMonth() + 1); // Move to next month
       
       // Configure Razorpay options
       const options: RazorpayOptions = {
@@ -601,11 +687,13 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
         handler: async function (response: any) {
           toast.success("Payment Successful!");
           
-          // Add installment info to payment response if applicable
-          if (selectedInstallmentPlan) {
-            response.installment_id = installmentId;
-            response.installment_number = '1';
-            response.total_installments = selectedInstallmentPlan.installments.toString();
+          // Add EMI info to payment response if applicable
+          if (selectedInstallmentPlan && emiId) {
+            response.emi_id = emiId;
+            response.emi_plan = selectedInstallmentPlan.installments.toString();
+            response.down_payment = selectedInstallmentPlan.downPayment.toString();
+            response.installment_amount = selectedInstallmentPlan.installmentAmount.toString();
+            response.is_emi = 'true';
           }
           
           // Call enrollment API directly with payment details
@@ -640,10 +728,10 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
         }
       };
       
-      // Add installment details to notes if applicable
-      if (selectedInstallmentPlan && installmentId) {
-        options.notes.installment_id = installmentId;
-        options.notes.installment_number = '1';
+      // Add EMI details to notes if applicable
+      if (selectedInstallmentPlan && emiId) {
+        options.notes.installment_id = emiId;
+        options.notes.installment_number = '0'; // 0 for down payment
         options.notes.total_installments = selectedInstallmentPlan.installments.toString();
       }
 
@@ -662,27 +750,57 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
   const enrollCourse = async (studentId: string, courseId: string, paymentResponse: any = {}): Promise<any> => {
     try {
       // Create enrollment data to send
-      const enrollmentData = {
+      const enrollmentData: any = {
         student_id: studentId,
         course_id: courseId,
         enrollment_type: enrollmentType,
         payment_information: {
           ...paymentResponse,
           payment_method: paymentResponse?.razorpay_payment_id ? 'razorpay' : 'free',
-          amount: selectedInstallmentPlan ? selectedInstallmentPlan.installmentAmount : getFinalPrice(),
+          amount: selectedInstallmentPlan ? selectedInstallmentPlan.downPayment : getFinalPrice(),
           currency: activePricing?.currency || 'INR',
-          is_installment: !!selectedInstallmentPlan,
-          installment_plan: selectedInstallmentPlan ? {
-            total_amount: getFinalPrice(),
-            processing_fee: selectedInstallmentPlan.processingFee,
-            total_installments: selectedInstallmentPlan.installments,
-            current_installment: 1,
-            installment_amount: selectedInstallmentPlan.installmentAmount,
-            installment_id: paymentResponse.installment_id || null,
-            remaining_amount: getFinalPrice() - selectedInstallmentPlan.installmentAmount,
-          } : null
         }
       };
+      
+      // Add EMI information if using installment plan
+      if (selectedInstallmentPlan && paymentResponse.emi_id) {
+        // Create EMI schedule
+        const schedule = [];
+        const startDate = new Date();
+        startDate.setDate(1); // Set to 1st of month
+        startDate.setMonth(startDate.getMonth() + 1); // Start next month
+        
+        for (let i = 1; i <= selectedInstallmentPlan.installments; i++) {
+          const dueDate = new Date(startDate);
+          dueDate.setMonth(dueDate.getMonth() + (i - 1));
+          
+          const gracePeriodEnds = new Date(dueDate);
+          gracePeriodEnds.setDate(dueDate.getDate() + selectedInstallmentPlan.gracePeriodDays);
+          
+          schedule.push({
+            installmentNumber: i,
+            dueDate,
+            amount: selectedInstallmentPlan.installmentAmount,
+            status: 'pending',
+            gracePeriodEnds
+          });
+        }
+        
+        // Add EMI details to enrollment data
+        enrollmentData.is_emi = true;
+        enrollmentData.emi_config = {
+          totalAmount: getFinalPrice(),
+          downPayment: selectedInstallmentPlan.downPayment,
+          numberOfInstallments: selectedInstallmentPlan.installments,
+          startDate: startDate.toISOString(),
+          interestRate: selectedInstallmentPlan.interestRate,
+          processingFee: selectedInstallmentPlan.processingFee,
+          gracePeriodDays: selectedInstallmentPlan.gracePeriodDays,
+          installmentAmount: selectedInstallmentPlan.installmentAmount,
+          emiId: paymentResponse.emi_id,
+          schedule
+        };
+      }
       
       // Make enrollment API call
       const response = await axios.post(
@@ -965,6 +1083,124 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     }
   }, [isBlendedCourse]);
 
+  // Add this enhanced UI component for EMI options
+  const EMIOptionsSection = ({ 
+    plans, 
+    selectedPlan, 
+    onSelect 
+  }: { 
+    plans: InstallmentPlan[], 
+    selectedPlan: InstallmentPlan | null, 
+    onSelect: (plan: InstallmentPlan) => void 
+  }) => {
+    return (
+      <motion.div
+        initial={{ opacity: 0, height: 0 }}
+        animate={{ opacity: 1, height: 'auto' }}
+        exit={{ opacity: 0, height: 0 }}
+        transition={{ duration: 0.3 }}
+        className="overflow-hidden mt-4"
+      >
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-4">
+          <div className="flex items-center mb-3">
+            <Calculator className={`h-5 w-5 text-${primaryColor}-500 mr-2`} />
+            <h4 className="text-base font-medium text-gray-900 dark:text-white">EMI Payment Options</h4>
+          </div>
+          
+          <div className="space-y-3 mt-3">
+            {plans.map((plan, index) => (
+              <div
+                key={`emi-plan-${plan.installments}`}
+                className={`relative p-3 border rounded-lg cursor-pointer transition-all ${
+                  selectedPlan?.installments === plan.installments
+                    ? `border-${primaryColor}-500 bg-${primaryColor}-50 dark:bg-${primaryColor}-900/20`
+                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                }`}
+                onClick={() => onSelect(plan)}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex flex-col">
+                    <span className="font-medium text-gray-900 dark:text-white">
+                      {plan.installments} Monthly Installments
+                    </span>
+                    <div className="flex gap-2 mt-1">
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                        {plan.interestRate > 0 ? `${plan.interestRate}% interest` : 'No interest'}
+                      </span>
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                        {plan.processingFee > 0 ? `+${formatPriceDisplay(plan.processingFee, true)} fee` : 'No fee'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className={`text-lg font-bold text-${primaryColor}-600 dark:text-${primaryColor}-400`}>
+                      {formatPriceDisplay(plan.installmentAmount, true)}<span className="text-xs font-normal">/mo</span>
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      {formatPriceDisplay(plan.downPayment, true)} down payment
+                    </div>
+                  </div>
+                  {selectedPlan?.installments === plan.installments && (
+                    <div className={`absolute -right-1 -top-1 p-1 rounded-full bg-${primaryColor}-500 text-white`}>
+                      <CheckCircle2 className="h-4 w-4" />
+                    </div>
+                  )}
+                </div>
+                
+                {selectedPlan?.installments === plan.installments && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700"
+                  >
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div className="flex flex-col">
+                        <span className="text-gray-500 dark:text-gray-400">Total Amount</span>
+                        <span className="font-medium text-gray-900 dark:text-white">{formatPriceDisplay(plan.amount, true)}</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-gray-500 dark:text-gray-400">Down Payment</span>
+                        <span className="font-medium text-gray-900 dark:text-white">{formatPriceDisplay(plan.downPayment, true)}</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-gray-500 dark:text-gray-400">Monthly Payment</span>
+                        <span className="font-medium text-gray-900 dark:text-white">{formatPriceDisplay(plan.installmentAmount, true)}</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-gray-500 dark:text-gray-400">Processing Fee</span>
+                        <span className="font-medium text-gray-900 dark:text-white">{formatPriceDisplay(plan.processingFee, true)}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                      <span className="flex items-center">
+                        <Info className="h-3 w-3 mr-1" />
+                        {plan.gracePeriodDays} days grace period for each payment
+                      </span>
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+            ))}
+          </div>
+          
+          <div className="mt-4 text-xs text-gray-500 dark:text-gray-400">
+            <p className="flex items-center mb-1">
+              <Info className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" />
+              EMI payments are processed securely through our payment gateway
+            </p>
+            <p className="flex items-center">
+              <Lock className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" />
+              Missed payments may restrict access to course content
+            </p>
+          </div>
+        </div>
+      </motion.div>
+    );
+  };
+
   return (
     <>
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow border border-gray-200 dark:border-gray-700 overflow-hidden enrollment-section w-full">
@@ -1071,72 +1307,51 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
           
           {/* EMI Payment Options replaced with Installment plans */}
           {isInstallmentAvailable && (
-            <div className="px-5 pt-3">
+            <div className="mt-4">
               <button
+                type="button"
                 onClick={toggleInstallmentOptions}
-                className="flex w-full items-center justify-between bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 px-4 py-3 rounded-lg text-sm font-medium hover:bg-blue-100 dark:hover:bg-blue-800/30 transition"
+                className={`w-full px-4 py-3 bg-white dark:bg-gray-800 rounded-lg border ${
+                  showInstallmentOptions 
+                    ? `border-${primaryColor}-500 dark:border-${primaryColor}-400` 
+                    : 'border-gray-200 dark:border-gray-700'
+                } shadow-sm hover:shadow-md transition-all flex items-center justify-between`}
               >
                 <div className="flex items-center">
-                  <CalendarClock className="w-4 h-4 mr-2" />
-                  <span>Pay in installments from ₹{installmentPlans[2]?.installmentAmount || Math.round(getFinalPrice() / 6)}/month</span>
+                  <CalendarClock className={`h-5 w-5 text-${primaryColor}-500 mr-2.5`} />
+                  <span className="text-gray-800 dark:text-gray-200 font-medium">
+                    Pay with EMI
+                  </span>
+                  {selectedInstallmentPlan && (
+                    <span className={`ml-2 text-sm font-medium text-${primaryColor}-600 dark:text-${primaryColor}-400`}>
+                      ({selectedInstallmentPlan.installments} months)
+                    </span>
+                  )}
                 </div>
-                <span className="text-xs">
-                  {showInstallmentOptions ? 'Hide Options' : 'View Plans'}
-                </span>
+                <div className="flex items-center">
+                  {selectedInstallmentPlan && (
+                    <span className={`mr-2 text-sm font-medium text-${primaryColor}-600 dark:text-${primaryColor}-400`}>
+                      {formatPriceDisplay(selectedInstallmentPlan.installmentAmount, true)}/mo
+                    </span>
+                  )}
+                  <ChevronDown
+                    className={`h-5 w-5 transition-transform duration-200 ${
+                      showInstallmentOptions ? 'rotate-180' : ''
+                    }`}
+                  />
+                </div>
               </button>
-              
-              {showInstallmentOptions && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="mt-3 border border-blue-100 dark:border-blue-800 rounded-lg overflow-hidden"
-                >
-                  <div className="bg-blue-50 dark:bg-blue-900/20 px-4 py-2 border-b border-blue-100 dark:border-blue-800 flex justify-between items-center">
-                    <h4 className="text-blue-800 dark:text-blue-300 text-sm font-medium">Medh Installment Plans</h4>
-                    <span className="text-xs text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-800/40 px-2 py-0.5 rounded-full">Interest Free</span>
-                  </div>
-                  <div className="p-3 space-y-2">
-                    {installmentPlans.map((plan, index) => (
-                      <div 
-                        key={index}
-                        className={`p-3 rounded-lg border cursor-pointer transition ${
-                          selectedInstallmentPlan?.installments === plan.installments
-                            ? 'bg-blue-100 dark:bg-blue-800/40 border-blue-300 dark:border-blue-600'
-                            : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
-                        }`}
-                        onClick={() => selectInstallmentPlan(plan)}
-                      >
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="font-medium text-sm">Pay in {plan.installments} installments</span>
-                          <span className="font-semibold text-blue-700 dark:text-blue-300">
-                            ₹{plan.installmentAmount}/mo
-                          </span>
-                        </div>
-                        <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-                          <span>Processing fee: ₹{plan.processingFee}</span>
-                          <span>Total: ₹{plan.amount + plan.processingFee}</span>
-                        </div>
-                        <div className="mt-2 grid grid-cols-6 gap-1">
-                          {Array.from({ length: plan.installments }).map((_, i) => (
-                            <div 
-                              key={i} 
-                              className={`h-1.5 rounded-full ${i === 0 
-                                ? 'bg-green-500 dark:bg-green-400' 
-                                : 'bg-gray-200 dark:bg-gray-600'}`}
-                            ></div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="bg-blue-50 dark:bg-blue-900/20 px-4 py-3 border-t border-blue-100 dark:border-blue-800 text-xs text-gray-600 dark:text-gray-400">
-                    <p>• First installment today, remaining monthly</p>
-                    <p>• Pay remaining installments flexibly via your student dashboard</p>
-                  </div>
-                </motion.div>
-              )}
             </div>
+          )}
+          
+          {isInstallmentAvailable && showInstallmentOptions && (
+            <AnimatePresence>
+              <EMIOptionsSection
+                plans={installmentPlans}
+                selectedPlan={selectedInstallmentPlan}
+                onSelect={selectInstallmentPlan}
+              />
+            </AnimatePresence>
           )}
           
           {/* Course Details List - More readable on mobile */}

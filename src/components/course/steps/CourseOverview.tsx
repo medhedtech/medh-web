@@ -264,7 +264,7 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({
                 options={categoryOptions}
                 error={errors.course_category?.message}
                 required
-                onChange={option => field.onChange(option?.value || '')}
+                onChange={(option: any) => field.onChange(option?.value || '')}
                 value={categoryOptions.find(option => option.value === field.value)}
                 placeholder="Select a category"
               />
@@ -306,7 +306,7 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({
               options={classTypeOptions}
               error={errors.class_type?.message}
               required
-              onChange={option => field.onChange(option?.value || '')}
+              onChange={(option: any) => field.onChange(option?.value || '')}
               value={classTypeOptions.find(option => option.value === field.value)}
               placeholder="Select class type"
             />
@@ -322,7 +322,7 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({
               label="Course Level"
               options={levelOptions}
               error={errors.course_level?.message}
-              onChange={option => field.onChange(option?.value || '')}
+              onChange={(option: any) => field.onChange(option?.value || '')}
               value={levelOptions.find(option => option.value === field.value)}
               placeholder="Select course level"
             />
@@ -337,7 +337,7 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({
               label="Course Grade"
               options={gradeOptions}
               error={errors.course_grade?.message}
-              onChange={option => field.onChange(option?.value || '')}
+              onChange={(option: any) => field.onChange(option?.value || '')}
               value={gradeOptions.find(option => option.value === field.value)}
               placeholder="Select course grade"
             />
@@ -354,7 +354,7 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({
                 label="Primary Language"
                 options={languageOptions}
                 error={errors.language?.message}
-                onChange={option => field.onChange(option?.value || '')}
+                onChange={(option: any) => field.onChange(option?.value || '')}
                 value={languageOptions.find(option => option.value === field.value)}
                 placeholder="Select primary language"
               />
@@ -370,7 +370,7 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({
                 options={languageOptions}
                 isMulti
                 error={errors.subtitle_languages?.message}
-                onChange={options => field.onChange(options ? options.map(opt => opt.value) : [])}
+                onChange={(options: any) => field.onChange(options ? (options as any[]).map((opt: any) => opt.value) : [])}
                 value={languageOptions.filter(option => 
                   field.value && Array.isArray(field.value) && field.value.includes(option.value)
                 )}
@@ -448,7 +448,7 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({
                   label="Assigned Instructor"
                   options={instructorOptions}
                   error={errors.assigned_instructor?.message}
-                  onChange={option => {
+                  onChange={(option: any) => {
                     // Store the MongoDB ObjectId
                     field.onChange(option?.value || null);
                   }}
