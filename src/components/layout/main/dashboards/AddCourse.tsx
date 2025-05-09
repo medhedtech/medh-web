@@ -1296,7 +1296,8 @@ const AddCourse = () => {
       touchedFields: {} as Record<string, boolean>,
       defaultValues: {} as Partial<ICourseFormData>,
       disabled: false as boolean,
-      validatingFields: {} as Record<string, boolean>
+      validatingFields: {} as Record<string, boolean>,
+      isReady: true
     };
 
     switch (currentStep) {

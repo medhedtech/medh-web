@@ -62,7 +62,7 @@ const HeadingDashboardOnly: React.FC = () => {
           <SearchIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-white transition-all duration-300 group-hover:text-primaryColor" />
           <input
             type="text"
-            placeholder="Search courses, topics, or resources..."
+            placeholder="Search..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-12 py-3.5 text-sm rounded-xl border border-transparent focus:outline-none bg-[#F7F7F7] dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 focus:ring-2 focus:ring-primaryColor hover:bg-[#F0F0F0] dark:hover:bg-gray-600 transition-all duration-300"

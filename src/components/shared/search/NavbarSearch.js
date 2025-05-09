@@ -247,7 +247,7 @@ const NavbarSearch = ({
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
               onFocus={() => setHasFocus(true)}
-              placeholder={isImmersive ? "What do you want to learn?" : "Search courses, lessons..."}
+              placeholder={isImmersive ? "What do you want to learn?" : "Search..."}
               suppressHydrationWarning
               className={`
                 w-full h-full pl-10 pr-8

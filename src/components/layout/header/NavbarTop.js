@@ -127,7 +127,7 @@ const NavbarTop = () => {
           } rounded-full bg-white dark:bg-zinc-800`}>
             <input
               type="text"
-              placeholder="Search courses, skills or topics..."
+              placeholder="Search..."
               className="w-full py-2.5 pl-5 pr-12 focus:outline-none bg-transparent placeholder:text-gray-400 dark:placeholder:text-gray-500 text-gray-800 dark:text-gray-200"
               onFocus={() => setSearchFocused(true)}
               onBlur={() => setSearchFocused(false)}

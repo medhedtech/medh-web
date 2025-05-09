@@ -1,180 +1,127 @@
 "use client";
 
-import React from "react";
+import React, { ButtonHTMLAttributes, ReactNode } from 'react';
 
-type ButtonVariant = 
-  | "primary"
-  | "secondary"
-  | "success"
-  | "danger"
-  | "warning"
-  | "info"
-  | "light"
-  | "dark"
-  | "link"
-  | "outline";
-
-type ButtonSize = "xs" | "sm" | "md" | "lg" | "xl";
-
-interface ButtonProps {
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /**
-   * The variant/style of the button
+   * Button variant that defines the visual style
    */
-  variant?: ButtonVariant;
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'success';
   
   /**
-   * The size of the button
+   * Button size
    */
-  size?: ButtonSize;
-  
-  /**
-   * Whether the button should be full width
-   */
-  fullWidth?: boolean;
-  
-  /**
-   * Whether the button is disabled
-   */
-  disabled?: boolean;
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   
   /**
    * Whether the button is in a loading state
    */
-  loading?: boolean;
+  isLoading?: boolean;
   
   /**
-   * Text to display during loading state
+   * Optional icon to display at the start of the button
    */
-  loadingText?: string;
+  startIcon?: ReactNode;
   
   /**
-   * Icon to display at the start of the button
+   * Optional icon to display at the end of the button
    */
-  leftIcon?: React.ReactNode;
+  endIcon?: ReactNode;
   
   /**
-   * Icon to display at the end of the button
+   * Whether the button should expand to fill its container's width
    */
-  rightIcon?: React.ReactNode;
+  fullWidth?: boolean;
   
   /**
-   * Additional class names
+   * Button corners style
    */
-  className?: string;
+  rounded?: 'none' | 'sm' | 'md' | 'lg' | 'full';
   
   /**
-   * Button type attribute
+   * Any react node to render inside the button
    */
-  type?: "button" | "submit" | "reset";
-  
-  /**
-   * Click handler
-   */
-  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
-  
-  /**
-   * Button content
-   */
-  children: React.ReactNode;
-  
-  /**
-   * Additional props to pass to the button element
-   */
-  [x: string]: any;
+  children?: ReactNode;
 }
 
-/**
- * Button component for actions in forms, dialogs, and more
- */
 const Button: React.FC<ButtonProps> = ({
-  variant = "primary",
-  size = "md",
-  fullWidth = false,
-  disabled = false,
-  loading = false,
-  loadingText,
-  leftIcon,
-  rightIcon,
-  className = "",
-  type = "button",
-  onClick,
   children,
-  ...rest
+  variant = 'primary',
+  size = 'md',
+  isLoading = false,
+  startIcon,
+  endIcon,
+  fullWidth = false,
+  rounded = 'md',
+  className = '',
+  disabled,
+  type = 'button',
+  ...props
 }) => {
-  // Define variant-specific classes
-  const variantClasses = {
-    primary: "bg-primary-600 hover:bg-primary-700 text-white focus:ring-primary-500",
-    secondary: "bg-gray-600 hover:bg-gray-700 text-white focus:ring-gray-500",
-    success: "bg-green-600 hover:bg-green-700 text-white focus:ring-green-500",
-    danger: "bg-red-600 hover:bg-red-700 text-white focus:ring-red-500",
-    warning: "bg-yellow-500 hover:bg-yellow-600 text-white focus:ring-yellow-500",
-    info: "bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-500",
-    light: "bg-gray-100 hover:bg-gray-200 text-gray-800 focus:ring-gray-500",
-    dark: "bg-gray-800 hover:bg-gray-900 text-white focus:ring-gray-500",
-    link: "bg-transparent text-primary-600 hover:text-primary-700 hover:underline p-0 focus:ring-0",
-    outline: "bg-transparent border border-current text-primary-600 hover:bg-primary-50 dark:hover:bg-gray-800 focus:ring-primary-500",
-  };
-  
-  // Define size-specific classes
+  // Size classes mapping
   const sizeClasses = {
-    xs: "text-xs px-2.5 py-1.5",
-    sm: "text-sm px-3 py-2",
-    md: "text-base px-4 py-2",
-    lg: "text-lg px-5 py-2.5",
-    xl: "text-xl px-6 py-3",
+    xs: 'px-2 py-1 text-xs',
+    sm: 'px-3 py-1.5 text-sm',
+    md: 'px-4 py-2 text-sm',
+    lg: 'px-5 py-2.5 text-base',
+    xl: 'px-6 py-3 text-lg'
   };
-  
-  // Construct the complete class list
+
+  // Variant classes mapping
+  const variantClasses = {
+    primary: 'bg-primary hover:bg-primary-dark text-white shadow-sm',
+    secondary: 'bg-secondary hover:bg-secondary-dark text-white shadow-sm',
+    outline: 'bg-transparent border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800',
+    ghost: 'bg-transparent text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800',
+    danger: 'bg-red-600 hover:bg-red-700 text-white shadow-sm',
+    success: 'bg-green-600 hover:bg-green-700 text-white shadow-sm',
+  };
+
+  // Rounded classes mapping
+  const roundedClasses = {
+    none: 'rounded-none',
+    sm: 'rounded-sm',
+    md: 'rounded-md',
+    lg: 'rounded-lg',
+    full: 'rounded-full',
+  };
+
+  // Disabled classes
+  const disabledClasses = 'opacity-60 cursor-not-allowed';
+
+  // Full width class
+  const fullWidthClass = fullWidth ? 'w-full' : '';
+
+  // Common classes
+  const commonClasses = 'font-medium inline-flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors';
+
+  // Build the button classes
   const buttonClasses = [
-    variant !== "link" ? "font-medium rounded-lg shadow-sm" : "",
-    variantClasses[variant],
+    commonClasses,
     sizeClasses[size],
-    fullWidth ? "w-full" : "",
-    disabled || loading ? "opacity-70 cursor-not-allowed" : "transition-colors duration-200",
-    "focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-900",
-    "inline-flex items-center justify-center",
+    variantClasses[variant],
+    roundedClasses[rounded],
+    fullWidthClass,
+    disabled || isLoading ? disabledClasses : '',
     className
-  ].filter(Boolean).join(" ");
-  
+  ].filter(Boolean).join(' ');
+
   return (
     <button
       type={type}
       className={buttonClasses}
-      disabled={disabled || loading}
-      onClick={onClick}
-      {...rest}
+      disabled={disabled || isLoading}
+      {...props}
     >
-      {loading ? (
-        <>
-          <svg 
-            className="animate-spin -ml-1 mr-2 h-4 w-4" 
-            xmlns="http://www.w3.org/2000/svg" 
-            fill="none" 
-            viewBox="0 0 24 24"
-          >
-            <circle 
-              className="opacity-25" 
-              cx="12" 
-              cy="12" 
-              r="10" 
-              stroke="currentColor" 
-              strokeWidth="4"
-            ></circle>
-            <path 
-              className="opacity-75" 
-              fill="currentColor" 
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            ></path>
-          </svg>
-          {loadingText || children}
-        </>
-      ) : (
-        <>
-          {leftIcon && <span className="mr-2">{leftIcon}</span>}
-          {children}
-          {rightIcon && <span className="ml-2">{rightIcon}</span>}
-        </>
+      {isLoading && (
+        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
       )}
+      {!isLoading && startIcon && <span className="mr-2">{startIcon}</span>}
+      {children}
+      {!isLoading && endIcon && <span className="ml-2">{endIcon}</span>}
     </button>
   );
 };
