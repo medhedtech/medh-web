@@ -1601,7 +1601,7 @@ const SidebarDashboard = ({ children }) => {
                   </div>
                   <input
                     type="text"
-                    placeholder="Search courses, resources..."
+                    placeholder="Search..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-primary-500 focus:border-primary-500 text-sm"

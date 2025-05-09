@@ -20,7 +20,7 @@ export const InstructorDashboardContext = createContext<any>(null);
 
 // Styles import
 import { dashboardStyles } from "@/styles/dashboard";
-import { loadingIndicatorStyles } from "@/components/shared/loaders/LoadingIndicator";
+import loadingIndicatorStyles from "@/components/shared/loaders/LoadingIndicator";
 
 // Dynamically import dashboard components with proper loading states
 const InstructorDashboard = dynamic(
@@ -312,52 +312,41 @@ const InstructorDashboardLayout: React.FC<InstructorDashboardLayoutProps> = ({
 
   return (
     <InstructorDashboardContext.Provider value={contextValue}>
-      {/* Global styles */}
-      <style jsx global>{dashboardStyles}</style>
-      <style jsx global>{loadingIndicatorStyles}</style>
-      
-      <div className="flex h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
-        {/* Mobile Sidebar Toggle - positioned at bottom right corner */}
-        {isMobile && (
-          <button
-            onClick={toggleSidebar}
-            className="fixed z-30 bottom-6 right-6 p-4 rounded-full bg-primary-500 text-white shadow-lg"
-            aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
-            aria-expanded={isSidebarOpen}
+      <div className="flex h-screen">
+        <button
+          onClick={toggleSidebar}
+          className="fixed z-30 bottom-6 right-6 p-4 rounded-full bg-primary-500 text-white shadow-lg"
+          aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
+          aria-expanded={isSidebarOpen}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              {isSidebarOpen ? (
-                <path d="M18 6L6 18M6 6l12 12" />
-              ) : (
-                <path d="M4 12h16M4 6h16M4 18h16" />
-              )}
-            </svg>
-          </button>
-        )}
-
-        {/* Sidebar - now with sticky positioning and similar style to admin dashboard */}
+            {isSidebarOpen ? (
+              <path d="M18 6L6 18M6 6l12 12" />
+            ) : (
+              <path d="M4 12h16M4 6h16M4 18h16" />
+            )}
+          </svg>
+        </button>
         <div
           className={`${
             isMobile
-              ? `fixed z-20 transform ${
-                  isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-                }`
+              ? `fixed z-20 transform ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`
               : "sticky"
           } top-0 h-screen flex-shrink-0 w-[280px] bg-white dark:bg-gray-800 transition-transform duration-300 shadow-md overflow-hidden`}
         >
           <SidebarDashboard
             userRole={userData.userRole}
-            userName={userData.userName}
+            fullName={userData.userName}
             userEmail={userData.userEmail}
             userImage={userData.userImage}
             userNotifications={userData.userNotifications}

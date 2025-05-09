@@ -126,7 +126,7 @@ const SearchBar: React.FC<ISearchBarProps> = ({ onClose }) => {
           onChange={handleSearchChange}
           onFocus={() => setSearchFocused(true)}
           onBlur={() => setSearchFocused(false)}
-          placeholder="Search courses, topics, instructors..."
+          placeholder="Search..."
           className={`w-full py-3 pl-11 pr-4 text-base rounded-xl
             transition-all duration-200
             ${searchFocused 
