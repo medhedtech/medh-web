@@ -148,7 +148,7 @@ const HeadingDashboard = () => {
               </div>
               <input
                 type="text"
-                placeholder="Search courses, modules, or resources..."
+                placeholder="Search..."
                 value={searchTerm}
                 onChange={handleSearch}
                 onFocus={() => setIsSearchFocused(true)}

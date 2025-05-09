@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Download } from "lucide-react";
 import { calculateDiscountPercentage } from "@/utils/priceUtils";
 import DownloadBrochureModal from "@/components/shared/download-broucher";
+import { useCourseCardSettings } from "@/contexts/CourseCardSettingsContext";
 
 interface Price {
   _id: string;
@@ -108,6 +109,10 @@ const CourseCard: React.FC<CourseProps> = ({
   hidePrice = false,
   hideDescription = false,
 }) => {
+  // Get card settings from context
+  const { settings } = useCourseCardSettings();
+  const { cardConfig } = settings;
+  
   const [selectedPricing, setSelectedPricing] = useState<"individual" | "batch">(
     class_type === "Live" ? "batch" : "individual"
   );
@@ -115,6 +120,17 @@ const CourseCard: React.FC<CourseProps> = ({
   const [showBrochureModal, setShowBrochureModal] = useState<boolean>(false);
   const [isPriceLoading, setIsPriceLoading] = useState<boolean>(true);
   const [priceError, setPriceError] = useState<string | null>(null);
+
+  // Apply card config settings or use props as fallback
+  const applyShowDuration = cardConfig?.showDuration !== undefined ? cardConfig.showDuration : showDuration;
+  const applyHidePrice = cardConfig?.hidePrice !== undefined ? cardConfig.hidePrice : hidePrice;
+  const applyHideDescription = cardConfig?.hideDescription !== undefined ? cardConfig.hideDescription : hideDescription;
+  const showBrochureButton = cardConfig?.showBrochureButton !== undefined ? cardConfig.showBrochureButton : true;
+  const showExploreButton = cardConfig?.showExploreButton !== undefined ? cardConfig.showExploreButton : true;
+  const showCategoryTag = cardConfig?.showCategoryTag !== undefined ? cardConfig.showCategoryTag : true;
+  const imageHeight = cardConfig?.imageHeight ? `${cardConfig.imageHeight}px` : '12rem';
+  const borderRadius = cardConfig?.borderRadius ? `${cardConfig.borderRadius}px` : '0.5rem';
+  const shadowIntensity = cardConfig?.shadowIntensity || 1;
 
   useEffect(() => {
     setSelectedPricing(class_type === "Live" ? "batch" : "individual");
@@ -219,10 +235,16 @@ const CourseCard: React.FC<CourseProps> = ({
   const isTrulyFree = isFree || (individualPriceValue === 0 && batchPriceValue === 0);
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+    <div 
+      className="bg-white dark:bg-gray-800 overflow-hidden hover:shadow-lg transition-shadow duration-300"
+      style={{
+        borderRadius: borderRadius,
+        boxShadow: `0 ${shadowIntensity * 2}px ${shadowIntensity * 4}px rgba(0,0,0,${shadowIntensity * 0.05})`,
+      }}
+    >
       <div className="relative">
         <Link href={`/course-details/${_id}`}>
-          <div className="relative h-48 w-full">
+          <div className="relative w-full" style={{ height: imageHeight }}>
             <Image
               src={course_image}
               alt={course_title}
@@ -232,12 +254,15 @@ const CourseCard: React.FC<CourseProps> = ({
             />
           </div>
         </Link>
-        <div className={`absolute top-2 left-2 ${bgColor} px-2 py-1 rounded text-xs font-medium`}>
-          {course_category}
-        </div>
+        
+        {showCategoryTag && (
+          <div className={`absolute top-2 left-2 ${bgColor} px-2 py-1 rounded text-xs font-medium`}>
+            {course_category}
+          </div>
+        )}
         
         {/* Price badge on top right */}
-        {!hidePrice && !isPriceLoading && !priceError && !isTrulyFree && (
+        {!applyHidePrice && !isPriceLoading && !priceError && !isTrulyFree && (
           <div className="absolute top-2 right-2 bg-primaryColor text-white px-3 py-1 rounded-full text-sm font-semibold">
             {formatPrice(
               selectedPricing === "individual" ? discountedIndividualPrice : discountedBatchPrice,
@@ -247,7 +272,7 @@ const CourseCard: React.FC<CourseProps> = ({
         )}
         
         {/* Free badge for free courses */}
-        {!hidePrice && !isPriceLoading && !priceError && isTrulyFree && (
+        {!applyHidePrice && !isPriceLoading && !priceError && isTrulyFree && (
           <div className="absolute top-2 right-2 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
             Free
           </div>
@@ -261,14 +286,14 @@ const CourseCard: React.FC<CourseProps> = ({
           </h3>
         </Link>
 
-        {!hideDescription && (
+        {!applyHideDescription && (
           <div className="text-sm text-gray-600 dark:text-gray-300 mb-3 line-clamp-2">
             {course_description}
           </div>
         )}
 
         <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-3">
-          {showDuration && (
+          {applyShowDuration && (
             <div className="flex items-center gap-1">
               <span>Duration:</span>
               <span className="font-medium">{course_duration}</span>
@@ -280,161 +305,160 @@ const CourseCard: React.FC<CourseProps> = ({
           </div>
         </div>
 
-        {!hidePrice && (
-          <div className="mb-4 border-t border-gray-200 pt-3">
-            {isPriceLoading ? (
-              <div className="h-8 w-24 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></div>
-            ) : priceError ? (
-              <div className="text-sm text-amber-600 dark:text-amber-400">
-                {priceError}
-              </div>
-            ) : isTrulyFree ? (
-              <div className="flex justify-between items-center">
-                <span className="text-2xl font-bold text-green-600">Free</span>
-                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">No Cost</span>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-medium text-gray-700">Pricing Options:</span>
-                  <div className="flex">
-                    <button
-                      onClick={() => setSelectedPricing("individual")}
-                      className={`px-3 py-1 rounded-l-full text-xs ${
-                        selectedPricing === "individual"
-                          ? "bg-blue-100 text-blue-600"
-                          : "bg-gray-100 text-gray-600"
-                      }`}
-                    >
-                      Individual
-                    </button>
-                    <button
-                      onClick={() => setSelectedPricing("batch")}
-                      className={`px-3 py-1 rounded-r-full text-xs ${
-                        selectedPricing === "batch"
-                          ? "bg-blue-100 text-blue-600"
-                          : "bg-gray-100 text-gray-600"
-                      }`}
-                    >
-                      Batch
-                    </button>
-                  </div>
-                </div>
-                
-                <div className="flex flex-col">
-                  {/* Price display */}
-                  <div className="flex items-baseline justify-between">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-bold text-primaryColor">
-                        {formatPrice(
-                          selectedPricing === "individual" ? discountedIndividualPrice : discountedBatchPrice,
-                          currency
-                        )}
-                      </span>
-                      
-                      {/* Show original price if there's a discount */}
-                      {(selectedPricing === "individual" && earlyBirdDiscount > 0) && (
-                        <span className="text-sm line-through text-gray-500">
-                          {formatPrice(individualPriceValue, currency)}
-                        </span>
-                      )}
-                      {(selectedPricing === "batch" && groupDiscount > 0) && (
-                        <span className="text-sm line-through text-gray-500">
-                          {formatPrice(batchPriceValue, currency)}
-                        </span>
-                      )}
-                    </div>
-                    
-                    {/* Discount badge */}
-                    {selectedPricing === "individual" && individualDiscountPercentage > 0 && (
-                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                        {individualDiscountPercentage}% off
-                      </span>
-                    )}
-                    {selectedPricing === "batch" && batchDiscountPercentage > 0 && (
-                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                        {batchDiscountPercentage}% off
-                      </span>
-                    )}
-                  </div>
-                  
-                  {/* Additional pricing information */}
-                  {selectedPricing === "batch" && (
-                    <div className="text-xs text-gray-600 mt-1">
-                      <span className="font-medium">Batch details:</span> 
-                      {actualMinBatchSize > 0 && ` Min ${actualMinBatchSize} students`}
-                      {actualMaxBatchSize > 0 && ` · Max ${actualMaxBatchSize} students`}
-                      {/* Per student price calculation */}
-                      {actualMinBatchSize > 0 && (
-                        <div className="mt-1">
-                          <span className="font-medium">Per student:</span> 
-                          {formatPrice(discountedBatchPrice / Math.max(actualMinBatchSize, 1), currency)}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  
-                  {selectedPricing === "individual" && earlyBirdDiscount > 0 && (
-                    <div className="text-xs text-gray-600 mt-1">
-                      <span className="font-medium">Early bird discount:</span> Save {earlyBirdDiscount}% 
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
+        {/* Course features */}
         <div className="flex flex-wrap gap-2 mb-4">
           {is_Certification === "Yes" && (
-            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+            <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
               Certification
             </span>
           )}
           {is_Assignments === "Yes" && (
-            <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+            <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
               Assignments
             </span>
           )}
           {is_Projects === "Yes" && (
-            <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">
+            <span className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">
               Projects
             </span>
           )}
           {is_Quizes === "Yes" && (
-            <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+            <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">
               Quizzes
             </span>
           )}
         </div>
 
-        <div className="mb-3 sm:hidden">
-          {brochures?.[0] && (
-            <button
-              onClick={handleBrochureDownload}
-              disabled={isDownloading}
-              className="w-full text-xs flex items-center justify-center gap-1 text-primaryColor border border-primaryColor py-1 px-2 rounded hover:bg-primaryColor hover:text-white transition-colors"
+        {/* Pricing options */}
+        {!applyHidePrice && !isPriceLoading && !priceError && !isTrulyFree && (
+          <div className="flex flex-col mb-4">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                {selectedPricing === "individual" ? "Individual Price" : "Batch Price"}
+              </span>
+              <div className="flex items-center">
+                <span className="text-lg font-bold text-primaryColor">
+                  {formatPrice(
+                    selectedPricing === "individual"
+                      ? discountedIndividualPrice
+                      : discountedBatchPrice,
+                    currency
+                  )}
+                </span>
+                {/* Display original price if there's a discount */}
+                {((selectedPricing === "individual" && individualDiscountPercentage > 0) ||
+                  (selectedPricing === "batch" && batchDiscountPercentage > 0)) && (
+                  <span className="text-sm text-gray-500 line-through ml-2">
+                    {formatPrice(
+                      selectedPricing === "individual"
+                        ? individualPriceValue
+                        : batchPriceValue,
+                      currency
+                    )}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Pricing toggle */}
+            <div className="flex rounded-md overflow-hidden border border-gray-200 dark:border-gray-700 mb-2">
+              <button
+                className={`flex-1 py-1.5 text-xs font-medium ${
+                  selectedPricing === "individual"
+                    ? "bg-primaryColor text-white"
+                    : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
+                }`}
+                onClick={() => setSelectedPricing("individual")}
+              >
+                Individual
+              </button>
+              <button
+                className={`flex-1 py-1.5 text-xs font-medium ${
+                  selectedPricing === "batch"
+                    ? "bg-primaryColor text-white"
+                    : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
+                }`}
+                onClick={() => setSelectedPricing("batch")}
+              >
+                Batch ({actualMinBatchSize}+ students)
+              </button>
+            </div>
+
+            {/* Discount badges */}
+            <div className="flex gap-2">
+              {individualDiscountPercentage > 0 && selectedPricing === "individual" && (
+                <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded-full">
+                  {individualDiscountPercentage}% off
+                </span>
+              )}
+              {batchDiscountPercentage > 0 && selectedPricing === "batch" && (
+                <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded-full">
+                  {batchDiscountPercentage}% off
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Free course badge */}
+        {!applyHidePrice && !isPriceLoading && !priceError && isTrulyFree && (
+          <div className="mb-4">
+            <span className="bg-green-100 text-green-800 px-3 py-1.5 rounded-md text-sm font-medium">
+              Free Course
+            </span>
+          </div>
+        )}
+
+        {/* Price loading state */}
+        {!applyHidePrice && isPriceLoading && (
+          <div className="mb-4 h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+        )}
+
+        {/* Price error state */}
+        {!applyHidePrice && !isPriceLoading && priceError && (
+          <div className="mb-4 text-sm text-red-500">{priceError}</div>
+        )}
+
+        {/* Action buttons */}
+        <div className="flex gap-2">
+          {showExploreButton && (
+            <Link
+              href={`/course-details/${_id}`}
+              className="flex-1 py-2 px-4 bg-primaryColor text-white text-center text-sm font-medium rounded-md hover:bg-primaryColor/90 transition-colors"
             >
-              <Download size={12} />
-              {isDownloading ? "Downloading..." : "Download Brochure"}
+              Explore
+            </Link>
+          )}
+          
+          {showBrochureButton && brochures && brochures.length > 0 && (
+            <button
+              onClick={() => setShowBrochureModal(true)}
+              className="flex-1 py-2 px-4 border border-primaryColor text-primaryColor text-center text-sm font-medium rounded-md hover:bg-primaryColor/10 transition-colors flex items-center justify-center"
+              disabled={isDownloading}
+            >
+              {isDownloading ? (
+                "Downloading..."
+              ) : (
+                <>
+                  <Download className="w-4 h-4 mr-1" />
+                  Brochure
+                </>
+              )}
             </button>
           )}
         </div>
-
-        <div className="text-sm text-gray-500 dark:text-gray-400">
-          {meta?.views ? `${meta.views.toLocaleString()} views` : ""}
-        </div>
       </div>
 
-      <DownloadBrochureModal
-        isOpen={showBrochureModal}
-        onClose={() => setShowBrochureModal(false)}
-        courseTitle={course_title}
-        courseId={_id}
-        brochureId={brochures?.[0]?._id || ""}
-      >
-        {/* Empty children to fix the linter error */}
-      </DownloadBrochureModal>
+      {/* Brochure download modal */}
+      {showBrochureModal && (
+        <DownloadBrochureModal
+          isOpen={showBrochureModal}
+          onClose={() => setShowBrochureModal(false)}
+          courseId={_id}
+          courseName={course_title}
+          brochureUrl={brochures?.[0]?.url}
+        />
+      )}
     </div>
   );
 };

@@ -10,7 +10,7 @@ import { ChevronDown, ChevronRight, MoreHorizontal, Menu, X } from "lucide-react
 import SidebarDashboard from "@/components/sections/sub-section/dashboards/SidebarDashboard";
 import ComingSoonPage from "@/components/shared/others/ComingSoonPage";
 import DashboardNavbar from "./DashboardNavbar";
-import LoadingIndicator from "@/components/shared/loaders/LoadingIndicator";
+import LoadingIndicator, { loadingIndicatorStyles } from "@/components/shared/loaders/LoadingIndicator";
 import SkeletonLoader from "@/components/shared/loaders/SkeletonLoader";
 
 // Custom hooks
@@ -21,7 +21,6 @@ export const DashboardContext = createContext<any>(null);
 
 // Styles import
 import { dashboardStyles } from "@/styles/dashboard";
-import { loadingIndicatorStyles } from "@/components/shared/loaders/LoadingIndicator";
 
 // Dynamically import dashboard components with proper loading states
 const StudentDashboardMain = dynamic(
@@ -460,115 +459,117 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
 
   return (
     <DashboardContext.Provider value={contextValue}>
-      {/* Global styles */}
-      <style jsx global>{dashboardStyles}</style>
-      <style jsx global>{loadingIndicatorStyles}</style>
-      
-      <div className="flex h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
-        {/* Mobile Sidebar Toggle - positioned at bottom right corner */}
-        {isMobile && (
-          <button
-            onClick={toggleSidebar}
-            className="fixed z-30 bottom-6 right-6 p-4 rounded-full bg-primary-500 text-white shadow-lg"
-            aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
-            aria-expanded={isSidebarOpen}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+      <div className="relative">
+        {/* Global styles */}
+        <style jsx global>{dashboardStyles}</style>
+        <style jsx global>{loadingIndicatorStyles}</style>
+        
+        <div className="flex h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
+          {/* Mobile Sidebar Toggle - positioned at bottom right corner */}
+          {isMobile && (
+            <button
+              onClick={toggleSidebar}
+              className="fixed z-30 bottom-6 right-6 p-4 rounded-full bg-primary-500 text-white shadow-lg"
+              aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
+              aria-expanded={isSidebarOpen}
             >
-              {isSidebarOpen ? (
-                <path d="M18 6L6 18M6 6l12 12" />
-              ) : (
-                <path d="M4 12h16M4 6h16M4 18h16" />
-              )}
-            </svg>
-          </button>
-        )}
-
-        {/* Sidebar - now with sticky positioning and similar style to admin dashboard */}
-        <div
-          className={`${
-            isMobile
-              ? `fixed z-20 transform ${
-                  isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-                }`
-              : "sticky"
-          } top-0 h-screen flex-shrink-0 w-[280px] bg-white dark:bg-gray-800 transition-transform duration-300 shadow-md overflow-hidden`}
-        >
-          <SidebarDashboard
-            userRole={userRole}
-            userName={userName}
-            userEmail={userEmail}
-            userImage={userImage}
-            userNotifications={userNotifications}
-            userSettings={userSettings}
-            onMenuClick={handleMenuClick}
-          />
-        </div>
-
-        {/* Main Content Area */}
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          exit="exit"
-          className="flex-1 overflow-y-auto"
-        >
-          {/* Navbar */}
-          {subItems.length > 0 && (
-            <DashboardNavbar
-              activeMenu={activeMenu}
-              subItems={subItems}
-              onItemClick={handleSubItemClick}
-              currentView={currentView}
-              isSubItemActive={isSubItemActive}
-            />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                {isSidebarOpen ? (
+                  <path d="M18 6L6 18M6 6l12 12" />
+                ) : (
+                  <path d="M4 12h16M4 6h16M4 18h16" />
+                )}
+              </svg>
+            </button>
           )}
 
-          {/* Content */}
-          <div className="p-6">
-            {isDebug && (
-              <div className="mb-4 p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 rounded-lg text-xs">
-                Debug: Current View = "{currentView}" | Breakpoint = "{breakpoint}" | Loading = {isLoading ? "true" : "false"}
-              </div>
-            )}
-            
-            {/* Global loading indicator */}
-            {isLoading && (
-              <div className="fixed inset-0 bg-white/50 dark:bg-gray-900/50 z-50 flex items-center justify-center backdrop-blur-sm">
-                <LoadingIndicator 
-                  type="dots" 
-                  size="xl" 
-                  color="primary" 
-                  text="Loading..." 
-                  centered 
-                />
-              </div>
-            )}
-            
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentView}
-                variants={contentVariants}
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                transition={contentVariants.transition}
-                className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden elevation-2"
-              >
-                <DashboardComponent />
-              </motion.div>
-            </AnimatePresence>
+          {/* Sidebar - now with sticky positioning and similar style to admin dashboard */}
+          <div
+            className={`${
+              isMobile
+                ? `fixed z-20 transform ${
+                    isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+                  }`
+                : "sticky"
+            } top-0 h-screen flex-shrink-0 w-[280px] bg-white dark:bg-gray-800 transition-transform duration-300 shadow-md overflow-hidden`}
+          >
+            <SidebarDashboard
+              userRole={userRole}
+              userName={userName}
+              userEmail={userEmail}
+              userImage={userImage}
+              userNotifications={userNotifications}
+              userSettings={userSettings}
+              onMenuClick={handleMenuClick}
+            />
           </div>
-        </motion.div>
+
+          {/* Main Content Area */}
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="flex-1 overflow-y-auto"
+          >
+            {/* Navbar */}
+            {subItems.length > 0 && (
+              <DashboardNavbar
+                activeMenu={activeMenu}
+                subItems={subItems}
+                onItemClick={handleSubItemClick}
+                currentView={currentView}
+                isSubItemActive={isSubItemActive}
+              />
+            )}
+
+            {/* Content */}
+            <div className="p-6">
+              {isDebug && (
+                <div className="mb-4 p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 rounded-lg text-xs">
+                  Debug: Current View = "{currentView}" | Breakpoint = "{breakpoint}" | Loading = {isLoading ? "true" : "false"}
+                </div>
+              )}
+              
+              {/* Global loading indicator */}
+              {isLoading && (
+                <div className="fixed inset-0 bg-white/50 dark:bg-gray-900/50 z-50 flex items-center justify-center backdrop-blur-sm">
+                  <LoadingIndicator 
+                    type="dots" 
+                    size="xl" 
+                    color="primary" 
+                    text="Loading..." 
+                    centered 
+                  />
+                </div>
+              )}
+              
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentView}
+                  variants={contentVariants}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  transition={contentVariants.transition}
+                  className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden elevation-2"
+                >
+                  <DashboardComponent />
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </motion.div>
+        </div>
       </div>
     </DashboardContext.Provider>
   );

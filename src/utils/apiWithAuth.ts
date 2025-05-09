@@ -2,6 +2,14 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { apiBaseUrl } from '@/apis';
 import { getAuthToken, saveAuthToken } from './auth';
 import { jwtDecode } from 'jwt-decode';
+import { Tooltip } from "react-tooltip";
+
+const COUNTRY_NAME_MAP: Record<string, string> = {
+  "USA": "United States of America",
+  "UK": "United Kingdom",
+  "UAE": "United Arab Emirates",
+  // Add more as needed
+};
 
 // Check if token is expired or will expire soon
 const isTokenExpired = (token: string, thresholdSeconds = 300): boolean => {
@@ -42,7 +50,8 @@ const refreshTokenIfNeeded = async (token: string): Promise<string> => {
       {
         headers: {
           Authorization: `Bearer ${token}`,
-          'x-access-token': token
+          'x-access-token': token,
+          'x-request-id': 'your-request-id'
         },
         timeout: 10000 // 10 second timeout
       }
@@ -61,14 +70,17 @@ const refreshTokenIfNeeded = async (token: string): Promise<string> => {
     console.warn('Token refresh failed: No token in response', response.data);
     return token; // Return original token if refresh failed
   } catch (error) {
-    // More detailed error logging
-    console.error('Error refreshing token:', {
-      message: error?.message || 'Unknown error',
-      status: error?.response?.status,
-      data: error?.response?.data,
-      isAxiosError: error?.isAxiosError || false,
-      stack: error?.stack
-    });
+    if (axios.isAxiosError(error)) {
+      console.error('Error refreshing token:', {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+        isAxiosError: error.isAxiosError,
+        stack: error.stack,
+      });
+    } else {
+      console.error('Error refreshing token:', error);
+    }
     return token; // Return original token if refresh failed
   }
 };
@@ -96,6 +108,7 @@ export const createAuthClient = (): AxiosInstance => {
           // Add both authorization header formats
           config.headers['Authorization'] = `Bearer ${token}`;
           config.headers['x-access-token'] = token;
+          config.headers['x-request-id'] = 'your-request-id';
         }
         
         return config;
