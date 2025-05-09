@@ -8,7 +8,10 @@ import { IUpdateCourseData } from '@/types/course.types';
 import * as courseAPI from './course/course';
 import { MdHomeFilled } from 'react-icons/md';
 
+// Keep commented out for reference
 // export const apiBaseUrl = "http://localhost:8080/api/v1"; // local URL
+// This is a duplicate export, so removing it
+// export const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.medh.io/api/v1';
 
 /**
  * Shared utility functions for API URL construction.
@@ -301,7 +304,7 @@ export const apiUrls = {
     resendOTP: '/auth/resend-verification',
   },
   adminDashboard: {
-    getDashboardCount: "/dashboard/counts",
+    getDashboardCount: `${apiBaseUrl}/dashboard/counts`,
     getDetailedStats: (options: { period?: string; filter?: string } = {}): string => {
       const { period = "month", filter = "" } = options;
       const queryParams = new URLSearchParams();
@@ -309,7 +312,7 @@ export const apiUrls = {
       if (filter) {
         queryParams.append('filter', filter);
       }
-      return `/dashboard/admin-stats?${queryParams.toString()}`;
+      return `${apiBaseUrl}/dashboard/admin-stats?${queryParams.toString()}`;
     },
     getRevenueMetrics: (options: { 
       start_date?: string; 
@@ -320,7 +323,7 @@ export const apiUrls = {
       if (options.start_date) queryParams.append('start_date', options.start_date);
       if (options.end_date) queryParams.append('end_date', options.end_date);
       if (options.granularity) queryParams.append('granularity', options.granularity);
-      return `/dashboard/revenue-metrics?${queryParams.toString()}`;
+      return `${apiBaseUrl}/dashboard/revenue-metrics?${queryParams.toString()}`;
     },
     getEnrollmentStats: (options: { 
       course_id?: string; 
@@ -333,7 +336,7 @@ export const apiUrls = {
       if (options.period) queryParams.append('period', options.period);
       if (options.category) queryParams.append('category', options.category);
       if (options.instructor_id) queryParams.append('instructor_id', options.instructor_id);
-      return `/dashboard/enrollment-stats?${queryParams.toString()}`;
+      return `${apiBaseUrl}/dashboard/enrollment-stats?${queryParams.toString()}`;
     },
     getCompletionRates: (options: { 
       course_id?: string; 
@@ -346,7 +349,7 @@ export const apiUrls = {
       if (options.category) queryParams.append('category', options.category);
       if (options.start_date) queryParams.append('start_date', options.start_date);
       if (options.end_date) queryParams.append('end_date', options.end_date);
-      return `/dashboard/completion-rates?${queryParams.toString()}`;
+      return `${apiBaseUrl}/dashboard/completion-rates?${queryParams.toString()}`;
     },
     getUserActivityTimeline: (options: {
       user_type?: 'student' | 'instructor' | 'admin' | 'corporate';
@@ -362,7 +365,7 @@ export const apiUrls = {
       if (options.start_date) queryParams.append('start_date', options.start_date);
       if (options.end_date) queryParams.append('end_date', options.end_date);
       queryParams.append('limit', String(limit));
-      return `/dashboard/user-activity-timeline?${queryParams.toString()}`;
+      return `${apiBaseUrl}/dashboard/user-activity-timeline?${queryParams.toString()}`;
     },
     getZoomAnalytics: (options: {
       meeting_id?: string;
@@ -375,7 +378,7 @@ export const apiUrls = {
       if (options.instructor_id) queryParams.append('instructor_id', options.instructor_id);
       if (options.course_id) queryParams.append('course_id', options.course_id);
       if (options.period) queryParams.append('period', options.period);
-      return `/dashboard/zoom-analytics?${queryParams.toString()}`;
+      return `${apiBaseUrl}/dashboard/zoom-analytics?${queryParams.toString()}`;
     },
     getBlogPerformance: (options: {
       blog_id?: string;
@@ -388,11 +391,11 @@ export const apiUrls = {
       if (options.category) queryParams.append('category', options.category);
       if (options.period) queryParams.append('period', options.period);
       apiUtils.appendArrayParam('metrics', options.metrics, queryParams);
-      return `/dashboard/blog-performance?${queryParams.toString()}`;
+      return `${apiBaseUrl}/dashboard/blog-performance?${queryParams.toString()}`;
     },
-    getSystemHealth: "/dashboard/system-health",
+    getSystemHealth: `${apiBaseUrl}/dashboard/system-health`,
     exportDashboardData: (format: 'csv' | 'pdf' | 'excel' = 'csv', report_type: string): string => {
-      return `/dashboard/export-data?format=${format}&report_type=${report_type}`;
+      return `${apiBaseUrl}/dashboard/export-data?format=${format}&report_type=${report_type}`;
     }
   },
   upload: {

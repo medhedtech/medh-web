@@ -232,7 +232,7 @@ export const getRecordedVideosForUser = (studentId: string): string => {
 
 /**
  * Provides the endpoint URL for creating a new course.
- * Note: This returns a URL; the actual creation requires a POST request.
+ * Note: This returns a URL;the actual creation requires a POST request.
  * @returns The API URL string for course creation.
  */
 export const createCourse = (): string => `${apiBaseUrl}/courses/create`;
@@ -889,3 +889,20 @@ const handlePriceError = (error: unknown, defaultMessage: string): ErrorResponse
     timestamp: new Date().toISOString()
   };
 };
+
+/**
+ * Fetches courses that are marked to be shown on the home page.
+ * @returns The API URL string for getting home courses.
+ */
+export const getHomeCourses = (): string => `${apiBaseUrl}/courses/home`;
+
+/**
+ * Provides the endpoint URL for toggling a course's visibility on the home page.
+ * Note: This requires a PATCH request and authentication.
+ * @param id - The ID of the course.
+ * @returns The API URL string.
+ */
+export const toggleShowInHome = (id: string): string => {
+  if (!id) throw new Error('Course ID cannot be empty');
+  return `${apiBaseUrl}/courses/${id}/toggle-home`;
+}

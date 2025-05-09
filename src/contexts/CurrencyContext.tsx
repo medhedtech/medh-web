@@ -108,48 +108,113 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) 
 
   // Fetch external currencies from the API
   const fetchExternalCurrencies = async (): Promise<ICurrency[]> => {
-    try {
-      // Import apiUrls here to avoid circular dependencies
-      const { apiUrls, apiBaseUrl } = await import('@/apis');
-      
-      // Use the proper endpoint from the apiUrls object
-      const response = await axios.get(apiBaseUrl + '/currencies', { 
-        timeout: 8000 
-      });
-      
-      const validatedData = z.object({
-        status: z.string(),
-        results: z.number(),
-        data: z.object({
-          currencies: z.array(z.object({
-            _id: z.string(),
-            country: z.string(),
-            countryCode: z.string(),
-            valueWrtUSD: z.number(),
-            symbol: z.string(),
-            isActive: z.boolean(),
-            createdAt: z.string().optional(),
-            updatedAt: z.string().optional(),
-          }))
-        })
-      }).safeParse(response.data);
+    const MAX_RETRIES = 3;
+    let retries = 0;
+    let lastError: Error | null = null;
 
-      if (validatedData.success) {
-        const currencies = validatedData.data.data.currencies;
-        setExternalCurrencies(currencies);
-        return currencies;
-      }
+    while (retries < MAX_RETRIES) {
+      try {
+        // Import apiUrls here to avoid circular dependencies
+        const { apiUrls, apiBaseUrl } = await import('@/apis');
+        
+        // Use the proper endpoint from the apiUrls object
+        const baseUrl = apiBaseUrl || process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.medh.co/api/v1';
+        const url = `${baseUrl}/currencies`;
+        
+        console.log(`Fetching currencies from ${url} (Attempt ${retries + 1}/${MAX_RETRIES})`);
+        
+        const response = await axios.get(url, { 
+          timeout: 8000,
+          // Add request ID for debugging
+          headers: {
+            'X-Request-ID': `currency-req-${Date.now()}`
+          }
+        });
+        
+        const validatedData = z.object({
+          status: z.string(),
+          results: z.number(),
+          data: z.object({
+            currencies: z.array(z.object({
+              _id: z.string(),
+              country: z.string(),
+              countryCode: z.string(),
+              valueWrtUSD: z.number(),
+              symbol: z.string(),
+              isActive: z.boolean(),
+              createdAt: z.string().optional(),
+              updatedAt: z.string().optional(),
+            }))
+          })
+        }).safeParse(response.data);
 
-      throw new Error('Invalid response format from currencies API');
-    } catch (error) {
-      console.error('Error fetching external currencies:', error instanceof Error ? error.message : String(error));
-      // Return previously cached currencies if available
-      if (externalCurrencies.length > 0) {
-        console.log('Using cached currencies due to API error');
-        return externalCurrencies;
+        if (validatedData.success) {
+          const currencies = validatedData.data.data.currencies;
+          setExternalCurrencies(currencies);
+          console.log(`Successfully fetched ${currencies.length} currencies`);
+          return currencies;
+        }
+
+        throw new Error('Invalid response format from currencies API');
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+        retries++;
+        
+        if (error instanceof Error) {
+          // Check if it's a network error vs data validation error
+          const isNetworkError = error.message.includes('Network Error') || 
+                                 axios.isAxiosError(error) && !error.response;
+                                 
+          if (isNetworkError && retries < MAX_RETRIES) {
+            // For network errors, we retry with backoff
+            const backoffTime = 1000 * Math.pow(2, retries - 1); // Exponential backoff
+            console.log(`Network error fetching currencies, retrying in ${backoffTime}ms...`);
+            await new Promise(resolve => setTimeout(resolve, backoffTime));
+            continue;
+          }
+        }
+        
+        console.error('Error fetching external currencies:', 
+          error instanceof Error ? `${error.name}: ${error.message}` : String(error)
+        );
+        
+        // Break the loop on non-network errors
+        break;
       }
-      return [];
     }
+    
+    // After all retries, return cached data if available
+    if (externalCurrencies.length > 0) {
+      console.log('Using cached currencies after failed API calls');
+      return externalCurrencies;
+    }
+
+    // If no cached data and axios specific error, throw a more detailed error
+    if (lastError && axios.isAxiosError(lastError)) {
+      const errorData = lastError.response?.data;
+      console.error('Axios error details:', {
+        message: lastError.message,
+        code: lastError.code,
+        isAxiosError: lastError.isAxiosError,
+        config: lastError.config,
+        response: lastError.response
+          ? {
+              status: lastError.response.status,
+              statusText: lastError.response.statusText,
+              data: errorData,
+              headers: lastError.response.headers
+            }
+          : undefined,
+        toJSON: lastError.toJSON ? lastError.toJSON() : undefined,
+      });
+    } else if (lastError) {
+      // Not an Axios error, log the whole error
+      console.error('Non-Axios error:', lastError);
+    }
+    
+    // Return empty array as last resort
+    console.warn('No currencies available after retries and no cached data');
+    return [];
   };
 
   // Fetch exchange rates using our proxy API
