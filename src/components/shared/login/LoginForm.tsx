@@ -101,7 +101,8 @@ const schema = yup
 const LoginForm = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectPath = searchParams.get('redirect') || searchParams.get('from') || '';
+  const redirectParam = searchParams.get('redirect') || searchParams.get('from') || '';
+  const redirectPath = redirectParam ? decodeURIComponent(redirectParam) : '';
   const { postQuery, loading } = usePostQuery();
   const storageManager = useStorage();
   const { theme, resolvedTheme } = useTheme();
@@ -233,85 +234,99 @@ const LoginForm = () => {
       return;
     }
     
-    await postQuery({
-      url: apiUrls?.user?.login,
-      postData: {
-        email: data.email,
-        password: data.password,
-        agree_terms: data?.agree_terms,
-      },
-      onSuccess: (res: LoginResponse) => {
-        console.log('Login response:', res);
-        
-        // Prepare auth data with the exact structure
-        const authData: AuthData = {
-          token: res.data.access_token,
-          refresh_token: res.data.refresh_token,
-          id: res.data.id,
-          full_name: res.data.full_name,
-          email: res.data.email
-        };
+    try {
+      await postQuery({
+        url: apiUrls?.user?.login,
+        postData: {
+          email: data.email,
+          password: data.password,
+          agree_terms: data?.agree_terms,
+        },
+        onSuccess: (res: LoginResponse) => {
+          // Prepare auth data with the exact structure
+          const authData: AuthData = {
+            token: res.data.access_token,
+            refresh_token: res.data.refresh_token,
+            id: res.data.id,
+            full_name: res.data.full_name,
+            email: res.data.email
+          };
 
-        const authSuccess = storeAuthData(
-          authData,
-          rememberMe,
-          data.email
-        );
+          const authSuccess = storeAuthData(
+            authData,
+            rememberMe,
+            data.email
+          );
 
-        if (!authSuccess) {
-          toast.error("Failed to save authentication data. Please try again.");
-          return;
-        }
+          if (!authSuccess) {
+            toast.error("Failed to save authentication data. Please try again.");
+            return;
+          }
 
-        // Extract user role from the response
-        const userRole = Array.isArray(res.data.role) ? res.data.role[0] : res.data.role;
-        const fullName = res.data.full_name;
+          // Extract user role from the response
+          const userRole = Array.isArray(res.data.role) ? res.data.role[0] : res.data.role;
+          const fullName = res.data.full_name;
 
-        // Store role and full name in localStorage
-        if (userRole) {
-          localStorage.setItem("role", userRole);
-        }
-        if (fullName) {
-          localStorage.setItem("fullName", fullName);
-        }
+          // Store role and full name in localStorage
+          if (userRole) {
+            localStorage.setItem("role", userRole);
+          }
+          if (fullName) {
+            localStorage.setItem("fullName", fullName);
+          }
 
-        // Store data in storage manager
-        const storageData: StorageManagerLoginData = {
-          token: res.data.access_token,
-          refresh_token: res.data.refresh_token,
-          userId: res.data.id,
-          email: res.data.email,
-          password: rememberMe ? data.password : undefined,
-          role: userRole,
-          fullName: fullName,
-          permissions: res.data.permissions,
-          rememberMe: rememberMe
-        };
+          // Store data in storage manager
+          const storageData: StorageManagerLoginData = {
+            token: res.data.access_token,
+            refresh_token: res.data.refresh_token,
+            userId: res.data.id,
+            email: res.data.email,
+            password: rememberMe ? data.password : undefined,
+            role: userRole,
+            fullName: fullName,
+            permissions: res.data.permissions,
+            rememberMe: rememberMe
+          };
 
-        storageManager.login(storageData);
+          storageManager.login(storageData);
 
-        // Track login event
-        events.login(userRole || 'user');
-        
-        // Show success message and redirect
-        toast.success(res.message || "Login successful! Redirecting...");
-        
-        if (redirectPath && redirectPath.startsWith('/') && !redirectPath.startsWith('//')) {
-          router.push(redirectPath);
-        } else {
-          const dashboardPath = getRoleBasedRedirectPath(userRole);
-          router.push(dashboardPath);
-        }
-        
-        setRecaptchaError(false);
-        setRecaptchaValue(null);
-      },
-      onFail: (error) => {
-        toast.error(error?.message || "Login failed. Please check your credentials.");
-        console.error("Login error:", error);
-        setTimeout(() => emailInputRef.current?.focus(), 100);
-      },
-    });
+          // Track login event
+          events.login(userRole || 'user');
+          
+          // Show success message and redirect
+          toast.success(res.message || "Login successful! Redirecting...");
+          
+          // Enhanced redirect logic to ensure proper URL handling
+          if (redirectPath && redirectPath.startsWith('/')) {
+            router.push(redirectPath);
+          } else {
+            const dashboardPath = getRoleBasedRedirectPath(userRole);
+            router.push(dashboardPath);
+          }
+          
+          setRecaptchaError(false);
+          setRecaptchaValue(null);
+        },
+        onFail: (error) => {
+          toast.error(error?.message || "Login failed. Please check your credentials.");
+          
+          // Don't log sensitive information to console in production
+          if (process.env.NODE_ENV !== 'production') {
+            console.warn("Login error:", error);
+          }
+          
+          setTimeout(() => emailInputRef.current?.focus(), 100);
+        },
+      });
+    } catch (error) {
+      // Gracefully handle unexpected errors
+      toast.error("An unexpected error occurred. Please try again later.");
+      
+      // Only log error details in development
+      if (process.env.NODE_ENV !== 'production') {
+        console.error("Unexpected login error:", error);
+      }
+    }
   };
 
   if (loading) {

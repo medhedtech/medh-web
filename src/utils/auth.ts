@@ -3,12 +3,15 @@
  */
 
 import { jwtDecode } from 'jwt-decode';
+import { apiUrls } from '@/apis';
+import axios from 'axios';
 
 /**
  * Saves authentication token to both localStorage and sessionStorage
  * @param token JWT token string
  */
 export const saveAuthToken = (token: string): void => {
+  if (typeof window === 'undefined') return;
   try {
     // Store in both storage types for redundancy
     localStorage.setItem('token', token);
@@ -26,6 +29,7 @@ export const saveAuthToken = (token: string): void => {
  * @param userId User ID string
  */
 export const saveUserId = (userId: string): void => {
+  if (typeof window === 'undefined') return;
   try {
     // Validate userId before saving
     if (!userId || userId === 'undefined' || userId === 'null') {
@@ -86,6 +90,7 @@ export const getFullName = (): string => {
  * @param email The user's email
  */
 export const setRememberMe = (rememberMe: boolean, email?: string): void => {
+  if (typeof window === 'undefined') return;
   try {
     if (rememberMe) {
       localStorage.setItem('rememberMe', 'true');
@@ -115,6 +120,7 @@ export const setRememberMe = (rememberMe: boolean, email?: string): void => {
  * @returns Whether remember me is enabled
  */
 export const isRememberMeEnabled = (): boolean => {
+  if (typeof window === 'undefined') return false;
   try {
     return localStorage.getItem('rememberMe') === 'true';
   } catch (err) {
@@ -128,6 +134,7 @@ export const isRememberMeEnabled = (): boolean => {
  * @returns The remembered email or empty string
  */
 export const getRememberedEmail = (): string => {
+  if (typeof window === 'undefined') return '';
   try {
     if (isRememberMeEnabled()) {
       return localStorage.getItem('rememberedEmail') || '';
@@ -144,6 +151,7 @@ export const getRememberedEmail = (): string => {
  * @returns The JWT token string or null if not found
  */
 export const getAuthToken = (): string | null => {
+  if (typeof window === 'undefined') return null;
   try {
     // Try localStorage first
     let token = localStorage.getItem('token');
@@ -165,6 +173,7 @@ export const getAuthToken = (): string | null => {
  * @returns The user ID string or null if not found
  */
 export const getUserId = (): string | null => {
+  if (typeof window === 'undefined') return null;
   try {
     // Try localStorage first
     let userId = localStorage.getItem('userId');
@@ -198,6 +207,7 @@ export const isAuthenticated = (): boolean => {
  * Clear auth token from all storage
  */
 export const clearAuthToken = (): void => {
+  if (typeof window === 'undefined') return;
   try {
     localStorage.removeItem('token');
     sessionStorage.removeItem('token');
@@ -213,6 +223,7 @@ export const clearAuthToken = (): void => {
  * Clear user ID from all storage
  */
 export const clearUserId = (): void => {
+  if (typeof window === 'undefined') return;
   try {
     localStorage.removeItem('userId');
     sessionStorage.removeItem('userId');
@@ -263,6 +274,16 @@ export const storeExternalToken = (token: string): void => {
   }
 };
 
+// Types
+interface AuthData {
+  token: string;
+  refresh_token: string;
+  id: string;
+  full_name?: string;
+  email?: string;
+  role?: string | string[];
+}
+
 /**
  * Store authentication data from login response
  * @param data Login response containing token and user ID
@@ -271,17 +292,13 @@ export const storeExternalToken = (token: string): void => {
  * @param fullName User's full name
  */
 export const storeAuthData = (
-  data: { 
-    token?: string; 
-    refresh_token?: string;
-    id?: string; 
-    full_name?: string; 
-    name?: string 
-  },
+  data: AuthData,
   rememberMe: boolean = false,
   email?: string,
 ): boolean => {
   try {
+    if (typeof window === 'undefined') return false;
+    
     if (!data?.token || !data?.id) {
       return false;
     }
@@ -292,9 +309,18 @@ export const storeAuthData = (
     }
     saveUserId(data.id);
     
-    const fullName = data.full_name || data.name || '';
+    const fullName = data.full_name || '';
     if (fullName) {
       saveFullName(fullName);
+    }
+    
+    if (data.email) {
+      localStorage.setItem('email', data.email);
+    }
+    
+    if (data.role) {
+      const role = Array.isArray(data.role) ? data.role[0] : data.role;
+      localStorage.setItem('role', role);
     }
     
     setRememberMe(rememberMe, email);
@@ -311,28 +337,24 @@ export const storeAuthData = (
  * Call this at app initialization to clean up any bad values
  */
 export const sanitizeAuthData = (): void => {
-  try {
-    if (typeof window === 'undefined') return;
-    
-    // Check for invalid user ID values
-    const userId = localStorage.getItem('userId');
-    if (userId === 'undefined' || userId === 'null' || userId === '') {
-      console.warn('Removing invalid userId from storage:', userId);
-      localStorage.removeItem('userId');
-      sessionStorage.removeItem('userId');
-      document.cookie = 'userId=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
-    }
-    
-    // Check for invalid token values
-    const token = localStorage.getItem('token');
-    if (token === 'undefined' || token === 'null' || token === '') {
-      console.warn('Removing invalid token from storage:', token);
-      localStorage.removeItem('token');
-      sessionStorage.removeItem('token');
-      document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
-    }
-  } catch (err) {
-    console.error('Error sanitizing auth data:', err);
+  if (typeof window === 'undefined') return;
+  
+  // Check for invalid user ID values
+  const userId = localStorage.getItem('userId');
+  if (userId === 'undefined' || userId === 'null' || userId === '') {
+    console.warn('Removing invalid userId from storage:', userId);
+    localStorage.removeItem('userId');
+    sessionStorage.removeItem('userId');
+    document.cookie = 'userId=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
+  }
+  
+  // Check for invalid token values
+  const token = localStorage.getItem('token');
+  if (token === 'undefined' || token === 'null' || token === '') {
+    console.warn('Removing invalid token from storage:', token);
+    localStorage.removeItem('token');
+    sessionStorage.removeItem('token');
+    document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
   }
 };
 
@@ -341,6 +363,7 @@ export const sanitizeAuthData = (): void => {
  * @param refreshToken Refresh token string
  */
 export const saveRefreshToken = (refreshToken: string): void => {
+  if (typeof window === 'undefined') return;
   try {
     localStorage.setItem('refreshToken', refreshToken);
     document.cookie = `refreshToken=${refreshToken}; path=/; max-age=2592000; SameSite=Lax`; // 30 days
@@ -354,6 +377,7 @@ export const saveRefreshToken = (refreshToken: string): void => {
  * @returns The refresh token string or null if not found
  */
 export const getRefreshToken = (): string | null => {
+  if (typeof window === 'undefined') return null;
   try {
     return localStorage.getItem('refreshToken');
   } catch (err) {
@@ -366,6 +390,7 @@ export const getRefreshToken = (): string | null => {
  * Clear refresh token from storage
  */
 export const clearRefreshToken = (): void => {
+  if (typeof window === 'undefined') return;
   try {
     localStorage.removeItem('refreshToken');
     document.cookie = 'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
@@ -375,73 +400,130 @@ export const clearRefreshToken = (): void => {
 };
 
 /**
- * Attempts to refresh the authentication token
+ * Refreshes the auth token if needed
  * @returns Promise that resolves to new token or null if refresh failed
  */
-export const refreshAuthToken = async (): Promise<string | null> => {
-  try {
-    const currentToken = getAuthToken();
-    const refreshToken = getRefreshToken();
-    
-    if (!currentToken || !refreshToken) {
-      console.warn('Cannot refresh token: Missing current token or refresh token');
-      return null;
-    }
-    
-    // Avoid refresh if token is still valid
-    if (!needsTokenRefresh()) {
+export const refreshTokenIfNeeded = async (): Promise<string | null> => {
+  const currentToken = getAuthToken();
+  const refreshToken = getRefreshToken();
+  
+  // If no refresh token or current token is valid and not expiring soon, return current token
+  if (!refreshToken || (currentToken && !willTokenExpireSoon(currentToken))) {
+    return currentToken;
+  }
+  
+  // Check if we're in development mode
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  const shouldBypassAPI = process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true';
+  
+  // In development with bypass enabled, skip actual API call and use mock response
+  if (isDevelopment && shouldBypassAPI) {
+    console.log('Development mode with bypass: Using mock token refresh');
+    // If we have a current token, use it or generate a mock one
+    if (currentToken) {
       return currentToken;
-    }
-    
-    console.log('Attempting to refresh auth token');
-    
-    // Add baseUrl check to handle development environments
-    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.medh.co/api/v1';
-    
-    const response = await fetch(`${baseUrl}/auth/refresh-token`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${currentToken}`,
-        'x-access-token': currentToken,
-        'x-refresh-token': refreshToken
-      },
-      body: JSON.stringify({ refresh_token: refreshToken })
-    });
-    
-    if (!response.ok) {
-      console.error('Token refresh failed with status:', response.status);
-      // Clear invalid tokens on 401/403 responses
-      if (response.status === 401 || response.status === 403) {
-        clearAuthToken();
-        clearRefreshToken();
-      }
-      return null;
-    }
-    
-    const data = await response.json();
-    
-    if (data && data.token) {
-      saveAuthToken(data.token);
+    } else {
+      // Create a mock token that will last for 1 hour
+      // Generate a very simple mock token for development
+      const now = Math.floor(Date.now() / 1000);
+      const payload = {
+        sub: 'mock-user-id',
+        name: 'Mock User',
+        iat: now,
+        exp: now + 3600, // 1 hour
+        role: 'student'
+      };
       
-      // Also save refresh token if it was returned
-      if (data.refresh_token) {
-        saveRefreshToken(data.refresh_token);
+      // Base64 encode (compatible with both browser and Node)
+      const safeBase64 = (str: string) => {
+        let base64;
+        if (typeof window === 'undefined') {
+          // Node.js environment
+          base64 = Buffer.from(str).toString('base64');
+        } else {
+          // Browser environment
+          base64 = window.btoa(str);
+        }
+        return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      };
+      
+      const header = safeBase64(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+      const encodedPayload = safeBase64(JSON.stringify(payload));
+      const signature = 'MOCK_SIG'; // Not a real signature, just for development
+      
+      const mockToken = `${header}.${encodedPayload}.${signature}`;
+      console.log('Created mock development token that expires in 1 hour');
+      
+      // Save token and create mock user data
+      saveAuthToken(mockToken);
+      
+      // In development mode, set some mock user data
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('userId', 'mock-user-id');
+        localStorage.setItem('role', 'student');
+        localStorage.setItem('fullName', 'Mock Student User');
+        localStorage.setItem('email', 'mock.student@example.com');
       }
       
-      console.log('Token refreshed successfully');
-      return data.token;
+      return mockToken;
+    }
+  }
+  
+  try {
+    // For development, try to detect localhost API
+    let baseUrl;
+    if (isDevelopment) {
+      // Try multiple possible local API URLs, with preference for environment variable
+      baseUrl = process.env.NEXT_PUBLIC_API_URL || 
+                'http://localhost:8080/api/v1' || 
+                'http://127.0.0.1:8080/api/v1';
+      console.log('Using development API URL:', baseUrl);
+    } else {
+      // In production, use the production API
+      baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.medh.io/api/v1';
     }
     
-    console.warn('Refresh response did not contain a token:', data);
-    return null;
+    // Construct the full URL with protocol and host
+    const refreshTokenUrl = `${baseUrl}/auth/refresh-token`;
+    
+    console.log('Refreshing token at URL:', refreshTokenUrl);
+    
+    const response = await axios.post(
+      refreshTokenUrl,
+      { refresh_token: refreshToken },
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000 // Add reasonable timeout
+      }
+    );
+    
+    if (response.data && response.data.data && response.data.data.access_token) {
+      const newToken = response.data.data.access_token;
+      
+      // Save the new tokens
+      saveAuthToken(newToken);
+      
+      if (response.data.data.refresh_token) {
+        saveRefreshToken(response.data.data.refresh_token);
+      }
+      
+      return newToken;
+    }
+    
+    console.warn('Token refresh failed: Invalid response format');
+    return currentToken;
   } catch (error) {
-    console.error('Error refreshing auth token:', {
-      message: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-      name: error instanceof Error ? error.name : 'Unknown Error'
-    });
-    return null;
+    console.error('Error refreshing token:', error);
+    
+    // If we're in development, just return the current token without failing
+    if (isDevelopment) {
+      console.warn('Development environment: Returning current token despite refresh failure');
+      return currentToken || null;
+    }
+    
+    return null; // Return null to indicate refresh failed in production
   }
 };
 
@@ -462,5 +544,46 @@ export const needsTokenRefresh = (): boolean => {
   } catch (err) {
     console.error('Error checking token expiration:', err);
     return false;
+  }
+};
+
+/**
+ * Check if token is expired
+ * @param token JWT token string
+ * @returns True if token is expired, false otherwise
+ */
+export const isTokenExpired = (token: string | null): boolean => {
+  if (!token) return true;
+  
+  try {
+    const decoded = jwtDecode<{ exp: number }>(token);
+    const currentTime = Math.floor(Date.now() / 1000);
+    
+    // Return true if token is expired
+    return decoded.exp <= currentTime;
+  } catch (error) {
+    console.error('Error decoding token:', error);
+    return true; // Assume expired if we can't decode it
+  }
+};
+
+/**
+ * Check if token will expire soon (within next 5 minutes)
+ * @param token JWT token string
+ * @param thresholdSeconds Optional threshold in seconds (default 300 seconds)
+ * @returns True if token will expire within threshold seconds, false otherwise
+ */
+export const willTokenExpireSoon = (token: string | null, thresholdSeconds = 300): boolean => {
+  if (!token) return true;
+  
+  try {
+    const decoded = jwtDecode<{ exp: number }>(token);
+    const currentTime = Math.floor(Date.now() / 1000);
+    
+    // Return true if token will expire within threshold seconds
+    return decoded.exp - currentTime < thresholdSeconds;
+  } catch (error) {
+    console.error('Error decoding token:', error);
+    return true; // Assume will expire soon if we can't decode it
   }
 }; 

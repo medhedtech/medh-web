@@ -3,7 +3,11 @@
 import React from "react";
 import DashboardLayout from "./StudentDashboardLayout";
 
-const StudentDashboard: React.FC = () => {
+/**
+ * UpcomingClassesDashboard - Component that displays the student's upcoming classes page
+ * within the student dashboard layout
+ */
+const UpcomingClassesDashboard: React.FC = () => {
   return (
     <DashboardLayout 
       userRole="student"
@@ -20,4 +24,4 @@ const StudentDashboard: React.FC = () => {
   );
 };
 
-export default StudentDashboard; 
+export default UpcomingClassesDashboard; 
