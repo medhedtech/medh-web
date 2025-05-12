@@ -1156,6 +1156,13 @@ export const apiUrls = {
     createInstructorUser: `${apiBaseUrl}/zoom/users/instructor`,
     createStudentUser: `${apiBaseUrl}/zoom/users/student`,
   },
+  auth: {
+    refreshToken: `${apiBaseUrl}/auth/refresh-token`,
+    login: "/auth/login",
+    register: "/auth/register",
+    logout: "/auth/logout",
+    verifyToken: "/auth/verify-token"
+  },
 };
 
 /**
