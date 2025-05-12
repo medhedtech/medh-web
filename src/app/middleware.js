@@ -46,7 +46,8 @@ export async function middleware(request) {
 
   if (!isPublicPage && !isAuthenticated_) {
     const loginUrl = new URL('/login', request.url);
-    loginUrl.searchParams.set('from', path);
+    // Use 'redirect' parameter for consistency with client-side redirects
+    loginUrl.searchParams.set('redirect', encodeURIComponent(path));
     return NextResponse.redirect(loginUrl);
   }
 

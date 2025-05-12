@@ -3,7 +3,11 @@
 import React from "react";
 import DashboardLayout from "./StudentDashboardLayout";
 
-const StudentDashboard: React.FC = () => {
+/**
+ * LiveClassesDashboard - Component that displays the student's live classes page
+ * within the student dashboard layout
+ */
+const LiveClassesDashboard: React.FC = () => {
   return (
     <DashboardLayout 
       userRole="student"
@@ -20,4 +24,4 @@ const StudentDashboard: React.FC = () => {
   );
 };
 
-export default StudentDashboard; 
+export default LiveClassesDashboard; 
