@@ -50,8 +50,7 @@ const refreshTokenIfNeeded = async (token: string): Promise<string> => {
       {
         headers: {
           Authorization: `Bearer ${token}`,
-          'x-access-token': token,
-          'x-request-id': 'your-request-id'
+          'x-access-token': token
         },
         timeout: 10000 // 10 second timeout
       }
@@ -108,7 +107,6 @@ export const createAuthClient = (): AxiosInstance => {
           // Add both authorization header formats
           config.headers['Authorization'] = `Bearer ${token}`;
           config.headers['x-access-token'] = token;
-          config.headers['x-request-id'] = 'your-request-id';
         }
         
         return config;
