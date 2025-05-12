@@ -98,7 +98,7 @@ const PlacementForm = dynamic(
 
 // Add the StudentDemoClasses component import
 const StudentDemoClasses = dynamic(
-  () => import("@/components/layout/main/dashboards/StudentDemoClasses"), 
+  () => import("@/components/layout/main/dashboards/UpcomingClassesMain"), 
   { 
     ssr: false,
     loading: () => <SkeletonLoader type="classes" />
@@ -131,10 +131,37 @@ const StudentAssignments = dynamic(
 );
 
 const LiveClasses = dynamic(
-  () => import("@/components/layout/main/dashboards/LiveClasses"), 
+  () => import("@/components/layout/main/dashboards/LiveClassesMain"), 
   { 
     ssr: false,
     loading: () => <SkeletonLoader type="classes" />
+  }
+);
+
+// Add the new component imports
+const JoinLiveClasses = dynamic(
+  () => import("@/components/layout/main/dashboards/JoinLiveMain"), 
+  { 
+    ssr: false,
+    loading: () => <SkeletonLoader type="classes" />
+  }
+);
+
+// Add the new component imports
+const RecordedSessionsMain = dynamic(
+  () => import("@/components/layout/main/dashboards/RecordedSessionsMain"), 
+  { 
+    ssr: false,
+    loading: () => <SkeletonLoader type="courses" />
+  }
+);
+
+// Add the new component imports
+const EnrolledCoursesMain = dynamic(
+  () => import("@/components/layout/main/dashboards/EnrolledCoursesMain"), 
+  { 
+    ssr: false,
+    loading: () => <SkeletonLoader type="courses" />
   }
 );
 
@@ -195,7 +222,7 @@ interface DashboardLayoutProps {
 interface StudentDashboardLayoutProps {
   children?: React.ReactNode;
   userRole: string;
-  userName: string;
+  fullName: string;
   userEmail: string;
   userImage: string;
   userNotifications: number;
@@ -212,7 +239,7 @@ interface StudentDashboardLayoutProps {
 const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
   children,
   userRole,
-  userName,
+  fullName,
   userEmail,
   userImage,
   userNotifications,
@@ -243,6 +270,27 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
     if (title) {
       setComingSoonTitle(title);
       setCurrentView("comingsoon");
+      return;
+    }
+    
+    // Detect current path to set the appropriate view
+    const pathname = window.location.pathname;
+    if (pathname.includes('/dashboards/student/my-courses')) {
+      setCurrentView("my-courses");
+    } else if (pathname.includes('/dashboards/student/membership')) {
+      setCurrentView("membership");
+    } else if (pathname.includes('/dashboards/student/live-classes')) {
+      setCurrentView("liveclasses");
+    } else if (pathname.includes('/dashboards/student/upcoming-classes')) {
+      setCurrentView("democlasses");
+    } else if (pathname.includes('/dashboards/student/join-live')) {
+      setCurrentView("joinlive");
+    } else if (pathname.includes('/dashboards/student/access-recorded-sessions')) {
+      setCurrentView("recordedsessions");
+    } else if (pathname.includes('/dashboards/student/enrolled-courses')) {
+      setCurrentView("enrolledcourses");
+    } else if (pathname === '/dashboards/student') {
+      setCurrentView("overview");
     }
     
     // Set sidebar state based on screen size
@@ -440,6 +488,12 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
       return <StudentAssignments />;
     } else if (viewMatches(['liveclasses', 'live'])) {
       return <LiveClasses />;
+    } else if (viewMatches(['joinlive', 'join'])) {
+      return <JoinLiveClasses />;
+    } else if (viewMatches(['recordedsessions'])) {
+      return <RecordedSessionsMain />;
+    } else if (viewMatches(['enrolledcourses', 'enrolled-courses', 'enrolled'])) {
+      return <EnrolledCoursesMain />;
     } else {
       // Default to coming soon for truly unimplemented views
       return (
@@ -505,7 +559,7 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
           >
             <SidebarDashboard
               userRole={userRole}
-              userName={userName}
+              fullName={fullName}
               userEmail={userEmail}
               userImage={userImage}
               userNotifications={userNotifications}

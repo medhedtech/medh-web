@@ -110,22 +110,83 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) 
   const fetchExternalCurrencies = async (): Promise<ICurrency[]> => {
     const MAX_RETRIES = 3;
     let retries = 0;
-    let lastError: Error | null = null;
 
+    // First check if we have cached currencies in state
+    if (externalCurrencies.length > 0) {
+      console.log('Using cached currencies from state');
+      return externalCurrencies;
+    }
+
+    // Then check if we have cached currencies in localStorage
+    try {
+      const cachedCurrencies = localStorage.getItem('cachedCurrencies');
+      if (cachedCurrencies) {
+        const parsed = JSON.parse(cachedCurrencies);
+        const timestamp = parsed.timestamp || 0;
+        
+        // Use cached data if less than 24 hours old
+        if (Date.now() - timestamp < 24 * 60 * 60 * 1000 && Array.isArray(parsed.currencies) && parsed.currencies.length > 0) {
+          console.log('Using cached currencies from localStorage');
+          setExternalCurrencies(parsed.currencies);
+          return parsed.currencies;
+        }
+      }
+    } catch (cacheError) {
+      console.warn('Error reading cached currencies:', cacheError);
+      // Continue to API call if cache read fails
+    }
+
+    // Create fallback currencies from CURRENCIES constant - will be used if API fails
+    const fallbackCurrencies: ICurrency[] = Object.entries(CURRENCIES).map(([code, curr]) => ({
+      _id: code,
+      country: curr.name,
+      countryCode: code,
+      valueWrtUSD: curr.rate,
+      symbol: curr.symbol,
+      isActive: true
+    }));
+    
+    // Skip API calls in development or if API isn't available
+    if (process.env.NODE_ENV === 'development' || 
+        process.env.NEXT_PUBLIC_SKIP_CURRENCY_API === 'true') {
+      console.log('Skipping currency API call in development - using fallback data');
+      setExternalCurrencies(fallbackCurrencies);
+      
+      // Still cache the fallback currencies for future use
+      localStorage.setItem('cachedCurrencies', JSON.stringify({ 
+        currencies: fallbackCurrencies,
+        timestamp: Date.now()
+      }));
+      
+      return fallbackCurrencies;
+    }
+
+    // Now try the API
     while (retries < MAX_RETRIES) {
       try {
-        // Import apiUrls here to avoid circular dependencies
-        const { apiUrls, apiBaseUrl } = await import('@/apis');
+        // Use a more reliable way to get the API URL
+        let baseUrl = '';
         
-        // Use the proper endpoint from the apiUrls object
-        const baseUrl = apiBaseUrl || process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.medh.co/api/v1';
+        try {
+          // Try to dynamically import, but catch any import errors
+          const { apiBaseUrl } = await import('@/apis/config');
+          baseUrl = apiBaseUrl || '';
+        } catch (importError) {
+          console.warn('Error importing API config:', importError);
+        }
+        
+        // Fallback options if import fails
+        if (!baseUrl) {
+          baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 
+                   'https://api.medh.io/api/v1';
+        }
+        
         const url = `${baseUrl}/currencies`;
         
         console.log(`Fetching currencies from ${url} (Attempt ${retries + 1}/${MAX_RETRIES})`);
         
         const response = await axios.get(url, { 
           timeout: 8000,
-          // Add request ID for debugging
           headers: {
             'X-Request-ID': `currency-req-${Date.now()}`
           }
@@ -150,71 +211,49 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) 
 
         if (validatedData.success) {
           const currencies = validatedData.data.data.currencies;
+          
+          // Cache the currencies
           setExternalCurrencies(currencies);
+          localStorage.setItem('cachedCurrencies', JSON.stringify({ 
+            currencies,
+            timestamp: Date.now()
+          }));
+          
           console.log(`Successfully fetched ${currencies.length} currencies`);
           return currencies;
         }
 
         throw new Error('Invalid response format from currencies API');
       } catch (error) {
-        lastError = error instanceof Error ? error : new Error(String(error));
         retries++;
         
-        if (error instanceof Error) {
-          // Check if it's a network error vs data validation error
-          const isNetworkError = error.message.includes('Network Error') || 
-                                 axios.isAxiosError(error) && !error.response;
-                                 
-          if (isNetworkError && retries < MAX_RETRIES) {
-            // For network errors, we retry with backoff
-            const backoffTime = 1000 * Math.pow(2, retries - 1); // Exponential backoff
-            console.log(`Network error fetching currencies, retrying in ${backoffTime}ms...`);
-            await new Promise(resolve => setTimeout(resolve, backoffTime));
-            continue;
-          }
+        if (retries < MAX_RETRIES) {
+          // For all errors, we retry with backoff
+          const backoffTime = 1000 * Math.pow(2, retries - 1); // Exponential backoff
+          console.log(`Error fetching currencies, retrying in ${backoffTime}ms...`);
+          await new Promise(resolve => setTimeout(resolve, backoffTime));
+          continue;
         }
         
         console.error('Error fetching external currencies:', 
-          error instanceof Error ? `${error.name}: ${error.message}` : String(error)
+          error instanceof Error ? error.message : String(error)
         );
         
-        // Break the loop on non-network errors
         break;
       }
     }
     
-    // After all retries, return cached data if available
-    if (externalCurrencies.length > 0) {
-      console.log('Using cached currencies after failed API calls');
-      return externalCurrencies;
-    }
-
-    // If no cached data and axios specific error, throw a more detailed error
-    if (lastError && axios.isAxiosError(lastError)) {
-      const errorData = lastError.response?.data;
-      console.error('Axios error details:', {
-        message: lastError.message,
-        code: lastError.code,
-        isAxiosError: lastError.isAxiosError,
-        config: lastError.config,
-        response: lastError.response
-          ? {
-              status: lastError.response.status,
-              statusText: lastError.response.statusText,
-              data: errorData,
-              headers: lastError.response.headers
-            }
-          : undefined,
-        toJSON: lastError.toJSON ? lastError.toJSON() : undefined,
-      });
-    } else if (lastError) {
-      // Not an Axios error, log the whole error
-      console.error('Non-Axios error:', lastError);
-    }
+    // Return fallback static currencies if all API calls fail
+    console.warn('Using fallback static currencies after API failure');
+    setExternalCurrencies(fallbackCurrencies);
     
-    // Return empty array as last resort
-    console.warn('No currencies available after retries and no cached data');
-    return [];
+    // Cache the fallback currencies as well
+    localStorage.setItem('cachedCurrencies', JSON.stringify({ 
+      currencies: fallbackCurrencies,
+      timestamp: Date.now()
+    }));
+    
+    return fallbackCurrencies;
   };
 
   // Fetch exchange rates using our proxy API
@@ -519,9 +558,11 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) 
     changeCurrency, 
     getAvailableCurrencies, 
     getCurrentCurrency, 
+    refreshRates,
     updateCurrencies, 
     setAutoDetectPreference, 
-    autoDetect
+    autoDetect,
+    fetchExternalCurrencies
   ]);
 
   return (
