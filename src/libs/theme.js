@@ -7,22 +7,28 @@ const theme = () => {
     html.classList.remove("dark");
   }
 
-  const currentMode = localStorage.getItem("theme");
+  // Get theme from localStorage, default to light if not set
+  const currentMode = localStorage.getItem("theme") || "light";
   if (currentMode === "dark") {
     html.classList.add("dark");
-  } else if (currentMode === "light") {
+  } else {
+    // Default to light theme
     html.classList.remove("dark");
   }
+
+  // Handle theme toggle
   const themeController = document.querySelector(".theme-controller");
-  themeController.addEventListener("click", function () {
-    html.classList.toggle("dark");
-    const currentMode = html.classList.contains("dark");
-    if (currentMode) {
-      localStorage.setItem("theme", "dark");
-    } else {
-      localStorage.setItem("theme", "light");
-    }
-  });
+  if (themeController) {
+    themeController.addEventListener("click", function () {
+      html.classList.toggle("dark");
+      const currentMode = html.classList.contains("dark");
+      if (currentMode) {
+        localStorage.setItem("theme", "dark");
+      } else {
+        localStorage.setItem("theme", "light");
+      }
+    });
+  }
 };
 
 export default theme;

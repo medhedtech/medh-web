@@ -21,24 +21,26 @@ const ThemeController = ({
   const { theme, setTheme, resolvedTheme, systemTheme, toggleTheme } = useTheme();
   const [showTooltip, setShowTooltip] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [activeTheme, setActiveTheme] = useState<ThemeMode>('system');
+  const [activeTheme, setActiveTheme] = useState<ThemeMode>('light');
   
   // Wait for component to mount to avoid hydration mismatch
   useEffect(() => {
     setMounted(true);
     // Initialize active theme from localStorage or system preference
     const savedTheme = localStorage.getItem('medh-theme') as ThemeMode;
-    if (savedTheme) {
+    if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
       setActiveTheme(savedTheme);
     } else {
-      setActiveTheme('system');
+      setActiveTheme('light');
     }
   }, []);
 
   // Sync active theme with next-themes
   useEffect(() => {
     if (mounted && theme) {
-      setActiveTheme(theme as ThemeMode);
+      if (theme === 'light' || theme === 'dark') {
+        setActiveTheme(theme as ThemeMode);
+      }
     }
   }, [theme, mounted]);
 
@@ -63,7 +65,7 @@ const ThemeController = ({
 
   // Cycle through all themes
   const cycleTheme = useCallback(() => {
-    const themes: ThemeMode[] = ['light', 'dark', 'system'];
+    const themes: ThemeMode[] = ['light', 'dark'];
     const currentIndex = themes.indexOf(activeTheme);
     const nextIndex = (currentIndex + 1) % themes.length;
     const newTheme = themes[nextIndex];
@@ -126,24 +128,13 @@ const ThemeController = ({
                   ${activeTheme === 'dark' ? 'scale-100 rotate-0 opacity-100' : 'scale-75 -rotate-90 opacity-0'}
                 `} 
               />
-              
-              {/* System Icon */}
-              <Monitor 
-                className={`
-                  absolute ${iconSizes[size]} 
-                  text-gray-500 dark:text-gray-400 
-                  transition-all duration-300 ease-in-out 
-                  transform-gpu 
-                  ${activeTheme === 'system' ? 'scale-100 rotate-0 opacity-100' : 'scale-75 opacity-0'}
-                `} 
-              />
             </div>
           </div>
 
           {/* Label if enabled */}
           {showLabel && (
             <span className="ml-2 text-sm font-medium">
-              {activeTheme === 'system' ? 'System' : activeTheme === 'dark' ? 'Dark' : 'Light'}
+              {activeTheme === 'dark' ? 'Dark' : 'Light'}
             </span>
           )}
 
