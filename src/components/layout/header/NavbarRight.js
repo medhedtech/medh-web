@@ -313,24 +313,23 @@ const NavbarRight = ({ isScrolled }) => {
             <Link
               href="/signup"
               className={`group relative inline-flex items-center justify-center gap-2 
-                px-3 sm:px-5 py-1.5 sm:py-2.5
+                px-4 sm:px-5 py-2 sm:py-2.5
                 ${isScrolled ? 'text-xs sm:text-sm' : 'text-sm sm:text-base'} 
-                min-w-[120px] max-w-[220px] w-full
-                font-medium text-white bg-gradient-to-r from-primary-500 via-purple-500 to-primary-600 
-                rounded-xl shadow-lg hover:shadow-xl
-                transform hover:-translate-y-0.5 transition-all duration-300
+                min-w-[130px] max-w-[200px] w-full
+                font-medium text-primary-500
+                bg-white/10 
+                hover:bg-white/20
+                border border-primary-300/30
+                rounded-lg
+                transition-all duration-200
                 overflow-hidden`}
+              aria-label="Sign up for a free account"
             >
-              <span className="relative z-10 inline-flex items-center font-semibold tracking-wide overflow-hidden whitespace-nowrap text-ellipsis max-w-full">
-                <span className="animate-shimmer bg-clip-text text-transparent bg-[linear-gradient(110deg,#fff,45%,#7ECA9D,55%,#fff)] bg-[length:250%_100%] truncate">
-                  Sign Up for Free
-                </span>
-                <ExternalLink size={14} className="ml-1 flex-shrink-0 transform transition-transform group-hover:translate-x-0.5 group-hover:rotate-45" />
+              {/* Simple text with icon */}
+              <span className="relative z-10 inline-flex items-center gap-1.5">
+                Sign Up for Free
+                <ExternalLink size={15} className="transform transition-transform duration-200 group-hover:translate-x-0.5" />
               </span>
-              
-              {/* Enhanced hover effect */}
-              <div className="absolute -inset-1 rounded-xl blur-xl bg-gradient-to-r from-primary-500/30 via-purple-500/30 to-primary-600/30 
-                opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10"></div>
             </Link>
           </li>
         )}
