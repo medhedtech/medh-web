@@ -22,9 +22,9 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
   onBack
 }) => {
   const [otp, setOtp] = useState<string[]>(new Array(6).fill(''));
-  const [loading, setLoading] = useState(false);
-  const [resendDisabled, setResendDisabled] = useState(true);
-  const [countdown, setCountdown] = useState(30);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [resendDisabled, setResendDisabled] = useState<boolean>(true);
+  const [countdown, setCountdown] = useState<number>(30);
   const [error, setError] = useState<string | null>(null);
   const { postQuery } = usePostQuery();
   const { theme, resolvedTheme } = useTheme();
@@ -55,8 +55,8 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
   }, []);
 
   // Handle input change
-  const handleChange = (element: HTMLInputElement, index: number) => {
-    if (isNaN(Number(element.value))) return false;
+  const handleChange = (element: HTMLInputElement, index: number): void => {
+    if (isNaN(Number(element.value))) return;
 
     const newOtp = [...otp];
     // Only take the last character if more than one is pasted
@@ -76,7 +76,7 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
   };
 
   // Handle key press
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number): void => {
     if (e.key === 'Backspace') {
       if (!otp[index] && index > 0) {
         const newOtp = [...otp];
@@ -92,7 +92,7 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
   };
 
   // Handle paste
-  const handlePaste = (e: React.ClipboardEvent) => {
+  const handlePaste = (e: React.ClipboardEvent): void => {
     e.preventDefault();
     const pastedData = e.clipboardData.getData('text');
     if (!/^\d+$/.test(pastedData)) return;
@@ -120,7 +120,7 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
   };
 
   // Verify OTP
-  const verifyOTP = async () => {
+  const verifyOTP = async (): Promise<void> => {
     const otpString = otp.join('');
     if (otpString.length !== 6) {
       setError('Please enter a valid 6-digit verification code');
@@ -141,11 +141,11 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
         postData: verifyData,
         requireAuth: false,
         showToast: true,
-        onSuccess: (response) => {
+        onSuccess: (response: any) => {
           toast.success(response.message || 'Email verified successfully!');
           onVerificationSuccess();
         },
-        onFail: (error) => {
+        onFail: (error: any) => {
           const errorMessage = error?.response?.data?.message || 'Invalid verification code';
           setError(errorMessage);
           toast.error(errorMessage);
@@ -160,7 +160,7 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
   };
 
   // Resend OTP
-  const resendOTP = async () => {
+  const resendOTP = async (): Promise<void> => {
     if (resendDisabled) return;
     
     setLoading(true);
@@ -174,7 +174,7 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
         postData: resendData,
         requireAuth: false,
         showToast: true,
-        onSuccess: (response) => {
+        onSuccess: (response: any) => {
           toast.success(response.message || 'Verification code resent successfully!');
           setResendDisabled(true);
           setCountdown(30);
@@ -187,7 +187,7 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
             inputRefs.current[0]?.focus();
           }, 100);
         },
-        onFail: (error) => {
+        onFail: (error: any) => {
           const errorMessage = error?.response?.data?.message || 'Failed to resend verification code';
           setError(errorMessage);
           toast.error(errorMessage);
