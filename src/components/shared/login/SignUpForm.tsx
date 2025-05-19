@@ -5,6 +5,7 @@ import SignIn from "@/assets/images/log-sign/SignIn.png";
 import { useForm, Resolver, SubmitHandler, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
+import axios, { AxiosError } from "axios";
 import usePostQuery from "@/hooks/postQuery.hook";
 import { apiUrls, IRegisterData, IAuthResponse, IVerifyEmailData, IResendVerificationData } from "@/apis";
 import logo1 from "@/assets/images/logo/medh_logo-1.png";
@@ -386,6 +387,9 @@ const SignUpForm: React.FC = () => {
     setApiError(null); // Clear any previous errors
     
     try {
+      // Add extra debugging
+      console.log('Starting registration process...');
+      
       const phoneNumbers = getValues('phone_numbers');
       const hasValidPhoneNumber = phoneNumbers && 
                                phoneNumbers[0] && 
@@ -428,24 +432,76 @@ const SignUpForm: React.FC = () => {
         }
       };
 
-      await postQuery({
+      // Add a top-level handler to ensure errors are always caught
+      const response = await postQuery({
         url: apiUrls?.user?.register,
         postData: requestData,
         requireAuth: false,
         showToast: false, // Don't show automatic toast, we'll handle it
         onSuccess: (response: any) => {
+          // Log the complete response to debug
+          console.log('Registration API response:', response);
+          
+          // Check if response is actually a success before showing success message
+          if (response?.success === false) {
+            // This is actually an error despite being in onSuccess
+            const errorMessage = response?.message || "Registration failed";
+            console.error('Registration error in onSuccess handler:', errorMessage);
+            toast.error(errorMessage);
+            setApiError(errorMessage);
+            // Don't proceed to verification
+            return;
+          }
+          
+          // Only proceed if it's a genuine success
+          console.log('Registration successful, proceeding to verification');
           setIsRegistered(true);
           setCurrentStep(2);
           setShowOTPVerification(true);
           toast.success("Registration successful! Please verify your email with the code sent to your inbox.");
         },
         onFail: (error: any) => {
+          console.error('Registration onFail triggered with error:', error);
+          
+          // Extract error response details
           const errorResponse = error?.response?.data;
-          const errorMessage = errorResponse?.message || errorResponse?.error;
-          const isUserExists = errorMessage === "User already exists" || 
-                              errorMessage?.includes("already exists") || 
-                              errorMessage?.includes("already registered");
+          const statusCode = error?.response?.status;
+          const originalError = error?.original || error;
+          
+          // Log the complete error information
+          console.error('Detailed registration error:', { 
+            statusCode,
+            errorResponse,
+            message: error?.message,
+            originalError
+          });
+          
+          // Check for exact "User already exists" response format
+          const isExactUserExistsFormat = 
+            errorResponse?.success === false && 
+            errorResponse?.message === "User already exists";
+          
+          // Also check for variations of the "already exists" message
+          const errorMessage = errorResponse?.message || errorResponse?.error || 'Unknown error occurred';
+          const isUserExists = 
+            isExactUserExistsFormat || 
+            errorMessage === "User already exists" || 
+            errorMessage?.includes("already exists") || 
+            errorMessage?.includes("already registered");
+            
+          console.log("Registration error specifics:", { 
+            status: statusCode,
+            response: errorResponse,
+            isUserExists,
+            isExactFormat: isExactUserExistsFormat,
+            errorMessage
+          });
 
+          // Set form error state and prevent form progress
+          setIsRegistered(false);
+          setCurrentStep(1);
+          setShowOTPVerification(false);
+          
           if (isUserExists) {
             // Handle "User already exists" specifically
             setApiError("This email is already registered");
@@ -456,7 +512,7 @@ const SignUpForm: React.FC = () => {
                 <p>This email is already registered. You can login instead.</p>
                 <button 
                   onClick={() => router.push('/login')}
-                  className="mt-2 bg-white text-primary-600 px-3 py-1 rounded-md text-sm font-medium hover:bg-primary-50 transition-colors"
+                  className="mt-2 bg-white text-primary-600 px-3 py-1 rounded-md text-sm font-medium hover:bg-primary-50 transition-colors dark:bg-gray-700 dark:hover:bg-gray-600"
                 >
                   Go to Login
                 </button>
@@ -464,6 +520,7 @@ const SignUpForm: React.FC = () => {
               {
                 autoClose: 10000, // Give more time for user to click the login button
                 closeOnClick: false,
+                toastId: 'user-exists-error'
               }
             );
             
@@ -473,24 +530,113 @@ const SignUpForm: React.FC = () => {
               emailField.classList.add('border-red-500', 'ring-red-400');
               emailField.focus();
             }
-          } else {
-            // Handle other errors
-            if (typeof errorMessage === 'string') {
-              toast.error(errorMessage || "Registration failed. Please try again.");
+            
+            return; // Prevent further execution
+          } 
+          
+          // Handle all other error types
+          if (statusCode === 400) {
+            // Bad request handling
+            if (typeof errorMessage === 'object') {
+              // Handle validation errors
+              const validationErrors = Object.values(errorMessage).flat().join('. ');
+              toast.error(`Validation error: ${validationErrors || "Please check your input"}`, {
+                toastId: 'validation-error'
+              });
+              setApiError(`Validation error: ${validationErrors}`);
             } else {
-              toast.error("An unexpected error occurred. Please try again later.");
+              toast.error(`Registration failed: ${errorMessage}`, {
+                toastId: 'bad-request-error'
+              });
+              setApiError(errorMessage);
             }
-            setApiError(errorMessage || "Registration failed. Please try again.");
+          } else if (statusCode === 401 || statusCode === 403) {
+            // Auth errors
+            toast.error(`Authentication error: ${errorMessage}`, {
+              toastId: 'auth-error'
+            });
+            setApiError(`Authentication error: ${errorMessage}`);
+          } else if (statusCode >= 500) {
+            // Server errors
+            toast.error("Server error occurred. Please try again later.", {
+              toastId: 'server-error'
+            });
+            setApiError("Server error occurred. Please try again later.");
+          } else {
+            // Generic or network errors
+            if (typeof errorMessage === 'string') {
+              toast.error(`Error: ${errorMessage}`, {
+                toastId: 'generic-error'
+              });
+              setApiError(errorMessage);
+            } else if (error?.message) {
+              toast.error(`Network error: ${error.message}`, {
+                toastId: 'network-error'
+              });
+              setApiError(`Network error: ${error.message}`);
+            } else {
+              toast.error("An unexpected error occurred. Please try again later.", {
+                toastId: 'unexpected-error'
+              });
+              setApiError("An unexpected error occurred");
+            }
           }
         },
       });
     } catch (error) {
-      if (error instanceof Error) {
+      // Handle client-side errors (like network issues, axios errors, etc.)
+      console.error("Client-side registration error:", error);
+      
+      // Reset form progress states
+      setIsRegistered(false);
+      setCurrentStep(1);
+      setShowOTPVerification(false);
+      
+      if (axios.isAxiosError(error)) {
+        // Handle Axios specific errors (network issues, timeouts)
+        const axiosError = error as AxiosError;
+        const statusCode = axiosError.response?.status;
+        const responseData = axiosError.response?.data as any;
+        const errorMessage = responseData?.message || 
+                            responseData?.error || 
+                            axiosError.message;
+        
+        if (statusCode === 400) {
+          toast.error(`Bad request: ${errorMessage}`, {
+            toastId: 'axios-400-error'
+          });
+        } else if (statusCode === 401 || statusCode === 403) {
+          toast.error(`Authentication error: ${errorMessage}`, {
+            toastId: 'axios-auth-error'
+          });
+        } else if (statusCode && statusCode >= 500) {
+          toast.error("Server error. Please try again later.", {
+            toastId: 'axios-server-error'
+          });
+        } else if (axiosError.code === 'ECONNABORTED') {
+          toast.error("Request timeout. Please check your connection and try again.", {
+            toastId: 'axios-timeout-error'
+          });
+        } else if (!axiosError.response) {
+          toast.error("Network error. Please check your connection and try again.", {
+            toastId: 'axios-network-error'
+          });
+        } else {
+          toast.error(`Error: ${errorMessage || "Unknown error"}`, {
+            toastId: 'axios-unknown-error'
+          });
+        }
+        setError(typeof errorMessage === 'string' ? errorMessage : "Request failed");
+      } else if (error instanceof Error) {
         setError(error.message);
-        toast.error(error.message);
+        toast.error(`Error: ${error.message}`, {
+          toastId: 'js-error'
+        });
       } else {
         setError('An unexpected error occurred');
-        toast.error('An unexpected error occurred. Please try again.');
+        toast.error('An unexpected error occurred. Please try again.', {
+          toastId: 'unknown-error'
+        });
       }
     } finally {
       setIsSubmitting(false);

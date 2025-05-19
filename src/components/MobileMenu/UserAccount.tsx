@@ -67,7 +67,7 @@ const UserAccount: React.FC<IUserAccountProps> = ({
             </Link>
 
             <Link
-              href="/register"
+              href="/signup"
               onClick={onClose}
               className={STYLES.secondaryButton}
               aria-label="Create a new account"
