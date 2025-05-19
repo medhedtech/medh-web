@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from 'react';
 import { Shield, CheckCircle2, AlertCircle } from 'lucide-react';
 
@@ -6,7 +8,7 @@ interface CustomReCaptchaProps {
   error?: boolean;
 }
 
-const CustomReCaptcha: React.FC<CustomReCaptchaProps> = ({ onChange, error }) => {
+const CustomReCaptcha: React.FC<CustomReCaptchaProps> = ({ onChange, error = false }) => {
   const [isVerified, setIsVerified] = useState<boolean>(false);
   const [isChecking, setIsChecking] = useState<boolean>(false);
 

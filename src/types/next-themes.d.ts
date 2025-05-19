@@ -6,17 +6,13 @@ import { ThemeMode } from '@/contexts/ThemeContext';
  */
 declare module 'next-themes' {
   export interface UseThemeProps {
-    /** The current theme (light, dark, or system) */
+    /** The current theme (light or dark) */
     theme?: ThemeMode | string;
-    /** The resolved theme (always light or dark) */
-    resolvedTheme?: 'light' | 'dark';
-    /** Convenience property to check if current theme is dark */
+    /** Set the theme */
+    setTheme: (theme: ThemeMode | string) => void;
+    /** Whether the current theme is dark */
     isDark?: boolean;
     /** Toggle between light and dark themes */
     toggleTheme?: () => void;
-    /** Set the theme */
-    setTheme: (theme: ThemeMode | string) => void;
-    /** If enableSystem is true, returns the System theme preference ("dark" or "light"), regardless what the active theme is */
-    systemTheme?: 'dark' | 'light';
   }
 } 

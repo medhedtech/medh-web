@@ -1,13 +1,12 @@
 # Theme Context Documentation
 
-The Theme Context provides theme management functionality throughout the Medh application, supporting light, dark, and system themes.
+The Theme Context provides theme management functionality throughout the Medh application, supporting light and dark themes.
 
 ## Features
 
-- **Multiple Theme Options**: Support for light, dark, and system themes
-- **System Theme Detection**: Automatically detects and applies the user's system preference
+- **Theme Options**: Support for light and dark themes
+- **Light Theme Default**: Light theme is the default
 - **Theme Persistence**: Saves theme preference to localStorage
-- **Real-time Updates**: Updates theme when system preference changes
 - **SSR Compatibility**: Designed to work with server-side rendering
 
 ## Usage
@@ -35,9 +34,8 @@ function ThemeToggle() {
 
 ### Available Theme Values
 
-- `light`: Forces light theme
-- `dark`: Forces dark theme
-- `system`: Uses the system preference (default)
+- `light`: Light theme (default)
+- `dark`: Dark theme
 
 ### Theme Context API
 
@@ -45,9 +43,9 @@ The Theme Context provides the following properties and methods:
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `theme` | `'light' \| 'dark' \| 'system'` | The currently selected theme |
-| `setTheme` | `(theme: 'light' \| 'dark' \| 'system') => void` | Function to set a specific theme |
-| `resolvedTheme` | `'light' \| 'dark'` | The actual theme being applied (system resolves to either light or dark) |
+| `theme` | `'light' \| 'dark'` | The currently selected theme |
+| `setTheme` | `(theme: 'light' \| 'dark') => void` | Function to set a specific theme |
+| `resolvedTheme` | `'light' \| 'dark'` | The actual theme being applied |
 | `isDark` | `boolean` | Whether the current theme is dark |
 | `toggleTheme` | `() => void` | Toggle between light and dark themes |
 
@@ -66,11 +64,10 @@ function ThemeSelector() {
       <h3>Choose Theme</h3>
       <select 
         value={theme} 
-        onChange={(e) => setTheme(e.target.value as 'light' | 'dark' | 'system')}
+        onChange={(e) => setTheme(e.target.value as 'light' | 'dark')}
       >
         <option value="light">Light</option>
         <option value="dark">Dark</option>
-        <option value="system">System</option>
       </select>
     </div>
   );
@@ -101,6 +98,5 @@ Then use Tailwind's dark mode variants in your components:
 ## Implementation Details
 
 - The theme context uses `localStorage` to persist theme preferences
-- It listens for changes to the system theme using the `prefers-color-scheme` media query
 - When the theme changes, it updates the `dark` class on the document root element for CSS styling
 - The context is wrapped with the `'use client'` directive for Next.js compatibility 
