@@ -1,13 +1,12 @@
 'use client';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export type ThemeMode = 'light' | 'dark' | 'system';
+export type ThemeMode = 'light' | 'dark';
 
 interface ThemeContextType {
   theme: ThemeMode;
   setTheme: (theme: ThemeMode) => void;
-  resolvedTheme: 'light' | 'dark'; // The actual theme applied (system resolves to light or dark)
-  systemTheme?: 'dark' | 'light'; // The system preference regardless of chosen theme
+  resolvedTheme: 'light' | 'dark';
   isDark: boolean;
   toggleTheme: () => void;
 }
@@ -29,10 +28,9 @@ interface CustomThemeProviderProps {
 
 export const CustomThemeProvider: React.FC<CustomThemeProviderProps> = ({
   children,
-  defaultTheme = 'system'
+  defaultTheme = 'light'
 }) => {
   const [theme, setThemeState] = useState<ThemeMode>(defaultTheme);
-  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light');
   
   // Function to set theme and save it to localStorage
   const setTheme = (newTheme: ThemeMode) => {
@@ -44,7 +42,7 @@ export const CustomThemeProvider: React.FC<CustomThemeProviderProps> = ({
   
   // Toggle between light and dark themes
   const toggleTheme = () => {
-    const newTheme = resolvedTheme === 'light' ? 'dark' : 'light';
+    const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
   };
   
@@ -54,49 +52,18 @@ export const CustomThemeProvider: React.FC<CustomThemeProviderProps> = ({
 
     // Get saved theme from localStorage or use default
     const savedTheme = localStorage.getItem('theme') as ThemeMode | null;
-    if (savedTheme) {
+    if (savedTheme === 'light' || savedTheme === 'dark') {
       setThemeState(savedTheme);
     }
     
-    // Function to update the resolved theme based on system preference or selected theme
-    const updateResolvedTheme = () => {
-      const currentTheme = localStorage.getItem('theme') as ThemeMode || theme;
-      
-      if (currentTheme === 'system') {
-        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        setResolvedTheme(systemTheme);
-        document.documentElement.classList.toggle('dark', systemTheme === 'dark');
-      } else {
-        setResolvedTheme(currentTheme as 'light' | 'dark');
-        document.documentElement.classList.toggle('dark', currentTheme === 'dark');
-      }
-    };
-    
-    // Initial update
-    updateResolvedTheme();
-    
-    // Listen for system theme changes
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = () => updateResolvedTheme();
-    mediaQuery.addEventListener('change', handleChange);
-    
-    return () => {
-      mediaQuery.removeEventListener('change', handleChange);
-    };
-  }, [theme]);
+    // Update document with current theme
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+  }, []);
   
   // Update theme when it changes
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    
-    if (theme === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      setResolvedTheme(systemTheme);
-      document.documentElement.classList.toggle('dark', systemTheme === 'dark');
-    } else {
-      setResolvedTheme(theme as 'light' | 'dark');
-      document.documentElement.classList.toggle('dark', theme === 'dark');
-    }
+    document.documentElement.classList.toggle('dark', theme === 'dark');
   }, [theme]);
 
   return (
@@ -104,9 +71,8 @@ export const CustomThemeProvider: React.FC<CustomThemeProviderProps> = ({
       value={{
         theme,
         setTheme,
-        resolvedTheme,
-        systemTheme: theme === 'system' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : undefined,
-        isDark: resolvedTheme === 'dark',
+        resolvedTheme: theme,
+        isDark: theme === 'dark',
         toggleTheme
       }}
     >

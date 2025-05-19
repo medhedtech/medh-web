@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import SignIn from "@/assets/images/log-sign/SignIn.png";
-import { useForm } from "react-hook-form";
+import { useForm, Resolver, SubmitHandler, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import usePostQuery from "@/hooks/postQuery.hook";
@@ -11,16 +11,14 @@ import logo1 from "@/assets/images/logo/medh_logo-1.png";
 import logo2 from "@/assets/images/logo/logo_2.png";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, User, Mail, Phone, Lock, AlertCircle, Loader2, Moon, Sun, UserCircle, ArrowRight, CheckCircle, RefreshCw, ChevronRight, Check } from "lucide-react";
+import { Eye, EyeOff, User, Mail, Phone, Lock, AlertCircle, Loader2, Moon, Sun, UserCircle, ArrowRight, CheckCircle, RefreshCw, ChevronRight, Check, Shield } from "lucide-react";
 import CustomReCaptcha from '../ReCaptcha';
 import FixedShadow from "../others/FixedShadow";
-import PhoneInput from 'react-phone-input-2';
-import 'react-phone-input-2/lib/high-res.css';
 import Link from "next/link";
 import { parsePhoneNumber, isValidPhoneNumber, formatNumber } from 'libphonenumber-js';
 import { useTheme } from "next-themes";
-import { Resolver, SubmitHandler } from "react-hook-form";
 import OTPVerification from './OTPVerification';
+import PhoneNumberInput, { phoneNumberSchema } from './PhoneNumberInput';
 
 declare global {
   interface Window {
@@ -41,55 +39,15 @@ interface PhoneNumberFormat {
   type: string | undefined;
 }
 
-// Enhanced phone number validation using libphonenumber-js
-const validatePhoneNumber = (phoneNumber: string, countryCode?: string): boolean => {
-  if (!phoneNumber) return false;
-  
-  try {
-    // Add + to the phone number if it doesn't have one
-    const phoneNumberWithPlus = phoneNumber.startsWith('+') ? phoneNumber : `+${phoneNumber}`;
-    
-    // Parse the phone number
-    const parsedNumber = parsePhoneNumber(phoneNumberWithPlus);
-    
-    if (!parsedNumber) return false;
-
-    // Less strict validation - just check if the number is valid
-    return parsedNumber.isValid();
-  } catch (error) {
-    console.error('Phone validation error:', error);
-    return false;
-  }
-};
-
-// Format phone number for display and storage
-const formatPhoneNumber = (phoneNumber: string, countryCode?: string): string | PhoneNumberFormat => {
-  if (!phoneNumber) return '';
-  
-  try {
-    // Add + to the phone number if it doesn't have one
-    const phoneNumberWithPlus = phoneNumber.startsWith('+') ? phoneNumber : `+${phoneNumber}`;
-    
-    // Parse and format the phone number
-    const parsedNumber = parsePhoneNumber(phoneNumberWithPlus);
-    
-    if (!parsedNumber) return phoneNumber;
-
-    return {
-      international: parsedNumber.formatInternational(),
-      national: parsedNumber.formatNational(),
-      e164: parsedNumber.format('E.164'),
-      rfc3966: parsedNumber.format('RFC3966'),
-      significant: parsedNumber.formatNational().replace(/[^0-9]/g, ''),
-      countryCode: parsedNumber.countryCallingCode,
-      country: parsedNumber.country,
-      type: parsedNumber.getType()
-    };
-  } catch (error) {
-    console.error('Phone formatting error:', error);
-    return phoneNumber;
-  }
-};
+interface PhoneCountryData {
+  name?: string;
+  iso2: string;
+  dialCode: string;
+  priority?: number;
+  areaCodes?: string[];
+  countryCode?: string;
+  format?: string;
+}
 
 type AgeGroup = "Under 18" | "18-24" | "25-34" | "35-44" | "45-54" | "55-64" | "65+";
 
@@ -146,6 +104,12 @@ type FormFields = {
   is_email_verified?: boolean;
 };
 
+interface PasswordStrength {
+  score: number;
+  message: string;
+  color: string;
+}
+
 const schema = yup
   .object({
     full_name: yup.string()
@@ -196,7 +160,7 @@ const schema = yup
   .required();
 
 // Calculate password strength
-const calculatePasswordStrength = (password: string): { score: number; message: string; color: string } => {
+const calculatePasswordStrength = (password: string): PasswordStrength => {
   if (!password) return { score: 0, message: "", color: "gray" };
   
   let score = 0;
@@ -228,18 +192,68 @@ const calculatePasswordStrength = (password: string): { score: number; message: 
   return { score, message, color };
 };
 
-const SignUpForm = () => {
+// Enhanced phone number validation using libphonenumber-js
+const validatePhoneNumber = (phoneNumber: string, countryCode?: string): boolean => {
+  if (!phoneNumber) return false;
+  
+  try {
+    // Add + to the phone number if it doesn't have one
+    const phoneNumberWithPlus = phoneNumber.startsWith('+') ? phoneNumber : `+${phoneNumber}`;
+    
+    // Parse the phone number
+    const parsedNumber = parsePhoneNumber(phoneNumberWithPlus);
+    
+    if (!parsedNumber) return false;
+
+    // Less strict validation - just check if the number is valid
+    return parsedNumber.isValid();
+  } catch (error) {
+    console.error('Phone validation error:', error);
+    return false;
+  }
+};
+
+// Format phone number for display and storage
+const formatPhoneNumber = (phoneNumber: string, countryCode?: string): string | PhoneNumberFormat => {
+  if (!phoneNumber) return '';
+  
+  try {
+    // Add + to the phone number if it doesn't have one
+    const phoneNumberWithPlus = phoneNumber.startsWith('+') ? phoneNumber : `+${phoneNumber}`;
+    
+    // Parse and format the phone number
+    const parsedNumber = parsePhoneNumber(phoneNumberWithPlus);
+    
+    if (!parsedNumber) return phoneNumber;
+
+    return {
+      international: parsedNumber.formatInternational(),
+      national: parsedNumber.formatNational(),
+      e164: parsedNumber.format('E.164'),
+      rfc3966: parsedNumber.format('RFC3966'),
+      significant: parsedNumber.formatNational().replace(/[^0-9]/g, ''),
+      countryCode: parsedNumber.countryCallingCode,
+      country: parsedNumber.country,
+      type: parsedNumber.getType()
+    };
+  } catch (error) {
+    console.error('Phone formatting error:', error);
+    return phoneNumber;
+  }
+};
+
+const SignUpForm: React.FC = () => {
   const router = useRouter();
   const { theme, resolvedTheme } = useTheme();
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const { postQuery, loading } = usePostQuery();
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
   const [recaptchaValue, setRecaptchaValue] = useState<string | null>(null);
-  const [recaptchaError, setRecaptchaError] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [recaptchaError, setRecaptchaError] = useState<boolean>(false);
+  const [isVisible, setIsVisible] = useState<boolean>(false);
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+  const [registrationSuccess, setRegistrationSuccess] = useState<boolean>(false);
   const [selectedAgeGroup, setSelectedAgeGroup] = useState<AgeGroup>("18-24");
   const [phoneData, setPhoneData] = useState<PhoneData>({
     number: '',
@@ -252,24 +266,21 @@ const SignUpForm = () => {
     internationalFormat: ''
   });
   const [error, setError] = useState<string | null>(null);
-  const [showOTPVerification, setShowOTPVerification] = useState(false);
-  const [isEmailVerified, setIsEmailVerified] = useState(false);
-  const [verificationEmail, setVerificationEmail] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isRegistered, setIsRegistered] = useState(false);
+  const [showOTPVerification, setShowOTPVerification] = useState<boolean>(false);
+  const [isEmailVerified, setIsEmailVerified] = useState<boolean>(false);
+  const [verificationEmail, setVerificationEmail] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isRegistered, setIsRegistered] = useState<boolean>(false);
   
   // Add new state for stepper
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState<number>(1);
   const totalSteps = 2;
   
   // Add state for password
-  const [passwordStrength, setPasswordStrength] = useState({
-    score: 0,
-    message: "",
-    color: "gray"
-  });
+  const [passwordStrength, setPasswordStrength] = useState<PasswordStrength>(calculatePasswordStrength(""));
   
   const {
+    control,
     register,
     handleSubmit,
     formState: { errors },
@@ -348,7 +359,7 @@ const SignUpForm = () => {
   }, [theme, resolvedTheme]);
 
   // Handle email field blur
-  const handleEmailBlur = async () => {
+  const handleEmailBlur = async (): Promise<void> => {
     const email = watch('email');
     if (email && !errors.email) {
       await trigger('email');
@@ -359,9 +370,13 @@ const SignUpForm = () => {
   };
 
   // Function to register and proceed to verification
-  const proceedToVerification = async () => {
+  const proceedToVerification = async (): Promise<void> => {
     // Validate required fields
-    const isValid = await trigger(['email', 'full_name', 'password', 'confirm_password', 'agree_terms']);
+    const isValid = await trigger(['email', 'full_name', 'password', 'confirm_password', 'agree_terms', 'phone_numbers']);
+    console.log('Form validation result:', isValid);
+    console.log('Form errors:', errors);
+    console.log('Current phone_numbers value:', getValues('phone_numbers'));
+    
     if (!isValid) {
       toast.error('Please fill in all required fields correctly');
       return;
@@ -371,8 +386,16 @@ const SignUpForm = () => {
     setApiError(null); // Clear any previous errors
     
     try {
-      if (!phoneData.number) {
-        toast.error("Please enter a phone number");
+      const phoneNumbers = getValues('phone_numbers');
+      const hasValidPhoneNumber = phoneNumbers && 
+                               phoneNumbers[0] && 
+                               phoneNumbers[0].number && 
+                               phoneNumbers[0].number.length > 5;
+      
+      console.log('Phone number validation check:', { phoneNumbers, hasValidPhoneNumber });
+      
+      if (!hasValidPhoneNumber) {
+        toast.error("Please enter a valid phone number");
         setIsSubmitting(false);
         return;
       }
@@ -381,10 +404,21 @@ const SignUpForm = () => {
         full_name: watch('full_name').trim(),
         email: watch('email').toLowerCase().trim(),
         password: watch('password'),
-        phone_numbers: [{
-          country: phoneData.country || 'in',
-          number: phoneData.number
-        }],
+        phone_numbers: [
+          {
+            country: phoneNumbers && phoneNumbers[0] ? phoneNumbers[0].country : 'in',
+            number: phoneNumbers && phoneNumbers[0] ? 
+              (phoneNumbers[0].number.startsWith('+') ? 
+                phoneNumbers[0].number : 
+                // Use 91 (India) as default country code if not available
+                `+${phoneNumbers[0].country === 'in' ? '91' : 
+                   phoneNumbers[0].country === 'us' ? '1' : 
+                   phoneNumbers[0].country === 'gb' ? '44' : 
+                   phoneNumbers[0].country === 'ca' ? '1' : 
+                   phoneNumbers[0].country === 'au' ? '61' : '91'}${phoneNumbers[0].number}`) 
+              : ''
+          }
+        ],
         agree_terms: watch('agree_terms'),
         role: ["student"],
         meta: {
@@ -399,13 +433,13 @@ const SignUpForm = () => {
         postData: requestData,
         requireAuth: false,
         showToast: false, // Don't show automatic toast, we'll handle it
-        onSuccess: (response) => {
+        onSuccess: (response: any) => {
           setIsRegistered(true);
           setCurrentStep(2);
           setShowOTPVerification(true);
           toast.success("Registration successful! Please verify your email with the code sent to your inbox.");
         },
-        onFail: (error) => {
+        onFail: (error: any) => {
           const errorResponse = error?.response?.data;
           const errorMessage = errorResponse?.message || errorResponse?.error;
           const isUserExists = errorMessage === "User already exists" || 
@@ -464,7 +498,7 @@ const SignUpForm = () => {
   };
 
   // Handle verification success
-  const handleVerificationSuccess = () => {
+  const handleVerificationSuccess = (): void => {
     setIsEmailVerified(true);
     setShowOTPVerification(false);
     setValue('is_email_verified', true, { shouldValidate: false });
@@ -476,7 +510,7 @@ const SignUpForm = () => {
     }, 2000);
   };
 
-  const handleRecaptchaChange = (value: string | null) => {
+  const handleRecaptchaChange = (value: string | null): void => {
     setRecaptchaValue(value);
     setRecaptchaError(false);
     if (value) {
@@ -484,12 +518,12 @@ const SignUpForm = () => {
     }
   };
 
-  const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
-  const toggleConfirmPasswordVisibility = () =>
+  const togglePasswordVisibility = (): void => setShowPassword((prev) => !prev);
+  const toggleConfirmPasswordVisibility = (): void =>
     setShowConfirmPassword((prev) => !prev);
 
   // Toggle theme function
-  const toggleTheme = () => {
+  const toggleTheme = (): void => {
     if (isDarkMode) {
       document.documentElement.classList.remove('dark');
       localStorage.setItem('theme', 'light');
@@ -501,14 +535,19 @@ const SignUpForm = () => {
   };
 
   // Enhanced phone number change handler
-  const handlePhoneChange = (value: string, country: any) => {
+  const handlePhoneChange = (value: string, country: any): void => {
     // Ensure we have the right country object structure
     const countryObj = typeof country === 'object' ? country : { iso2: '', dialCode: '' };
     
+    console.log('handlePhoneChange called with:', { value, country: countryObj });
+    
     try {
       // Format the phone number
-      const phoneNumberWithPlus = value.startsWith('+') ? value : `+${value}`;
+      const phoneNumberWithPlus = value.startsWith('+') ? value : `+${countryObj.dialCode || ''}${value}`;
+      console.log('Formatted phone number:', phoneNumberWithPlus);
+      
       const isValid = validatePhoneNumber(phoneNumberWithPlus);
+      console.log('Phone validation result:', isValid);
       
       const formattedNumber = formatPhoneNumber(phoneNumberWithPlus) as PhoneNumberFormat;
       
@@ -523,11 +562,20 @@ const SignUpForm = () => {
         internationalFormat: formattedNumber.international
       });
 
+      console.log('Updated phone data:', {
+        number: phoneNumberWithPlus,
+        country: countryObj.iso2 || '',
+        isValid
+      });
+
       // Update form value
       setValue('phone_numbers', [{
         country: countryObj.iso2 || '',
         number: phoneNumberWithPlus
       }], { shouldValidate: true });
+      
+      // Log current form values after update
+      console.log('Current phone_numbers value:', getValues('phone_numbers'));
 
     } catch (error) {
       console.error('Phone formatting error:', error);
@@ -541,28 +589,52 @@ const SignUpForm = () => {
         nationalFormat: value,
         internationalFormat: value
       });
+      
+      // Even on error, still update the form value to prevent validation issues
+      setValue('phone_numbers', [{
+        country: countryObj.iso2 || '',
+        number: value.startsWith('+') ? value : `+${countryObj.dialCode || ''}${value}`
+      }], { shouldValidate: true });
     }
   };
 
-  const handleAgeGroupChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleAgeGroupChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
     const value = e.target.value as AgeGroup;
     setSelectedAgeGroup(value);
     setValue('age_group', value);
     setValue('meta.age_group', value, { shouldValidate: false });
   };
 
-  const onSubmit = async (data: FormFields) => {
+  const onSubmit = async (data: FormFields): Promise<void> => {
     // This function is no longer used directly since we're handling registration in proceedToVerification
     // Keeping it for reference or future modifications
   };
 
   if (showOTPVerification) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-2 sm:py-4 px-3 sm:px-6 lg:px-8">
-        <div className="w-full max-w-md">
-          <div className="bg-white dark:bg-gray-800 shadow-xl rounded-2xl p-6 sm:p-8">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-3">
+        <div className="w-full max-w-md relative">
+          {/* Decorative elements */}
+          <div className="absolute -top-10 -left-10 w-16 h-16 bg-primary-300/30 dark:bg-primary-600/20 rounded-full blur-lg hidden sm:block"></div>
+          <div className="absolute -bottom-10 -right-10 w-16 h-16 bg-indigo-300/30 dark:bg-indigo-600/20 rounded-full blur-lg hidden sm:block"></div>
+          
+          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md shadow-lg rounded-xl p-5 border border-gray-200/50 dark:border-gray-700/50">
+            {/* Logo */}
+            <div className="text-center mb-3">
+              <Link href="/" className="inline-block mb-2">
+                <Image 
+                  src={(resolvedTheme === 'dark' || theme === 'dark') ? logo1 : logo2} 
+                  alt="Medh Logo" 
+                  width={90} 
+                  height={30} 
+                  className="mx-auto"
+                  priority
+                />
+              </Link>
+            </div>
+            
             {/* Stepper UI */}
-            <div className="mb-6">
+            <div className="mb-4">
               <div className="flex items-center justify-between">
                 <div className="flex flex-col items-center">
                   <div className="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 flex items-center justify-center">
@@ -571,7 +643,7 @@ const SignUpForm = () => {
                   <span className="text-xs mt-1 text-primary-600 dark:text-primary-400 font-medium">Registration</span>
                 </div>
                 <div className="flex-1 mx-2">
-                  <div className="h-1 bg-primary-500"></div>
+                  <div className="h-0.5 bg-primary-500"></div>
                 </div>
                 <div className="flex flex-col items-center">
                   <div className="w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center">
@@ -581,12 +653,15 @@ const SignUpForm = () => {
                 </div>
               </div>
             </div>
+            
             <div className="mb-4 text-center">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white">Email Verification</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Please enter the 6-digit code sent to {verificationEmail || watch('email')}
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">Email Verification</h3>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                Enter the 6-digit code sent to<br />
+                <span className="font-medium text-gray-900 dark:text-white">{verificationEmail || watch('email')}</span>
               </p>
             </div>
+            
             <OTPVerification
               email={verificationEmail || watch('email')}
               onVerificationSuccess={handleVerificationSuccess}
@@ -595,6 +670,29 @@ const SignUpForm = () => {
                 setCurrentStep(1);
               }}
             />
+            
+            {/* Footer */}
+            <div className="text-center mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Didn't receive the code? <button 
+                  type="button" 
+                  className="text-primary-600 hover:text-primary-500 font-medium"
+                  onClick={() => {
+                    // This would trigger resend OTP functionality
+                    toast.info("Verification code resent. Please check your email.");
+                  }}
+                >
+                  Resend
+                </button>
+              </p>
+            </div>
+          </div>
+          
+          {/* Footer */}
+          <div className="text-center mt-2">
+            <p className="text-xs text-gray-400 dark:text-gray-500">
+              © {new Date().getFullYear()} Medh Learning
+            </p>
           </div>
         </div>
       </div>
@@ -603,10 +701,31 @@ const SignUpForm = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="flex flex-col items-center">
-          <Loader2 size={40} className="text-primary-500 animate-spin mb-4" />
-          <p className="font-body text-gray-600 dark:text-gray-300">Creating your account...</p>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-3">
+        <div className="w-full max-w-md p-5 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 text-center">
+          <Link href="/" className="inline-block mb-3">
+            <Image 
+              src={(resolvedTheme === 'dark' || theme === 'dark') ? logo1 : logo2} 
+              alt="Medh Logo" 
+              width={90} 
+              height={30} 
+              className="mx-auto"
+              priority
+            />
+          </Link>
+          <div className="relative w-16 h-16 mx-auto mb-3">
+            <div className="absolute inset-0 bg-primary-400/20 dark:bg-primary-600/20 rounded-full animate-ping"></div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Loader2 size={36} className="text-primary-500 animate-spin" />
+            </div>
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">Setting Up Your Account</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">Please wait while we create your account</p>
+          <div className="flex justify-center items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+            <span className="animate-pulse delay-0">•</span>
+            <span className="animate-pulse delay-150">•</span>
+            <span className="animate-pulse delay-300">•</span>
+          </div>
         </div>
       </div>
     );
@@ -645,14 +764,19 @@ const SignUpForm = () => {
           }
         }
 
-        /* Disable scrolling for desktop view */
+        /* No need to disable scrolling - optimized layout */
         @media (min-width: 641px) {
           html, body {
-            overflow: hidden;
-            height: 100%;
-            position: fixed;
-            width: 100%;
+            overflow: auto;
+            height: auto;
           }
+        }
+        
+        /* Keep error messages more compact */
+        .error-message {
+          margin-top: -2px;
+          font-size: 0.7rem;
+          line-height: 1.2;
         }
 
         /* Custom styles for phone input */
@@ -669,9 +793,9 @@ const SignUpForm = () => {
         }
         
         .phone-input-container .react-tel-input .form-control {
-          @apply w-full px-4 py-2.5 bg-gray-50/50 dark:bg-gray-700/30 rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-16;
-          font-size: 14px;
-          letter-spacing: 0.025em;
+          @apply w-full h-10 px-3 py-0 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring-1 focus:ring-primary-500/20 transition-all duration-200 outline-none pl-12;
+          font-size: 0.875rem;
+          letter-spacing: 0;
         }
         
         .dark .phone-input-container .react-tel-input .form-control {
@@ -681,154 +805,185 @@ const SignUpForm = () => {
         }
         
         .phone-input-container .react-tel-input .flag-dropdown {
-          @apply bg-transparent border-0 rounded-l-xl hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors;
-          min-width: 52px;
+          @apply bg-transparent border-0 rounded-l-lg sm:rounded-l-xl hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors h-10;
+          min-width: 42px;
+          border-right: 1px solid #e5e7eb;
         }
         
         .dark .phone-input-container .react-tel-input .flag-dropdown {
-          background-color: transparent;
-          border: none;
+          border-right: 1px solid rgba(75, 85, 99, 0.5);
         }
         
         .phone-input-container .react-tel-input .selected-flag {
-          @apply bg-transparent rounded-l-xl pl-3 hover:bg-transparent;
-          width: 52px;
+          @apply bg-transparent rounded-l-lg sm:rounded-l-xl pl-2 hover:bg-transparent;
+          width: 42px;
+          padding: 0 0 0 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .phone-input-container .react-tel-input .selected-flag .flag {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .phone-input-container .react-tel-input .selected-flag .arrow {
+          left: 25px;
+          border-top: 4px solid #666;
+          border-left: 4px solid transparent;
+          border-right: 4px solid transparent;
+          transition: all 0.2s ease;
+        }
+        
+        .dark .phone-input-container .react-tel-input .selected-flag .arrow {
+          border-top: 4px solid #aaa;
+        }
+
+        .phone-input-container .react-tel-input .selected-flag .arrow.up {
+          border-top: none;
+          border-bottom: 4px solid #666;
+        }
+        
+        .dark .phone-input-container .react-tel-input .selected-flag .arrow.up {
+          border-bottom: 4px solid #aaa;
         }
 
         .phone-input-container .react-tel-input .country-list {
-          @apply bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg mt-1;
+          @apply bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg sm:rounded-xl shadow-lg mt-1;
           max-height: 260px;
           width: 300px;
+          margin-top: 8px;
+          overflow-y: auto;
+          overscroll-behavior: contain;
+          scrollbar-width: thin;
+          scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+        }
+        
+        /* Custom scrollbar for country list */
+        .phone-input-container .react-tel-input .country-list::-webkit-scrollbar {
+          width: 6px;
+        }
+        
+        .phone-input-container .react-tel-input .country-list::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        
+        .phone-input-container .react-tel-input .country-list::-webkit-scrollbar-thumb {
+          background-color: rgba(156, 163, 175, 0.5);
+          border-radius: 20px;
+        }
+        
+        .dark .phone-input-container .react-tel-input .country-list::-webkit-scrollbar-thumb {
+          background-color: rgba(107, 114, 128, 0.5);
         }
 
         .phone-input-container .react-tel-input .country-list .search {
-          @apply bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-t-lg;
-          padding: 10px;
+          @apply bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600 rounded-t-lg sm:rounded-t-xl;
+          padding: 12px;
           margin: 0;
+          position: sticky;
+          top: 0;
+          z-index: 1;
         }
 
         .phone-input-container .react-tel-input .country-list .search-box {
-          @apply w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 text-sm;
+          @apply w-full h-9 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg sm:rounded-xl text-gray-900 dark:text-gray-100 text-sm;
           padding-left: 30px;
           background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236B7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'%3E%3C/path%3E%3C/svg%3E");
           background-repeat: no-repeat;
           background-position: 8px center;
           background-size: 16px;
         }
+        
+        .phone-input-container .react-tel-input .country-list .no-entries-message {
+          @apply text-sm text-gray-500 dark:text-gray-400 py-4 px-3 text-center;
+        }
 
+        /* Improved styling for the countries list */
+        .phone-input-container .react-tel-input .country-list .divider {
+          @apply border-t border-gray-200 dark:border-gray-700 my-1;
+        }
+        
         .phone-input-container .react-tel-input .country-list .country {
-          @apply px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors;
+          @apply px-3 py-2.5 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors cursor-pointer;
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 10px;
         }
 
         .phone-input-container .react-tel-input .country-list .country.highlight {
           @apply bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400;
         }
+        
+        .phone-input-container .react-tel-input .country-list .country:focus {
+          @apply outline-none bg-gray-100 dark:bg-gray-700/50;
+        }
 
+        /* Improved flag display */
+        .phone-input-container .react-tel-input .country-list .country .flag {
+          @apply flex-shrink-0;
+          display: inline-block;
+          margin-right: 0;
+          box-shadow: 0 0 1px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Improved country name and dial code */
         .phone-input-container .react-tel-input .country-list .country-name {
-          @apply text-sm text-gray-900 dark:text-gray-100;
-          margin-right: 6px;
+          @apply text-sm font-medium text-gray-900 dark:text-gray-100 flex-grow truncate;
+          margin-right: 0;
         }
 
         .phone-input-container .react-tel-input .country-list .dial-code {
-          @apply text-sm text-gray-500 dark:text-gray-400;
+          @apply text-xs text-gray-500 dark:text-gray-400 flex-shrink-0 font-mono;
+          margin-left: auto;
         }
-
-        .phone-input-container .react-tel-input .special-label {
-          @apply bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 text-xs font-medium px-2 py-0.5 rounded absolute -top-2 left-2 z-10;
+        
+        /* Preferred countries section */
+        .phone-input-container .react-tel-input .country-list .preferred {
+          @apply border-b border-gray-200 dark:border-gray-700 pb-1 mb-1;
+        }
+        
+        .phone-input-container .react-tel-input .country-list .preferred + .divider {
           display: none;
-        }
-
-        /* Phone input custom styles */
-        .react-tel-input .selected-flag:hover,
-        .react-tel-input .selected-flag:focus {
-          background-color: transparent !important;
-        }
-
-        .react-tel-input .country-list {
-          margin: 0;
-          padding: 0;
-          border-radius: 0.5rem;
-        }
-
-        .react-tel-input .country-list .country {
-          padding: 0.5rem 0.75rem;
-        }
-
-        .react-tel-input .country-list .country:hover {
-          background-color: rgba(var(--primary-500), 0.1);
-        }
-
-        .react-tel-input .country-list .country.highlight {
-          background-color: rgba(var(--primary-500), 0.1);
-        }
-
-        .dark .react-tel-input .country-list {
-          background-color: #1f2937;
-          border-color: #374151;
-        }
-
-        .dark .react-tel-input .country-list .country.highlight {
-          background-color: rgba(var(--primary-500), 0.2);
-        }
-
-        .dark .react-tel-input .country-list .country:hover {
-          background-color: rgba(var(--primary-500), 0.2);
-        }
-
-        .dark .react-tel-input .country-list .country {
-          color: #e5e7eb;
         }
       `}</style>
 
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-2 sm:py-4 px-3 sm:px-6 lg:px-8">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-3">
         <div className="w-full max-w-4xl relative">
-          {/* Decorative elements - hidden on mobile */}
-          <div className="absolute -top-10 -left-10 w-20 h-20 bg-primary-300/30 dark:bg-primary-600/20 rounded-full blur-xl hidden sm:block"></div>
-          <div className="absolute -bottom-12 -right-12 w-24 h-24 bg-indigo-300/30 dark:bg-indigo-600/20 rounded-full blur-xl hidden sm:block"></div>
+          {/* Decorative elements */}
+          <div className="absolute -top-10 -left-10 w-16 h-16 bg-primary-300/30 dark:bg-primary-600/20 rounded-full blur-lg hidden sm:block"></div>
+          <div className="absolute -bottom-10 -right-10 w-16 h-16 bg-indigo-300/30 dark:bg-indigo-600/20 rounded-full blur-lg hidden sm:block"></div>
 
           {/* Card container with glass morphism effect */}
-          <div className="signup-card bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl sm:rounded-3xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 transition-all duration-300 flex flex-col sm:flex-row">
-            {/* Left side - Image */}
-            <div className="hidden sm:flex sm:w-5/12 items-center justify-center p-6 sm:p-8 bg-gradient-to-br from-primary-50/50 to-secondary-50/50 dark:from-gray-800/50 dark:to-gray-900/50 rounded-t-xl sm:rounded-l-3xl sm:rounded-tr-none">
-              <div className="relative w-full max-w-md transform transition-all duration-700 group hover:scale-105">
-                <div className="absolute inset-0 bg-gradient-to-r from-primary-500/10 to-secondary-500/10 dark:from-primary-500/20 dark:to-secondary-500/20 rounded-xl blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-                <Image
-                  src={SignIn}
-                  alt="Sign up illustration"
-                  className="w-full h-auto object-contain relative z-10 dark:filter dark:brightness-90"
-                  priority
-                />
-              </div>
-            </div>
-
-            {/* Right side - Form */}
-            <div className="w-full sm:w-7/12 p-3 sm:p-8">
+          <div className="signup-card bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-2xl sm:rounded-3xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 transition-all duration-300 overflow-hidden">
+            
+            {/* Form Container */}
+            <div className="p-5 md:p-8">
               {/* Logo and Header */}
-              <div className="text-center mb-3 sm:mb-6">
-                <Link href="/" className="inline-block mb-2 sm:mb-4">
+              <div className="text-center mb-4">
+                <Link href="/" className="inline-block mb-2">
                   <Image 
                     src={(resolvedTheme === 'dark' || theme === 'dark') ? logo1 : logo2} 
                     alt="Medh Logo" 
-                    width={100} 
-                    height={32} 
-                    className="mx-auto w-20 sm:w-32"
+                    width={90} 
+                    height={30} 
+                    className="mx-auto"
                     priority
                   />
                 </Link>
-                <h2 className="text-base sm:text-2xl font-bold bg-gradient-to-r from-primary-600 to-indigo-600 bg-clip-text text-transparent">
-                  Create Your Account
-                </h2>
-                <p className="mt-1 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                  Join our learning community today
+                <h1 className="text-lg font-bold bg-gradient-to-r from-primary-600 to-indigo-600 bg-clip-text text-transparent">
+                  Create Account
+                </h1>
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+                  Quick signup to start learning
                 </p>
               </div>
               
-              {/* Stepper UI */}
+              {/* Compact Stepper UI */}
               <div className="mb-6">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between max-w-md mx-auto">
                   <div className="flex flex-col items-center">
                     <div className={`w-8 h-8 rounded-full ${currentStep === 1 ? 'bg-primary-500 text-white' : 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'} flex items-center justify-center`}>
                       {currentStep > 1 ? <Check className="w-4 h-4" /> : <span className="text-xs font-medium">1</span>}
@@ -836,7 +991,7 @@ const SignUpForm = () => {
                     <span className="text-xs mt-1 text-primary-600 dark:text-primary-400 font-medium">Registration</span>
                   </div>
                   <div className="flex-1 mx-2">
-                    <div className={`h-1 ${currentStep > 1 ? 'bg-primary-500' : 'bg-gray-200 dark:bg-gray-700'}`}></div>
+                    <div className={`h-0.5 ${currentStep > 1 ? 'bg-primary-500' : 'bg-gray-200 dark:bg-gray-700'}`}></div>
                   </div>
                   <div className="flex flex-col items-center">
                     <div className={`w-8 h-8 rounded-full ${currentStep === 2 ? 'bg-primary-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500'} flex items-center justify-center`}>
@@ -848,272 +1003,341 @@ const SignUpForm = () => {
               </div>
 
               {/* Form */}
-              <form className="space-y-2.5 sm:space-y-4">
-                {/* Email */}
-                <div className="relative">
-                  <input
-                    {...register("email")}
-                    id="email-field"
-                    type="email"
-                    placeholder="Email Address"
-                    className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 ${apiError?.includes("email") ? 'bg-red-50 dark:bg-red-900/10 border-red-300 dark:border-red-800 ring-red-400/30' : 'bg-gray-50/50 dark:bg-gray-700/30 border-gray-200 dark:border-gray-600'} rounded-lg sm:rounded-xl border focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-10 sm:pl-11 text-sm sm:text-base`}
-                    onBlur={handleEmailBlur}
-                  />
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Mail className={`h-4 w-4 ${apiError?.includes("email") ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'}`} />
-                  </div>
-                  {apiError?.includes("email") && (
-                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                      <AlertCircle className="h-4 w-4 text-red-500" />
-                    </div>
-                  )}
-                </div>
-                {errors.email && (
-                  <p className="mt-1 text-xs text-red-500 flex items-start">
-                    <AlertCircle className="h-3 w-3 mt-0.5 mr-1.5 flex-shrink-0" />
-                    <span>{errors.email?.message}</span>
-                  </p>
-                )}
-                {apiError && apiError.includes("email") && (
-                  <div className="mt-1 flex items-start justify-between">
-                    <p className="text-xs text-red-500 flex items-start">
-                      <AlertCircle className="h-3 w-3 mt-0.5 mr-1.5 flex-shrink-0" />
-                      <span>This email is already registered</span>
-                    </p>
-                    <Link 
-                      href="/login" 
-                      className="text-xs font-medium text-primary-600 hover:text-primary-500 transition-colors"
-                    >
-                      Login instead
-                    </Link>
-                  </div>
-                )}
-
-                {/* Full Name */}
-                <div className="relative">
-                  <input
-                    {...register("full_name")}
-                    type="text"
-                    placeholder="Full Name"
-                    className="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-10 sm:pl-11 text-sm sm:text-base"
-                  />
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-                  </div>
-                </div>
-                {errors.full_name && (
-                  <p className="mt-1 text-xs text-red-500 flex items-start">
-                    <AlertCircle className="h-3 w-3 mt-0.5 mr-1.5 flex-shrink-0" />
-                    <span>{errors.full_name?.message}</span>
-                  </p>
-                )}
-                
-                {/* Phone Number Field */}
-                <div className="phone-field-container">
-                  <PhoneInput
-                    country={'in'}
-                    value={phoneData.number}
-                    onChange={(value, country) => handlePhoneChange(value, country)}
-                    enableSearch={true}
-                    searchPlaceholder="Search countries..."
-                    searchNotFound="No country found"
-                    inputProps={{
-                      name: 'phone_numbers',
-                      required: true,
-                      className: `w-full pl-[4.5rem] pr-3 sm:pr-4 py-2 sm:py-2.5 
-                        bg-gray-50/50 dark:bg-gray-700/30 
-                        border border-gray-200 dark:border-gray-600 
-                        rounded-lg sm:rounded-xl text-gray-900 dark:text-gray-100
-                        focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500
-                        disabled:bg-gray-100 disabled:cursor-not-allowed
-                        transition duration-150 ease-in-out
-                        text-sm sm:text-base`
-                    }}
-                  />
-                </div>
-
-                {/* Age Group Dropdown */}
-                <div>
-                  <div className="relative">
-                    <select
-                      {...register("age_group")}
-                      onChange={handleAgeGroupChange}
-                      value={selectedAgeGroup}
-                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-10 sm:pl-11 appearance-none text-sm sm:text-base"
-                    >
-                      <option value="Under 18">Under 18</option>
-                      <option value="18-24">18-24</option>
-                      <option value="25-34">25-34</option>
-                      <option value="35-44">35-44</option>
-                      <option value="45-54">45-54</option>
-                      <option value="55-64">55-64</option>
-                      <option value="65+">65+</option>
-                    </select>
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <UserCircle className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-                    </div>
-                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                      <ChevronRight className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Password with Strength Meter */}
-                <div>
-                  <div className="relative">
-                    <input
-                      {...register("password")}
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Password"
-                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-10 sm:pl-11 pr-10 text-sm sm:text-base"
-                    />
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Lock className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={togglePasswordVisibility}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4 text-gray-400 hover:text-gray-600" />
-                      ) : (
-                        <Eye className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+              <form className="space-y-4">
+                {/* Two-column layout for personal info */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Email - First column */}
+                  <div className="form-group">
+                    <label className="block mb-1 text-xs font-medium text-gray-700 dark:text-gray-300">Email <span className="text-red-500">*</span></label>
+                    <div className="relative">
+                      <input
+                        {...register("email")}
+                        id="email-field"
+                        type="email"
+                        aria-required="true"
+                        aria-invalid={!!errors.email || apiError?.includes("email")}
+                        autoComplete="email"
+                        placeholder="you@example.com"
+                        className={`w-full h-10 px-3 py-0 ${apiError?.includes("email") ? 'bg-red-50 dark:bg-red-900/10 border-red-300 dark:border-red-800 ring-red-400/30' : 'bg-gray-50/50 dark:bg-gray-700/30 border-gray-200 dark:border-gray-600'} rounded-lg sm:rounded-xl border focus:border-primary-500 focus:ring-1 focus:ring-primary-500/20 transition-all duration-200 outline-none pl-9 text-sm`}
+                        onBlur={handleEmailBlur}
+                      />
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Mail className={`h-4 w-4 ${apiError?.includes("email") ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'}`} />
+                      </div>
+                      {apiError?.includes("email") && (
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                          <AlertCircle className="h-4 w-4 text-red-500" />
+                        </div>
                       )}
-                    </button>
-                  </div>
-                  {errors.password && (
-                    <p className="mt-1 text-xs text-red-500 flex items-start">
-                      <AlertCircle className="h-3 w-3 mt-0.5 mr-1.5 flex-shrink-0" />
-                      <span>{errors.password?.message}</span>
-                    </p>
-                  )}
-                  
-                  {/* Password Strength Meter */}
-                  {watchPassword && (
-                    <div className="mt-2">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs text-gray-600 dark:text-gray-400">Password strength:</span>
-                        <span className={`text-xs font-medium ${
-                          passwordStrength.color === "red" ? 'text-red-500' : 
-                          passwordStrength.color === "orange" ? 'text-yellow-500' : 
-                          passwordStrength.color === "green" ? 'text-green-500' : 'text-gray-400'
-                        }`}>
-                          {passwordStrength.message}
-                        </span>
+                    </div>
+                    {errors.email && (
+                      <p className="error-message text-red-500 flex items-start" role="alert">
+                        <AlertCircle className="h-3 w-3 mt-0.5 mr-1 flex-shrink-0" />
+                        <span>{errors.email?.message}</span>
+                      </p>
+                    )}
+                    {apiError && apiError.includes("email") && (
+                      <div className="error-message flex items-start justify-between" role="alert">
+                        <p className="text-red-500 flex items-start">
+                          <AlertCircle className="h-3 w-3 mt-0.5 mr-1 flex-shrink-0" />
+                          <span>Email already registered</span>
+                        </p>
+                        <Link 
+                          href="/login" 
+                          className="text-xs font-medium text-primary-600 hover:text-primary-500 transition-colors"
+                        >
+                          Login
+                        </Link>
                       </div>
-                      <div className="h-1.5 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                        <div 
-                          className={`h-full ${
-                            passwordStrength.color === "red" ? 'bg-red-500' : 
-                            passwordStrength.color === "orange" ? 'bg-yellow-500' : 
-                            passwordStrength.color === "green" ? 'bg-green-500' : 'bg-gray-400'
-                          }`} 
-                          style={{ width: `${Math.min(100, (passwordStrength.score / 6) * 100)}%` }}
-                        ></div>
+                    )}
+                  </div>
+
+                  {/* Full Name - Second column */}
+                  <div className="form-group">
+                    <label className="block mb-1 text-xs font-medium text-gray-700 dark:text-gray-300">Full Name <span className="text-red-500">*</span></label>
+                    <div className="relative">
+                      <input
+                        {...register("full_name")}
+                        type="text"
+                        aria-required="true"
+                        aria-invalid={!!errors.full_name}
+                        autoComplete="name"
+                        placeholder="John Smith"
+                        className="w-full h-10 px-3 py-0 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring-1 focus:ring-primary-500/20 transition-all duration-200 outline-none pl-9 text-sm"
+                      />
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <User className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                       </div>
                     </div>
-                  )}
+                    {errors.full_name && (
+                      <p className="error-message text-red-500 flex items-start" role="alert">
+                        <AlertCircle className="h-3 w-3 mt-0.5 mr-1 flex-shrink-0" />
+                        <span>{errors.full_name?.message}</span>
+                      </p>
+                    )}
+                  </div>
                 </div>
 
-                {/* Confirm Password */}
-                <div className="relative">
-                  <input
-                    {...register("confirm_password")}
-                    type={showConfirmPassword ? "text" : "password"}
-                    placeholder="Confirm Password"
-                    className="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-10 sm:pl-11 pr-10 text-sm sm:text-base"
-                  />
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                {/* Contact Info Section */}
+                <div className="form-section">
+                  {/* Two-column layout for Phone and Age Group */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Phone Number Field */}
+                    <Controller
+                      name="phone_numbers"
+                      control={control}
+                      rules={{
+                        validate: items => {
+                          console.log('Validating phone_numbers:', items);
+                          const item = Array.isArray(items) && items[0] ? items[0] : { country: '', number: '' };
+                          console.log('Phone item to validate:', item);
+                          
+                          // If number is present, validate it properly
+                          if (!item.number || item.number === '+') {
+                            console.log('Phone validation failed: number empty or just +');
+                            return 'Phone number is required';
+                          }
+                          
+                          // Validate with Joi schema but handle empty state better
+                          const { error } = phoneNumberSchema.validate(item);
+                          console.log('Joi validation result:', { error: error?.message });
+                          return error ? error.message : true;
+                        }
+                      }}
+                      render={({ field, fieldState }) => (
+                        <div className="form-group">
+                          <label className="block mb-1 text-xs font-medium text-gray-700 dark:text-gray-300">Phone <span className="text-red-500">*</span></label>
+                          <PhoneNumberInput
+                            value={{ country: field.value[0]?.country || 'in', number: field.value[0]?.number || '' }}
+                            onChange={val => field.onChange([val])}
+                            placeholder="Enter phone number"
+                            error={fieldState.error?.message}
+                          />
+                        </div>
+                      )}
+                    />
+
+                    {/* Age Group Dropdown */}
+                    <div className="form-group">
+                      <label className="block mb-1 text-xs font-medium text-gray-700 dark:text-gray-300">Age Group <span className="text-red-500">*</span></label>
+                      <div className="relative">
+                        <select
+                          {...register("age_group")}
+                          onChange={handleAgeGroupChange}
+                          value={selectedAgeGroup}
+                          aria-required="true"
+                          className="w-full h-10 px-2 py-0 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring-1 focus:ring-primary-500/20 transition-all duration-200 outline-none pl-8 appearance-none text-sm"
+                        >
+                          <option value="Under 18">Under 18</option>
+                          <option value="18-24">18-24</option>
+                          <option value="25-34">25-34</option>
+                          <option value="35-44">35-44</option>
+                          <option value="45-54">45-54</option>
+                          <option value="55-64">55-64</option>
+                          <option value="65+">65+</option>
+                        </select>
+                        <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                          <UserCircle className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                        </div>
+                        <div className="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
+                          <ChevronRight className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                        </div>
+                      </div>
+                    </div>
                   </div>
+                </div>
+
+                {/* Two-column layout for password fields */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Password with Strength Meter */}
+                  <div>
+                    <label className="block mb-1 text-xs font-medium text-gray-700 dark:text-gray-300">Password <span className="text-red-500">*</span></label>
+                    <div className="relative">
+                      <input
+                        {...register("password")}
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Password"
+                        className="w-full h-10 px-3 py-0 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring-1 focus:ring-primary-500/20 transition-all duration-200 outline-none pl-9 pr-9 text-sm"
+                      />
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Lock className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={togglePasswordVisibility}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4 text-gray-400 hover:text-gray-600 transition-colors" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-gray-400 hover:text-gray-600 transition-colors" />
+                        )}
+                      </button>
+                    </div>
+                    {errors.password && (
+                      <p className="error-message text-red-500 flex items-start">
+                        <AlertCircle className="h-3 w-3 mt-0.5 mr-1 flex-shrink-0" />
+                        <span>{errors.password?.message}</span>
+                      </p>
+                    )}
+                    
+                    {/* Password Strength Meter (Simplified) */}
+                    {watchPassword && (
+                      <div className="mt-1">
+                        <div className="flex items-center justify-between mb-0.5">
+                          <span className="text-xs text-gray-600 dark:text-gray-400">Strength:</span>
+                          <span className={`text-xs font-medium ${
+                            passwordStrength.color === "red" ? 'text-red-500' : 
+                            passwordStrength.color === "orange" ? 'text-yellow-500' : 
+                            passwordStrength.color === "green" ? 'text-green-500' : 'text-gray-400'
+                          }`}>
+                            {passwordStrength.message}
+                          </span>
+                        </div>
+                        <div className="h-1 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full ${
+                              passwordStrength.color === "red" ? 'bg-red-500' : 
+                              passwordStrength.color === "orange" ? 'bg-yellow-500' : 
+                              passwordStrength.color === "green" ? 'bg-green-500' : 'bg-gray-400'
+                            }`} 
+                            style={{ width: `${Math.min(100, (passwordStrength.score / 6) * 100)}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Confirm Password */}
+                  <div>
+                    <label className="block mb-1 text-xs font-medium text-gray-700 dark:text-gray-300">Confirm Password <span className="text-red-500">*</span></label>
+                    <div className="relative">
+                      <input
+                        {...register("confirm_password")}
+                        type={showConfirmPassword ? "text" : "password"}
+                        placeholder="Confirm Password"
+                        className="w-full h-10 px-3 py-0 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring-1 focus:ring-primary-500/20 transition-all duration-200 outline-none pl-9 pr-9 text-sm"
+                      />
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Lock className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={toggleConfirmPasswordVisibility}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff className="h-4 w-4 text-gray-400 hover:text-gray-600 transition-colors" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-gray-400 hover:text-gray-600 transition-colors" />
+                        )}
+                      </button>
+                    </div>
+                    {errors.confirm_password && (
+                      <p className="error-message text-red-500 flex items-start">
+                        <AlertCircle className="h-3 w-3 mt-0.5 mr-1 flex-shrink-0" />
+                        <span>{errors.confirm_password?.message}</span>
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Enhanced section for reCAPTCHA and Terms with centered layout */}
+                <div className="mt-6 space-y-4">
+                  {/* Two-column layout for captcha and terms on larger screens */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                    {/* reCAPTCHA */}
+                    <div className="w-full mx-auto md:mx-0 max-w-md">
+                      <CustomReCaptcha
+                        onChange={handleRecaptchaChange}
+                        error={!!errors.recaptcha || recaptchaError}
+                      />
+                    </div>
+
+                    {/* Terms Checkbox - Styled like ReCaptcha */}
+                    <div className="w-full mx-auto md:mx-0 max-w-md">
+                      <div
+                        className={`w-full p-4 rounded-lg sm:rounded-xl border transition-all duration-300 cursor-pointer select-none
+                          ${errors.agree_terms 
+                            ? 'border-red-300 bg-red-50 dark:border-red-800 dark:bg-red-900/20' 
+                            : watch('agree_terms')
+                              ? 'border-green-300 bg-green-50 dark:border-green-800 dark:bg-green-900/20'
+                              : 'border-gray-200 bg-gray-50/50 dark:border-gray-700 dark:bg-gray-700/30 hover:bg-gray-100/50 dark:hover:bg-gray-600/30'
+                          }`}
+                        onClick={() => setValue('agree_terms', !watch('agree_terms'), { shouldValidate: true })}
+                      >
+                        <div className="flex items-center space-x-3">
+                          {watch('agree_terms') ? (
+                            <CheckCircle className="h-5 w-5 text-green-500 dark:text-green-400" />
+                          ) : errors.agree_terms ? (
+                            <AlertCircle className="h-5 w-5 text-red-500 dark:text-red-400" />
+                          ) : (
+                            <Shield className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                          )}
+                          <span className={`text-sm ${
+                            errors.agree_terms 
+                              ? 'text-red-600 dark:text-red-400' 
+                              : watch('agree_terms')
+                                ? 'text-green-600 dark:text-green-400'
+                                : 'text-gray-700 dark:text-gray-300'
+                          }`}>
+                            {errors.agree_terms 
+                              ? 'Terms acceptance required' 
+                              : watch('agree_terms')
+                                ? 'Terms accepted'
+                                : 'Click to accept terms and privacy policy'}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <input
+                        type="checkbox"
+                        {...register("agree_terms")}
+                        className="hidden"
+                      />
+                      
+                      {errors.agree_terms && (
+                        <p className="mt-1 text-xs text-red-500 dark:text-red-400 flex items-start">
+                          <AlertCircle className="h-3 w-3 mt-0.5 mr-1.5 flex-shrink-0" />
+                          <span>Please accept our terms and privacy policy to continue</span>
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Centered text below the two elements */}
+                  <div className="text-center text-xs text-gray-500 dark:text-gray-400 mt-1 mx-auto max-w-md">
+                    <span>By accepting you agree to our <a href="/terms-and-services" className="text-primary-600 hover:text-primary-500 transition-colors" target="_blank">terms</a> and <a href="/privacy-policy" className="text-primary-600 hover:text-primary-500 transition-colors" target="_blank">privacy policy</a></span>
+                  </div>
+                </div>
+                
+                {/* Submit Button - Register & Verify */}
+                <div className="mt-6">
                   <button
                     type="button"
-                    onClick={toggleConfirmPasswordVisibility}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    onClick={proceedToVerification}
+                    disabled={isSubmitting}
+                    className="w-full md:max-w-xs md:mx-auto md:block py-2.5 px-4 bg-gradient-to-r from-primary-500 to-indigo-600 text-white font-medium rounded-lg sm:rounded-xl shadow-md hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:ring-offset-1 dark:focus:ring-offset-gray-900 relative overflow-hidden group text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {showConfirmPassword ? (
-                      <EyeOff className="h-4 w-4 text-gray-400 hover:text-gray-600" />
-                    ) : (
-                      <Eye className="h-4 w-4 text-gray-400 hover:text-gray-600" />
-                    )}
+                    <span className="relative z-10 flex items-center justify-center">
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          Register & Verify
+                          <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                        </>
+                      )}
+                    </span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-primary-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
                   </button>
                 </div>
-                {errors.confirm_password && (
-                  <p className="mt-1 text-xs text-red-500 flex items-start">
-                    <AlertCircle className="h-3 w-3 mt-0.5 mr-1.5 flex-shrink-0" />
-                    <span>{errors.confirm_password?.message}</span>
-                  </p>
-                )}
-
-                {/* reCAPTCHA */}
-                <div className="scale-90 sm:scale-100 origin-center">
-                  <CustomReCaptcha
-                    onChange={handleRecaptchaChange}
-                    error={!!errors.recaptcha || recaptchaError}
-                  />
-                </div>
-
-                {/* Terms Checkbox */}
-                <div>
-                  <label className="flex items-start space-x-2">
-                    <input
-                      type="checkbox"
-                      {...register("agree_terms")}
-                      className="mt-1 h-3.5 w-3.5 rounded-md text-primary-600 focus:ring-primary-500 border-gray-300"
-                    />
-                    <span className="text-xs text-gray-600 dark:text-gray-400">
-                      I accept the{" "}
-                      <a 
-                        href="/terms-and-services" 
-                        className="text-primary-600 hover:text-primary-500"
-                        target="_blank"
-                      >
-                        terms
-                      </a>{" "}
-                      and{" "}
-                      <a 
-                        href="/privacy-policy" 
-                        className="text-primary-600 hover:text-primary-500"
-                        target="_blank"
-                      >
-                        privacy
-                      </a>
-                    </span>
-                  </label>
-                  {errors.agree_terms && (
-                    <p className="mt-1 text-xs text-red-500 flex items-start">
-                      <AlertCircle className="h-3 w-3 mt-0.5 mr-1.5 flex-shrink-0" />
-                      <span>{errors.agree_terms.message}</span>
-                    </p>
-                  )}
-                </div>
-
-                {/* Submit Button - Changed to "Register & Verify" */}
-                <button
-                  type="button"
-                  onClick={proceedToVerification}
-                  disabled={isSubmitting}
-                  className="w-full py-2 sm:py-2.5 px-4 bg-gradient-to-r from-primary-500 to-indigo-600 text-white font-medium rounded-lg sm:rounded-xl shadow-lg shadow-primary-500/30 hover:shadow-primary-500/40 transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 relative overflow-hidden group text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <span className="relative z-10 flex items-center justify-center">
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Processing...
-                      </>
-                    ) : (
-                      <>
-                        Register & Verify
-                        <ArrowRight className="ml-2 h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
-                      </>
-                    )}
-                  </span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-primary-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                </button>
 
                 {/* Sign In Link */}
-                <div className="text-center mt-2 sm:mt-4">
+                <div className="text-center mt-3">
                   <p className="text-xs text-gray-600 dark:text-gray-400">
                     Already have an account?{" "}
                     <Link
@@ -1128,24 +1352,21 @@ const SignUpForm = () => {
             </div>
           </div>
           
-          {/* Social proof */}
-          <div className="text-center mt-3 sm:mt-4 text-xs text-gray-500 dark:text-gray-400">
-            <p>Join thousands of students worldwide 🌎</p>
-          </div>
-          
-          {/* Copyright notice */}
-          <div className="text-center mt-2 text-xs text-gray-400 dark:text-gray-500">
-            <p>© {new Date().getFullYear()} Medh Learning. All rights reserved.</p>
+          {/* Footer */}
+          <div className="text-center mt-2">
+            <p className="text-xs text-gray-400 dark:text-gray-500">
+              © {new Date().getFullYear()} Medh Learning
+            </p>
           </div>
         </div>
       </div>
 
       {registrationSuccess && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-xl max-w-md w-full mx-4">
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg max-w-xs w-full mx-4 border border-gray-200 dark:border-gray-700">
             <div className="text-center">
-              <CheckCircle className="mx-auto h-12 w-12 text-green-500 mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              <CheckCircle className="mx-auto h-12 w-12 text-green-500 mb-3" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
                 Registration Successful!
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
@@ -1153,7 +1374,7 @@ const SignUpForm = () => {
               </p>
               <button
                 onClick={() => router.push('/login')}
-                className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+                className="px-4 py-2 bg-primary-500 text-white rounded-md hover:bg-primary-600 transition-colors font-medium text-sm"
               >
                 Go to Login
               </button>

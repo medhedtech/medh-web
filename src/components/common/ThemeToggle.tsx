@@ -21,7 +21,12 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({
   className = '', 
   useIcons = true 
 }) => {
-  const { isDark, toggleTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
+  const isDark = theme === 'dark';
+  
+  const toggleTheme = () => {
+    setTheme(isDark ? 'light' : 'dark');
+  };
   
   return (
     <button
