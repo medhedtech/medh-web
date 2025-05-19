@@ -262,7 +262,13 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) 
       // Use our own proxy API to avoid CORS issues and protect API keys
       const response = await axios.get('/api/proxy/exchange-rates', { 
         params: { base: 'USD' },
-        timeout: 5000 
+        timeout: 5000,
+        // Adding cache busting parameter to avoid stale responses
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache',
+          'X-Request-Time': Date.now().toString()
+        }
       });
       
       // Validate response with zod
@@ -273,12 +279,18 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) 
         return validatedData.data.rates;
       }
       
-      throw new Error('Invalid response format from exchange rates API');
+      console.warn('Invalid response format from exchange rates API, using fallback rates');
+      return Object.fromEntries(
+        Object.entries(CURRENCIES).map(([code, currency]) => [code, currency.rate])
+      );
     } catch (error) {
-      console.error('Error fetching exchange rates:', error instanceof Error ? error.message : String(error));
+      // Log error but with more details for troubleshooting
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorDetails = error instanceof Error && error.stack ? error.stack : '';
+      console.error(`Error fetching exchange rates: ${errorMessage}${errorDetails ? `\nStack: ${errorDetails}` : ''}`);
       
       // If proxy API fails, return default rates from our constants
-      console.warn('Using fallback static exchange rates');
+      console.warn('Using fallback static exchange rates due to API error');
       return Object.fromEntries(
         Object.entries(CURRENCIES).map(([code, currency]) => [code, currency.rate])
       );
@@ -289,7 +301,15 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) 
   const fetchCountryCode = async (): Promise<string> => {
     try {
       // Use our own proxy API to avoid CORS issues and protect API keys
-      const response = await axios.get('/api/proxy/ipapi', { timeout: 5000 });
+      const response = await axios.get('/api/proxy/ipapi', { 
+        timeout: 5000,
+        // Adding cache busting parameter to avoid stale responses
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache',
+          'X-Request-Time': Date.now().toString()
+        }
+      });
       
       // Validate response with zod
       const validatedData = IPAPISchema.safeParse(response.data);
@@ -305,9 +325,12 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) 
         }
       }
       
+      console.warn('Invalid country code from location API, trying browser locale');
       throw new Error('Invalid country code from location API');
     } catch (error) {
-      console.error('Error fetching location from proxy API:', error instanceof Error ? error.message : String(error));
+      // Log error but with more context for debugging
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.debug(`IP API error details: ${errorMessage}`);
       
       // If proxy API fails, try to get from browser
       try {
@@ -447,15 +470,31 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) 
 
   // Setup initial currency and exchange rates
   useEffect(() => {
-    setInitialCurrency();
-    fetchExternalCurrencies();
+    // Initialize with a small delay to avoid blocking page render
+    const initTimeout = setTimeout(() => {
+      setInitialCurrency().catch(error => {
+        console.error('Failed to initialize currency context:', error);
+        // Even if initialization fails, make sure we're not stuck in loading state
+        setLoading(false);
+      });
+      
+      fetchExternalCurrencies().catch(error => {
+        console.error('Failed to fetch external currencies:', error);
+      });
+    }, 100);
     
     // Set up periodic rate refresh
     const refreshInterval = setInterval(() => {
-      refreshRates();
+      refreshRates().catch(error => {
+        console.debug('Background rate refresh failed:', error);
+        // Silent fail for background updates
+      });
     }, REFRESH_INTERVAL);
     
-    return () => clearInterval(refreshInterval);
+    return () => {
+      clearTimeout(initTimeout);
+      clearInterval(refreshInterval);
+    };
   }, [autoDetect]); // Re-run when autoDetect changes
 
   // Initial setup
