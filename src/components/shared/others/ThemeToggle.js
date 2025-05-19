@@ -1,10 +1,10 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import { useTheme } from 'next-themes';
-import { Sun, Moon, Monitor } from 'lucide-react';
+import { Sun, Moon } from 'lucide-react';
 
 const ThemeToggle = () => {
-  const { theme, setTheme, systemTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -27,8 +27,7 @@ const ThemeToggle = () => {
 
   if (!mounted) return null;
 
-  const currentTheme = theme === 'system' ? systemTheme : theme;
-  const isDarkMode = currentTheme === 'dark';
+  const isDarkMode = theme === 'dark';
 
   const handleThemeChange = (newTheme) => {
     setTheme(newTheme);
@@ -82,23 +81,12 @@ const ThemeToggle = () => {
           <Moon className="w-4 h-4" />
           <span>Dark</span>
         </button>
-        <button
-          onClick={() => handleThemeChange('system')}
-          className={`
-            w-full px-4 py-2 text-sm text-left flex items-center space-x-3
-            ${theme === 'system' ? 'text-primary-600 bg-primary-50 dark:bg-primary-900/20' : 'text-gray-700 dark:text-gray-300'}
-            hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150
-          `}
-        >
-          <Monitor className="w-4 h-4" />
-          <span>System</span>
-        </button>
       </div>
 
       {/* Add styles for the spring easing */}
-      <style jsx global>{`
+      <style jsx>{`
         .ease-spring {
-          transition-timing-function: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+          transition-timing-function: cubic-bezier(0.5, 0, 0.1, 1.5);
         }
       `}</style>
     </div>

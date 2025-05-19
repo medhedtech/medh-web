@@ -15,7 +15,7 @@ const ThemeSwitcher: React.FC<IThemeSwitcherProps> = ({
   isLoggedIn,
   onLogout
 }) => {
-  const { theme, resolvedTheme, setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   
@@ -29,7 +29,7 @@ const ThemeSwitcher: React.FC<IThemeSwitcherProps> = ({
     if (isAnimating) return;
     
     setIsAnimating(true);
-    const newTheme = resolvedTheme === 'dark' ? 'light' : 'dark';
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
     
     // Apply theme after animation starts
     setTimeout(() => {
@@ -45,6 +45,9 @@ const ThemeSwitcher: React.FC<IThemeSwitcherProps> = ({
   // Don't render until mounted to prevent hydration issues
   if (!mounted) return null;
   
+  // Determine current theme
+  const isDark = theme === 'dark';
+  
   return (
     <div className={STYLES.stickyFooter}>
       <div className="flex items-center justify-between">
@@ -54,16 +57,16 @@ const ThemeSwitcher: React.FC<IThemeSwitcherProps> = ({
             text-gray-700 dark:text-gray-300
             hover:bg-gray-100 dark:hover:bg-gray-800
             transition-colors duration-200"
-          aria-label={`Switch to ${resolvedTheme === 'dark' ? 'light' : 'dark'} mode`}
+          aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
         >
           <div className="relative w-5 h-5 mr-2">
-            {resolvedTheme === 'dark' ? (
+            {isDark ? (
               <Moon className={`h-5 w-5 absolute ${isAnimating ? 'animate-fadeOutRotate' : 'animate-fadeIn'}`} />
             ) : (
               <Sun className={`h-5 w-5 absolute ${isAnimating ? 'animate-fadeOutRotate' : 'animate-fadeIn'}`} />
             )}
           </div>
-          <span>{resolvedTheme === 'dark' ? 'Dark' : 'Light'} Mode</span>
+          <span>{isDark ? 'Dark' : 'Light'} Mode</span>
         </button>
 
         <div className="flex items-center">
