@@ -10,6 +10,21 @@ export interface CustomReCaptchaProps {
   siteKey?: string;
 }
 
+interface WindowWithRecaptcha extends Window {
+  grecaptcha?: {
+    render: (
+      container: HTMLElement,
+      parameters: {
+        sitekey: string;
+        callback: (token: string) => void;
+        'expired-callback': () => void;
+        'error-callback': () => void;
+      }
+    ) => number;
+    reset: (id?: number) => void;
+  };
+}
+
 const CustomReCaptcha: React.FC<CustomReCaptchaProps> = ({
   onChange,
   error = false,
@@ -24,7 +39,9 @@ const CustomReCaptcha: React.FC<CustomReCaptchaProps> = ({
     if (typeof window === 'undefined') return;
     
     // Load reCAPTCHA script if not already loaded
-    if (!window.grecaptcha) {
+    const windowWithRecaptcha = window as WindowWithRecaptcha;
+    
+    if (!windowWithRecaptcha.grecaptcha) {
       const script = document.createElement('script');
       script.src = `https://www.google.com/recaptcha/api.js?render=explicit`;
       script.async = true;
@@ -44,30 +61,32 @@ const CustomReCaptcha: React.FC<CustomReCaptchaProps> = ({
       if (typeof window === 'undefined') return;
       
       // Reset reCAPTCHA if it was rendered
-      if (recaptchaId.current !== null && window.grecaptcha) {
-        // Use type assertion to allow an argument
-        (window.grecaptcha as any).reset(recaptchaId.current);
+      const windowWithRecaptcha = window as WindowWithRecaptcha;
+      if (recaptchaId.current !== null && windowWithRecaptcha.grecaptcha) {
+        windowWithRecaptcha.grecaptcha.reset(recaptchaId.current);
       }
     };
   }, [disabled]);
 
-  const renderReCaptcha = () => {
+  const renderReCaptcha = (): void => {
     // Ensure we're in browser environment
     if (typeof window === 'undefined') return;
     
-    if (recaptchaRef.current && window.grecaptcha) {
+    const windowWithRecaptcha = window as WindowWithRecaptcha;
+    
+    if (recaptchaRef.current && windowWithRecaptcha.grecaptcha) {
       // If already rendered, reset it
       if (recaptchaId.current !== null) {
-        (window.grecaptcha as any).reset();
+        windowWithRecaptcha.grecaptcha.reset();
       }
       
       // Render the reCAPTCHA
       setTimeout(() => {
-        if (window.grecaptcha && (window.grecaptcha as any).render) {
+        if (windowWithRecaptcha.grecaptcha && windowWithRecaptcha.grecaptcha.render) {
           try {
-            recaptchaId.current = (window.grecaptcha as any).render(recaptchaRef.current!, {
+            recaptchaId.current = windowWithRecaptcha.grecaptcha.render(recaptchaRef.current!, {
               sitekey: siteKey,
-              callback: onChange,
+              callback: (token: string) => onChange(token),
               'expired-callback': () => onChange(null),
               'error-callback': () => onChange(null)
             });
