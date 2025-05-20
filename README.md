@@ -24,6 +24,41 @@ You can start editing the page by modifying `app/page.js`. The page auto-updates
 
 This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
 
+## API Configuration
+
+The project uses a standardized approach to manage API endpoints across different environments.
+
+### Environment Variables
+
+Create a `.env.local` file in the root directory with the following variables:
+
+```
+# API Configuration
+# Base URLs for different environments
+NEXT_PUBLIC_API_URL_DEV=http://localhost:8080/api/v1
+NEXT_PUBLIC_API_URL_STAGING=https://api2.medh.co/api/v1
+NEXT_PUBLIC_API_URL_PROD=https://api.medh.co/api/v1
+
+# Main API URL - Set this to override environment-specific defaults
+NEXT_PUBLIC_API_URL=
+
+# Auth settings
+NEXT_PUBLIC_BYPASS_AUTH=false
+```
+
+### How it works
+
+The API configuration system works as follows:
+
+1. If `NEXT_PUBLIC_API_URL` is set, it is used regardless of the environment.
+2. Otherwise, the environment-specific URL is used based on `NODE_ENV`:
+   - `NEXT_PUBLIC_API_URL_PROD` for production
+   - `NEXT_PUBLIC_API_URL_TEST` for test environment
+   - `NEXT_PUBLIC_API_URL_DEV` for development (default)
+3. If no environment variables are set, sensible defaults are used.
+
+The configuration is centralized in `src/apis/config.ts` and all API-related code uses this configuration.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

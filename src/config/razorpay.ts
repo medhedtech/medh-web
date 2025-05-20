@@ -124,7 +124,7 @@ export const getRazorpayConfigWithUserDetails = async (
         } else {
           // Fallback to API call if we don't have user details in localStorage
           try {
-            const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.medh.app';
+            const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.medh.co/api/v1';
             const token = localStorage?.getItem("token");
             
             if (token) {
