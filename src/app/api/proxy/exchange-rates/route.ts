@@ -5,7 +5,7 @@ import { z } from 'zod';
 // Define response schema for validation
 const ExchangeRatesSchema = z.object({
   rates: z.record(z.number()),
-  base: z.string(),
+  base: z.string().optional(),
   date: z.string().optional(),
   timestamp: z.number().optional(),
 });
@@ -40,8 +40,14 @@ export async function GET(request: NextRequest) {
           AUD: 1.52, CAD: 1.36, SGD: 1.34, NZD: 1.65, JPY: 150.12,
           CNY: 7.12, KRW: 1350.45, BRL: 5.23, MXN: 16.78, ZAR: 18.12, HKD: 7.81
         },
-        base
+        base: base,
+        source: 'fallback'
       }, { status: 200 });
+    }
+
+    // If API response doesn't include base, add it
+    if (!response.data.base) {
+      response.data.base = base;
     }
 
     return NextResponse.json(response.data);
@@ -55,7 +61,7 @@ export async function GET(request: NextRequest) {
         AUD: 1.52, CAD: 1.36, SGD: 1.34, NZD: 1.65, JPY: 150.12,
         CNY: 7.12, KRW: 1350.45, BRL: 5.23, MXN: 16.78, ZAR: 18.12, HKD: 7.81
       },
-      base,
+      base: base,
       source: 'fallback'
     }, { status: 200 });
   }
