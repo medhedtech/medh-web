@@ -1,15 +1,16 @@
 "use client";
 
-import React, { useState, useEffect, useContext, createContext, useMemo } from "react";
+import React, { useState, useEffect, useContext, createContext, useMemo, useRef } from "react";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams, useRouter } from "next/navigation";
-import { ChevronDown, ChevronRight, MoreHorizontal, Menu, X } from "lucide-react";
+import { ChevronDown, ChevronRight, MoreHorizontal, Menu, X, LogOut } from "lucide-react";
+import Cookies from 'js-cookie';
 
 // Component imports
 import SidebarDashboard from "@/components/sections/sub-section/dashboards/SidebarDashboard";
 import ComingSoonPage from "@/components/shared/others/ComingSoonPage";
-import DashboardNavbar from "./DashboardNavbar";
+import DashboardNavbar from "@/components/Dashboard/DashboardNavbar";
 import LoadingIndicator, { loadingIndicatorStyles } from "@/components/shared/loaders/LoadingIndicator";
 import SkeletonLoader from "@/components/shared/loaders/SkeletonLoader";
 
@@ -179,30 +180,53 @@ const containerVariants = {
   exit: { opacity: 0, transition: { duration: 0.3 } },
 };
 
-const sidebarVariants = {
-  open: { 
-    x: 0, 
-    opacity: 1,
+// Updated content variants with offset for sidebar
+const contentVariants = {
+  expanded: { 
+    opacity: 1, 
+    y: 0, 
+    marginLeft: 0,
     transition: { 
-      type: "spring", 
-      damping: 20 
+      type: "spring",
+      stiffness: 150,
+      damping: 20,
+      duration: 0.3 
     }
   },
-  closed: { 
-    x: -300, 
-    opacity: 0,
+  collapsed: { 
+    opacity: 1, 
+    y: 0, 
+    marginLeft: 0,
     transition: { 
-      type: "spring", 
-      damping: 20 
+      type: "spring",
+      stiffness: 150,
+      damping: 20,
+      duration: 0.3 
+    }
+  },
+  exit: { 
+    opacity: 0, 
+    y: -20,
+    transition: { 
+      duration: 0.2 
     }
   }
 };
 
-const contentVariants = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -20 },
-  transition: { duration: 0.3 }
+// Mobile backdrop variants
+const backdropVariants = {
+  visible: {
+    opacity: 1,
+    transition: {
+      duration: 0.3
+    }
+  },
+  hidden: {
+    opacity: 0,
+    transition: {
+      duration: 0.3
+    }
+  }
 };
 
 // Type definitions
@@ -247,6 +271,7 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
 }) => {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const contentRef = useRef<HTMLDivElement>(null);
   
   // Use the screen size hook for responsive design
   const { isMobile, isTablet, isDesktop, current: breakpoint } = useScreenSize();
@@ -255,11 +280,13 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
   const [currentView, setCurrentView] = useState<string>("overview");
   const [certificateUrl, setCertificateUrl] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(!isMobile);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState<boolean>(!isMobile);
   const [isDebug, setIsDebug] = useState<boolean>(false);
   const [comingSoonTitle, setComingSoonTitle] = useState<string>("Coming Soon");
   const [activeMenu, setActiveMenu] = useState<string>("");
   const [subItems, setSubItems] = useState<SubItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [contentPadding, setContentPadding] = useState<string>("0px");
   
   // Handle URL parameters and adjust sidebar based on screen size
   useEffect(() => {
@@ -294,8 +321,17 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
     }
     
     // Set sidebar state based on screen size
-    setIsSidebarOpen(!isMobile);
+    const initialSidebarState = !isMobile;
+    setIsSidebarOpen(initialSidebarState);
+    setIsSidebarExpanded(initialSidebarState);
   }, [searchParams, isMobile]);
+
+  // Handle content padding adjustment based on sidebar state
+  useEffect(() => {
+    // If sidebar is open but not expanded (in collapsed icon-only mode) or closed
+    const basePadding = isMobile ? "0px" : isSidebarExpanded ? "245px" : "68px";
+    setContentPadding(basePadding);
+  }, [isSidebarExpanded, isSidebarOpen, isMobile]);
 
   // Context value memo for performance
   const contextValue = useMemo(() => ({
@@ -307,6 +343,8 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
     breakpoint,
     isSidebarOpen,
     setIsSidebarOpen,
+    isSidebarExpanded,
+    setIsSidebarExpanded,
     activeMenu,
     setActiveMenu,
     certificateUrl,
@@ -315,7 +353,7 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
     setIsLoading
   }), [
     currentView, isMobile, isTablet, isDesktop, 
-    breakpoint, isSidebarOpen, activeMenu, certificateUrl,
+    breakpoint, isSidebarOpen, isSidebarExpanded, activeMenu, certificateUrl,
     isLoading
   ]);
 
@@ -387,6 +425,11 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
     setTimeout(() => {
       setIsLoading(false);
     }, 400);
+  };
+
+  // Handle sidebar expansion state change
+  const handleSidebarExpansionChange = (expanded: boolean) => {
+    setIsSidebarExpanded(expanded);
   };
 
   // Component renderer with error boundary
@@ -509,53 +552,62 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
   // Toggle sidebar handler with accessibility support
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
+    if (isMobile && !isSidebarOpen) {
+      // When opening on mobile, always show expanded sidebar for better usability
+      setIsSidebarExpanded(true);
+    }
+  };
+
+  // Handle logout
+  const handleLogout = () => {
+    try {
+      // Clear localStorage items
+      const keysToRemove = [
+        "userId", 
+        "token", 
+        "fullName", 
+        "full_name", 
+        "role", 
+        "permissions",
+        "email",
+        "password",
+        "rememberMe"
+      ];
+      
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+      
+      // Clear cookies
+      Cookies.remove("token");
+      Cookies.remove("userId");
+      
+      // Use the new path format for redirecting to login
+      router.push("/login/");
+    } catch (error) {
+      console.error("Error during logout:", error);
+      // If error, still try to redirect
+      router.push("/login/");
+    }
   };
 
   return (
     <DashboardContext.Provider value={contextValue}>
-      <div className="relative">
+      <div className="relative bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col">
         {/* Global styles */}
         <style jsx global>{dashboardStyles}</style>
         <style jsx global>{loadingIndicatorStyles}</style>
         
-        <div className="flex h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
-          {/* Mobile Sidebar Toggle - positioned at bottom right corner */}
-          {isMobile && (
-            <button
-              onClick={toggleSidebar}
-              className="fixed z-30 bottom-6 right-6 p-4 rounded-full bg-primary-500 text-white shadow-lg"
-              aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
-              aria-expanded={isSidebarOpen}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                {isSidebarOpen ? (
-                  <path d="M18 6L6 18M6 6l12 12" />
-                ) : (
-                  <path d="M4 12h16M4 6h16M4 18h16" />
-                )}
-              </svg>
-            </button>
-          )}
-
-          {/* Sidebar - now with sticky positioning and similar style to admin dashboard */}
-          <div
-            className={`${
-              isMobile
-                ? `fixed z-20 transform ${
-                    isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-                  }`
-                : "sticky"
-            } top-0 h-screen flex-shrink-0 w-[280px] bg-white dark:bg-gray-800 transition-transform duration-300 shadow-md overflow-hidden`}
+        {/* New Dashboard Navbar - positioned at the top, full width */}
+        <DashboardNavbar 
+          onMobileMenuToggle={toggleSidebar}
+          isScrolled={false}
+        />
+        
+        {/* Main layout with sidebar and content - prevent nested scrolling */}
+        <div className="flex flex-1 relative">
+          {/* Sidebar - fixed position but no internal scrolling */}
+          <div 
+            className={`${isMobile ? 'fixed z-40' : 'fixed lg:relative'} h-full`}
+            style={{ height: isMobile ? '100%' : '100vh' }}
           >
             <SidebarDashboard
               userRole={userRole}
@@ -565,57 +617,82 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
               userNotifications={userNotifications}
               userSettings={userSettings}
               onMenuClick={handleMenuClick}
+              isOpen={isSidebarOpen}
+              onOpenChange={setIsSidebarOpen}
+              isExpanded={isSidebarExpanded}
+              onExpandedChange={handleSidebarExpansionChange}
             />
           </div>
 
-          {/* Main Content Area */}
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            className="flex-1 overflow-y-auto"
-          >
-            {/* Navbar */}
-            {subItems.length > 0 && (
-              <DashboardNavbar
-                activeMenu={activeMenu}
-                subItems={subItems}
-                onItemClick={handleSubItemClick}
-                currentView={currentView}
-                isSubItemActive={isSubItemActive}
+          {/* Mobile backdrop overlay */}
+          <AnimatePresence>
+            {isMobile && isSidebarOpen && (
+              <motion.div
+                key="backdrop"
+                initial="hidden"
+                animate="visible"
+                exit="hidden"
+                variants={backdropVariants}
+                className="fixed inset-0 bg-black/40 backdrop-blur-sm z-30"
+                onClick={() => setIsSidebarOpen(false)}
+                aria-hidden="true"
               />
             )}
+          </AnimatePresence>
 
-            {/* Content */}
-            <div className="p-6">
+          {/* Main Content Area - only this should scroll */}
+          <motion.div
+            ref={contentRef}
+            variants={contentVariants}
+            initial="collapsed"
+            animate={isSidebarExpanded ? "expanded" : "collapsed"}
+            exit="exit"
+            className="flex-1 overflow-y-auto transition-all duration-300 ease-out scroll-smooth"
+            style={{
+              marginLeft: isMobile ? 0 : isSidebarExpanded ? '245px' : '68px',
+              width: "100%"
+            }}
+          >
+            {/* Content with proper padding */}
+            <div className="p-4 md:p-6">
+              {/* Debug info */}
               {isDebug && (
                 <div className="mb-4 p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 rounded-lg text-xs">
-                  Debug: Current View = "{currentView}" | Breakpoint = "{breakpoint}" | Loading = {isLoading ? "true" : "false"}
+                  Debug: Current View = "{currentView}" | Breakpoint = "{breakpoint}" | 
+                  Sidebar Open = {isSidebarOpen ? "true" : "false"} | 
+                  Sidebar Expanded = {isSidebarExpanded ? "true" : "false"} |
+                  Loading = {isLoading ? "true" : "false"}
                 </div>
               )}
               
               {/* Global loading indicator */}
-              {isLoading && (
-                <div className="fixed inset-0 bg-white/50 dark:bg-gray-900/50 z-50 flex items-center justify-center backdrop-blur-sm">
-                  <LoadingIndicator 
-                    type="dots" 
-                    size="xl" 
-                    color="primary" 
-                    text="Loading..." 
-                    centered 
-                  />
-                </div>
-              )}
+              <AnimatePresence>
+                {isLoading && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="fixed inset-0 bg-white/50 dark:bg-gray-900/50 z-50 flex items-center justify-center backdrop-blur-sm"
+                  >
+                    <LoadingIndicator 
+                      type="dots" 
+                      size="xl" 
+                      color="primary" 
+                      text="Loading..." 
+                      centered 
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
               
               <AnimatePresence mode="wait">
                 <motion.div
                   key={currentView}
-                  variants={contentVariants}
-                  initial="initial"
-                  animate="animate"
-                  exit="exit"
-                  transition={contentVariants.transition}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
                   className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden elevation-2"
                 >
                   <DashboardComponent />
@@ -624,6 +701,35 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
             </div>
           </motion.div>
         </div>
+
+        {/* Mobile Sidebar Toggle Button */}
+        {isMobile && (
+          <motion.button
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.8, opacity: 0 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={toggleSidebar}
+            className="fixed z-50 bottom-6 right-6 p-3 rounded-full bg-primary-500 hover:bg-primary-600 text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+            aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
+            aria-expanded={isSidebarOpen}
+          >
+            {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+          </motion.button>
+        )}
+        
+        {/* Add logout button to the bottom right */}
+        <motion.button
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={handleLogout}
+          className={`fixed z-40 bottom-6 ${isMobile ? 'left-6' : 'right-6'} p-3 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 dark:focus:ring-offset-gray-900`}
+          aria-label="Logout"
+        >
+          <LogOut size={20} />
+        </motion.button>
       </div>
     </DashboardContext.Provider>
   );
