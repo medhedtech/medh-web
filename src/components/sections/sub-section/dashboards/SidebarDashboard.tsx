@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import {
   AlertCircle,
   AlertTriangle,
@@ -76,7 +76,13 @@ import {
   Zap,
   ChevronDown,
   LayoutDashboard,
-  ChevronRight
+  ChevronRight,
+  Menu,
+  LifeBuoy,
+  BookOpenCheck,
+  ChevronLeft,
+  LucideIcon,
+  LucideProps
 } from "lucide-react";
 import Cookies from 'js-cookie';
 import { motion, AnimatePresence } from "framer-motion";
@@ -139,48 +145,194 @@ interface SidebarDashboardProps {
     notifications: boolean;
   };
   onMenuClick: (menuName: string, items: SubItem[]) => void;
+  isOpen?: boolean;  // Controls the sidebar's visibility
+  onOpenChange?: (isOpen: boolean) => void;  // Callback when sidebar open state changes
+  isExpanded?: boolean;  // Controls whether sidebar is expanded or collapsed
+  onExpandedChange?: (isExpanded: boolean) => void;  // Callback when expanded state changes
 }
 
-// Custom styles for enhanced Gen Alpha aesthetic
-const sidebarStyles = `
-  .sidebar-gen-alpha {
-    border-right: 1px solid rgba(200, 80, 192, 0.2);
-  }
-  
-  .menu-item-active {
-    background: linear-gradient(to right, rgba(65, 88, 208, 0.1), rgba(200, 80, 192, 0.1));
-    border-left: 3px solid #C850C0;
-  }
-  
-  .menu-item-hover:hover {
-    background: linear-gradient(to right, rgba(65, 88, 208, 0.05), rgba(200, 80, 192, 0.05));
-  }
-  
-  .menu-icon-gradient {
-    color: #C850C0;
-  }
-  
-  .menu-section-title {
-    background: linear-gradient(to right, #4158D0, #C850C0);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-  
-  .user-avatar-gradient {
-    background: linear-gradient(to right bottom, #4158D0, #C850C0);
-  }
-  
-  .logout-button:hover {
-    color: #FF5370;
-  }
-  
-  @media (max-width: 1023px) {
-    .sidebar-gen-alpha {
-      box-shadow: 0 0 20px rgba(200, 80, 192, 0.2);
+// Sidebar animation variants
+const sidebarVariants = {
+  expanded: {
+    width: '245px', // Slightly wider to accommodate text
+    transition: {
+      type: 'spring',
+      stiffness: 170,
+      damping: 22,
+      mass: 0.8,
+      duration: 0.4
+    }
+  },
+  collapsed: {
+    width: '68px',
+    transition: {
+      type: 'spring',
+      stiffness: 150,  // Lower stiffness for slower animation
+      damping: 30,     // Higher damping for smoother motion
+      mass: 1.2,       // Higher mass for slower movement
+      duration: 0.6    // Longer duration for closing
     }
   }
-`;
+};
+
+// Animation variants for menu items
+const itemVariants = {
+  expanded: {
+    opacity: 1,
+    x: 0,
+    display: "block",
+    transition: {
+      duration: 0.18,
+      ease: [0.4, 0.0, 0.2, 1],
+      display: { delay: 0 }
+    }
+  },
+  collapsed: {
+    opacity: 0,
+    x: -8,
+    transition: {
+      duration: 0.3,  // Slower fade out
+      ease: [0.4, 0.0, 0.2, 1]
+    },
+    transitionEnd: {
+      display: "none"
+    }
+  }
+};
+
+// Icon animation variants - only for header icon
+const headerIconVariants = {
+  expanded: {
+    rotate: 0,
+    scale: 1,
+    transition: {
+      duration: 0.3,
+      ease: [0.4, 0.0, 0.2, 1]
+    }
+  },
+  collapsed: {
+    rotate: 360,
+    scale: 1.2,
+    transition: {
+      duration: 0.5,
+      ease: [0.4, 0.0, 0.2, 1]
+    }
+  }
+};
+
+// Icon container animation variants - ensures stability during transitions
+const iconContainerVariants = {
+  expanded: {
+    width: '44px',
+    height: '44px',
+    transition: {
+      duration: 0.3,
+      ease: "easeInOut"
+    }
+  },
+  collapsed: {
+    width: '44px',
+    height: '44px',
+    transition: {
+      duration: 0.3,
+      ease: "easeInOut"
+    }
+  }
+};
+
+// Chevron animation variants
+const chevronVariants = {
+  open: {
+    rotate: 180,
+    opacity: 1,
+    scale: 1.1,
+    transition: {
+      duration: 0.3,
+      ease: [0.4, 0.0, 0.2, 1]
+    }
+  },
+  closed: {
+    rotate: 0,
+    opacity: 0.7,
+    scale: 1,
+    transition: {
+      duration: 0.3,
+      ease: [0.4, 0.0, 0.2, 1]
+    }
+  }
+};
+
+// Active icon variants - for currently active menu items
+const activeIconVariants = {
+  initial: {
+    scale: 1,
+    rotate: 0
+  },
+  active: {
+    scale: 1.05,
+    rotate: 360,
+    transition: {
+      rotate: { duration: 0.7, ease: "easeInOut" },
+      scale: { duration: 0.3 }
+    }
+  }
+};
+
+// Animation variants for submenu
+const submenuVariants = {
+  open: {
+    height: 'auto',
+    opacity: 1,
+    transition: {
+      height: {
+        duration: 0.4,
+        ease: [0.4, 0.0, 0.2, 1]
+      },
+      opacity: {
+        duration: 0.25,
+        ease: [0.4, 0.0, 0.2, 1]
+      }
+    }
+  },
+  closed: {
+    height: 0,
+    opacity: 0,
+    transition: {
+      height: {
+        duration: 0.4,  // Slower height collapse
+        ease: [0.4, 0.0, 0.2, 1]
+      },
+      opacity: {
+        duration: 0.25,
+        ease: [0.4, 0.0, 0.2, 1]
+      }
+    }
+  }
+};
+
+// Container animation variants
+const containerVariants = {
+  expanded: {
+    paddingLeft: '14px',
+    paddingRight: '14px',
+    transition: {
+      duration: 0.3  // Slower expansion
+    }
+  },
+  collapsed: {
+    paddingLeft: '8px',
+    paddingRight: '8px',
+    transition: {
+      duration: 0.4  // Slower collapse
+    }
+  }
+};
+
+// Define consistent icon size and container sizes
+const ICON_SIZE_MAIN = 22;
+const ICON_SIZE_SUB = 16;
+const CHEVRON_SIZE = 18;
+const ICON_CONTAINER_SIZE = "44px"; // Consistent size for all icon containers
 
 const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
   userRole,
@@ -189,7 +341,11 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
   userImage,
   userNotifications,
   userSettings,
-  onMenuClick
+  onMenuClick,
+  isOpen,
+  onOpenChange,
+  isExpanded: propIsExpanded,
+  onExpandedChange
 }) => {
   const pathname = usePathname();
   const router = useRouter();
@@ -198,6 +354,12 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
   const [mounted, setMounted] = useState<boolean>(false);
   const [isMobileDevice, setIsMobileDevice] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [isExpanded, setIsExpanded] = useState<boolean>(false);
+  const [isCollapsible, setIsCollapsible] = useState<boolean>(true);
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  
+  // Use the prop values if provided, otherwise use internal state
+  const effectiveIsExpanded = typeof propIsExpanded !== 'undefined' ? propIsExpanded : isExpanded;
   
   // Initialize component
   useEffect(() => {
@@ -205,7 +367,9 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
     
     // Check if device is mobile
     const checkMobile = () => {
-      setIsMobileDevice(window.innerWidth < 1024);
+      const isMobile = window.innerWidth < 1024;
+      setIsMobileDevice(isMobile);
+      setIsExpanded(!isMobile);
     };
     
     checkMobile();
@@ -293,121 +457,39 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
     
     getPermissionsAndRole();
     
-    // Hash-based navigation handling
-    const handleHashChange = () => {
-      const newHash = window.location.hash.replace("#", "");
-      if (newHash) {
-        const decodedNewHash = decodeURIComponent(newHash);
-        setActiveMenu(decodedNewHash);
-        
-        // Find and trigger the menu item based on hash
-        const menuItem = findMenuItemByName(decodedNewHash);
-        if (menuItem && menuItem.subItems) {
-          // Trigger the onMenuClick with the appropriate subitems
-          onMenuClick(decodedNewHash, menuItem.subItems as SubItem[]);
-        }
-      } else {
-        setActiveMenu(null);
+    // Click outside handler to collapse sidebar on mobile
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isMobileDevice && 
+          sidebarRef.current && 
+          !sidebarRef.current.contains(event.target as Node)) {
+        setIsExpanded(false);
       }
     };
-    
-    // Initial hash processing on component mount
-    if (typeof window !== "undefined") {
-      const hash = window.location.hash.replace("#", "");
-      if (hash) {
-        const decodedHash = decodeURIComponent(hash);
-        setActiveMenu(decodedHash);
-        
-        // Find and trigger the menu item based on initial hash
-        const menuItem = findMenuItemByName(decodedHash);
-        if (menuItem && menuItem.subItems) {
-          // Trigger the onMenuClick with the appropriate subitems
-          onMenuClick(decodedHash, menuItem.subItems as SubItem[]);
-        }
-      }
-      
-      // Listen for hash changes
-      window.addEventListener("hashchange", handleHashChange);
-    }
+
+    // Register click outside listener
+    document.addEventListener('mousedown', handleClickOutside);
     
     // Clean up event listeners
     return () => {
       window.removeEventListener("resize", checkMobile);
-      if (typeof window !== "undefined") {
-        window.removeEventListener("hashchange", handleHashChange);
-      }
+      document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
+  }, [isMobileDevice]);
 
-  // Helper function to find the menu name that corresponds to a view
-  const findMenuMatchingView = (view: string): string | null => {
-    // Convert view to lowercase for case-insensitive matching
-    const normalizedView = view.toLowerCase();
-    
-    // Check for dashboard views
-    if (normalizedView.includes('overview') || normalizedView.includes('dashboard')) {
-      return 'Dashboard';
+  // Update expanded state when prop changes
+  useEffect(() => {
+    if (typeof propIsExpanded !== 'undefined') {
+      setIsExpanded(propIsExpanded);
     }
-    
-    // Check for course management related views
-    if (normalizedView.includes('course-categories') || 
-        normalizedView.includes('add-course') || 
-        normalizedView.includes('edit-courses') || 
-        normalizedView.includes('course-detail')) {
-      return 'Course Setup';
-    }
-    
-    // Check for instructor management views
-    if (normalizedView.includes('instructor')) {
-      return 'Instructor Management';
-    }
-    
-    // Check for student management views
-    if (normalizedView.includes('student')) {
-      return 'Student Management';
-    }
-    
-    // Check for blog management
-    if (normalizedView.includes('blog')) {
-      return 'Blogs Management';
-    }
-    
-    // Check for certificate management
-    if (normalizedView.includes('certificate')) {
-      return 'Certificate Management';
-    }
-    
-    // Check for reports and analytics
-    if (normalizedView.includes('analytics') || normalizedView.includes('report')) {
-      return 'Reports & Analytics';
-    }
-    
-    // Check for feedback and complaints
-    if (normalizedView.includes('feedback') || normalizedView.includes('complaint')) {
-      return 'Feedback & Grievances';
-    }
-    
-    // Check for corporate management
-    if (normalizedView.includes('corporate') || normalizedView.includes('placement')) {
-      return 'Corporate Management';
-    }
+  }, [propIsExpanded]);
 
-    return null;
+  // Notify parent component when expanded state changes internally
+  const handleExpandedChange = (expanded: boolean) => {
+    setIsExpanded(expanded);
+    if (onExpandedChange) {
+      onExpandedChange(expanded);
+    }
   };
-
-  // Parse path to determine user type
-  const pathParts = pathname?.split("/") || [];
-  const dashboardType = pathParts[2]?.split("-")[0] || '';
-  const dashboardSubType = pathParts[2]?.split("-")[1] || '';
-  
-  const isPathAdmin = dashboardType === "admin";
-  const isPathInstructor = dashboardType === "instructor";
-  let isPathCorporate = dashboardType === "coorporate";
-  const isPathCorporateEmp = dashboardType === "coorporate" && dashboardSubType === "employee";
-
-  if (isPathCorporateEmp) {
-    isPathCorporate = false;
-  }
 
   // First, create a helper function to format routes
   const formatRoute = (role: string, pageName: string): string => {
@@ -447,1115 +529,319 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
     }
   };
 
-  // Helper function to find menu item by name
-  const findMenuItemByName = (menuName: string): MenuItem | undefined => {
-    // Determine which sidebar to search based on user role
-    let sidebarToSearch: ItemSection[] = [];
-    
-    if (userRole === "admin") {
-      sidebarToSearch = adminSidebar;
-    } else if (userRole === "student") {
-      sidebarToSearch = studentSidebar;
-    } else if (userRole === "parent") {
-      sidebarToSearch = parentSidebar;
-    }
-    // Other roles not included as they might not exist in this component
-    
-    // Search through all sections and items
-    for (const section of sidebarToSearch) {
-      const foundItem = section.items.find((item: MenuItem) => item.name === menuName);
-      if (foundItem) {
-        return foundItem;
-      }
+  // Toggle sidebar expansion state
+  const toggleSidebar = () => {
+    const newExpanded = !effectiveIsExpanded;
+    if (onExpandedChange) {
+      onExpandedChange(newExpanded);
+    } else {
+      setIsExpanded(newExpanded);
     }
     
-    return undefined;
+    // Notify parent about open state change if needed
+    if (onOpenChange && isMobileDevice && !newExpanded) {
+      onOpenChange(false);
+    }
   };
 
   // Handle menu clicks
-  const handleMenuClick = (menuName: string, items: SubItem[]) => {
-    // Toggle dropdown visibility without changing layout
-    if (activeMenu === menuName) {
-      setActiveMenu(null);
-    } else {
-      setActiveMenu(menuName);
-    }
-    
-    // We no longer pass items to parent component to update content
-    // as we want direct navigation instead of layout changes
-  };
-
-  // Handle submenu clicks
-  const handleSubMenuClick = (subItem: SubItem) => {
-    // If item has an onClick handler, use that
-    if (subItem.onClick) {
-      subItem.onClick();
-      return;
-    }
-    
-    // Otherwise navigate to the actual path in the same page
-    if (subItem.path) {
-      router.push(subItem.path);
+  const handleMenuClick = (menuName: string, item: MenuItem) => {
+    if (item.subItems && item.subItems.length > 0) {
+      // Toggle dropdown
+      setOpenSubMenu(openSubMenu === menuName ? null : menuName);
+    } else if (item.onClick) {
+      // Execute onClick callback if provided
+      item.onClick();
+    } else if (item.path) {
+      // Navigate to the path
+      router.push(item.path);
     }
   };
 
-  // Create personalized welcome message
-  const welcomeMessage = () => {
-    // If no name is provided or available
-    if (!fullName) {
-      // If we know the role is student, use student-specific greeting
-      if (userRole?.toLowerCase() === 'student') {
-        return 'Hello, Student';
-      }
-      // Otherwise use role-based greeting
-      return `Hello, ${(userRole || 'User').charAt(0).toUpperCase() + (userRole || 'User').slice(1)}`;
-    }
-    
-    // If name is available, create a personalized greeting
-    // For students, show exact format "Hello, abhi (Student)"
-    if (userRole?.toLowerCase() === 'student') {
-      return `Hello, ${fullName.split(' ')[0]} (Student)`;
-    }
-    
-    // For other roles, just use first name
-    return `Hello, ${fullName.split(' ')[0]}`;
-  };
-
-  // Define the complete sidebar structure for student role
-  const studentSidebar: ItemSection[] = [
-    {
-      title: "Main",
-      items: [
+  // Modern student sidebar items
+  const studentMenuItems: MenuItem[] = [
         {
           name: "Dashboard",
-          icon: <LayoutDashboard className="w-5 h-5" />,
-          subItems: [
-            {
-              name: "My Profile",
-              path: formatRoute("student", "profile"),
-              icon: <UserCircle className="w-4 h-4" />
-            },
-            {
-              name: "Upcoming Classes",
-              path: formatRoute("student", "upcoming-classes"),
-              icon: <CalendarDays className="w-4 h-4" />
-            },
-            {
-              name: "Recent Announcements",
-              path: formatRoute("student", "announcements"),
-              icon: <Bell className="w-4 h-4" />
-            },
-            {
-              name: "Progress Overview",
-              path: formatRoute("student", "progress-overview"),
-              icon: <TrendingUp className="w-4 h-4" />
-            },
-            {
-              name: "Free Courses",
-              path: formatRoute("student", "free-courses"),
-              icon: <Gift className="w-4 h-4" />
-            },
-            {
-              name: "Add Social Icon",
-              path: formatRoute("student", "social"),
-              icon: <Share2 className="w-4 h-4" />
-            },
-            {
-              name: "Change Password",
-              path: formatRoute("student", "password"),
-              icon: <Key className="w-4 h-4" />
-            },
-            {
-              name: "My Wishlist",
-              path: formatRoute("student", "wishlist"),
-              icon: <Heart className="w-4 h-4" />
-            },
-          ]
-        },
-        {
-          name: "My Demo Classes",
-          icon: <MonitorPlay className="w-5 h-5" />,
-          onClick: () => handleMenuClick("democlasses", [])
-        },
-      ]
+      path: formatRoute("student", "dashboard"),
+      icon: <LayoutDashboard className="w-5 h-5" />
     },
-    {
-      title: "My Learning",
-      items: [
         {
           name: "My Courses",
+      path: formatRoute("student", "my-courses"),
           icon: <BookOpen className="w-5 h-5" />,
-          path: formatRoute("student", "my-courses")
-        },
-        {
-          name: "My Membership",
-          icon: <Users className="w-5 h-5" />,
-          path: formatRoute("student", "membership")
-        },
-        {
-          name: "My Live Classes",
-          icon: <Video className="w-5 h-5" />,
           subItems: [
             {
-              name: "Join Live Class",
-              path: formatRoute("student", "join-live"),
-              icon: <Play className="w-4 h-4" />
-            },
-            {
-              name: "View Scheduled Classes",
-              path: formatRoute("student", "upcoming-classes"),
-              icon: <CalendarDays className="w-4 h-4" />
-            },
-            {
-              name: "Access Recorded Sessions",
-              path: formatRoute("student", "access-recorded-sessions"),
-              icon: <Video className="w-4 h-4" />
-            }
-          ]
-        }
-      ]
-    },
-    {
-      title: "Resources & Progress",
-      items: [
+          name: "All Courses",
+          path: formatRoute("student", "my-courses"),
+          icon: <LayoutGrid className="w-4 h-4" />
+        },
         {
-          name: "My Progress",
-          icon: <TrendingUp className="w-5 h-5" />,
-          subItems: [
-            {
-              name: "Course Completion Status",
+          name: "In Progress",
               path: formatRoute("student", "enrolled-courses"),
-              icon: <CheckCircle className="w-4 h-4" />
-            },
-            {
-              name: "Performance Analytics",
-              path: formatRoute("student", "progress-overview"),
-              icon: <BarChart className="w-4 h-4" />
-            },
-            {
-              name: "Skill Development Tracking",
-              path: formatRoute("student", "skills"),
-              icon: <Target className="w-4 h-4" />
+          icon: <TrendingUp className="w-4 h-4" />
+        },
+        {
+          name: "Completed",
+          path: formatRoute("student", "completed-courses"),
+          icon: <CheckCircle className="w-4 h-4" />
             }
           ]
         },
         {
           name: "Resources",
+      path: formatRoute("student", "resources"),
           icon: <FolderOpen className="w-5 h-5" />,
           subItems: [
             {
-              name: "Access Course Materials",
+          name: "Course Materials",
               path: formatRoute("student", "lesson-course-materials"),
               icon: <FileText className="w-4 h-4" />
             },
             {
-              name: "View e-books",
-              path: formatRoute("student", "ebooks"),
-              icon: <Book className="w-4 h-4" />
-            }
-          ]
-        },
-        {
-          name: "Assignments & Quizzes",
-          icon: <ClipboardList className="w-5 h-5" />,
-          subItems: [
-            {
-              name: "My Assignments",
+          name: "Assignments",
               path: formatRoute("student", "assignments"),
               icon: <Clipboard className="w-4 h-4" />
             },
             {
-              name: "Take Quiz",
+          name: "Quizzes",
               path: formatRoute("student", "quiz"),
               icon: <CheckSquare className="w-4 h-4" />
-            },
-            {
-              name: "My Quiz Attempts",
-              path: formatRoute("student", "my-quiz-attempts"),
-              icon: <ListChecks className="w-4 h-4" />
-            }
-          ]
         }
       ]
     },
     {
-      title: "Support & Documents",
-      items: [
-        {
-          name: "Feedback & Support",
-          icon: <MessageCircle className="w-5 h-5" />,
-          path: formatRoute("student", "feedback")
-        },
-        {
-          name: "Certificates",
-          icon: <Award className="w-5 h-5" />,
-          path: formatRoute("student", "certificate")
-        },
-        {
-          name: "Payments",
-          icon: <CreditCard className="w-5 h-5" />,
-          path: formatRoute("student", "payment")
-        },
-        {
-          name: "Apply for Placement",
-          icon: <Briefcase className="w-5 h-5" />,
-          path: formatRoute("student", "apply")
-        }
-      ]
-    }
-  ];
-
-  // Define parent sidebar structure
-  const parentSidebar: ItemSection[] = [
-    {
-      title: "Main",
-      items: [
-        {
-          name: "Dashboard",
-          icon: <LayoutDashboard className="w-5 h-5" />,
+      name: "Live Classes",
+      path: formatRoute("student", "upcoming-classes"),
+      icon: <Video className="w-5 h-5" />,
           subItems: [
             {
-              name: "My Profile",
-              path: formatRoute("parent", "profile"),
-              icon: <UserCircle className="w-4 h-4" />
-            },
-            {
-              name: "Child's Upcoming Classes",
-              path: formatRoute("parent", "upcoming-classes"),
+          name: "Upcoming Classes",
+          path: formatRoute("student", "upcoming-classes"),
               icon: <CalendarDays className="w-4 h-4" />
             },
             {
-              name: "Recent Performance Updates",
-              path: formatRoute("parent", "performance-updates"),
-              icon: <TrendingUp className="w-4 h-4" />
-            },
-            {
-              name: "Quick Access",
-              path: formatRoute("parent", "quick-access"),
-              icon: <Zap className="w-4 h-4" />
-            },
-            {
-              name: "Add Social Icon",
-              path: formatRoute("parent", "social"),
-              icon: <Share2 className="w-4 h-4" />
-            },
-            {
-              name: "Change Password",
-              path: formatRoute("parent", "password"),
-              icon: <Key className="w-4 h-4" />
-            }
-          ]
-        }
-      ]
-    },
-    {
-      title: "Academics",
-      items: [
-        {
-          name: "Class Schedule",
-          icon: <CalendarDays className="w-5 h-5" />,
-          subItems: [
-            {
-              name: "View Timetable",
-              path: formatRoute("parent", "timetable"),
-              icon: <Calendar className="w-4 h-4" />
-            },
-            {
-              name: "View Attendance",
-              path: formatRoute("parent", "attendance"),
-              icon: <CheckSquare className="w-4 h-4" />
-            },
-            {
-              name: "Upcoming Classes",
-              path: formatRoute("parent", "classes"),
-              icon: <Clock className="w-4 h-4" />
+          name: "Join Live Class",
+          path: formatRoute("student", "join-live"),
+          icon: <Play className="w-4 h-4" />
             },
             {
               name: "Recorded Sessions",
-              path: formatRoute("parent", "recordings"),
-              icon: <Video className="w-4 h-4" />
-            },
-            {
-              name: "Track Performance",
-              path: formatRoute("parent", "track-performance"),
-              icon: <LineChart className="w-4 h-4" />
-            }
-          ]
-        },
-        {
-          name: "Grades",
-          icon: <ClipboardList className="w-5 h-5" />,
-          subItems: [
-            {
-              name: "Pending Assignments",
-              path: formatRoute("parent", "pending-assignments"),
-              icon: <AlertCircle className="w-4 h-4" />
-            },
-            {
-              name: "View Grades",
-              path: formatRoute("parent", "grades"),
-              icon: <Award className="w-4 h-4" />
-            }
-          ]
-        }
-      ]
-    },
-    {
-      title: "Communication & Support",
-      items: [
-        {
-          name: "Communication",
-          icon: <MessageCircle className="w-5 h-5" />,
-          subItems: [
-            {
-              name: "Message Instructors",
-              path: formatRoute("parent", "message-instructors"),
-              icon: <Mail className="w-4 h-4" />
-            },
-            {
-              name: "Announcements",
-              path: formatRoute("parent", "announcements"),
-              icon: <Bell className="w-4 h-4" />
-            },
-            {
-              name: "Schedule Meetings",
-              path: formatRoute("parent", "schedule-meetings"),
-              icon: <CalendarClock className="w-4 h-4" />
-            }
-          ]
-        },
-        {
-          name: "Payments",
-          icon: <CreditCard className="w-5 h-5" />,
-          subItems: [
-            {
-              name: "Fee Structure",
-              path: formatRoute("parent", "fee-structure"),
-              icon: <FileText className="w-4 h-4" />
-            },
-            {
-              name: "Make Payments",
-              path: formatRoute("parent", "make-payments"),
-              icon: <DollarSign className="w-4 h-4" />
-            },
-            {
-              name: "Download Invoices",
-              path: formatRoute("parent", "invoices"),
-              icon: <Download className="w-4 h-4" />
-            }
-          ]
-        },
-        {
-          name: "Feedback & Concerns",
-          icon: <HelpCircle className="w-5 h-5" />,
-          subItems: [
-            {
-              name: "Submit Feedback",
-              path: formatRoute("parent", "submit-feedback"),
-              icon: <ThumbsUp className="w-4 h-4" />
-            },
-            {
-              name: "Raise Concerns",
-              path: formatRoute("parent", "raise-concerns"),
-              icon: <AlertTriangle className="w-4 h-4" />
-            },
-            {
-              name: "Track Resolution",
-              path: formatRoute("parent", "track-resolution"),
-              icon: <History className="w-4 h-4" />
-            }
-          ]
-        }
-      ]
-    }
-  ];
-
-  // Define instructor sidebar structure
-  const instructorSidebar: ItemSection[] = [
-    {
-      title: "Main",
-      items: [
-        {
-          name: "Dashboard",
-          icon: <LayoutDashboard className="w-5 h-5" />,
-          subItems: [
-            {
-              name: "Overview",
-              path: formatRoute("instructor", "dashboard"),
-              icon: <LayoutGrid className="w-4 h-4" />
-            },
-            {
-              name: "My Profile",
-              path: formatRoute("instructor", "profile"),
-              icon: <UserCircle className="w-4 h-4" />
-            },
-            {
-              name: "Change Password",
-              path: formatRoute("instructor", "password"),
-              icon: <Key className="w-4 h-4" />
-            },
-            {
-              name: "Add Social Icon",
-              path: formatRoute("instructor", "social"),
-              icon: <Share2 className="w-4 h-4" />
-            }
-          ]
-        }
-      ]
-    },
-    {
-      title: "Classes",
-      items: [
-        {
-          name: "My Demo Classes",
-          icon: <MonitorPlay className="w-5 h-5" />,
-          path: formatRoute("instructor", "class")
-        },
-        {
-          name: "My Main Classes",
-          icon: <Video className="w-5 h-5" />,
-          path: formatRoute("instructor", "mainclass")
-        },
-        {
-          name: "Track Sessions",
-          icon: <History className="w-5 h-5" />,
-          path: formatRoute("instructor", "track")
-        }
-      ]
-    },
-    {
-      title: "Assignments & Assessments",
-      items: [
-        {
-          name: "Assignments & Quizzes",
-          icon: <ClipboardList className="w-5 h-5" />,
-          subItems: [
-            {
-              name: "Create Assignment",
-              path: formatRoute("instructor", "create-assignment"),
-              icon: <Pencil className="w-4 h-4" />
-            },
-            {
-              name: "Create Quiz",
-              path: formatRoute("instructor", "create-quiz"),
-              icon: <FileCheck className="w-4 h-4" />
-            },
-            {
-              name: "Submitted Assignments",
-              path: formatRoute("instructor", "view-assignments"),
-              icon: <Clipboard className="w-4 h-4" />
-            },
-            {
-              name: "Submitted Quizzes",
-              path: formatRoute("instructor", "view-quizes"),
-              icon: <CheckSquare className="w-4 h-4" />
-            },
-            {
-              name: "My Quiz Attempts",
-              path: formatRoute("instructor", "my-quiz-attempts"),
-              icon: <ListChecks className="w-4 h-4" />
-            }
-          ]
-        }
-      ]
-    },
-    {
-      title: "Communication & Support",
-      items: [
-        {
-          name: "Feedback",
-          icon: <MessageCircle className="w-5 h-5" />,
-          path: formatRoute("instructor", "feedbacks")
-        },
-        {
-          name: "Student Performance",
-          icon: <TrendingUp className="w-5 h-5" />,
-          path: formatRoute("instructor", "student-performance")
-        },
-        {
-          name: "Schedule Classes",
-          icon: <Calendar className="w-5 h-5" />,
-          path: formatRoute("instructor", "schedule")
-        },
-        {
-          name: "Resources",
-          icon: <FolderOpen className="w-5 h-5" />,
-          path: formatRoute("instructor", "resources")
-        }
-      ]
-    }
-  ];
-
-  // Define admin sidebar structure
-  const adminSidebar: ItemSection[] = [
-    {
-      title: "Administrator",
-      items: [
-        {
-          name: "Dashboard",
-          icon: <LayoutDashboard className="w-5 h-5" />,
-          subItems: [
-            {
-              name: "Overview",
-              path: formatRoute("admin", "dashboard"),
-              icon: <LayoutGrid className="w-4 h-4" />
-            },
-            {
-              name: "My Profile",
-              path: formatRoute("admin", "profile"),
-              icon: <UserCircle className="w-4 h-4" />
-            },
-            {
-              name: "Task Management",
-              path: formatRoute("admin", "task-management"),
-              icon: <CheckSquare className="w-4 h-4" />
-            },
-            {
-              name: "Home Page Editor",
-              path: formatRoute("admin", "home-editor"),
-              icon: <Pencil className="w-4 h-4" />
-            },
-            {
-              name: "Currency Management",
-              path: formatRoute("admin", "currency"),
-              icon: <DollarSign className="w-4 h-4" />,
-              onClick: () => {
-                onMenuClick("Location & Currency", adminSidebar[1].items.map(item => item as SubItem));
-                router.push(formatRoute("admin", "currency"));
-              }
-            },
-            {
-              name: "Change Password",
-              path: formatRoute("admin", "password"),
-              icon: <Key className="w-4 h-4" />
-            },
-            {
-              name: "Add Social Icon",
-              path: formatRoute("admin", "social"),
-              icon: <Share2 className="w-4 h-4" />
-            }
-          ]
-        }
-      ]
-    },
-    {
-      title: "General Masters",
-      items: [
-        {
-          name: "Location & Currency",
-          icon: <Globe className="w-5 h-5" />,
-          subItems: [
-            {
-              name: "Country/Geography",
-              path: formatRoute("admin", "country"),
-              icon: <Globe className="w-4 h-4" />
-            },
-            {
-              name: "Currency Master",
-              path: formatRoute("admin", "currency"),
-              icon: <DollarSign className="w-4 h-4" />,
-              onClick: () => {
-                onMenuClick("Location & Currency", adminSidebar[1].items.map(item => item as SubItem));
-                router.push(formatRoute("admin", "currency"));
-              }
-            },
-            {
-              name: "Time Zone",
-              path: formatRoute("admin", "timezone"),
-              icon: <Clock className="w-4 h-4" />
-            },
-            {
-              name: "Language",
-              path: formatRoute("admin", "language"),
-              icon: <MessageCircle className="w-4 h-4" />
-            }
-          ]
-        },
-        {
-          name: "Status & Certifications",
-          icon: <FileCheck className="w-5 h-5" />,
-          subItems: [
-            {
-              name: "Certificate Type",
-              path: formatRoute("admin", "certificate-type"),
-              icon: <Award className="w-4 h-4" />
-            },
-            {
-              name: "Status Management",
-              path: formatRoute("admin", "status"),
-              icon: <AlertCircle className="w-4 h-4" />
-            }
-          ]
-        },
-        {
-          name: "Age & Duration",
-          icon: <CalendarClock className="w-5 h-5" />,
-          subItems: [
-            {
-              name: "Age Group",
-              path: formatRoute("admin", "age-group"),
-              icon: <Users className="w-4 h-4" />
-            },
-            {
-              name: "Duration",
-              path: formatRoute("admin", "duration"),
-              icon: <CalendarDays className="w-4 h-4" />
-            },
-            {
-              name: "Grade Group",
-              path: formatRoute("admin", "grade-group"),
-              icon: <GraduationCap className="w-4 h-4" />
-            },
-            {
-              name: "Batch",
-              path: formatRoute("admin", "batch"),
-              icon: <Users className="w-4 h-4" />
-            }
-          ]
-        }
-      ]
-    },
-    {
-      title: "Education & Filters",
-      items: [
-        {
-          name: "Education",
-          icon: <GraduationCap className="w-5 h-5" />,
-          subItems: [
-            {
-              name: "Education Level",
-              path: formatRoute("admin", "education-level"),
-              icon: <ArrowUpDown className="w-4 h-4" />
-            },
-            {
-              name: "Education Type",
-              path: formatRoute("admin", "education-type"),
-              icon: <FolderTree className="w-4 h-4" />
-            },
-            {
-              name: "Education Title",
-              path: formatRoute("admin", "education-title"),
-              icon: <FileText className="w-4 h-4" />
-            }
-          ]
-        },
-        {
-          name: "Filteration Criteria",
-          icon: <Filter className="w-5 h-5" />,
-          subItems: [
-            {
-              name: "Age Wise",
-              path: formatRoute("admin", "filter-age"),
-              icon: <Users className="w-4 h-4" />
-            },
-            {
-              name: "Duration Wise",
-              path: formatRoute("admin", "filter-duration"),
-              icon: <CalendarDays className="w-4 h-4" />
-            },
-            {
-              name: "Grade Wise",
-              path: formatRoute("admin", "filter-grade"),
-              icon: <GraduationCap className="w-4 h-4" />
-            }
-          ]
-        }
-      ]
-    },
-    {
-      title: "Course Management",
-      items: [
-        {
-          name: "Course Setup",
-          icon: <BookOpen className="w-5 h-5" />,
-          subItems: [
-            {
-              name: "Course Categories",
-              icon: <FolderTree className="w-4 h-4" />,
-              path: formatRoute("admin", "course-categories")
-            },
-            {
-              name: "Add Course",
-              icon: <Plus className="w-4 h-4" />,
-              path: formatRoute("admin", "add-courses")
-            },
-            {
-              name: "Edit Courses",
-              icon: <Pencil className="w-4 h-4" />,
-              path: formatRoute("admin", "edit-courses")
-            }
-          ]
-        },
-        {
-          name: "Course Pricing",
-          icon: <CreditCard className="w-5 h-5" />,
-          subItems: [
-            {
-              name: "Set Course Fee",
-              path: formatRoute("admin", "course-fee"),
-              icon: <DollarSign className="w-4 h-4" />
-            },
-            {
-              name: "Fee Structures",
-              path: formatRoute("admin", "fee-structures"),
-              icon: <FileSpreadsheet className="w-4 h-4" />
-            }
-          ]
-        },
-        {
-          name: "Course Materials",
-          icon: <FolderOpen className="w-5 h-5" />,
-          subItems: [
-            {
-              name: "Upload Brochure",
-              path: formatRoute("admin", "upload-brochure"),
-              icon: <Upload className="w-4 h-4" />
-            },
-            {
-              name: "Upload Intro Video",
-              path: formatRoute("admin", "upload-video"),
+          path: formatRoute("student", "access-recorded-sessions"),
               icon: <Video className="w-4 h-4" />
             }
           ]
-        }
-      ]
+        },
+        {
+      name: "Certificates",
+      path: formatRoute("student", "certificate"),
+      icon: <Award className="w-5 h-5" />
     },
     {
-      title: "User Management",
-      items: [
-        {
-          name: "Student Management",
-          icon: <GraduationCap className="w-5 h-5" />,
-          subItems: [
-            {
-              name: "View All Students",
-              path: formatRoute("admin", "students"),
-              icon: <Users className="w-4 h-4" />
-            },
-            {
-              name: "Add New Student",
-              path: formatRoute("admin", "add-student"),
-              icon: <UserPlus className="w-4 h-4" />
-            },
-            {
-              name: "Edit Student",
-              path: formatRoute("admin", "edit-student"),
-              icon: <UserCog className="w-4 h-4" />
-            },
-            {
-              name: "Assign Courses/Batch",
-              path: formatRoute("admin", "assign-student"),
-              icon: <FileCheck className="w-4 h-4" />
-            }
-          ]
-        },
-        {
-          name: "Instructor Management",
-          icon: <Briefcase className="w-5 h-5" />,
-          subItems: [
-            {
-              name: "View All Instructors",
-              icon: <Users className="w-4 h-4" />,
-              onClick: () => handleMenuClick("Instructor Management", adminSidebar[7].items.map(item => item as SubItem))
-            },
-            {
-              name: "Add New Instructor",
-              icon: <UserPlus className="w-4 h-4" />,
-              path: formatRoute("admin", "add-instructor")
-            },
-            {
-              name: "Edit Instructor Profiles",
-              path: formatRoute("admin", "edit-instructor"),
-              icon: <UserCog className="w-4 h-4" />
-            },
-            {
-              name: "Batch Assignment",
-              icon: <FileCheck className="w-4 h-4" />,
-              path: formatRoute("admin", "batch-assignment")
-            },
-            {
-              name: "Instructor Payouts",
-              path: formatRoute("admin", "instructor-payouts"),
-              icon: <CreditCard className="w-4 h-4" />
-            }
-          ]
-        },
-        {
-          name: "Access Management",
-          icon: <Lock className="w-5 h-5" />,
-          subItems: [
-            {
-              name: "Create Users",
-              path: formatRoute("admin", "create-users"),
-              icon: <UserPlus className="w-4 h-4" />
-            },
-            {
-              name: "Manage Access Rights",
-              path: formatRoute("admin", "access-rights"),
-              icon: <Key className="w-4 h-4" />
-            },
-            {
-              name: "Edit User Roles",
-              path: formatRoute("admin", "edit-roles"),
-              icon: <UserCog className="w-4 h-4" />
-            }
-          ]
-        }
-      ]
+      name: "Feedback & Support",
+      path: formatRoute("student", "feedback"),
+      icon: <LifeBuoy className="w-5 h-5" />
     },
     {
-      title: "Operations",
-      items: [
-        {
-          name: "Timetable Management",
-          icon: <CalendarDays className="w-5 h-5" />,
-          onClick: () => handleMenuClick("timetable", [])
-        },
-        {
-          name: "Certificate Management",
-          icon: <Award className="w-5 h-5" />,
-          onClick: () => handleMenuClick("certificates", [])
-        },
-        {
-          name: "Membership Management",
-          icon: <Users className="w-5 h-5" />,
-          onClick: () => handleMenuClick("membership", [])
-        },
-        {
-          name: "Attendance Management",
-          icon: <CheckSquare className="w-5 h-5" />,
-          onClick: () => handleMenuClick("attendance", [])
-        },
-        {
-          name: "Fees Management",
-          icon: <CreditCard className="w-5 h-5" />,
-          onClick: () => handleMenuClick("fees", [])
-        }
-      ]
+      name: "Apply for Placement",
+      path: formatRoute("student", "apply"),
+      icon: <Briefcase className="w-5 h-5" />
     },
     {
-      title: "Content & Resources",
-      items: [
-        {
-          name: "Marketing & Notices",
-          icon: <Megaphone className="w-5 h-5" />,
-          onClick: () => handleMenuClick("marketing", [])
-        },
-        {
-          name: "Resources Management",
-          icon: <FolderOpen className="w-5 h-5" />,
-          onClick: () => handleMenuClick("resources", [])
-        },
-        {
-          name: "Feedback & Grievances",
-          icon: <MessageCircle className="w-5 h-5" />,
-          onClick: () => handleMenuClick("Feedback & Grievances", adminSidebar[11].items.map(item => item as SubItem))
-        },
-        {
-          name: "Blogs Management",
-          icon: <FileText className="w-5 h-5" />,
-          onClick: () => handleMenuClick("Blogs Management", adminSidebar[11].items.map(item => item as SubItem))
-        }
-      ]
-    },
-    {
-      title: "Enterprise",
-      items: [
-        {
-          name: "Corporate Management",
-          icon: <Building className="w-5 h-5" />,
-          onClick: () => handleMenuClick("Corporate Management", adminSidebar[12].items.map(item => item as SubItem))
-        },
-        {
-          name: "Institution Management",
-          icon: <School className="w-5 h-5" />,
-          onClick: () => handleMenuClick("institution", [])
-        },
-        {
-          name: "Join Medh (Careers)",
-          icon: <Briefcase className="w-5 h-5" />,
-          onClick: () => handleMenuClick("careers", [])
-        },
-        {
-          name: "Query Forms Management",
-          icon: <ClipboardList className="w-5 h-5" />,
-          onClick: () => handleMenuClick("queries", [])
-        }
-      ]
-    },
-    {
-      title: "Analytics",
-      items: [
-        {
-          name: "Reports & Analytics",
-          icon: <BarChart2 className="w-5 h-5" />,
-          subItems: [
-            {
-              name: "System Reports",
-              path: formatRoute("admin", "system-reports"),
-              icon: <FileSpreadsheet className="w-4 h-4" />
-            },
-            {
-              name: "User Engagement",
-              path: formatRoute("admin", "user-engagement"),
-              icon: <LineChart className="w-4 h-4" />
-            },
-            {
-              name: "Revenue Analytics",
-              path: formatRoute("admin", "revenue"),
-              icon: <TrendingUp className="w-4 h-4" />
-            }
-          ]
-        }
-      ]
+      name: "Profile",
+      path: formatRoute("student", "profile"),
+      icon: <UserCircle className="w-5 h-5" />
     }
   ];
 
   // Actions including logout
   const actionItems: MenuItem[] = [
     {
-      name: "Logout",
-      icon: <LogOut className="w-5 h-5" />,
-      onClick: handleLogout
+      name: "Settings",
+      path: formatRoute("student", "settings"),
+      icon: <Settings className="w-5 h-5" />
     }
   ];
-
-  // Determine which items to display based on the user's role
-  const effectiveIsAdmin = isPathAdmin;
-  const effectiveIsInstructor = isPathInstructor;
-  const effectiveIsCorporate = isPathCorporate;
-  const effectiveIsCorporateEmp = isPathCorporateEmp;
-  const effectiveIsParent = userRole === "parent" || pathname?.includes("/dashboards/parent");
-
-  // Choose the appropriate sidebar based on role
-  const activeSidebar = effectiveIsAdmin ? adminSidebar : 
-                        effectiveIsInstructor ? instructorSidebar : 
-                        effectiveIsCorporate ? [] : 
-                        effectiveIsCorporateEmp ? [] :
-                        effectiveIsParent ? parentSidebar :
-                        studentSidebar;
-
-  // Filter menu items by search term
-  const filterItemsBySearch = (sections: ItemSection[]): ItemSection[] => {
-    if (!searchTerm) return sections;
-    
-    return sections.map(section => {
-      // Filter items in each section
-      const filteredItems = section.items.filter(item =>
-        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.subItems?.some(subItem => 
-          subItem.name.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      );
-      
-      return {
-        ...section,
-        items: filteredItems
-      };
-    }).filter(section => section.items.length > 0);
-  };
-  
-  // Helper function to handle search
-  const handleSearch = (term: string) => {
-    setSearchTerm(term);
-  };
 
   if (!mounted) {
     return null;
   }
 
-  // Main return with new modular components
+  // Check if a menu item is active based on current path
+  const isMenuActive = (item: MenuItem): boolean => {
+    if (!pathname) return false;
+    
+    if (item.path && pathname.startsWith(item.path)) {
+      return true;
+    }
+    
+    if (item.subItems) {
+      return item.subItems.some(subItem => subItem.path && pathname.startsWith(subItem.path));
+    }
+    
+    return false;
+  };
+
+  // Main return with improved sidebar
   return (
-    <div className="h-full flex flex-col bg-white dark:bg-gray-800 border-r dark:border-gray-700 sidebar-gen-alpha sidebar-container">
-      {/* Header component */}
-      <SidebarHeader 
-        logo={logo}
-        userName={fullName}
-        userRole={userRole}
-        userNotifications={userNotifications}
-        isMobileDevice={isMobileDevice}
-        welcomeMessage={welcomeMessage()}
-      />
+    <motion.div 
+      ref={sidebarRef}
+      variants={sidebarVariants}
+      initial="collapsed"
+      animate={effectiveIsExpanded ? "expanded" : "collapsed"}
+      className="flex flex-col h-full bg-white dark:bg-gray-900 border-r dark:border-gray-700 shadow-md overflow-hidden z-20 fixed lg:relative"
+      onMouseEnter={() => isCollapsible && handleExpandedChange(true)}
+      onMouseLeave={() => isCollapsible && !isMobileDevice && handleExpandedChange(false)}
+    >
+      {/* Minimal header */}
+      <div className="py-3 px-2 border-b border-gray-100 dark:border-gray-800">
+        <div className="h-12 flex items-center justify-center">
+          <AnimatePresence mode="wait">
+            {effectiveIsExpanded ? (
+              <motion.span 
+                key="expanded-title"
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                className="text-sm font-medium bg-gradient-to-r from-primary-500 to-violet-500 bg-clip-text text-transparent"
+              >
+                Student Dashboard
+              </motion.span>
+            ) : (
+              <motion.div 
+                key="collapsed-icon"
+                variants={headerIconVariants}
+                initial="expanded"
+                animate="collapsed"
+                exit="expanded"
+                className="flex items-center justify-center w-11 h-11 rounded-full bg-gradient-to-br from-primary-100 to-violet-100 dark:from-primary-900/30 dark:to-violet-900/30 shadow-sm"
+              >
+                <LayoutDashboard className="w-[22px] h-[22px] text-primary-600 dark:text-primary-400" />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
       
-      {/* Mobile search */}
-      {isMobileDevice && (
-        <SidebarSearch onSearch={handleSearch} />
-      )}
-      
-      {/* Navigation - Scrollable */}
-      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 px-3 sm:px-4">
-        <div className="py-2 sm:py-4 space-y-4 sm:space-y-6">
-          {/* Appropriate Sidebar Navigation based on role */}
-          <AnimatePresence initial={false} mode="wait">
-            {filterItemsBySearch(activeSidebar).map((section, sectionIndex) => (
-              <div key={sectionIndex} className="mb-6">
-                {section.title && (
-                  <h3 className="font-medium text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3 px-3">
-                    {section.title}
-                  </h3>
-                )}
-                <div className="space-y-1">
-                  {section.items.map((item, itemIndex) => {
-                    const isActive = activeMenu === item.name;
+      {/* Navigation Area */}
+      <motion.div 
+        variants={containerVariants}
+        className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600"
+      >
+        <div className="py-3 space-y-1.5">
+          {/* Main Menu Items */}
+          {studentMenuItems.map((item, index) => {
+            const isActive = isMenuActive(item);
                     const hasSubItems = item.subItems && item.subItems.length > 0;
+            const isSubMenuOpen = openSubMenu === item.name;
                     
                     return (
-                      <div key={itemIndex} className="select-none">
-                        {/* Menu Item Button */}
+              <div key={index} className="select-none">
+                {/* Menu Item */}
                         <button
-                          onClick={() => {
-                            if (hasSubItems) {
-                              handleMenuClick(item.name, item.subItems as SubItem[]);
-                            } else if (item.onClick) {
-                              item.onClick();
-                            } else if (item.path) {
-                              router.push(item.path);
-                            }
-                          }}
-                          className={`flex items-center justify-between w-full px-3 py-2.5 rounded-md transition-all menu-item-hover ${
-                            isActive
-                              ? "menu-item-active text-gray-900 dark:text-gray-100 font-medium"
-                              : "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
-                          }`}
-                        >
-                          <div className="flex items-center">
-                            <span className="w-5 h-5 mr-3 text-gray-500 dark:text-gray-400">
+                  onClick={() => handleMenuClick(item.name, item)}
+                  className={`flex items-center w-full rounded-xl p-2.5 transition-all duration-200
+                    ${isActive 
+                      ? "bg-primary-50/80 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400" 
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/60"
+                    }
+                    ${effectiveIsExpanded ? "justify-between" : "justify-center"}
+                    ${isSubMenuOpen ? "mb-1" : ""}
+                  `}
+                >
+                  <div className="flex items-center min-w-[42px]">
+                    <motion.div 
+                      variants={iconContainerVariants}
+                      initial="expanded"
+                      animate={effectiveIsExpanded ? "expanded" : "collapsed"}
+                      className={`flex items-center justify-center rounded-full transition-colors duration-200
+                        ${isActive 
+                          ? "bg-gradient-to-br from-primary-100 to-primary-50 dark:from-primary-900/40 dark:to-primary-900/20 shadow-sm" 
+                          : "bg-gray-50 dark:bg-gray-800/80"
+                        }`}
+                      style={{ 
+                        width: ICON_CONTAINER_SIZE, 
+                        height: ICON_CONTAINER_SIZE,
+                        minWidth: ICON_CONTAINER_SIZE,
+                        minHeight: ICON_CONTAINER_SIZE 
+                      }}
+                    >
+                      <div className={`flex items-center justify-center text-${isActive ? 'primary-600 dark:text-primary-400' : 'gray-600 dark:text-gray-400'}`}>
+                        {/* Simply display the icon directly with fixed width & height */}
+                        <div className="w-[22px] h-[22px] flex items-center justify-center">
                               {item.icon}
-                            </span>
-                            <span className="text-sm">{item.name}</span>
                           </div>
-                          {hasSubItems && (
-                            <ChevronDown
-                              className={`w-4 h-4 transition-transform duration-200 ${
-                                isActive ? "transform rotate-180" : ""
-                              }`}
-                            />
+                      </div>
+                    </motion.div>
+                    
+                    {effectiveIsExpanded && (
+                      <motion.span
+                        variants={itemVariants}
+                        initial="collapsed"
+                        animate="expanded"
+                        exit="collapsed"
+                        className="ml-3 text-sm font-medium whitespace-nowrap overflow-visible"
+                      >
+                        {item.name}
+                      </motion.span>
+                    )}
+                  </div>
+                  
+                  {effectiveIsExpanded && hasSubItems && (
+                    <motion.div
+                      variants={chevronVariants}
+                      initial="closed"
+                      animate={isSubMenuOpen ? "open" : "closed"}
+                      className="w-6 h-6 flex items-center justify-center mr-1 rounded-full"
+                    >
+                      <ChevronDown className="w-[18px] h-[18px] text-gray-500 dark:text-gray-400" />
+                    </motion.div>
                           )}
                         </button>
                         
-                        {/* Dropdown Content */}
-                        <AnimatePresence>
-                          {isActive && hasSubItems && (
+                {/* Submenu */}
+                <AnimatePresence initial={false}>
+                  {effectiveIsExpanded && isSubMenuOpen && hasSubItems && (
                             <motion.div
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: "auto", opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              transition={{ duration: 0.2 }}
-                              className="overflow-hidden"
-                            >
-                              <div className="pl-10 pr-3 py-1 space-y-1">
-                                {item.subItems?.map((subItem, subItemIndex) => (
+                      key={`submenu-${item.name}`}
+                      variants={submenuVariants}
+                      initial="closed"
+                      animate="open"
+                      exit="closed"
+                      className="overflow-hidden pl-14 pr-3"
+                    >
+                      <div className="py-1.5 space-y-1.5 border-l-2 border-primary-100 dark:border-primary-900/30 ml-0.5 pl-2">
+                        {item.subItems?.map((subItem, subIndex) => {
+                          const isSubItemActive = subItem.path && pathname?.startsWith(subItem.path);
+                          
+                          return (
                                   <button
-                                    key={subItemIndex}
-                                    onClick={() => handleSubMenuClick(subItem)}
-                                    className="flex items-center w-full text-left px-3 py-2 text-sm rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100"
-                                  >
-                                    <span className="w-4 h-4 mr-3 text-gray-400 dark:text-gray-500">
+                              key={subIndex}
+                              onClick={() => {
+                                if (subItem.onClick) {
+                                  subItem.onClick();
+                                } else if (subItem.path) {
+                                  router.push(subItem.path);
+                                }
+                              }}
+                              className={`flex items-center w-full text-left rounded-lg px-3 py-2.5 text-sm transition-all duration-200
+                                ${isSubItemActive 
+                                  ? "bg-primary-50/60 dark:bg-primary-900/10 text-primary-600 dark:text-primary-400 font-medium" 
+                                  : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:text-gray-900 dark:hover:text-gray-200"
+                                }`}
+                            >
+                              <div className={`w-5 h-5 mr-2.5 flex-shrink-0 flex items-center justify-center ${
+                                isSubItemActive ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-500'
+                              }`}>
+                                {/* Simply display the icon directly with fixed width & height */}
+                                <div className="w-[16px] h-[16px] flex items-center justify-center">
                                       {subItem.icon}
-                                    </span>
-                                    <span className="truncate">{subItem.name}</span>
+                                </div>
+                              </div>
+                              <span className="text-sm whitespace-normal">{subItem.name}</span>
                                   </button>
-                                ))}
+                          );
+                        })}
                               </div>
                             </motion.div>
                           )}
@@ -1564,30 +850,84 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
                     );
                   })}
                 </div>
-              </div>
-            ))}
-          </AnimatePresence>
-        </div>
-      </div>
+      </motion.div>
       
       {/* Footer with action items */}
-      <div className="mt-auto pt-4 border-t border-gray-200 dark:border-gray-700">
-        <div className="px-3 py-2">
-          {actionItems.map((item, index) => (
+      <motion.div 
+        variants={containerVariants}
+        className="mt-auto border-t border-gray-100 dark:border-gray-800 py-3 space-y-2.5"
+      >
+        {actionItems.map((item, index) => {
+          const isLogout = item.name === 'Logout';
+          
+          return (
             <button
               key={index}
-              onClick={item.onClick}
-              className="flex items-center w-full px-3 py-2.5 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              onClick={item.onClick ? item.onClick : () => item.path && router.push(item.path)}
+              className={`flex items-center w-full rounded-xl p-2.5 transition-all duration-200
+                ${isLogout 
+                  ? "text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10" 
+                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/60"
+                }
+                ${effectiveIsExpanded ? "justify-start" : "justify-center"}
+              `}
             >
-              <span className="w-5 h-5 mr-3 text-gray-500 dark:text-gray-400">
+              <motion.div
+                variants={iconContainerVariants}
+                initial="expanded"
+                animate={effectiveIsExpanded ? "expanded" : "collapsed"}
+                className={`flex items-center justify-center rounded-full transition-colors duration-200
+                  ${isLogout
+                    ? "bg-red-50 dark:bg-red-900/10" 
+                    : "bg-gray-50 dark:bg-gray-800/80"
+                  }`}
+                style={{ 
+                  width: ICON_CONTAINER_SIZE, 
+                  height: ICON_CONTAINER_SIZE,
+                  minWidth: ICON_CONTAINER_SIZE,
+                  minHeight: ICON_CONTAINER_SIZE 
+                }}
+              >
+                <div className={`flex items-center justify-center ${
+                  isLogout ? 'text-red-500 dark:text-red-400' : 'text-gray-600 dark:text-gray-400'
+                }`}>
+                  {/* Simply display the icon directly with fixed width & height */}
+                  <div className="w-[22px] h-[22px] flex items-center justify-center">
                 {item.icon}
-              </span>
-              <span className="text-sm">{item.name}</span>
-            </button>
-          ))}
         </div>
       </div>
-    </div>
+              </motion.div>
+              
+              {effectiveIsExpanded && (
+                <motion.span
+                  variants={itemVariants}
+                  initial="collapsed"
+                  animate="expanded"
+                  exit="collapsed"
+                  className={`ml-3 text-sm font-medium whitespace-nowrap overflow-visible ${
+                    isLogout ? "text-red-500 dark:text-red-400" : ""
+                  }`}
+                >
+                  {item.name}
+                </motion.span>
+              )}
+            </button>
+          );
+        })}
+      </motion.div>
+      
+      {/* Mobile overlay */}
+      {isMobileDevice && effectiveIsExpanded && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.4 }}
+          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-10"
+          onClick={() => handleExpandedChange(false)}
+        />
+      )}
+    </motion.div>
   );
 };
 
