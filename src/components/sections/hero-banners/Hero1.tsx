@@ -91,7 +91,7 @@ const HeroMobile: React.FC<IHeroMobileProps> = ({ isLoaded, featuredCourses, loa
 
         {/* CTA Buttons */}
         <div className="flex flex-col gap-3 mt-4 mb-6 sm:mb-8">
-          <Link href="/courses" className="w-full group relative inline-flex items-center justify-center py-3.5 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-xl text-sm transition-all">
+          <Link href="/courses" className="w-full group relative inline-flex items-center justify-center py-3.5 bg-white dark:bg-gray-900 text-primary-600 dark:text-primary-400 font-medium rounded-xl text-sm transition-all border-2 border-primary-500 dark:border-primary-400 hover:bg-primary-50 dark:hover:bg-gray-800">
             <span>Explore Courses</span>
             <ArrowRight size={16} className="ml-2" />
           </Link>
@@ -341,10 +341,10 @@ const Hero1: React.FC<IHero1Props> = ({ isCompact = false }) => {
             <div className="flex flex-row gap-3 mt-6 lg:mt-8 hidden md:flex items-center justify-center">
               <Link 
                 href="/courses" 
-                className="group relative inline-flex items-center justify-center py-3 px-5 lg:py-4 lg:px-6 bg-gradient-to-r from-primary-500 to-secondary-500 text-white font-medium rounded-xl text-base lg:text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                className="group relative inline-flex items-center justify-center py-3 px-5 lg:py-4 lg:px-6 bg-white dark:bg-gray-900 text-primary-600 dark:text-primary-400 font-medium rounded-xl text-base lg:text-lg border-2 border-primary-500 dark:border-primary-400 shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-105 hover:bg-primary-50 dark:hover:bg-gray-800"
               >
                 <span>Explore Courses</span>
-                <ArrowRight size={18} className="ml-2" />
+                <ArrowRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
           </div>
