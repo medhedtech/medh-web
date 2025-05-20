@@ -2,7 +2,6 @@
 
 import CartContextProvider from "@/contexts/CartContext";
 import { CookieConsentProvider } from "@/contexts/CookieConsentContext";
-import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { StorageProvider } from "@/contexts/StorageContext";
 import { PlacementFormProvider } from "@/context/PlacementFormContext";
 import { ThemeProvider } from "next-themes";
@@ -24,7 +23,6 @@ export default function Providers({ children }: ProvidersProps) {
     >
       <StorageProvider>
         <CookieConsentProvider>
-          <CurrencyProvider>
             <CartContextProvider>
               <PlacementFormProvider>
                 {children}
@@ -42,7 +40,6 @@ export default function Providers({ children }: ProvidersProps) {
                 />
               </PlacementFormProvider>
             </CartContextProvider>
-          </CurrencyProvider>
         </CookieConsentProvider>
       </StorageProvider>
     </ThemeProvider>
