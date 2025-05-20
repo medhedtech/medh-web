@@ -245,7 +245,7 @@ const formatPhoneNumber = (phoneNumber: string, countryCode?: string): string | 
 
 const SignUpForm: React.FC = () => {
   const router = useRouter();
-  const { theme, resolvedTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const { postQuery, loading } = usePostQuery();
@@ -253,7 +253,6 @@ const SignUpForm: React.FC = () => {
   const [recaptchaValue, setRecaptchaValue] = useState<string | null>(null);
   const [recaptchaError, setRecaptchaError] = useState<boolean>(false);
   const [isVisible, setIsVisible] = useState<boolean>(false);
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [registrationSuccess, setRegistrationSuccess] = useState<boolean>(false);
   const [selectedAgeGroup, setSelectedAgeGroup] = useState<AgeGroup>("18-24");
   const [phoneData, setPhoneData] = useState<PhoneData>({
@@ -310,7 +309,14 @@ const SignUpForm: React.FC = () => {
   // Watch password for strength meter
   const watchPassword = watch("password");
   
-  // Update password strength when password changes
+  // Initialize theme to light if not set
+  useEffect(() => {
+    if (!theme) {
+      setTheme('light');
+    }
+  }, [theme, setTheme]);
+
+  // Watch password for strength meter
   useEffect(() => {
     if (watchPassword) {
       setPasswordStrength(calculatePasswordStrength(watchPassword));
@@ -337,27 +343,6 @@ const SignUpForm: React.FC = () => {
     const timer = setTimeout(() => setIsVisible(true), 300);
     return () => clearTimeout(timer);
   }, []);
-
-  // Initialize theme based on user preference
-  useEffect(() => {
-    // Check if user has a saved preference
-    const savedTheme = localStorage.getItem('theme');
-    
-    // Check system preference
-    const systemPrefersDark = window.matchMedia && 
-      window.matchMedia('(prefers-color-scheme: dark)').matches;
-    
-    // Set initial theme
-    const isDark = resolvedTheme === 'dark' || theme === 'dark' || 
-                  (savedTheme === 'dark' || (!savedTheme && systemPrefersDark));
-    setIsDarkMode(isDark);
-    
-    if (isDark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [theme, resolvedTheme]);
 
   // Handle email field blur
   const handleEmailBlur = async (): Promise<void> => {
@@ -668,18 +653,6 @@ const SignUpForm: React.FC = () => {
   const toggleConfirmPasswordVisibility = (): void =>
     setShowConfirmPassword((prev) => !prev);
 
-  // Toggle theme function
-  const toggleTheme = (): void => {
-    if (isDarkMode) {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    } else {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    }
-    setIsDarkMode(!isDarkMode);
-  };
-
   // Enhanced phone number change handler
   const handlePhoneChange = (value: string, country: any): void => {
     // Ensure we have the right country object structure
@@ -769,7 +742,7 @@ const SignUpForm: React.FC = () => {
             <div className="text-center mb-3">
               <Link href="/" className="inline-block mb-2">
                 <Image 
-                  src={(resolvedTheme === 'dark' || theme === 'dark') ? logo1 : logo2} 
+                  src={theme === 'dark' ? logo1 : logo2} 
                   alt="Medh Logo" 
                   width={90} 
                   height={30} 
@@ -851,7 +824,7 @@ const SignUpForm: React.FC = () => {
         <div className="w-full max-w-md p-5 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 text-center">
           <Link href="/" className="inline-block mb-3">
             <Image 
-              src={(resolvedTheme === 'dark' || theme === 'dark') ? logo1 : logo2} 
+              src={theme === 'dark' ? logo1 : logo2} 
               alt="Medh Logo" 
               width={90} 
               height={30} 
@@ -1111,7 +1084,7 @@ const SignUpForm: React.FC = () => {
               <div className="text-center mb-4">
                 <Link href="/" className="inline-block mb-2">
                   <Image 
-                    src={(resolvedTheme === 'dark' || theme === 'dark') ? logo1 : logo2} 
+                    src={theme === 'dark' ? logo1 : logo2} 
                     alt="Medh Logo" 
                     width={90} 
                     height={30} 
