@@ -5,7 +5,31 @@ import { ArrowRight, Calendar, Clock, User, ExternalLink, BookOpen, Tag, EyeIcon
 import Link from "next/link";
 import { useRouter } from 'next/navigation';
 
-const BlogCard = ({ 
+interface IBlogCardProps {
+  blog?: {
+    _id?: string;
+    title?: string;
+    featured_image?: string;
+    author?: string | { name?: string; email?: string; };
+    createdAt?: string;
+    readTime?: string;
+    category?: string;
+    tags?: string[];
+    excerpt?: string;
+  };
+  imageSrc?: string;
+  title?: string;
+  id?: string;
+  buttonText?: string;
+  author?: string;
+  date?: string;
+  readTime?: string;
+  category?: string;
+  tags?: string[];
+  excerpt?: string;
+}
+
+const BlogCard: React.FC<IBlogCardProps> = ({ 
   blog = {},
   imageSrc, 
   title, 
@@ -19,11 +43,11 @@ const BlogCard = ({
   excerpt
 }) => {
   const router = useRouter();
-  const [isHovered, setIsHovered] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const [isImageLoaded, setIsImageLoaded] = useState(false);
-  const [isImageError, setIsImageError] = useState(false);
-  const cardRef = useRef(null);
+  const [isHovered, setIsHovered] = useState<boolean>(false);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+  const [isImageLoaded, setIsImageLoaded] = useState<boolean>(false);
+  const [isImageError, setIsImageError] = useState<boolean>(false);
+  const cardRef = useRef<HTMLDivElement>(null);
   
   // Get actual props from blog object if available
   const blogId = blog._id || id;
@@ -70,21 +94,24 @@ const BlogCard = ({
   const handleImageLoad = () => setIsImageLoaded(true);
   const handleImageError = () => setIsImageError(true);
   
-  const handleCardClick = (e, blogId) => {
+  const handleCardClick = (e: React.MouseEvent<HTMLDivElement>, blogId?: string) => {
     try {
       // Only trigger this on mobile and not when clicking the button, link, or other interactive elements
       if (isMobile && 
           !e.target.closest('button') && 
           !e.target.closest('a') && 
           !e.target.closest('input') &&
-          !e.target.closest('[role="button"]')) {
+          !e.target.closest('[role="button"]') &&
+          blogId) {
         e.preventDefault();
         router.push(`/blogs/${blogId}`);
       }
     } catch (error) {
       console.error('Error navigating to blog:', error);
       // Fallback to regular link navigation
-      window.location.href = `/blogs/${blogId}`;
+      if (blogId) {
+        window.location.href = `/blogs/${blogId}`;
+      }
     }
   };
   
@@ -116,7 +143,7 @@ const BlogCard = ({
         
         <Image
           src={blogImage}
-          alt={blogTitle}
+          alt={blogTitle || "Blog image"}
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           className={`object-cover object-center transform group-hover:scale-105 transition-transform duration-500 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
@@ -202,4 +229,4 @@ const BlogCard = ({
   );
 };
 
-export default BlogCard;
+export default BlogCard; 

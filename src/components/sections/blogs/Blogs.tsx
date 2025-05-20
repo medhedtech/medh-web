@@ -16,6 +16,40 @@ import {
   Clock, ArrowRight, Filter, TrendingUp 
 } from "lucide-react";
 
+// Define interfaces for TypeScript
+interface IBlog {
+  _id: string;
+  title: string;
+  description?: string;
+  upload_image?: string;
+  featured_image?: string;
+  blog_link?: string | null;
+  slug?: string;
+  author?: {
+    _id: string;
+    email?: string;
+    name?: string;
+  };
+  createdAt?: string;
+  reading_time?: number;
+  readTime?: string;
+  categories?: Array<{
+    _id: string;
+    category_name: string;
+    category_image?: string;
+  }>;
+  category?: string;
+  tags?: string[];
+  excerpt?: string;
+}
+
+interface IBlogsProps {
+  title?: string;
+  description?: string;
+  variant?: string;
+  maxBlogs?: number;
+}
+
 // Skeleton loader component
 const BlogSkeleton = () => (
   <motion.div 
@@ -36,7 +70,14 @@ const BlogSkeleton = () => (
 );
 
 // Filter button component
-const FilterButton = ({ active, onClick, icon, label }) => (
+interface IFilterButtonProps {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+}
+
+const FilterButton: React.FC<IFilterButtonProps> = ({ active, onClick, icon, label }) => (
   <motion.button
     whileHover={{ scale: 1.02 }}
     whileTap={{ scale: 0.98 }}
@@ -52,7 +93,7 @@ const FilterButton = ({ active, onClick, icon, label }) => (
   </motion.button>
 );
 
-const Blogs = ({ 
+const Blogs: React.FC<IBlogsProps> = ({ 
   title = "Latest Articles & Insights",
   description = "Stay updated with the latest trends, tips, and educational insights",
   variant = "standard",
@@ -60,12 +101,12 @@ const Blogs = ({
 }) => {
   const router = useRouter();
   const { getQuery, loading } = useGetQuery();
-  const [blogs, setBlogs] = useState([]);
-  const [isVisible, setIsVisible] = useState(false);
-  const [activeFilter, setActiveFilter] = useState('all');
-  const [isMobile, setIsMobile] = useState(false);
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const sliderRef = useRef(null);
+  const [blogs, setBlogs] = useState<IBlog[]>([]);
+  const [isVisible, setIsVisible] = useState<boolean>(false);
+  const [activeFilter, setActiveFilter] = useState<string>('all');
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+  const [currentSlide, setCurrentSlide] = useState<number>(0);
+  const sliderRef = useRef<Slider | null>(null);
   
   const filterOptions = [
     { id: 'all', label: 'All Articles', icon: <BookOpen size={16} /> },
@@ -88,7 +129,7 @@ const Blogs = ({
     pauseOnHover: true,
     centerMode: blogs.length > 3,
     centerPadding: "0",
-    beforeChange: (current, next) => setCurrentSlide(next),
+    beforeChange: (current: number, next: number) => setCurrentSlide(next),
     responsive: [
       {
         breakpoint: 1280,
@@ -112,7 +153,7 @@ const Blogs = ({
   };
 
   // Enhanced fetch blogs function with error handling and retries
-  const fetchBlogs = async (options = {}, retryCount = 3) => {
+  const fetchBlogs = async (options: any = {}, retryCount = 3) => {
     try {
       const apiUrl = options.featured 
         ? apiUrls.Blogs.getFeaturedBlogs({
@@ -129,31 +170,32 @@ const Blogs = ({
 
       await getQuery({
         url: apiUrl,
-        onSuccess: (response) => {
+        onSuccess: (response: any) => {
           // Check if we have data in the response
           const blogData = response.data || [];
           
           if (blogData.length > 0) {
-            const transformedBlogs = blogData.map(blog => ({
+            const transformedBlogs = blogData.map((blog: any) => ({
               _id: blog._id,
               title: blog.title,
               featured_image: blog.upload_image || "/images/blog/default.png",
               blog_link: blog.blog_link || `/blogs/${blog.slug || blog._id}`,
               excerpt: blog.description ? blog.description.substring(0, 120) + '...' : `Read our latest blog post about ${blog.title}`,
-              author: blog.author ? (blog.author.name || blog.author.email || "Medh Team") : "Medh Team",
+              author: blog.author ? blog.author.email || "Medh Team" : "Medh Team",
               createdAt: blog.createdAt,
               readTime: blog.reading_time ? `${blog.reading_time} min read` : "3 min read",
               category: blog.categories && blog.categories.length > 0 ? blog.categories[0].category_name : "Education",
               tags: blog.tags || []
             }));
             
+            console.log('Transformed blogs:', transformedBlogs);
             setBlogs(transformedBlogs.slice(0, maxBlogs));
           } else {
             console.log("No blogs found in the response:", response);
             setBlogs([]);
           }
         },
-        onFail: async (error) => {
+        onFail: async (error: any) => {
           console.error("Error fetching blogs:", error);
           if (retryCount > 0) {
             await new Promise(resolve => setTimeout(resolve, 1000));
@@ -315,4 +357,4 @@ const Blogs = ({
   );
 };
 
-export default Blogs;
+export default Blogs; 
