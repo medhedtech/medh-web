@@ -105,7 +105,7 @@ const LoginForm = () => {
   const redirectPath = redirectParam ? decodeURIComponent(redirectParam) : '';
   const { postQuery, loading } = usePostQuery();
   const storageManager = useStorage();
-  const { theme, resolvedTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [recaptchaValue, setRecaptchaValue] = useState<string | null>(null);
   const [recaptchaError, setRecaptchaError] = useState<boolean>(false);
@@ -189,6 +189,13 @@ const LoginForm = () => {
       }
     }
   }, [prefilledValues, setValue, errors.email, clearErrors]);
+
+  // Initialize theme to light if not set
+  useEffect(() => {
+    if (!theme) {
+      setTheme('light');
+    }
+  }, [theme, setTheme]);
 
   const handleRecaptchaChange = (value: string): void => {
     setRecaptchaValue(value);
@@ -405,7 +412,7 @@ const LoginForm = () => {
               
               <Link href="/" className="inline-block mb-2 sm:mb-4">
                 <Image 
-                  src={(resolvedTheme === 'dark' || theme === 'dark') ? logo1 : logo2} 
+                  src={theme === 'dark' ? logo1 : logo2} 
                   alt="Medh Logo" 
                   width={100} 
                   height={32} 
