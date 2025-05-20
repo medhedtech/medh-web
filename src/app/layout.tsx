@@ -1,4 +1,3 @@
-import { Montserrat, Poppins, Hind } from 'next/font/google';
 import { Metadata, Viewport } from 'next';
 import Providers from './Providers';
 import { Toaster } from 'react-hot-toast';
@@ -11,38 +10,98 @@ import ThemeController from '@/components/shared/others/ThemeController';
 import GoogleAnalytics from '@/components/shared/analytics/GoogleAnalytics';
 import { Suspense } from 'react';
 import { ToastProvider } from '@/components/shared/ui/ToastProvider';
+import localFont from 'next/font/local';
 
-// Optimize Montserrat font loading
-const montserrat = Montserrat({
-  subsets: ['latin'],
+// Use local fonts instead of Google Fonts to avoid timeout issues
+const montserrat = localFont({
+  src: [
+    {
+      path: '../assets/fonts/montserrat/Montserrat-Regular.woff2',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../assets/fonts/montserrat/Montserrat-Medium.woff2',
+      weight: '500',
+      style: 'normal',
+    },
+    {
+      path: '../assets/fonts/montserrat/Montserrat-SemiBold.woff2',
+      weight: '600',
+      style: 'normal',
+    },
+    {
+      path: '../assets/fonts/montserrat/Montserrat-Bold.woff2',
+      weight: '700',
+      style: 'normal',
+    },
+  ],
   display: 'swap',
-  preload: true,
   variable: '--font-montserrat',
   fallback: ['system-ui', 'arial'],
-  // Only load used weights
-  weight: ['400', '500', '600', '700'],
 });
 
-// Optimize Poppins font loading - now the primary font
-const poppins = Poppins({
-  subsets: ['latin'],
+// Local Poppins font
+const poppins = localFont({
+  src: [
+    {
+      path: '../assets/fonts/poppins/Poppins-Light.woff2',
+      weight: '300',
+      style: 'normal',
+    },
+    {
+      path: '../assets/fonts/poppins/Poppins-Regular.woff2',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../assets/fonts/poppins/Poppins-Medium.woff2',
+      weight: '500',
+      style: 'normal',
+    },
+    {
+      path: '../assets/fonts/poppins/Poppins-SemiBold.woff2',
+      weight: '600',
+      style: 'normal',
+    },
+    {
+      path: '../assets/fonts/poppins/Poppins-Bold.woff2',
+      weight: '700',
+      style: 'normal',
+    },
+  ],
   display: 'swap',
-  preload: true,
   variable: '--font-poppins',
   fallback: ['system-ui', 'arial'],
-  // Only load used weights
-  weight: ['300', '400', '500', '600', '700'],
 });
 
-// Use Google Fonts for Hind instead of local font
-const hind = Hind({
-  subsets: ['latin'],
+// Local Hind font
+const hind = localFont({
+  src: [
+    {
+      path: '../assets/fonts/hind/Hind-Regular.woff2',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../assets/fonts/hind/Hind-Medium.woff2',
+      weight: '500',
+      style: 'normal',
+    },
+    {
+      path: '../assets/fonts/hind/Hind-SemiBold.woff2',
+      weight: '600',
+      style: 'normal',
+    },
+    {
+      path: '../assets/fonts/hind/Hind-Bold.woff2',
+      weight: '700',
+      style: 'normal',
+    },
+  ],
   display: 'swap',
-  preload: true,
   variable: '--font-hind',
   fallback: ['system-ui', 'arial'],
-  // Only load used weights
-  weight: ['400', '500', '600', '700'],
 });
 
 export const viewport: Viewport = {

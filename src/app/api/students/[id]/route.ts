@@ -19,7 +19,7 @@ export async function GET(
       );
     }
 
-    const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+    const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.medh.co/api/v1';
     
     // Fetch student data
     const response = await fetch(`${BASE_URL}/students/get/${params.id}`, {
