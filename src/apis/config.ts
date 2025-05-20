@@ -7,18 +7,19 @@
 
 // Determine the appropriate API base URL based on environment
 const getApiBaseUrl = (): string => {
-  // Use environment variables if available
-  if (process.env.NEXT_PUBLIC_API_BASE_URL) {
-    return process.env.NEXT_PUBLIC_API_BASE_URL;
+  // First priority: Explicit API URL override
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
   }
 
-  // Fallback to environment-specific defaults
+  // Second priority: Environment-specific URLs
   if (process.env.NODE_ENV === 'production') {
-    return 'https://api.medh.co/api/v1';
-  } else if (process.env.NODE_ENV === 'staging') {
-    return 'https://api2.medh.co/api/v1';
+    return process.env.NEXT_PUBLIC_API_URL_PROD || 'https://api.medh.co/api/v1';
+  } else if (process.env.NODE_ENV === 'test') {
+    return process.env.NEXT_PUBLIC_API_URL_TEST || 'https://api.medh.co/api/v1';
   } else {
-    return 'http://localhost:8080/api/v1';
+    // Development is the default
+    return process.env.NEXT_PUBLIC_API_URL_DEV || 'https://api.medh.co/api/v1';
   }
 };
 
