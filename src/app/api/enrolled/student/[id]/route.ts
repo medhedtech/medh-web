@@ -25,7 +25,7 @@ export async function GET(
     const limit = searchParams.get('limit') || '10';
     const status = searchParams.get('status') || '';
 
-    const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+    const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.medh.co/api/v1';
     
     // Construct URL with query parameters
     const url = new URL(`${BASE_URL}/enrolled/student/${params.id}`);

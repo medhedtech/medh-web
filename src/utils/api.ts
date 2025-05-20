@@ -1,11 +1,33 @@
-import axios from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 import axiosRetry from 'axios-retry';
+import { apiBaseUrl, apiConfig as configSettings } from '@/apis/config';
+
+/**
+ * Cache item interface
+ */
+interface CacheItem<T> {
+  value: T;
+  expiry: number;
+}
+
+/**
+ * Extended axios request config with caching options
+ */
+interface CacheableRequestConfig extends AxiosRequestConfig {
+  cache?: boolean;
+  cacheTTL?: number;
+  cacheKey?: string;
+  cached?: boolean;
+}
 
 /**
  * Cache controller for API requests
  * Implements a simple in-memory cache with configurable TTL
  */
 class CacheController {
+  private cache: Map<string, CacheItem<any>>;
+  private defaultTTL: number;
+
   constructor() {
     this.cache = new Map();
     this.defaultTTL = 5 * 60 * 1000; // 5 minutes default TTL
@@ -16,16 +38,16 @@ class CacheController {
    * @param {string} key - Cache key
    * @returns {any|null} - Cached value or null if not found/expired
    */
-  get(key) {
+  get(key: string): any | null {
     if (!this.cache.has(key)) return null;
     
-    const { value, expiry } = this.cache.get(key);
-    if (expiry < Date.now()) {
+    const item = this.cache.get(key);
+    if (!item || item.expiry < Date.now()) {
       this.delete(key);
       return null;
     }
     
-    return value;
+    return item.value;
   }
 
   /**
@@ -34,7 +56,7 @@ class CacheController {
    * @param {any} value - Value to cache
    * @param {number} ttl - Time to live in ms (optional)
    */
-  set(key, value, ttl = this.defaultTTL) {
+  set(key: string, value: any, ttl: number = this.defaultTTL): void {
     const expiry = Date.now() + ttl;
     this.cache.set(key, { value, expiry });
   }
@@ -43,14 +65,14 @@ class CacheController {
    * Delete an item from cache
    * @param {string} key - Cache key
    */
-  delete(key) {
+  delete(key: string): void {
     this.cache.delete(key);
   }
 
   /**
    * Clear entire cache
    */
-  clear() {
+  clear(): void {
     this.cache.clear();
   }
 }
@@ -66,11 +88,11 @@ const apiCache = new CacheController();
  * - Response caching
  * - Consistent error handling
  */
-const createApiClient = () => {
+const createApiClient = (): AxiosInstance => {
   // Create axios instance with base config
   const api = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://api.medh.co/api/v1',
-    timeout: 15000,
+    baseURL: apiBaseUrl, // Use the centralized API URL
+    timeout: configSettings.timeout || 15000,
     headers: {
       'Content-Type': 'application/json',
       'Accept': 'application/json'
@@ -79,9 +101,9 @@ const createApiClient = () => {
 
   // Configure automatic retry for specific failures
   axiosRetry(api, { 
-    retries: 3,
+    retries: configSettings.retryAttempts || 3,
     retryDelay: axiosRetry.exponentialDelay, // Exponential backoff
-    retryCondition: (error) => {
+    retryCondition: (error: AxiosError) => {
       // Retry on network errors or 5xx server errors
       return axiosRetry.isNetworkOrIdempotentRequestError(error) || 
              (error.response && error.response.status >= 500);
@@ -90,10 +112,11 @@ const createApiClient = () => {
 
   // Request interceptor
   api.interceptors.request.use(
-    (config) => {
+    (config: CacheableRequestConfig) => {
       // Add auth token if available
       const token = typeof localStorage !== 'undefined' ? localStorage.getItem('token') : null;
       if (token) {
+        config.headers = config.headers || {};
         config.headers['x-access-token'] = token;
       }
 
@@ -104,7 +127,7 @@ const createApiClient = () => {
         
         if (cachedResponse) {
           // Return cached response as a canceled request with cached data
-          config.adapter = () => {
+          const adapter = () => {
             return Promise.resolve({
               data: cachedResponse,
               status: 200,
@@ -112,8 +135,10 @@ const createApiClient = () => {
               headers: {},
               config,
               cached: true
-            });
+            } as AxiosResponse);
           };
+          
+          config.adapter = adapter;
         }
         
         // Store the cache key for response interceptor to use
@@ -127,19 +152,21 @@ const createApiClient = () => {
 
   // Response interceptor
   api.interceptors.response.use(
-    (response) => {
+    (response: AxiosResponse) => {
+      const config = response.config as CacheableRequestConfig;
+      
       // Cache successful GET responses if not already cached
-      if (response.config.method === 'get' && 
-          response.config.cacheKey && 
-          !response.cached) {
+      if (config.method === 'get' && 
+          config.cacheKey && 
+          !config.cached) {
         // Get TTL from config or use default
-        const ttl = response.config.cacheTTL || undefined;
-        apiCache.set(response.config.cacheKey, response.data, ttl);
+        const ttl = config.cacheTTL || undefined;
+        apiCache.set(config.cacheKey, response.data, ttl);
       }
       
       return response;
     },
-    (error) => {
+    (error: AxiosError) => {
       // Handle different error types
       if (error.response) {
         // Server responded with a status code outside of 2xx range
@@ -185,6 +212,13 @@ const api = createApiClient();
 
 export default api;
 
+// API Helper Options
+interface ApiHelperOptions {
+  cache?: boolean;
+  cacheTTL?: number;
+  [key: string]: any;
+}
+
 // Helper methods with built-in error handling
 export const apiHelpers = {
   /**
@@ -194,9 +228,9 @@ export const apiHelpers = {
    * @param {Object} options - Additional options (cache, cacheTTL)
    * @returns {Promise<any>} - Response data or error
    */
-  async get(url, params = {}, options = {}) {
+  async get<T = any>(url: string, params: Record<string, any> = {}, options: ApiHelperOptions = {}): Promise<T> {
     try {
-      const response = await api.get(url, { 
+      const response = await api.get<T>(url, { 
         params,
         cache: options.cache !== undefined ? options.cache : true,
         cacheTTL: options.cacheTTL
@@ -215,9 +249,9 @@ export const apiHelpers = {
    * @param {Object} options - Additional options
    * @returns {Promise<any>} - Response data or error
    */
-  async post(url, data = {}, options = {}) {
+  async post<T = any>(url: string, data: Record<string, any> = {}, options: ApiHelperOptions = {}): Promise<T> {
     try {
-      const response = await api.post(url, data, options);
+      const response = await api.post<T>(url, data, options);
       return response.data;
     } catch (error) {
       console.error(`POST ${url} failed:`, error);
@@ -232,9 +266,9 @@ export const apiHelpers = {
    * @param {Object} options - Additional options
    * @returns {Promise<any>} - Response data or error
    */
-  async put(url, data = {}, options = {}) {
+  async put<T = any>(url: string, data: Record<string, any> = {}, options: ApiHelperOptions = {}): Promise<T> {
     try {
-      const response = await api.put(url, data, options);
+      const response = await api.put<T>(url, data, options);
       return response.data;
     } catch (error) {
       console.error(`PUT ${url} failed:`, error);
@@ -248,9 +282,9 @@ export const apiHelpers = {
    * @param {Object} options - Additional options
    * @returns {Promise<any>} - Response data or error
    */
-  async delete(url, options = {}) {
+  async delete<T = any>(url: string, options: ApiHelperOptions = {}): Promise<T> {
     try {
-      const response = await api.delete(url, options);
+      const response = await api.delete<T>(url, options);
       return response.data;
     } catch (error) {
       console.error(`DELETE ${url} failed:`, error);
@@ -261,7 +295,7 @@ export const apiHelpers = {
   /**
    * Clear the API cache
    */
-  clearCache() {
+  clearCache(): void {
     apiCache.clear();
   }
 }; 

@@ -5,6 +5,7 @@
 import { jwtDecode } from 'jwt-decode';
 import { apiUrls } from '@/apis';
 import axios from 'axios';
+import { apiBaseUrl } from '@/apis/config';
 
 /**
  * Saves authentication token to both localStorage and sessionStorage
@@ -470,21 +471,8 @@ export const refreshTokenIfNeeded = async (): Promise<string | null> => {
   }
   
   try {
-    // For development, try to detect localhost API
-    let baseUrl;
-    if (isDevelopment) {
-      // Try multiple possible local API URLs, with preference for environment variable
-      baseUrl = process.env.NEXT_PUBLIC_API_URL || 
-                'http://localhost:8080/api/v1' || 
-                'http://127.0.0.1:8080/api/v1';
-      console.log('Using development API URL:', baseUrl);
-    } else {
-      // In production, use the production API
-      baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.medh.io/api/v1';
-    }
-    
-    // Construct the full URL with protocol and host
-    const refreshTokenUrl = `${baseUrl}/auth/refresh-token`;
+    // Use the centralized API URL from config
+    const refreshTokenUrl = `${apiBaseUrl}/auth/refresh-token`;
     
     console.log('Refreshing token at URL:', refreshTokenUrl);
     
