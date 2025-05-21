@@ -688,12 +688,17 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
       variants={sidebarVariants}
       initial="collapsed"
       animate={effectiveIsExpanded ? "expanded" : "collapsed"}
-      className="flex flex-col h-full bg-white dark:bg-gray-900 border-r dark:border-gray-700 shadow-md overflow-hidden z-20 fixed lg:relative"
+      className="flex flex-col h-auto bg-white dark:bg-gray-900 border-r dark:border-gray-700 shadow-md overflow-visible z-20 fixed lg:relative"
+      style={{ 
+        minHeight: 'calc(100vh - 64px)',
+        top: '70px', /* Increased from 64px to add spacing */
+        position: 'fixed'
+      }}
       onMouseEnter={() => isCollapsible && handleExpandedChange(true)}
       onMouseLeave={() => isCollapsible && !isMobileDevice && handleExpandedChange(false)}
     >
       {/* Minimal header */}
-      <div className="py-3 px-2 border-b border-gray-100 dark:border-gray-800">
+      <div className="pt-5 pb-3 px-2 border-b border-gray-100 dark:border-gray-800">
         <div className="h-12 flex items-center justify-center">
           <AnimatePresence mode="wait">
             {effectiveIsExpanded ? (
@@ -726,7 +731,7 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
       {/* Navigation Area */}
       <motion.div 
         variants={containerVariants}
-        className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600"
+        className="flex-1 overflow-y-visible overflow-x-hidden"
       >
         <div className="py-3 space-y-1.5">
           {/* Main Menu Items */}
