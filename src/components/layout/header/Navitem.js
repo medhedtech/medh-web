@@ -72,6 +72,9 @@ export default function Navitem({ navItem, idx, children }) {
       isMobile
     });
   };
+
+  // Check if this is the Store item to apply special styles
+  const isStore = name === "Store";
   
   return (
     <li 
@@ -83,11 +86,20 @@ export default function Navitem({ navItem, idx, children }) {
         <Link
           href={path || "#"}
           onClick={handleNavItemClick}
-          className="px-3 lg:px-2.5 xl:px-3 2xl:px-4 py-10 lg:py-5 2xl:py-6 leading-none whitespace-nowrap text-base lg:text-sm 2xl:text-base font-semibold flex items-center hover:text-primary-500 dark:text-gray-200 dark:hover:text-primary-400 transition-colors"
+          className={`px-3 lg:px-2.5 xl:px-3 2xl:px-4 py-10 lg:py-5 2xl:py-6 leading-none whitespace-nowrap text-base lg:text-sm 2xl:text-base font-semibold flex items-center transition-all duration-300 
+            ${isStore 
+              ? "text-primary-500 dark:text-primary-400 hover:text-primary-600 dark:hover:text-primary-300" 
+              : "hover:text-primary-500 dark:text-gray-200 dark:hover:text-primary-400"} 
+            hover:-translate-y-0.5`}
           aria-expanded={dropdown ? isOpen : undefined}
           aria-haspopup={dropdown ? "true" : undefined}
         >
-          <span className="whitespace-nowrap">{name}</span>
+          <span className="whitespace-nowrap relative">
+            {name}
+            {isStore && (
+              <span className="absolute -top-2 -right-8 bg-primary-500 text-white text-xs px-1.5 py-0.5 rounded-full text-[10px]">New</span>
+            )}
+          </span>
           {dropdown && (
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
@@ -106,6 +118,9 @@ export default function Navitem({ navItem, idx, children }) {
             </svg>
           )}
         </Link>
+        
+        {/* Add a subtle underline indicator for the active nav item */}
+        <div className={`h-0.5 w-0 bg-primary-500 rounded-full transition-all duration-300 ${isOpen ? 'w-1/2' : ''} ${isStore ? 'w-1/2' : ''}`}></div>
         
         {/* Pass the isOpen state to the dropdown */}
         {renderChildren()}
