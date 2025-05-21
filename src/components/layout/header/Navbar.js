@@ -129,6 +129,9 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => 
   // Check if the current page is the search page
   const isSearchPage = pathname?.startsWith('/search');
 
+  // Common button class to apply to action buttons in the navbar
+  const navButtonClass = "flex items-center justify-center h-9 px-3 rounded-md text-sm font-medium transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1";
+
   return (
     <div 
       ref={navbarRef}
@@ -152,27 +155,8 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => 
             )}
 
             {/* Center section with modern glass effect on hover */}
-            <div className="hidden lg:flex flex-1 items-center justify-center max-w-6xl mx-auto">
-              {!isSearchActive ? (
-                <div className="flex-1 px-3 lg:px-5 flex items-center justify-between">
-                  <div className="transition-all duration-300 transform flex-grow max-w-2xl xl:max-w-3xl pr-4 xl:pr-6">
-                    {isHome2Dark ? <NavItems2 /> : <NavItems />}
-                  </div>
-                  <div className="ml-4 xl:ml-8 flex-shrink-0 transition-transform duration-300 hover:scale-105">
-                    <NavbarSearch 
-                      isScrolled={isScrolled} 
-                      setIsSearchActive={setIsSearchActive}
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div className="w-full max-w-2xl xl:max-w-3xl px-4 lg:px-5 py-2">
-                  <NavbarSearch 
-                    isScrolled={isScrolled} 
-                    setIsSearchActive={setIsSearchActive}
-                  />
-                </div>
-              )}
+            <div className="hidden lg:flex xl:w-auto">
+              <NavItems />
             </div>
 
             {/* Right section with enhanced styling and hover effects */}
