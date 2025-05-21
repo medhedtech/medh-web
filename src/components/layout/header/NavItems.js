@@ -18,7 +18,7 @@ const NavItems = () => {
     },
     {
       id: 2,
-      name: "Shop",
+      name: "Store",
       path: "/shop",
       dropdown: null,
       isRelative: false,
