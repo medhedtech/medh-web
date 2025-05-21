@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError, InternalAxiosRequestConfig, AxiosRequestHeaders } from 'axios';
 import axiosRetry from 'axios-retry';
 import { apiBaseUrl, apiConfig as configSettings } from '@/apis/config';
 
@@ -13,11 +13,19 @@ interface CacheItem<T> {
 /**
  * Extended axios request config with caching options
  */
-interface CacheableRequestConfig extends AxiosRequestConfig {
+interface CacheableRequestConfig extends InternalAxiosRequestConfig {
   cache?: boolean;
   cacheTTL?: number;
   cacheKey?: string;
   cached?: boolean;
+}
+
+// Define response error shape
+interface ApiErrorResponse {
+  status?: number;
+  data?: any;
+  message?: string;
+  originalError?: AxiosError;
 }
 
 /**
@@ -103,16 +111,18 @@ const createApiClient = (): AxiosInstance => {
   axiosRetry(api, { 
     retries: configSettings.retryAttempts || 3,
     retryDelay: axiosRetry.exponentialDelay, // Exponential backoff
-    retryCondition: (error: AxiosError) => {
+    retryCondition: (error: AxiosError): boolean => {
       // Retry on network errors or 5xx server errors
       return axiosRetry.isNetworkOrIdempotentRequestError(error) || 
-             (error.response && error.response.status >= 500);
+             (error.response !== undefined && error.response.status >= 500);
     }
   });
 
   // Request interceptor
   api.interceptors.request.use(
-    (config: CacheableRequestConfig) => {
+    (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
+      const customConfig = config as unknown as CacheableRequestConfig;
+      
       // Add auth token if available
       const token = typeof localStorage !== 'undefined' ? localStorage.getItem('token') : null;
       if (token) {
@@ -121,7 +131,7 @@ const createApiClient = (): AxiosInstance => {
       }
 
       // Check cache for GET requests if not explicitly disabled
-      if (config.method === 'get' && config.cache !== false) {
+      if (config.method === 'get' && customConfig.cache !== false) {
         const cacheKey = `${config.url}|${JSON.stringify(config.params || {})}`;
         const cachedResponse = apiCache.get(cacheKey);
         
@@ -142,7 +152,7 @@ const createApiClient = (): AxiosInstance => {
         }
         
         // Store the cache key for response interceptor to use
-        config.cacheKey = cacheKey;
+        customConfig.cacheKey = cacheKey;
       }
 
       return config;
@@ -153,7 +163,7 @@ const createApiClient = (): AxiosInstance => {
   // Response interceptor
   api.interceptors.response.use(
     (response: AxiosResponse) => {
-      const config = response.config as CacheableRequestConfig;
+      const config = response.config as unknown as CacheableRequestConfig;
       
       // Cache successful GET responses if not already cached
       if (config.method === 'get' && 
@@ -184,7 +194,9 @@ const createApiClient = (): AxiosInstance => {
         return Promise.reject({
           status,
           data: error.response.data,
-          message: error.response.data?.message || 'Server error',
+          message: error.response.data && typeof error.response.data === 'object' && 'message' in error.response.data 
+            ? error.response.data.message 
+            : 'Server error',
           originalError: error
         });
       } else if (error.request) {
@@ -219,6 +231,12 @@ interface ApiHelperOptions {
   [key: string]: any;
 }
 
+// Extending AxiosRequestConfig to include cache properties
+interface CacheableAxiosRequestConfig extends AxiosRequestConfig {
+  cache?: boolean;
+  cacheTTL?: number;
+}
+
 // Helper methods with built-in error handling
 export const apiHelpers = {
   /**
@@ -230,11 +248,13 @@ export const apiHelpers = {
    */
   async get<T = any>(url: string, params: Record<string, any> = {}, options: ApiHelperOptions = {}): Promise<T> {
     try {
-      const response = await api.get<T>(url, { 
+      const requestConfig: CacheableAxiosRequestConfig = { 
         params,
         cache: options.cache !== undefined ? options.cache : true,
         cacheTTL: options.cacheTTL
-      });
+      };
+      
+      const response = await api.get<T>(url, requestConfig);
       return response.data;
     } catch (error) {
       console.error(`GET ${url} failed:`, error);
@@ -251,7 +271,8 @@ export const apiHelpers = {
    */
   async post<T = any>(url: string, data: Record<string, any> = {}, options: ApiHelperOptions = {}): Promise<T> {
     try {
-      const response = await api.post<T>(url, data, options);
+      const requestConfig: AxiosRequestConfig = {};
+      const response = await api.post<T>(url, data, requestConfig);
       return response.data;
     } catch (error) {
       console.error(`POST ${url} failed:`, error);
@@ -268,7 +289,8 @@ export const apiHelpers = {
    */
   async put<T = any>(url: string, data: Record<string, any> = {}, options: ApiHelperOptions = {}): Promise<T> {
     try {
-      const response = await api.put<T>(url, data, options);
+      const requestConfig: AxiosRequestConfig = {};
+      const response = await api.put<T>(url, data, requestConfig);
       return response.data;
     } catch (error) {
       console.error(`PUT ${url} failed:`, error);
@@ -284,7 +306,8 @@ export const apiHelpers = {
    */
   async delete<T = any>(url: string, options: ApiHelperOptions = {}): Promise<T> {
     try {
-      const response = await api.delete<T>(url, options);
+      const requestConfig: AxiosRequestConfig = {};
+      const response = await api.delete<T>(url, requestConfig);
       return response.data;
     } catch (error) {
       console.error(`DELETE ${url} failed:`, error);
