@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useContext } from "react";
-import { BarChart, Users, BookOpen, CreditCard, Calendar, TrendingUp, Clock, CheckCircle, ArrowRight } from "lucide-react";
+import { BarChart, Users, BookOpen, CreditCard, Calendar, TrendingUp, Clock, CheckCircle, ArrowRight, PlusCircle, Edit, UserPlus } from "lucide-react";
 import { AdminDashboardContext } from "./AdminDashboardLayout";
+import Link from "next/link";
 
 const StatCard = ({ icon, title, value, trend, color }: { 
   icon: React.ReactNode;
@@ -31,6 +32,22 @@ const StatCard = ({ icon, title, value, trend, color }: {
       )}
     </div>
   </div>
+);
+
+const QuickActionButton = ({ icon, title, href, color }: {
+  icon: React.ReactNode;
+  title: string;
+  href: string;
+  color: string;
+}) => (
+  <Link href={href}>
+    <div className={`bg-white dark:bg-gray-800 p-4 rounded-lg shadow flex flex-col items-center justify-center cursor-pointer transition-all hover:shadow-md hover:translate-y-[-2px] h-full ${color}`}>
+      <div className="mb-2">
+        {icon}
+      </div>
+      <p className="text-sm font-medium text-center">{title}</p>
+    </div>
+  </Link>
 );
 
 const AdminDashboard: React.FC = () => {
@@ -72,6 +89,39 @@ const AdminDashboard: React.FC = () => {
           value="12"
           color="bg-amber-100 dark:bg-amber-900/30"
         />
+      </div>
+      
+      {/* Quick Actions Section */}
+      <div className="mt-8">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold">Quick Actions</h2>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <QuickActionButton 
+            icon={<PlusCircle className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />}
+            title="Add New Course"
+            href="/dashboards/admin-addcourse"
+            color="hover:bg-emerald-50 dark:hover:bg-emerald-900/10"
+          />
+          <QuickActionButton 
+            icon={<Edit className="h-6 w-6 text-blue-600 dark:text-blue-400" />}
+            title="Update Courses"
+            href="/dashboards/admin-course"
+            color="hover:bg-blue-50 dark:hover:bg-blue-900/10"
+          />
+          <QuickActionButton 
+            icon={<UserPlus className="h-6 w-6 text-purple-600 dark:text-purple-400" />}
+            title="Add Instructor"
+            href="/dashboards/admin-add-instructor"
+            color="hover:bg-purple-50 dark:hover:bg-purple-900/10"
+          />
+          <QuickActionButton 
+            icon={<Users className="h-6 w-6 text-amber-600 dark:text-amber-400" />}
+            title="Manage Students"
+            href="/dashboards/admin-studentmange"
+            color="hover:bg-amber-50 dark:hover:bg-amber-900/10"
+          />
+        </div>
       </div>
       
       <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
