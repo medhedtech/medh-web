@@ -82,7 +82,11 @@ import {
   BookOpenCheck,
   ChevronLeft,
   LucideIcon,
-  LucideProps
+  LucideProps,
+  ShieldCheck,
+  Banknote,
+  Activity,
+  ChevronUp
 } from "lucide-react";
 import Cookies from 'js-cookie';
 import { motion, AnimatePresence } from "framer-motion";
@@ -154,7 +158,7 @@ interface SidebarDashboardProps {
 // Sidebar animation variants
 const sidebarVariants = {
   expanded: {
-    width: '245px', // Slightly wider to accommodate text
+    width: '280px', // Increased from 245px to accommodate longer text
     transition: {
       type: 'spring',
       stiffness: 170,
@@ -196,6 +200,43 @@ const itemVariants = {
     },
     transitionEnd: {
       display: "none"
+    }
+  }
+};
+
+// Animation variants when a dropdown is open (for compacting other items)
+const compactItemVariants = {
+  normal: {
+    height: 'auto',
+    marginTop: '4px',
+    marginBottom: '4px',
+    opacity: 1,
+    scale: 1,
+    transition: {
+      duration: 0.3,
+      ease: [0.4, 0.0, 0.2, 1]
+    }
+  },
+  compact: {
+    height: 'auto',
+    marginTop: '0px',
+    marginBottom: '0px',
+    opacity: 0.8,
+    scale: 0.95,
+    transition: {
+      duration: 0.3,
+      ease: [0.4, 0.0, 0.2, 1]
+    }
+  },
+  veryCompact: {
+    height: 'auto',
+    marginTop: '0px',
+    marginBottom: '0px',
+    opacity: 0.7,
+    scale: 0.92,
+    transition: {
+      duration: 0.3,
+      ease: [0.4, 0.0, 0.2, 1]
     }
   }
 };
@@ -285,11 +326,11 @@ const submenuVariants = {
     opacity: 1,
     transition: {
       height: {
-        duration: 0.4,
+        duration: 0.5,
         ease: [0.4, 0.0, 0.2, 1]
       },
       opacity: {
-        duration: 0.25,
+        duration: 0.35,
         ease: [0.4, 0.0, 0.2, 1]
       }
     }
@@ -330,9 +371,10 @@ const containerVariants = {
 
 // Define consistent icon size and container sizes
 const ICON_SIZE_MAIN = 22;
-const ICON_SIZE_SUB = 16;
+const ICON_SIZE_SUB = 18; // Increased from 16 to 18 for better visibility
 const CHEVRON_SIZE = 18;
 const ICON_CONTAINER_SIZE = "44px"; // Consistent size for all icon containers
+const SUBMENU_MAX_HEIGHT = 500; // Increased from 300 to 500 for more spacious dropdowns
 
 const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
   userRole,
@@ -357,9 +399,25 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [isCollapsible, setIsCollapsible] = useState<boolean>(true);
   const sidebarRef = useRef<HTMLDivElement>(null);
+  const sidebarNavRef = useRef<HTMLDivElement>(null);
+  const [showScrollIndicators, setShowScrollIndicators] = useState<{top: boolean, bottom: boolean}>({top: false, bottom: true});
   
   // Use the prop values if provided, otherwise use internal state
   const effectiveIsExpanded = typeof propIsExpanded !== 'undefined' ? propIsExpanded : isExpanded;
+
+  // Function to check scroll position and update indicators
+  const updateScrollIndicators = useCallback(() => {
+    if (!sidebarNavRef.current) return;
+    
+    const { scrollTop, scrollHeight, clientHeight } = sidebarNavRef.current;
+    const atTop = scrollTop <= 10;
+    const atBottom = scrollTop + clientHeight >= scrollHeight - 10;
+    
+    setShowScrollIndicators({
+      top: !atTop,
+      bottom: !atBottom
+    });
+  }, []);
   
   // Initialize component
   useEffect(() => {
@@ -469,12 +527,15 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
     // Register click outside listener
     document.addEventListener('mousedown', handleClickOutside);
     
+    // Initialize scroll indicators
+    updateScrollIndicators();
+    
     // Clean up event listeners
     return () => {
       window.removeEventListener("resize", checkMobile);
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isMobileDevice]);
+  }, [isMobileDevice, updateScrollIndicators]);
 
   // Update expanded state when prop changes
   useEffect(() => {
@@ -482,6 +543,100 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
       setIsExpanded(propIsExpanded);
     }
   }, [propIsExpanded]);
+  
+  // Setup scroll event listener for the sidebar navigation
+  useEffect(() => {
+    const navElement = sidebarNavRef.current;
+    if (navElement) {
+      navElement.addEventListener('scroll', updateScrollIndicators);
+      
+      return () => {
+        navElement.removeEventListener('scroll', updateScrollIndicators);
+      };
+    }
+  }, [updateScrollIndicators]);
+
+  // Scrolling functions
+  const scrollToTop = () => {
+    if (sidebarNavRef.current) {
+      sidebarNavRef.current.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+  };
+  
+  const scrollToBottom = () => {
+    if (sidebarNavRef.current) {
+      sidebarNavRef.current.scrollTo({
+        top: sidebarNavRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  // Scroll to active menu item
+  const scrollToActiveMenu = useCallback((menuName: string) => {
+    if (!effectiveIsExpanded) return;
+    
+    setTimeout(() => {
+      const activeElement = document.getElementById(`menu-item-${menuName}`);
+      if (activeElement && sidebarNavRef.current) {
+        // Calculate position relative to scrollable container
+        const containerRect = sidebarNavRef.current.getBoundingClientRect();
+        const elementRect = activeElement.getBoundingClientRect();
+        
+        // Check if element is outside of visible area
+        const isAbove = elementRect.top < containerRect.top + 20;
+        const isBelow = elementRect.bottom > containerRect.bottom - 20;
+        
+        if (isAbove || isBelow) {
+          activeElement.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: isBelow ? 'end' : 'start'
+          });
+          
+          // Update indicators after scrolling
+          setTimeout(updateScrollIndicators, 500);
+        }
+      }
+    }, 100);
+  }, [effectiveIsExpanded, updateScrollIndicators]);
+  
+  // Use effect to scroll to pathname-matched active item
+  useEffect(() => {
+    if (pathname && effectiveIsExpanded && mounted) {
+      // Find the menu item that matches the current path
+      const menuItems = getMenuItemsByRole(userRole);
+      let foundMenu: string | null = null;
+      
+      // Check main items
+      for (const item of menuItems) {
+        if (item.path && pathname.startsWith(item.path)) {
+          foundMenu = item.name;
+          break;
+        }
+        
+        // Check sub items
+        if (item.subItems) {
+          for (const subItem of item.subItems) {
+            if (subItem.path && pathname.startsWith(subItem.path)) {
+              foundMenu = item.name;
+              // Open the submenu
+              setOpenSubMenu(item.name);
+              break;
+            }
+          }
+          if (foundMenu) break;
+        }
+      }
+      
+      // If we found a matching menu, scroll to it
+      if (foundMenu) {
+        scrollToActiveMenu(foundMenu);
+      }
+    }
+  }, [pathname, effectiveIsExpanded, mounted, userRole, scrollToActiveMenu]);
 
   // Notify parent component when expanded state changes internally
   const handleExpandedChange = (expanded: boolean) => {
@@ -544,11 +699,16 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
     }
   };
 
-  // Handle menu clicks
+  // Handle menu clicks with scrolling behavior
   const handleMenuClick = (menuName: string, item: MenuItem) => {
     if (item.subItems && item.subItems.length > 0) {
-      // Toggle dropdown
-      setOpenSubMenu(openSubMenu === menuName ? null : menuName);
+      // Close other open submenus when opening a new one (accordion behavior)
+      if (openSubMenu !== menuName) {
+        setOpenSubMenu(menuName);
+        scrollToActiveMenu(menuName);
+      } else {
+        setOpenSubMenu(null);
+      }
     } else if (item.onClick) {
       // Execute onClick callback if provided
       item.onClick();
@@ -653,18 +813,385 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
     }
   ];
 
-  // Actions including logout
-  const actionItems: MenuItem[] = [
+  // Modern admin sidebar items
+  const adminMenuItems: MenuItem[] = [
+    {
+      name: "Dashboard",
+      path: formatRoute("admin", "dashboard"),
+      icon: <LayoutDashboard className="w-5 h-5" />
+    },
+    {
+      name: "Course Management",
+      path: formatRoute("admin", "course"),
+      icon: <BookOpen className="w-5 h-5" />,
+      subItems: [
+        {
+          name: "All Courses",
+          path: formatRoute("admin", "listofcourse"),
+          icon: <LayoutGrid className="w-4 h-4" />
+        },
+        {
+          name: "Add Course",
+          path: formatRoute("admin", "add-courses"),
+          icon: <Plus className="w-4 h-4" />
+        },
+        {
+          name: "Update Course",
+          path: formatRoute("admin", "edit-courses"),
+          icon: <Pencil className="w-4 h-4" />
+        },
+        {
+          name: "Categories",
+          path: formatRoute("admin", "course-categories"),
+          icon: <FolderTree className="w-4 h-4" />
+        }
+      ]
+    },
+    {
+      name: "User Management",
+      icon: <Users className="w-5 h-5" />,
+      subItems: [
+        {
+          name: "Student Management",
+          path: formatRoute("admin", "students"),
+          icon: <User className="w-4 h-4" />
+        },
+        {
+          name: "Instructor Management",
+          path: formatRoute("admin", "Instuctoremange"),
+          icon: <GraduationCap className="w-4 h-4" />
+        },
+        {
+          name: "Add Instructor",
+          path: formatRoute("admin", "add-instructor"),
+          icon: <UserPlus className="w-4 h-4" />
+        },
+        {
+          name: "Add Student",
+          path: formatRoute("admin", "add-student"),
+          icon: <UserPlus className="w-4 h-4" />
+        }
+      ]
+    },
+    {
+      name: "Classes",
+      icon: <Calendar className="w-5 h-5" />,
+      subItems: [
+        {
+          name: "Online Classes",
+          path: formatRoute("admin", "online-class"),
+          icon: <Video className="w-4 h-4" />
+        },
+        {
+          name: "Schedule Class",
+          path: formatRoute("admin", "schonlineclass"),
+          icon: <CalendarDays className="w-4 h-4" />
+        }
+      ]
+    },
+    {
+      name: "Finance",
+      icon: <DollarSign className="w-5 h-5" />,
+      subItems: [
+        {
+          name: "Course Fees",
+          path: formatRoute("admin", "course-fee"),
+          icon: <CreditCard className="w-4 h-4" />
+        },
+        {
+          name: "Currency Settings",
+          path: formatRoute("admin", "currency"),
+          icon: <Banknote className="w-4 h-4" />
+        },
+        {
+          name: "Instructor Payouts",
+          path: formatRoute("admin", "instructor-payouts"),
+          icon: <Wallet className="w-4 h-4" />
+        }
+      ]
+    },
+    {
+      name: "Certificates",
+      path: formatRoute("admin", "GenrateCertificate"),
+      icon: <Award className="w-5 h-5" />
+    },
+    {
+      name: "Content",
+      icon: <FileText className="w-5 h-5" />,
+      subItems: [
+        {
+          name: "Blogs",
+          path: formatRoute("admin", "blogs"),
+          icon: <BookOpen className="w-4 h-4" />
+        },
+        {
+          name: "Reviews",
+          path: formatRoute("admin", "reviews"),
+          icon: <Star className="w-4 h-4" />
+        },
+        {
+          name: "Home Editor",
+          path: formatRoute("admin", "home-editor"),
+          icon: <LayoutGrid className="w-4 h-4" />
+        }
+      ]
+    },
+    {
+      name: "Forms & Queries",
+      icon: <ClipboardList className="w-5 h-5" />,
+      subItems: [
+        {
+          name: "Get In Touch",
+          path: formatRoute("admin", "get-in-touch"),
+          icon: <MessageCircle className="w-4 h-4" />
+        },
+        {
+          name: "Enrollment Forms",
+          path: formatRoute("admin", "enrollments"),
+          icon: <FileText className="w-4 h-4" />
+        },
+        {
+          name: "Feedback & Complaints",
+          path: formatRoute("admin", "feedback-and-complaints"),
+          icon: <MessageSquare className="w-4 h-4" />
+        },
+        {
+          name: "Job Applicants",
+          path: formatRoute("admin", "job-applicants"),
+          icon: <Briefcase className="w-4 h-4" />
+        }
+      ]
+    },
+    {
+      name: "Analytics",
+      icon: <BarChart className="w-5 h-5" />,
+      subItems: [
+        {
+          name: "Country",
+          path: formatRoute("admin", "country"),
+          icon: <Globe className="w-4 h-4" />
+        },
+        {
+          name: "Age Group",
+          path: formatRoute("admin", "age-group"),
+          icon: <Users className="w-4 h-4" />
+        },
+        {
+          name: "Batch",
+          path: formatRoute("admin", "batch"),
+          icon: <Folders className="w-4 h-4" />
+        },
+        {
+          name: "Duration",
+          path: formatRoute("admin", "duration"),
+          icon: <Clock className="w-4 h-4" />
+        },
+        {
+          name: "Grade Group",
+          path: formatRoute("admin", "grade-group"),
+          icon: <CheckSquare className="w-4 h-4" />
+        }
+      ]
+    },
+    {
+      name: "Placements",
+      path: formatRoute("admin", "placements"),
+      icon: <Briefcase className="w-5 h-5" />
+    },
+    {
+      name: "Task Management",
+      path: formatRoute("admin", "task-management"),
+      icon: <ClipboardList className="w-5 h-5" />
+    },
     {
       name: "Settings",
-      path: formatRoute("student", "settings"),
+      path: formatRoute("admin", "settings"),
       icon: <Settings className="w-5 h-5" />
+    },
+    {
+      name: "Profile",
+      path: formatRoute("admin", "profile"),
+      icon: <UserCircle className="w-5 h-5" />
     }
   ];
+
+  // Modern instructor sidebar items
+  const instructorMenuItems: MenuItem[] = [
+    {
+      name: "Dashboard",
+      path: formatRoute("instructor", "dashboard"),
+      icon: <LayoutDashboard className="w-5 h-5" />
+    },
+    {
+      name: "My Courses",
+      path: formatRoute("instructor", "course"),
+      icon: <BookOpen className="w-5 h-5" />
+    },
+    {
+      name: "Live Classes",
+      path: formatRoute("instructor", "class"),
+      icon: <Video className="w-5 h-5" />,
+      subItems: [
+        {
+          name: "My Classes",
+          path: formatRoute("instructor", "mainclass"),
+          icon: <Calendar className="w-4 h-4" />
+        },
+        {
+          name: "Track Students",
+          path: formatRoute("instructor", "track"),
+          icon: <LineChart className="w-4 h-4" />
+        }
+      ]
+    },
+    {
+      name: "Assignments",
+      path: formatRoute("instructor", "assignments"),
+      icon: <ClipboardList className="w-5 h-5" />,
+      subItems: [
+        {
+          name: "View Assignments",
+          path: formatRoute("instructor", "view-assignments"),
+          icon: <FileText className="w-4 h-4" />
+        },
+        {
+          name: "Grade Assignments",
+          path: formatRoute("instructor", "assignments"),
+          icon: <CheckCircle className="w-4 h-4" />
+        }
+      ]
+    },
+    {
+      name: "Quiz Management",
+      icon: <CheckSquare className="w-5 h-5" />,
+      subItems: [
+        {
+          name: "View Quizzes",
+          path: formatRoute("instructor", "view-quizes"),
+          icon: <BookOpen className="w-4 h-4" />
+        },
+        {
+          name: "Quiz Attempts",
+          path: formatRoute("instructor", "quiz-attempts"),
+          icon: <Activity className="w-4 h-4" />
+        },
+        {
+          name: "My Quiz Attempts",
+          path: formatRoute("instructor", "my-quiz-attempts"),
+          icon: <ListChecks className="w-4 h-4" />
+        }
+      ]
+    },
+    {
+      name: "Communication",
+      icon: <MessageCircle className="w-5 h-5" />,
+      subItems: [
+        {
+          name: "Announcements",
+          path: formatRoute("instructor", "announcments"),
+          icon: <Bell className="w-4 h-4" />
+        },
+        {
+          name: "Messages",
+          path: formatRoute("instructor", "message"),
+          icon: <Mail className="w-4 h-4" />
+        },
+        {
+          name: "Reviews",
+          path: formatRoute("instructor", "reviews"),
+          icon: <Star className="w-4 h-4" />
+        },
+        {
+          name: "Feedbacks",
+          path: formatRoute("instructor", "feedbacks"),
+          icon: <MessageSquare className="w-4 h-4" />
+        }
+      ]
+    },
+    {
+      name: "Orders",
+      path: formatRoute("instructor", "order-history"),
+      icon: <ShoppingCart className="w-5 h-5" />
+    },
+    {
+      name: "Wishlist",
+      path: formatRoute("instructor", "wishlist"),
+      icon: <Heart className="w-5 h-5" />
+    },
+    {
+      name: "Settings",
+      path: formatRoute("instructor", "settings"),
+      icon: <Settings className="w-5 h-5" />
+    },
+    {
+      name: "Profile",
+      path: formatRoute("instructor", "profile"),
+      icon: <UserCircle className="w-5 h-5" />
+    }
+  ];
+
+  // Action items for each role
+  const actionItems: Record<string, MenuItem[]> = {
+    default: [
+      {
+        name: "Settings",
+        path: "/profile/settings",
+        icon: <Settings className="w-5 h-5" />
+      }
+    ],
+    student: [
+      {
+        name: "Settings",
+        path: formatRoute("student", "settings"),
+        icon: <Settings className="w-5 h-5" />
+      }
+    ],
+    admin: [
+      {
+        name: "Settings",
+        path: formatRoute("admin", "settings"),
+        icon: <Settings className="w-5 h-5" />
+      }
+    ],
+    instructor: [
+      {
+        name: "Settings",
+        path: formatRoute("instructor", "settings"),
+        icon: <Settings className="w-5 h-5" />
+      }
+    ]
+  };
 
   if (!mounted) {
     return null;
   }
+
+  // Get menu items based on user role
+  const getMenuItemsByRole = (role: string): MenuItem[] => {
+    role = role.toLowerCase();
+    
+    if (role.includes('admin')) {
+      return adminMenuItems;
+    } else if (role.includes('instructor')) {
+      return instructorMenuItems;
+    } else if (role.includes('student')) {
+      return studentMenuItems;
+    }
+    
+    // Default to student if role not recognized
+    return studentMenuItems;
+  };
+
+  // Get the action items based on user role
+  const getActionItemsByRole = (role: string): MenuItem[] => {
+    role = role.toLowerCase();
+    
+    if (actionItems[role]) {
+      return actionItems[role];
+    }
+    
+    return actionItems.default;
+  };
 
   // Check if a menu item is active based on current path
   const isMenuActive = (item: MenuItem): boolean => {
@@ -681,6 +1208,10 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
     return false;
   };
 
+  // Get the menu items for the current user role
+  const menuItems = getMenuItemsByRole(userRole);
+  const currentActionItems = getActionItemsByRole(userRole);
+
   // Main return with improved sidebar
   return (
     <motion.div 
@@ -688,238 +1219,219 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
       variants={sidebarVariants}
       initial="collapsed"
       animate={effectiveIsExpanded ? "expanded" : "collapsed"}
-      className="flex flex-col h-auto bg-white dark:bg-gray-900 border-r dark:border-gray-700 shadow-md overflow-visible z-20 fixed lg:relative"
+      className="flex flex-col h-auto bg-white dark:bg-gray-900 border-r dark:border-gray-700 shadow-md z-20 fixed lg:relative"
       style={{ 
         minHeight: 'calc(100vh - 64px)',
         top: '70px', /* Increased from 64px to add spacing */
-        position: 'fixed'
+        position: 'fixed',
+        overflow: 'hidden' /* Hide overflow at container level */
       }}
       onMouseEnter={() => isCollapsible && handleExpandedChange(true)}
       onMouseLeave={() => isCollapsible && !isMobileDevice && handleExpandedChange(false)}
     >
-      {/* Minimal header */}
-      <div className="pt-5 pb-3 px-2 border-b border-gray-100 dark:border-gray-800">
-        <div className="h-12 flex items-center justify-center">
-          <AnimatePresence mode="wait">
-            {effectiveIsExpanded ? (
-              <motion.span 
-                key="expanded-title"
-                initial={{ opacity: 0, y: -5 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -5 }}
-                transition={{ duration: 0.2, ease: "easeOut" }}
-                className="text-sm font-medium bg-gradient-to-r from-primary-500 to-violet-500 bg-clip-text text-transparent"
-              >
-                Student Dashboard
-              </motion.span>
-            ) : (
-              <motion.div 
-                key="collapsed-icon"
-                variants={headerIconVariants}
-                initial="expanded"
-                animate="collapsed"
-                exit="expanded"
-                className="flex items-center justify-center w-11 h-11 rounded-full bg-gradient-to-br from-primary-100 to-violet-100 dark:from-primary-900/30 dark:to-violet-900/30 shadow-sm"
-              >
-                <LayoutDashboard className="w-[22px] h-[22px] text-primary-600 dark:text-primary-400" />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
-      
-      {/* Navigation Area */}
-      <motion.div 
-        variants={containerVariants}
-        className="flex-1 overflow-y-visible overflow-x-hidden"
+      {/* Main scrollable container */}
+      <div 
+        className="h-full flex flex-col overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent"
+        style={{ maxHeight: 'calc(100vh - 70px)' }}
       >
-        <div className="py-3 space-y-1.5">
-          {/* Main Menu Items */}
-          {studentMenuItems.map((item, index) => {
-            const isActive = isMenuActive(item);
-                    const hasSubItems = item.subItems && item.subItems.length > 0;
-            const isSubMenuOpen = openSubMenu === item.name;
-                    
-                    return (
-              <div key={index} className="select-none">
-                {/* Menu Item */}
-                        <button
-                  onClick={() => handleMenuClick(item.name, item)}
-                  className={`flex items-center w-full rounded-xl p-2.5 transition-all duration-200
-                    ${isActive 
-                      ? "bg-primary-50/80 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400" 
-                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/60"
-                    }
-                    ${effectiveIsExpanded ? "justify-between" : "justify-center"}
-                    ${isSubMenuOpen ? "mb-1" : ""}
-                  `}
+        {/* Minimal header - Sticky */}
+        <div className="pt-5 pb-3 px-2 border-b border-gray-100 dark:border-gray-800 sticky top-0 bg-white dark:bg-gray-900 z-10">
+          <div className="h-12 flex items-center justify-center">
+            <AnimatePresence mode="wait">
+              {effectiveIsExpanded ? (
+                <motion.span 
+                  key="expanded-title"
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -5 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  className="text-sm font-medium bg-gradient-to-r from-primary-500 to-violet-500 bg-clip-text text-transparent"
                 >
-                  <div className="flex items-center min-w-[42px]">
-                    <motion.div 
-                      variants={iconContainerVariants}
-                      initial="expanded"
-                      animate={effectiveIsExpanded ? "expanded" : "collapsed"}
-                      className={`flex items-center justify-center rounded-full transition-colors duration-200
-                        ${isActive 
-                          ? "bg-gradient-to-br from-primary-100 to-primary-50 dark:from-primary-900/40 dark:to-primary-900/20 shadow-sm" 
-                          : "bg-gray-50 dark:bg-gray-800/80"
-                        }`}
-                      style={{ 
-                        width: ICON_CONTAINER_SIZE, 
-                        height: ICON_CONTAINER_SIZE,
-                        minWidth: ICON_CONTAINER_SIZE,
-                        minHeight: ICON_CONTAINER_SIZE 
-                      }}
-                    >
-                      <div className={`flex items-center justify-center text-${isActive ? 'primary-600 dark:text-primary-400' : 'gray-600 dark:text-gray-400'}`}>
-                        {/* Simply display the icon directly with fixed width & height */}
-                        <div className="w-[22px] h-[22px] flex items-center justify-center">
-                              {item.icon}
-                          </div>
-                      </div>
-                    </motion.div>
-                    
-                    {effectiveIsExpanded && (
-                      <motion.span
-                        variants={itemVariants}
-                        initial="collapsed"
-                        animate="expanded"
-                        exit="collapsed"
-                        className="ml-3 text-sm font-medium whitespace-nowrap overflow-visible"
-                      >
-                        {item.name}
-                      </motion.span>
-                    )}
-                  </div>
-                  
-                  {effectiveIsExpanded && hasSubItems && (
-                    <motion.div
-                      variants={chevronVariants}
-                      initial="closed"
-                      animate={isSubMenuOpen ? "open" : "closed"}
-                      className="w-6 h-6 flex items-center justify-center mr-1 rounded-full"
-                    >
-                      <ChevronDown className="w-[18px] h-[18px] text-gray-500 dark:text-gray-400" />
-                    </motion.div>
-                          )}
-                        </button>
-                        
-                {/* Submenu */}
-                <AnimatePresence initial={false}>
-                  {effectiveIsExpanded && isSubMenuOpen && hasSubItems && (
-                            <motion.div
-                      key={`submenu-${item.name}`}
-                      variants={submenuVariants}
-                      initial="closed"
-                      animate="open"
-                      exit="closed"
-                      className="overflow-hidden pl-14 pr-3"
-                    >
-                      <div className="py-1.5 space-y-1.5 border-l-2 border-primary-100 dark:border-primary-900/30 ml-0.5 pl-2">
-                        {item.subItems?.map((subItem, subIndex) => {
-                          const isSubItemActive = subItem.path && pathname?.startsWith(subItem.path);
-                          
-                          return (
-                                  <button
-                              key={subIndex}
-                              onClick={() => {
-                                if (subItem.onClick) {
-                                  subItem.onClick();
-                                } else if (subItem.path) {
-                                  router.push(subItem.path);
-                                }
-                              }}
-                              className={`flex items-center w-full text-left rounded-lg px-3 py-2.5 text-sm transition-all duration-200
-                                ${isSubItemActive 
-                                  ? "bg-primary-50/60 dark:bg-primary-900/10 text-primary-600 dark:text-primary-400 font-medium" 
-                                  : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:text-gray-900 dark:hover:text-gray-200"
-                                }`}
-                            >
-                              <div className={`w-5 h-5 mr-2.5 flex-shrink-0 flex items-center justify-center ${
-                                isSubItemActive ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-500'
-                              }`}>
-                                {/* Simply display the icon directly with fixed width & height */}
-                                <div className="w-[16px] h-[16px] flex items-center justify-center">
-                                      {subItem.icon}
-                                </div>
-                              </div>
-                              <span className="text-sm whitespace-normal">{subItem.name}</span>
-                                  </button>
-                          );
-                        })}
-                              </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </div>
-                    );
-                  })}
-                </div>
-      </motion.div>
-      
-      {/* Footer with action items */}
-      <motion.div 
-        variants={containerVariants}
-        className="mt-auto border-t border-gray-100 dark:border-gray-800 py-3 space-y-2.5"
-      >
-        {actionItems.map((item, index) => {
-          const isLogout = item.name === 'Logout';
-          
-          return (
-            <button
-              key={index}
-              onClick={item.onClick ? item.onClick : () => item.path && router.push(item.path)}
-              className={`flex items-center w-full rounded-xl p-2.5 transition-all duration-200
-                ${isLogout 
-                  ? "text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10" 
-                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/60"
-                }
-                ${effectiveIsExpanded ? "justify-start" : "justify-center"}
-              `}
-            >
-              <motion.div
-                variants={iconContainerVariants}
-                initial="expanded"
-                animate={effectiveIsExpanded ? "expanded" : "collapsed"}
-                className={`flex items-center justify-center rounded-full transition-colors duration-200
-                  ${isLogout
-                    ? "bg-red-50 dark:bg-red-900/10" 
-                    : "bg-gray-50 dark:bg-gray-800/80"
-                  }`}
-                style={{ 
-                  width: ICON_CONTAINER_SIZE, 
-                  height: ICON_CONTAINER_SIZE,
-                  minWidth: ICON_CONTAINER_SIZE,
-                  minHeight: ICON_CONTAINER_SIZE 
-                }}
-              >
-                <div className={`flex items-center justify-center ${
-                  isLogout ? 'text-red-500 dark:text-red-400' : 'text-gray-600 dark:text-gray-400'
-                }`}>
-                  {/* Simply display the icon directly with fixed width & height */}
-                  <div className="w-[22px] h-[22px] flex items-center justify-center">
-                {item.icon}
-        </div>
-      </div>
-              </motion.div>
-              
-              {effectiveIsExpanded && (
-                <motion.span
-                  variants={itemVariants}
-                  initial="collapsed"
-                  animate="expanded"
-                  exit="collapsed"
-                  className={`ml-3 text-sm font-medium whitespace-nowrap overflow-visible ${
-                    isLogout ? "text-red-500 dark:text-red-400" : ""
-                  }`}
-                >
-                  {item.name}
+                  {userRole.charAt(0).toUpperCase() + userRole.slice(1)} Dashboard
                 </motion.span>
+              ) : (
+                <motion.div 
+                  key="collapsed-icon"
+                  variants={headerIconVariants}
+                  initial="expanded"
+                  animate="collapsed"
+                  exit="expanded"
+                  className="flex items-center justify-center w-11 h-11 rounded-full bg-gradient-to-br from-primary-100 to-violet-100 dark:from-primary-900/30 dark:to-violet-900/30 shadow-sm"
+                >
+                  <LayoutDashboard className="w-[22px] h-[22px] text-primary-600 dark:text-primary-400" />
+                </motion.div>
               )}
-            </button>
-          );
-        })}
-      </motion.div>
+            </AnimatePresence>
+          </div>
+        </div>
+        
+        {/* Main navigation area */}
+        <div className="flex-1">
+          <motion.div 
+            ref={sidebarNavRef}
+            variants={containerVariants}
+            className="py-2"
+            onScroll={updateScrollIndicators}
+          >
+            <div className="py-2 space-y-1"> {/* Increased from space-y-0.5 to space-y-1 for better spacing */}
+              {/* Menu items rendering (unchanged) */}
+              {menuItems.map((item, index) => {
+                const isActive = isMenuActive(item);
+                const hasSubItems = item.subItems && item.subItems.length > 0;
+                const isSubMenuOpen = openSubMenu === item.name;
+                const hasLongSubMenu = hasSubItems && item.subItems!.length > 5;
+                
+                // Enhanced compaction logic
+                const getCompactMode = () => {
+                  if (!effectiveIsExpanded || openSubMenu === null) return "normal";
+                  // Active item or its submenu is open - keep normal
+                  if (isSubMenuOpen) return "normal";
+                  // Extra compact for items far from the active menu
+                  const activeIndex = menuItems.findIndex(m => m.name === openSubMenu);
+                  const distance = Math.abs(activeIndex - index);
+                  return distance > 2 ? "veryCompact" : "compact";
+                };
+                
+                const compactMode = getCompactMode();
+                const isVeryCompact = compactMode === "veryCompact";
+                const isCompact = compactMode === "compact";
+                      
+                return (
+                  <motion.div 
+                    key={index} 
+                    className={`select-none px-2 ${isCompact || isVeryCompact ? 'opacity-80' : 'opacity-100'}`}
+                    id={`menu-item-${item.name}`}
+                    variants={compactItemVariants}
+                    initial="normal"
+                    animate={compactMode}
+                  >
+                    {/* Menu item button */}
+                    <button
+                      onClick={() => handleMenuClick(item.name, item)}
+                      className={`flex items-center w-full rounded-xl transition-all duration-200
+                        ${isActive 
+                          ? "bg-primary-50/80 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400" 
+                          : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/60"
+                        }
+                        ${effectiveIsExpanded ? "justify-between" : "justify-center"}
+                        ${isSubMenuOpen ? "mb-1" : ""}
+                        ${isVeryCompact ? "py-1.5" : isCompact ? "py-2" : "p-3"}
+                      `}
+                    >
+                      <div className="flex items-center min-w-[42px]">
+                        <motion.div 
+                          variants={iconContainerVariants}
+                          initial="expanded"
+                          animate={effectiveIsExpanded ? "expanded" : "collapsed"}
+                          className={`flex items-center justify-center rounded-full transition-colors duration-200
+                            ${isActive 
+                              ? "bg-gradient-to-br from-primary-100 to-primary-50 dark:from-primary-900/40 dark:to-primary-900/20 shadow-sm" 
+                              : "bg-gray-50 dark:bg-gray-800/80"
+                            }
+                            ${isVeryCompact ? "scale-85" : isCompact ? "scale-90" : ""}
+                          `}
+                          style={{ 
+                            width: isVeryCompact ? "38px" : isCompact ? "40px" : ICON_CONTAINER_SIZE, 
+                            height: isVeryCompact ? "38px" : isCompact ? "40px" : ICON_CONTAINER_SIZE,
+                            minWidth: isVeryCompact ? "38px" : isCompact ? "40px" : ICON_CONTAINER_SIZE,
+                            minHeight: isVeryCompact ? "38px" : isCompact ? "40px" : ICON_CONTAINER_SIZE
+                          }}
+                        >
+                          <div className={`flex items-center justify-center text-${isActive ? 'primary-600 dark:text-primary-400' : 'gray-600 dark:text-gray-400'}`}>
+                            <div className={`${isVeryCompact ? "w-[18px] h-[18px]" : isCompact ? "w-[20px] h-[20px]" : "w-[22px] h-[22px]"} flex items-center justify-center`}>
+                              {item.icon}
+                            </div>
+                          </div>
+                        </motion.div>
+                        
+                        {effectiveIsExpanded && (
+                          <motion.span
+                            variants={itemVariants}
+                            initial="collapsed"
+                            animate="expanded"
+                            exit="collapsed"
+                            className={`ml-3 font-medium text-left line-clamp-1 whitespace-normal overflow-visible
+                              ${isVeryCompact ? "text-[12px]" : isCompact ? "text-[13px]" : "text-[14px]"}
+                            `}
+                          >
+                            {item.name}
+                          </motion.span>
+                        )}
+                      </div>
+                      
+                      {effectiveIsExpanded && hasSubItems && (
+                        <motion.div
+                          variants={chevronVariants}
+                          initial="closed"
+                          animate={isSubMenuOpen ? "open" : "closed"}
+                          className={`flex items-center justify-center rounded-full
+                            ${isVeryCompact ? "w-5 h-5 mr-0" : isCompact ? "w-6 h-6 mr-0" : "w-6 h-6 mr-1"}
+                          `}
+                        >
+                          <ChevronDown className={`${isVeryCompact ? "w-[14px] h-[14px]" : isCompact ? "w-[16px] h-[16px]" : "w-[18px] h-[18px]"} text-gray-500 dark:text-gray-400`} />
+                        </motion.div>
+                      )}
+                    </button>
+                            
+                    {/* Submenu - with improved compact style and max height */}
+                    <AnimatePresence initial={false}>
+                      {effectiveIsExpanded && isSubMenuOpen && hasSubItems && (
+                        <motion.div
+                          key={`submenu-${item.name}`}
+                          variants={submenuVariants}
+                          initial="closed"
+                          animate="open"
+                          exit="closed"
+                          className={`overflow-hidden ${isCompact ? "pl-10 pr-2" : "pl-14 pr-3"}`}
+                        >
+                          <div 
+                            className={`py-2 space-y-1 border-l-2 border-primary-100 dark:border-primary-900/30 ml-0.5 pl-2 ${
+                              hasLongSubMenu ? `max-h-[${SUBMENU_MAX_HEIGHT}px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent` : ''
+                            }`}
+                          >
+                            {item.subItems?.map((subItem, subIndex) => {
+                              const isSubItemActive = subItem.path && pathname?.startsWith(subItem.path);
+                              
+                              return (
+                                <button
+                                  key={subIndex}
+                                  onClick={() => {
+                                    if (subItem.onClick) {
+                                      subItem.onClick();
+                                    } else if (subItem.path) {
+                                      router.push(subItem.path);
+                                    }
+                                  }}
+                                  className={`flex items-center w-full text-left rounded-lg px-3 py-2 transition-all duration-200
+                                    ${isSubItemActive 
+                                      ? "bg-primary-50/60 dark:bg-primary-900/10 text-primary-600 dark:text-primary-400 font-medium" 
+                                      : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:text-gray-900 dark:hover:text-gray-200"
+                                    }`}
+                                >
+                                  <div className={`w-5 h-5 mr-2 flex-shrink-0 flex items-center justify-center ${
+                                    isSubItemActive ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-500'
+                                  }`}>
+                                    <div className="w-[18px] h-[18px] flex items-center justify-center">
+                                      {subItem.icon}
+                                    </div>
+                                  </div>
+                                  <span className="text-[13px] leading-tight whitespace-normal">{subItem.name}</span>
+                                </button>
+                              );
+                            })}
+
+                            {/* Remove "Show all" button for long submenus - let the scrollbar handle this */}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </motion.div>
+        </div>
+      </div>
       
       {/* Mobile overlay */}
       {isMobileDevice && effectiveIsExpanded && (
