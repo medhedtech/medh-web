@@ -1,5 +1,3 @@
-import { useCurrency } from '@/contexts/CurrencyContext';
-
 /**
  * Calculates the percentage discount between original and current price
  * @param originalPrice - Original price before discount
@@ -113,7 +111,4 @@ export const formatPriceWithCurrency = (
   // This is just a fallback for when the hook can't be used
   // Format with basic $ symbol if currency context not available
   return `$${price.toLocaleString()}`;
-};
-
-// Explicitly re-export the functions that are causing issues
-export { getCoursePriceValue, getMinBatchSize }; 
+}; 
