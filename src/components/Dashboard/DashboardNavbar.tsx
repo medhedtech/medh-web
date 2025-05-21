@@ -501,7 +501,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
 
   return (
     <header 
-      className={`sticky top-0 z-40 w-full 
+      className={`fixed top-0 left-0 right-0 z-50 w-full 
         ${isScrolled 
           ? 'bg-white/90 dark:bg-gray-900/90 shadow-md backdrop-blur-lg' 
           : 'bg-white dark:bg-gray-900'} 
