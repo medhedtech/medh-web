@@ -7,10 +7,12 @@ import SidebarDashboard from "@/components/sections/sub-section/dashboards/Sideb
 import ComingSoonPage from "@/components/shared/others/ComingSoonPage";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
-import DashboardNavbar from "./DashboardNavbar";
+import DashboardNavbar from "@/components/Dashboard/DashboardNavbar"; // Updated import path
+import SubNavbar from "./DashboardNavbar"; // Renamed the existing import for sub-navigation
 import LoadingIndicator from "@/components/shared/loaders/LoadingIndicator";
 import SkeletonLoader from "@/components/shared/loaders/SkeletonLoader";
 import useScreenSize from "@/hooks/useScreenSize";
+import { X, Menu, LogOut } from "lucide-react"; // Import icons for mobile menu and logout
 
 // Context for dashboard state management
 export const ParentDashboardContext = createContext<any>(null);
@@ -105,7 +107,7 @@ const containerVariants = {
     transition: {
       duration: 0.5,
       when: "beforeChildren",
-      staggerChildren: 0.1,
+      staggerChildren: 0.15,
     },
   },
   exit: { opacity: 0, transition: { duration: 0.3 } },
@@ -117,7 +119,11 @@ const sidebarVariants = {
     opacity: 1,
     transition: { 
       type: "spring", 
-      damping: 20 
+      stiffness: 190,
+      damping: 20,
+      mass: 0.7,
+      duration: 0.4,
+      bounce: 0.1
     }
   },
   closed: { 
@@ -125,16 +131,62 @@ const sidebarVariants = {
     opacity: 0,
     transition: { 
       type: "spring", 
-      damping: 20 
+      stiffness: 160,
+      damping: 28,
+      mass: 1.0,
+      duration: 0.5
     }
   }
 };
 
 const contentVariants = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -20 },
-  transition: { duration: 0.3 }
+  expanded: { 
+    opacity: 1, 
+    marginLeft: '10px',
+    transition: { 
+      type: "spring",
+      stiffness: 190,
+      damping: 25,
+      mass: 0.7,
+      duration: 0.4
+    }
+  },
+  collapsed: { 
+    opacity: 1, 
+    marginLeft: '10px',
+    transition: { 
+      type: "spring",
+      stiffness: 160,
+      damping: 30,
+      mass: 1.0,
+      duration: 0.5
+    }
+  },
+  exit: { 
+    opacity: 0, 
+    y: -20,
+    transition: { 
+      duration: 0.25 
+    }
+  }
+};
+
+// Mobile backdrop variants
+const backdropVariants = {
+  visible: {
+    opacity: 1,
+    transition: {
+      duration: 0.4,
+      ease: "easeInOut"
+    }
+  },
+  hidden: {
+    opacity: 0,
+    transition: {
+      duration: 0.3,
+      ease: "easeInOut"
+    }
+  }
 };
 
 interface SubItem {
@@ -177,7 +229,8 @@ const ParentDashboardLayout: React.FC<ParentDashboardLayoutProps> = ({
   
   // State management
   const [currentView, setCurrentView] = useState<string>("overview");
-  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(!isMobile);
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true); // Show sidebar but collapsed
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState<boolean>(false); // Always collapsed (icons only) by default
   const [isDebug, setIsDebug] = useState<boolean>(false);
   const [comingSoonTitle, setComingSoonTitle] = useState<string>("Coming Soon");
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -198,8 +251,7 @@ const ParentDashboardLayout: React.FC<ParentDashboardLayoutProps> = ({
       setCurrentView("comingsoon");
     }
     
-    // Set sidebar state based on screen size
-    setIsSidebarOpen(!isMobile);
+    // Don't change sidebar state here - keep collapsed by default
   }, [searchParams, isMobile]);
 
   // Create context value memo for performance
@@ -212,13 +264,15 @@ const ParentDashboardLayout: React.FC<ParentDashboardLayoutProps> = ({
     breakpoint,
     isSidebarOpen,
     setIsSidebarOpen,
+    isSidebarExpanded,
+    setIsSidebarExpanded,
     activeMenu,
     setActiveMenu,
     isLoading,
     setIsLoading
   }), [
     currentView, isMobile, isTablet, isDesktop, 
-    breakpoint, isSidebarOpen, activeMenu, isLoading
+    breakpoint, isSidebarOpen, isSidebarExpanded, activeMenu, isLoading
   ]);
 
   // Check if a subitem is active based on the current view
@@ -275,9 +329,19 @@ const ParentDashboardLayout: React.FC<ParentDashboardLayoutProps> = ({
     setTimeout(() => setIsLoading(false), 500);
   };
 
+  // Handle sidebar expansion state change
+  const handleSidebarExpansionChange = (expanded: boolean) => {
+    setIsSidebarExpanded(expanded);
+  };
+
   // Toggle sidebar with accessibility support
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
+    
+    if (isMobile && !isSidebarOpen) {
+      // When opening on mobile, always show expanded sidebar for better usability
+      setIsSidebarExpanded(true);
+    }
   };
 
   // Render component based on current view
@@ -409,100 +473,176 @@ const ParentDashboardLayout: React.FC<ParentDashboardLayoutProps> = ({
 
   return (
     <ParentDashboardContext.Provider value={contextValue}>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900">
         {/* Inject the CSS for hiding scrollbars */}
         <style jsx global>{hideScrollbarStyles}</style>
-        {/* Sidebar */}
-        <AnimatePresence mode="wait">
-          {isSidebarOpen && (
-            <motion.div
-              variants={sidebarVariants}
-              initial="closed"
-              animate="open"
-              exit="closed"
-              className="fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-lg"
-            >
-              <SidebarDashboard
-                userRole="parent"
-                userName={userName}
-                userEmail={userEmail}
-                userImage={userImage}
-                userNotifications={userNotifications}
-                userSettings={userSettings}
-                onMenuClick={handleMenuClick}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Mobile toggle button */}
-        <button
-          onClick={toggleSidebar}
-          className="fixed bottom-6 left-6 z-50 p-3 bg-primary-500 text-white rounded-full shadow-lg md:hidden"
-          aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
-          aria-expanded={isSidebarOpen}
-        >
-          {isSidebarOpen ? (
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          ) : (
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          )}
-        </button>
-
-        {/* Main Content */}
-        <div className={`transition-all duration-300 ${isSidebarOpen ? "md:ml-64" : ""}`}>
         
-          {/* Navbar */}
-          {subItems.length > 0 && (
-            <DashboardNavbar
-              activeMenu={activeMenu}
-              subItems={subItems}
-              onItemClick={handleSubItemClick}
-              currentView={currentView}
-              isSubItemActive={isSubItemActive}
-            />
+        {/* Top Navbar - Fixed at the top */}
+        <div className="fixed top-0 left-0 right-0 z-30">
+          <DashboardNavbar 
+            onMobileMenuToggle={toggleSidebar}
+            isScrolled={false}
+          />
+        </div>
+
+        <div className="flex mt-16 lg:mt-20"> {/* Add margin-top to account for fixed navbar */}
+          {/* Mobile Sidebar Toggle Button */}
+          {isMobile && (
+            <motion.button
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={toggleSidebar}
+              className="fixed z-50 bottom-6 right-6 p-3 rounded-full bg-primary-500 hover:bg-primary-600 text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+              aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
+              aria-expanded={isSidebarOpen}
+            >
+              {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+            </motion.button>
           )}
 
-          {/* Main Content Area */}
-          <main className="p-4 sm:p-6 lg:p-8">
-            {isDebug && (
-              <div className="mb-4 p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 rounded-lg text-xs">
-                Debug: Current View = "{currentView}" | Breakpoint = "{breakpoint}" | Loading = {isLoading ? "true" : "false"}
-              </div>
-            )}
-            
-            {/* Global loading indicator */}
-            {isLoading && (
-              <div className="fixed inset-0 bg-white/50 dark:bg-gray-900/50 z-50 flex items-center justify-center backdrop-blur-sm">
-                <LoadingIndicator 
-                  type="dots" 
-                  size="xl" 
-                  color="primary" 
-                  text="Loading..." 
-                  centered 
-                />
-              </div>
-            )}
-            
-            <AnimatePresence mode="wait">
+          {/* Sidebar */}
+          <div
+            className={`${
+              isMobile
+                ? `fixed z-20 transform ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`
+                : "sticky"
+            } top-16 lg:top-20 h-screen flex-shrink-0 bg-white dark:bg-gray-800 transition-all duration-300 shadow-md overflow-hidden`}
+            style={{ 
+              width: isMobile ? (isSidebarOpen ? '220px' : '0px') : (isSidebarExpanded ? '220px' : '68px'),
+              transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+            }}
+            onMouseEnter={() => !isMobile && handleSidebarExpansionChange(true)}
+            onMouseLeave={() => !isMobile && handleSidebarExpansionChange(false)}
+          >
+            <SidebarDashboard
+              userRole="parent"
+              userName={userName}
+              userEmail={userEmail}
+              userImage={userImage}
+              userNotifications={userNotifications}
+              userSettings={userSettings}
+              onMenuClick={handleMenuClick}
+              isOpen={isSidebarOpen}
+              onOpenChange={setIsSidebarOpen}
+              isExpanded={isSidebarExpanded}
+              onExpandedChange={handleSidebarExpansionChange}
+            />
+          </div>
+
+          {/* Mobile backdrop overlay */}
+          <AnimatePresence>
+            {isMobile && isSidebarOpen && (
               <motion.div
-                key={currentView}
-                variants={contentVariants}
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                transition={contentVariants.transition}
-                className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden"
-              >
-                {renderComponent()}
-              </motion.div>
-            </AnimatePresence>
-          </main>
+                key="backdrop"
+                initial="hidden"
+                animate="visible"
+                exit="hidden"
+                variants={backdropVariants}
+                className="fixed inset-0 bg-black/40 backdrop-blur-sm z-30"
+                onClick={() => setIsSidebarOpen(false)}
+                aria-hidden="true"
+              />
+            )}
+          </AnimatePresence>
+
+          {/* Main Content */}
+          <div 
+            className="flex-1 overflow-y-auto scroll-smooth"
+            style={useMemo(() => ({
+              marginLeft: isMobile ? '0px' : '10px',
+              width: "100%",
+              maxWidth: isSidebarExpanded ? "calc(100% - 230px)" : "calc(100% - 78px)",
+              transition: "max-width 0.4s cubic-bezier(0.4, 0, 0.2, 1), margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1)"
+            }), [isMobile, isSidebarExpanded])}
+          >
+            {/* Secondary Navbar - Only shown when sub-items are available */}
+            {subItems.length > 0 && (
+              <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-2">
+                <div className="flex flex-wrap gap-2">
+                  {subItems.map((item, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleSubItemClick(item)}
+                      className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors
+                        ${isSubItemActive(item) 
+                          ? "bg-primary-50 text-primary-600 dark:bg-primary-900/20 dark:text-primary-400" 
+                          : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700/40"}
+                      `}
+                    >
+                      <span className="flex items-center gap-1.5">
+                        {item.icon && <span className="w-4 h-4">{item.icon}</span>}
+                        {item.name}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <main className="p-4 sm:p-6 lg:p-8">
+              {isDebug && (
+                <div className="mb-4 p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 rounded-lg text-xs">
+                  Debug: Current View = "{currentView}" | Breakpoint = "{breakpoint}" | Loading = {isLoading ? "true" : "false"}
+                </div>
+              )}
+              
+              {/* Global loading indicator */}
+              <AnimatePresence>
+                {isLoading && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="fixed inset-0 bg-white/50 dark:bg-gray-900/50 z-50 flex items-center justify-center backdrop-blur-sm"
+                  >
+                    <LoadingIndicator 
+                      type="dots" 
+                      size="xl" 
+                      color="primary" 
+                      text="Loading..." 
+                      centered 
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              
+              {/* Component content with React.memo for performance */}
+              {useMemo(() => (
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={currentView}
+                    variants={contentVariants}
+                    initial={isSidebarExpanded ? "expanded" : "collapsed"}
+                    animate={isSidebarExpanded ? "expanded" : "collapsed"}
+                    exit="exit"
+                    className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden elevation-2"
+                  >
+                    {renderComponent()}
+                  </motion.div>
+                </AnimatePresence>
+              ), [currentView, isLoading, isSidebarExpanded])}
+            </main>
+          </div>
         </div>
+
+        {/* Add logout button to the bottom left */}
+        <motion.button
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={() => {
+            // Implement logout functionality here
+            router.push("/login/");
+          }}
+          className={`fixed z-40 bottom-6 ${isMobile ? 'left-6' : 'right-6'} p-3 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 dark:focus:ring-offset-gray-900`}
+          aria-label="Logout"
+        >
+          <LogOut size={20} />
+        </motion.button>
       </div>
     </ParentDashboardContext.Provider>
   );

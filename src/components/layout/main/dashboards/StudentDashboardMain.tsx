@@ -58,12 +58,12 @@ const StudentDashboardMain: React.FC = () => {
       {/* Hero greeting section */}
       <motion.div 
         variants={itemVariants}
-        className="relative bg-gradient-to-br from-primary-500/90 to-primary-700 dark:from-primary-800 dark:to-primary-900 overflow-hidden"
+        className="relative bg-gradient-to-br from-primary-500/90 to-primary-700 dark:from-primary-800 dark:to-primary-900 overflow-hidden rounded-xl"
       >
         {/* Background pattern */}
         <div className="absolute inset-0 bg-[url('/backgrounds/grid-pattern.svg')] opacity-10"></div>
         
-        <div className="container mx-auto px-4 py-8 sm:py-10 lg:py-12 sm:px-6 lg:px-8 relative z-10">
+        <div className="w-full px-4 py-8 sm:py-10 lg:py-12 sm:px-6 lg:px-8 relative z-10">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
             <div>
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2">
@@ -74,7 +74,7 @@ const StudentDashboardMain: React.FC = () => {
               </p>
             </div>
             
-            <div className="bg-white/10 backdrop-blur-md rounded-xl p-3 sm:p-4 border border-white/20 text-white mt-2 md:mt-0">
+            <div className="bg-white/10 backdrop-blur-md rounded-xl p-3 sm:p-4 border border-white/20 text-white mt-2 md:mt-0 min-w-[270px] w-[270px]">
               <div className="flex items-center gap-3">
                 <Calendar className="w-5 h-5 text-primary-200" />
                 <div>
@@ -88,7 +88,7 @@ const StudentDashboardMain: React.FC = () => {
       </motion.div>
 
       {/* Dashboard content */}
-      <div className="container mx-auto px-4 py-6 sm:py-8 sm:px-6 lg:px-8">
+      <div className="w-full py-6 sm:py-8">
         <div className="grid grid-cols-1 gap-6 sm:gap-8">
           {/* Counter Section */}
           <motion.section 

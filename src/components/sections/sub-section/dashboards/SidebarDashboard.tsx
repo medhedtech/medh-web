@@ -158,23 +158,26 @@ interface SidebarDashboardProps {
 // Sidebar animation variants
 const sidebarVariants = {
   expanded: {
-    width: '280px', // Increased from 245px to accommodate longer text
+    width: '220px', // Reduced from 280px to make transition more subtle
     transition: {
       type: 'spring',
-      stiffness: 170,
-      damping: 22,
-      mass: 0.8,
-      duration: 0.4
+      stiffness: 190,
+      damping: 20,
+      mass: 0.7,
+      duration: 0.4,
+      bounce: 0.1,
+      restSpeed: 0.001
     }
   },
   collapsed: {
     width: '68px',
     transition: {
       type: 'spring',
-      stiffness: 150,  // Lower stiffness for slower animation
-      damping: 30,     // Higher damping for smoother motion
-      mass: 1.2,       // Higher mass for slower movement
-      duration: 0.6    // Longer duration for closing
+      stiffness: 160,  // Lower stiffness for slower animation
+      damping: 28,     // Higher damping for smoother motion
+      mass: 1.0,       // Balanced mass for natural movement
+      duration: 0.5,   // Slightly shorter duration for better feel
+      restSpeed: 0.001
     }
   }
 };
@@ -186,16 +189,16 @@ const itemVariants = {
     x: 0,
     display: "block",
     transition: {
-      duration: 0.18,
-      ease: [0.4, 0.0, 0.2, 1],
+      duration: 0.22,
+      ease: [0.3, 0.0, 0.2, 1],
       display: { delay: 0 }
     }
   },
   collapsed: {
     opacity: 0,
-    x: -8,
+    x: -12,
     transition: {
-      duration: 0.3,  // Slower fade out
+      duration: 0.25,  // Slightly faster fade out for better timing with sidebar
       ease: [0.4, 0.0, 0.2, 1]
     },
     transitionEnd: {
@@ -213,8 +216,8 @@ const compactItemVariants = {
     opacity: 1,
     scale: 1,
     transition: {
-      duration: 0.3,
-      ease: [0.4, 0.0, 0.2, 1]
+      duration: 0.35,
+      ease: [0.2, 0.0, 0.2, 1]
     }
   },
   compact: {
@@ -224,8 +227,8 @@ const compactItemVariants = {
     opacity: 0.8,
     scale: 0.95,
     transition: {
-      duration: 0.3,
-      ease: [0.4, 0.0, 0.2, 1]
+      duration: 0.35,
+      ease: [0.2, 0.0, 0.2, 1]
     }
   },
   veryCompact: {
@@ -235,8 +238,8 @@ const compactItemVariants = {
     opacity: 0.7,
     scale: 0.92,
     transition: {
-      duration: 0.3,
-      ease: [0.4, 0.0, 0.2, 1]
+      duration: 0.35,
+      ease: [0.2, 0.0, 0.2, 1]
     }
   }
 };
@@ -247,16 +250,16 @@ const headerIconVariants = {
     rotate: 0,
     scale: 1,
     transition: {
-      duration: 0.3,
-      ease: [0.4, 0.0, 0.2, 1]
+      duration: 0.4,
+      ease: "easeInOut"
     }
   },
   collapsed: {
     rotate: 360,
     scale: 1.2,
     transition: {
-      duration: 0.5,
-      ease: [0.4, 0.0, 0.2, 1]
+      duration: 0.6,
+      ease: "easeInOut"
     }
   }
 };
@@ -266,6 +269,7 @@ const iconContainerVariants = {
   expanded: {
     width: '44px',
     height: '44px',
+    scale: 1,
     transition: {
       duration: 0.3,
       ease: "easeInOut"
@@ -274,6 +278,7 @@ const iconContainerVariants = {
   collapsed: {
     width: '44px',
     height: '44px',
+    scale: 1.05,
     transition: {
       duration: 0.3,
       ease: "easeInOut"
@@ -288,8 +293,8 @@ const chevronVariants = {
     opacity: 1,
     scale: 1.1,
     transition: {
-      duration: 0.3,
-      ease: [0.4, 0.0, 0.2, 1]
+      duration: 0.4,
+      ease: "easeInOut"
     }
   },
   closed: {
@@ -298,7 +303,7 @@ const chevronVariants = {
     scale: 1,
     transition: {
       duration: 0.3,
-      ease: [0.4, 0.0, 0.2, 1]
+      ease: "easeInOut"
     }
   }
 };
@@ -310,11 +315,11 @@ const activeIconVariants = {
     rotate: 0
   },
   active: {
-    scale: 1.05,
+    scale: 1.08,
     rotate: 360,
     transition: {
-      rotate: { duration: 0.7, ease: "easeInOut" },
-      scale: { duration: 0.3 }
+      rotate: { duration: 0.8, ease: "easeInOut" },
+      scale: { duration: 0.4, ease: "easeOut" }
     }
   }
 };
@@ -327,11 +332,11 @@ const submenuVariants = {
     transition: {
       height: {
         duration: 0.5,
-        ease: [0.4, 0.0, 0.2, 1]
+        ease: [0.2, 0.0, 0.2, 1]
       },
       opacity: {
-        duration: 0.35,
-        ease: [0.4, 0.0, 0.2, 1]
+        duration: 0.4,
+        ease: [0.2, 0.0, 0.2, 1]
       }
     }
   },
@@ -357,14 +362,20 @@ const containerVariants = {
     paddingLeft: '14px',
     paddingRight: '14px',
     transition: {
-      duration: 0.3  // Slower expansion
+      type: 'spring',
+      stiffness: 170,
+      damping: 26,
+      duration: 0.35
     }
   },
   collapsed: {
     paddingLeft: '8px',
     paddingRight: '8px',
     transition: {
-      duration: 0.4  // Slower collapse
+      type: 'spring',
+      stiffness: 170,
+      damping: 26,
+      duration: 0.35
     }
   }
 };
@@ -427,7 +438,8 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
     const checkMobile = () => {
       const isMobile = window.innerWidth < 1024;
       setIsMobileDevice(isMobile);
-      setIsExpanded(!isMobile);
+      // Don't auto-expand sidebar on any device - always start collapsed
+      // This ensures consistent behavior across all dashboard layouts
     };
     
     checkMobile();
@@ -542,7 +554,11 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
     if (typeof propIsExpanded !== 'undefined') {
       setIsExpanded(propIsExpanded);
     }
-  }, [propIsExpanded]);
+    // On first mount, always start with collapsed sidebar regardless of screen size
+    else if (!mounted) {
+      setIsExpanded(false);
+    }
+  }, [propIsExpanded, mounted]);
   
   // Setup scroll event listener for the sidebar navigation
   useEffect(() => {
@@ -1236,49 +1252,49 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
       >
         {/* Minimal header - Sticky */}
         <div className="pt-5 pb-3 px-2 border-b border-gray-100 dark:border-gray-800 sticky top-0 bg-white dark:bg-gray-900 z-10">
-          <div className="h-12 flex items-center justify-center">
-            <AnimatePresence mode="wait">
-              {effectiveIsExpanded ? (
-                <motion.span 
-                  key="expanded-title"
-                  initial={{ opacity: 0, y: -5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -5 }}
-                  transition={{ duration: 0.2, ease: "easeOut" }}
-                  className="text-sm font-medium bg-gradient-to-r from-primary-500 to-violet-500 bg-clip-text text-transparent"
-                >
+        <div className="h-12 flex items-center justify-center">
+          <AnimatePresence mode="wait">
+            {effectiveIsExpanded ? (
+              <motion.span 
+                key="expanded-title"
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                className="text-sm font-medium bg-gradient-to-r from-primary-500 to-violet-500 bg-clip-text text-transparent"
+              >
                   {userRole.charAt(0).toUpperCase() + userRole.slice(1)} Dashboard
-                </motion.span>
-              ) : (
-                <motion.div 
-                  key="collapsed-icon"
-                  variants={headerIconVariants}
-                  initial="expanded"
-                  animate="collapsed"
-                  exit="expanded"
-                  className="flex items-center justify-center w-11 h-11 rounded-full bg-gradient-to-br from-primary-100 to-violet-100 dark:from-primary-900/30 dark:to-violet-900/30 shadow-sm"
-                >
-                  <LayoutDashboard className="w-[22px] h-[22px] text-primary-600 dark:text-primary-400" />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+              </motion.span>
+            ) : (
+              <motion.div 
+                key="collapsed-icon"
+                variants={headerIconVariants}
+                initial="expanded"
+                animate="collapsed"
+                exit="expanded"
+                className="flex items-center justify-center w-11 h-11 rounded-full bg-gradient-to-br from-primary-100 to-violet-100 dark:from-primary-900/30 dark:to-violet-900/30 shadow-sm"
+              >
+                <LayoutDashboard className="w-[22px] h-[22px] text-primary-600 dark:text-primary-400" />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
-        
+      </div>
+      
         {/* Main navigation area */}
         <div className="flex-1">
-          <motion.div 
+      <motion.div 
             ref={sidebarNavRef}
-            variants={containerVariants}
+        variants={containerVariants}
             className="py-2"
             onScroll={updateScrollIndicators}
           >
             <div className="py-2 space-y-1"> {/* Increased from space-y-0.5 to space-y-1 for better spacing */}
               {/* Menu items rendering (unchanged) */}
               {menuItems.map((item, index) => {
-                const isActive = isMenuActive(item);
-                const hasSubItems = item.subItems && item.subItems.length > 0;
-                const isSubMenuOpen = openSubMenu === item.name;
+            const isActive = isMenuActive(item);
+                    const hasSubItems = item.subItems && item.subItems.length > 0;
+            const isSubMenuOpen = openSubMenu === item.name;
                 const hasLongSubMenu = hasSubItems && item.subItems!.length > 5;
                 
                 // Enhanced compaction logic
@@ -1295,8 +1311,8 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
                 const compactMode = getCompactMode();
                 const isVeryCompact = compactMode === "veryCompact";
                 const isCompact = compactMode === "compact";
-                      
-                return (
+                    
+                    return (
                   <motion.div 
                     key={index} 
                     className={`select-none px-2 ${isCompact || isVeryCompact ? 'opacity-80' : 'opacity-100'}`}
@@ -1306,82 +1322,82 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
                     animate={compactMode}
                   >
                     {/* Menu item button */}
-                    <button
-                      onClick={() => handleMenuClick(item.name, item)}
+                        <button
+                  onClick={() => handleMenuClick(item.name, item)}
                       className={`flex items-center w-full rounded-xl transition-all duration-200
-                        ${isActive 
-                          ? "bg-primary-50/80 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400" 
-                          : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/60"
-                        }
-                        ${effectiveIsExpanded ? "justify-between" : "justify-center"}
-                        ${isSubMenuOpen ? "mb-1" : ""}
+                    ${isActive 
+                      ? "bg-primary-50/80 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400" 
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/60"
+                    }
+                    ${effectiveIsExpanded ? "justify-between" : "justify-center"}
+                    ${isSubMenuOpen ? "mb-1" : ""}
                         ${isVeryCompact ? "py-1.5" : isCompact ? "py-2" : "p-3"}
-                      `}
-                    >
-                      <div className="flex items-center min-w-[42px]">
-                        <motion.div 
-                          variants={iconContainerVariants}
-                          initial="expanded"
-                          animate={effectiveIsExpanded ? "expanded" : "collapsed"}
-                          className={`flex items-center justify-center rounded-full transition-colors duration-200
-                            ${isActive 
-                              ? "bg-gradient-to-br from-primary-100 to-primary-50 dark:from-primary-900/40 dark:to-primary-900/20 shadow-sm" 
-                              : "bg-gray-50 dark:bg-gray-800/80"
+                  `}
+                >
+                  <div className="flex items-center min-w-[42px]">
+                    <motion.div 
+                      variants={iconContainerVariants}
+                      initial="expanded"
+                      animate={effectiveIsExpanded ? "expanded" : "collapsed"}
+                      className={`flex items-center justify-center rounded-full transition-colors duration-200
+                        ${isActive 
+                          ? "bg-gradient-to-br from-primary-100 to-primary-50 dark:from-primary-900/40 dark:to-primary-900/20 shadow-sm" 
+                          : "bg-gray-50 dark:bg-gray-800/80"
                             }
                             ${isVeryCompact ? "scale-85" : isCompact ? "scale-90" : ""}
                           `}
-                          style={{ 
+                      style={{ 
                             width: isVeryCompact ? "38px" : isCompact ? "40px" : ICON_CONTAINER_SIZE, 
                             height: isVeryCompact ? "38px" : isCompact ? "40px" : ICON_CONTAINER_SIZE,
                             minWidth: isVeryCompact ? "38px" : isCompact ? "40px" : ICON_CONTAINER_SIZE,
                             minHeight: isVeryCompact ? "38px" : isCompact ? "40px" : ICON_CONTAINER_SIZE
-                          }}
-                        >
-                          <div className={`flex items-center justify-center text-${isActive ? 'primary-600 dark:text-primary-400' : 'gray-600 dark:text-gray-400'}`}>
+                      }}
+                    >
+                      <div className={`flex items-center justify-center text-${isActive ? 'primary-600 dark:text-primary-400' : 'gray-600 dark:text-gray-400'}`}>
                             <div className={`${isVeryCompact ? "w-[18px] h-[18px]" : isCompact ? "w-[20px] h-[20px]" : "w-[22px] h-[22px]"} flex items-center justify-center`}>
                               {item.icon}
-                            </div>
                           </div>
-                        </motion.div>
-                        
-                        {effectiveIsExpanded && (
-                          <motion.span
-                            variants={itemVariants}
-                            initial="collapsed"
-                            animate="expanded"
-                            exit="collapsed"
+                      </div>
+                    </motion.div>
+                    
+                    {effectiveIsExpanded && (
+                      <motion.span
+                        variants={itemVariants}
+                        initial="collapsed"
+                        animate="expanded"
+                        exit="collapsed"
                             className={`ml-3 font-medium text-left line-clamp-1 whitespace-normal overflow-visible
                               ${isVeryCompact ? "text-[12px]" : isCompact ? "text-[13px]" : "text-[14px]"}
                             `}
-                          >
-                            {item.name}
-                          </motion.span>
-                        )}
-                      </div>
-                      
-                      {effectiveIsExpanded && hasSubItems && (
-                        <motion.div
-                          variants={chevronVariants}
-                          initial="closed"
-                          animate={isSubMenuOpen ? "open" : "closed"}
+                      >
+                        {item.name}
+                      </motion.span>
+                    )}
+                  </div>
+                  
+                  {effectiveIsExpanded && hasSubItems && (
+                    <motion.div
+                      variants={chevronVariants}
+                      initial="closed"
+                      animate={isSubMenuOpen ? "open" : "closed"}
                           className={`flex items-center justify-center rounded-full
                             ${isVeryCompact ? "w-5 h-5 mr-0" : isCompact ? "w-6 h-6 mr-0" : "w-6 h-6 mr-1"}
                           `}
-                        >
+                    >
                           <ChevronDown className={`${isVeryCompact ? "w-[14px] h-[14px]" : isCompact ? "w-[16px] h-[16px]" : "w-[18px] h-[18px]"} text-gray-500 dark:text-gray-400`} />
-                        </motion.div>
-                      )}
-                    </button>
-                            
+                    </motion.div>
+                          )}
+                        </button>
+                        
                     {/* Submenu - with improved compact style and max height */}
-                    <AnimatePresence initial={false}>
-                      {effectiveIsExpanded && isSubMenuOpen && hasSubItems && (
-                        <motion.div
-                          key={`submenu-${item.name}`}
-                          variants={submenuVariants}
-                          initial="closed"
-                          animate="open"
-                          exit="closed"
+                <AnimatePresence initial={false}>
+                  {effectiveIsExpanded && isSubMenuOpen && hasSubItems && (
+                            <motion.div
+                      key={`submenu-${item.name}`}
+                      variants={submenuVariants}
+                      initial="closed"
+                      animate="open"
+                      exit="closed"
                           className={`overflow-hidden ${isCompact ? "pl-10 pr-2" : "pl-14 pr-3"}`}
                         >
                           <div 
@@ -1389,47 +1405,47 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
                               hasLongSubMenu ? `max-h-[${SUBMENU_MAX_HEIGHT}px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent` : ''
                             }`}
                           >
-                            {item.subItems?.map((subItem, subIndex) => {
-                              const isSubItemActive = subItem.path && pathname?.startsWith(subItem.path);
-                              
-                              return (
-                                <button
-                                  key={subIndex}
-                                  onClick={() => {
-                                    if (subItem.onClick) {
-                                      subItem.onClick();
-                                    } else if (subItem.path) {
-                                      router.push(subItem.path);
-                                    }
-                                  }}
+                        {item.subItems?.map((subItem, subIndex) => {
+                          const isSubItemActive = subItem.path && pathname?.startsWith(subItem.path);
+                          
+                          return (
+                                  <button
+                              key={subIndex}
+                              onClick={() => {
+                                if (subItem.onClick) {
+                                  subItem.onClick();
+                                } else if (subItem.path) {
+                                  router.push(subItem.path);
+                                }
+                              }}
                                   className={`flex items-center w-full text-left rounded-lg px-3 py-2 transition-all duration-200
-                                    ${isSubItemActive 
-                                      ? "bg-primary-50/60 dark:bg-primary-900/10 text-primary-600 dark:text-primary-400 font-medium" 
-                                      : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:text-gray-900 dark:hover:text-gray-200"
-                                    }`}
-                                >
+                                ${isSubItemActive 
+                                  ? "bg-primary-50/60 dark:bg-primary-900/10 text-primary-600 dark:text-primary-400 font-medium" 
+                                  : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:text-gray-900 dark:hover:text-gray-200"
+                                }`}
+                            >
                                   <div className={`w-5 h-5 mr-2 flex-shrink-0 flex items-center justify-center ${
-                                    isSubItemActive ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-500'
-                                  }`}>
+                                isSubItemActive ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-500'
+                              }`}>
                                     <div className="w-[18px] h-[18px] flex items-center justify-center">
                                       {subItem.icon}
-                                    </div>
-                                  </div>
+                                </div>
+                              </div>
                                   <span className="text-[13px] leading-tight whitespace-normal">{subItem.name}</span>
-                                </button>
-                              );
-                            })}
+                                  </button>
+                          );
+                        })}
 
                             {/* Remove "Show all" button for long submenus - let the scrollbar handle this */}
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                   </motion.div>
-                );
-              })}
-            </div>
-          </motion.div>
+                    );
+                  })}
+                </div>
+      </motion.div>
         </div>
       </div>
       
@@ -1439,7 +1455,10 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.4 }}
+          transition={{ 
+            duration: 0.4,
+            ease: "easeInOut"
+          }}
           className="fixed inset-0 bg-black/30 backdrop-blur-sm z-10"
           onClick={() => handleExpandedChange(false)}
         />

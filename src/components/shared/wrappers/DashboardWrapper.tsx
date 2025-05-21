@@ -14,17 +14,18 @@ interface DashboardContextType {
   setActiveMenu: (menu: string | null) => void;
 }
 
-export const DashboardContext = createContext<DashboardContextType>({
+// Create the context with default values
+const DashboardContext = createContext<DashboardContextType>({
   currentView: "overview",
   setCurrentView: () => {},
   isMobile: false,
-  sidebarOpen: true,
+  sidebarOpen: false, // Default to false (closed)
   setSidebarOpen: () => {},
   activeMenu: null,
   setActiveMenu: () => {}
 });
 
-// Custom hook to use dashboard context
+// Hook to use dashboard context
 export const useDashboard = () => useContext(DashboardContext);
 
 interface DashboardWrapperProps {
@@ -35,7 +36,7 @@ const DashboardWrapper: React.FC<DashboardWrapperProps> = ({ children }) => {
   // State management
   const [currentView, setCurrentView] = useState<string>("overview");
   const [isMobile, setIsMobile] = useState<boolean>(false);
-  const [sidebarOpen, setSidebarOpen] = useState<boolean>(true);
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(false); // Initialize as closed
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
   // Check for mobile screens and apply view from URL hash if present
@@ -43,7 +44,8 @@ const DashboardWrapper: React.FC<DashboardWrapperProps> = ({ children }) => {
     const checkMobileScreen = () => {
       const mobile = window.innerWidth < 1024;
       setIsMobile(mobile);
-      setSidebarOpen(!mobile);
+      // Don't auto-open sidebar on resize
+      // Keep sidebar closed regardless of screen size
     };
 
     // Initial check
