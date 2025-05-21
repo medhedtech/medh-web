@@ -158,7 +158,7 @@ interface SidebarDashboardProps {
 // Sidebar animation variants
 const sidebarVariants = {
   expanded: {
-    width: '220px', // Reduced from 280px to make transition more subtle
+    width: '260px', // Increased from 220px to provide more space
     transition: {
       type: 'spring',
       stiffness: 190,
@@ -170,7 +170,7 @@ const sidebarVariants = {
     }
   },
   collapsed: {
-    width: '68px',
+    width: '78px', // Increased from 68px to provide more space for icons
     transition: {
       type: 'spring',
       stiffness: 160,  // Lower stiffness for slower animation
