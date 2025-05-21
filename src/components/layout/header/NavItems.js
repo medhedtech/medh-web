@@ -18,7 +18,7 @@ const NavItems = () => {
     },
     {
       id: 2,
-      name: "Shop",
+      name: "Store",
       path: "/shop",
       dropdown: null,
       isRelative: false,
@@ -54,8 +54,8 @@ const NavItems = () => {
   ];
 
   return (
-    <div className="hidden lg:block lg:col-start-3 lg:col-span-7">
-      <ul className="nav-list flex justify-end">
+    <div className="flex justify-center w-full">
+      <ul className="nav-list flex items-center justify-center gap-1">
         {navItems.map((navItem, idx) => (
           <Navitem key={idx} idx={idx} navItem={{ ...navItem, idx: idx }}>
             {navItem.dropdown}
