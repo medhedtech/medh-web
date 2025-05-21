@@ -33,27 +33,34 @@ const MobileMenuItems = () => {
     },
     {
       id: 2,
+      name: "Shop",
+      path: "/shop",
+      accordion: null,
+      isRelative: false,
+    },
+    {
+      id: 3,
       name: "Corporate Training",
       path: "/corporate-training-courses",
       accordion: null, // No dropdown for direct links
       isRelative: false,
     },
     {
-      id: 3,
+      id: 4,
       name: "Hire From Medh",
       path: "/hire-from-medh",
       accordion: null,
       isRelative: true,
     },
     {
-      id: 4,
+      id: 5,
       name: "Blog",
       path: "/blogs",
       accordion: null,
       isRelative: true,
     },
     {
-      id: 5,
+      id: 6,
       name: "More",
       path: "", // Empty path as in desktop
       accordion: "accordion",
