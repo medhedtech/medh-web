@@ -510,7 +510,7 @@ const ParentDashboardLayout: React.FC<ParentDashboardLayoutProps> = ({
                 : "sticky"
             } top-16 lg:top-20 h-screen flex-shrink-0 bg-white dark:bg-gray-800 transition-all duration-300 shadow-md overflow-hidden`}
             style={{ 
-              width: isMobile ? (isSidebarOpen ? '220px' : '0px') : (isSidebarExpanded ? '220px' : '68px'),
+              width: isMobile ? (isSidebarOpen ? '260px' : '0px') : (isSidebarExpanded ? '260px' : '78px'),
               transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
             }}
             onMouseEnter={() => !isMobile && handleSidebarExpansionChange(true)}
