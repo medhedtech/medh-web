@@ -233,23 +233,25 @@ const contentVariants = {
   expanded: { 
     opacity: 1, 
     y: 0, 
-    marginLeft: '245px',
+    marginLeft: '10px',
     transition: { 
       type: "spring",
-      stiffness: 150,
-      damping: 20,
-      duration: 0.3 
+      stiffness: 190,
+      damping: 25,
+      mass: 0.7,
+      duration: 0.4
     }
   },
   collapsed: { 
     opacity: 1, 
     y: 0, 
-    marginLeft: '68px',
+    marginLeft: '10px',
     transition: { 
       type: "spring",
-      stiffness: 150,
-      damping: 20,
-      duration: 0.3 
+      stiffness: 160,
+      damping: 30,
+      mass: 1.0,
+      duration: 0.5
     }
   },
   exit: { 
@@ -457,8 +459,8 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
   
   // State for managing content
   const [currentView, setCurrentView] = useState<string>("overview");
-  const [sidebarOpen, setSidebarOpen] = useState<boolean>(!isMobile);
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState<boolean>(!isMobile);
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(true); // Show sidebar but collapsed
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState<boolean>(false); // Always collapsed (icons only) by default
   const [isDebug, setIsDebug] = useState<boolean>(false);
   const [comingSoonTitle, setComingSoonTitle] = useState<string>("Coming Soon");
   const [componentProps, setComponentProps] = useState<any>({});
@@ -536,9 +538,9 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
       }
     }
     
-    // Set sidebar state based on screen size
-    setSidebarOpen(!isMobile);
-    setIsSidebarExpanded(!isMobile);
+    // Keep sidebar closed by default, regardless of screen size
+    // Don't update sidebarOpen state here
+    setIsSidebarExpanded(false); // Always start with collapsed sidebar
   }, [searchParams, isMobile]);
 
   // Create context value memo for performance
@@ -1213,7 +1215,13 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
           {/* Sidebar - fixed position */}
           <div 
             className={`${isMobile ? 'fixed z-40' : 'fixed lg:relative'} h-full top-16 lg:top-20`}
-            style={{ height: isMobile ? 'calc(100% - 70px)' : 'calc(100vh - 80px)' }}
+            style={{ 
+              height: isMobile ? 'calc(100% - 70px)' : 'calc(100vh - 80px)',
+              width: isMobile ? 'auto' : isSidebarExpanded ? '220px' : '68px',
+              transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+            }}
+            onMouseEnter={() => !isMobile && handleSidebarExpansionChange(true)}
+            onMouseLeave={() => !isMobile && handleSidebarExpansionChange(false)}
           >
             <SidebarDashboard
               userRole={userRole || "admin"}
@@ -1255,9 +1263,10 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
             ref={contentRef}
             className="flex-1 overflow-y-auto scroll-smooth"
             style={{
-              marginLeft: isMobile ? '0px' : isSidebarExpanded ? '245px' : '68px',
+              marginLeft: isMobile ? '0px' : '10px',
               width: "100%",
-              transition: "margin-left 0.3s ease"
+              maxWidth: isSidebarExpanded ? "calc(100% - 230px)" : "calc(100% - 78px)",
+              transition: "max-width 0.4s cubic-bezier(0.4, 0, 0.2, 1)"
             }}
           >
             {/* Content with proper padding */}
