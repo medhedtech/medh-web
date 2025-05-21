@@ -72,7 +72,7 @@ const ParentDashboardMain: React.FC = () => {
               </p>
             </div>
             
-            <div className="bg-white/10 backdrop-blur-md rounded-xl p-3 sm:p-4 border border-white/20 text-white mt-2 md:mt-0">
+            <div className="bg-white/10 backdrop-blur-md rounded-xl p-3 sm:p-4 border border-white/20 text-white mt-2 md:mt-0 min-w-[270px] w-[270px]">
               <div className="flex items-center gap-3">
                 <Calendar className="w-5 h-5 text-primary-200" />
                 <div>
