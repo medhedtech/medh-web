@@ -1,15 +1,16 @@
 "use client";
-import React, { useState, useEffect, createContext, useContext, useMemo, useCallback } from "react";
+import React, { useState, useEffect, createContext, useContext, useMemo, useCallback, useRef } from "react";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import SidebarDashboard from "@/components/sections/sub-section/dashboards/SidebarDashboard";
-import DashboardNavbar from "@/components/sections/dashboards/DashboardNavbar";
+import DashboardNavbar from "@/components/Dashboard/DashboardNavbar";
 import ComingSoonPage from "@/components/shared/others/ComingSoonPage";
 import { useSearchParams } from "next/navigation";
 import LoadingIndicator from "@/components/shared/loaders/LoadingIndicator";
 import SkeletonLoader from "@/components/shared/loaders/SkeletonLoader";
 import useScreenSize from "@/hooks/useScreenSize";
 import AdminNotifications from "@/components/layout/main/dashboards/AdminNotifications";
+import Cookies from 'js-cookie';
 
 import { 
   LayoutDashboard, 
@@ -27,7 +28,10 @@ import {
   Building,
   MessageCircle,
   FileText,
-  DollarSign
+  DollarSign,
+  LogOut,
+  X,
+  Menu
 } from "lucide-react";
 
 // Context for dashboard state management
@@ -224,30 +228,53 @@ const containerVariants = {
   exit: { opacity: 0, transition: { duration: 0.3 } },
 };
 
-const sidebarVariants = {
-  open: { 
-    x: 0, 
-    opacity: 1,
+// Updated content variants with offset for sidebar
+const contentVariants = {
+  expanded: { 
+    opacity: 1, 
+    y: 0, 
+    marginLeft: '245px',
     transition: { 
-      type: "spring", 
-      damping: 20 
+      type: "spring",
+      stiffness: 150,
+      damping: 20,
+      duration: 0.3 
     }
   },
-  closed: { 
-    x: -300, 
-    opacity: 0,
+  collapsed: { 
+    opacity: 1, 
+    y: 0, 
+    marginLeft: '68px',
     transition: { 
-      type: "spring", 
-      damping: 20 
+      type: "spring",
+      stiffness: 150,
+      damping: 20,
+      duration: 0.3 
+    }
+  },
+  exit: { 
+    opacity: 0, 
+    y: -20,
+    transition: { 
+      duration: 0.2 
     }
   }
 };
 
-const contentVariants = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -20 },
-  transition: { duration: 0.3 }
+// Mobile backdrop variants
+const backdropVariants = {
+  visible: {
+    opacity: 1,
+    transition: {
+      duration: 0.3
+    }
+  },
+  hidden: {
+    opacity: 0,
+    transition: {
+      duration: 0.3
+    }
+  }
 };
 
 // Define SubItem interface to match SidebarDashboard
@@ -426,10 +453,12 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
   
   // Use screen size hook for responsive design
   const { isMobile, isTablet, isDesktop, current: breakpoint } = useScreenSize();
+  const contentRef = useRef<HTMLDivElement>(null);
   
   // State for managing content
   const [currentView, setCurrentView] = useState<string>("overview");
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(!isMobile);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState<boolean>(!isMobile);
   const [isDebug, setIsDebug] = useState<boolean>(false);
   const [comingSoonTitle, setComingSoonTitle] = useState<string>("Coming Soon");
   const [componentProps, setComponentProps] = useState<any>({});
@@ -437,6 +466,7 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
   const [activeSubItems, setActiveSubItems] = useState<SubItem[]>(propActiveSubItems || []);
   const [userName, setUserName] = useState<string>("Admin User");
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [contentPadding, setContentPadding] = useState<string>("0px");
 
   // Use effect to sync with props if they change
   useEffect(() => {
@@ -447,6 +477,13 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
       setActiveSubItems(propActiveSubItems);
     }
   }, [propActiveMenu, propActiveSubItems]);
+
+  // Handle content padding adjustment based on sidebar state
+  useEffect(() => {
+    // If sidebar is open but not expanded (in collapsed icon-only mode) or closed
+    const basePadding = isMobile ? "0px" : isSidebarExpanded ? "245px" : "68px";
+    setContentPadding(basePadding);
+  }, [isSidebarExpanded, sidebarOpen, isMobile]);
 
   // Check if device is mobile and handle coming soon params
   useEffect(() => {
@@ -501,6 +538,7 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
     
     // Set sidebar state based on screen size
     setSidebarOpen(!isMobile);
+    setIsSidebarExpanded(!isMobile);
   }, [searchParams, isMobile]);
 
   // Create context value memo for performance
@@ -511,8 +549,10 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
     isTablet,
     isDesktop,
     breakpoint,
-    sidebarOpen: sidebarOpen,
+    sidebarOpen,
     setSidebarOpen,
+    isSidebarExpanded,
+    setIsSidebarExpanded,
     activeMenu,
     setActiveMenu,
     isLoading,
@@ -521,7 +561,7 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
     setComponentProps
   }), [
     currentView, isMobile, isTablet, isDesktop, breakpoint, 
-    sidebarOpen, activeMenu, isLoading, componentProps
+    sidebarOpen, isSidebarExpanded, activeMenu, isLoading, componentProps
   ]);
 
   // Listen for hash changes
@@ -553,6 +593,112 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
       window.removeEventListener('hashchange', handleHashChange);
     };
   }, []);
+
+  // Check if a sub-item is active
+  const isSubItemActive = (subItem: SubItem): boolean => {
+    if (!currentView) return false;
+    
+    // If the item has an onClick that sets a specific view, check if current view matches
+    const normalizedCurrentView = currentView.toLowerCase();
+    
+    // Special case for specific views from onClick handlers
+    if (normalizedCurrentView === "overview" && subItem.name === "Overview") {
+      return true;
+    }
+    
+    if (normalizedCurrentView === "admin-course-categories" && subItem.name === "Course Categories") {
+      return true;
+    }
+    
+    if (normalizedCurrentView === "add-course" && subItem.name === "Create New Course") {
+      return true;
+    }
+    
+    if (normalizedCurrentView === "admin-listofcourse" && subItem.name === "Edit/Archive Courses") {
+      return true;
+    }
+    
+    // Check for path match
+    if (subItem.path) {
+      const pathParts = subItem.path.split('/');
+      const viewFromPath = pathParts[pathParts.length - 1];
+      return normalizedCurrentView === viewFromPath.toLowerCase();
+    }
+    
+    return false;
+  };
+
+  // Toggle sidebar with accessibility support
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+    if (isMobile && !sidebarOpen) {
+      // When opening on mobile, always show expanded sidebar for better usability
+      setIsSidebarExpanded(true);
+    }
+  };
+
+  // Handle logout
+  const handleLogout = () => {
+    try {
+      // Clear localStorage items
+      const keysToRemove = [
+        "userId", 
+        "token", 
+        "fullName", 
+        "full_name", 
+        "role", 
+        "permissions",
+        "email",
+        "password",
+        "rememberMe"
+      ];
+      
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+      
+      // Clear cookies
+      Cookies.remove("token");
+      Cookies.remove("userId");
+      
+      // Redirect to login
+      window.location.href = "/login";
+    } catch (error) {
+      console.error("Error during logout:", error);
+      // If error, still try to redirect
+      window.location.href = "/login";
+    }
+  };
+
+  // Handle sidebar expansion state change
+  const handleSidebarExpansionChange = (expanded: boolean) => {
+    setIsSidebarExpanded(expanded);
+  };
+
+  // Handle sub-item click from the navbar
+  const handleSubItemClick = (subItem: SubItem) => {
+    if (subItem.comingSoon) {
+      setComingSoonTitle(subItem.name);
+      setCurrentView("comingsoon");
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    if (subItem.onClick) {
+      subItem.onClick();
+    } else if (subItem.path) {
+      // Extract view name from path
+      const pathParts = subItem.path.split('/');
+      const viewFromPath = pathParts[pathParts.length - 1];
+      setCurrentView(viewFromPath);
+    }
+    
+    if (isMobile) {
+      setSidebarOpen(false);
+    }
+    
+    // Simulate loading time
+    setTimeout(() => setIsLoading(false), 500);
+  };
 
   // Define predefined admin sidebar navigation items
   // These will be available for both the sidebar and navbar to use
@@ -915,72 +1061,6 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
     setTimeout(() => setIsLoading(false), 500);
   };
 
-  // Handle sub-item click from the navbar
-  const handleSubItemClick = (subItem: SubItem) => {
-    if (subItem.comingSoon) {
-      setComingSoonTitle(subItem.name);
-      setCurrentView("comingsoon");
-      return;
-    }
-    
-    setIsLoading(true);
-    
-    if (subItem.onClick) {
-      subItem.onClick();
-    } else if (subItem.path) {
-      // Extract view name from path
-      const pathParts = subItem.path.split('/');
-      const viewFromPath = pathParts[pathParts.length - 1];
-      setCurrentView(viewFromPath);
-    }
-    
-    if (isMobile) {
-      setSidebarOpen(false);
-    }
-    
-    // Simulate loading time
-    setTimeout(() => setIsLoading(false), 500);
-  };
-
-  // Check if a sub-item is active
-  const isSubItemActive = (subItem: SubItem): boolean => {
-    if (!currentView) return false;
-    
-    // If the item has an onClick that sets a specific view, check if current view matches
-    const normalizedCurrentView = currentView.toLowerCase();
-    
-    // Special case for specific views from onClick handlers
-    if (normalizedCurrentView === "overview" && subItem.name === "Overview") {
-      return true;
-    }
-    
-    if (normalizedCurrentView === "admin-course-categories" && subItem.name === "Course Categories") {
-      return true;
-    }
-    
-    if (normalizedCurrentView === "add-course" && subItem.name === "Create New Course") {
-      return true;
-    }
-    
-    if (normalizedCurrentView === "admin-listofcourse" && subItem.name === "Edit/Archive Courses") {
-      return true;
-    }
-    
-    // Check for path match
-    if (subItem.path) {
-      const pathParts = subItem.path.split('/');
-      const viewFromPath = pathParts[pathParts.length - 1];
-      return normalizedCurrentView === viewFromPath.toLowerCase();
-    }
-    
-    return false;
-  };
-
-  // Toggle sidebar with accessibility support
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
-
   // Check if the current view matches any of the given patterns
   const viewMatches = (patterns: string[]): boolean => {
     if (!currentView) return false;
@@ -1121,120 +1201,149 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
 
   return (
     <AdminDashboardContext.Provider value={contextValue}>
-      <div className="flex h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
-        {/* Mobile Sidebar Toggle - Keep it fixed relative to viewport */}
+      <div className="relative bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col pt-16 lg:pt-20">
+        {/* Dashboard Navbar - positioned at the top, full width */}
+        <DashboardNavbar 
+          onMobileMenuToggle={toggleSidebar}
+          isScrolled={false}
+        />
+        
+        {/* Main layout with sidebar and content */}
+        <div className="flex flex-1 relative">
+          {/* Sidebar - fixed position */}
+          <div 
+            className={`${isMobile ? 'fixed z-40' : 'fixed lg:relative'} h-full top-16 lg:top-20`}
+            style={{ height: isMobile ? 'calc(100% - 70px)' : 'calc(100vh - 80px)' }}
+          >
+            <SidebarDashboard
+              userRole={userRole || "admin"}
+              fullName={userName}
+              userEmail=""
+              userImage=""
+              userNotifications={0}
+              userSettings={{
+                theme: "light",
+                language: "en",
+                notifications: true
+              }}
+              onMenuClick={handleMenuSelect}
+              isOpen={sidebarOpen}
+              onOpenChange={setSidebarOpen}
+              isExpanded={isSidebarExpanded}
+              onExpandedChange={handleSidebarExpansionChange}
+            />
+          </div>
+
+          {/* Mobile backdrop overlay */}
+          <AnimatePresence>
+            {isMobile && sidebarOpen && (
+              <motion.div
+                key="backdrop"
+                initial="hidden"
+                animate="visible"
+                exit="hidden"
+                variants={backdropVariants}
+                className="fixed inset-0 bg-black/40 backdrop-blur-sm z-30"
+                onClick={() => setSidebarOpen(false)}
+                aria-hidden="true"
+              />
+            )}
+          </AnimatePresence>
+
+          {/* Main Content Area - only this should scroll */}
+          <div 
+            ref={contentRef}
+            className="flex-1 overflow-y-auto scroll-smooth"
+            style={{
+              marginLeft: isMobile ? '0px' : isSidebarExpanded ? '245px' : '68px',
+              width: "100%",
+              transition: "margin-left 0.3s ease"
+            }}
+          >
+            {/* Content with proper padding */}
+            <div className="p-4 md:p-6">
+              {/* Debug info */}
+              {isDebug && (
+                <div className="mb-4 p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 rounded-lg text-xs">
+                  Debug: Current View = "{currentView}" | Breakpoint = "{breakpoint}" | 
+                  Sidebar Open = {sidebarOpen ? "true" : "false"} | 
+                  Sidebar Expanded = {isSidebarExpanded ? "true" : "false"} |
+                  Loading = {isLoading ? "true" : "false"}
+                  <div className="mt-1">Active Menu = "{activeMenu}"</div>
+                  <div className="mt-1">Subitems Count = {activeSubItems?.length || 0}</div>
+                  {Object.keys(componentProps).length > 0 && (
+                    <span className="block mt-1">
+                      Props: {JSON.stringify(componentProps)}
+                    </span>
+                  )}
+                </div>
+              )}
+              
+              {/* Global loading indicator */}
+              <AnimatePresence>
+                {isLoading && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="fixed inset-0 bg-white/50 dark:bg-gray-900/50 z-50 flex items-center justify-center backdrop-blur-sm"
+                  >
+                    <LoadingIndicator 
+                      type="dots" 
+                      size="xl" 
+                      color="primary" 
+                      text="Loading..." 
+                      centered 
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentView}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                  className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden elevation-2"
+                >
+                  {children ? children : renderComponent()}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Sidebar Toggle Button */}
         {isMobile && (
-          <button
+          <motion.button
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.8, opacity: 0 }}
+            whileTap={{ scale: 0.9 }}
             onClick={toggleSidebar}
-            className="fixed z-30 bottom-6 right-6 p-4 rounded-full bg-primary-500 text-white shadow-lg"
+            className="fixed z-50 bottom-6 right-6 p-3 rounded-full bg-primary-500 hover:bg-primary-600 text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
             aria-label={sidebarOpen ? "Close sidebar" : "Open sidebar"}
             aria-expanded={sidebarOpen}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              {sidebarOpen ? (
-                <path d="M18 6L6 18M6 6l12 12" />
-              ) : (
-                <path d="M4 12h16M4 6h16M4 18h16" />
-              )}
-            </svg>
-          </button>
+            {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
+          </motion.button>
         )}
-
-        {/* Sidebar - Make it sticky and prevent its own scroll */}
-        <div
-          className={`${
-            isMobile
-              ? `fixed z-20 transform ${
-                  sidebarOpen ? "translate-x-0" : "-translate-x-full"
-                }`
-              : "sticky"
-          } top-0 h-screen flex-shrink-0 w-[280px] bg-white dark:bg-gray-800 transition-transform duration-300 shadow-md overflow-hidden`}
+        
+        {/* Add logout button to the bottom right */}
+        <motion.button
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={handleLogout}
+          className={`fixed z-40 bottom-6 ${isMobile ? 'left-6' : 'right-6'} p-3 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 dark:focus:ring-offset-gray-900`}
+          aria-label="Logout"
         >
-          <SidebarDashboard
-            userRole={userRole || "admin"}
-            fullName={userName}
-            userEmail=""
-            userImage=""
-            userNotifications={0}
-            userSettings={{
-              theme: "light",
-              language: "en",
-              notifications: true
-            }}
-            onMenuClick={handleMenuSelect}
-          />
-        </div>
-
-        {/* Main Content Area - Make this scrollable */}
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          exit="exit"
-          className="flex-1 overflow-y-auto"
-        >
-          {/* Dashboard Navbar */}
-          {activeSubItems && activeSubItems.length > 0 && (
-            <DashboardNavbar
-              activeMenu={activeMenu}
-              subItems={activeSubItems}
-              onItemClick={handleSubItemClick}
-              currentView={currentView}
-              isSubItemActive={isSubItemActive}
-            />
-          )}
-
-          <div className="p-6">
-            {isDebug && (
-              <div className="mb-4 p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 rounded-lg text-xs">
-                Debug: Current View = "{currentView}" | Breakpoint = "{breakpoint}" | Loading = {isLoading ? "true" : "false"}
-                <div className="mt-1">Active Menu = "{activeMenu}"</div>
-                <div className="mt-1">Subitems Count = {activeSubItems?.length || 0}</div>
-                {Object.keys(componentProps).length > 0 && (
-                  <span className="block mt-1">
-                    Props: {JSON.stringify(componentProps)}
-                  </span>
-                )}
-              </div>
-            )}
-            
-            {/* Global loading indicator */}
-            {isLoading && (
-              <div className="fixed inset-0 bg-white/50 dark:bg-gray-900/50 z-50 flex items-center justify-center backdrop-blur-sm">
-                <LoadingIndicator 
-                  type="dots" 
-                  size="xl" 
-                  color="primary" 
-                  text="Loading..." 
-                  centered 
-                />
-              </div>
-            )}
-            
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentView}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-                className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden"
-              >
-                {children ? children : renderComponent()}
-              </motion.div>
-            </AnimatePresence>
-          </div>
-        </motion.div>
+          <LogOut size={20} />
+        </motion.button>
       </div>
     </AdminDashboardContext.Provider>
   );
