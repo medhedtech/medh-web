@@ -185,7 +185,7 @@ const contentVariants = {
   expanded: { 
     opacity: 1, 
     y: 0, 
-    marginLeft: 0,
+    marginLeft: '245px',
     transition: { 
       type: "spring",
       stiffness: 150,
@@ -196,7 +196,7 @@ const contentVariants = {
   collapsed: { 
     opacity: 1, 
     y: 0, 
-    marginLeft: 0,
+    marginLeft: '68px',
     transition: { 
       type: "spring",
       stiffness: 150,
@@ -591,7 +591,7 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
 
   return (
     <DashboardContext.Provider value={contextValue}>
-      <div className="relative bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col">
+      <div className="relative bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col pt-16 lg:pt-20">
         {/* Global styles */}
         <style jsx global>{dashboardStyles}</style>
         <style jsx global>{loadingIndicatorStyles}</style>
@@ -606,8 +606,8 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
         <div className="flex flex-1 relative">
           {/* Sidebar - fixed position but no internal scrolling */}
           <div 
-            className={`${isMobile ? 'fixed z-40' : 'fixed lg:relative'} h-full`}
-            style={{ height: isMobile ? '100%' : '100vh' }}
+            className={`${isMobile ? 'fixed z-40' : 'fixed lg:relative'} h-full top-16 lg:top-20`}
+            style={{ height: isMobile ? 'calc(100% - 70px)' : 'calc(100vh - 80px)' }}
           >
             <SidebarDashboard
               userRole={userRole}
@@ -641,16 +641,12 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
           </AnimatePresence>
 
           {/* Main Content Area - only this should scroll */}
-          <motion.div
-            ref={contentRef}
-            variants={contentVariants}
-            initial="collapsed"
-            animate={isSidebarExpanded ? "expanded" : "collapsed"}
-            exit="exit"
-            className="flex-1 overflow-y-auto transition-all duration-300 ease-out scroll-smooth"
+          <div 
+            className="flex-1 overflow-y-auto scroll-smooth"
             style={{
-              marginLeft: isMobile ? 0 : isSidebarExpanded ? '245px' : '68px',
-              width: "100%"
+              marginLeft: isMobile ? '0px' : isSidebarExpanded ? '245px' : '68px',
+              width: "100%",
+              transition: "margin-left 0.3s ease"
             }}
           >
             {/* Content with proper padding */}
@@ -699,7 +695,7 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
                 </motion.div>
               </AnimatePresence>
             </div>
-          </motion.div>
+          </div>
         </div>
 
         {/* Mobile Sidebar Toggle Button */}
