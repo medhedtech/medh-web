@@ -8,6 +8,7 @@ import useIsTrue from "@/hooks/useIsTrue";
 import NavbarTop from "./NavbarTop";
 import { useState, useEffect, useRef, useCallback } from "react";
 import NavbarSearch from "@/components/shared/search/NavbarSearch";
+import { Search } from "lucide-react";
 
 /**
  * Modern navigation component with enhanced styling and interactions
@@ -35,6 +36,7 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => 
   // Refs
   const lastScrollY = useRef(0);
   const navbarRef = useRef(null);
+  const searchRef = useRef(null);
 
   // Mobile detection using both resize observer and props
   useEffect(() => {
@@ -85,6 +87,25 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => 
     };
   }, [handleScroll, scrollProgress]);
 
+  // Toggle search functionality
+  const toggleSearch = useCallback(() => {
+    setIsSearchActive(!isSearchActive);
+  }, [isSearchActive]);
+
+  // Handle clicks outside search to close it
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setIsSearchActive(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   // Determine container class based on page type
   const containerClass = (() => {
     if (isHome1 || isHome1Dark || isHome4 || isHome4Dark || isHome5 || isHome5Dark) {
@@ -130,58 +151,148 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => 
   const isSearchPage = pathname?.startsWith('/search');
 
   return (
-    <div 
-      ref={navbarRef}
-      className={navbarAppearanceClass}
-      style={{
-        transition: 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease'
-      }}
-    >
-      <nav className="relative w-full flex justify-center">
-        <div className={`${containerClass} mx-auto px-3 sm:px-5`}>
-          {/* Top Navigation for specific pages */}
-          {(isHome4 || isHome4Dark || isHome5 || isHome5Dark) && <NavbarTop />}
+    <>
+      <style jsx global>{`
+        @keyframes searchAppear {
+          0% {
+            opacity: 0;
+            transform: translateX(10px) scale(0.95);
+          }
+          40% {
+            opacity: 0.7;
+          }
+          100% {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+          }
+        }
+        
+        @keyframes pulse {
+          0% {
+            box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.2);
+          }
+          70% {
+            box-shadow: 0 0 0 6px rgba(79, 70, 229, 0);
+          }
+          100% {
+            box-shadow: 0 0 0 0 rgba(79, 70, 229, 0);
+          }
+        }
+        
+        @keyframes highlightFade {
+          0% {
+            background-color: rgba(79, 70, 229, 0.1);
+          }
+          100% {
+            background-color: rgba(79, 70, 229, 0);
+          }
+        }
+        
+        .nav-search-active {
+          animation: searchAppear 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        
+        .pulse-focus:focus {
+          animation: pulse 2s infinite;
+        }
+        
+        .highlight-fade {
+          animation: highlightFade 1.5s ease-out forwards;
+        }
+      `}</style>
+      <div 
+        ref={navbarRef}
+        className={navbarAppearanceClass}
+        style={{
+          transition: 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease'
+        }}
+      >
+        <nav className="relative w-full flex justify-center">
+          <div className={`${containerClass} mx-auto px-3 sm:px-5`}>
+            {/* Top Navigation for specific pages */}
+            {(isHome4 || isHome4Dark || isHome5 || isHome5Dark) && <NavbarTop />}
 
-          {/* Main Navigation with enhanced spacing and hover effects */}
-          <div className={`flex items-center justify-between transition-all duration-300 ${navbarHeightClass}`}>
-            {/* Logo section with improved styling */}
-            {!isSearchActive && (
+            {/* Main Navigation with enhanced spacing and hover effects */}
+            <div className={`flex items-center justify-between transition-all duration-300 ${navbarHeightClass}`}>
+              {/* Logo section with improved styling */}
               <div className="flex-shrink-0 mr-3 lg:mr-8 transition-transform duration-300 hover:scale-105">
                 <NavbarLogo isScrolled={isScrolled} />
               </div>
-            )}
 
-            {/* Center section with modern glass effect on hover */}
-            <div className="hidden lg:flex flex-1 items-center justify-center max-w-6xl mx-auto">
-              {!isSearchActive ? (
-                <div className="flex-1 px-3 lg:px-5 flex items-center justify-between">
-                  <div className="transition-all duration-300 transform flex-grow max-w-2xl xl:max-w-3xl pr-4 xl:pr-6">
-                    {isHome2Dark ? <NavItems2 /> : <NavItems />}
-                  </div>
-                  <div className="ml-4 xl:ml-8 flex-shrink-0 transition-transform duration-300 hover:scale-105">
-                    <NavbarSearch 
-                      isScrolled={isScrolled} 
-                      setIsSearchActive={setIsSearchActive}
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div className="w-full max-w-2xl xl:max-w-3xl px-4 lg:px-5 py-2">
-                  <NavbarSearch 
-                    isScrolled={isScrolled} 
-                    setIsSearchActive={setIsSearchActive}
-                  />
-                </div>
-              )}
-            </div>
+              {/* Center section with navigation - now centered */}
+              <div 
+                className={`hidden lg:flex flex-grow justify-center transition-all duration-500 ease-out ${
+                  isSearchActive 
+                    ? 'transform -translate-x-14 opacity-90' 
+                    : 'transform translate-x-0 opacity-100'
+                }`}
+                style={{
+                  transitionTimingFunction: isSearchActive 
+                    ? 'cubic-bezier(0.34, 1.56, 0.64, 1)' 
+                    : 'cubic-bezier(0.16, 1, 0.3, 1)'
+                }}
+              >
+                <NavItems />
+              </div>
 
-            {/* Right section with enhanced styling and hover effects */}
-            {!isSearchActive && (
+              {/* Right section with search icon and profile */}
               <div className="flex items-center space-x-3 sm:space-x-4 lg:space-x-5">
-                <div className="flex-shrink-0 transition-transform duration-300 hover:scale-105">
+                {/* Search icon with inline search bar */}
+                <div 
+                  ref={searchRef}
+                  className="relative hidden lg:flex items-center"
+                >
+                  {!isSearchActive ? (
+                    <button 
+                      className="p-2.5 rounded-full text-gray-600 dark:text-gray-300 hover:text-primary-500 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300 hover:scale-105 active:scale-95"
+                      aria-label="Search"
+                      onClick={toggleSearch}
+                    >
+                      <Search size={22} />
+                    </button>
+                  ) : (
+                    <div 
+                      className="flex-1 w-[280px] transition-all duration-400 ease-out opacity-100 scale-100 transform nav-search-active"
+                    >
+                      <div className="flex items-center">
+                        <div className="flex-1">
+                          <NavbarSearch 
+                            isScrolled={isScrolled}
+                            setIsSearchActive={setIsSearchActive}
+                          />
+                        </div>
+                        <button
+                          onClick={() => setIsSearchActive(false)}
+                          className="ml-2 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 transition-all duration-300 hover:rotate-90 hover:text-primary-500"
+                          aria-label="Close search"
+                          style={{
+                            transitionDelay: '0.05s'
+                          }}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                {/* NavbarRight component */}
+                <div 
+                  className={`flex-shrink-0 transition-all duration-500 ${
+                    isSearchActive ? 'transform translate-x-2' : ''
+                  }`}
+                  style={{
+                    transitionDelay: isSearchActive ? '0.1s' : '0s',
+                    transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)'
+                  }}
+                >
                   <NavbarRight isScrolled={isScrolled} />
                 </div>
-                {/* Mobile menu button with modern styling */}
+                
+                {/* Mobile menu button */}
                 {typeof onMobileMenuOpen === 'function' && (
                   <button
                     type="button"
@@ -200,11 +311,11 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => 
                   </button>
                 )}
               </div>
-            )}
+            </div>
           </div>
-        </div>
-      </nav>
-    </div>
+        </nav>
+      </div>
+    </>
   );
 };
 
