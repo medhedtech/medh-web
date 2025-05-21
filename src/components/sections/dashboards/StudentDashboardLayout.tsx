@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useContext, createContext, useMemo, useRef } from "react";
+import React, { useState, useEffect, useContext, createContext, useMemo, useCallback, useRef } from "react";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -372,19 +372,26 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
 
   // Menu handlers
   const handleMenuClick = (menuName: string, items: SubItem[]) => {
-    setIsLoading(true);
-    setCurrentView(menuName);
-    setActiveMenu(menuName);
-    setSubItems(items);
+    // Only trigger loading when actually changing views
+    if (menuName !== currentView) {
+      setIsLoading(true);
+      setCurrentView(menuName);
+      setActiveMenu(menuName);
+      setSubItems(items);
+      
+      // Simulate network delay and then stop loading
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 600);
+    } else {
+      // Just update subItems without loading if it's the same view
+      setActiveMenu(menuName);
+      setSubItems(items);
+    }
     
     if (isMobile) {
       setIsSidebarOpen(false);
     }
-    
-    // Simulate network delay and then stop loading
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 600);
   };
 
   const handleSubItemClick = (subItem: SubItem) => {
@@ -428,11 +435,23 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
   };
 
   // Handle sidebar expansion state change
-  const handleSidebarExpansionChange = (expanded: boolean) => {
+  const handleSidebarExpansionChange = useCallback((expanded: boolean) => {
+    // Only update the expansion state without affecting any content state
     setIsSidebarExpanded(expanded);
+    // Avoid triggering any re-renders of content
+  }, []);
+
+  // Toggle sidebar handler with accessibility support
+  const toggleSidebar = () => {
+    // Don't set any loading state, just toggle the sidebar
+    setIsSidebarOpen(!isSidebarOpen);
+    if (isMobile && !isSidebarOpen) {
+      // When opening on mobile, always show expanded sidebar for better usability
+      setIsSidebarExpanded(true);
+    }
   };
 
-  // Component renderer with error boundary
+  // Component renderer with error boundary - without re-rendering on sidebar toggle
   const DashboardComponent = () => {
     if (isLoading) {
       return (
@@ -447,7 +466,7 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
         </div>
       );
     }
-    
+
     if (currentView === "comingsoon") {
       return (
         <ComingSoonPage 
@@ -549,15 +568,6 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
     }
   };
 
-  // Toggle sidebar handler with accessibility support
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-    if (isMobile && !isSidebarOpen) {
-      // When opening on mobile, always show expanded sidebar for better usability
-      setIsSidebarExpanded(true);
-    }
-  };
-
   // Handle logout
   const handleLogout = () => {
     try {
@@ -643,11 +653,11 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
           {/* Main Content Area - only this should scroll */}
           <div 
             className="flex-1 overflow-y-auto scroll-smooth"
-            style={{
+            style={useMemo(() => ({
               marginLeft: isMobile ? '0px' : isSidebarExpanded ? '245px' : '68px',
               width: "100%",
               transition: "margin-left 0.3s ease"
-            }}
+            }), [isMobile, isSidebarExpanded])}
           >
             {/* Content with proper padding */}
             <div className="p-4 md:p-6">
@@ -682,18 +692,12 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
                 )}
               </AnimatePresence>
               
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={currentView}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.3 }}
-                  className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden elevation-2"
-                >
+              {/* Using React.memo to prevent content from re-rendering when sidebar changes */}
+              {useMemo(() => (
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden elevation-2">
                   <DashboardComponent />
-                </motion.div>
-              </AnimatePresence>
+                </div>
+              ), [currentView, isLoading])}
             </div>
           </div>
         </div>
