@@ -16,10 +16,11 @@ const NavbarSearch = ({
   isScrolled, 
   smallScreen = false, 
   isImmersiveInMobileMenu = false,
-  onMobileMenuClose
+  onMobileMenuClose,
+  setIsSearchActive
 }) => {
   const [query, setQuery] = useState("");
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true); // Default to expanded for inline mode
   const [isImmersive, setIsImmersive] = useState(false);
   const [recentSearches, setRecentSearches] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -27,6 +28,7 @@ const NavbarSearch = ({
   const inputRef = useRef(null);
   const searchContainerRef = useRef(null);
   const router = useRouter();
+  const isInlineSearch = typeof setIsSearchActive === 'function';
 
   // Load recent searches from localStorage
   useEffect(() => {
@@ -85,23 +87,31 @@ const NavbarSearch = ({
         if (isImmersiveInMobileMenu && typeof onMobileMenuClose === 'function') {
           onMobileMenuClose();
         }
+
+        // Close inline search if in navbar inline mode
+        if (isInlineSearch) {
+          setIsSearchActive(false);
+        }
       }, 300);
     }
-  }, [query, router, saveToHistory, isImmersiveInMobileMenu, onMobileMenuClose]);
+  }, [query, router, saveToHistory, isImmersiveInMobileMenu, onMobileMenuClose, isInlineSearch, setIsSearchActive]);
   
   // Clear search and collapse on mobile when ESC key is pressed
   const handleKeyDown = useCallback((e) => {
     if (e.key === "Escape") {
       setQuery("");
       setHasFocus(false);
-      if (smallScreen) {
+      
+      if (isInlineSearch) {
+        setIsSearchActive(false);
+      } else if (smallScreen) {
         setIsExpanded(false);
         setIsImmersive(false);
       }
     } else if (e.key === "Enter" && query.trim()) {
       handleSearch(e);
     }
-  }, [smallScreen, query, handleSearch]);
+  }, [smallScreen, query, handleSearch, isInlineSearch, setIsSearchActive]);
   
   // Handle selection of a recent search
   const selectRecentSearch = useCallback((searchTerm) => {
@@ -110,7 +120,12 @@ const NavbarSearch = ({
     setIsExpanded(false);
     setIsImmersive(false);
     setHasFocus(false);
-  }, [router]);
+    
+    // Close inline search if in navbar inline mode
+    if (isInlineSearch) {
+      setIsSearchActive(false);
+    }
+  }, [router, isInlineSearch, setIsSearchActive]);
   
   // Open the immersive search experience
   const openImmersiveSearch = useCallback(() => {
@@ -143,8 +158,13 @@ const NavbarSearch = ({
     // After the animation finishes, collapse the regular expanded mode
     setTimeout(() => {
       setIsExpanded(false);
+      
+      // Close inline search if in navbar inline mode
+      if (isInlineSearch) {
+        setIsSearchActive(false);
+      }
     }, 300);
-  }, []);
+  }, [isInlineSearch, setIsSearchActive]);
   
   // Clean up body class when component unmounts
   useEffect(() => {
@@ -186,10 +206,17 @@ const NavbarSearch = ({
     }
   }, [isImmersiveInMobileMenu]);
 
+  // Auto-focus the input on mount for inline search
+  useEffect(() => {
+    if (isInlineSearch && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isInlineSearch]);
+
   return (
     <>
       {/* Backdrop for immersive mode - only show when not in mobile menu */}
-      {isImmersive && !isImmersiveInMobileMenu && (
+      {isImmersive && !isImmersiveInMobileMenu && !isInlineSearch && (
         <div 
           className="fixed inset-0 bg-black/80 backdrop-blur-md z-40 transition-opacity duration-300"
           onClick={closeSearch}
@@ -200,14 +227,15 @@ const NavbarSearch = ({
         ref={searchContainerRef}
         className={`
           relative 
-          ${smallScreen && !isImmersiveInMobileMenu ? "flex-grow-0 flex items-center justify-center" : "w-full max-w-xs"} 
-          ${isImmersive && !isImmersiveInMobileMenu ? "z-50" : ""}
-          ${smallScreen && !isImmersiveInMobileMenu ? "static" : ""}
+          ${isInlineSearch ? "w-full" : ""}
+          ${smallScreen && !isImmersiveInMobileMenu && !isInlineSearch ? "flex-grow-0 flex items-center justify-center" : "w-full max-w-xs"} 
+          ${isImmersive && !isImmersiveInMobileMenu && !isInlineSearch ? "z-50" : ""}
+          ${smallScreen && !isImmersiveInMobileMenu && !isInlineSearch ? "static" : ""}
           ${isImmersiveInMobileMenu ? "w-full" : ""}
         `}
       >
         {/* Mobile search icon (only visible when collapsed and not in mobile menu) */}
-        {smallScreen && !isExpanded && !isImmersiveInMobileMenu && (
+        {smallScreen && !isExpanded && !isImmersiveInMobileMenu && !isInlineSearch && (
           <button
             onClick={openImmersiveSearch}
             className="p-2.5 text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
@@ -221,22 +249,24 @@ const NavbarSearch = ({
         <form 
           onSubmit={handleSearch}
           className={`
-            ${smallScreen && !isExpanded && !isImmersiveInMobileMenu ? "hidden" : "flex"}
-            ${smallScreen && isExpanded && !isImmersiveInMobileMenu ? "absolute" : ""}
-            ${isImmersive && !isImmersiveInMobileMenu ? "fixed left-0 right-0 top-24 mx-auto max-w-md px-4 z-50" : "right-0 left-0 z-20"}
+            ${isInlineSearch ? "flex w-full" : ""}
+            ${smallScreen && !isExpanded && !isImmersiveInMobileMenu && !isInlineSearch ? "hidden" : "flex"}
+            ${smallScreen && isExpanded && !isImmersiveInMobileMenu && !isInlineSearch ? "absolute" : ""}
+            ${isImmersive && !isImmersiveInMobileMenu && !isInlineSearch ? "fixed left-0 right-0 top-24 mx-auto max-w-md px-4 z-50" : "right-0 left-0 z-20"}
             ${isImmersiveInMobileMenu ? "w-full" : ""}
             items-center transition-all duration-300 ease-in-out
-            ${!isImmersive && smallScreen && isExpanded && !isImmersiveInMobileMenu ? "w-[calc(100vw-32px)] mx-auto max-w-md px-4" : ""}
+            ${!isImmersive && smallScreen && isExpanded && !isImmersiveInMobileMenu && !isInlineSearch ? "w-[calc(100vw-32px)] mx-auto max-w-md px-4" : ""}
           `}
           style={{ 
-            transform: isImmersive && !isImmersiveInMobileMenu ? 'translateY(0)' : '',
+            transform: isImmersive && !isImmersiveInMobileMenu && !isInlineSearch ? 'translateY(0)' : '',
             transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
           }}
         >
           <div className={`
             relative w-full 
-            ${isScrolled && !isImmersive && !isImmersiveInMobileMenu ? "h-9" : "h-10"}
-            ${isImmersive && !isImmersiveInMobileMenu ? "h-14" : ""}
+            ${isInlineSearch ? "h-10" : ""}
+            ${isScrolled && !isImmersive && !isImmersiveInMobileMenu && !isInlineSearch ? "h-9" : "h-10"}
+            ${isImmersive && !isImmersiveInMobileMenu && !isInlineSearch ? "h-14" : ""}
             ${isImmersiveInMobileMenu ? "h-12" : ""}
             transition-all duration-300
           `}>
@@ -247,17 +277,17 @@ const NavbarSearch = ({
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
               onFocus={() => setHasFocus(true)}
-              placeholder={isImmersive ? "What do you want to learn?" : "Search..."}
+              placeholder={isInlineSearch ? "Type to search..." : isImmersive ? "What do you want to learn?" : "Search..."}
               suppressHydrationWarning
               className={`
                 w-full h-full pl-10 pr-8
-                ${isScrolled && !isImmersive ? "text-sm" : "text-base"}
-                ${isImmersive ? "text-lg shadow-xl" : ""}
-                ${isImmersiveInMobileMenu ? "rounded-lg" : "rounded-full"}
-                bg-gray-100 dark:bg-gray-800 border-0
+                ${isInlineSearch ? "text-sm rounded-lg shadow-sm bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 pulse-focus highlight-fade" : "bg-gray-100 dark:bg-gray-800 border-0"}
+                ${isScrolled && !isImmersive && !isInlineSearch ? "text-sm" : "text-base"}
+                ${isImmersive && !isInlineSearch ? "text-lg shadow-xl" : ""}
+                ${isImmersiveInMobileMenu || isInlineSearch ? "rounded-lg" : "rounded-full"}
                 focus:ring-2 focus:ring-primary-500
                 dark:text-white dark:placeholder-gray-400
-                transition-all duration-200
+                transition-all duration-300
               `}
               aria-label="Search"
             />
@@ -267,7 +297,11 @@ const NavbarSearch = ({
               {isLoading ? (
                 <Loader2 size={isImmersive ? 22 : 18} className="text-primary-500 dark:text-primary-400 animate-spin" />
               ) : (
-                <Search size={isImmersive ? 22 : 18} className="text-gray-500 dark:text-gray-400" />
+                <Search size={isImmersive ? 22 : 18} className={`
+                  text-gray-500 dark:text-gray-400
+                  transition-all duration-300
+                  ${hasFocus ? 'text-primary-500 dark:text-primary-400 scale-110' : ''}
+                `} />
               )}
             </div>
             
@@ -287,7 +321,7 @@ const NavbarSearch = ({
             )}
             
             {/* Recent searches dropdown - don't show in mobile menu */}
-            {hasFocus && recentSearches.length > 0 && !isImmersiveInMobileMenu && (
+            {hasFocus && recentSearches.length > 0 && !isImmersiveInMobileMenu && !isInlineSearch && (
               <div className={`
                 absolute top-full left-0 right-0 mt-2
                 bg-white dark:bg-gray-900 
@@ -323,7 +357,7 @@ const NavbarSearch = ({
           </div>
           
           {/* Controls container for better spacing - Don't show in mobile menu */}
-          {!isImmersiveInMobileMenu && (
+          {!isImmersiveInMobileMenu && !isInlineSearch && (
             <div className="flex gap-2 ml-2">
               {/* Close button */}
               {(smallScreen && isExpanded) && (
@@ -344,7 +378,7 @@ const NavbarSearch = ({
               )}
               
               {/* Search button */}
-              {smallScreen && isExpanded && query.trim() && (
+              {smallScreen && isExpanded && query.trim() && !isInlineSearch && (
                 <button
                   type="submit"
                   className={`
@@ -363,7 +397,7 @@ const NavbarSearch = ({
           )}
           
           {/* Submit button for mobile menu mode */}
-          {isImmersiveInMobileMenu && query.trim() && (
+          {isImmersiveInMobileMenu && query.trim() && !isInlineSearch && (
             <button
               type="submit"
               className="absolute inset-y-0 right-0 px-3 flex items-center text-primary-600 dark:text-primary-400"
@@ -375,7 +409,7 @@ const NavbarSearch = ({
         </form>
         
         {/* Search tips (only in immersive mode and not in mobile menu) */}
-        {isImmersive && !isImmersiveInMobileMenu && (
+        {isImmersive && !isImmersiveInMobileMenu && !isInlineSearch && (
           <div className="fixed left-0 right-0 top-[35%] text-center text-white z-50 px-6">
             <p className="text-sm opacity-90 mb-4 font-medium">Try searching for:</p>
             <div className="flex flex-wrap justify-center gap-3 max-w-md mx-auto">
@@ -396,7 +430,7 @@ const NavbarSearch = ({
         )}
 
         {/* Recent searches in mobile menu (simplified) */}
-        {isImmersiveInMobileMenu && recentSearches.length > 0 && (
+        {isImmersiveInMobileMenu && recentSearches.length > 0 && !isInlineSearch && (
           <div className="mt-3">
             <div className="flex items-center justify-between mb-2 px-1">
               <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
