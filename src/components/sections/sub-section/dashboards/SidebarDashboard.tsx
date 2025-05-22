@@ -158,7 +158,7 @@ interface SidebarDashboardProps {
 // Sidebar animation variants
 const sidebarVariants = {
   expanded: {
-    width: '220px', // Reduced from 280px to make transition more subtle
+    width: '260px', // Increased from 220px to provide more space
     transition: {
       type: 'spring',
       stiffness: 190,
@@ -170,7 +170,7 @@ const sidebarVariants = {
     }
   },
   collapsed: {
-    width: '68px',
+    width: '78px', // Increased from 68px to provide more space for icons
     transition: {
       type: 'spring',
       stiffness: 160,  // Lower stiffness for slower animation
@@ -1398,11 +1398,11 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
                       initial="closed"
                       animate="open"
                       exit="closed"
-                          className={`overflow-hidden ${isCompact ? "pl-10 pr-2" : "pl-14 pr-3"}`}
+                          className="overflow-hidden px-2 mt-2"
                         >
                           <div 
-                            className={`py-2 space-y-1 border-l-2 border-primary-100 dark:border-primary-900/30 ml-0.5 pl-2 ${
-                              hasLongSubMenu ? `max-h-[${SUBMENU_MAX_HEIGHT}px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent` : ''
+                            className={`py-3 space-y-1.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-800 shadow-md ${
+                              hasLongSubMenu ? `max-h-[${SUBMENU_MAX_HEIGHT}px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent` : ''
                             }`}
                           >
                         {item.subItems?.map((subItem, subIndex) => {
@@ -1418,25 +1418,23 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
                                   router.push(subItem.path);
                                 }
                               }}
-                                  className={`flex items-center w-full text-left rounded-lg px-3 py-2 transition-all duration-200
+                                  className={`flex items-center w-full text-left rounded-lg px-4 py-2.5 transition-all duration-200
                                 ${isSubItemActive 
-                                  ? "bg-primary-50/60 dark:bg-primary-900/10 text-primary-600 dark:text-primary-400 font-medium" 
-                                  : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:text-gray-900 dark:hover:text-gray-200"
+                                  ? "bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 font-medium" 
+                                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100"
                                 }`}
                             >
-                                  <div className={`w-5 h-5 mr-2 flex-shrink-0 flex items-center justify-center ${
-                                isSubItemActive ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-500'
+                                  <div className={`w-5 h-5 mr-2.5 flex-shrink-0 flex items-center justify-center ${
+                                isSubItemActive ? 'text-primary-600 dark:text-primary-300' : 'text-gray-600 dark:text-gray-400'
                               }`}>
                                     <div className="w-[18px] h-[18px] flex items-center justify-center">
                                       {subItem.icon}
                                 </div>
                               </div>
-                                  <span className="text-[13px] leading-tight whitespace-normal">{subItem.name}</span>
+                                  <span className="text-[13px] font-medium leading-tight whitespace-normal">{subItem.name}</span>
                                   </button>
                           );
                         })}
-
-                            {/* Remove "Show all" button for long submenus - let the scrollbar handle this */}
                               </div>
                             </motion.div>
                           )}
