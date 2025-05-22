@@ -15,7 +15,6 @@ import {
   Globe,
   Settings
 } from 'lucide-react';
-import { useCurrency } from '@/contexts/CurrencyContext';
 
 const AdminCurrency = () => {
   // Get currency data from context
