@@ -84,7 +84,7 @@ const HeroMobile: React.FC<IHeroMobileProps> = ({ isLoaded, featuredCourses, loa
 
         {/* Tagline moved above CTA buttons */}
         <div className="mt-6 mb-4 text-center">
-          <h3 className="mumkinMedh text-transparent bg-clip-text bg-gradient-to-r from-primary-600 via-purple-600 to-secondary-600 dark:from-primary-400 dark:via-purple-400 dark:to-secondary-400 text-lg font-semibold animate-text-shimmer">
+          <h3 className="mumkinMedh">
             Medh Hain Toh Mumkin Hain!
           </h3>
         </div>
@@ -332,9 +332,9 @@ const Hero1: React.FC<IHero1Props> = ({ isCompact = false }) => {
                   </div>
               </div>
               <div className="motto-container relative mt-6 lg:mt-8">
-                <h2 className="mumkinMedh text-center lg:text-left text-transparent bg-clip-text bg-gradient-to-r from-primary-600 via-purple-600 to-secondary-600 dark:from-primary-400 dark:via-purple-400 dark:to-secondary-400 animate-text-shimmer relative z-10 whitespace-nowrap">
+                <div className="mumkinMedh">
                   Medh Hain Toh Mumkin Hain!
-                </h2>
+                </div>
               </div>
             </div>
             {/* CTA Buttons for Desktop */}

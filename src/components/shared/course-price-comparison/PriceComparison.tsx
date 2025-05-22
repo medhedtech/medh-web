@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { Users, User, CheckCircle } from 'lucide-react';
-import { useCurrency } from '@/contexts/CurrencyContext';
 import { getCoursePriceValue, getMinBatchSize } from '@/utils/priceUtils';
 import clsx from 'clsx';
 
@@ -19,7 +18,6 @@ const PriceComparison: React.FC<PriceComparisonProps> = ({
   selectedType = 'batch',
   className = ''
 }) => {
-  const { convertPrice, formatPrice, currency } = useCurrency();
   
   // Get pricing information
   const individualPrice = getCoursePriceValue(course, false);
@@ -27,12 +25,12 @@ const PriceComparison: React.FC<PriceComparisonProps> = ({
   const minBatchSize = getMinBatchSize(course);
   
   // Format prices in current currency
-  const formattedIndividualPrice = formatPrice(convertPrice(individualPrice));
-  const formattedBatchPrice = formatPrice(convertPrice(batchPrice));
+  const formattedIndividualPrice = `$${individualPrice}`;
+  const formattedBatchPrice = `$${batchPrice}`;
   
   // Calculate savings
   const savingsPercentage = Math.round(((individualPrice - batchPrice) / individualPrice) * 100);
-  const savingsAmount = formatPrice(convertPrice(individualPrice - batchPrice));
+  const savingsAmount = `$${individualPrice - batchPrice}`;
   
   return (
     <div className={clsx('grid grid-cols-1 md:grid-cols-2 gap-4', className)}>
