@@ -20,99 +20,24 @@ export interface CurrencyCoursesOptions {
   limit?: number;
   status?: string;
   search?: string;
-  useCurrencyFilter?: boolean;
 }
 
 export interface UseCurrencyCoursesReturn {
   courses: any[] | null;
   coursesLoading: boolean;
   coursesError: Error | null;
-  location: CurrencyLocation | null;
-  locationLoading: boolean;
   fetchCourses: (options?: CurrencyCoursesOptions) => Promise<any[] | null>;
-  refetchWithCurrency: () => Promise<any[] | null>;
 }
 
 /**
- * Hook for fetching courses with currency filtering based on user's location
+ * Hook for fetching courses
  */
 export const useCurrencyCourses = (initialOptions?: CurrencyCoursesOptions): UseCurrencyCoursesReturn => {
   const [courses, setCourses] = useState<any[] | null>(null);
   const [coursesLoading, setCoursesLoading] = useState<boolean>(false);
   const [coursesError, setCoursesError] = useState<Error | null>(null);
-  const [location, setLocation] = useState<CurrencyLocation | null>(null);
-  const [locationLoading, setLocationLoading] = useState<boolean>(false);
 
   const { getQuery } = useGetQuery();
-
-  // Detect user's location from IP address
-  const detectUserLocation = useCallback(async (): Promise<CurrencyLocation | null> => {
-    try {
-      setLocationLoading(true);
-      
-      // Try to get from localStorage first to avoid repeated API calls
-      const cachedLocation = localStorage.getItem('userCurrencyLocation');
-      if (cachedLocation) {
-        const parsedLocation = JSON.parse(cachedLocation);
-        // Only use cache if it's less than 24 hours old
-        const cacheTime = localStorage.getItem('userCurrencyLocationTimestamp');
-        if (cacheTime && (Date.now() - parseInt(cacheTime, 10)) < 86400000) {
-          setLocation(parsedLocation);
-          return parsedLocation;
-        }
-      }
-      
-      // Fetch location from IP geolocation API
-      const ipResponse = await axios.get('https://ipapi.co/json/');
-      
-      if (ipResponse.data && ipResponse.data.country_code) {
-        // Verify if country code exists in our system
-        const verifyResponse = await getQuery({
-          url: apiUrls.currencies.getAllCurrencyCountryCodes,
-          config: { params: { code: ipResponse.data.country_code } }
-        });
-        
-        if (verifyResponse?.exists) {
-          const locationData: CurrencyLocation = {
-            countryCode: ipResponse.data.country_code,
-            countryName: ipResponse.data.country_name,
-            currency: verifyResponse.currency || ipResponse.data.currency
-          };
-          
-          // Cache the result
-          localStorage.setItem('userCurrencyLocation', JSON.stringify(locationData));
-          localStorage.setItem('userCurrencyLocationTimestamp', Date.now().toString());
-          
-          setLocation(locationData);
-          return locationData;
-        }
-      }
-      
-      // Fallback to default (e.g., US)
-      const defaultLocation: CurrencyLocation = {
-        countryCode: 'US',
-        countryName: 'United States',
-        currency: 'USD'
-      };
-      
-      setLocation(defaultLocation);
-      return defaultLocation;
-    } catch (error) {
-      console.error('Error detecting user location:', error);
-      
-      // Fallback to default location on error
-      const defaultLocation: CurrencyLocation = {
-        countryCode: 'US',
-        countryName: 'United States',
-        currency: 'USD'
-      };
-      
-      setLocation(defaultLocation);
-      return defaultLocation;
-    } finally {
-      setLocationLoading(false);
-    }
-  }, [getQuery]);
 
   // Fetch courses with the provided options
   const fetchCourses = useCallback(async (options?: CurrencyCoursesOptions): Promise<any[] | null> => {
@@ -124,23 +49,11 @@ export const useCurrencyCourses = (initialOptions?: CurrencyCoursesOptions): Use
       setCoursesError(null);
       
       const mergedOptions = { ...initialOptions, ...options };
-      let userLocation = location;
-      
-      // Get location if needed and not already available
-      if (mergedOptions.useCurrencyFilter && !userLocation) {
-        userLocation = await detectUserLocation();
-      }
-      
-      // Add currency filter if requested
-      const filters: Record<string, any> = {};
-      if (mergedOptions.useCurrencyFilter && userLocation) {
-        filters.currency = userLocation.currency;
-      }
       
       // Construct the API URL with the fields, filters, etc.
       const url = getCoursesWithFields({
         fields: mergedOptions.fields,
-        filters,
+        filters: {}, // No currency filter applied
         page: mergedOptions.page,
         limit: mergedOptions.limit,
         status: mergedOptions.status,
@@ -178,35 +91,20 @@ export const useCurrencyCourses = (initialOptions?: CurrencyCoursesOptions): Use
     } finally {
       setCoursesLoading(false);
     }
-  }, [getQuery, initialOptions, location, detectUserLocation, courses]);
-
-  // Helper function to refetch courses using current location
-  const refetchWithCurrency = useCallback(async (): Promise<any[] | null> => {
-    await detectUserLocation();
-    return fetchCourses({ ...initialOptions, useCurrencyFilter: true });
-  }, [detectUserLocation, fetchCourses, initialOptions]);
+  }, [getQuery, initialOptions, courses]);
 
   // Initial fetch on mount
   useEffect(() => {
     if (initialOptions) {
-      if (initialOptions.useCurrencyFilter) {
-        detectUserLocation().then(() => {
-          fetchCourses(initialOptions);
-        });
-      } else {
-        fetchCourses(initialOptions);
-      }
+      fetchCourses(initialOptions);
     }
-  }, [initialOptions, detectUserLocation, fetchCourses]);
+  }, [initialOptions, fetchCourses]);
 
   return {
     courses,
     coursesLoading,
     coursesError,
-    location,
-    locationLoading,
     fetchCourses,
-    refetchWithCurrency
   };
 };
 
