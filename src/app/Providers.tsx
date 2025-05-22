@@ -2,7 +2,6 @@
 
 import CartContextProvider from "@/contexts/CartContext";
 import { CookieConsentProvider } from "@/contexts/CookieConsentContext";
-import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { StorageProvider } from "@/contexts/StorageContext";
 import { PlacementFormProvider } from "@/context/PlacementFormContext";
 import { ThemeProvider } from "next-themes";
@@ -24,25 +23,23 @@ export default function Providers({ children }: ProvidersProps) {
     >
       <StorageProvider>
         <CookieConsentProvider>
-          <CurrencyProvider>
-            <CartContextProvider>
-              <PlacementFormProvider>
-                {children}
-                <ToastContainer
-                  position="top-right"
-                  autoClose={5000}
-                  hideProgressBar={false}
-                  newestOnTop
-                  closeOnClick
-                  rtl={false}
-                  pauseOnFocusLoss
-                  draggable
-                  pauseOnHover
-                  theme="light"
-                />
-              </PlacementFormProvider>
-            </CartContextProvider>
-          </CurrencyProvider>
+          <CartContextProvider>
+            <PlacementFormProvider>
+              {children}
+              <ToastContainer
+                position="top-right"
+                autoClose={5000}
+                hideProgressBar={false}
+                newestOnTop
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="light"
+              />
+            </PlacementFormProvider>
+          </CartContextProvider>
         </CookieConsentProvider>
       </StorageProvider>
     </ThemeProvider>
