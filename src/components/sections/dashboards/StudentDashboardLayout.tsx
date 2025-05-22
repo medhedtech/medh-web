@@ -618,7 +618,7 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
             className={`${isMobile ? 'fixed z-40' : 'fixed lg:relative'} h-full top-16 lg:top-20`}
             style={{ 
               height: isMobile ? 'calc(100% - 70px)' : 'calc(100vh - 80px)',
-              width: isMobile ? (isSidebarOpen ? '220px' : '0px') : (isSidebarExpanded ? '220px' : '68px'),
+              width: isMobile ? (isSidebarOpen ? '260px' : '0px') : (isSidebarExpanded ? '260px' : '78px'),
               transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
             }}
           >
@@ -662,7 +662,7 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
             style={useMemo(() => ({
               marginLeft: isMobile ? '0px' : '10px',
               width: "100%",
-              maxWidth: isSidebarExpanded ? "calc(100% - 230px)" : "calc(100% - 78px)",
+              maxWidth: isSidebarExpanded ? "calc(100% - 270px)" : "calc(100% - 88px)",
               transition: "max-width 0.4s cubic-bezier(0.4, 0, 0.2, 1)"
             }), [isMobile, isSidebarExpanded])}
           >
