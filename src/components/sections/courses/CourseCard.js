@@ -32,7 +32,6 @@ import {
   ExternalLink,
   Briefcase
 } from "lucide-react";
-import { useCurrency } from '@/contexts/CurrencyContext';
 import { isFreePrice } from '@/utils/priceUtils';
 import { shimmer, toBase64 } from '@/utils/imageUtils';
 
@@ -226,7 +225,6 @@ const CourseCard = ({
   
   const cardRef = useRef(null);
   const router = useRouter();
-  const { convertPrice, formatPrice: formatCurrencyPrice } = useCurrency();
 
   // Add state for batch/individual price toggle if card supports interaction
   const [selectedPricing, setSelectedPricing] = useState("individual");
@@ -413,55 +411,67 @@ const CourseCard = ({
   }, []);
 
   // Update the formatPrice function to better handle batch pricing
-  const formatPrice = (price, batchPrice) => {
+  const formatPrice = (priceInput, batchPriceInput) => {
     // Check if the course is explicitly marked as free
     if (course?.isFree === true) return "Free";
-    
-    // Get currency from course prices if available
-    const currency = course?.prices && course.prices.length > 0 && course.prices[0].currency 
-      ? course.prices[0].currency 
-      : undefined;
-    
-    // If we have a prices array, use the first price object
+
+    let actualPrice;
+    let currencySymbol = '$'; // Default currency symbol
+
+    // Determine currency symbol from course.prices if available
+    if (course?.prices && course.prices.length > 0 && course.prices[0].currency) {
+      currencySymbol = course.prices[0].currency;
+    }
+
+    // Determine the actual price to display
     if (course?.prices && course.prices.length > 0) {
       const priceObj = course.prices[0];
-      
-      // Check if both individual and batch prices are 0
-      if (priceObj.individual === 0 && priceObj.batch === 0) {
-        return "Free";
+      if (priceObj.individual === 0 && priceObj.batch === 0) return "Free";
+
+      // Use selectedPricing state if available and interactive
+      // For now, let's assume 'individual' if not specified or stick to component's logic for price display
+      // This part might need adjustment based on how 'selectedPricing' is meant to interact here.
+      if (selectedPricing === "batch" && typeof priceObj.batch === 'number') {
+        actualPrice = priceObj.batch;
+      } else if (typeof priceObj.individual === 'number') {
+        actualPrice = priceObj.individual;
+      } else if (typeof priceObj.batch === 'number') { // Fallback to batch if individual is not a number
+        actualPrice = priceObj.batch;
+      } else {
+        return "Price not available"; // Or some other placeholder
       }
+    } else {
+      // Fallback to the provided price and batchPrice parameters
+      const pInput = typeof priceInput === 'string' && priceInput.includes(' Onwards') 
+                     ? parseFloat(priceInput.replace(' Onwards', '')) 
+                     : parseFloat(priceInput);
+      const bInput = parseFloat(batchPriceInput);
+
+      if (isFreePrice(pInput) && (isNaN(bInput) || isFreePrice(bInput))) return "Free";
       
-      // If batch price is available and less than individual price, use it
-      if (priceObj.batch && priceObj.batch < priceObj.individual) {
-        return formatCurrencyPrice(convertPrice(priceObj.batch), true, currency);
+      if (selectedPricing === "batch" && !isNaN(bInput) && !isFreePrice(bInput)) {
+        actualPrice = bInput;
+      } else if (!isNaN(pInput)) {
+        actualPrice = pInput;
+      } else if (!isNaN(bInput)) { // Fallback to batch if individual is not a number
+        actualPrice = bInput;
+      } else {
+        return "Price not available"; // Or some other placeholder
       }
-      
-      // Otherwise use individual price
-      return formatCurrencyPrice(convertPrice(priceObj.individual), true, currency);
     }
     
-    // Fallback to the provided price and batchPrice parameters
-    if (isFreePrice(price) && (!batchPrice || isFreePrice(batchPrice))) return "Free";
-    
-    // If batch price is available and less than individual price, use it
-    if (batchPrice && !isFreePrice(batchPrice) && batchPrice < price) {
-      return formatCurrencyPrice(convertPrice(batchPrice), true, currency);
+    if (typeof actualPrice !== 'number' || isNaN(actualPrice)) {
+        // This case might occur if prices are not numbers or not found
+        // Let's check the original priceInput and batchPriceInput again if they are strings like "Free"
+        if (priceInput === "Free" || batchPriceInput === "Free") return "Free";
+        return "Price not available";
     }
     
-    // If this is a simple price display with no batch option
-    if (!batchPrice || batchPrice === price) {
-      // Check if price already includes "onwards" text
-      if (typeof price === 'string' && price.includes('Onwards')) {
-        return formatCurrencyPrice(convertPrice(price.replace(' Onwards', '')), true, currency);
-      }
-      return formatCurrencyPrice(convertPrice(price), true, currency);
-    }
-    
-    // Handle the case where we have both individual and batch pricing
-    const formattedMainPrice = formatCurrencyPrice(convertPrice(price), true, currency);
-    
-    // Return appropriate price based on selected pricing
-    return formattedMainPrice;
+    if (actualPrice === 0) return "Free";
+
+    // Add a space if currency symbol is multi-character (e.g., INR)
+    const displaySymbol = currencySymbol.length > 1 ? `${currencySymbol} ` : currencySymbol;
+    return `${displaySymbol}${actualPrice.toLocaleString()}`;
   };
 
   // Calculate discount percentage for batch pricing
