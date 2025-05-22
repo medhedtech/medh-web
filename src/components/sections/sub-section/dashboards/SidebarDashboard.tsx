@@ -739,7 +739,7 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
         {
           name: "Dashboard",
       path: formatRoute("student", "dashboard"),
-      icon: <LayoutDashboard className="w-5 h-5" />
+      icon: <HomeIcon className="w-5 h-5" />
     },
         {
           name: "My Courses",
