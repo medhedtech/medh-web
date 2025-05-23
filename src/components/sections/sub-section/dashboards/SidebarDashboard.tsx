@@ -738,7 +738,7 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
   const studentMenuItems: MenuItem[] = [
         {
           name: "Dashboard",
-      path: formatRoute("student", "dashboard"),
+      path: "/dashboards",
       icon: <HomeIcon className="w-5 h-5" />
     },
         {
@@ -833,7 +833,7 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
   const adminMenuItems: MenuItem[] = [
     {
       name: "Dashboard",
-      path: formatRoute("admin", "dashboard"),
+      path: "/dashboards",
       icon: <LayoutDashboard className="w-5 h-5" />
     },
     {
@@ -1035,7 +1035,7 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
   const instructorMenuItems: MenuItem[] = [
     {
       name: "Dashboard",
-      path: formatRoute("instructor", "dashboard"),
+      path: "/dashboards",
       icon: <LayoutDashboard className="w-5 h-5" />
     },
     {
