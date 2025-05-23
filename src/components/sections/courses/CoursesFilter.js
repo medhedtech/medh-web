@@ -744,18 +744,10 @@ const CoursesFilter = ({
             throw new Error('Invalid courses data format');
           }
 
-          // Process courses to ensure they have proper currency information
-          const processedCourses = courses.map(course => ({
-            ...course,
-            currency: userCurrency,
-            prices: course.prices?.map(price => ({
-              ...price,
-              currency: userCurrency
-            })) || []
-          }));
-
-          setAllCourses(processedCourses);
-          setFilteredCourses(processedCourses);
+          // Trust the API response - no frontend conversion
+          // The API should return courses with correct currency based on the currency parameter
+          setAllCourses(courses);
+          setFilteredCourses(courses);
 
           // Handle pagination from the new response structure
           if (response.data.pagination) {
@@ -763,7 +755,7 @@ const CoursesFilter = ({
             setTotalItems(response.data.pagination.total || 0);
           } else {
             setTotalPages(1);
-            setTotalItems(processedCourses.length);
+            setTotalItems(courses.length);
           }
 
           // Handle facets if available
