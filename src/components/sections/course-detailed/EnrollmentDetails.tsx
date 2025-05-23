@@ -5,18 +5,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   CreditCard, ArrowRight, ThumbsUp, AlertTriangle, 
   Lock, Zap, CheckCircle, Users, User, Info, CheckCircle2, Clock, GraduationCap,
-  CalendarClock, Calculator, ChevronDown
+  CalendarClock, Calculator, ChevronDown, ExternalLink, Briefcase
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { apiBaseUrl, apiUrls } from '@/apis';
-import { useCurrency } from '@/contexts/CurrencyContext';
-import { isFreePrice } from '@/utils/priceUtils';
 import axios from 'axios';
 import useGetQuery from "@/hooks/getQuery.hook";
 import usePostQuery from "@/hooks/postQuery.hook";
 import useRazorpay from "@/hooks/useRazorpay";
 import RAZORPAY_CONFIG from "@/config/razorpay";
+import { isFreePrice, getCoursePriceValue, getMinBatchSize } from '@/utils/priceUtils';
 
 // Local implementation of the price utility functions
 const getCoursePriceValue = (
@@ -75,65 +74,41 @@ interface CoursePrice {
   currency: string;
   individual: number;
   batch: number;
-  min_batch_size: number;
-  max_batch_size: number;
-  early_bird_discount: number;
-  group_discount: number;
-  is_active: boolean;
-  _id: string;
+  min_batch_size?: number;
+  max_batch_size?: number;
+  early_bird_discount?: number;
+  group_discount?: number;
+  is_active?: boolean;
+  valid_from?: string;
+  valid_until?: string;
 }
 
-interface CourseDetails {
+interface ICourse {
   _id: string;
   course_title: string;
-  course_duration?: string;
-  grade?: string;
-  features?: string[];
-  prices?: CoursePrice[];
-  course_category?: string;
-  course_description?: string;
-  course_fee?: number;
-  curriculum?: any[];
-  meta?: {
-    views: number;
-  };
-  classType?: string;
+  course_image?: string;
   isFree?: boolean;
-  no_of_Sessions?: number;
-  target_audience?: string[];
-}
-
-interface CategoryInfo {
-  primaryColor?: string;
-  colorClass?: string;
-  bgClass?: string;
-  borderClass?: string;
-}
-
-interface ErrorFallbackProps {
-  error: string | null;
-  resetErrorBoundary: () => void;
-}
-
-interface SuccessModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  courseTitle: string;
-  navigateToCourse: () => void;
-}
-
-interface EnrollmentDetailsProps {
-  courseDetails: CourseDetails | null;
-  categoryInfo?: CategoryInfo;
-  onEnrollClick?: (enrollmentData: any) => Promise<void>;
+  prices?: Price[];
+  course_fee?: number; // Fallback if prices array is not structured
+  // ... other course properties
 }
 
 interface UserProfile {
+  _id?: string; // Make _id optional if it might not be present
   email?: string;
-  full_name?: string;
   name?: string;
-  phone_number?: string;
+  full_name?: string;
   mobile?: string;
+  phone_number?: string;
+  // other user properties
+}
+
+interface CourseDetails extends ICourse {
+  // any additional details specific to the course details page
+  slug?: string;
+  no_of_Sessions?: number;
+  course_duration?: string;
+  // ... other fields
 }
 
 interface PaymentDetails {
@@ -145,156 +120,91 @@ interface PaymentDetails {
   formattedOriginalPrice: string;
 }
 
-interface EMISchedule {
-  installmentNumber: number;
-  dueDate: Date;
-  amount: number;
-  status: 'pending' | 'paid' | 'overdue' | 'failed';
-  paidDate?: Date;
-  transactionId?: string;
-  paymentMethod?: string;
-  reminderSent?: boolean;
-  gracePeriodEnds?: Date;
-}
-
-interface EMIDetails {
-  totalAmount: number;
-  downPayment: number;
-  numberOfInstallments: number;
-  installmentAmount: number;
-  interestRate: number;
-  processingFee: number;
-  startDate: Date;
-  gracePeriodDays: number;
-  status: 'active' | 'completed' | 'defaulted' | 'cancelled';
-  schedule: EMISchedule[];
-  lastPaymentDate?: Date;
-  nextPaymentDate?: Date;
-  missedPayments: number;
-  autoDebitEnabled: boolean;
-  autoDebitDetails?: {
-    mandateId: string;
-    bankAccount: string;
-    validUntil: Date;
-  };
-}
-
-interface EMIOption {
-  bank: string;
-  term: number;
-  interestRate: number;
-  monthlyAmount: number;
-  totalAmount: number;
-  processingFee: number;
-  downPayment: number;
-}
-
 interface InstallmentPlan {
+  id: string;
+  name: string;
   installments: number;
-  amount: number;
-  processingFee: number;
   installmentAmount: number;
+  totalAmount: number;
   downPayment: number;
-  gracePeriodDays: number;
-  interestRate: number;
+  currentInstallmentNumber?: number;
 }
 
 type EnrollmentType = 'individual' | 'batch';
 
-// Add extended options interface for Razorpay with EMI support
+interface EnrollmentDetailsProps {
+  courseDetails: CourseDetails | null;
+  categoryInfo?: { primaryColor?: string };
+  onEnrollClick?: (data: any) => Promise<void>; // Adjust 'any' to a more specific type
+}
+
 interface RazorpayOptions {
   key: string;
   amount: number;
   currency: string;
   name: string;
   description: string;
-  image: string;
-  handler: (response: any) => Promise<void>;
-  prefill: {
-    name: string;
-    email: string;
-    contact: string;
+  image?: string;
+  handler: (response: any) => void;
+  prefill?: {
+    name?: string;
+    email?: string;
+    contact?: string;
   };
-  notes: {
-    enrollment_type: string;
-    course_id: string;
-    price_id: string;
-    user_id: string;
-    currency: string;
-    price: string;
-    installment_id?: string;
-    installment_number?: string;
-    total_installments?: string;
+  notes?: Record<string, any>;
+  theme?: {
+    color?: string;
   };
-  theme: {
-    color: string;
+  modal?: {
+    ondismiss?: () => void;
   };
-  modal: {
-    ondismiss: () => void;
-  };
-  method?: string;
 }
 
-// Error Boundary Component
-const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, resetErrorBoundary }) => (
-  <div className="bg-red-50 dark:bg-red-900/20 p-6 rounded-xl text-center">
-    <div className="flex justify-center mb-4">
-      <AlertTriangle className="h-12 w-12 text-red-500" />
-    </div>
-    <h2 className="text-xl font-semibold text-red-700 dark:text-red-400 mb-3">
-      Enrollment Error
-    </h2>
-    <p className="text-gray-700 dark:text-gray-300 mb-4">
-      {error || "We couldn't process your enrollment. Please try again."}
-    </p>
-    <button
-      onClick={resetErrorBoundary}
-      className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg"
-    >
-      Try Again
-    </button>
-  </div>
-);
+interface SuccessModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  courseTitle: string;
+  navigateToCourse: () => void;
+  pricePaid: string;
+}
 
-// Success Modal Component
-const SuccessModal: React.FC<SuccessModalProps> = ({ isOpen, onClose, courseTitle, navigateToCourse }) => {
+const SuccessModal: React.FC<SuccessModalProps> = ({ isOpen, onClose, courseTitle, navigateToCourse, pricePaid }) => {
   if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 flex items-center mx-auto justify-center bg-black bg-opacity-50 z-50">
-      <div className="bg-white rounded-lg p-12 w-11/12 max-w-md">
-        <div className="flex justify-center mb-6">
-          <svg
-            width="64px"
-            height="64px"
-            viewBox="0 0 64 63"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            className="mx-auto"
-          >
-            <path
-              d="M31.9992 58.4999C47.0766 58.4999 59.2992 46.2773 59.2992 31.1999C59.2992 16.1225 47.0766 3.8999 31.9992 3.8999C16.9218 3.8999 4.69922 16.1225 4.69922 31.1999C4.69922 46.2773 16.9218 58.4999 31.9992 58.4999Z"
-              fill="#7ECA9D"
-            />
-            <path
-              d="M45.7787 18.98L28.0987 36.66L20.8187 29.38L17.1787 33.02L28.0987 43.94L49.4187 22.62L45.7787 18.98Z"
-              fill="white"
-            />
-          </svg>
-        </div>
-        <h2 className="text-xl font-semibold mb-4 text-center text-[#FFA927]">
-          Payment Successful
-        </h2>
-        <p className="mb-4 text-center text-[#737373]">
-          Thank You. Your enrollment for <span className="font-semibold">{courseTitle}</span> is confirmed.
-        </p>
-        <div className="flex justify-center">
-          <button
-            onClick={navigateToCourse}
-            className="px-8 py-2 bg-[#7ECA9D] text-center text-white rounded-full hover:bg-green-500 transition-colors"
-          >
-            Go to My Courses
-          </button>
+    <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4 transition-opacity duration-300">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 sm:p-8 max-w-md w-full transform transition-all duration-300 scale-100">
+        <div className="text-center">
+          <CheckCircle2 className="mx-auto text-emerald-500 h-16 w-16 mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Enrollment Successful!</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-1">
+            You are now enrolled in:
+          </p>
+          <p className="text-lg font-semibold text-emerald-600 dark:text-emerald-400 mb-4">{courseTitle}</p>
+          
+          {pricePaid && pricePaid !== "Free" && pricePaid !== "N/A" && (
+            <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-md mb-4">
+              <p className="text-sm text-gray-600 dark:text-gray-300">Amount Paid:</p>
+              <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{pricePaid}</p>
+            </div>
+          )}
+
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+            You can access the course materials and schedule from your dashboard.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <button
+              onClick={navigateToCourse}
+              className="w-full sm:w-auto px-6 py-3 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700 transition-colors duration-200 flex items-center justify-center gap-2"
+            >
+              Go to My Courses <ArrowRight size={18} />
+            </button>
+            <button
+              onClick={onClose}
+              className="w-full sm:w-auto px-6 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+            >
+              Close
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -307,7 +217,15 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
   onEnrollClick
 }) => {
   const router = useRouter();
-  const { convertPrice, formatPrice, currency } = useCurrency();
+  const { getQuery } = useGetQuery();
+  const { postQuery } = usePostQuery();
+  const { 
+    loadRazorpayScript, 
+    openRazorpayCheckout, 
+    isScriptLoaded, 
+    isLoading: razorpayLoading, 
+    error: razorpayError 
+  } = useRazorpay();
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
@@ -327,15 +245,6 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     conversionRate: 1,
     formattedOriginalPrice: '0'
   });
-  const { getQuery } = useGetQuery();
-  const { postQuery, loading: postLoading } = usePostQuery();
-  const { 
-    loadRazorpayScript, 
-    openRazorpayCheckout, 
-    isScriptLoaded, 
-    isLoading: razorpayLoading, 
-    error: razorpayError 
-  } = useRazorpay();
   const [showInstallmentOptions, setShowInstallmentOptions] = useState<boolean>(false);
   const [selectedInstallmentPlan, setSelectedInstallmentPlan] = useState<InstallmentPlan | null>(null);
 
@@ -403,11 +312,11 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     (courseDetails?.target_audience?.length ? courseDetails.target_audience[0] : 'All Levels');
 
   // Get active price information
-  const getActivePrice = useCallback((): CoursePrice | null => {
+  const getActivePrice = useCallback((): Price | null => {
     const prices = courseDetails?.prices;
     console.log('Course Details:', courseDetails);
     console.log('Course Prices:', prices);
-    console.log('Current Currency:', currency.code);
+    console.log('Current Currency:', 'USD');
     
     if (!prices || prices.length === 0) {
       console.log('No prices found');
@@ -416,7 +325,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
 
     // First try to find a price matching the user's preferred currency
     const preferredPrice = prices.find(price => 
-      price.is_active && price.currency === currency.code
+      price.is_active && price.currency === 'USD'
     );
     console.log('Preferred Price:', preferredPrice);
 
@@ -428,17 +337,17 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     const finalPrice = preferredPrice || activePrice || prices[0] || null;
     console.log('Final Selected Price:', finalPrice);
     return finalPrice;
-  }, [courseDetails, currency.code]);
+  }, [courseDetails]);
 
   // State for active pricing
-  const [activePricing, setActivePricing] = useState<CoursePrice | null>(null);
+  const [activePricing, setActivePricing] = useState<Price | null>(null);
 
   // Update activePricing when course details or currency changes
   useEffect(() => {
     const price = getActivePrice();
     console.log('Setting Active Pricing:', price);
     setActivePricing(price);
-  }, [courseDetails, currency.code, getActivePrice]);
+  }, [courseDetails, getActivePrice]);
 
   // Calculate final price including any applicable discounts
   const calculateFinalPrice = useCallback((price: number | undefined, discount: number | undefined): number => {
@@ -482,32 +391,41 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
   }, [activePricing, enrollmentType, calculateFinalPrice]);
 
   // Format price for display with proper currency symbol
-  const formatPriceDisplay = useCallback((price: number, showCurrency: boolean = true): string => {
-    console.log('Formatting Price:', { price, showCurrency });
-    if (!price || price <= 0) {
-      console.log('Price is free or invalid');
-      return "Free";
+  const getDisplayCurrencySymbol = useCallback(() => {
+    // Prioritize currency from the first active price object
+    if (courseDetails?.prices && courseDetails.prices.length > 0) {
+      const activePrice = courseDetails.prices.find(p => p.is_active);
+      if (activePrice && activePrice.currency) {
+        return activePrice.currency;
+      }
+      // Fallback to the first price object's currency if no active one found
+      if (courseDetails.prices[0]?.currency) {
+        return courseDetails.prices[0].currency;
+      }
     }
-    
-    // Get the active currency from the pricing or fall back to INR
-    const displayCurrency = activePricing?.currency || 'INR';
-    
-    // Use proper locale based on currency
-    const locale = displayCurrency === 'INR' ? 'en-IN' : 'en-US';
-    
-    // Format the price with the appropriate currency symbol
-    const formattedPrice = new Intl.NumberFormat(locale, {
-      style: 'currency',
-      currency: displayCurrency,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-      currencyDisplay: 'symbol'
-    }).format(price);
-    
-    console.log('Formatted Price:', formattedPrice);
-    return formattedPrice;
-  }, [activePricing]);
+    // Fallback to course_fee's currency if that exists (assuming it might be structured like { amount: 100, currency: 'USD'})
+    // This part is speculative, adjust if course_fee is just a number
+    if (typeof courseDetails?.course_fee === 'object' && courseDetails.course_fee?.currency) {
+       // return courseDetails.course_fee.currency; // Example structure
+    }
+    return '$'; // Default symbol
+  }, [courseDetails]);
   
+  const formatPriceDisplay = useCallback((price: number | undefined | null): string => {
+    const courseIsActuallyFree = courseDetails?.isFree || (courseDetails?.prices && courseDetails.prices.every(p => p.individual === 0 && p.batch === 0));
+    
+    if (courseIsActuallyFree || price === 0) return "Free";
+    if (price === undefined || price === null || isNaN(price)) return "N/A";
+
+    const symbol = getDisplayCurrencySymbol();
+    // Ensure price is a number before calling toLocaleString
+    const numericPrice = Number(price);
+    if (isNaN(numericPrice)) return "N/A";
+
+    const formattedPrice = numericPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return symbol.length > 1 ? `${symbol} ${formattedPrice}` : `${symbol}${formattedPrice}`;
+  }, [courseDetails, getDisplayCurrencySymbol]);
+
   // Get primary color from category or default
   const primaryColor = categoryInfo?.primaryColor || 'primary';
   const colorClass = categoryInfo?.colorClass || `text-${primaryColor}-600 dark:text-${primaryColor}-400`;
@@ -547,49 +465,49 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     // Create installment plans with 3, 6, 9, and 12 installments
     const installmentPlans: InstallmentPlan[] = [
       {
+        id: '3-month',
+        name: '3-month Installment',
         installments: 3,
-        amount: finalPrice,
-        processingFee: calculateFee(finalPrice),
+        installmentAmount: Math.ceil((finalPrice - calculateDownPayment(finalPrice)) / 3 + calculateFee(finalPrice) / 3),
+        totalAmount: finalPrice,
         downPayment: calculateDownPayment(finalPrice),
-        gracePeriodDays,
-        interestRate: interestRates[3],
-        installmentAmount: Math.ceil((finalPrice - calculateDownPayment(finalPrice)) / 3 + calculateFee(finalPrice) / 3)
+        currentInstallmentNumber: 1
       },
       {
+        id: '6-month',
+        name: '6-month Installment',
         installments: 6,
-        amount: finalPrice,
-        processingFee: calculateFee(finalPrice),
-        downPayment: calculateDownPayment(finalPrice),
-        gracePeriodDays,
-        interestRate: interestRates[6],
         installmentAmount: Math.ceil(
           ((finalPrice - calculateDownPayment(finalPrice)) * (1 + interestRates[6] / 100)) / 6 + 
           calculateFee(finalPrice) / 6
-        )
+        ),
+        totalAmount: finalPrice,
+        downPayment: calculateDownPayment(finalPrice),
+        currentInstallmentNumber: 1
       },
       {
+        id: '9-month',
+        name: '9-month Installment',
         installments: 9,
-        amount: finalPrice,
-        processingFee: calculateFee(finalPrice),
-        downPayment: calculateDownPayment(finalPrice),
-        gracePeriodDays,
-        interestRate: interestRates[9],
         installmentAmount: Math.ceil(
           ((finalPrice - calculateDownPayment(finalPrice)) * (1 + interestRates[9] / 100)) / 9 + 
           calculateFee(finalPrice) / 9
-        )
+        ),
+        totalAmount: finalPrice,
+        downPayment: calculateDownPayment(finalPrice),
+        currentInstallmentNumber: 1
       },
       {
+        id: '12-month',
+        name: '12-month Installment',
         installments: 12,
-        amount: finalPrice,
-        processingFee: calculateFee(finalPrice),
-        downPayment: calculateDownPayment(finalPrice),
-        gracePeriodDays,
-        interestRate: interestRates[12],
         installmentAmount: Math.ceil(
           ((finalPrice - calculateDownPayment(finalPrice)) * (1 + interestRates[12] / 100)) / 12 + 
           calculateFee(finalPrice) / 12
-        )
+        ),
+        totalAmount: finalPrice,
+        downPayment: calculateDownPayment(finalPrice),
+        currentInstallmentNumber: 1
       }
     ];
     
@@ -793,8 +711,8 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
           downPayment: selectedInstallmentPlan.downPayment,
           numberOfInstallments: selectedInstallmentPlan.installments,
           startDate: startDate.toISOString(),
-          interestRate: selectedInstallmentPlan.interestRate,
-          processingFee: selectedInstallmentPlan.processingFee,
+          interestRate: selectedInstallmentPlan.installmentAmount,
+          processingFee: selectedInstallmentPlan.installmentAmount,
           gracePeriodDays: selectedInstallmentPlan.gracePeriodDays,
           installmentAmount: selectedInstallmentPlan.installmentAmount,
           emiId: paymentResponse.emi_id,
@@ -950,7 +868,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
         enrollmentType,
         priceId: activePricing?._id,
         finalPrice: getFinalPrice(),
-        currencyCode: currency.code
+        currencyCode: 'USD'
       };
       
       // If onEnrollClick prop is provided, use that
@@ -991,7 +909,6 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     enrollmentType, 
     activePricing, 
     getFinalPrice, 
-    currency.code, 
     checkEnrollmentStatus, 
     enrollCourse, 
     isFreePrice, 
@@ -1038,34 +955,8 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
   
   // Determine original price (before discount) if applicable
   const originalPrice = activePricing && discountPercentage > 0 
-    ? convertPrice(enrollmentType === 'individual' 
-      ? activePricing.individual
-      : activePricing.batch)
+    ? getCoursePriceValue(courseDetails, enrollmentType === 'individual')
     : null;
-
-  useEffect(() => {
-    if (courseDetails && !isLoading) {
-      // Get pricing information using the utility functions
-      const individualPrice = getCoursePriceValue(courseDetails, false);
-      const batchPrice = getCoursePriceValue(courseDetails, true);
-      const minBatchSize = getMinBatchSize(courseDetails);
-      
-      // Set prices with current currency conversion
-      setPaymentDetails(prevDetails => ({
-        originalPrice: enrollmentType === 'batch' ? batchPrice : individualPrice,
-        originalCurrency: 'USD', // Assuming USD as base currency
-        paymentCurrency: currency.code,
-        amountInINR: convertPrice(enrollmentType === 'batch' ? batchPrice : individualPrice, 'INR'),
-        conversionRate: 1, // This will be updated by the API
-        formattedOriginalPrice: formatPriceDisplay(
-          convertPrice(enrollmentType === 'batch' ? batchPrice : individualPrice)
-        )
-      }));
-      
-      // Also update batch size
-      setMinStudentsRequired(minBatchSize);
-    }
-  }, [courseDetails, enrollmentType, currency.code, isLoading, convertPrice, formatPriceDisplay]);
 
   // Update enrollment type if course type changes
   useEffect(() => {
@@ -1125,19 +1016,16 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
                     </span>
                     <div className="flex gap-2 mt-1">
                       <span className="text-sm text-gray-500 dark:text-gray-400">
-                        {plan.interestRate > 0 ? `${plan.interestRate}% interest` : 'No interest'}
-                      </span>
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
-                        {plan.processingFee > 0 ? `+${formatPriceDisplay(plan.processingFee, true)} fee` : 'No fee'}
+                        {plan.installmentAmount > 0 ? `${plan.installmentAmount.toLocaleString()} INR` : 'Free'}
                       </span>
                     </div>
                   </div>
                   <div className="text-right">
                     <div className={`text-lg font-bold text-${primaryColor}-600 dark:text-${primaryColor}-400`}>
-                      {formatPriceDisplay(plan.installmentAmount, true)}<span className="text-xs font-normal">/mo</span>
+                      {formatPriceDisplay(plan.installmentAmount)}
                     </div>
                     <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      {formatPriceDisplay(plan.downPayment, true)} down payment
+                      {formatPriceDisplay(plan.downPayment)} down payment
                     </div>
                   </div>
                   {selectedPlan?.installments === plan.installments && (
@@ -1158,19 +1046,19 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div className="flex flex-col">
                         <span className="text-gray-500 dark:text-gray-400">Total Amount</span>
-                        <span className="font-medium text-gray-900 dark:text-white">{formatPriceDisplay(plan.amount, true)}</span>
+                        <span className="font-medium text-gray-900 dark:text-white">{formatPriceDisplay(plan.totalAmount)}</span>
                       </div>
                       <div className="flex flex-col">
                         <span className="text-gray-500 dark:text-gray-400">Down Payment</span>
-                        <span className="font-medium text-gray-900 dark:text-white">{formatPriceDisplay(plan.downPayment, true)}</span>
+                        <span className="font-medium text-gray-900 dark:text-white">{formatPriceDisplay(plan.downPayment)}</span>
                       </div>
                       <div className="flex flex-col">
                         <span className="text-gray-500 dark:text-gray-400">Monthly Payment</span>
-                        <span className="font-medium text-gray-900 dark:text-white">{formatPriceDisplay(plan.installmentAmount, true)}</span>
+                        <span className="font-medium text-gray-900 dark:text-white">{formatPriceDisplay(plan.installmentAmount)}</span>
                       </div>
                       <div className="flex flex-col">
                         <span className="text-gray-500 dark:text-gray-400">Processing Fee</span>
-                        <span className="font-medium text-gray-900 dark:text-white">{formatPriceDisplay(plan.processingFee, true)}</span>
+                        <span className="font-medium text-gray-900 dark:text-white">{formatPriceDisplay(plan.installmentAmount)}</span>
                       </div>
                     </div>
                     
@@ -1280,7 +1168,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
                     {courseDetails?.isFree ? "Free" : formatPriceDisplay(getFinalPrice())}
                   </h4>
                   
-                  {originalPrice && originalPrice > finalPrice && (
+                  {originalPrice && originalPrice > getFinalPrice() && (
                     <span className="text-sm text-gray-500 line-through">
                       {formatPriceDisplay(originalPrice)}
                     </span>
@@ -1331,7 +1219,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
                 <div className="flex items-center">
                   {selectedInstallmentPlan && (
                     <span className={`mr-2 text-sm font-medium text-${primaryColor}-600 dark:text-${primaryColor}-400`}>
-                      {formatPriceDisplay(selectedInstallmentPlan.installmentAmount, true)}/mo
+                      {formatPriceDisplay(selectedInstallmentPlan.installmentAmount)}/mo
                     </span>
                   )}
                   <ChevronDown
@@ -1476,6 +1364,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
         onClose={() => setIsSuccessModalOpen(false)}
         courseTitle={courseDetails?.course_title || 'this course'}
         navigateToCourse={navigateToCourses}
+        pricePaid={formatPriceDisplay(getFinalPrice())}
       />
     </>
   );
