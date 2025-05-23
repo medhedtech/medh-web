@@ -287,6 +287,7 @@ h6 {
 
 .mumkinMedh {
   font-family: "Bulgathi", sans-serif;
+  font-weight: semibold;
   color: #40AB62 !important;
   font-size: clamp(2rem, 5vw, 2.8rem) !important;
   line-height: 1.2 !important;
@@ -356,6 +357,8 @@ h6 {
 
 @media (max-width: 768px) {
   .mumkinMedh {
+    font-family: "Bulgathi", sans-serif;
+    font-weight: semibold;
     font-size: clamp(1.8rem, 4vw, 2.2rem) !important;
     letter-spacing: 0.03em;
   }
