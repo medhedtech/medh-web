@@ -87,7 +87,7 @@ const FreeCourses = () => {
 
         <motion.a
           href="/dashboards/students-free-courses"
-          className="group inline-flex items-center px-4 py-2 rounded-full bg-primary-50 dark:bg-primary-900/10 text-primary-600 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-900/20 transition-all duration-300"
+          className="group inline-flex items-center px-4 py-2 rounded-full bg-primary-50 dark:bg-primary-900/10 text-primary-600 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-900/20 transition-all duration-300 whitespace-nowrap"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >

@@ -18,10 +18,184 @@ import {
   BarChart2,
   LayoutDashboard,
   LineChart,
-  TrendingUp
+  TrendingUp,
+  Bookmark,
+  Youtube,
+  FileQuestion,
+  Lightbulb,
+  Target,
+  CheckSquare,
+  Clock,
+  Trophy
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+
+// Learning Resources component
+const LearningResources: React.FC = () => {
+  const resources = [
+    {
+      title: "Study Guides",
+      description: "Access comprehensive guides for all courses",
+      icon: <FileText className="w-5 h-5 text-purple-500" />,
+      color: "bg-purple-100 dark:bg-purple-900/20",
+      textColor: "text-purple-700 dark:text-purple-300",
+      link: "/dashboards/student/resources/guides"
+    },
+    {
+      title: "Video Tutorials",
+      description: "Watch step-by-step video explanations",
+      icon: <Youtube className="w-5 h-5 text-red-500" />,
+      color: "bg-red-100 dark:bg-red-900/20",
+      textColor: "text-red-700 dark:text-red-300",
+      link: "/dashboards/student/resources/videos"
+    },
+    {
+      title: "Practice Questions",
+      description: "Test your knowledge with practice problems",
+      icon: <FileQuestion className="w-5 h-5 text-amber-500" />,
+      color: "bg-amber-100 dark:bg-amber-900/20",
+      textColor: "text-amber-700 dark:text-amber-300",
+      link: "/dashboards/student/resources/practice"
+    },
+    {
+      title: "Learning Tips",
+      description: "Improve your study habits and techniques",
+      icon: <Lightbulb className="w-5 h-5 text-yellow-500" />,
+      color: "bg-yellow-100 dark:bg-yellow-900/20",
+      textColor: "text-yellow-700 dark:text-yellow-300",
+      link: "/dashboards/student/resources/tips"
+    }
+  ];
+
+  return (
+    <div className="p-5">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/20">
+            <Bookmark className="w-5 h-5 text-green-600 dark:text-green-400" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Learning Resources</h2>
+        </div>
+        <Link href="/dashboards/student/resources" className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 flex items-center">
+          View All <ArrowRight className="w-4 h-4 ml-1" />
+        </Link>
+      </div>
+
+      <div className="grid grid-cols-1 gap-3">
+        {resources.map((resource, index) => (
+          <Link key={index} href={resource.link}>
+            <div className="flex items-center p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors cursor-pointer group">
+              <div className={`p-2 rounded-md ${resource.color} mr-3`}>
+                {resource.icon}
+              </div>
+              <div className="flex-1">
+                <h3 className="font-medium text-gray-900 dark:text-white">{resource.title}</h3>
+                <p className={`text-xs ${resource.textColor}`}>{resource.description}</p>
+              </div>
+              <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-primary-500 transition-all transform group-hover:translate-x-1" />
+            </div>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Study Goals component
+const StudyGoals: React.FC = () => {
+  // Sample goals data - in a real app, this would come from an API
+  const goals = [
+    {
+      id: 1,
+      title: "Complete Python Basics",
+      deadline: "3 days left",
+      progress: 75,
+      category: "Course",
+      color: "bg-blue-500"
+    },
+    {
+      id: 2,
+      title: "Submit JavaScript Assignment",
+      deadline: "Tomorrow",
+      progress: 90,
+      category: "Assignment",
+      color: "bg-amber-500"
+    },
+    {
+      id: 3,
+      title: "Prepare for Data Structures Quiz",
+      deadline: "5 days left",
+      progress: 30,
+      category: "Exam",
+      color: "bg-purple-500"
+    },
+    {
+      id: 4,
+      title: "Complete React Project",
+      deadline: "2 weeks left",
+      progress: 15,
+      category: "Project",
+      color: "bg-green-500"
+    }
+  ];
+
+  return (
+    <div className="p-5">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/20">
+            <Target className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Study Goals</h2>
+        </div>
+        <Link href="/dashboards/student/goals" className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 flex items-center">
+          Manage <ArrowRight className="w-4 h-4 ml-1" />
+        </Link>
+      </div>
+
+      <div className="space-y-3">
+        {goals.map((goal) => (
+          <div key={goal.id} className="bg-gray-50 dark:bg-gray-800/60 rounded-lg p-3">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center">
+                <div className={`w-2 h-2 rounded-full ${goal.color} mr-2`}></div>
+                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{goal.category}</span>
+              </div>
+              <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                <Clock className="w-3 h-3 mr-1" />
+                {goal.deadline}
+              </div>
+            </div>
+            
+            <h3 className="font-medium text-gray-900 dark:text-white mb-2">{goal.title}</h3>
+            
+            <div className="flex items-center">
+              <div className="flex-1">
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                  <div 
+                    className={`${goal.color} h-2 rounded-full`} 
+                    style={{ width: `${goal.progress}%` }}
+                  ></div>
+                </div>
+              </div>
+              <span className="ml-2 text-xs font-medium text-gray-700 dark:text-gray-300">
+                {goal.progress}%
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+      
+      <div className="mt-3 flex justify-center">
+        <button className="flex items-center justify-center gap-1 text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium">
+          <Trophy className="w-4 h-4" />
+          Set New Goal
+        </button>
+      </div>
+    </div>
+  );
+};
 
 // Memoize components to prevent unnecessary re-renders
 const MemoizedCounterStudent = memo(CounterStudent);
@@ -29,6 +203,8 @@ const MemoizedProgressOverview = memo(ProgressOverview);
 const MemoizedStudentUpcomingClasses = memo(StudentUpcomingClasses);
 const MemoizedFreeClasses = memo(FreeClasses);
 const MemoizedRecentAnnouncements = memo(RecentAnnouncements);
+const MemoizedLearningResources = memo(LearningResources);
+const MemoizedStudyGoals = memo(StudyGoals);
 
 // Animation variants (outside component to prevent recreation)
   const containerVariants = {
@@ -378,26 +554,52 @@ const StudentDashboardMain: React.FC = () => {
           </div>
           
           {/* Right column - 4/12 width on desktop */}
-          <div className="lg:col-span-4 grid grid-cols-1 gap-6 sm:gap-8">
+          <div className="lg:col-span-4 flex flex-col gap-4">
             {/* Recent Announcements Section */}
-            <motion.section variants={itemVariants}>
-              <MemoizedRecentAnnouncements 
-                limit={5} 
-                showViewAll={true}
-                onViewAllClick={() => console.log("Navigate to all announcements page")}
-              />
-            </motion.section>
+            <motion.div 
+              variants={itemVariants}
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden"
+            >
+              <div className="p-5">
+                <MemoizedRecentAnnouncements 
+                  limit={5} 
+                  showViewAll={true}
+                  onViewAllClick={() => console.log("Navigate to all announcements page")}
+                />
+              </div>
+            </motion.div>
             
             {/* Weekly Activity Chart */}
-            <WeeklyActivityChart />
+            <motion.div
+              variants={itemVariants}
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden"
+            >
+              <WeeklyActivityChart />
+            </motion.div>
             
             {/* Free Courses Section */}
-            <motion.section 
+            <motion.div 
               variants={itemVariants}
-              className="col-span-1 bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden"
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden"
             >
               <MemoizedFreeClasses />
-            </motion.section>
+            </motion.div>
+            
+            {/* Learning Resources Section */}
+            <motion.div 
+              variants={itemVariants}
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden"
+            >
+              <MemoizedLearningResources />
+            </motion.div>
+            
+            {/* Study Goals Section */}
+            <motion.div 
+              variants={itemVariants}
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden"
+            >
+              <MemoizedStudyGoals />
+            </motion.div>
           </div>
         </div>
       </div>
@@ -419,61 +621,58 @@ const WeeklyActivityChart = memo(() => {
     ];
 
     return (
-      <motion.div
-        variants={itemVariants}
-        className="col-span-1 bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden"
-      >
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
-              <LineChart className="w-5 h-5 mr-2 text-primary-500" />
-              Weekly Activity
-            </h2>
-            <Link href="/dashboards/student/progress" className="text-sm text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 flex items-center">
-              View Details <ArrowRight className="w-4 h-4 ml-1" />
-            </Link>
+      <div className="p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/20">
+              <LineChart className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            </div>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Weekly Activity</h2>
           </div>
+          <Link href="/dashboards/student/progress" className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 flex items-center">
+            View Details <ArrowRight className="w-4 h-4 ml-1" />
+          </Link>
+        </div>
 
-          {/* Chart */}
-          <div className="mb-4">
-            <div className="space-y-3">
-              {activityData.map((item, index) => (
-                <div key={index} className="flex items-center">
-                  <span className="w-9 text-sm text-gray-500 dark:text-gray-400">{item.day}</span>
-                  <div className="flex-1 ml-2">
-                    <div className="h-8 flex items-center bg-gray-100 dark:bg-gray-700 rounded-md overflow-hidden">
+        {/* Chart */}
+        <div className="mb-4">
+          <div className="space-y-2.5">
+            {activityData.map((item, index) => (
+              <div key={index} className="flex items-center">
+                <span className="w-9 text-sm font-medium text-gray-500 dark:text-gray-400">{item.day}</span>
+                <div className="flex-1 ml-2">
+                  <div className="h-7 flex items-center bg-gray-100 dark:bg-gray-700 rounded-md overflow-hidden">
+                    <div 
+                      className="h-full bg-blue-100 dark:bg-blue-900/30 flex items-center"
+                      style={{ width: `${Math.min(100, item.hours * 20)}%` }}
+                    >
                       <div 
-                        className="h-full bg-primary-100 dark:bg-primary-900/30 flex items-center"
-                        style={{ width: `${Math.min(100, item.hours * 20)}%` }}
-                      >
-                        <div 
-                          className="h-full bg-primary-500 dark:bg-primary-600"
-                          style={{ width: `${Math.min(100, item.complete * 15)}%` }}
-                        ></div>
-                      </div>
+                        className="h-full bg-blue-500 dark:bg-blue-600"
+                        style={{ width: `${Math.min(100, item.complete * 15)}%` }}
+                      ></div>
                     </div>
                   </div>
-                  <span className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300 w-10 text-right">
-                    {item.hours}h
-                  </span>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Legend */}
-          <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center">
-              <div className="w-3 h-3 bg-primary-500 dark:bg-primary-600 rounded-sm mr-2"></div>
-              <span className="text-gray-600 dark:text-gray-400">Completed Activities</span>
-            </div>
-            <div className="flex items-center">
-              <div className="w-3 h-3 bg-primary-100 dark:bg-primary-900/30 rounded-sm mr-2"></div>
-              <span className="text-gray-600 dark:text-gray-400">Study Hours</span>
-            </div>
+                <span className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300 w-10 text-right">
+                  {item.hours}h
+                </span>
+              </div>
+            ))}
           </div>
         </div>
-      </motion.div>
+
+        {/* Legend */}
+        <div className="flex items-center justify-between text-xs">
+          <div className="flex items-center">
+            <div className="w-3 h-3 bg-blue-500 dark:bg-blue-600 rounded-sm mr-2"></div>
+            <span className="text-gray-600 dark:text-gray-400">Completed Activities</span>
+          </div>
+          <div className="flex items-center">
+            <div className="w-3 h-3 bg-blue-100 dark:bg-blue-900/30 rounded-sm mr-2"></div>
+            <span className="text-gray-600 dark:text-gray-400">Study Hours</span>
+          </div>
+        </div>
+      </div>
     );
 });
 
@@ -553,7 +752,5 @@ const QuickActionCard = memo(({ recentCourse }: { recentCourse: {id: string, tit
       </div>
     </motion.div>
 ));
-
-
 
 export default StudentDashboardMain; 

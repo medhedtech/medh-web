@@ -33,7 +33,7 @@ const MobileMenuItems = () => {
     },
     {
       id: 2,
-      name: "Store",
+      name: "EduStore",
       path: "/shop",
       accordion: null,
       isRelative: false,
