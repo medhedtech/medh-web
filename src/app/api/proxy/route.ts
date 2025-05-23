@@ -8,11 +8,6 @@ export async function GET(request: NextRequest) {
     status: 'ok',
     services: [
       {
-        name: 'exchange-rates',
-        description: 'Proxy for currency exchange rates',
-        usage: '/api/proxy/exchange-rates?base=USD',
-      },
-      {
         name: 'ipapi',
         description: 'Proxy for IP geolocation services',
         usage: '/api/proxy/ipapi',
