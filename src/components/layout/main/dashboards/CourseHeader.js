@@ -2,7 +2,6 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import StarIcon from "@/assets/images/icon/StarIcon";
-import { useCurrency } from "@/contexts/CurrencyContext";
 import { isFreePrice } from "@/utils/priceUtils";
 import { Users, User } from "lucide-react";
 
@@ -28,15 +27,13 @@ const CourseHeader = ({
     
   const [selectedPricing, setSelectedPricing] = useState("individual");
   
-  const { convertPrice, formatPrice } = useCurrency();
-  
   const defaultIndividualPrice = individualPrice || price;
   const defaultBatchPrice = batchPrice || (price ? price * 0.75 : 0);
   
-  const convertedIndividualPrice = convertPrice(defaultIndividualPrice);
-  const convertedBatchPrice = convertPrice(defaultBatchPrice);
-  const formattedIndividualPrice = formatPrice(convertedIndividualPrice);
-  const formattedBatchPrice = formatPrice(convertedBatchPrice);
+  const convertedIndividualPrice = defaultIndividualPrice;
+  const convertedBatchPrice = defaultBatchPrice;
+  const formattedIndividualPrice = `$${convertedIndividualPrice}`;
+  const formattedBatchPrice = `$${convertedBatchPrice}`;
   
   const courseIsFree = isFreePrice(price) && isFreePrice(individualPrice) && isFreePrice(batchPrice);
 

@@ -57,7 +57,13 @@ const formSteps = [
     title: 'Schedule',
     description: 'Duration and sessions',
     hash: 'schedule',
-    requiredFields: ['course_duration']
+    requiredFields: [
+      'course_duration',
+      'no_of_Sessions',
+      'session_duration',
+      'min_hours_per_week',
+      'max_hours_per_week'
+    ]
   },
   {
     title: 'Pricing',
@@ -123,11 +129,26 @@ const schema = yup.object().shape({
     course_requirements: yup.array().of(yup.string()),
     target_audience: yup.array().of(yup.string())
   }),
-  no_of_Sessions: yup.number(),
+  no_of_Sessions: yup.number()
+    .transform((value) => (isNaN(value) ? undefined : value))
+    .required('Number of sessions is required')
+    .min(1, 'Number of sessions must be at least 1'),
   course_duration: yup.string().required('Course duration is required'),
-  session_duration: yup.string(),
-  min_hours_per_week: yup.number(),
-  max_hours_per_week: yup.number(),
+  session_duration: yup.string().required('Session duration is required'),
+  min_hours_per_week: yup.number()
+    .transform((value) => (isNaN(value) ? undefined : value))
+    .required('Minimum hours per week is required')
+    .min(0, 'Minimum hours per week cannot be negative'),
+  max_hours_per_week: yup.number()
+    .transform((value) => (isNaN(value) ? undefined : value))
+    .required('Maximum hours per week is required')
+    .min(0, 'Maximum hours per week cannot be negative')
+    .test('max-greater-than-min', 'Maximum hours must be greater than minimum hours', 
+      function(max) {
+        const min = this.parent.min_hours_per_week;
+        return !min || !max || max >= min;
+      }
+    ),
   efforts_per_Week: yup.string(),
   course_fee: yup.number(),
   prices: yup.array().of(
@@ -538,8 +559,11 @@ const AddCourse = () => {
       is_Projects: 'Yes',
       is_Quizes: 'Yes',
       related_courses: [],
-      min_hours_per_week: 0,
-      max_hours_per_week: 0,
+      min_hours_per_week: 1,
+      max_hours_per_week: 2,
+      no_of_Sessions: 1,
+      session_duration: '',
+      course_duration: '',
       category_type: 'Paid',
       brochures: [],
       curriculum: [],
@@ -849,17 +873,23 @@ const AddCourse = () => {
           await postQuery({
             url: apiUrls?.upload?.uploadImage,
             postData,
-            onSuccess: async (data) => {
-              const imageUrl = data?.data;
-              setCourseImage(imageUrl);
-              setValue('course_image', imageUrl, {
-                shouldValidate: true,
-                shouldDirty: true,
-                shouldTouch: true
-              });
-              // Re-validate the current step to clear any image-related validation messages
-              await checkStepValidation(currentStep);
-              toast.success('Image uploaded successfully');
+            onSuccess: async (response) => {
+              // Handle the specific response format
+              if (response?.data?.url && typeof response.data.url === 'string') {
+                const imageUrl = response.data.url;
+                setCourseImage(imageUrl);
+                setValue('course_image', imageUrl, {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                  shouldTouch: true
+                });
+                // Re-validate the current step to clear any image-related validation messages
+                await checkStepValidation(currentStep);
+                toast.success('Image uploaded successfully');
+              } else {
+                console.error("Unexpected image upload response format:", response);
+                toast.error('Invalid image upload response format');
+              }
             },
             onFail: (error) => {
               console.error("Image upload error:", error);
@@ -881,34 +911,13 @@ const AddCourse = () => {
     }
   };
 
-  const checkStepValidation = async (step: number): Promise<boolean> => {
-    const currentStepData = formSteps[step - 1];
-    if (!currentStepData.requiredFields.length) return true;
-
-    const isValid = await trigger(currentStepData.requiredFields as any);
-    if (!isValid) {
-      // Simplify the error handling logic
-      const missingFields = currentStepData.requiredFields
-        .filter(field => {
-          // Instead of trying to access nested properties directly
-          // Just check if the field has an error by using the trigger result
-          return !isValid && currentStepData.requiredFields.includes(field);
-        })
-        .map(field => field.split('.').pop())
-        .join(', ');
-      
-      setValidationMessage(`Please fill in required fields: ${missingFields}`);
-      return false;
-    }
-    
-    setValidationMessage('');
-    return true;
-  };
-
   const handleStepSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
+      // Clear any existing validation message
+      setValidationMessage('');
+
       const isValid = await checkStepValidation(currentStep);
       
       if (!isValid) {
@@ -919,13 +928,31 @@ const AddCourse = () => {
         // Get all form values
         const values = watch();
 
+        // Log current form state for debugging
+        console.log('Current form values:', values);
+        console.log('Current form errors:', errors);
+
         // Validate all fields before submission
-        const isFormValid = await trigger();
+        const isFormValid = await trigger(undefined, { shouldFocus: true });
 
         if (!isFormValid) {
-          const errorFields = Object.keys(errors);
-          setValidationMessage(`Please check the following fields: ${errorFields.join(', ')}`);
-          return;
+          // Get all error fields and their messages
+          const errorFields = Object.entries(errors)
+            .map(([key, value]) => {
+              if (typeof value === 'object' && value?.message) {
+                return `${key}: ${value.message}`;
+              }
+              return key;
+            })
+            .filter(Boolean);
+
+          if (errorFields.length > 0) {
+            const errorMessage = `Please check the following fields: ${errorFields.join(', ')}`;
+            console.log('Validation errors:', errors);
+            setValidationMessage(errorMessage);
+            toast.error('Please fill in all required fields');
+            return;
+          }
         }
 
         // Submit the form
@@ -936,6 +963,45 @@ const AddCourse = () => {
     } catch (error) {
       console.error('Error in handleStepSubmit:', error);
       toast.error('An error occurred while submitting the form');
+    }
+  };
+
+  const checkStepValidation = async (step: number): Promise<boolean> => {
+    const currentStepData = formSteps[step - 1];
+    if (!currentStepData.requiredFields.length) return true;
+
+    try {
+      // Clear any existing validation message
+      setValidationMessage('');
+
+      const isValid = await trigger(currentStepData.requiredFields as any);
+      
+      if (!isValid) {
+        // Get specific error messages for the current step's required fields
+        const missingFields = currentStepData.requiredFields
+          .filter(field => {
+            const fieldError = errors[field as keyof typeof errors];
+            return fieldError;
+          })
+          .map(field => {
+            const fieldName = field.split('.').pop();
+            const fieldError = errors[field as keyof typeof errors];
+            return fieldError?.message || fieldName;
+          });
+
+        if (missingFields.length > 0) {
+          const errorMessage = `Please fill in required fields: ${missingFields.join(', ')}`;
+          setValidationMessage(errorMessage);
+          console.log('Step validation errors:', errors);
+          return false;
+        }
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error in checkStepValidation:', error);
+      setValidationMessage('An error occurred while validating the form');
+      return false;
     }
   };
 
