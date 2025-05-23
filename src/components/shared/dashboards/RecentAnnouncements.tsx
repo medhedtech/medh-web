@@ -81,7 +81,7 @@ const RecentAnnouncements: React.FC<RecentAnnouncementsProps> = ({
   const renderContent = () => {
     if (isLoading) {
       return (
-        <div className="flex justify-center items-center py-12">
+        <div className="flex justify-center items-center py-8">
           <Loader2 className="w-6 h-6 text-primary-500 animate-spin" />
           <span className="ml-2 text-gray-600 dark:text-gray-300">Loading announcements...</span>
         </div>
@@ -90,7 +90,7 @@ const RecentAnnouncements: React.FC<RecentAnnouncementsProps> = ({
 
     if (error) {
       return (
-        <div className="text-center py-8">
+        <div className="text-center py-6">
           <p className="text-red-500 dark:text-red-400">{error}</p>
           <button 
             onClick={() => getAnnouncements().then(setAnnouncements).catch(() => {})}
@@ -104,7 +104,7 @@ const RecentAnnouncements: React.FC<RecentAnnouncementsProps> = ({
 
     if (visibleAnnouncements.length === 0) {
       return (
-        <div className="text-center py-8">
+        <div className="text-center py-6">
           <p className="text-gray-500 dark:text-gray-400">No announcements at this time.</p>
         </div>
       );
@@ -133,29 +133,27 @@ const RecentAnnouncements: React.FC<RecentAnnouncementsProps> = ({
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden">
-      <div className="p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/20">
-              <Bell className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-            </div>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Recent Announcements</h2>
+    <>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/20">
+            <Bell className="w-5 h-5 text-amber-600 dark:text-amber-400" />
           </div>
-          
-          {!isLoading && !error && showViewAll && announcements.length > limit && (
-            <button 
-              onClick={handleViewAll}
-              className="text-sm text-primary-600 dark:text-primary-400 flex items-center gap-1 hover:underline"
-            >
-              View all <ArrowRight className="w-3 h-3" />
-            </button>
-          )}
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Recent Announcements</h2>
         </div>
         
-        {renderContent()}
+        {!isLoading && !error && showViewAll && announcements.length > limit && (
+          <button 
+            onClick={handleViewAll}
+            className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 flex items-center gap-1"
+          >
+            View all <ArrowRight className="w-4 h-4 ml-1" />
+          </button>
+        )}
       </div>
-    </div>
+      
+      {renderContent()}
+    </>
   );
 };
 
