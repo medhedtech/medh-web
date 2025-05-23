@@ -73,8 +73,8 @@ export default function Navitem({ navItem, idx, children }) {
     });
   };
 
-  // Check if this is the Store item to apply special styles
-  const isStore = name === "Store";
+  // Check if this is the EduStore item to apply special styles
+  const isStore = name === "EduStore";
   
   return (
     <li 
@@ -96,9 +96,6 @@ export default function Navitem({ navItem, idx, children }) {
         >
           <span className="whitespace-nowrap relative">
             {name}
-            {isStore && (
-              <span className="absolute -top-2 -right-8 bg-primary-500 text-white text-xs px-1.5 py-0.5 rounded-full text-[10px]">New</span>
-            )}
           </span>
           {dropdown && (
             <svg 
