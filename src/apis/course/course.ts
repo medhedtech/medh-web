@@ -906,3 +906,92 @@ export const toggleShowInHome = (id: string): string => {
   if (!id) throw new Error('Course ID cannot be empty');
   return `${apiBaseUrl}/courses/${id}/toggle-home`;
 }
+
+/**
+ * Creates a new course with minimal required fields.
+ * This is a simplified version of the course creation process for quick drafts.
+ * @returns The API URL string for creating a basic course.
+ */
+export const createBasicCourse = (): string => `${apiBaseUrl}/courses/create-basic`;
+
+/**
+ * Prepares form data for creating a basic course with minimal fields.
+ * @param data - The basic course data (title, category, image, etc.)
+ * @returns FormData object ready for submission
+ */
+export const prepareBasicCourseData = (data: {
+  course_title: string;
+  course_category?: string;
+  program_overview?: string;
+  benefits?: string;
+  learning_objectives?: string[];
+  course_requirements?: string[];
+  target_audience?: string[];
+  no_of_Sessions?: number;
+  course_duration?: string;
+  class_type?: string;
+  is_Certification?: string;
+  is_Assignments?: string;
+  is_Projects?: string;
+  is_Quizes?: string;
+  course_image?: string | File;
+  course_tag?: string;
+  course_subtitle?: string;
+  course_level?: string;
+  course_grade?: string;
+  category_type?: string;
+  language?: string;
+}): FormData => {
+  const formData = new FormData();
+  
+  // Add required field
+  formData.append('course_title', data.course_title);
+  
+  // Add optional fields if provided
+  if (data.course_category) formData.append('course_category', data.course_category);
+  if (data.program_overview) formData.append('program_overview', data.program_overview);
+  if (data.benefits) formData.append('benefits', data.benefits);
+  
+  // Handle arrays
+  if (data.learning_objectives && data.learning_objectives.length > 0) {
+    data.learning_objectives.forEach((objective, index) => {
+      formData.append(`learning_objectives[${index}]`, objective);
+    });
+  }
+  if (data.course_requirements && data.course_requirements.length > 0) {
+    data.course_requirements.forEach((requirement, index) => {
+      formData.append(`course_requirements[${index}]`, requirement);
+    });
+  }
+  if (data.target_audience && data.target_audience.length > 0) {
+    data.target_audience.forEach((audience, index) => {
+      formData.append(`target_audience[${index}]`, audience);
+    });
+  }
+  
+  // Add other optional fields
+  if (data.no_of_Sessions !== undefined) formData.append('no_of_Sessions', String(data.no_of_Sessions));
+  if (data.course_duration) formData.append('course_duration', data.course_duration);
+  if (data.class_type) formData.append('class_type', data.class_type);
+  if (data.is_Certification) formData.append('is_Certification', data.is_Certification);
+  if (data.is_Assignments) formData.append('is_Assignments', data.is_Assignments);
+  if (data.is_Projects) formData.append('is_Projects', data.is_Projects);
+  if (data.is_Quizes) formData.append('is_Quizes', data.is_Quizes);
+  if (data.course_tag) formData.append('course_tag', data.course_tag);
+  if (data.course_subtitle) formData.append('course_subtitle', data.course_subtitle);
+  if (data.course_level) formData.append('course_level', data.course_level);
+  if (data.course_grade) formData.append('course_grade', data.course_grade);
+  if (data.category_type) formData.append('category_type', data.category_type);
+  if (data.language) formData.append('language', data.language);
+  
+  // Handle course image - can be a file or a URL string
+  if (data.course_image) {
+    if (typeof data.course_image === 'string') {
+      formData.append('course_image', data.course_image);
+    } else {
+      formData.append('course_image', data.course_image);
+    }
+  }
+  
+  return formData;
+};
