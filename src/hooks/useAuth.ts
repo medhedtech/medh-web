@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { apiBaseUrl } from '@/apis';
 import { toast } from 'react-toastify';
-import { getAuthToken, saveAuthToken, clearAuthToken } from '@/utils/auth';
+import { getAuthToken, saveAuthToken, clearAuthToken, getRefreshToken, saveRefreshToken } from '@/utils/auth';
 import { jwtDecode } from 'jwt-decode';
 import { apiClient } from '@/apis';
 
@@ -219,7 +219,12 @@ const useAuth = () => {
    */
   const refreshToken = useCallback(async () => {
     const token = getAuthToken();
-    if (!token) return false;
+    const refreshTokenValue = getRefreshToken();
+    
+    if (!refreshTokenValue) {
+      console.warn('No refresh token available for refresh');
+      return false;
+    }
     
     try {
       // Only try to refresh if token exists but is close to expiring
@@ -233,15 +238,26 @@ const useAuth = () => {
         }
       }
       
-      const response = await axios.post(`${apiBaseUrl}/auth/refresh-token`, {}, {
-        headers: {
-          Authorization: `Bearer ${token}`
+      const response = await axios.post(`${apiBaseUrl}/auth/refresh-token`, 
+        { refresh_token: refreshTokenValue }, 
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          }
         }
-      });
+      );
       
-      if (response.data && response.data.token) {
-        saveAuthToken(response.data.token);
-        validateToken(response.data.token);
+      if (response.data && (response.data.token || (response.data.data && response.data.data.access_token))) {
+        const newToken = response.data.token || response.data.data.access_token;
+        saveAuthToken(newToken);
+        validateToken(newToken);
+        
+        // Save new refresh token if provided
+        if (response.data.refresh_token || (response.data.data && response.data.data.refresh_token)) {
+          const newRefreshToken = response.data.refresh_token || response.data.data.refresh_token;
+          saveRefreshToken(newRefreshToken);
+        }
+        
         return true;
       }
       
