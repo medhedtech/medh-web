@@ -100,25 +100,25 @@ const AdminDashboard: React.FC = () => {
           <QuickActionButton 
             icon={<PlusCircle className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />}
             title="Add New Course"
-            href="/dashboards/admin-addcourse"
+            href="/dashboards/admin/courses/create"
             color="hover:bg-emerald-50 dark:hover:bg-emerald-900/10"
           />
           <QuickActionButton 
             icon={<Edit className="h-6 w-6 text-blue-600 dark:text-blue-400" />}
             title="Update Courses"
-            href="/dashboards/admin-course"
+            href="/dashboards/admin/courses/manage"
             color="hover:bg-blue-50 dark:hover:bg-blue-900/10"
           />
           <QuickActionButton 
             icon={<UserPlus className="h-6 w-6 text-purple-600 dark:text-purple-400" />}
             title="Add Instructor"
-            href="/dashboards/admin-add-instructor"
+            href="/dashboards/admin/instructors/create"
             color="hover:bg-purple-50 dark:hover:bg-purple-900/10"
           />
           <QuickActionButton 
             icon={<Users className="h-6 w-6 text-amber-600 dark:text-amber-400" />}
             title="Manage Students"
-            href="/dashboards/admin-studentmange"
+            href="/dashboards/admin/students/manage"
             color="hover:bg-amber-50 dark:hover:bg-amber-900/10"
           />
         </div>
