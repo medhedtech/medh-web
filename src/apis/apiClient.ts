@@ -1,4 +1,5 @@
 import { apiBaseUrl } from './config';
+import { getRefreshToken } from '@/utils/auth';
 
 /**
  * API Client configuration options
@@ -215,7 +216,12 @@ export class ApiClient {
    */
   async refreshToken(): Promise<boolean> {
     const currentToken = this.getAuthToken();
-    if (!currentToken) return false;
+    const refreshToken = getRefreshToken();
+    
+    if (!refreshToken) {
+      console.warn('No refresh token available');
+      return false;
+    }
     
     try {
       // Ensure we're using the proper endpoint format with the API version
@@ -227,15 +233,26 @@ export class ApiClient {
           ...this.defaultHeaders,
           'Content-Type': 'application/json'
         },
+        body: JSON.stringify({ refresh_token: refreshToken }),
         credentials: this.credentials,
         mode: this.mode
       });
       
       if (response.ok) {
         const data = await response.json();
-        if (data.token) {
-          this.setAuthToken(data.token);
-          this.saveTokenInStorage(data.token);
+        if (data.token || (data.data && data.data.access_token)) {
+          const newToken = data.token || data.data.access_token;
+          this.setAuthToken(newToken);
+          this.saveTokenInStorage(newToken);
+          
+          // Save new refresh token if provided
+          if (data.refresh_token || (data.data && data.data.refresh_token)) {
+            const newRefreshToken = data.refresh_token || data.data.refresh_token;
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('refreshToken', newRefreshToken);
+            }
+          }
+          
           return true;
         }
       }
