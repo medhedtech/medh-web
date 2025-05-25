@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { apiBaseUrl } from '@/apis';
-import { getAuthToken, saveAuthToken } from './auth';
+import { getAuthToken, saveAuthToken, getRefreshToken, saveRefreshToken } from './auth';
 import { jwtDecode } from 'jwt-decode';
 import { Tooltip } from "react-tooltip";
 
@@ -36,34 +36,49 @@ const refreshTokenIfNeeded = async (token: string): Promise<string> => {
     return token; // Return existing token if it's not expired
   }
   
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) {
+    console.warn('No refresh token available');
+    return token;
+  }
+  
   try {
     console.log('Attempting to refresh token:', {
       tokenLength: token?.length,
       tokenStart: token?.substring(0, 10),
-      isExpired: isTokenExpired(token)
+      isExpired: isTokenExpired(token),
+      hasRefreshToken: !!refreshToken
     });
 
-    // Call refresh token endpoint
+    // Call refresh token endpoint with refresh token in body
     const response = await axios.post(
       `${apiBaseUrl}/auth/refresh-token`,
-      {},
+      { refresh_token: refreshToken },
       {
         headers: {
-          Authorization: `Bearer ${token}`,
-          'x-access-token': token
+          'Content-Type': 'application/json'
         },
         timeout: 10000 // 10 second timeout
       }
     );
     
-    if (response.data && response.data.token) {
+    if (response.data && (response.data.token || (response.data.data && response.data.data.access_token))) {
+      const newToken = response.data.token || response.data.data.access_token;
       console.log('Token refresh successful:', {
-        newTokenLength: response.data.token?.length,
-        newTokenStart: response.data.token?.substring(0, 10)
+        newTokenLength: newToken?.length,
+        newTokenStart: newToken?.substring(0, 10)
       });
-      // Save the new token and return it
-      saveAuthToken(response.data.token);
-      return response.data.token;
+      
+      // Save the new tokens
+      saveAuthToken(newToken);
+      
+      // Save new refresh token if provided
+      if (response.data.refresh_token || (response.data.data && response.data.data.refresh_token)) {
+        const newRefreshToken = response.data.refresh_token || response.data.data.refresh_token;
+        saveRefreshToken(newRefreshToken);
+      }
+      
+      return newToken;
     }
     
     console.warn('Token refresh failed: No token in response', response.data);
