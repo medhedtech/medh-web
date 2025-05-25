@@ -837,6 +837,27 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
       icon: <LayoutDashboard className="w-5 h-5" />
     },
     {
+      name: "Courses",
+      icon: <BookOpen className="w-5 h-5" />,
+      subItems: [
+        {
+          name: "All Courses",
+          path: "/courses",
+          icon: <LayoutGrid className="w-5 h-5" />
+        },
+        {
+          name: "My Courses",
+          path: `/dashboards/${userRole}/my-courses`,
+          icon: <BookOpenCheck className="w-5 h-5" />
+        },
+        {
+          name: "Live Classes",
+          path: `/dashboards/${userRole}/live-classes`,
+          icon: <Video className="w-5 h-5" />
+        }
+      ]
+    },
+    {
       name: "Course Management",
       path: formatRoute("admin", "course"),
       icon: <BookOpen className="w-5 h-5" />,
@@ -1184,18 +1205,108 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
 
   // Get menu items based on user role
   const getMenuItemsByRole = (role: string): MenuItem[] => {
-    role = role.toLowerCase();
-    
+    const baseItems: MenuItem[] = [
+      {
+        name: "Dashboard",
+        path: `/dashboards/${role}`,
+        icon: <LayoutDashboard className="w-5 h-5" />
+      },
+      {
+        name: "Courses",
+        icon: <BookOpen className="w-5 h-5" />,
+        subItems: [
+          {
+            name: "All Courses",
+            path: "/courses",
+            icon: <LayoutGrid className="w-5 h-5" />
+          },
+          {
+            name: "My Courses",
+            path: `/dashboards/${role}/my-courses`,
+            icon: <BookOpenCheck className="w-5 h-5" />
+          },
+          {
+            name: "Live Classes",
+            path: `/dashboards/${role}/live-classes`,
+            icon: <Video className="w-5 h-5" />
+          }
+        ]
+      },
+      {
+        name: "Resources",
+        path: formatRoute("student", "resources"),
+        icon: <FolderOpen className="w-5 h-5" />,
+        subItems: [
+          {
+            name: "Course Materials",
+            path: formatRoute("student", "lesson-course-materials"),
+            icon: <FileText className="w-4 h-4" />
+          },
+          {
+            name: "Assignments",
+            path: formatRoute("student", "assignments"),
+            icon: <Clipboard className="w-4 h-4" />
+          },
+          {
+            name: "Quizzes",
+            path: formatRoute("student", "quiz"),
+            icon: <CheckSquare className="w-4 h-4" />
+          }
+        ]
+      },
+      {
+        name: "Live Classes",
+        path: formatRoute("student", "upcoming-classes"),
+        icon: <Video className="w-5 h-5" />,
+        subItems: [
+          {
+            name: "Upcoming Classes",
+            path: formatRoute("student", "upcoming-classes"),
+            icon: <CalendarDays className="w-4 h-4" />
+          },
+          {
+            name: "Join Live Class",
+            path: formatRoute("student", "join-live"),
+            icon: <Play className="w-4 h-4" />
+          },
+          {
+            name: "Recorded Sessions",
+            path: formatRoute("student", "access-recorded-sessions"),
+            icon: <Video className="w-4 h-4" />
+          }
+        ]
+      },
+      {
+        name: "Certificates",
+        path: formatRoute("student", "certificate"),
+        icon: <Award className="w-5 h-5" />
+      },
+      {
+        name: "Feedback & Support",
+        path: formatRoute("student", "feedback"),
+        icon: <LifeBuoy className="w-5 h-5" />
+      },
+      {
+        name: "Apply for Placement",
+        path: formatRoute("student", "apply"),
+        icon: <Briefcase className="w-5 h-5" />
+      },
+      {
+        name: "Profile",
+        path: formatRoute("student", "profile"),
+        icon: <UserCircle className="w-5 h-5" />
+      }
+    ];
+
     if (role.includes('admin')) {
-      return adminMenuItems;
+      baseItems.push(...adminMenuItems);
     } else if (role.includes('instructor')) {
-      return instructorMenuItems;
+      baseItems.push(...instructorMenuItems);
     } else if (role.includes('student')) {
-      return studentMenuItems;
+      baseItems.push(...studentMenuItems);
     }
-    
-    // Default to student if role not recognized
-    return studentMenuItems;
+
+    return baseItems;
   };
 
   // Get the action items based on user role
