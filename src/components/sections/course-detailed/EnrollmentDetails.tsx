@@ -15,7 +15,6 @@ import useGetQuery from "@/hooks/getQuery.hook";
 import usePostQuery from "@/hooks/postQuery.hook";
 import useRazorpay from "@/hooks/useRazorpay";
 import RAZORPAY_CONFIG from "@/config/razorpay";
-import { isFreePrice, getCoursePriceValue, getMinBatchSize } from '@/utils/priceUtils';
 
 // Local implementation of the price utility functions
 const getCoursePriceValue = (
@@ -70,6 +69,20 @@ const getMinBatchSize = (course: any): number => {
 };
 
 // Types
+interface Price {
+  _id?: string;
+  currency: string;
+  individual: number;
+  batch: number;
+  min_batch_size?: number;
+  max_batch_size?: number;
+  early_bird_discount?: number;
+  group_discount?: number;
+  is_active?: boolean;
+  valid_from?: string;
+  valid_until?: string;
+}
+
 interface CoursePrice {
   currency: string;
   individual: number;
@@ -108,6 +121,10 @@ interface CourseDetails extends ICourse {
   slug?: string;
   no_of_Sessions?: number;
   course_duration?: string;
+  classType?: string;
+  grade?: string;
+  target_audience?: string[];
+  features?: string[];
   // ... other fields
 }
 
@@ -128,13 +145,21 @@ interface InstallmentPlan {
   totalAmount: number;
   downPayment: number;
   currentInstallmentNumber?: number;
+  gracePeriodDays: number;
 }
 
 type EnrollmentType = 'individual' | 'batch';
 
+interface CategoryInfo {
+  primaryColor?: string;
+  colorClass?: string;
+  bgClass?: string;
+  borderClass?: string;
+}
+
 interface EnrollmentDetailsProps {
   courseDetails: CourseDetails | null;
-  categoryInfo?: { primaryColor?: string };
+  categoryInfo?: CategoryInfo;
   onEnrollClick?: (data: any) => Promise<void>; // Adjust 'any' to a more specific type
 }
 
@@ -167,6 +192,21 @@ interface SuccessModalProps {
   navigateToCourse: () => void;
   pricePaid: string;
 }
+
+// Error Fallback Component
+const ErrorFallback: React.FC<{ error: string; resetErrorBoundary: () => void }> = ({ error, resetErrorBoundary }) => (
+  <div className="flex flex-col items-center justify-center p-8 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-800">
+    <AlertTriangle className="h-12 w-12 text-red-500 mb-4" />
+    <h3 className="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">Something went wrong</h3>
+    <p className="text-sm text-red-600 dark:text-red-300 mb-4 text-center">{error}</p>
+    <button
+      onClick={resetErrorBoundary}
+      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+    >
+      Try again
+    </button>
+  </div>
+);
 
 const SuccessModal: React.FC<SuccessModalProps> = ({ isOpen, onClose, courseTitle, navigateToCourse, pricePaid }) => {
   if (!isOpen) return null;
@@ -405,7 +445,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     }
     // Fallback to course_fee's currency if that exists (assuming it might be structured like { amount: 100, currency: 'USD'})
     // This part is speculative, adjust if course_fee is just a number
-    if (typeof courseDetails?.course_fee === 'object' && courseDetails.course_fee?.currency) {
+    if (typeof courseDetails?.course_fee === 'object' && courseDetails.course_fee !== null) {
        // return courseDetails.course_fee.currency; // Example structure
     }
     return '$'; // Default symbol
@@ -471,7 +511,8 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
         installmentAmount: Math.ceil((finalPrice - calculateDownPayment(finalPrice)) / 3 + calculateFee(finalPrice) / 3),
         totalAmount: finalPrice,
         downPayment: calculateDownPayment(finalPrice),
-        currentInstallmentNumber: 1
+        currentInstallmentNumber: 1,
+        gracePeriodDays
       },
       {
         id: '6-month',
@@ -483,7 +524,8 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
         ),
         totalAmount: finalPrice,
         downPayment: calculateDownPayment(finalPrice),
-        currentInstallmentNumber: 1
+        currentInstallmentNumber: 1,
+        gracePeriodDays
       },
       {
         id: '9-month',
@@ -495,7 +537,8 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
         ),
         totalAmount: finalPrice,
         downPayment: calculateDownPayment(finalPrice),
-        currentInstallmentNumber: 1
+        currentInstallmentNumber: 1,
+        gracePeriodDays
       },
       {
         id: '12-month',
@@ -507,7 +550,8 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
         ),
         totalAmount: finalPrice,
         downPayment: calculateDownPayment(finalPrice),
-        currentInstallmentNumber: 1
+        currentInstallmentNumber: 1,
+        gracePeriodDays
       }
     ];
     
@@ -647,7 +691,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
       };
       
       // Add EMI details to notes if applicable
-      if (selectedInstallmentPlan && emiId) {
+      if (selectedInstallmentPlan && emiId && options.notes) {
         options.notes.installment_id = emiId;
         options.notes.installment_number = '0'; // 0 for down payment
         options.notes.total_installments = selectedInstallmentPlan.installments.toString();
@@ -946,8 +990,8 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
 
   // Calculate any discount percentage to display
   const discountPercentage = activePricing ? (enrollmentType === 'batch' 
-    ? activePricing.group_discount
-    : activePricing.early_bird_discount) : 0;
+    ? activePricing.group_discount || 0
+    : activePricing.early_bird_discount || 0) : 0;
 
   // Get the final price for display
   const finalPrice = getFinalPrice();
@@ -1174,7 +1218,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
                     </span>
                   )}
                   
-                  {discountPercentage > 0 && (
+                  {discountPercentage && discountPercentage > 0 && (
                     <span className="text-xs font-medium text-green-600 bg-green-100 dark:bg-green-900/40 dark:text-green-400 px-2.5 py-1 rounded-full">
                       Save {discountPercentage}%
                     </span>
@@ -1269,7 +1313,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
               What you'll get
             </h4>
             <div className="flex flex-wrap -mx-1">
-              {courseFeatures.map((feature, index) => (
+              {courseFeatures.map((feature: string, index: number) => (
                 <div 
                   key={index}
                   className="w-full sm:w-1/2 px-1 mb-2"
