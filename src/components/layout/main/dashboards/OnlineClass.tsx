@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
-import { FaCalendarAlt, FaClock, FaRegCalendarAlt, FaPlay, FaVideo, FaUsers, FaGraduationCap, FaPlus, FaSearch } from "react-icons/fa";
-import { HiSparkles, HiLightningBolt, HiCollection } from "react-icons/hi";
+import { FaCalendarAlt, FaClock, FaRegCalendarAlt, FaPlay, FaVideo, FaUsers, FaGraduationCap, FaPlus, FaSearch, FaArrowRight, FaArrowLeft } from "react-icons/fa";
+import { HiSparkles, HiLightningBolt, HiCollection, HiAcademicCap } from "react-icons/hi";
 import DatePicker from "react-datepicker";
 import "@/styles/vendor.css";
 import "@/assets/css/popup.css";
@@ -13,11 +13,80 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { toast } from "react-toastify";
 import Preloader from "@/components/shared/others/Preloader";
 import { apiUrls } from "@/apis";
-import moment from "moment";
+import moment, { Moment } from "moment";
 import { FaShare } from "react-icons/fa";
 import Image from "next/image";
 import PaginationComponent from "@/components/shared/pagination-latest";
 import dynamic from 'next/dynamic';
+
+// TypeScript Interfaces
+interface ICategory {
+  _id: string;
+  category_name: string;
+  category_title: string;
+  category_image: string;
+}
+
+interface ICourse {
+  _id: string;
+  course_title: string;
+  course_image?: string;
+  category: string;
+}
+
+interface IStudent {
+  _id: string;
+  full_name: string;
+  student_id: string;
+}
+
+interface IMeeting {
+  _id: string;
+  category: string;
+  course_name: string;
+  meet_link: string;
+  meet_title: string;
+  meeting_tag: 'demo' | 'live' | 'recorded';
+  time: string;
+  date: string;
+  course_id: string;
+  students: string[];
+}
+
+interface ISessionType {
+  id: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+  emoji: string;
+  gradient: string;
+  bgGradient: string;
+  darkBgGradient: string;
+  count: number;
+  illustration: string;
+}
+
+interface IFormData {
+  category: string;
+  course_name: string;
+  meet_link: string;
+  meet_title: string;
+  meeting_tag: string;
+  time: string;
+  date: Date;
+}
+
+interface IOnlineClassProps {
+  categoryFilter?: string;
+  sessionTypeFilter?: 'demo' | 'live' | 'recorded';
+  pageTitle?: string;
+}
+
+interface ITimePickerProps {
+  value: Moment | null;
+  onChange: (time: Moment | null) => void;
+}
 
 // Client-side only TimePicker component using MUI
 const MUITimePicker = dynamic(
@@ -25,7 +94,7 @@ const MUITimePicker = dynamic(
     const { LocalizationProvider, TimePicker } = mod;
     const { AdapterMoment } = require('@mui/x-date-pickers/AdapterMoment');
     
-    return function TimePickerWrapper({ value, onChange }) {
+    return function TimePickerWrapper({ value, onChange }: ITimePickerProps) {
       return (
         <LocalizationProvider dateAdapter={AdapterMoment}>
           <TimePicker
@@ -57,33 +126,34 @@ const schema = yup.object({
   date: yup.date().required("Date is required"),
 });
 
-const OnlineMeeting = () => {
+const OnlineMeeting: React.FC<IOnlineClassProps> = ({ categoryFilter, sessionTypeFilter, pageTitle }) => {
   const { postQuery, loading } = usePostQuery();
   const { getQuery } = useGetQuery();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState();
-  const [selectedTime, setSelectedTime] = useState();
-  const [meeting, setMeeting] = useState([]);
-  const [courses, setCourses] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState();
-  const [filteredCourses, setFilteredCourses] = useState([]);
-  const [selectedCourseId, setSelectedCourseId] = useState();
-  const [enrolledStudents, setEnrolledStudents] = useState([]);
-  const [selectedStudents, setSelectedStudents] = useState([]);
-  const [fetchAgain, setFetchAgain] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [activeSection, setActiveSection] = useState("demo");
-  const dropdownRef = useRef(null);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [selected, setSelected] = useState("");
-  const courseDropdownRef = useRef(null);
-  const [courseDropdownOpen, setCourseDropdownOpen] = useState(false);
-  const [selectedCourse, setSelectedCourse] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
-  const [limit] = useState(6);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedTime, setSelectedTime] = useState<Moment | null>(null);
+  const [meeting, setMeeting] = useState<IMeeting[]>([]);
+  const [courses, setCourses] = useState<ICourse[]>([]);
+  const [categories, setCategories] = useState<ICategory[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined);
+  const [filteredCourses, setFilteredCourses] = useState<ICourse[]>([]);
+  const [selectedCourseId, setSelectedCourseId] = useState<string | undefined>(undefined);
+  const [enrolledStudents, setEnrolledStudents] = useState<IStudent[]>([]);
+  const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
+  const [fetchAgain, setFetchAgain] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [activeSection, setActiveSection] = useState<string>("demo");
+  const [selectedSessionType, setSelectedSessionType] = useState<string | null>(sessionTypeFilter || null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
+  const [selected, setSelected] = useState<string>("");
+  const courseDropdownRef = useRef<HTMLDivElement>(null);
+  const [courseDropdownOpen, setCourseDropdownOpen] = useState<boolean>(false);
+  const [selectedCourse, setSelectedCourse] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(0);
+  const [limit] = useState<number>(6);
 
   const {
     register,
@@ -91,114 +161,132 @@ const OnlineMeeting = () => {
     formState: { errors },
     setValue,
     reset,
-  } = useForm({
+  } = useForm<IFormData>({
     resolver: yupResolver(schema),
   });
 
-  // Filter meetings by type
-  const demoMeetings = meeting.filter(m => m.meeting_tag === 'demo');
-  const liveMeetings = meeting.filter(m => m.meeting_tag === 'live');
-  const recordedMeetings = meeting.filter(m => m.meeting_tag === 'recorded');
+  // Filter meetings by type and category
+  const filterMeetingsByCategory = (meetings: IMeeting[]): IMeeting[] => {
+    if (!categoryFilter) return meetings;
+    return meetings.filter(m => m.category === categoryFilter);
+  };
 
-  // Get current meetings based on active section
-  const getCurrentMeetings = () => {
-    switch(activeSection) {
+  const demoMeetings = filterMeetingsByCategory(meeting.filter(m => m.meeting_tag === 'demo'));
+  const liveMeetings = filterMeetingsByCategory(meeting.filter(m => m.meeting_tag === 'live'));
+  const recordedMeetings = filterMeetingsByCategory(meeting.filter(m => m.meeting_tag === 'recorded'));
+
+  // Session type configurations
+  const sessionTypes: ISessionType[] = [
+    {
+      id: 'demo',
+      title: 'Demo Classes',
+      subtitle: 'free trial sessions',
+      description: 'Experience our teaching style with complimentary demo sessions',
+      icon: HiAcademicCap,
+      emoji: '🎓',
+      gradient: 'from-emerald-400 to-teal-500',
+      bgGradient: 'from-emerald-50 to-teal-50',
+      darkBgGradient: 'from-emerald-900/20 to-teal-900/20',
+      count: demoMeetings.length,
+      illustration: '👨‍🎓📚💡'
+    },
+    {
+      id: 'live',
+      title: 'Live Classes',
+      subtitle: 'real-time interactive sessions',
+      description: 'Join live sessions with real-time interaction and Q&A',
+      icon: HiLightningBolt,
+      emoji: '📹',
+      gradient: 'from-emerald-400 to-teal-500',
+      bgGradient: 'from-emerald-50 to-teal-50',
+      darkBgGradient: 'from-emerald-900/20 to-teal-900/20',
+      count: liveMeetings.length,
+      illustration: '👨‍💻🖥️⏰'
+    },
+    {
+      id: 'recorded',
+      title: 'Pre Recorded Classes',
+      subtitle: 'learn at your own pace',
+      description: 'Access pre-recorded sessions anytime, anywhere',
+      icon: HiCollection,
+      emoji: '📼',
+      gradient: 'from-emerald-400 to-teal-500',
+      bgGradient: 'from-emerald-50 to-teal-50',
+      darkBgGradient: 'from-emerald-900/20 to-teal-900/20',
+      count: recordedMeetings.length,
+      illustration: '🎬📱💾'
+    }
+  ];
+
+  // Get current meetings based on selected session type
+  const getCurrentMeetings = (): IMeeting[] => {
+    const currentType = selectedSessionType || sessionTypeFilter;
+    if (!currentType) return [];
+    switch(currentType) {
       case 'demo': return demoMeetings;
       case 'live': return liveMeetings;
       case 'recorded': return recordedMeetings;
-      default: return demoMeetings;
-    }
-  };
-
-  // Section configurations with better contrast colors
-  const sectionConfig = {
-    demo: {
-      title: "demo classes",
-      subtitle: "free trial vibes ✨",
-      icon: HiSparkles,
-      gradient: "from-indigo-500/20 via-purple-500/20 to-pink-500/20",
-      borderGradient: "from-indigo-500 to-purple-500",
-      bgGradient: "from-indigo-500/10 to-purple-500/10",
-      lightBg: "from-indigo-100 to-purple-100",
-      darkBg: "from-indigo-900/30 to-purple-900/30",
-      emoji: "🎯"
-    },
-    live: {
-      title: "live sessions",
-      subtitle: "real-time energy ⚡",
-      icon: HiLightningBolt,
-      gradient: "from-blue-500/20 via-cyan-500/20 to-teal-500/20",
-      borderGradient: "from-blue-500 to-cyan-500",
-      bgGradient: "from-blue-500/10 to-cyan-500/10",
-      lightBg: "from-blue-100 to-cyan-100",
-      darkBg: "from-blue-900/30 to-cyan-900/30",
-      emoji: "🔥"
-    },
-    recorded: {
-      title: "on-demand",
-      subtitle: "learn at your pace 🌙",
-      icon: HiCollection,
-      gradient: "from-emerald-500/20 via-green-500/20 to-teal-500/20",
-      borderGradient: "from-emerald-500 to-green-500",
-      bgGradient: "from-emerald-500/10 to-green-500/10",
-      lightBg: "from-emerald-100 to-green-100",
-      darkBg: "from-emerald-900/30 to-green-900/30",
-      emoji: "💫"
+      default: return [];
     }
   };
 
   // Format date to DD-MM-YYYY
-  const formatDate = (date) => {
-    const options = { day: "2-digit", month: "2-digit", year: "numeric" };
+  const formatDate = (date: string): string => {
+    const options: Intl.DateTimeFormatOptions = { day: "2-digit", month: "2-digit", year: "numeric" };
     return new Date(date).toLocaleDateString("en-GB", options);
   };
 
-  const toggleDropdown = (e) => {
+  const toggleDropdown = (e: React.MouseEvent<HTMLButtonElement>): void => {
     e.preventDefault();
     setDropdownOpen((prev) => !prev);
   };
 
-  const selectCategory = (categoryName) => {
+  const selectCategory = (categoryName: string): void => {
     setSelected(categoryName);
     setValue("category", categoryName);
     setDropdownOpen(false);
     setSearchTerm("");
   };
 
-  const toggleCourseDropdown = (e) => {
+  const toggleCourseDropdown = (e: React.MouseEvent<HTMLButtonElement>): void => {
     e.preventDefault();
     setCourseDropdownOpen((prev) => !prev);
   };
 
-  const selectCourse = (courseName) => {
+  const selectCourse = (courseName: string): void => {
     setSelectedCourse(courseName);
     setValue("course_name", courseName);
     setCourseDropdownOpen(false);
   };
 
-  const filteredCategories = categories?.filter((category) =>
-    category.category_name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredCategories = categories?.filter((category) => {
+    // If categoryFilter is provided, only show that category
+    if (categoryFilter) {
+      return category.category_name === categoryFilter;
+    }
+    // Otherwise, filter by search term
+    return category.category_name.toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
   useEffect(() => {
-    const fetchInitialData = async () => {
+    const fetchInitialData = async (): Promise<void> => {
       try {
         await getQuery({
           url: apiUrls?.categories?.getAllCategories,
-          onSuccess: (data) => {
+          onSuccess: (data: { data: ICategory[] }) => {
             setCategories(data.data);
           },
-          onFail: (err) => {
+          onFail: (err: any) => {
             console.error("Error fetching categories", err);
           },
         });
 
         await getQuery({
           url: apiUrls?.courses?.getAllCourses,
-          onSuccess: (data) => {
+          onSuccess: (data: ICourse[]) => {
             setCourses(data);
           },
-          onFail: (err) => {
+          onFail: (err: any) => {
             console.error("API error:", err instanceof Error ? err.message : err);
           },
         });
@@ -209,19 +297,36 @@ const OnlineMeeting = () => {
 
     fetchInitialData();
     setFetchAgain(false);
-  }, [fetchAgain]);
+  }, [fetchAgain, getQuery]);
+
+  // Auto-select category when categoryFilter is provided
+  useEffect(() => {
+    if (categoryFilter && categories.length > 0) {
+      const matchingCategory = categories.find(cat => cat.category_name === categoryFilter);
+      if (matchingCategory) {
+        setSelectedCategory(categoryFilter);
+        setSelected(categoryFilter);
+        setValue("category", categoryFilter);
+      }
+    }
+  }, [categoryFilter, categories, setValue]);
 
   useEffect(() => {
     if (!selectedCategory) {
       setFilteredCourses([]);
       setEnrolledStudents([]);
-      setSelectedCourseId();
+      setSelectedCourseId(undefined);
       return;
     }
 
     setFilteredCourses([]);
     setEnrolledStudents([]);
-    setSelectedCourseId();
+    setSelectedCourseId(undefined);
+
+    // Add safety check to ensure courses is an array before filtering
+    if (!Array.isArray(courses)) {
+      return;
+    }
 
     const filteredCourses = courses.filter(
       (course) => course.category === selectedCategory
@@ -230,15 +335,15 @@ const OnlineMeeting = () => {
   }, [selectedCategory, courses]);
 
   useEffect(() => {
-    const fetchEnrolledStudents = async () => {
+    const fetchEnrolledStudents = async (): Promise<void> => {
       try {
         await getQuery({
           url: `${apiUrls?.EnrollCourse?.getEnrolledStudentsByCourseId}/${selectedCourseId}`,
-          onSuccess: (data) => {
+          onSuccess: (data: { student_id: IStudent }[]) => {
             const enrolledStudents = data.map((s) => s.student_id);
             setEnrolledStudents(enrolledStudents);
           },
-          onFail: (err) => {
+          onFail: (err: any) => {
             console.error("Error fetching enrolled students: ", err);
           },
         });
@@ -251,18 +356,18 @@ const OnlineMeeting = () => {
       setEnrolledStudents([]);
       fetchEnrolledStudents();
     }
-  }, [selectedCourseId]);
+  }, [selectedCourseId, getQuery]);
 
   useEffect(() => {
-    const fetchMeetings = async () => {
+    const fetchMeetings = async (): Promise<void> => {
       try {
         await getQuery({
           url: `${apiUrls?.onlineMeeting?.getAllMeetings}?page=${currentPage}&limit=${limit}`,
-          onSuccess: (data) => {
+          onSuccess: (data: { meetings: IMeeting[]; totalMeetings: number }) => {
             setMeeting(data.meetings);
             setTotalPages(Math.ceil(data?.totalMeetings / limit));
           },
-          onFail: (err) => {
+          onFail: (err: any) => {
             console.error("API error:", err instanceof Error ? err.message : err);
           },
         });
@@ -272,9 +377,9 @@ const OnlineMeeting = () => {
     };
 
     fetchMeetings();
-  }, [currentPage, limit]);
+  }, [currentPage, limit, getQuery]);
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (data: IFormData): Promise<void> => {
     try {
       await postQuery({
         url: apiUrls?.onlineMeeting?.createMeeting,
@@ -282,7 +387,7 @@ const OnlineMeeting = () => {
           category: data.category,
           course_name: filteredCourses.find(
             (course) => course._id === selectedCourseId
-          ).course_title,
+          )?.course_title || '',
           students: selectedStudents || [],
           meet_link: data.meet_link,
           meet_title: data.meet_title,
@@ -310,34 +415,40 @@ const OnlineMeeting = () => {
     }
   };
 
-  const resetStates = () => {
+  const resetStates = (): void => {
     setCategories([]);
-    setSelectedCategory();
+    setSelectedCategory(undefined);
     setFilteredCourses([]);
-    setSelectedCourseId();
+    setSelectedCourseId(undefined);
     setEnrolledStudents([]);
     setSelectedStudents([]);
     setSelected("");
     setSelectedCourse("");
   };
 
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => {
+  const openModal = (sessionType: string): void => {
+    setSelectedSessionType(sessionType);
+    setIsModalOpen(true);
+    setValue("meeting_tag", sessionType);
+  };
+
+  const closeModal = (): void => {
     setIsModalOpen(false);
+    setSelectedSessionType(null);
     resetStates();
   };
 
-  const handleDateChange = (date) => {
+  const handleDateChange = (date: Date | null): void => {
     setSelectedDate(date);
-    setValue("date", date);
+    setValue("date", date as Date);
   };
 
-  const handleTimeChange = (time) => {
+  const handleTimeChange = (time: Moment | null): void => {
     setSelectedTime(time);
     setValue("time", time ? time.format("HH:mm") : "");
   };
 
-  const handleCopy = async (cardId, link) => {
+  const handleCopy = async (cardId: string, link: string): Promise<void> => {
     try {
       await navigator.clipboard.writeText(link);
       toast.success("Link copied! 📋");
@@ -346,7 +457,7 @@ const OnlineMeeting = () => {
     }
   };
 
-  const handleShare = async (meetingLink) => {
+  const handleShare = async (meetingLink: string): Promise<void> => {
     if (navigator.share) {
       try {
         await navigator.share({
@@ -370,92 +481,87 @@ const OnlineMeeting = () => {
   if (loading) return <Preloader />;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
-      {/* Animated background elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-200/30 dark:bg-indigo-500/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-200/30 dark:bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-3/4 left-1/2 w-96 h-96 bg-emerald-200/30 dark:bg-emerald-500/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
-      </div>
-
-      {/* Header */}
-      <div className="relative z-10 text-center py-20">
-        <div className="inline-flex items-center gap-3 mb-6">
-          <div className="w-2 h-2 bg-indigo-500 rounded-full animate-ping"></div>
-          <span className="text-indigo-600 dark:text-indigo-400 text-sm font-medium tracking-wider uppercase">personality development</span>
-          <div className="w-2 h-2 bg-blue-500 rounded-full animate-ping delay-300"></div>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+      {/* Header - only show when not in filtered mode */}
+      {!sessionTypeFilter && (
+        <div className="text-center py-16">
+          <h1 className="text-4xl md:text-6xl font-black bg-gradient-to-r from-emerald-600 via-teal-600 to-green-600 dark:from-emerald-400 dark:via-teal-400 dark:to-green-400 bg-clip-text text-transparent mb-4">
+            {pageTitle || categoryFilter || "Online Classes"}
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 text-lg">
+            choose your learning format ✨
+          </p>
         </div>
-        <h1 className="text-5xl md:text-7xl font-black bg-gradient-to-r from-gray-900 via-indigo-700 to-blue-700 dark:from-gray-100 dark:via-indigo-300 dark:to-blue-300 bg-clip-text text-transparent mb-4">
-          learn. grow. vibe.
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400 text-lg max-w-md mx-auto">
-          choose your learning style and start your journey ✨
-        </p>
-      </div>
+      )}
 
       {/* Main Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-6 pb-20">
-        {/* Section Tabs */}
-        <div className="flex flex-wrap justify-center gap-4 mb-16">
-          {Object.entries(sectionConfig).map(([key, config]) => {
-            const IconComponent = config.icon;
-            return (
-              <button
-                key={key}
-                onClick={() => setActiveSection(key)}
-                className={`group relative px-8 py-4 rounded-2xl font-semibold transition-all duration-300 ${
-                  activeSection === key
-                    ? `bg-gradient-to-r ${config.lightBg} dark:${config.darkBg} border border-gray-300 dark:border-gray-600 shadow-lg`
-                    : 'bg-white/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <IconComponent className={`text-xl ${
-                    activeSection === key 
-                      ? 'text-gray-800 dark:text-gray-200' 
-                      : 'text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200'
-                  }`} />
-                  <span className={`${
-                    activeSection === key 
-                      ? 'text-gray-800 dark:text-gray-200' 
-                      : 'text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200'
-                  }`}>
-                    {config.title}
-                  </span>
-                  <span className="text-lg">{config.emoji}</span>
-                </div>
-                {activeSection === key && (
-                  <div className={`absolute inset-0 rounded-2xl bg-gradient-to-r ${config.borderGradient} opacity-10 dark:opacity-20 blur-xl`}></div>
-                )}
-              </button>
-            );
-          })}
-        </div>
+      <div className="max-w-7xl mx-auto px-6 pb-20">
+        {!selectedSessionType && !sessionTypeFilter ? (
+          // Session Type Selection - only show when no sessionTypeFilter is provided
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {sessionTypes.map((sessionType) => {
+              const IconComponent = sessionType.icon;
+              
+              return (
+                <div
+                  key={sessionType.id}
+                  onClick={() => setSelectedSessionType(sessionType.id)}
+                  className="group relative cursor-pointer"
+                >
+                  <div className="bg-gradient-to-br from-emerald-400 to-teal-500 rounded-3xl p-8 hover:shadow-2xl transition-all duration-500 hover:scale-105 min-h-[400px] flex flex-col">
+                    {/* Illustration Area */}
+                    <div className="bg-white/90 dark:bg-gray-800/90 rounded-2xl p-8 mb-6 flex-1 flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="text-6xl mb-4">{sessionType.illustration}</div>
+                        <IconComponent className="text-4xl text-emerald-600 dark:text-emerald-400 mx-auto" />
+                      </div>
+                    </div>
 
-        {/* Active Section Content */}
-        <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-3xl border border-gray-200 dark:border-gray-700 p-8 shadow-xl">
-          {/* Section Header */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
-            <div>
-              <h2 className="text-3xl font-bold mb-2 text-gray-900 dark:text-gray-100">
-                {sectionConfig[activeSection].title} {sectionConfig[activeSection].emoji}
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400">{sectionConfig[activeSection].subtitle}</p>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="relative">
-                <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="search sessions..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 pr-4 py-3 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200"
-                />
+                    {/* Content */}
+                    <div className="text-white">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-2xl font-bold">{sessionType.title}</h3>
+                        <span className="text-2xl">{sessionType.emoji}</span>
+                      </div>
+                      <p className="text-emerald-100 text-sm mb-4">{sessionType.subtitle}</p>
+                      
+                      {/* Session Count */}
+                      <div className="flex items-center justify-between">
+                        <span className="text-emerald-100 text-sm">{sessionType.count} sessions</span>
+                        <FaArrowRight className="text-white group-hover:translate-x-1 transition-transform duration-300" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          // Session Management View
+          <div>
+            {/* Back Button and Header - only show back button when not in filtered mode */}
+            <div className="flex items-center gap-6 mb-8">
+              {!sessionTypeFilter && (
+                <button
+                  onClick={() => setSelectedSessionType(null)}
+                  className="w-12 h-12 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+                >
+                  <FaArrowLeft className="text-gray-600 dark:text-gray-400" />
+                </button>
+              )}
+              
+              <div>
+                <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                  {pageTitle || sessionTypes.find(s => s.id === (selectedSessionType || sessionTypeFilter))?.title}
+                </h2>
+                <p className="text-gray-600 dark:text-gray-400">
+                  {sessionTypes.find(s => s.id === (selectedSessionType || sessionTypeFilter))?.description}
+                </p>
               </div>
+              
               <button
-                onClick={openModal}
-                className="group relative px-6 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white rounded-xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                onClick={() => openModal(selectedSessionType || sessionTypeFilter || '')}
+                className="ml-auto px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl font-semibold transition-all duration-300 hover:scale-105"
               >
                 <div className="flex items-center gap-2">
                   <FaPlus className="text-sm" />
@@ -463,59 +569,36 @@ const OnlineMeeting = () => {
                 </div>
               </button>
             </div>
-          </div>
 
-          {/* Sessions Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {getCurrentMeetings().length > 0 ? (
-              getCurrentMeetings()
-                .filter(meeting => 
-                  meeting.meet_title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                  meeting.course_name?.toLowerCase().includes(searchQuery.toLowerCase())
-                )
-                .map((meeting, index) => (
-                <div
-                  key={index}
-                  className="group relative bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-lg transition-all duration-300 hover:scale-105"
-                >
-                  {/* Card gradient overlay */}
-                  <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${sectionConfig[activeSection].lightBg} dark:${sectionConfig[activeSection].darkBg} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
-                  
-                  <div className="relative z-10">
-                    {/* Session header */}
+            {/* Sessions Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {getCurrentMeetings().length > 0 ? (
+                getCurrentMeetings().map((meeting, index) => (
+                  <div
+                    key={index}
+                    className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-all duration-300 hover:scale-105"
+                  >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
                         <h3 className="font-bold text-lg mb-1 line-clamp-2 text-gray-900 dark:text-gray-100">{meeting.meet_title}</h3>
                         <p className="text-gray-600 dark:text-gray-400 text-sm">{meeting.course_name}</p>
                       </div>
-                      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${sectionConfig[activeSection].borderGradient} p-0.5`}>
-                        <div className="w-full h-full bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center">
-                          <span className="text-lg">{sectionConfig[activeSection].emoji}</span>
-                        </div>
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
+                        <span className="text-lg">{sessionTypes.find(s => s.id === (selectedSessionType || sessionTypeFilter))?.emoji}</span>
                       </div>
                     </div>
 
-                    {/* Session details */}
                     <div className="space-y-3 mb-6">
                       <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
-                        <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${sectionConfig[activeSection].borderGradient} p-0.5`}>
-                          <div className="w-full h-full bg-white dark:bg-gray-800 rounded-lg flex items-center justify-center">
-                            <FaCalendarAlt className="text-xs text-gray-600 dark:text-gray-400" />
-                          </div>
-                        </div>
+                        <FaCalendarAlt className="text-emerald-500" />
                         <span className="text-sm">{formatDate(meeting.date)}</span>
                       </div>
                       <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
-                        <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${sectionConfig[activeSection].borderGradient} p-0.5`}>
-                          <div className="w-full h-full bg-white dark:bg-gray-800 rounded-lg flex items-center justify-center">
-                            <FaClock className="text-xs text-gray-600 dark:text-gray-400" />
-                          </div>
-                        </div>
+                        <FaClock className="text-emerald-500" />
                         <span className="text-sm">{meeting.time}</span>
                       </div>
                     </div>
 
-                    {/* Action buttons */}
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleCopy(meeting._id, meeting.meet_link)}
@@ -525,46 +608,46 @@ const OnlineMeeting = () => {
                       </button>
                       <button
                         onClick={() => handleShare(meeting.meet_link)}
-                        className={`flex-1 py-2 px-4 bg-gradient-to-r ${sectionConfig[activeSection].borderGradient} text-white rounded-xl text-sm font-medium hover:scale-105 transition-all duration-200`}
+                        className="flex-1 py-2 px-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl text-sm font-medium hover:scale-105 transition-all duration-200"
                       >
                         share
                       </button>
                     </div>
                   </div>
+                ))
+              ) : (
+                <div className="col-span-full text-center py-20">
+                  <div className="w-20 h-20 mx-auto mb-6 bg-gray-100 dark:bg-gray-700 rounded-2xl flex items-center justify-center">
+                    <FaRegCalendarAlt className="text-2xl text-gray-500 dark:text-gray-400" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    no sessions yet
+                  </h3>
+                  <p className="text-gray-500 dark:text-gray-400 mb-6">
+                    create your first session to get started ✨
+                  </p>
+                  <button
+                    onClick={() => openModal(selectedSessionType || sessionTypeFilter || '')}
+                    className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl font-semibold hover:scale-105 transition-all duration-300"
+                  >
+                    create session
+                  </button>
                 </div>
-              ))
-            ) : (
-              <div className="col-span-full text-center py-20">
-                <div className="w-20 h-20 mx-auto mb-6 bg-gray-100 dark:bg-gray-700 rounded-2xl flex items-center justify-center">
-                  <FaRegCalendarAlt className="text-2xl text-gray-500 dark:text-gray-400" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  no {activeSection} sessions yet
-                </h3>
-                <p className="text-gray-500 dark:text-gray-400 mb-6">
-                  create your first session to get started ✨
-                </p>
-                <button
-                  onClick={openModal}
-                  className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white rounded-xl font-semibold hover:scale-105 transition-all duration-300"
-                >
-                  create session
-                </button>
+              )}
+            </div>
+
+            {/* Pagination */}
+            {getCurrentMeetings().length > 0 && (
+              <div className="mt-12 flex justify-center">
+                <PaginationComponent
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                />
               </div>
             )}
           </div>
-
-          {/* Pagination */}
-          {getCurrentMeetings().length > 0 && (
-            <div className="mt-12 flex justify-center">
-              <PaginationComponent
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-              />
-            </div>
-          )}
-        </div>
+        )}
       </div>
 
       {/* Create Session Modal */}
@@ -574,7 +657,7 @@ const OnlineMeeting = () => {
             <div className="flex justify-between items-center mb-8">
               <div>
                 <h3 className="text-2xl font-bold mb-2 text-gray-900 dark:text-gray-100">create new session ✨</h3>
-                <p className="text-gray-600 dark:text-gray-400">set up your learning experience</p>
+                <p className="text-gray-600 dark:text-gray-400">set up your {sessionTypes.find(s => s.id === (selectedSessionType || sessionTypeFilter))?.title.toLowerCase()}</p>
               </div>
               <button
                 onClick={closeModal}
@@ -595,10 +678,11 @@ const OnlineMeeting = () => {
                     type="button"
                     onClick={toggleDropdown}
                     className="w-full p-4 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-left text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-200"
+                    disabled={!!categoryFilter}
                   >
-                    {selected || "select category"}
+                    {selected || categoryFilter || "select category"}
                   </button>
-                  {dropdownOpen && (
+                  {dropdownOpen && !categoryFilter && (
                     <div className="absolute z-20 top-full mt-2 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl">
                       <input
                         type="text"
@@ -675,7 +759,7 @@ const OnlineMeeting = () => {
                                   className="rounded-lg"
                                 />
                               ) : (
-                                <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-lg"></div>
+                                <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-lg"></div>
                               )}
                               <span className="text-gray-900 dark:text-gray-100">{course.course_title || "no title available"}</span>
                             </li>
@@ -692,26 +776,6 @@ const OnlineMeeting = () => {
                 )}
               </div>
 
-              {/* Session Type */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                  session type <span className="text-red-500">*</span>
-                </label>
-                <select
-                  {...register("meeting_tag", { required: "Session type is required" })}
-                  className="w-full p-4 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-gray-100 focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200"
-                  defaultValue=""
-                >
-                  <option value="" disabled>select session type</option>
-                  <option value="demo">demo class ✨</option>
-                  <option value="live">live session ⚡</option>
-                  <option value="recorded">on-demand 🌙</option>
-                </select>
-                {errors.meeting_tag && (
-                  <p className="text-red-500 text-sm mt-2">{errors.meeting_tag.message}</p>
-                )}
-              </div>
-
               {/* Session Title */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
@@ -720,7 +784,7 @@ const OnlineMeeting = () => {
                 <input
                   {...register("meet_title")}
                   type="text"
-                  className="w-full p-4 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200"
+                  className="w-full p-4 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:border-emerald-500 dark:focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all duration-200"
                   placeholder="enter session title"
                 />
                 {errors.meet_title && (
@@ -736,7 +800,7 @@ const OnlineMeeting = () => {
                 <input
                   {...register("meet_link")}
                   type="url"
-                  className="w-full p-4 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200"
+                  className="w-full p-4 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:border-emerald-500 dark:focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all duration-200"
                   placeholder="paste your meeting link"
                 />
                 {errors.meet_link && (
@@ -754,7 +818,7 @@ const OnlineMeeting = () => {
                     selected={selectedDate}
                     onChange={handleDateChange}
                     dateFormat="yyyy/MM/dd"
-                    className="w-full p-4 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200"
+                    className="w-full p-4 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:border-emerald-500 dark:focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all duration-200"
                     placeholderText="select date"
                   />
                   {errors.date && (
@@ -781,7 +845,7 @@ const OnlineMeeting = () => {
                 <div>
                   <label className="flex justify-between text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                     <span>enrolled students</span>
-                    <span className="text-indigo-600 dark:text-indigo-400">
+                    <span className="text-emerald-600 dark:text-emerald-400">
                       {selectedStudents.length} / {enrolledStudents.length} selected
                     </span>
                   </label>
@@ -798,7 +862,7 @@ const OnlineMeeting = () => {
                           setSelectedStudents([]);
                         }
                       }}
-                      className="mr-3 w-4 h-4 text-indigo-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-indigo-500"
+                      className="mr-3 w-4 h-4 text-emerald-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-emerald-500"
                     />
                     <label htmlFor="selectAll" className="text-gray-700 dark:text-gray-300">
                       select all students
@@ -819,7 +883,7 @@ const OnlineMeeting = () => {
                               setSelectedStudents(selectedStudents.filter((id) => id !== student._id));
                             }
                           }}
-                          className="mr-3 w-4 h-4 text-indigo-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-indigo-500"
+                          className="mr-3 w-4 h-4 text-emerald-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-emerald-500"
                         />
                         <label htmlFor={`student-${student._id}`} className="text-gray-700 dark:text-gray-300">
                           {student.full_name}
@@ -833,7 +897,7 @@ const OnlineMeeting = () => {
               {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full py-4 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white rounded-xl font-semibold hover:scale-105 transition-all duration-300 hover:shadow-lg"
+                className="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl font-semibold hover:scale-105 transition-all duration-300 hover:shadow-lg"
               >
                 create session ✨
               </button>
@@ -845,4 +909,4 @@ const OnlineMeeting = () => {
   );
 };
 
-export default OnlineMeeting;
+export default OnlineMeeting; 
