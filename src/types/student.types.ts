@@ -1,13 +1,37 @@
 // Student related interfaces
+export interface IPhoneNumber {
+  country: string;
+  number: string;
+}
+
+export interface IStudentMeta {
+  age_group?: string;
+  gender?: 'Male' | 'Female' | 'Other';
+  upload_resume?: any[];
+}
+
 export interface IStudent {
   _id: string;
   full_name: string;
   email: string;
-  phone_number?: string;
-  status: 'Active' | 'Inactive';
+  phone_numbers: IPhoneNumber[];
+  agree_terms: boolean;
   role: string[];
+  assign_department: string[];
+  permissions: string[];
+  status: 'Active' | 'Inactive';
+  meta: IStudentMeta;
+  admin_role: string;
+  login_count: number;
+  emailVerified: boolean;
+  emailVerificationOTP?: string;
+  emailVerificationOTPExpires?: string;
   createdAt: string;
   updatedAt: string;
+  __v: number;
+  last_login?: string;
+  // Legacy fields for backward compatibility
+  phone_number?: string;
   country_code?: string;
   address?: string;
   city?: string;
