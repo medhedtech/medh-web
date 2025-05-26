@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   CreditCard, ArrowRight, ThumbsUp, AlertTriangle, 
@@ -123,8 +123,15 @@ interface CourseDetails extends ICourse {
   course_duration?: string;
   classType?: string;
   grade?: string;
+  course_category?: string;
+  course_description?: string;
+  course_fee?: number;
+  curriculum?: any[];
   target_audience?: string[];
   features?: string[];
+  meta?: {
+    views?: number;
+  };
   // ... other fields
 }
 
@@ -287,6 +294,10 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
   });
   const [showInstallmentOptions, setShowInstallmentOptions] = useState<boolean>(false);
   const [selectedInstallmentPlan, setSelectedInstallmentPlan] = useState<InstallmentPlan | null>(null);
+  const [customMonths, setCustomMonths] = useState<number>(6);
+  const [showCustomMonthInput, setShowCustomMonthInput] = useState<boolean>(false);
+  const emiDropdownStateRef = useRef<boolean>(false);
+  const userToggledEmiRef = useRef<boolean>(false);
 
   // Check login status on component mount
   useEffect(() => {
@@ -299,7 +310,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
       // Consider logged in if we have a token and either userId or user data
       const isUserLoggedIn = !!token && (!!userId || !!user);
       
-      console.log("Auth check:", { token: !!token, userId: !!userId, user: !!user, isLoggedIn: isUserLoggedIn });
+      // Auth check completed
       
       setIsLoggedIn(isUserLoggedIn);
       setUserId(userId);
@@ -354,12 +365,8 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
   // Get active price information
   const getActivePrice = useCallback((): Price | null => {
     const prices = courseDetails?.prices;
-    console.log('Course Details:', courseDetails);
-    console.log('Course Prices:', prices);
-    console.log('Current Currency:', 'USD');
     
     if (!prices || prices.length === 0) {
-      console.log('No prices found');
       return null;
     }
 
@@ -367,44 +374,37 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     const preferredPrice = prices.find(price => 
       price.is_active && price.currency === 'USD'
     );
-    console.log('Preferred Price:', preferredPrice);
 
     // If no matching currency found, try to find any active price
     const activePrice = prices.find(price => price.is_active);
-    console.log('Active Price:', activePrice);
 
     // If still no price found, use the first price
     const finalPrice = preferredPrice || activePrice || prices[0] || null;
-    console.log('Final Selected Price:', finalPrice);
     return finalPrice;
   }, [courseDetails]);
 
   // State for active pricing
   const [activePricing, setActivePricing] = useState<Price | null>(null);
 
-  // Update activePricing when course details or currency changes
+  // Update activePricing when course details changes
   useEffect(() => {
     const price = getActivePrice();
-    console.log('Setting Active Pricing:', price);
     setActivePricing(price);
-  }, [courseDetails, getActivePrice]);
+  }, [courseDetails?.prices, courseDetails?._id]); // Only depend on specific properties
 
   // Calculate final price including any applicable discounts
   const calculateFinalPrice = useCallback((price: number | undefined, discount: number | undefined): number => {
     if (!price) {
-      console.log('No price provided for calculation');
       return 0;
     }
     const safeDiscount = discount || 0;
     const finalPrice = price - (price * safeDiscount / 100);
-    console.log('Calculated Final Price:', { price, discount: safeDiscount, finalPrice });
     return finalPrice;
   }, []);
   
   // Get the final price in the user's currency
   const getFinalPrice = useCallback((): number => {
     if (!activePricing) {
-      console.log('No active pricing found for final price calculation');
       return 0;
     }
     
@@ -412,35 +412,98 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
       ? activePricing.individual
       : activePricing.batch;
     
-    console.log('Base Price:', { enrollmentType, basePrice });
-    
     const discountPercentage = enrollmentType === 'batch' 
       ? activePricing.group_discount
       : activePricing.early_bird_discount;
     
-    console.log('Discount Percentage:', discountPercentage);
-    
     const finalPrice = calculateFinalPrice(basePrice, discountPercentage);
-    console.log('Final Price Calculation:', {
-      enrollmentType,
-      basePrice,
-      discountPercentage,
-      finalPrice
-    });
     return finalPrice;
   }, [activePricing, enrollmentType, calculateFinalPrice]);
 
   // Format price for display with proper currency symbol
   const getDisplayCurrencySymbol = useCallback(() => {
+    // Currency symbol mapping
+    const currencySymbols: { [key: string]: string } = {
+      'USD': '$',
+      'INR': '₹',
+      'EUR': '€',
+      'GBP': '£',
+      'JPY': '¥',
+      'CAD': 'C$',
+      'AUD': 'A$',
+      'SGD': 'S$',
+      'CHF': 'CHF',
+      'CNY': '¥',
+      'KRW': '₩',
+      'THB': '฿',
+      'MYR': 'RM',
+      'PHP': '₱',
+      'VND': '₫',
+      'IDR': 'Rp',
+      'BRL': 'R$',
+      'MXN': '$',
+      'ZAR': 'R',
+      'RUB': '₽',
+      'TRY': '₺',
+      'AED': 'د.إ',
+      'SAR': 'ر.س',
+      'QAR': 'ر.ق',
+      'KWD': 'د.ك',
+      'BHD': 'د.ب',
+      'OMR': 'ر.ع.',
+      'JOD': 'د.أ',
+      'LBP': 'ل.ل',
+      'EGP': 'ج.م',
+      'PKR': '₨',
+      'BDT': '৳',
+      'LKR': '₨',
+      'NPR': '₨',
+      'AFN': '؋',
+      'IRR': '﷼',
+      'IQD': 'ع.د',
+      'SYP': 'ل.س',
+      'YER': '﷼',
+      'MAD': 'د.م.',
+      'TND': 'د.ت',
+      'DZD': 'د.ج',
+      'LYD': 'ل.د',
+      'SDG': 'ج.س.',
+      'ETB': 'Br',
+      'KES': 'KSh',
+      'UGX': 'USh',
+      'TZS': 'TSh',
+      'RWF': 'RF',
+      'GHS': '₵',
+      'NGN': '₦',
+      'XOF': 'CFA',
+      'XAF': 'FCFA',
+      'ZMW': 'ZK',
+      'BWP': 'P',
+      'SZL': 'L',
+      'LSL': 'L',
+      'NAD': 'N$',
+      'MZN': 'MT',
+      'AOA': 'Kz',
+      'CDF': 'FC',
+      'MGA': 'Ar',
+      'SCR': '₨',
+      'MUR': '₨',
+      'MVR': '.ރ',
+      'KMF': 'CF',
+      'DJF': 'Fdj',
+      'SOS': 'S',
+      'ERN': 'Nfk'
+    };
+
     // Prioritize currency from the first active price object
     if (courseDetails?.prices && courseDetails.prices.length > 0) {
       const activePrice = courseDetails.prices.find(p => p.is_active);
       if (activePrice && activePrice.currency) {
-        return activePrice.currency;
+        return currencySymbols[activePrice.currency.toUpperCase()] || activePrice.currency;
       }
       // Fallback to the first price object's currency if no active one found
       if (courseDetails.prices[0]?.currency) {
-        return courseDetails.prices[0].currency;
+        return currencySymbols[courseDetails.prices[0].currency.toUpperCase()] || courseDetails.prices[0].currency;
       }
     }
     // Fallback to course_fee's currency if that exists (assuming it might be structured like { amount: 100, currency: 'USD'})
@@ -448,7 +511,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     if (typeof courseDetails?.course_fee === 'object' && courseDetails.course_fee !== null) {
        // return courseDetails.course_fee.currency; // Example structure
     }
-    return '$'; // Default symbol
+    return '₹'; // Default to INR symbol since this is primarily an Indian platform
   }, [courseDetails]);
   
   const formatPriceDisplay = useCallback((price: number | undefined | null): string => {
@@ -484,108 +547,117 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
       return [];
     }
     
-    // Processing fee (3% for installment plans)
-    const processingFeePercentage = 3;
-    const calculateFee = (amount: number) => Math.round(amount * processingFeePercentage / 100);
-    
     // Standard grace period in days
     const gracePeriodDays = 5;
     
-    // Calculate down payment (typically 20% of the total amount)
-    const calculateDownPayment = (amount: number) => Math.round(amount * 0.2);
+    // Fixed down payment (20% of the total amount)
+    const downPaymentPercentage = 0.2;
+    const downPayment = Math.round(finalPrice * downPaymentPercentage);
+    const remainingAmount = finalPrice - downPayment;
     
-    // Interest rates for different plans (0% for 3-month, 3% for 6-month, 6% for 9-month)
-    const interestRates = {
-      3: 0,    // 0% for 3 months
-      6: 3,    // 3% for 6 months
-      9: 6,    // 6% for 9 months
-      12: 9    // 9% for 12 months
-    };
+    // Create installment plans with different month options
+    const monthOptions = [3, 6, 9, 12, 18, 24];
     
-    // Create installment plans with 3, 6, 9, and 12 installments
-    const installmentPlans: InstallmentPlan[] = [
-      {
-        id: '3-month',
-        name: '3-month Installment',
-        installments: 3,
-        installmentAmount: Math.ceil((finalPrice - calculateDownPayment(finalPrice)) / 3 + calculateFee(finalPrice) / 3),
+    const installmentPlans: InstallmentPlan[] = monthOptions.map(months => {
+      const installmentAmount = Math.ceil(remainingAmount / months);
+      
+      return {
+        id: `${months}-month`,
+        name: `${months}-month Installment`,
+        installments: months,
+        installmentAmount,
         totalAmount: finalPrice,
-        downPayment: calculateDownPayment(finalPrice),
+        downPayment,
         currentInstallmentNumber: 1,
         gracePeriodDays
-      },
-      {
-        id: '6-month',
-        name: '6-month Installment',
-        installments: 6,
-        installmentAmount: Math.ceil(
-          ((finalPrice - calculateDownPayment(finalPrice)) * (1 + interestRates[6] / 100)) / 6 + 
-          calculateFee(finalPrice) / 6
-        ),
-        totalAmount: finalPrice,
-        downPayment: calculateDownPayment(finalPrice),
-        currentInstallmentNumber: 1,
-        gracePeriodDays
-      },
-      {
-        id: '9-month',
-        name: '9-month Installment',
-        installments: 9,
-        installmentAmount: Math.ceil(
-          ((finalPrice - calculateDownPayment(finalPrice)) * (1 + interestRates[9] / 100)) / 9 + 
-          calculateFee(finalPrice) / 9
-        ),
-        totalAmount: finalPrice,
-        downPayment: calculateDownPayment(finalPrice),
-        currentInstallmentNumber: 1,
-        gracePeriodDays
-      },
-      {
-        id: '12-month',
-        name: '12-month Installment',
-        installments: 12,
-        installmentAmount: Math.ceil(
-          ((finalPrice - calculateDownPayment(finalPrice)) * (1 + interestRates[12] / 100)) / 12 + 
-          calculateFee(finalPrice) / 12
-        ),
-        totalAmount: finalPrice,
-        downPayment: calculateDownPayment(finalPrice),
-        currentInstallmentNumber: 1,
-        gracePeriodDays
-      }
-    ];
+      };
+    });
     
     return installmentPlans;
   }, []);
   
+  // Create custom installment plan
+  const createCustomInstallmentPlan = useCallback((months: number, finalPrice: number): InstallmentPlan => {
+    const downPaymentPercentage = 0.2;
+    const downPayment = Math.round(finalPrice * downPaymentPercentage);
+    const remainingAmount = finalPrice - downPayment;
+    const installmentAmount = Math.ceil(remainingAmount / months);
+    
+    return {
+      id: `custom-${months}-month`,
+      name: `Custom ${months}-month Plan`,
+      installments: months,
+      installmentAmount,
+      totalAmount: finalPrice,
+      downPayment,
+      currentInstallmentNumber: 1,
+      gracePeriodDays: 5
+    };
+  }, []);
+
   // Get available installment options
   const installmentPlans = useMemo(() => {
+    const finalPrice = getFinalPrice();
+    
     // Only show installments for non-free courses with adequate price
     if (
       courseDetails?.isFree || 
-      isFreePrice(getFinalPrice()) || 
-      getFinalPrice() < 2000
+      isFreePrice(finalPrice) || 
+      finalPrice < 2000
     ) {
       return [];
     }
     
-    return calculateInstallmentPlans(getFinalPrice());
-  }, [courseDetails, getFinalPrice, isFreePrice, calculateInstallmentPlans]);
+    return calculateInstallmentPlans(finalPrice);
+  }, [courseDetails?.isFree, activePricing, enrollmentType]);
+
+  // Stable reference for final price to prevent unnecessary re-renders
+  const stableFinalPrice = useMemo(() => getFinalPrice(), [activePricing, enrollmentType]);
+
+  // Check if installments are available and preserve dropdown state
+  const isInstallmentAvailable = installmentPlans.length > 0;
+  
+  // Preserve EMI dropdown state when installments become unavailable temporarily
+  useEffect(() => {
+    if (!isInstallmentAvailable && showInstallmentOptions && userToggledEmiRef.current) {
+      // Only close if user hasn't explicitly opened it and installments are truly unavailable
+      const timer = setTimeout(() => {
+        if (!isInstallmentAvailable) {
+          setShowInstallmentOptions(false);
+          userToggledEmiRef.current = false;
+        }
+      }, 500); // Longer delay to prevent premature closing
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isInstallmentAvailable, showInstallmentOptions]);
   
   // Toggle installment options display
-  const toggleInstallmentOptions = () => {
-    setShowInstallmentOptions(!showInstallmentOptions);
-  };
+  const toggleInstallmentOptions = useCallback(() => {
+    userToggledEmiRef.current = true; // Mark that user explicitly toggled
+    setShowInstallmentOptions(prev => {
+      const newState = !prev;
+      emiDropdownStateRef.current = newState;
+      return newState;
+    });
+  }, []);
   
   // Select an installment plan
-  const selectInstallmentPlan = (plan: InstallmentPlan) => {
+  const selectInstallmentPlan = useCallback((plan: InstallmentPlan) => {
     setSelectedInstallmentPlan(plan);
-  };
+  }, []);
+
+  // Stable callback for custom months change
+  const handleCustomMonthsChange = useCallback((months: number) => {
+    setCustomMonths(months);
+  }, []);
+
+  // Stable callback for toggling custom input
+  const handleToggleCustomInput = useCallback(() => {
+    setShowCustomMonthInput(prev => !prev);
+  }, []);
   
-  // Check if installments are available
-  const isInstallmentAvailable = useMemo(() => {
-    return installmentPlans.length > 0;
-  }, [installmentPlans]);
+
   
   // Handle enrollment through Razorpay with Installment support
   const handleRazorpayPayment = async (): Promise<void> => {
@@ -815,7 +887,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
         }
       );
       
-      console.log("Progress tracking started:", response.data);
+              // Progress tracking started
     } catch (error) {
       console.error("Failed to track enrollment progress:", error);
       // Continue anyway, not critical
@@ -934,7 +1006,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
       if (userId) {
         const meetings = await getUpcomingMeetings(userId);
         if (meetings.length > 0) {
-          console.log("Upcoming meetings:", meetings);
+          // Upcoming meetings retrieved
         }
       }
     } catch (err: any) {
@@ -976,7 +1048,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     ];
     
     return courseDetails?.features || defaultFeatures;
-  }, [courseDetails]);
+  }, [courseDetails?.features]);
   
   // If there's an error, show error fallback
   if (error) {
@@ -995,7 +1067,6 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
 
   // Get the final price for display
   const finalPrice = getFinalPrice();
-  console.log('Final Price for Display:', finalPrice);
   
   // Determine original price (before discount) if applicable
   const originalPrice = activePricing && discountPercentage > 0 
@@ -1006,28 +1077,504 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
   useEffect(() => {
     if (isBlendedCourse && enrollmentType === 'batch') {
       setEnrollmentType('individual');
+      setShowBatchInfo(false);
     }
   }, [isBlendedCourse, enrollmentType]);
 
-  // Ensure batch pricing is disabled for blended courses
+  // Sync EMI dropdown state with ref
   useEffect(() => {
-    if (isBlendedCourse) {
-      setEnrollmentType('individual');
-      // Disable batch enrollment option for blended courses
-      setShowBatchInfo(false);
-    }
-  }, [isBlendedCourse]);
+    emiDropdownStateRef.current = showInstallmentOptions;
+  }, [showInstallmentOptions]);
 
-  // Add this enhanced UI component for EMI options
-  const EMIOptionsSection = ({ 
+    // Modern EMI Component with Industry Standards
+  // TODO: @shivansh - Improve EMI option UI and fix critical issues:
+  // 1. Fix auto-closing dropdown issue when scrolling or interacting with other elements
+  // 2. Improve text consistency across all EMI components (font sizes, spacing, colors)
+  // 3. Fix dropdown state management to prevent unexpected closures
+  // 4. Enhance mobile responsiveness and touch interactions
+  // 5. Standardize button styles and hover states throughout EMI section
+  // 6. Fix text overflow and truncation issues on smaller screens
+  // 7. Improve loading states and error handling in EMI calculations
+  // 8. Add better visual feedback for selected EMI plans
+  // 9. Fix accessibility issues (keyboard navigation, screen reader support)
+  // 10. Optimize performance to prevent unnecessary re-renders
+  const ModernEMIComponent = React.memo(({
+    installmentPlans,
+    selectedInstallmentPlan,
+    onSelectPlan,
+    finalPrice,
+    primaryColor,
+    formatPriceDisplay,
+    createCustomInstallmentPlan
+  }: {
+    installmentPlans: InstallmentPlan[],
+    selectedInstallmentPlan: InstallmentPlan | null,
+    onSelectPlan: (plan: InstallmentPlan) => void,
+    finalPrice: number,
+    primaryColor: string,
+    formatPriceDisplay: (price: number) => string,
+    createCustomInstallmentPlan: (months: number, price: number) => InstallmentPlan
+  }) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+    const [activeTab, setActiveTab] = useState<'preset' | 'custom'>('preset');
+    const [customDuration, setCustomDuration] = useState(12);
+    const [isCalculating, setIsCalculating] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const interactionRef = useRef(false);
+
+    // Enhanced interaction tracking
+    const trackInteraction = useCallback((duration = 300) => {
+      interactionRef.current = true;
+      setTimeout(() => {
+        interactionRef.current = false;
+      }, duration);
+    }, []);
+
+    // Toggle EMI panel
+    const toggleEMIPanel = useCallback(() => {
+      setIsExpanded(prev => !prev);
+      trackInteraction(500);
+    }, [trackInteraction]);
+
+    // Handle plan selection with analytics
+    const handlePlanSelection = useCallback((plan: InstallmentPlan) => {
+      setIsCalculating(true);
+      trackInteraction(400);
+      
+      // Simulate calculation delay for better UX
+      setTimeout(() => {
+        onSelectPlan(plan);
+        setIsCalculating(false);
+      }, 150);
+    }, [onSelectPlan, trackInteraction]);
+
+    // Custom EMI calculation
+    const calculateCustomEMI = useCallback((months: number) => {
+      if (months < 3 || months > 48) return null;
+      
+      const downPayment = Math.round(finalPrice * 0.2);
+      const remainingAmount = finalPrice - downPayment;
+      const monthlyEMI = Math.ceil(remainingAmount / months);
+      
+      return {
+        downPayment,
+        monthlyEMI,
+        totalAmount: finalPrice,
+        months,
+        savings: finalPrice - (downPayment + (monthlyEMI * months))
+      };
+    }, [finalPrice]);
+
+    // Handle custom duration change
+    const handleCustomDurationChange = useCallback((months: number) => {
+      setCustomDuration(months);
+      if (months >= 3 && months <= 48) {
+        const customPlan = createCustomInstallmentPlan(months, finalPrice);
+        handlePlanSelection(customPlan);
+      }
+    }, [createCustomInstallmentPlan, finalPrice, handlePlanSelection]);
+
+    // Enhanced scroll and interaction protection
+    useEffect(() => {
+      if (!isExpanded) return;
+
+      const handleGlobalInteraction = (e: Event) => {
+        if (containerRef.current?.contains(e.target as Node)) {
+          trackInteraction(600);
+        }
+      };
+
+      const handleClickOutside = (e: MouseEvent) => {
+        if (containerRef.current && !containerRef.current.contains(e.target as Node) && !interactionRef.current) {
+          setTimeout(() => {
+            if (!interactionRef.current) {
+              setIsExpanded(false);
+            }
+          }, 150);
+        }
+      };
+
+      // Add comprehensive event listeners
+      ['scroll', 'touchmove', 'wheel'].forEach(event => {
+        document.addEventListener(event, handleGlobalInteraction, { passive: true });
+      });
+      
+      document.addEventListener('mousedown', handleClickOutside);
+
+      return () => {
+        ['scroll', 'touchmove', 'wheel'].forEach(event => {
+          document.removeEventListener(event, handleGlobalInteraction);
+        });
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }, [isExpanded, trackInteraction]);
+
+    // Custom EMI calculation for preview
+    const customEMIPreview = useMemo(() => calculateCustomEMI(customDuration), [calculateCustomEMI, customDuration]);
+
+    return (
+      <div ref={containerRef} className="mt-4 sm:mt-6">
+        {/* EMI Header Card */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 rounded-xl sm:rounded-2xl border border-blue-200 dark:border-gray-600 overflow-hidden">
+          <button
+            type="button"
+            onClick={toggleEMIPanel}
+            className="w-full p-4 sm:p-6 text-left hover:bg-white/50 dark:hover:bg-gray-700/50 transition-all duration-300"
+            aria-expanded={isExpanded}
+            aria-label="Toggle EMI options"
+          >
+            <div className="flex items-start sm:items-center justify-between gap-3">
+              <div className="flex items-start sm:items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                <div className="flex-shrink-0">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg">
+                    <Calculator className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                  </div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-1 leading-tight">
+                    Easy EMI Options
+                  </h3>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                    {selectedInstallmentPlan 
+                      ? (
+                          <span className="block sm:inline">
+                            <span className="font-medium text-blue-600 dark:text-blue-400">
+                              {formatPriceDisplay(selectedInstallmentPlan.installmentAmount)}/month
+                            </span>
+                            <span className="block sm:inline sm:ml-1">
+                              for {selectedInstallmentPlan.installments} months
+                            </span>
+                          </span>
+                        )
+                      : 'Split payment into easy installments'
+                    }
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                {selectedInstallmentPlan && (
+                  <div className="text-right">
+                    <div className="text-xs sm:text-sm font-medium text-blue-600 dark:text-blue-400 leading-tight">
+                      {formatPriceDisplay(selectedInstallmentPlan.downPayment)}
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      down
+                    </div>
+                  </div>
+                )}
+                <ChevronDown
+                  className={`w-4 h-4 sm:w-5 sm:h-5 text-gray-400 transition-transform duration-300 ${
+                    isExpanded ? 'rotate-180' : ''
+                  }`}
+                />
+              </div>
+            </div>
+          </button>
+
+          {/* EMI Content Panel */}
+          <AnimatePresence>
+            {isExpanded && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+                className="overflow-hidden"
+              >
+                <div className="px-4 sm:px-6 pb-4 sm:pb-6">
+                  {/* Tab Navigation */}
+                  <div className="flex space-x-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-1 mb-4 sm:mb-6">
+                    <button
+                      onClick={() => {
+                        setActiveTab('preset');
+                        trackInteraction();
+                      }}
+                      className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 ${
+                        activeTab === 'preset'
+                          ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                          : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+                      }`}
+                    >
+                      Popular Plans
+                    </button>
+                    <button
+                      onClick={() => {
+                        setActiveTab('custom');
+                        trackInteraction();
+                      }}
+                      className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 ${
+                        activeTab === 'custom'
+                          ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                          : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+                      }`}
+                    >
+                      Custom Duration
+                    </button>
+                  </div>
+
+                  {/* Preset Plans Tab */}
+                  {activeTab === 'preset' && (
+                    <motion.div
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="space-y-2 sm:space-y-3"
+                    >
+                      {installmentPlans.map((plan, index) => (
+                        <motion.div
+                          key={plan.id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.3, delay: index * 0.1 }}
+                          onClick={() => handlePlanSelection(plan)}
+                          className={`relative p-3 sm:p-4 rounded-lg sm:rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-lg ${
+                            selectedInstallmentPlan?.id === plan.id
+                              ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-md'
+                              : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 hover:border-blue-300'
+                          }`}
+                        >
+                          <div className="flex items-start sm:items-center justify-between gap-3">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start sm:items-center gap-2 sm:gap-3">
+                                <div className={`w-3 h-3 rounded-full mt-1 sm:mt-0 flex-shrink-0 ${
+                                  selectedInstallmentPlan?.id === plan.id
+                                    ? 'bg-blue-500'
+                                    : 'bg-gray-300 dark:bg-gray-600'
+                                }`} />
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white leading-tight">
+                                    {plan.installments} Monthly Payments
+                                  </h4>
+                                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mt-0.5 leading-relaxed">
+                                    <span className="block sm:inline">
+                                      {formatPriceDisplay(plan.downPayment)} down
+                                    </span>
+                                    <span className="block sm:inline sm:ml-1">
+                                      + {plan.installments} EMIs
+                                    </span>
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right flex-shrink-0">
+                              <div className="text-base sm:text-xl font-bold text-gray-900 dark:text-white leading-tight">
+                                {formatPriceDisplay(plan.installmentAmount)}
+                              </div>
+                              <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                                per month
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {selectedInstallmentPlan?.id === plan.id && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: 'auto' }}
+                              transition={{ duration: 0.3 }}
+                              className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-blue-200 dark:border-blue-700"
+                            >
+                              <div className="grid grid-cols-3 gap-2 sm:gap-4 text-xs sm:text-sm">
+                                <div className="text-center">
+                                  <div className="font-medium text-gray-900 dark:text-white text-xs sm:text-sm">
+                                    {formatPriceDisplay(plan.downPayment)}
+                                  </div>
+                                  <div className="text-gray-500 dark:text-gray-400 text-xs leading-tight">Down Payment</div>
+                                </div>
+                                <div className="text-center">
+                                  <div className="font-medium text-gray-900 dark:text-white text-xs sm:text-sm">
+                                    {plan.installments}
+                                  </div>
+                                  <div className="text-gray-500 dark:text-gray-400 text-xs leading-tight">Installments</div>
+                                </div>
+                                <div className="text-center">
+                                  <div className="font-medium text-gray-900 dark:text-white text-xs sm:text-sm">
+                                    {formatPriceDisplay(plan.totalAmount)}
+                                  </div>
+                                  <div className="text-gray-500 dark:text-gray-400 text-xs leading-tight">Total Amount</div>
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
+                        </motion.div>
+                      ))}
+                    </motion.div>
+                  )}
+
+                  {/* Custom Duration Tab */}
+                  {activeTab === 'custom' && (
+                    <motion.div
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="space-y-4 sm:space-y-6"
+                    >
+                      <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-600">
+                        <h4 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 leading-tight">
+                          Choose Your Duration
+                        </h4>
+                        
+                        {/* Duration Slider */}
+                        <div className="space-y-3 sm:space-y-4">
+                          <div className="flex items-center justify-between">
+                            <label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
+                              Duration: {customDuration} months
+                            </label>
+                            <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                              3-48 months
+                            </div>
+                          </div>
+                          
+                          <div className="relative">
+                            <input
+                              type="range"
+                              min="3"
+                              max="48"
+                              value={customDuration}
+                              onChange={(e) => {
+                                const months = parseInt(e.target.value);
+                                setCustomDuration(months);
+                                trackInteraction();
+                              }}
+                              onMouseUp={() => handleCustomDurationChange(customDuration)}
+                              onTouchEnd={() => handleCustomDurationChange(customDuration)}
+                              className="w-full h-2 sm:h-2.5 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
+                              style={{
+                                background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${((customDuration - 3) / 45) * 100}%, #e5e7eb ${((customDuration - 3) / 45) * 100}%, #e5e7eb 100%)`
+                              }}
+                            />
+                            <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1 sm:mt-2">
+                              <span>3m</span>
+                              <span>12m</span>
+                              <span>24m</span>
+                              <span>36m</span>
+                              <span>48m</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Custom EMI Preview */}
+                        {customEMIPreview && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="mt-4 sm:mt-6 p-3 sm:p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200 dark:border-green-700"
+                          >
+                            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                              <div className="text-center">
+                                <div className="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400 leading-tight">
+                                  {formatPriceDisplay(customEMIPreview.monthlyEMI)}
+                                </div>
+                                <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 leading-tight">Monthly EMI</div>
+                              </div>
+                              <div className="text-center">
+                                <div className="text-sm sm:text-lg font-semibold text-gray-900 dark:text-white leading-tight">
+                                  {formatPriceDisplay(customEMIPreview.downPayment)}
+                                </div>
+                                <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 leading-tight">Down Payment (20%)</div>
+                              </div>
+                            </div>
+                            
+                            <button
+                              onClick={() => handleCustomDurationChange(customDuration)}
+                              disabled={isCalculating}
+                              className="w-full mt-3 sm:mt-4 py-2.5 sm:py-3 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-semibold text-sm sm:text-base rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+                            >
+                              {isCalculating ? (
+                                <>
+                                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                  <span>Calculating...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+                                  <span>Select This Plan</span>
+                                </>
+                              )}
+                            </button>
+                          </motion.div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* EMI Benefits */}
+                  <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                    <h5 className="text-sm sm:text-base font-medium text-gray-900 dark:text-white mb-2 sm:mb-3 flex items-center leading-tight">
+                      <Info className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 text-blue-500 flex-shrink-0" />
+                      EMI Benefits
+                    </h5>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 text-xs sm:text-sm">
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-500 flex-shrink-0" />
+                        <span className="text-gray-600 dark:text-gray-300 leading-tight">No processing fees</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-500 flex-shrink-0" />
+                        <span className="text-gray-600 dark:text-gray-300 leading-tight">5-day grace period</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-500 flex-shrink-0" />
+                        <span className="text-gray-600 dark:text-gray-300 leading-tight">Secure payments</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+    );
+  });
+
+  // Prevent EMI dropdown from closing when enrollment type changes
+  const handleEnrollmentTypeChange = useCallback((newType: EnrollmentType) => {
+    setEnrollmentType(newType);
+    // Keep EMI dropdown open if it was already open
+    // Don't reset selectedInstallmentPlan to maintain user selection
+  }, []);
+
+  // Isolated EMI Options Component to prevent parent re-renders
+  const EMIOptionsSection = React.memo(({ 
     plans, 
     selectedPlan, 
-    onSelect 
+    onSelect,
+    finalPrice,
+    customMonths: parentCustomMonths,
+    onCustomMonthsChange,
+    showCustomInput,
+    onToggleCustomInput
   }: { 
     plans: InstallmentPlan[], 
     selectedPlan: InstallmentPlan | null, 
-    onSelect: (plan: InstallmentPlan) => void 
+    onSelect: (plan: InstallmentPlan) => void,
+    finalPrice: number,
+    customMonths: number,
+    onCustomMonthsChange: (months: number) => void,
+    showCustomInput: boolean,
+    onToggleCustomInput: () => void
   }) => {
+    // Local state for input to prevent parent updates
+    const [localCustomMonths, setLocalCustomMonths] = useState(parentCustomMonths);
+    
+    // Sync with parent only when needed
+    useEffect(() => {
+      setLocalCustomMonths(parentCustomMonths);
+    }, [parentCustomMonths]);
+
+    const handleCustomMonthsChange = useCallback((months: number) => {
+      if (months >= 3 && months <= 36) {
+        onCustomMonthsChange(months);
+        const customPlan = createCustomInstallmentPlan(months, finalPrice);
+        onSelect(customPlan);
+      }
+    }, [finalPrice, onSelect, onCustomMonthsChange]);
+
+    // Stable references to prevent re-renders
+    const stablePlans = useMemo(() => plans, [JSON.stringify(plans.map(p => ({ id: p.id, installments: p.installments, installmentAmount: p.installmentAmount })))]);
+    const stableSelectedPlan = useMemo(() => selectedPlan, [selectedPlan?.id, selectedPlan?.installments]);
+
     return (
       <motion.div
         initial={{ opacity: 0, height: 0 }}
@@ -1035,22 +1582,28 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
         exit={{ opacity: 0, height: 0 }}
         transition={{ duration: 0.3 }}
         className="overflow-hidden mt-4"
+        onMouseDown={(e) => e.preventDefault()}
+        onTouchStart={(e) => e.preventDefault()}
       >
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-4">
+        <div 
+          className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-4"
+          style={{ position: 'relative', zIndex: 10 }}
+        >
           <div className="flex items-center mb-3">
             <Calculator className={`h-5 w-5 text-${primaryColor}-500 mr-2`} />
             <h4 className="text-base font-medium text-gray-900 dark:text-white">EMI Payment Options</h4>
           </div>
           
+          {/* Preset Plans */}
           <div className="space-y-3 mt-3">
-            {plans.map((plan, index) => (
+            {stablePlans.map((plan, index) => (
               <div
                 key={`emi-plan-${plan.installments}`}
-                className={`relative p-3 border rounded-lg cursor-pointer transition-all ${
-                  selectedPlan?.installments === plan.installments
-                    ? `border-${primaryColor}-500 bg-${primaryColor}-50 dark:bg-${primaryColor}-900/20`
-                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                }`}
+                                  className={`relative p-3 border rounded-lg cursor-pointer transition-all ${
+                    stableSelectedPlan?.installments === plan.installments && !stableSelectedPlan?.id.includes('custom')
+                      ? `border-${primaryColor}-500 bg-${primaryColor}-50 dark:bg-${primaryColor}-900/20`
+                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                  }`}
                 onClick={() => onSelect(plan)}
               >
                 <div className="flex items-center justify-between">
@@ -1060,7 +1613,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
                     </span>
                     <div className="flex gap-2 mt-1">
                       <span className="text-sm text-gray-500 dark:text-gray-400">
-                        {plan.installmentAmount > 0 ? `${plan.installmentAmount.toLocaleString()} INR` : 'Free'}
+                        20% down payment + {plan.installments} EMIs
                       </span>
                     </div>
                   </div>
@@ -1069,54 +1622,125 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
                       {formatPriceDisplay(plan.installmentAmount)}
                     </div>
                     <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      {formatPriceDisplay(plan.downPayment)} down payment
+                      per month
                     </div>
                   </div>
-                  {selectedPlan?.installments === plan.installments && (
+                  {stableSelectedPlan?.installments === plan.installments && !stableSelectedPlan?.id.includes('custom') && (
                     <div className={`absolute -right-1 -top-1 p-1 rounded-full bg-${primaryColor}-500 text-white`}>
                       <CheckCircle2 className="h-4 w-4" />
                     </div>
                   )}
                 </div>
-                
-                {selectedPlan?.installments === plan.installments && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700"
-                  >
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div className="flex flex-col">
-                        <span className="text-gray-500 dark:text-gray-400">Total Amount</span>
-                        <span className="font-medium text-gray-900 dark:text-white">{formatPriceDisplay(plan.totalAmount)}</span>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-gray-500 dark:text-gray-400">Down Payment</span>
-                        <span className="font-medium text-gray-900 dark:text-white">{formatPriceDisplay(plan.downPayment)}</span>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-gray-500 dark:text-gray-400">Monthly Payment</span>
-                        <span className="font-medium text-gray-900 dark:text-white">{formatPriceDisplay(plan.installmentAmount)}</span>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-gray-500 dark:text-gray-400">Processing Fee</span>
-                        <span className="font-medium text-gray-900 dark:text-white">{formatPriceDisplay(plan.installmentAmount)}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">
-                      <span className="flex items-center">
-                        <Info className="h-3 w-3 mr-1" />
-                        {plan.gracePeriodDays} days grace period for each payment
-                      </span>
-                    </div>
-                  </motion.div>
-                )}
               </div>
             ))}
           </div>
+
+          {/* Custom Month Selection */}
+          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-medium text-gray-900 dark:text-white">Custom Duration</span>
+              <button
+                type="button"
+                onClick={onToggleCustomInput}
+                className={`text-sm font-medium text-${primaryColor}-600 dark:text-${primaryColor}-400 hover:underline`}
+              >
+                {showCustomInput ? 'Hide' : 'Customize'}
+              </button>
+            </div>
+            
+            {showCustomInput && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2 }}
+                className="space-y-3"
+              >
+                <div className="flex items-center space-x-3">
+                  <label className="text-sm text-gray-600 dark:text-gray-400 min-w-0 flex-shrink-0">
+                    Months (3-36):
+                  </label>
+                  <input
+                    type="number"
+                    min="3"
+                    max="36"
+                    value={localCustomMonths}
+                    onChange={(e) => {
+                      const months = parseInt(e.target.value);
+                      if (!isNaN(months)) {
+                        setLocalCustomMonths(months);
+                      }
+                    }}
+                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                    placeholder="Enter months"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleCustomMonthsChange(localCustomMonths)}
+                    className={`px-4 py-2 bg-${primaryColor}-600 text-white text-sm font-medium rounded-md hover:bg-${primaryColor}-700 transition-colors`}
+                  >
+                    Apply
+                  </button>
+                </div>
+                
+                {localCustomMonths >= 3 && localCustomMonths <= 36 && (
+                  <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Custom Plan Preview:</div>
+                                         <div className="grid grid-cols-2 gap-2 text-sm">
+                       <div>
+                         <span className="text-gray-500 dark:text-gray-400">Down Payment (20%):</span>
+                         <div className="font-medium">{formatPriceDisplay(Math.round(finalPrice * 0.2))}</div>
+                       </div>
+                       <div>
+                         <span className="text-gray-500 dark:text-gray-400">Monthly EMI:</span>
+                         <div className="font-medium">{formatPriceDisplay(Math.ceil((finalPrice * 0.8) / localCustomMonths))}</div>
+                       </div>
+                     </div>
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </div>
+
+          {/* Selected Plan Details */}
+          {stableSelectedPlan && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+              className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700"
+            >
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
+                <h5 className="font-medium text-gray-900 dark:text-white mb-2">Selected Plan Summary</h5>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="flex flex-col">
+                    <span className="text-gray-500 dark:text-gray-400">Total Amount</span>
+                    <span className="font-medium text-gray-900 dark:text-white">{formatPriceDisplay(stableSelectedPlan.totalAmount)}</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-gray-500 dark:text-gray-400">Down Payment (20%)</span>
+                    <span className="font-medium text-gray-900 dark:text-white">{formatPriceDisplay(stableSelectedPlan.downPayment)}</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-gray-500 dark:text-gray-400">Monthly EMI</span>
+                    <span className="font-medium text-gray-900 dark:text-white">{formatPriceDisplay(stableSelectedPlan.installmentAmount)}</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-gray-500 dark:text-gray-400">Duration</span>
+                    <span className="font-medium text-gray-900 dark:text-white">{stableSelectedPlan.installments} months</span>
+                  </div>
+                </div>
+                
+                <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                  <span className="flex items-center">
+                    <Info className="h-3 w-3 mr-1" />
+                    {stableSelectedPlan.gracePeriodDays} days grace period for each payment • No processing fees
+                  </span>
+                </div>
+              </div>
+            </motion.div>
+          )}
           
           <div className="mt-4 text-xs text-gray-500 dark:text-gray-400">
             <p className="flex items-center mb-1">
@@ -1131,19 +1755,20 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
         </div>
       </motion.div>
     );
-  };
+  });
 
   return (
     <>
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow border border-gray-200 dark:border-gray-700 overflow-hidden enrollment-section w-full">
         {/* Enhanced header with clearer pricing visibility */}
-        <div className={`px-4 sm:px-6 md:px-8 lg:px-10 py-4 ${bgClass} border-b ${borderClass} flex items-center justify-between`}>
-          <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
-            <CreditCard className="h-5 w-5 mr-2 hidden sm:inline-block" />
-            Enrollment Options
+        <div className={`px-4 sm:px-6 py-3 sm:py-4 ${bgClass} border-b ${borderClass} flex items-center justify-between`}>
+          <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 flex items-center leading-tight">
+            <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" />
+            <span className="hidden xs:inline">Enrollment Options</span>
+            <span className="xs:hidden">Enroll</span>
           </h3>
           {!isBlendedCourse && (
-            <div className="inline-flex items-center justify-center px-3 py-1.5 rounded-full bg-white dark:bg-gray-700 text-xs font-medium shadow-sm">
+            <div className="inline-flex items-center justify-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-white dark:bg-gray-700 text-xs font-medium shadow-sm">
               <span className={`${colorClass} font-semibold`}>
                 {enrollmentType === 'individual' ? 'Individual' : 'Batch'}
               </span>
@@ -1151,13 +1776,13 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
           )}
         </div>
         
-        <div className="p-5 sm:p-6 md:p-4 space-y-6">
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
           {/* Enrollment Type Selection - Better optimized for mobile with clear touch targets */}
           {!isBlendedCourse && (
-            <div className="flex w-full rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm">
+            <div className="flex w-full rounded-lg sm:rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm">
               <button
-                onClick={() => setEnrollmentType('individual')}
-                className={`flex-1 py-4 px-3 flex flex-col items-center justify-center transition duration-200 ${
+                onClick={() => handleEnrollmentTypeChange('individual')}
+                className={`flex-1 py-3 sm:py-4 px-2 sm:px-3 flex flex-col items-center justify-center transition duration-200 ${
                   enrollmentType === 'individual' 
                     ? `${bgClass} ${colorClass} font-medium` 
                     : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
@@ -1165,17 +1790,17 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
                 aria-pressed={enrollmentType === 'individual'}
                 aria-label="Select individual enrollment"
               >
-                <User className={`h-6 w-6 mb-2 ${enrollmentType === 'individual' ? colorClass : ''}`} />
-                <span className="text-sm font-medium">Individual</span>
+                <User className={`h-5 w-5 sm:h-6 sm:w-6 mb-1.5 sm:mb-2 ${enrollmentType === 'individual' ? colorClass : ''}`} />
+                <span className="text-xs sm:text-sm font-medium leading-tight">Individual</span>
                 {activePricing && (
-                  <span className="text-xs mt-1.5 font-semibold">
+                  <span className="text-xs mt-1 sm:mt-1.5 font-semibold leading-tight">
                     {formatPriceDisplay(activePricing.individual)}
                   </span>
                 )}
               </button>
               <button
-                onClick={() => setEnrollmentType('batch')}
-                className={`flex-1 py-4 px-3 flex flex-col items-center justify-center transition duration-200 ${
+                onClick={() => handleEnrollmentTypeChange('batch')}
+                className={`flex-1 py-3 sm:py-4 px-2 sm:px-3 flex flex-col items-center justify-center transition duration-200 ${
                   enrollmentType === 'batch' 
                     ? `${bgClass} ${colorClass} font-medium` 
                     : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
@@ -1183,10 +1808,10 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
                 aria-pressed={enrollmentType === 'batch'}
                 aria-label="Select batch enrollment"
               >
-                <Users className={`h-6 w-6 mb-2 ${enrollmentType === 'batch' ? colorClass : ''}`} />
-                <span className="text-sm font-medium">Batch/Group</span>
+                <Users className={`h-5 w-5 sm:h-6 sm:w-6 mb-1.5 sm:mb-2 ${enrollmentType === 'batch' ? colorClass : ''}`} />
+                <span className="text-xs sm:text-sm font-medium leading-tight">Batch/Group</span>
                 {activePricing && (
-                  <span className="text-xs mt-1.5 font-semibold">
+                  <span className="text-xs mt-1 sm:mt-1.5 font-semibold leading-tight">
                     {formatPriceDisplay(activePricing.batch)} per person
                   </span>
                 )}
@@ -1201,106 +1826,70 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="flex items-center justify-between p-5 bg-gradient-to-br from-gray-50 to-white dark:from-gray-800/80 dark:to-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm"
+              className="flex items-center justify-between p-4 sm:p-5 bg-gradient-to-br from-gray-50 to-white dark:from-gray-800/80 dark:to-gray-800 rounded-lg sm:rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm"
             >
-              <div>
-                <p className="text-gray-600 dark:text-gray-400 text-sm font-medium mb-0.5">
+              <div className="flex-1 min-w-0">
+                <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm font-medium mb-1 leading-tight">
                   {isBlendedCourse ? 'Individual Price' : (enrollmentType === 'individual' ? 'Individual Price' : 'Batch Price (per person)')}
                 </p>
                 <div className="flex items-baseline gap-2 flex-wrap">
-                  <h4 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-200 bg-clip-text text-transparent">
+                  <h4 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-200 bg-clip-text text-transparent leading-tight">
                     {courseDetails?.isFree ? "Free" : formatPriceDisplay(getFinalPrice())}
                   </h4>
                   
                   {originalPrice && originalPrice > getFinalPrice() && (
-                    <span className="text-sm text-gray-500 line-through">
+                    <span className="text-xs sm:text-sm text-gray-500 line-through">
                       {formatPriceDisplay(originalPrice)}
                     </span>
                   )}
                   
                   {discountPercentage && discountPercentage > 0 && (
-                    <span className="text-xs font-medium text-green-600 bg-green-100 dark:bg-green-900/40 dark:text-green-400 px-2.5 py-1 rounded-full">
+                    <span className="text-xs font-medium text-green-600 bg-green-100 dark:bg-green-900/40 dark:text-green-400 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full">
                       Save {discountPercentage}%
                     </span>
                   )}
                 </div>
                 {enrollmentType === 'batch' && !isBlendedCourse && activePricing && (
-                  <p className="text-xs text-gray-500 mt-2 flex items-center">
-                    <Users className="w-3.5 h-3.5 mr-1.5" />
+                  <p className="text-xs text-gray-500 mt-1.5 sm:mt-2 flex items-center leading-tight">
+                    <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 sm:mr-1.5 flex-shrink-0" />
                     Min {activePricing.min_batch_size} students required
                   </p>
                 )}
               </div>
-              <div className={`p-3 rounded-full ${bgClass} shadow-md`}>
-                <CreditCard className={`h-7 w-7 ${colorClass}`} />
+              <div className={`p-2.5 sm:p-3 rounded-full ${bgClass} shadow-md flex-shrink-0`}>
+                <CreditCard className={`h-6 w-6 sm:h-7 sm:w-7 ${colorClass}`} />
               </div>
             </motion.div>
           </AnimatePresence>
           
-          {/* EMI Payment Options replaced with Installment plans */}
+          {/* Modern EMI Component */}
           {isInstallmentAvailable && (
-            <div className="mt-4">
-              <button
-                type="button"
-                onClick={toggleInstallmentOptions}
-                className={`w-full px-4 py-3 bg-white dark:bg-gray-800 rounded-lg border ${
-                  showInstallmentOptions 
-                    ? `border-${primaryColor}-500 dark:border-${primaryColor}-400` 
-                    : 'border-gray-200 dark:border-gray-700'
-                } shadow-sm hover:shadow-md transition-all flex items-center justify-between`}
-              >
-                <div className="flex items-center">
-                  <CalendarClock className={`h-5 w-5 text-${primaryColor}-500 mr-2.5`} />
-                  <span className="text-gray-800 dark:text-gray-200 font-medium">
-                    Pay with EMI
-                  </span>
-                  {selectedInstallmentPlan && (
-                    <span className={`ml-2 text-sm font-medium text-${primaryColor}-600 dark:text-${primaryColor}-400`}>
-                      ({selectedInstallmentPlan.installments} months)
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center">
-                  {selectedInstallmentPlan && (
-                    <span className={`mr-2 text-sm font-medium text-${primaryColor}-600 dark:text-${primaryColor}-400`}>
-                      {formatPriceDisplay(selectedInstallmentPlan.installmentAmount)}/mo
-                    </span>
-                  )}
-                  <ChevronDown
-                    className={`h-5 w-5 transition-transform duration-200 ${
-                      showInstallmentOptions ? 'rotate-180' : ''
-                    }`}
-                  />
-                </div>
-              </button>
-            </div>
-          )}
-          
-          {isInstallmentAvailable && showInstallmentOptions && (
-            <AnimatePresence>
-              <EMIOptionsSection
-                plans={installmentPlans}
-                selectedPlan={selectedInstallmentPlan}
-                onSelect={selectInstallmentPlan}
-              />
-            </AnimatePresence>
+            <ModernEMIComponent
+              installmentPlans={installmentPlans}
+              selectedInstallmentPlan={selectedInstallmentPlan}
+              onSelectPlan={selectInstallmentPlan}
+              finalPrice={stableFinalPrice}
+              primaryColor={primaryColor}
+              formatPriceDisplay={formatPriceDisplay}
+              createCustomInstallmentPlan={createCustomInstallmentPlan}
+            />
           )}
           
           {/* Course Details List - More readable on mobile */}
-          <div className="space-y-3 border-t border-gray-200 dark:border-gray-700 pt-5">
-            <div className="flex justify-between items-center bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700 hover:shadow-sm transition-shadow">
-              <span className="text-gray-700 dark:text-gray-300 font-medium flex items-center">
-                <Clock className="w-5 h-5 mr-2.5 text-gray-500 dark:text-gray-400" />
+          <div className="space-y-2 sm:space-y-3 border-t border-gray-200 dark:border-gray-700 pt-4 sm:pt-5">
+            <div className="flex justify-between items-center bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-lg sm:rounded-xl border border-gray-100 dark:border-gray-700 hover:shadow-sm transition-shadow">
+              <span className="text-gray-700 dark:text-gray-300 text-sm sm:text-base font-medium flex items-center leading-tight">
+                <Clock className="w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-2.5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
                 Duration
               </span>
-              <span className="font-semibold text-gray-900 dark:text-white">{formattedDuration}</span>
+              <span className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base leading-tight">{formattedDuration}</span>
             </div>
-            <div className="flex justify-between items-center bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700 hover:shadow-sm transition-shadow">
-              <span className="text-gray-700 dark:text-gray-300 font-medium flex items-center">
-                <GraduationCap className="w-5 h-5 mr-2.5 text-gray-500 dark:text-gray-400" />
+            <div className="flex justify-between items-center bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-lg sm:rounded-xl border border-gray-100 dark:border-gray-700 hover:shadow-sm transition-shadow">
+              <span className="text-gray-700 dark:text-gray-300 text-sm sm:text-base font-medium flex items-center leading-tight">
+                <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-2.5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
                 Grade
               </span>
-              <span className="font-semibold text-gray-900 dark:text-white">
+              <span className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base leading-tight">
                 {grade}
               </span>
             </div>
@@ -1308,20 +1897,18 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
           
           {/* Course Features - More compact and well structured */}
           <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-            <h4 className="font-semibold text-gray-900 dark:text-white text-md mb-3 flex items-center">
-              <ThumbsUp className="w-4 h-4 mr-2 text-green-500" />
+            <h4 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base mb-2 sm:mb-3 flex items-center leading-tight">
+              <ThumbsUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 text-green-500 flex-shrink-0" />
               What you'll get
             </h4>
-            <div className="flex flex-wrap -mx-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {courseFeatures.map((feature: string, index: number) => (
                 <div 
                   key={index}
-                  className="w-full sm:w-1/2 px-1 mb-2"
+                  className="flex items-center text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 p-2.5 sm:p-3 rounded-lg border border-gray-100 dark:border-gray-700"
                 >
-                  <div className="flex items-center text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 p-2.5 rounded-lg border border-gray-100 dark:border-gray-700">
-                    <CheckCircle2 className="w-4 h-4 mr-2 text-green-500 flex-shrink-0" />
-                    <span className="text-xs font-medium">{feature}</span>
-                  </div>
+                  <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2 text-green-500 flex-shrink-0" />
+                  <span className="text-xs sm:text-sm font-medium leading-tight">{feature}</span>
                 </div>
               ))}
             </div>
@@ -1333,31 +1920,35 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
             whileTap={{ scale: 0.98 }}
             onClick={handleEnrollClick}
             disabled={loading}
-            className={`w-full py-4 px-5 bg-gradient-to-r from-${primaryColor}-600 to-${primaryColor}-700 hover:from-${primaryColor}-700 hover:to-${primaryColor}-800 text-white font-semibold text-lg rounded-xl flex items-center justify-center shadow-md transition-all duration-300 ${
+            className={`w-full py-3 sm:py-4 px-4 sm:px-5 bg-gradient-to-r from-${primaryColor}-600 to-${primaryColor}-700 hover:from-${primaryColor}-700 hover:to-${primaryColor}-800 text-white font-semibold text-base sm:text-lg rounded-lg sm:rounded-xl flex items-center justify-center shadow-md transition-all duration-300 ${
               loading ? 'opacity-70 cursor-not-allowed' : ''
             }`}
             aria-label={isLoggedIn ? (courseDetails?.isFree ? 'Enroll for free' : 'Enroll now') : 'Login to enroll'}
           >
             {loading ? (
-              <div className="flex items-center">
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <div className="flex items-center gap-2">
+                <svg className="animate-spin h-4 w-4 sm:h-5 sm:w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Processing...
+                <span>Processing...</span>
               </div>
             ) : (
               <>
                 {isLoggedIn ? (
                   <>
-                    {courseDetails?.isFree ? 'Enroll for Free' : 
-                      selectedInstallmentPlan ? `Pay ₹${selectedInstallmentPlan.installmentAmount} now - ${selectedInstallmentPlan.installments} installments` : 
-                      (isBlendedCourse ? 'Enroll Now' : 
-                      (enrollmentType === 'individual' ? 'Enroll Now' : 'Enroll in Batch'))} <ArrowRight className="w-5 h-5 ml-2" />
+                    <span className="leading-tight">
+                      {courseDetails?.isFree ? 'Enroll for Free' : 
+                        selectedInstallmentPlan ? `Pay ${formatPriceDisplay(selectedInstallmentPlan.downPayment)} now (20% down)` : 
+                        (isBlendedCourse ? 'Enroll Now' : 
+                        (enrollmentType === 'individual' ? 'Enroll Now' : 'Enroll in Batch'))}
+                    </span>
+                    <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2 flex-shrink-0" />
                   </>
                 ) : (
                   <>
-                    Login to Enroll <Lock className="w-5 h-5 ml-2" />
+                    <span className="leading-tight">Login to Enroll</span>
+                    <Lock className="w-4 h-4 sm:w-5 sm:h-5 ml-2 flex-shrink-0" />
                   </>
                 )}
               </>
@@ -1366,16 +1957,16 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
           
           {/* Payment info with installment badge */}
           {!courseDetails?.isFree && (
-            <div className="text-center text-xs p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700">
+            <div className="text-center text-xs p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg sm:rounded-xl border border-gray-100 dark:border-gray-700">
               <div className="flex items-center justify-center mb-1.5">
-                <CreditCard className="w-4 h-4 mr-2 text-gray-400" />
-                <span className="text-gray-500 dark:text-gray-400">Secure payment powered by Razorpay</span>
+                <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 text-gray-400 flex-shrink-0" />
+                <span className="text-gray-500 dark:text-gray-400 leading-tight">Secure payment powered by Razorpay</span>
               </div>
               {isInstallmentAvailable && (
-                <div className="flex items-center justify-center gap-2">
-                  <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded text-xs">Installments</span>
-                  <span className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 py-0.5 rounded text-xs">Credit Card</span>
-                  <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded text-xs">UPI</span>
+                <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
+                  <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 sm:px-2 py-0.5 rounded text-xs leading-tight">EMI Available</span>
+                  <span className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-1.5 sm:px-2 py-0.5 rounded text-xs leading-tight">No Processing Fee</span>
+                  <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 sm:px-2 py-0.5 rounded text-xs leading-tight">20% Down Payment</span>
                 </div>
               )}
             </div>
@@ -1383,17 +1974,17 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
           
           {/* Fast Track Option - Enhanced mobile visibility */}
           <motion.div
-            className="border-t border-gray-200 dark:border-gray-700 pt-5"
+            className="border-t border-gray-200 dark:border-gray-700 pt-4 sm:pt-5"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
           >
-            <div className="bg-gradient-to-r from-amber-50 to-amber-100/50 dark:from-gray-800 dark:to-amber-900/10 p-4 rounded-xl border border-amber-100 dark:border-amber-800/30 text-center">
-              <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-amber-100/80 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800/40 text-amber-700 dark:text-amber-300 text-xs font-medium mb-2.5">
-                <Zap className="w-3.5 h-3.5 mr-1.5" />
+            <div className="bg-gradient-to-r from-amber-50 to-amber-100/50 dark:from-gray-800 dark:to-amber-900/10 p-3 sm:p-4 rounded-lg sm:rounded-xl border border-amber-100 dark:border-amber-800/30 text-center">
+              <div className="inline-flex items-center px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-amber-100/80 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800/40 text-amber-700 dark:text-amber-300 text-xs font-medium mb-2 sm:mb-2.5">
+                <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 sm:mr-1.5 flex-shrink-0" />
                 Fast Track Available
               </div>
-              <p className="text-sm text-amber-800 dark:text-amber-200">
+              <p className="text-xs sm:text-sm text-amber-800 dark:text-amber-200 leading-relaxed">
                 Fast-track options available for experienced learners.
                 Contact support for details.
               </p>

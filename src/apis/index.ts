@@ -221,6 +221,98 @@ export interface ICreateCurrencyInput {
 
 export interface IUpdateCurrencyInput extends Partial<ICreateCurrencyInput> {}
 
+// Instructor Assignment interfaces
+export interface IInstructorCourseAssignment {
+  _id: string;
+  full_name: string;
+  email: string;
+  course_title: string;
+  user_id: string | {
+    _id: string;
+    full_name: string;
+    email: string;
+  };
+  count?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface IInstructorCourseAssignmentInput {
+  full_name: string;
+  email: string;
+  course_title: string;
+  user_id: string;
+}
+
+export interface IInstructorStudentAssignment {
+  _id?: string;
+  instructor_id: string;
+  student_id: string;
+  assignment_type: 'mentor' | 'tutor' | 'advisor' | 'supervisor';
+  assignment_date: string;
+  notes?: string;
+  instructor_name?: string;
+  student_name?: string;
+}
+
+export interface IInstructorStudentAssignmentInput {
+  instructor_id: string;
+  student_id: string;
+  assignment_type?: 'mentor' | 'tutor' | 'advisor' | 'supervisor';
+  notes?: string;
+}
+
+export interface IInstructorStudentAssignmentResponse {
+  success: boolean;
+  message: string;
+  data: {
+    student_id: string;
+    student_name: string;
+    instructor_id: string;
+    instructor_name: string;
+    assignment_type: string;
+    assignment_date: string;
+    notes?: string;
+  };
+}
+
+export interface IInstructorStudentsResponse {
+  success: boolean;
+  message: string;
+  data: {
+    instructor: {
+      id: string;
+      name: string;
+      email: string;
+    };
+    assigned_students: Array<{
+      _id: string;
+      full_name: string;
+      email: string;
+      role: string[];
+      instructor_assignment_date: string;
+      instructor_assignment_type: string;
+      instructor_assignment_notes?: string;
+    }>;
+    total_students: number;
+  };
+}
+
+export interface IAssignedCourse {
+  _id: string;
+  course_title: string;
+  assigned_instructor: {
+    _id: string;
+    full_name: string;
+    email: string;
+  };
+}
+
+export interface IInstructorCoursesResponse {
+  message: string;
+  courses: IAssignedCourse[];
+}
+
 export const apiUrls = {
   categories: {
     getAllCategories: "/categories",
@@ -432,7 +524,39 @@ export const apiUrls = {
     createInstructor: "/auth/create",
     updateInstructor: (id: string): string => `/auth/updateInstrucor/${id}`,
     deleteInstructor: "/auth/delete-instrucor",
-    toggleInstructorsStatus: "/auth/toggle-status-instrucor"
+    toggleInstructorsStatus: "/auth/toggle-status-instrucor",
+    uploadCSV: "/auth/upload-instructors-csv",
+    
+    // Instructor-to-Course Assignment endpoints
+    assignInstructorToCourse: "/auth/assign-instructor-to-course",
+    getAllInstructorAssignments: "/auth/instructor-assignments",
+    getInstructorAssignmentById: (id: string): string => {
+      if (!id) throw new Error('Assignment ID or User ID is required');
+      return `/auth/instructor-assignment/${id}`;
+    },
+    updateInstructorAssignment: (id: string): string => {
+      if (!id) throw new Error('Assignment ID is required');
+      return `/auth/instructor-assignment/${id}`;
+    },
+    deleteInstructorAssignment: (id: string): string => {
+      if (!id) throw new Error('Assignment ID is required');
+      return `/auth/instructor-assignment/${id}`;
+    },
+    getInstructorCourses: (instructorId: string): string => {
+      if (!instructorId) throw new Error('Instructor ID is required');
+      return `/auth/instructor-courses/${instructorId}`;
+    },
+    
+    // Instructor-to-Student Assignment endpoints
+    assignInstructorToStudent: "/auth/assign-instructor-to-student",
+    getInstructorStudents: (instructorId: string): string => {
+      if (!instructorId) throw new Error('Instructor ID is required');
+      return `/auth/instructor-students/${instructorId}`;
+    },
+    unassignInstructorFromStudent: (studentId: string): string => {
+      if (!studentId) throw new Error('Student ID is required');
+      return `/auth/unassign-instructor-from-student/${studentId}`;
+    }
   },
   Coorporate: {
     getAllCoorporates: "/auth/get-all-coorporates",

@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { 
-  ArrowLeft, RefreshCw, AlertCircle, ArrowRight, Clock, Users, Award
+  ArrowLeft, RefreshCw, AlertCircle, ArrowRight, Clock, Users, Award, Edit2
 } from 'lucide-react';
 import axios from 'axios';
 import { Toaster, toast } from 'react-hot-toast';
@@ -22,7 +22,6 @@ import EnrollmentDetails from '@/components/sections/course-detailed/EnrollmentD
 // API
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
-import { formatDuration, parseDuration, parseApiError } from '../utils';
 import { getCourseById } from '@/apis/course/course';
 
 interface CourseData {
@@ -119,17 +118,14 @@ const CourseView: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const { getQuery } = useGetQuery();
   
-  // Function to detect user's location and get the appropriate currency
-  const getLocationCurrency = useCallback(async () => {
-    try {
-      setIsDetectingLocation(true);
-      
+  // Initialize currency detection on mount
+  useEffect(() => {
+    const initializeCurrency = async () => {
       // Check if currency is specified in URL
       const currencyParam = searchParams.get('currency');
       if (currencyParam) {
-        console.log(`Using currency from URL: ${currencyParam}`);
         setUserCurrency(currencyParam);
-        return currencyParam;
+        return;
       }
       
       // Check if we've already stored the currency in localStorage
@@ -140,95 +136,89 @@ const CourseView: React.FC = () => {
       if (cachedCurrency && cachedTimestamp) {
         const timestamp = parseInt(cachedTimestamp);
         if (Date.now() - timestamp < 24 * 60 * 60 * 1000) { // 24 hours
-          console.log(`Using cached currency: ${cachedCurrency}`);
           setUserCurrency(cachedCurrency);
-          return cachedCurrency;
+          return;
         }
       }
       
-      // Make request to IP geolocation API
-      const response = await axios.get('https://ipapi.co/json/', { timeout: 5000 });
-      
-      if (response.data && response.data.currency) {
-        const detectedCurrency = response.data.currency;
-        console.log(`Detected currency from IP: ${detectedCurrency}`);
-        
-        // Store in localStorage with timestamp
-        localStorage.setItem('userCurrency', detectedCurrency);
-        localStorage.setItem('userCurrencyTimestamp', Date.now().toString());
-        
-        setUserCurrency(detectedCurrency);
-        return detectedCurrency;
-      } else {
-        console.log("Could not detect currency from IP, using default");
-        return "USD"; // Default fallback
-      }
-    } catch (error) {
-      console.error("Error detecting location:", error);
-      return "USD"; // Default fallback on error
-    } finally {
-      setIsDetectingLocation(false);
-    }
-  }, [searchParams]);
-  
-  // Fetch course data
-  useEffect(() => {
-    const fetchCourse = async () => {
-      if (!courseId) return;
-      
+      // Detect currency from IP if not cached
       try {
-        setLoading(true);
-        setError(null);
+        setIsDetectingLocation(true);
+        const response = await axios.get('https://ipapi.co/json/', { timeout: 5000 });
         
-        console.log("Fetching course:", courseId);
-        
-        // Get currency based on user's location
-        const userCurrency = await getLocationCurrency();
-        console.log(`Using currency for API request: ${userCurrency}`);
-        
-        // Construct the course endpoint with currency parameter
-        const courseEndpoint = getCourseById(courseId, "", userCurrency.toLowerCase());
-        
-        getQuery({
-          url: courseEndpoint,
-          config: {
-            params: {} // Currency is now included in the URL, no need for params
-          },
-          onSuccess: (response: { course?: CourseData; data?: CourseData } | CourseData) => {
-            const courseData = (response as any)?.course || (response as any)?.data || response;
-            
-            if (!courseData || !courseData._id) {
-              setError("Course not found or invalid data received");
-              return;
-            }
-            
-            // Process course data
-            const processedCourse = {
-              ...courseData,
-              batches: courseData.batches?.map((batch: any) => ({
-                ...batch,
-                price: batch.prices?.find((p: any) => p.currency.toLowerCase() === userCurrency.toLowerCase())?.amount || batch.price
-              }))
-            };
-            
-            setCourse(processedCourse);
-            setLoading(false);
-          },
-          onFail: (error: any) => {
-            console.error("Error fetching course:", error);
-            setError(error?.message || "Failed to fetch course details");
-            setLoading(false);
-          }
-        });
-      } catch (error: any) {
-        console.error("Error in fetchCourse:", error);
-        setError(error?.message || "An unexpected error occurred");
-        setLoading(false);
+        if (response.data && response.data.currency) {
+          const detectedCurrency = response.data.currency;
+          localStorage.setItem('userCurrency', detectedCurrency);
+          localStorage.setItem('userCurrencyTimestamp', Date.now().toString());
+          setUserCurrency(detectedCurrency);
+        } else {
+          setUserCurrency("USD"); // Default fallback
+        }
+      } catch (error) {
+        console.error("Error detecting location:", error);
+        setUserCurrency("USD"); // Default fallback on error
+      } finally {
+        setIsDetectingLocation(false);
       }
     };
     
-    fetchCourse();
-  }, [courseId, getQuery, getLocationCurrency]); // Added getLocationCurrency to dependencies
+    initializeCurrency();
+  }, []); // Only run once on mount
+
+  // Fetch course data when courseId or userCurrency changes
+  useEffect(() => {
+    if (courseId && userCurrency) {
+      const fetchCourseData = async () => {
+        try {
+          setLoading(true);
+          setError(null);
+          
+          console.log("Fetching course:", courseId);
+          
+          // Construct the course endpoint with currency parameter
+          const courseEndpoint = getCourseById(courseId, "", userCurrency.toLowerCase());
+          
+          getQuery({
+            url: courseEndpoint,
+            config: {
+              params: {} // Currency is now included in the URL, no need for params
+            },
+            onSuccess: (response: { course?: CourseData; data?: CourseData } | CourseData) => {
+              const courseData = (response as any)?.course || (response as any)?.data || response;
+              
+              if (!courseData || !courseData._id) {
+                setError("Course not found or invalid data received");
+                return;
+              }
+              
+              // Process course data
+              const processedCourse = {
+                ...courseData,
+                batches: courseData.batches?.map((batch: any) => ({
+                  ...batch,
+                  price: batch.prices?.find((p: any) => p.currency.toLowerCase() === userCurrency.toLowerCase())?.amount || batch.price
+                }))
+              };
+              
+              setCourse(processedCourse);
+              setLoading(false);
+            },
+            onFail: (error: any) => {
+              console.error("Error fetching course:", error);
+              setError(error?.message || "Failed to fetch course details");
+              setLoading(false);
+            }
+          });
+        } catch (error: any) {
+          console.error("Error in fetchCourse:", error);
+          setError(error?.message || "An unexpected error occurred");
+          setLoading(false);
+        }
+      };
+      
+      fetchCourseData();
+    }
+  }, [courseId, userCurrency, getQuery]);
   
   // Handle scroll to show/hide floating button
   useEffect(() => {
@@ -456,7 +446,7 @@ const CourseView: React.FC = () => {
                   <span className="text-xs text-gray-500 dark:text-gray-400">Price</span>
                   <span className="text-base font-semibold text-emerald-600 dark:text-emerald-400">
                     {course.prices && course.prices.length > 0 
-                      ? course.prices.find(p => p.currency === userCurrency)?.batch?.toLocaleString('en-IN') || '0'
+                      ? `₹${course.prices.find(p => p.currency === userCurrency)?.batch?.toLocaleString('en-IN') || '0'}`
                       : 'Free'}
                   </span>
                 </div>
