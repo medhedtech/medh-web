@@ -748,7 +748,7 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           subItems: [
             {
           name: "All Courses",
-          path: formatRoute("student", "my-courses"),
+          path: "/courses",
           icon: <LayoutGrid className="w-4 h-4" />
         },
         {
