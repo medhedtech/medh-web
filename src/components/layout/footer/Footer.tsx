@@ -1,11 +1,12 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import FooterNavList from "./FooterNavList";
 import CopyRight from "./CopyRight";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import Logo from "@/assets/images/logo/medh_logo-1.png";
 import QRCode from "@/assets/images/footer/qr.png";
+import { useIsMobile, getHydrationSafeProps } from "@/utils/hydration";
 
 interface FooterProps {
   /**
@@ -17,44 +18,48 @@ interface FooterProps {
 const Footer: React.FC<FooterProps> = ({ className = "" }) => {
   const pathname = usePathname();
   const [isVisible, setIsVisible] = useState<boolean>(false);
-  const [isMobile, setIsMobile] = useState<boolean>(false);
-  
-  // Memoized function to check mobile viewport
-  const checkMobile = useCallback(() => {
-    setIsMobile(window.innerWidth < 640);
-  }, []);
+  const { isMobile, isClient } = useIsMobile(640);
   
   useEffect(() => {
-    // Add entrance animation effect with a slight delay
-    const timer = setTimeout(() => setIsVisible(true), 300);
-    
-    // Initial check
-    checkMobile();
-    
-    // Optimized resize listener with debounce
-    let resizeTimer: NodeJS.Timeout;
-    const handleResize = () => {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => {
-        checkMobile();
-      }, 100);
-    };
-    
-    // Listen for resize events
-    window.addEventListener('resize', handleResize);
-    
-    return () => {
-      clearTimeout(timer);
-      clearTimeout(resizeTimer);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, [checkMobile]);
+    if (isClient) {
+      // Add entrance animation effect with a slight delay
+      const timer = setTimeout(() => setIsVisible(true), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isClient]);
+
+  // Show a loading state until client-side hydration is complete
+  if (!isClient) {
+    return (
+      <footer 
+        className={`w-full relative ${className}`}
+        role="contentinfo"
+        aria-label="Site footer"
+      >
+        <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-gray-900 to-black dark:from-gray-950 dark:via-gray-950 dark:to-black z-0">
+          <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_50%_-20%,rgba(76,175,80,0.15),rgba(0,0,0,0))]"></div>
+        </div>
+        <div className="relative z-10 w-full pt-10 pb-0 font-body">
+          <div className="w-full backdrop-blur-sm bg-black/20 dark:bg-black/30 border-t border-white/5 py-6 md:py-8 shadow-xl">
+            <div className="max-w-[1920px] mx-auto px-4 md:px-8 lg:px-12">
+              <div className="animate-pulse">
+                <div className="h-32 bg-gray-700 rounded mb-6"></div>
+                <div className="h-px bg-gray-700 my-5"></div>
+                <div className="h-24 bg-gray-700 rounded"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
+    );
+  }
 
   return (
     <footer 
       className={`w-full relative transition-all duration-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'} ${className}`}
       role="contentinfo"
       aria-label="Site footer"
+      {...getHydrationSafeProps()}
     >
       {/* Enhanced modern gradient background */}
       <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-gray-900 to-black dark:from-gray-950 dark:via-gray-950 dark:to-black z-0 overflow-hidden">
