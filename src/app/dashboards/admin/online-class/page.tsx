@@ -2,169 +2,131 @@
 
 import React from "react";
 import Link from "next/link";
-import { FaVideo, FaUsers, FaGraduationCap } from "react-icons/fa";
-import { HiSparkles, HiLightningBolt, HiAcademicCap } from "react-icons/hi";
+import { FaVideo, FaUsers, FaGraduationCap, FaArrowRight } from "react-icons/fa";
 
-const sessionTypes = [
+type ColorType = "violet" | "emerald" | "rose";
+
+interface ISessionType {
+  id: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+  color: ColorType;
+}
+
+interface IColorClasses {
+  icon: string;
+  border: string;
+  hover: string;
+}
+
+const sessionTypes: ISessionType[] = [
   {
     id: "Demo",
     title: "Demo Classes",
-    subtitle: "free trial sessions",
-    description: "Experience our teaching style with complimentary demo sessions",
+    subtitle: "try before you buy",
+    description: "Free trial sessions to experience our teaching style",
     icon: FaGraduationCap,
-    heroIcon: HiAcademicCap,
-    gradient: "from-emerald-400 to-teal-500",
-    bgGradient: "from-emerald-50 to-teal-50",
-    darkBgGradient: "from-emerald-900/20 to-teal-900/20",
-    emoji: "🎓",
-    illustration: "👨‍🎓📚💡",
-    stats: { sessions: "25+", duration: "30 min", type: "Free" }
+    color: "violet"
   },
   {
     id: "live",
     title: "Live Classes",
-    subtitle: "real-time interactive sessions",
-    description: "Join live sessions with real-time interaction and Q&A",
+    subtitle: "real-time learning",
+    description: "Interactive sessions with instant feedback and Q&A",
     icon: FaVideo,
-    heroIcon: HiLightningBolt,
-    gradient: "from-emerald-400 to-teal-500",
-    bgGradient: "from-emerald-50 to-teal-50",
-    darkBgGradient: "from-emerald-900/20 to-teal-900/20",
-    emoji: "📹",
-    illustration: "👨‍💻🖥️⏰",
-    stats: { sessions: "40+", duration: "60 min", type: "Live" }
+    color: "emerald"
   },
   {
     id: "Blended",
     title: "Blended Classes",
-    subtitle: "hybrid learning experience",
-    description: "Combination of live sessions and pre-recorded content",
+    subtitle: "best of both worlds",
+    description: "Mix of live sessions and self-paced content",
     icon: FaUsers,
-    heroIcon: HiSparkles,
-    gradient: "from-emerald-400 to-teal-500",
-    bgGradient: "from-emerald-50 to-teal-50",
-    darkBgGradient: "from-emerald-900/20 to-teal-900/20",
-    emoji: "🎯",
-    illustration: "🎬📱💾",
-    stats: { sessions: "35+", duration: "45 min", type: "Hybrid" }
+    color: "rose"
   }
 ];
 
+const colorClasses: Record<ColorType, IColorClasses> = {
+  violet: {
+    icon: "text-violet-700 dark:text-violet-300",
+    border: "border-violet-300 dark:border-violet-600",
+    hover: "hover:border-violet-400 dark:hover:border-violet-500 hover:bg-violet-50 dark:hover:bg-violet-950/30"
+  },
+  emerald: {
+    icon: "text-emerald-700 dark:text-emerald-300",
+    border: "border-emerald-300 dark:border-emerald-600",
+    hover: "hover:border-emerald-400 dark:hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+  },
+  rose: {
+    icon: "text-rose-700 dark:text-rose-300",
+    border: "border-rose-300 dark:border-rose-600",
+    hover: "hover:border-rose-400 dark:hover:border-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+  }
+};
+
 export default function OnlineClassSelectionPage() {
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
-      {/* Animated background elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-emerald-200/30 dark:bg-emerald-500/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-teal-200/30 dark:bg-teal-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-3/4 left-1/2 w-96 h-96 bg-green-200/30 dark:bg-green-500/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
-      </div>
-
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       {/* Header */}
-      <div className="relative z-10 text-center py-20">
-        <div className="inline-flex items-center gap-3 mb-6">
-          <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></div>
-          <span className="text-emerald-600 dark:text-emerald-400 text-sm font-medium tracking-wider uppercase">online classes</span>
-          <div className="w-2 h-2 bg-teal-500 rounded-full animate-ping delay-300"></div>
+      <div className="text-center py-16 px-6">
+        <div className="inline-flex items-center gap-2 px-3 py-1 bg-gray-200 dark:bg-gray-800 rounded-full mb-6">
+          <span className="text-sm text-gray-700 dark:text-gray-300">online classes</span>
         </div>
-        <h1 className="text-5xl md:text-7xl font-black bg-gradient-to-r from-emerald-600 via-teal-600 to-green-600 dark:from-emerald-400 dark:via-teal-400 dark:to-green-400 bg-clip-text text-transparent mb-4">
-          choose your format
+        
+        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-gray-50 mb-4">
+          Choose Your Learning Style
         </h1>
-        <p className="text-gray-600 dark:text-gray-400 text-lg max-w-md mx-auto">
-          select your preferred learning style ✨
+        
+        <p className="text-gray-700 dark:text-gray-300 max-w-md mx-auto">
+          Select the perfect format for your educational journey
         </p>
       </div>
 
-      {/* Session Types Grid */}
-      <div className="relative z-10 max-w-7xl mx-auto px-6 pb-20">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      {/* Session Types */}
+      <div className="max-w-4xl mx-auto px-6 pb-20">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {sessionTypes.map((sessionType) => {
             const IconComponent = sessionType.icon;
-            const HeroIconComponent = sessionType.heroIcon;
+            const colors = colorClasses[sessionType.color];
             
             return (
               <Link
                 key={sessionType.id}
                 href={`/dashboards/admin/online-class/${sessionType.id}`}
-                className="group relative"
+                className="group h-full"
               >
-                <div className="bg-gradient-to-br from-emerald-400 to-teal-500 rounded-3xl p-8 hover:shadow-2xl transition-all duration-500 hover:scale-105 min-h-[500px] flex flex-col">
-                  {/* Illustration Area */}
-                  <div className="bg-white/90 dark:bg-gray-800/90 rounded-2xl p-8 mb-6 flex-1 flex items-center justify-center">
-                    <div className="text-center">
-                      <div className="text-6xl mb-4">{sessionType.illustration}</div>
-                      <IconComponent className="text-4xl text-emerald-600 dark:text-emerald-400 mx-auto" />
+                <div className={`bg-white dark:bg-gray-900 border-2 ${colors.border} ${colors.hover} rounded-xl p-6 transition-all duration-200 hover:shadow-md h-full flex flex-col min-h-[200px]`}>
+                  {/* Icon and Title */}
+                  <div className="flex items-start gap-4 mb-4 flex-1">
+                    <div className="flex-shrink-0">
+                      <IconComponent className={`text-2xl ${colors.icon}`} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-50 mb-1 line-clamp-2">
+                        {sessionType.title}
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 line-clamp-1">
+                        {sessionType.subtitle}
+                      </p>
+                      <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-3">
+                        {sessionType.description}
+                      </p>
                     </div>
                   </div>
 
-                  {/* Content */}
-                  <div className="text-white">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-2xl font-bold">{sessionType.title}</h3>
-                      <span className="text-2xl">{sessionType.emoji}</span>
-                    </div>
-                    <p className="text-emerald-100 text-sm mb-4">{sessionType.subtitle}</p>
-                    <p className="text-emerald-50 text-xs mb-6 opacity-90">{sessionType.description}</p>
-                    
-                    {/* Stats */}
-                    <div className="grid grid-cols-3 gap-2 mb-4">
-                      <div className="text-center">
-                        <div className="text-sm font-bold text-white">{sessionType.stats.sessions}</div>
-                        <div className="text-xs text-emerald-100">sessions</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-sm font-bold text-white">{sessionType.stats.duration}</div>
-                        <div className="text-xs text-emerald-100">duration</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-sm font-bold text-white">{sessionType.stats.type}</div>
-                        <div className="text-xs text-emerald-100">type</div>
-                      </div>
-                    </div>
-
-                    {/* Action indicator */}
-                    <div className="flex items-center justify-between">
-                      <span className="text-emerald-100 text-sm font-medium">manage classes</span>
-                      <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center group-hover:bg-white/30 transition-colors duration-300">
-                        <svg className="w-4 h-4 text-white group-hover:translate-x-0.5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </div>
-                    </div>
+                  {/* Action */}
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700 mt-auto">
+                    <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                      Manage Classes
+                    </span>
+                    <FaArrowRight className="text-sm text-gray-500 group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-200 group-hover:translate-x-1 transition-all duration-200" />
                   </div>
-
-                  {/* Hover effect border */}
-                  <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-emerald-400 to-teal-500 opacity-0 group-hover:opacity-20 transition-opacity duration-500 blur-xl"></div>
                 </div>
               </Link>
             );
           })}
-        </div>
-
-        {/* Additional info section */}
-        <div className="mt-16 text-center">
-          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl border border-gray-200 dark:border-gray-700 p-8 max-w-3xl mx-auto">
-            <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-              comprehensive learning management 🎓
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
-              Create, manage, and track online sessions across all formats. Each format offers specialized tools and features tailored to different learning methodologies and student engagement levels.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-              <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-4">
-                <div className="font-semibold text-emerald-700 dark:text-emerald-300 mb-1">Demo Classes</div>
-                <div className="text-emerald-600 dark:text-emerald-400">Perfect for trial sessions and course previews</div>
-              </div>
-              <div className="bg-teal-50 dark:bg-teal-900/20 rounded-xl p-4">
-                <div className="font-semibold text-teal-700 dark:text-teal-300 mb-1">Live Classes</div>
-                <div className="text-teal-600 dark:text-teal-400">Real-time interaction with immediate feedback</div>
-              </div>
-              <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-4">
-                <div className="font-semibold text-green-700 dark:text-green-300 mb-1">Blended Classes</div>
-                <div className="text-green-600 dark:text-green-400">Best of both worlds - live and recorded content</div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>

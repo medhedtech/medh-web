@@ -481,24 +481,29 @@ const OnlineMeeting: React.FC<IOnlineClassProps> = ({ categoryFilter, sessionTyp
   if (loading) return <Preloader />;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       {/* Header - only show when not in filtered mode */}
       {!sessionTypeFilter && (
-        <div className="text-center py-16">
-          <h1 className="text-4xl md:text-6xl font-black bg-gradient-to-r from-emerald-600 via-teal-600 to-green-600 dark:from-emerald-400 dark:via-teal-400 dark:to-green-400 bg-clip-text text-transparent mb-4">
-            {pageTitle || categoryFilter || "Online Classes"}
+        <div className="text-center py-16 px-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-gray-200 dark:bg-gray-800 rounded-full mb-6">
+            <span className="text-sm text-gray-700 dark:text-gray-300">online classes</span>
+          </div>
+          
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-gray-50 mb-4">
+            {pageTitle || categoryFilter || "Choose Your Format"}
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 text-lg">
-            choose your learning format ✨
+          
+          <p className="text-gray-700 dark:text-gray-300 max-w-md mx-auto">
+            Select your preferred learning format
           </p>
         </div>
       )}
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-6 pb-20">
+      <div className="max-w-4xl mx-auto px-6 pb-20">
         {!selectedSessionType && !sessionTypeFilter ? (
           // Session Type Selection - only show when no sessionTypeFilter is provided
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {sessionTypes.map((sessionType) => {
               const IconComponent = sessionType.icon;
               
@@ -506,30 +511,33 @@ const OnlineMeeting: React.FC<IOnlineClassProps> = ({ categoryFilter, sessionTyp
                 <div
                   key={sessionType.id}
                   onClick={() => setSelectedSessionType(sessionType.id)}
-                  className="group relative cursor-pointer"
+                  className="group cursor-pointer"
                 >
-                  <div className="bg-gradient-to-br from-emerald-400 to-teal-500 rounded-3xl p-8 hover:shadow-2xl transition-all duration-500 hover:scale-105 min-h-[400px] flex flex-col">
-                    {/* Illustration Area */}
-                    <div className="bg-white/90 dark:bg-gray-800/90 rounded-2xl p-8 mb-6 flex-1 flex items-center justify-center">
-                      <div className="text-center">
-                        <div className="text-6xl mb-4">{sessionType.illustration}</div>
-                        <IconComponent className="text-4xl text-emerald-600 dark:text-emerald-400 mx-auto" />
+                  <div className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 hover:border-emerald-400 dark:hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 rounded-xl p-6 transition-all duration-200 hover:shadow-md h-full flex flex-col min-h-[200px]">
+                    {/* Icon and Title */}
+                    <div className="flex items-start gap-4 mb-4 flex-1">
+                      <div className="flex-shrink-0">
+                        <IconComponent className="text-2xl text-emerald-700 dark:text-emerald-300" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-50 mb-1 line-clamp-2">
+                          {sessionType.title}
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 line-clamp-1">
+                          {sessionType.subtitle}
+                        </p>
+                        <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-3">
+                          {sessionType.description}
+                        </p>
                       </div>
                     </div>
 
-                    {/* Content */}
-                    <div className="text-white">
-                      <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-2xl font-bold">{sessionType.title}</h3>
-                        <span className="text-2xl">{sessionType.emoji}</span>
-                      </div>
-                      <p className="text-emerald-100 text-sm mb-4">{sessionType.subtitle}</p>
-                      
-                      {/* Session Count */}
-                      <div className="flex items-center justify-between">
-                        <span className="text-emerald-100 text-sm">{sessionType.count} sessions</span>
-                        <FaArrowRight className="text-white group-hover:translate-x-1 transition-transform duration-300" />
-                      </div>
+                    {/* Action */}
+                    <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700 mt-auto">
+                      <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                        {sessionType.count} sessions
+                      </span>
+                      <FaArrowRight className="text-sm text-gray-500 group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-200 group-hover:translate-x-1 transition-all duration-200" />
                     </div>
                   </div>
                 </div>
@@ -561,7 +569,7 @@ const OnlineMeeting: React.FC<IOnlineClassProps> = ({ categoryFilter, sessionTyp
               
               <button
                 onClick={() => openModal(selectedSessionType || sessionTypeFilter || '')}
-                className="ml-auto px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl font-semibold transition-all duration-300 hover:scale-105"
+                className="ml-auto px-6 py-3 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-600 text-white rounded-xl font-semibold transition-all duration-200"
               >
                 <div className="flex items-center gap-2">
                   <FaPlus className="text-sm" />
@@ -576,39 +584,46 @@ const OnlineMeeting: React.FC<IOnlineClassProps> = ({ categoryFilter, sessionTyp
                 getCurrentMeetings().map((meeting, index) => (
                   <div
                     key={index}
-                    className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-all duration-300 hover:scale-105"
+                    className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 hover:border-emerald-400 dark:hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 rounded-xl p-6 transition-all duration-200 hover:shadow-md h-full flex flex-col min-h-[200px]"
                   >
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
-                        <h3 className="font-bold text-lg mb-1 line-clamp-2 text-gray-900 dark:text-gray-100">{meeting.meet_title}</h3>
-                        <p className="text-gray-600 dark:text-gray-400 text-sm">{meeting.course_name}</p>
+                    {/* Header */}
+                    <div className="flex items-start gap-4 mb-4 flex-1">
+                      <div className="flex-shrink-0">
+                        <div className="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                          <span className="text-lg">{sessionTypes.find(s => s.id === (selectedSessionType || sessionTypeFilter))?.emoji}</span>
+                        </div>
                       </div>
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
-                        <span className="text-lg">{sessionTypes.find(s => s.id === (selectedSessionType || sessionTypeFilter))?.emoji}</span>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-50 mb-1 line-clamp-2">
+                          {meeting.meet_title}
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 line-clamp-1">
+                          {meeting.course_name}
+                        </p>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                            <FaCalendarAlt className="text-xs text-emerald-600 dark:text-emerald-400" />
+                            <span className="text-xs">{formatDate(meeting.date)}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                            <FaClock className="text-xs text-emerald-600 dark:text-emerald-400" />
+                            <span className="text-xs">{meeting.time}</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="space-y-3 mb-6">
-                      <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
-                        <FaCalendarAlt className="text-emerald-500" />
-                        <span className="text-sm">{formatDate(meeting.date)}</span>
-                      </div>
-                      <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
-                        <FaClock className="text-emerald-500" />
-                        <span className="text-sm">{meeting.time}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2">
+                    {/* Action */}
+                    <div className="flex gap-2 pt-4 border-t border-gray-200 dark:border-gray-700 mt-auto">
                       <button
                         onClick={() => handleCopy(meeting._id, meeting.meet_link)}
-                        className="flex-1 py-2 px-4 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200"
+                        className="flex-1 py-2 px-3 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200"
                       >
-                        copy link
+                        copy
                       </button>
                       <button
                         onClick={() => handleShare(meeting.meet_link)}
-                        className="flex-1 py-2 px-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl text-sm font-medium hover:scale-105 transition-all duration-200"
+                        className="flex-1 py-2 px-3 bg-emerald-600 dark:bg-emerald-700 text-white rounded-lg text-xs font-medium hover:bg-emerald-700 dark:hover:bg-emerald-600 transition-all duration-200"
                       >
                         share
                       </button>
@@ -621,16 +636,16 @@ const OnlineMeeting: React.FC<IOnlineClassProps> = ({ categoryFilter, sessionTyp
                     <FaRegCalendarAlt className="text-2xl text-gray-500 dark:text-gray-400" />
                   </div>
                   <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                    no sessions yet
+                    No sessions yet
                   </h3>
                   <p className="text-gray-500 dark:text-gray-400 mb-6">
-                    create your first session to get started ✨
+                    Create your first session to get started
                   </p>
                   <button
                     onClick={() => openModal(selectedSessionType || sessionTypeFilter || '')}
-                    className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl font-semibold hover:scale-105 transition-all duration-300"
+                    className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-600 text-white rounded-xl font-semibold transition-all duration-200"
                   >
-                    create session
+                    Create Session
                   </button>
                 </div>
               )}
