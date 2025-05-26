@@ -837,6 +837,27 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
       icon: <LayoutDashboard className="w-5 h-5" />
     },
     {
+      name: "Courses",
+      icon: <BookOpen className="w-5 h-5" />,
+      subItems: [
+        {
+          name: "All Courses",
+          path: "/courses",
+          icon: <LayoutGrid className="w-5 h-5" />
+        },
+        {
+          name: "My Courses",
+          path: `/dashboards/${userRole}/my-courses`,
+          icon: <BookOpenCheck className="w-5 h-5" />
+        },
+        {
+          name: "Live Classes",
+          path: `/dashboards/${userRole}/live-classes`,
+          icon: <Video className="w-5 h-5" />
+        }
+      ]
+    },
+    {
       name: "Course Management",
       path: formatRoute("admin", "course"),
       icon: <BookOpen className="w-5 h-5" />,
@@ -1184,8 +1205,6 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
 
   // Get menu items based on user role
   const getMenuItemsByRole = (role: string): MenuItem[] => {
-    role = role.toLowerCase();
-    
     if (role.includes('admin')) {
       return adminMenuItems;
     } else if (role.includes('instructor')) {
@@ -1193,9 +1212,20 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
     } else if (role.includes('student')) {
       return studentMenuItems;
     }
-    
-    // Default to student if role not recognized
-    return studentMenuItems;
+
+    // Default fallback for unknown roles
+    return [
+      {
+        name: "Dashboard",
+        path: `/dashboards/${role}`,
+        icon: <LayoutDashboard className="w-5 h-5" />
+      },
+      {
+        name: "Profile",
+        path: formatRoute(role, "profile"),
+        icon: <UserCircle className="w-5 h-5" />
+      }
+    ];
   };
 
   // Get the action items based on user role
