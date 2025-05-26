@@ -81,7 +81,7 @@
     "dompurify": "^3.2.1",
     "express-rate-limit": "^7.5.0",
     "express-validator": "^7.2.1",
-    "framer-motion": "^12.4.10",
+    "framer-motion": "^12.12.2",
     "gsap": "^3.12.7",
     "indexof": "^0.0.1",
     "isomorphic-dompurify": "^2.22.0",
