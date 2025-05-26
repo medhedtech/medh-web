@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
-import PropTypes from "prop-types";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -36,6 +35,119 @@ import { apiBaseUrl, apiUtils, ICourseFilters, ICourseSearchParams } from '@/api
 import { getAllCoursesWithLimits } from '@/apis/course/course';
 import axios from 'axios';
 
+// TypeScript Interfaces
+interface ICourse {
+  _id: string;
+  course_title: string;
+  course_image?: string;
+  course_category: string;
+  course_fee: number;
+  course_grade?: string;
+  class_type?: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface IPagination {
+  totalPages: number;
+  total: number;
+  currentPage: number;
+  limit: number;
+}
+
+interface IApiResponse {
+  success: boolean;
+  data: {
+    courses: ICourse[];
+    pagination: IPagination;
+    facets?: {
+      categories?: string[];
+      categoryTypes?: string[];
+      classTypes?: string[];
+      priceRanges?: Array<{ min: number; max: number; count: number }>;
+    };
+  };
+}
+
+interface IActiveFilter {
+  type: string;
+  label: string;
+  value: string;
+}
+
+interface ITabStyles {
+  bgColor: string;
+  borderColor: string;
+  textColor: string;
+  buttonColor: string;
+}
+
+interface ICoursesFilterProps {
+  CustomButton?: React.ComponentType<any>;
+  CustomText?: React.ComponentType<any> | string;
+  scrollToTop?: boolean;
+  fixedCategory?: string;
+  hideCategoryFilter?: boolean;
+  availableCategories?: string[];
+  categoryTitle?: string;
+  description?: string;
+  classType?: string;
+  filterState?: {
+    category?: string;
+    grade?: string;
+    search?: string;
+    sort?: string;
+  };
+  activeTab?: string;
+  onFilterToggle?: () => void;
+  hideSearch?: boolean;
+  hideSortOptions?: boolean;
+  hideFilterBar?: boolean;
+  hideViewModeSwitch?: boolean;
+  hideHeader?: boolean;
+  hideGradeFilter?: boolean;
+  forceViewMode?: string | null;
+  gridColumns?: number;
+  itemsPerPage?: number;
+  simplePagination?: boolean;
+  emptyStateContent?: React.ReactNode;
+  customGridClassName?: string;
+  customGridStyle?: React.CSSProperties;
+  renderCourse?: (course: ICourse) => ICourse;
+  hideCategories?: boolean;
+}
+
+interface IErrorBoundaryProps {
+  children: React.ReactNode;
+}
+
+interface ISimplePaginationWrapperProps {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  className?: string;
+  simplified?: boolean;
+}
+
+interface ISortDropdownProps {
+  sortOrder: string;
+  handleSortChange: (value: string) => void;
+  showSortDropdown: boolean;
+  setShowSortDropdown: (show: boolean) => void;
+}
+
+interface ISearchInputProps {
+  searchTerm: string;
+  handleSearch: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  setSearchTerm: (term: string) => void;
+}
+
+interface IWindowSize {
+  width: number;
+  height: number;
+}
+
 // Dynamically import components that might cause hydration issues
 const DynamicCourseCard = dynamic(() => import("./CourseCard"), {
   ssr: true,
@@ -43,7 +155,7 @@ const DynamicCourseCard = dynamic(() => import("./CourseCard"), {
 });
 
 // Fallback categories if none provided
-const fallbackCategories = {
+const fallbackCategories: Record<string, string[]> = {
   live: [
     "AI and Data Science",
     "Personality Development",
@@ -92,11 +204,11 @@ const fallbackCategories = {
 /**
  * Simple ErrorBoundary
  */
-const ErrorBoundary = ({ children }) => {
-  const [hasError, setHasError] = useState(false);
+const ErrorBoundary: React.FC<IErrorBoundaryProps> = ({ children }) => {
+  const [hasError, setHasError] = useState<boolean>(false);
 
   useEffect(() => {
-    const handleError = (event) => {
+    const handleError = (event: ErrorEvent) => {
       console.error("Caught error:", event);
       setHasError(true);
     };
@@ -123,11 +235,17 @@ const ErrorBoundary = ({ children }) => {
     );
   }
 
-  return children;
+  return <>{children}</>;
 };
 
 // Modern pagination component
-const SimplePaginationWrapper = ({ currentPage, totalPages, onPageChange, className = "", simplified = false }) => {
+const SimplePaginationWrapper: React.FC<ISimplePaginationWrapperProps> = ({ 
+  currentPage, 
+  totalPages, 
+  onPageChange, 
+  className = "", 
+  simplified = false 
+}) => {
   if (simplified) {
     return (
       <div className={`flex items-center justify-center space-x-4 ${className}`}>
@@ -163,8 +281,8 @@ const SimplePaginationWrapper = ({ currentPage, totalPages, onPageChange, classN
   }
 
   // Original pagination implementation with modern styling
-  const renderPageNumbers = () => {
-    const pages = [];
+  const renderPageNumbers = (): React.ReactNode[] => {
+    const pages: React.ReactNode[] = [];
     let startPage = Math.max(1, currentPage - 2);
     let endPage = Math.min(totalPages, startPage + 4);
 
@@ -227,12 +345,12 @@ const SimplePaginationWrapper = ({ currentPage, totalPages, onPageChange, classN
 const MemoizedCourseCard = React.memo(DynamicCourseCard);
 
 // Modern sort dropdown component
-const SortDropdown = React.memo(({ sortOrder, handleSortChange, showSortDropdown, setShowSortDropdown }) => {
-  const sortDropdownRef = useRef(null);
+const SortDropdown = React.memo<ISortDropdownProps>(({ sortOrder, handleSortChange, showSortDropdown, setShowSortDropdown }) => {
+  const sortDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target)) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target as Node)) {
         setShowSortDropdown(false);
       }
     };
@@ -241,8 +359,8 @@ const SortDropdown = React.memo(({ sortOrder, handleSortChange, showSortDropdown
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [setShowSortDropdown]);
 
-  const getSortLabel = (value) => {
-    const labels = {
+  const getSortLabel = (value: string): string => {
+    const labels: Record<string, string> = {
       "newest-first": "Newest",
       "oldest-first": "Oldest",
       "A-Z": "A-Z",
@@ -302,7 +420,7 @@ const SortDropdown = React.memo(({ sortOrder, handleSortChange, showSortDropdown
 });
 
 // Modern search input component
-const SearchInput = React.memo(({ searchTerm, handleSearch, setSearchTerm }) => (
+const SearchInput = React.memo<ISearchInputProps>(({ searchTerm, handleSearch, setSearchTerm }) => (
   <div className="flex-grow relative">
     <div className="relative">
       <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" size={20} />
@@ -329,8 +447,8 @@ const SearchInput = React.memo(({ searchTerm, handleSearch, setSearchTerm }) => 
 ));
 
 // Add a custom hook for window resize handling
-const useWindowSize = () => {
-  const [windowSize, setWindowSize] = useState({
+const useWindowSize = (): IWindowSize => {
+  const [windowSize, setWindowSize] = useState<IWindowSize>({
     width: typeof window !== 'undefined' ? window.innerWidth : 0,
     height: typeof window !== 'undefined' ? window.innerHeight : 0,
   });
@@ -338,7 +456,7 @@ const useWindowSize = () => {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const handleResize = () => {
+    const handleResize = (): void => {
       setWindowSize({
         width: window.innerWidth,
         height: window.innerHeight,
@@ -355,8 +473,8 @@ const useWindowSize = () => {
 };
 
 // Add debounce utility
-const useDebounce = (value, delay) => {
-  const [debouncedValue, setDebouncedValue] = useState(value);
+const useDebounce = (value: string, delay: number): string => {
+  const [debouncedValue, setDebouncedValue] = useState<string>(value);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -372,7 +490,7 @@ const useDebounce = (value, delay) => {
 };
 
 // Add currency detection function
-const getLocationCurrency = async () => {
+const getLocationCurrency = async (): Promise<string> => {
   try {
     const cachedCurrency = localStorage.getItem('userCurrency');
     const cachedTimestamp = localStorage.getItem('userCurrencyTimestamp');
@@ -405,7 +523,7 @@ const getLocationCurrency = async () => {
   }
 };
 
-const CoursesFilter = ({
+const CoursesFilter: React.FC<ICoursesFilterProps> = ({
   CustomButton,
   CustomText,
   scrollToTop,
@@ -431,7 +549,7 @@ const CoursesFilter = ({
   emptyStateContent = null,
   customGridClassName = "",
   customGridStyle = {},
-  renderCourse = (course) => course,
+  renderCourse = (course: ICourse) => course,
   hideCategories = false,
 }) => {
   const router = useRouter();
@@ -441,31 +559,31 @@ const CoursesFilter = ({
   const { width } = useWindowSize();
   const isMobile = width < 768;
   const isTablet = width >= 768 && width < 1024;
-  const [responsiveGridColumns, setResponsiveGridColumns] = useState(gridColumns);
+  const [responsiveGridColumns, setResponsiveGridColumns] = useState<number>(gridColumns);
 
-  const [selectedCategory, setSelectedCategory] = useState([]);
-  const [selectedGrade, setSelectedGrade] = useState("");
-  const [sortOrder, setSortOrder] = useState("newest-first");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [viewMode, setViewMode] = useState(forceViewMode || "grid");
+  const [selectedCategory, setSelectedCategory] = useState<string[]>([]);
+  const [selectedGrade, setSelectedGrade] = useState<string>("");
+  const [sortOrder, setSortOrder] = useState<string>("newest-first");
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [viewMode, setViewMode] = useState<string>(forceViewMode || "grid");
   
-  const [allCourses, setAllCourses] = useState([]);
-  const [filteredCourses, setFilteredCourses] = useState([]);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalItems, setTotalItems] = useState(0);
+  const [allCourses, setAllCourses] = useState<ICourse[]>([]);
+  const [filteredCourses, setFilteredCourses] = useState<ICourse[]>([]);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const [totalItems, setTotalItems] = useState<number>(0);
 
-  const [showingRelated, setShowingRelated] = useState(false);
-  const [activeFilters, setActiveFilters] = useState([]);
-  const [showFilters, setShowFilters] = useState(false);
-  const [queryError, setQueryError] = useState(null);
-  const [showSortDropdown, setShowSortDropdown] = useState(false);
-  const [userCurrency, setUserCurrency] = useState("USD");
-  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
+  const [showingRelated, setShowingRelated] = useState<boolean>(false);
+  const [activeFilters, setActiveFilters] = useState<IActiveFilter[]>([]);
+  const [showFilters, setShowFilters] = useState<boolean>(false);
+  const [queryError, setQueryError] = useState<string | null>(null);
+  const [showSortDropdown, setShowSortDropdown] = useState<boolean>(false);
+  const [userCurrency, setUserCurrency] = useState<string>("USD");
+  const [isDetectingLocation, setIsDetectingLocation] = useState<boolean>(false);
 
-  const sortDropdownRef = useRef(null);
-  const didInitRef = useRef(false);
-  const debounceTimer = useRef(null);
+  const sortDropdownRef = useRef<HTMLDivElement>(null);
+  const didInitRef = useRef<boolean>(false);
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
@@ -473,7 +591,7 @@ const CoursesFilter = ({
   useEffect(() => {
     if (typeof window === 'undefined') return;
     
-    const updateGridColumns = () => {
+    const updateGridColumns = (): void => {
       if (isMobile) {
         setResponsiveGridColumns(1);
       } else if (isTablet) {
@@ -502,7 +620,7 @@ const CoursesFilter = ({
 
   // Initialize currency on component mount
   useEffect(() => {
-    const initializeCurrency = async () => {
+    const initializeCurrency = async (): Promise<void> => {
       setIsDetectingLocation(true);
       const currency = await getLocationCurrency();
       setUserCurrency(currency);
@@ -640,14 +758,14 @@ const CoursesFilter = ({
   /**
    * 3) Fetch courses from API whenever relevant states change (debounced).
    */
-  const fetchCourses = useCallback(async () => {
+  const fetchCourses = useCallback(async (): Promise<void> => {
     if (typeof window === 'undefined') return;
     
     setQueryError(null);
 
     try {
       // Build search parameters
-      const searchParams = {
+      const searchParams: any = {
         page: currentPage,
         limit: itemsPerPage || 12,
         status: "Published",
@@ -716,7 +834,7 @@ const CoursesFilter = ({
         url: apiUrl,
         skipCache: true,
         requireAuth: false,
-        onSuccess: (response) => {
+        onSuccess: (response: IApiResponse) => {
           if (!response || !response.success || !response.data) {
             throw new Error('Invalid API response');
           }
@@ -760,7 +878,7 @@ const CoursesFilter = ({
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }
         },
-        onFail: (err) => {
+        onFail: (err: any) => {
           console.error("API Error:", err);
           setQueryError(err?.message || "Failed to fetch courses. Please try again.");
           setAllCourses([]);
@@ -769,7 +887,7 @@ const CoursesFilter = ({
           setTotalItems(0);
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Fetch error:", error);
       setQueryError(error?.message || "An unexpected error occurred. Please try again later.");
       setAllCourses([]);
@@ -821,7 +939,7 @@ const CoursesFilter = ({
    * Handlers for filters
    */
   const handleCategoryChange = useCallback(
-    (cats) => {
+    (cats: string[]) => {
       if (fixedCategory) return;
       const newCats = cats.filter(Boolean);
       setSelectedCategory(newCats);
@@ -830,23 +948,23 @@ const CoursesFilter = ({
     [fixedCategory]
   );
 
-  const handleGradeChange = useCallback((grade) => {
+  const handleGradeChange = useCallback((grade: string) => {
     setSelectedGrade(grade);
     setCurrentPage(1);
   }, []);
 
-  const handleSearch = useCallback((e) => {
+  const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
     setCurrentPage(1);
   }, []);
 
-  const handleSortChange = useCallback((val) => {
+  const handleSortChange = useCallback((val: string) => {
     setSortOrder(val);
     setShowSortDropdown(false);
     setCurrentPage(1);
   }, []);
 
-  const handlePageChange = useCallback((page) => {
+  const handlePageChange = useCallback((page: number) => {
     setCurrentPage(page);
     if (scrollToTop) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -873,7 +991,7 @@ const CoursesFilter = ({
    * Remove individual filter
    */
   const removeFilter = useCallback(
-    (type, val) => {
+    (type: string, val: string) => {
       switch (type) {
         case "category":
           if (fixedCategory === val) return;
@@ -898,7 +1016,7 @@ const CoursesFilter = ({
 
   // Show related courses
   const showRelatedCourses = useCallback(
-    (course) => {
+    (course: ICourse) => {
       if (!course) return;
       const related = allCourses.filter(
         (c) =>
@@ -923,7 +1041,7 @@ const CoursesFilter = ({
    * Compute active filters
    */
   useEffect(() => {
-    const newFilters = [];
+    const newFilters: IActiveFilter[] = [];
     // search
     if (searchTerm) {
       newFilters.push({
@@ -952,7 +1070,7 @@ const CoursesFilter = ({
     }
     // sort
     if (sortOrder && sortOrder !== "newest-first") {
-      const map = {
+      const map: Record<string, string> = {
         "oldest-first": "Oldest First",
         "A-Z": "Name (A-Z)",
         "Z-A": "Name (Z-A)",
@@ -989,7 +1107,7 @@ const CoursesFilter = ({
         </button>
       </div>
     );
-  }, []);
+  }, [handleClearFilters]);
 
   /**
    * Count text
@@ -1002,8 +1120,8 @@ const CoursesFilter = ({
   })();
 
   // Determine UI theme colors based on activeTab
-  const getTabStyles = () => {
-    const styles = {
+  const getTabStyles = (): ITabStyles => {
+    const styles: Record<string, ITabStyles> = {
       all: {
         bgColor: "bg-primary-50/80 dark:bg-primary-900/10",
         borderColor: "border-primary-100 dark:border-primary-900/20",
@@ -1031,7 +1149,7 @@ const CoursesFilter = ({
   const tabStyles = getTabStyles();
 
   // Determine grid column classes
-  const getGridColumnClasses = () => {
+  const getGridColumnClasses = (): string => {
     if (customGridClassName) {
       return customGridClassName;
     }
@@ -1061,7 +1179,7 @@ const CoursesFilter = ({
   };
 
   // Create an SSR-safe grid style
-  const safeGridStyle = {
+  const safeGridStyle: React.CSSProperties = {
     ...customGridStyle,
     // Only set gridTemplateColumns if actually provided
     ...(Object.keys(customGridStyle).length > 0 ? {} : {
@@ -1119,7 +1237,7 @@ const CoursesFilter = ({
   }, [loading, filteredCourses, viewMode, isMobile, renderCourse, classType, itemsPerPage, emptyStateContent, renderNoResults]);
 
   // Modern sidebar renderer
-  const renderSidebar = () => {
+  const renderSidebar = (): React.ReactNode => {
     if (hideCategoryFilter) return null;
     
     return (
@@ -1208,7 +1326,7 @@ const CoursesFilter = ({
   };
 
   // Modern main content renderer
-  const renderMainContent = () => {
+  const renderMainContent = (): React.ReactNode => {
     return (
       <div className={!hideCategoryFilter ? "lg:w-3/4" : "w-full"}>
         {/* Results count */}
@@ -1283,7 +1401,7 @@ const CoursesFilter = ({
         {!hideHeader && (
           <div className="text-center mb-12">
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-              {CustomText || "Explore Courses"}
+              {typeof CustomText === 'string' ? CustomText : "Explore Courses"}
             </h1>
             <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
               {description || "Discover courses to enhance your skills and advance your career."}
@@ -1383,34 +1501,4 @@ SortDropdown.displayName = 'SortDropdown';
 SearchInput.displayName = 'SearchInput';
 MemoizedCourseCard.displayName = 'MemoizedCourseCard';
 
-CoursesFilter.propTypes = {
-  CustomButton: PropTypes.func,
-  CustomText: PropTypes.func,
-  scrollToTop: PropTypes.bool,
-  fixedCategory: PropTypes.string,
-  hideCategoryFilter: PropTypes.bool,
-  availableCategories: PropTypes.array,
-  categoryTitle: PropTypes.string,
-  description: PropTypes.string,
-  classType: PropTypes.string,
-  filterState: PropTypes.object,
-  activeTab: PropTypes.string,
-  onFilterToggle: PropTypes.func,
-  hideSearch: PropTypes.bool,
-  hideSortOptions: PropTypes.bool,
-  hideFilterBar: PropTypes.bool,
-  hideViewModeSwitch: PropTypes.bool,
-  hideHeader: PropTypes.bool,
-  hideGradeFilter: PropTypes.bool,
-  forceViewMode: PropTypes.string,
-  gridColumns: PropTypes.number,
-  itemsPerPage: PropTypes.number,
-  simplePagination: PropTypes.bool,
-  emptyStateContent: PropTypes.node,
-  customGridClassName: PropTypes.string,
-  customGridStyle: PropTypes.object,
-  renderCourse: PropTypes.func,
-  hideCategories: PropTypes.bool,
-};
-
-export default CoursesFilter;
+export default CoursesFilter; 
