@@ -9,6 +9,10 @@ const OnlineClass = dynamic(
   { ssr: false }
 );
 
-export default function OnlineClassPage() {
-  return <OnlineClass />;
+export default function AdminOnlineClassPage() {
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <OnlineClass />
+    </div>
+  );
 } 
