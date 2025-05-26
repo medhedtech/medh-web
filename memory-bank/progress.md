@@ -61,6 +61,27 @@
      - `src/app/dashboards/admin/courses/create/blended/page.tsx`
    - **Impact**: Course creation forms now work properly with full lesson management functionality
 
+3. **Infinite Re-render Issue in Course Details Page (FIXED AGAIN - December 2024)**
+   - **Problem**: Course details page was still experiencing infinite loops despite previous fixes
+   - **Root Cause**: 
+     - `getLocationCurrency` function was recreated on every render due to `searchParams` dependency
+     - `fetchCourse` function depended on `getLocationCurrency`, causing infinite loop
+     - `useEffect` in EnrollmentDetails was including `getActivePrice` in dependencies, causing re-renders
+     - Another `useEffect` was setting `enrollmentType` while having `enrollmentType` in dependencies
+   - **Solution**: 
+     - **LATEST FIX**: Completely restructured currency detection logic:
+       - Moved currency detection to a one-time `useEffect` that runs only on mount (`[]` dependency)
+       - Separated currency initialization from course fetching
+       - Course fetching now only depends on `[courseId, userCurrency, getQuery]`
+       - Removed `getLocationCurrency` callback entirely to eliminate dependency chain
+     - Removed unstable dependencies from useCallback and useEffect hooks
+     - Fixed circular dependencies in EnrollmentDetails component
+     - Stabilized state updates to prevent infinite loops
+   - **Files Updated**:
+     - `src/app/course-details/[courseId]/page.tsx` (MAJOR RESTRUCTURE)
+     - `src/components/sections/course-detailed/EnrollmentDetails.tsx`
+   - **Impact**: Course details page now loads without infinite re-renders, improving performance and user experience
+
 ## What's Left to Build
 1. Enhanced Features
    - AI-powered course recommendations

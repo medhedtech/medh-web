@@ -8,9 +8,9 @@ import {
   HelpCircle, FileBadge, BookOpen
 } from 'lucide-react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { toast, Toaster } from 'react-hot-toast';
-import { useCurrency } from '@/contexts/CurrencyContext';
+import axios from 'axios';
 
 // Core components
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
@@ -218,7 +218,136 @@ function CategoryEnrollmentPage({ params }) {
   const unwrappedParams = React.use(params);
   const { categoryname } = unwrappedParams;
   const router = useRouter();
-  const { currency, convertPrice, formatPrice } = useCurrency();
+  const searchParams = useSearchParams();
+  
+  // Local currency handling - improved to avoid USD flash
+  const [userCurrency, setUserCurrency] = useState(() => {
+    // Initialize with cached currency or null to avoid USD flash
+    if (typeof window !== 'undefined') {
+      const cached = localStorage.getItem('userCurrency');
+      const timestamp = localStorage.getItem('userCurrencyTimestamp');
+      if (cached && timestamp && Date.now() - parseInt(timestamp) < 24 * 60 * 60 * 1000) {
+        return cached;
+      }
+    }
+    return null; // Start with null to show loading state
+  });
+  const [isDetectingLocation, setIsDetectingLocation] = useState(true);
+  
+  // Initialize currency detection on mount
+  useEffect(() => {
+    const initializeCurrency = async () => {
+      // Skip if currency is already set from cache
+      if (userCurrency) {
+        setIsDetectingLocation(false);
+        return;
+      }
+      
+      // Check if currency is specified in URL
+      const currencyParam = searchParams.get('currency');
+      if (currencyParam) {
+        setUserCurrency(currencyParam);
+        setIsDetectingLocation(false);
+        return;
+      }
+      
+      // Detect currency from IP
+      try {
+        const response = await axios.get('https://ipapi.co/json/', { timeout: 3000 });
+        
+        if (response.data && response.data.currency) {
+          const detectedCurrency = response.data.currency;
+          localStorage.setItem('userCurrency', detectedCurrency);
+          localStorage.setItem('userCurrencyTimestamp', Date.now().toString());
+          setUserCurrency(detectedCurrency);
+        } else {
+          // Fallback based on timezone if available
+          const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+          let fallbackCurrency = "USD";
+          
+          if (timeZone.includes('Asia/Kolkata') || timeZone.includes('Asia/Calcutta')) {
+            fallbackCurrency = "INR";
+          } else if (timeZone.includes('Europe')) {
+            fallbackCurrency = "EUR";
+          } else if (timeZone.includes('Asia/Tokyo')) {
+            fallbackCurrency = "JPY";
+          }
+          
+          setUserCurrency(fallbackCurrency);
+        }
+      } catch (error) {
+        console.error("Error detecting location:", error);
+        // Smart fallback based on browser language
+        const language = navigator.language || navigator.userLanguage || "en-US";
+        let fallbackCurrency = "USD";
+        
+        if (language.includes('hi') || language.includes('IN')) {
+          fallbackCurrency = "INR";
+        } else if (language.startsWith('ja')) {
+          fallbackCurrency = "JPY";
+        } else if (language.startsWith('zh')) {
+          fallbackCurrency = "CNY";
+        }
+        
+        setUserCurrency(fallbackCurrency);
+      } finally {
+        setIsDetectingLocation(false);
+      }
+    };
+    
+    initializeCurrency();
+  }, [searchParams, userCurrency]);
+  
+  // Currency conversion utility functions
+  const CURRENCY_RATES = {
+    USD: 1,
+    EUR: 0.85,
+    GBP: 0.73,
+    INR: 83.12,
+    JPY: 110.0,
+    CAD: 1.25,
+    AUD: 1.35,
+    SGD: 1.35,
+    CNY: 6.45,
+    KRW: 1180.0
+  };
+  
+  const convertPrice = useCallback((priceInUSD) => {
+    if (typeof priceInUSD !== 'number' || isNaN(priceInUSD) || !userCurrency) {
+      return 0;
+    }
+    
+    const rate = CURRENCY_RATES[userCurrency] || 1;
+    return Math.round(priceInUSD * rate * 100) / 100;
+  }, [userCurrency]);
+  
+  const formatPrice = useCallback((price) => {
+    if (typeof price !== 'number' || isNaN(price) || !userCurrency) {
+      return 'Loading...';
+    }
+    
+    if (price === 0) {
+      return 'Free';
+    }
+    
+    const currencySymbols = {
+      USD: '$',
+      EUR: '€',
+      GBP: '£',
+      INR: '₹',
+      JPY: '¥',
+      CAD: 'C$',
+      AUD: 'A$',
+      SGD: 'S$',
+      CNY: '¥',
+      KRW: '₩'
+    };
+    
+    const symbol = currencySymbols[userCurrency] || '$';
+    const formattedNumber = Math.round(price).toLocaleString();
+    
+    return `${symbol}${formattedNumber}`;
+  }, [userCurrency]);
   
   // Improved: Better course ID detection with more robust parsing
   const isCourseView = categoryname?.startsWith('course');
@@ -441,7 +570,7 @@ function CategoryEnrollmentPage({ params }) {
 
   // Fetch courses useEffect
   useEffect(() => {
-    if (!normalizedCategory) return;
+    if (!normalizedCategory || !userCurrency) return;
 
     const fetchCourses = async () => {
       try {
@@ -477,7 +606,7 @@ function CategoryEnrollmentPage({ params }) {
           sort_by: "createdAt",
           sort_order: "asc",
           category_type: categoryInfo?.categoryType || undefined,
-          currency: currency.code
+          currency: userCurrency
         });
         
         console.log("API Endpoint:", apiEndpoint);
@@ -494,8 +623,8 @@ function CategoryEnrollmentPage({ params }) {
             // Process course data
             const processedCourseData = courseData.map(course => {
               const coursePrice = course.prices && course.prices.length > 0 
-                ? course.prices.find(p => p.currency === currency.code)?.individual || 
-                  convertPrice(course.prices.find(p => p.currency === "INR")?.individual || 0)
+                ? course.prices.find(p => p.currency === userCurrency)?.individual || 
+                  convertPrice(course.prices.find(p => p.currency === "USD")?.individual || course.course_fee || 0)
                 : convertPrice(course.course_fee || 0);
                 
               return {
@@ -513,7 +642,7 @@ function CategoryEnrollmentPage({ params }) {
                 course_fee: coursePrice,
                 prices: course.prices || [],
                 original_prices: course.prices,  // Store original prices data
-                currency_code: currency.code,    // Store current currency code
+                currency_code: userCurrency,    // Store current currency code
                 enrolled_students: course.meta?.enrollments || 0,
                 views: course.meta?.views || 0,
                 is_Certification: course.is_Certification === "Yes",
@@ -585,7 +714,7 @@ function CategoryEnrollmentPage({ params }) {
     getQuery,
     extractDurationOptions,
     extractGradeOptions,
-    currency,
+    userCurrency,
     convertPrice
   ]);
 
@@ -676,7 +805,7 @@ function CategoryEnrollmentPage({ params }) {
         setCourseLoading(false);
       }
     });
-  }, [getQuery, selectedCourse, categoryInfo, currency, convertPrice]);
+  }, [getQuery, selectedCourse, categoryInfo, userCurrency, convertPrice]);
 
   // Handle duration selection
   const handleDurationChange = (durationId) => {
@@ -909,8 +1038,8 @@ function CategoryEnrollmentPage({ params }) {
 
   // New: Add specific course fetch logic
   useEffect(() => {
-    // Skip if not in course view or we don't have a courseId
-    if (!isCourseView || !courseId) return;
+    // Skip if not in course view or we don't have a courseId or currency
+    if (!isCourseView || !courseId || !userCurrency) return;
     
     setLoading(true);
     console.log("Fetching specific course:", courseId);
@@ -984,11 +1113,8 @@ function CategoryEnrollmentPage({ params }) {
     }
   }, [normalizedCategory, router, isCourseView]);
 
-  // Display formatted price in the UI
-  const displayPrice = (price) => {
-    if (!price || price <= 0) return "Free";
-    return formatPrice(price);
-  };
+  // Display formatted price in the UI (now uses the local formatPrice function)
+  // The formatPrice function is defined above with currency handling
 
   return (
     <PageWrapper>
@@ -1026,6 +1152,17 @@ function CategoryEnrollmentPage({ params }) {
             </div>
             
             <div className="flex items-center space-x-3">
+              {/* Currency Indicator */}
+              <div className="hidden sm:flex items-center px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-xs font-medium text-gray-600 dark:text-gray-300">
+                {isDetectingLocation || !userCurrency ? (
+                  <div className="flex items-center">
+                    <div className="animate-spin h-3 w-3 border border-gray-400 border-t-transparent rounded-full mr-1"></div>
+                    <span>Detecting...</span>
+                  </div>
+                ) : (
+                  <span>{userCurrency}</span>
+                )}
+              </div>
               <ThemeController />
               <button
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
@@ -1040,7 +1177,7 @@ function CategoryEnrollmentPage({ params }) {
 
         {/* Content with Header Offset - Full width */}
         <main className="flex-grow pt-20 flex justify-center items-center w-full">
-          {loading ? (
+          {loading || isDetectingLocation || !userCurrency ? (
             <div className="flex items-center justify-center min-h-[60vh] w-full">
               <div className="category-loader">
                 <div></div>
@@ -1159,8 +1296,8 @@ function CategoryEnrollmentPage({ params }) {
                               colorClass: 'text-emerald-700 dark:text-emerald-300',
                               bgClass: 'bg-emerald-50 dark:bg-emerald-900/30'
                             } : categoryInfo}
-                            currencyCode={currency.code}
-                            formatPriceFunc={displayPrice}
+                            currencyCode={userCurrency}
+                            formatPriceFunc={formatPrice}
                           />
                         </motion.div>
                       )}
