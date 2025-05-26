@@ -77,9 +77,9 @@ const LearningResources: React.FC = () => {
           </div>
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Learning Resources</h2>
         </div>
-        <Link href="/dashboards/student/resources" className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 flex items-center">
+          <Link href="/dashboards/student/resources" className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 flex items-center">
           View All <ArrowRight className="w-4 h-4 ml-1" />
-        </Link>
+          </Link>
       </div>
 
       <div className="grid grid-cols-1 gap-3">
@@ -87,15 +87,15 @@ const LearningResources: React.FC = () => {
           <Link key={index} href={resource.link}>
             <div className="flex items-center p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors cursor-pointer group">
               <div className={`p-2 rounded-md ${resource.color} mr-3`}>
-                {resource.icon}
-              </div>
+                  {resource.icon}
+                </div>
               <div className="flex-1">
                 <h3 className="font-medium text-gray-900 dark:text-white">{resource.title}</h3>
                 <p className={`text-xs ${resource.textColor}`}>{resource.description}</p>
-              </div>
+                  </div>
               <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-primary-500 transition-all transform group-hover:translate-x-1" />
-            </div>
-          </Link>
+              </div>
+            </Link>
         ))}
       </div>
     </div>
@@ -149,42 +149,42 @@ const StudyGoals: React.FC = () => {
           </div>
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Study Goals</h2>
         </div>
-        <Link href="/dashboards/student/goals" className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 flex items-center">
+          <Link href="/dashboards/student/goals" className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 flex items-center">
           Manage <ArrowRight className="w-4 h-4 ml-1" />
-        </Link>
+          </Link>
       </div>
 
       <div className="space-y-3">
-        {goals.map((goal) => (
+          {goals.map((goal) => (
           <div key={goal.id} className="bg-gray-50 dark:bg-gray-800/60 rounded-lg p-3">
-            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-2">
               <div className="flex items-center">
                 <div className={`w-2 h-2 rounded-full ${goal.color} mr-2`}></div>
-                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{goal.category}</span>
-              </div>
-              <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
-                <Clock className="w-3 h-3 mr-1" />
-                {goal.deadline}
-              </div>
-            </div>
-            
-            <h3 className="font-medium text-gray-900 dark:text-white mb-2">{goal.title}</h3>
-            
-            <div className="flex items-center">
-              <div className="flex-1">
-                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                  <div 
-                    className={`${goal.color} h-2 rounded-full`} 
-                    style={{ width: `${goal.progress}%` }}
-                  ></div>
+                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{goal.category}</span>
+                </div>
+                  <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                    <Clock className="w-3 h-3 mr-1" />
+                    {goal.deadline}
                 </div>
               </div>
-              <span className="ml-2 text-xs font-medium text-gray-700 dark:text-gray-300">
-                {goal.progress}%
-              </span>
-            </div>
-          </div>
-        ))}
+              
+            <h3 className="font-medium text-gray-900 dark:text-white mb-2">{goal.title}</h3>
+              
+            <div className="flex items-center">
+                <div className="flex-1">
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                  <div 
+                      className={`${goal.color} h-2 rounded-full`}
+                    style={{ width: `${goal.progress}%` }}
+                  ></div>
+                  </div>
+                </div>
+                <span className="ml-2 text-xs font-medium text-gray-700 dark:text-gray-300">
+                  {goal.progress}%
+                </span>
+              </div>
+                        </div>
+                      ))}
       </div>
       
       <div className="mt-3 flex justify-center">
@@ -207,25 +207,25 @@ const MemoizedLearningResources = memo(LearningResources);
 const MemoizedStudyGoals = memo(StudyGoals);
 
 // Animation variants (outside component to prevent recreation)
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        duration: 0.5,
-        staggerChildren: 0.1
-      }
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      duration: 0.5,
+      staggerChildren: 0.1
     }
-  };
+  }
+};
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5 }
-    }
-  };
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5 }
+  }
+};
 
 const StudentDashboardMain: React.FC = () => {
   const [greeting, setGreeting] = useState<string>("Good day");
@@ -454,17 +454,17 @@ const StudentDashboardMain: React.FC = () => {
                               <p className="text-white font-medium text-sm mb-1 line-clamp-1">{course.nextLesson}</p>
                               <div className="flex items-center text-white/70 text-xs">
                                 <PlayCircle className="h-3.5 w-3.5 mr-1 flex-shrink-0" /> Estimated: 25 mins
-                              </div>
+                                </div>
                             </div>
                             <div className="grid grid-cols-2 gap-2 text-center">
                               <div className="bg-white/10 rounded-lg p-2">
                                 <p className="text-white/70 text-xs mb-0.5">Completed</p>
                                 <p className="text-white text-sm font-medium">{Math.floor(course.progress/10)}/10</p>
-                              </div>
+                          </div>
                               <div className="bg-white/10 rounded-lg p-2">
                                 <p className="text-white/70 text-xs mb-0.5">Remaining</p>
                                 <p className="text-white text-sm font-medium">{10-Math.floor(course.progress/10)}/10</p>
-                              </div>
+                        </div>
                             </div>
                           </div>
                         </div>
@@ -533,7 +533,7 @@ const StudentDashboardMain: React.FC = () => {
               variants={itemVariants}
               className="col-span-1 bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 overflow-hidden"
             >
-              <MemoizedCounterStudent />
+                <MemoizedCounterStudent />
             </motion.section>
             
             {/* Progress Overview */}
@@ -562,10 +562,10 @@ const StudentDashboardMain: React.FC = () => {
             >
               <div className="p-5">
                 <MemoizedRecentAnnouncements 
-                  limit={5} 
-                  showViewAll={true}
-                  onViewAllClick={() => console.log("Navigate to all announcements page")}
-                />
+                limit={5} 
+                showViewAll={true}
+                onViewAllClick={() => console.log("Navigate to all announcements page")}
+              />
               </div>
             </motion.div>
             
@@ -678,7 +678,7 @@ const WeeklyActivityChart = memo(() => {
 
 // Quick action component - Memoized
 const QuickActionCard = memo(({ recentCourse }: { recentCourse: {id: string, title: string, progress: number} | null }) => (
-    <motion.div 
+      <motion.div
       variants={itemVariants}
       className="col-span-1 bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden"
     >
@@ -750,7 +750,7 @@ const QuickActionCard = memo(({ recentCourse }: { recentCourse: {id: string, tit
           </Link>
         </div>
       </div>
-    </motion.div>
+      </motion.div>
 ));
 
 export default StudentDashboardMain; 
