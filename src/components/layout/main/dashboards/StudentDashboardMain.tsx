@@ -582,7 +582,20 @@ const StudentDashboardMain: React.FC = () => {
               variants={itemVariants}
               className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden"
             >
-              <MemoizedFreeClasses />
+              <div className="p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/20">
+                      <GraduationCap className="w-5 h-5 text-green-600 dark:text-green-400" />
+                    </div>
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Free Courses</h2>
+                  </div>
+                  <Link href="/courses/free" className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 flex items-center">
+                    View All <ArrowRight className="w-4 h-4 ml-1" />
+                  </Link>
+                </div>
+                <MemoizedFreeClasses />
+              </div>
             </motion.div>
             
             {/* Learning Resources Section */}
