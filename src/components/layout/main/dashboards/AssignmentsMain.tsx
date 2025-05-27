@@ -449,10 +449,7 @@ const AssignmentsMain: React.FC = () => {
           </p>
         </motion.div>
 
-        {/* Assignment Stats */}
-        <motion.div variants={itemVariants} className="px-4 sm:px-6 lg:px-8">
-          <AssignmentStats />
-        </motion.div>
+
 
         {/* Search and Filter */}
         <motion.div variants={itemVariants} className="px-4 sm:px-6 lg:px-8">
