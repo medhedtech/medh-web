@@ -3,9 +3,10 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { FaPlus, FaTrash, FaSearch, FaFilter, FaEye, FaCheck } from "react-icons/fa";
+import { FaPlus, FaTrash, FaSearch, FaFilter, FaEye, FaCheck, FaUserTie } from "react-icons/fa";
 import { MdEdit } from "react-icons/md";
 import Image from "next/image";
+import InstructorAssignmentModal from "@/components/shared/modals/InstructorAssignmentModal";
 import Tooltip from "@/components/shared/others/Tooltip";
 import Preloader from "@/components/shared/others/Preloader";
 import useGetQuery from "@/hooks/getQuery.hook";
@@ -741,7 +742,7 @@ const ExportModal = () => {
 };
 
 // Add new ActionButtons component for better organization
-const ActionButtons = ({ course, onEdit, onView, onDelete, onAssignInstructor, onSchedulePublish }) => {
+const ActionButtons = ({ course, onEdit, onView, onDelete, onAssignInstructor, onSchedulePublish, onAssignInstructorToCourse }) => {
   const [showTooltip, setShowTooltip] = useState(null);
 
   const ActionButton = ({ onClick, icon, label, color = "gray", className = "" }) => (
@@ -772,8 +773,8 @@ const ActionButtons = ({ course, onEdit, onView, onDelete, onAssignInstructor, o
   return (
     <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
       <ActionButton
-        onClick={() => onAssignInstructor(course._id)}
-        icon={<Users className="w-4 h-4" />}
+        onClick={() => onAssignInstructorToCourse(course)}
+        icon={<FaUserTie className="w-4 h-4" />}
         label="Assign Instructor"
         color="purple"
       />
@@ -1062,6 +1063,10 @@ const ListOfCourse = () => {
   const [coursesData, setCoursesData] = useState([]); // Initialize as an empty array
   const [pageLoading, setPageLoading] = useState(false);
   const [bulkEditModal, setBulkEditModal] = useState(false);
+  
+  // Instructor Assignment Modal State
+  const [isInstructorAssignmentModalOpen, setIsInstructorAssignmentModalOpen] = useState(false);
+  const [selectedCourseForAssignment, setSelectedCourseForAssignment] = useState(null);
 
   // Add new status management functionality
   const statusTransitions = {
@@ -1204,6 +1209,18 @@ const ListOfCourse = () => {
   // Modified analytics fetch function with improved error handling
   const fetchCourseAnalytics = async () => {
     try {
+      // Calculate category distribution
+      const categoryCount = {};
+      courses.forEach(course => {
+        const category = course.course_category || 'Uncategorized';
+        categoryCount[category] = (categoryCount[category] || 0) + 1;
+      });
+
+      const topCategories = Object.entries(categoryCount)
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5);
+
       const analytics = {
         totalCourses: courses.length,
         published: courses.filter(course => course.status === 'Published').length,
@@ -1219,18 +1236,27 @@ const ListOfCourse = () => {
             return enrollmentDate.getMonth() === thisMonth && enrollmentDate.getFullYear() === thisYear;
           }).length;
           return total + enrollmentsThisMonth;
-        }, 0)
+        }, 0),
+        topCategories
       };
+      
       setCoursesData(analytics);
+      setAnalyticsData(analytics);
     } catch (error) {
       console.error('Error fetching course analytics:', error);
       toast.error('Failed to load course analytics');
     }
   };
 
-  // Call fetchCourseAnalytics when courses change
+  // Call fetchCourseAnalytics when courses change and extract categories
   useEffect(() => {
-    fetchCourseAnalytics();
+    if (courses.length > 0) {
+      fetchCourseAnalytics();
+      
+      // Extract unique categories from courses
+      const uniqueCategories = [...new Set(courses.map(course => course.course_category).filter(Boolean))];
+      setCategories(uniqueCategories);
+    }
   }, [courses]);
 
   // Initialize analytics data when component mounts
@@ -1375,7 +1401,44 @@ const ListOfCourse = () => {
         await getQuery({
           url: apiUrls.courses?.getAllCourses || '/courses/get',
           onSuccess: (res) => {
-            setCourses(res.data);
+            console.log("API Response:", res);
+            
+            // Handle the new API response format
+            let courseData = [];
+            if (res.success && Array.isArray(res.data)) {
+              courseData = res.data;
+              console.log(`Found ${res.count || courseData.length} courses in success response`);
+            } else if (Array.isArray(res.data)) {
+              courseData = res.data;
+              console.log(`Found ${courseData.length} courses in data array`);
+            } else if (Array.isArray(res)) {
+              courseData = res;
+              console.log(`Found ${courseData.length} courses in direct array`);
+            }
+            
+            console.log("Sample course data:", courseData[0]);
+            
+            // Transform the data to match the expected format
+            const transformedCourses = courseData.map((course, index) => ({
+              ...course,
+              no: index + 1,
+              // Map assigned_instructor to instructor for backward compatibility
+              instructor: course.assigned_instructor || "-",
+              instructor_id: course.assigned_instructor?._id || null,
+              // Ensure status has a default value
+              status: course.status || "Draft",
+              // Handle pricing - use the first active price or course_fee as fallback
+              price: course.prices && course.prices.length > 0 
+                ? course.prices.find(p => p.is_active)?.individual || course.course_fee 
+                : course.course_fee,
+              // Add missing fields with defaults
+              course_grade: course.course_grade || "Not Set",
+              no_of_Sessions: course.no_of_Sessions || course.sessions || "-",
+              enrollments: course.enrollments || 0
+            }));
+            
+            setCourses(transformedCourses);
+            console.log("Transformed courses:", transformedCourses);
           },
           onFail: (err) => {
             console.error("Failed to fetch courses:", err);
@@ -1389,7 +1452,7 @@ const ListOfCourse = () => {
     };
 
     fetchCourses();
-  }, []);
+  }, [updateStatus]);
 
   const fetchInstructors = async (retryCount = 0) => {
     const loadingToastId = toast.loading("Loading instructors...");
@@ -1939,9 +2002,10 @@ const ListOfCourse = () => {
       const matchesDuration = (!filters.duration.min || extractDurationWeeks(course.course_duration) >= parseInt(filters.duration.min)) &&
                              (!filters.duration.max || extractDurationWeeks(course.course_duration) <= parseInt(filters.duration.max));
       
-      // Price range filter
-      const matchesPriceRange = (!filters.priceRange.min || (course.price >= parseFloat(filters.priceRange.min))) &&
-                               (!filters.priceRange.max || (course.price <= parseFloat(filters.priceRange.max)));
+      // Price range filter - handle new pricing structure
+      const coursePrice = course.price || course.course_fee || 0;
+      const matchesPriceRange = (!filters.priceRange.min || (coursePrice >= parseFloat(filters.priceRange.min))) &&
+                               (!filters.priceRange.max || (coursePrice <= parseFloat(filters.priceRange.max)));
 
       return matchesSearch && 
              matchesCategory && 
@@ -2005,10 +2069,10 @@ const ListOfCourse = () => {
         comparison = a[sortField] - b[sortField];
       } else if (a[sortField] instanceof Date && b[sortField] instanceof Date) {
         comparison = a[sortField] - b[sortField];
-      } else if (sortField === 'price') {
-        // Handle price sorting
-        const priceA = parseFloat(a.price) || 0;
-        const priceB = parseFloat(b.price) || 0;
+      } else if (sortField === 'price' || sortField === 'course_fee') {
+        // Handle price sorting - use new pricing structure
+        const priceA = parseFloat(a.price || a.course_fee) || 0;
+        const priceB = parseFloat(b.price || b.course_fee) || 0;
         comparison = priceA - priceB;
       } else if (sortField === 'createdAt' || sortField === 'updatedAt') {
         // Handle date sorting
@@ -2025,10 +2089,16 @@ const ListOfCourse = () => {
     .map((course, index) => ({
       ...course,
       no: index + 1,
-      instructor: instructorNames[course.instructor_id] || "-",
+      instructor: course.assigned_instructor 
+        ? (typeof course.assigned_instructor === 'object' 
+           ? course.assigned_instructor.full_name || course.assigned_instructor.name
+           : course.assigned_instructor)
+        : instructorNames[course.instructor_id] || "-",
       status: course.status || "Draft",
       course_grade: course.course_grade || "Not Set",
-      course_duration: course.course_duration || "Not Set"
+      course_duration: course.course_duration || "Not Set",
+      // Ensure price is available for sorting and filtering
+      price: course.price || course.course_fee || 0
     })) : [];
 
   // Add a function to handle row clicks for selection
@@ -2044,6 +2114,23 @@ const ListOfCourse = () => {
     } else {
       setSelectedCourses(prev => [...prev, rowId]);
     }
+  };
+
+  // Instructor Assignment Functions
+  const handleAssignInstructorToCourse = (course) => {
+    setSelectedCourseForAssignment(course);
+    setIsInstructorAssignmentModalOpen(true);
+  };
+
+  const handleInstructorAssignmentModalClose = () => {
+    setIsInstructorAssignmentModalOpen(false);
+    setSelectedCourseForAssignment(null);
+  };
+
+  const handleInstructorAssignmentSuccess = () => {
+    // Refresh the course list after successful assignment
+    setUpdateStatus(Date.now());
+    fetchCourseAnalytics();
   };
 
   // Add function to handle batch actions
@@ -2064,7 +2151,15 @@ const ListOfCourse = () => {
         handleMultipleDelete();
         break;
       case "assign_instructor":
-        setAssignInstructorModal({ open: true, assignmentId: selectedCourses });
+        // For batch assignment, we'll use the existing modal but pass multiple courses
+        if (selectedCourses.length === 1) {
+          // Single course assignment
+          const course = courses.find(c => c._id === selectedCourses[0]);
+          handleAssignInstructorToCourse(course);
+        } else {
+          // Multiple course assignment - use the existing modal
+          setAssignInstructorModal({ open: true, assignmentId: selectedCourses });
+        }
         break;
       case "schedule_publish":
         // Filter courses that are in schedulable status
@@ -2203,9 +2298,26 @@ const ListOfCourse = () => {
     {
       accessor: 'course_title',
       render: (row) => (
-        <div className="flex flex-col">
-          <span className="font-medium text-gray-900 dark:text-white">{row.course_title}</span>
-          <span className="text-sm text-gray-500 dark:text-gray-400">{row.course_category || 'No Category'}</span>
+        <div className="flex items-center gap-3">
+          {row.course_image && (
+            <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 flex-shrink-0">
+              <img 
+                src={row.course_image} 
+                alt={row.course_title}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                }}
+              />
+            </div>
+          )}
+          <div className="flex flex-col min-w-0">
+            <span className="font-medium text-gray-900 dark:text-white truncate">{row.course_title}</span>
+            <span className="text-sm text-gray-500 dark:text-gray-400">{row.course_category || 'No Category'}</span>
+            {row.category_type && (
+              <span className="text-xs text-blue-600 dark:text-blue-400">{row.category_type}</span>
+            )}
+          </div>
         </div>
       )
     },
@@ -2234,13 +2346,70 @@ const ListOfCourse = () => {
     },
     {
       accessor: 'course_fee',
-      render: (row) => (
-        <span className="font-medium text-gray-900 dark:text-white">
-          {typeof row.course_fee === 'number' ? `$${row.course_fee.toFixed(2)}` : row.course_fee || 'Free'}
-        </span>
-      )
+      render: (row) => {
+        // Check if course is free
+        if (row.isFree) {
+          return (
+            <div className="flex flex-col">
+              <span className="font-medium text-green-600 dark:text-green-400">
+                Free
+              </span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                No cost
+              </span>
+            </div>
+          );
+        }
+
+        // Display pricing information from the new format
+        const displayPrice = row.price || row.course_fee;
+        const currency = row.prices && row.prices.length > 0 
+          ? row.prices.find(p => p.is_active)?.currency || 'USD'
+          : 'USD';
+        
+        return (
+          <div className="flex flex-col">
+            <span className="font-medium text-gray-900 dark:text-white">
+              {typeof displayPrice === 'number' 
+                ? `${currency} ${displayPrice.toLocaleString()}` 
+                : displayPrice || 'Free'}
+            </span>
+            {row.prices && row.prices.length > 1 && (
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                {row.prices.length} currencies
+              </span>
+            )}
+          </div>
+        );
+      }
     },
-    { accessor: 'instructor' },
+    {
+      accessor: 'instructor',
+      render: (row) => {
+        const instructor = row.assigned_instructor || row.instructor;
+        
+        if (instructor && typeof instructor === 'object') {
+          return (
+            <div className="flex flex-col">
+              <span className="font-medium text-gray-900 dark:text-white">
+                {instructor.full_name || instructor.name || 'Unknown'}
+              </span>
+              {instructor.email && (
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  {instructor.email}
+                </span>
+              )}
+            </div>
+          );
+        }
+        
+        return (
+          <span className="text-gray-500 dark:text-gray-400">
+            {instructor || 'Not Assigned'}
+          </span>
+        );
+      }
+    },
     { accessor: 'no_of_Sessions' },
     {
       accessor: 'createdAt',
@@ -2262,6 +2431,7 @@ const ListOfCourse = () => {
           onDelete={handleDelete}
           onAssignInstructor={(id) => setAssignInstructorModal({ open: true, courseId: id })}
           onSchedulePublish={(id, title) => setScheduleModal({ open: true, courseId: id, courseTitle: title })}
+          onAssignInstructorToCourse={handleAssignInstructorToCourse}
         />
       )
     }
@@ -2371,6 +2541,25 @@ const ListOfCourse = () => {
   };
 
   if (loading || postLoading || pageLoading) return <Preloader />;
+
+  // Show loading state while courses are being fetched
+  if (loading && courses.length === 0) {
+    return (
+      <div className="bg-gray-50 dark:bg-gray-900 min-h-screen p-4 sm:p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-sm">
+            <div className="flex items-center justify-center py-16">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Loading Courses</h3>
+                <p className="text-gray-500 dark:text-gray-400">Please wait while we fetch your course data...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-gray-50 dark:bg-gray-900 min-h-screen p-4 sm:p-6">
@@ -2692,7 +2881,7 @@ const ListOfCourse = () => {
                     className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
                     onClick={() => handleSort('course_title')}
                   >
-                    Title & Category {sortField === 'course_title' && <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>}
+                    Course Details {sortField === 'course_title' && <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>}
                   </th>
                   <th 
                     className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -2815,7 +3004,7 @@ const ListOfCourse = () => {
           </div>
         </div>
         
-        {filteredData.length === 0 && (
+        {filteredData.length === 0 && courses.length === 0 && !loading && (
           <div className="flex flex-col items-center justify-center py-16 px-4 text-center bg-white dark:bg-gray-800 rounded-b-xl border border-t-0 border-gray-100 dark:border-gray-700">
             <div className="bg-gray-50 dark:bg-gray-700 rounded-full p-6 mb-6">
               <MoreVertical className="w-20 h-20 text-gray-400" />
@@ -2834,6 +3023,28 @@ const ListOfCourse = () => {
                 <Plus className="w-5 h-5 mr-2" /> Add Your First Course
               </button>
             )}
+          </div>
+        )}
+        
+        {filteredData.length === 0 && courses.length > 0 && (
+          <div className="flex flex-col items-center justify-center py-16 px-4 text-center bg-white dark:bg-gray-800 rounded-b-xl border border-t-0 border-gray-100 dark:border-gray-700">
+            <div className="bg-gray-50 dark:bg-gray-700 rounded-full p-6 mb-6">
+              <Search className="w-20 h-20 text-gray-400" />
+            </div>
+            <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">No matching courses</h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md">
+              No courses match your current search criteria. Try adjusting your filters or search terms.
+            </p>
+            <button
+              onClick={() => {
+                setSearchQuery('');
+                setFilterCategory('');
+                resetAllFilters();
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg flex items-center transition-colors shadow-sm"
+            >
+              <RefreshCw className="w-5 h-5 mr-2" /> Clear All Filters
+            </button>
           </div>
         )}
       </div>
@@ -2867,6 +3078,16 @@ const ListOfCourse = () => {
           onBulkUpdate={handleBulkUpdate}
         />
       )}
+      
+      {/* Instructor Assignment Modal */}
+      <InstructorAssignmentModal
+        isOpen={isInstructorAssignmentModalOpen}
+        onClose={handleInstructorAssignmentModalClose}
+        onSuccess={handleInstructorAssignmentSuccess}
+        type="course"
+        targetData={selectedCourseForAssignment}
+        title="Assign Instructor to Course"
+      />
     </div>
   );
 }
