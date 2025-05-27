@@ -19,3 +19,4 @@ const AllCoursesDashboard = dynamic(
 export default function AllCoursesPage() {
   return <AllCoursesDashboard />;
 } 
+ 
