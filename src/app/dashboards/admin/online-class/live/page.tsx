@@ -2,9 +2,9 @@
 
 import React from "react";
 import Link from "next/link";
-import { FaRobot, FaUser, FaCalculator, FaChartLine, FaArrowRight } from "react-icons/fa";
+import { FaRobot, FaUser, FaCalculator, FaChartLine, FaArrowRight, FaChartBar } from "react-icons/fa";
 
-type ColorType = "blue" | "rose" | "emerald" | "amber";
+type ColorType = "blue" | "rose" | "emerald" | "amber" | "purple";
 
 interface ICategory {
   id: string;
@@ -22,6 +22,22 @@ interface IColorClasses {
 }
 
 const categories: ICategory[] = [
+  {
+    id: "batch-management",
+    title: "Batch Management",
+    subtitle: "comprehensive batch & instructor management",
+    description: "Create batches, assign instructors to courses and students, manage enrollments with integrated assignment system",
+    icon: FaUser,
+    color: "blue"
+  },
+  {
+    id: "analytics",
+    title: "Analytics Dashboard",
+    subtitle: "insights and performance metrics",
+    description: "View comprehensive analytics for batches, students, and instructor performance",
+    icon: FaChartBar,
+    color: "purple"
+  },
   {
     id: "ai-data-science",
     title: "AI and Data Science",
@@ -76,6 +92,11 @@ const colorClasses: Record<ColorType, IColorClasses> = {
     icon: "text-amber-700 dark:text-amber-300",
     border: "border-amber-300 dark:border-amber-600",
     hover: "hover:border-amber-400 dark:hover:border-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/30"
+  },
+  purple: {
+    icon: "text-purple-700 dark:text-purple-300",
+    border: "border-purple-300 dark:border-purple-600",
+    hover: "hover:border-purple-400 dark:hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-950/30"
   }
 };
 
