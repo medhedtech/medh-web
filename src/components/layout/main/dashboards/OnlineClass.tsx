@@ -529,9 +529,9 @@ const OnlineMeeting: React.FC<IOnlineClassProps> = ({ categoryFilter, sessionTyp
                         <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-3">
                           {sessionType.description}
                         </p>
-                      </div>
                     </div>
-
+                      </div>
+                      
                     {/* Action */}
                     <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700 mt-auto">
                       <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
@@ -590,9 +590,9 @@ const OnlineMeeting: React.FC<IOnlineClassProps> = ({ categoryFilter, sessionTyp
                     <div className="flex items-start gap-4 mb-4 flex-1">
                       <div className="flex-shrink-0">
                         <div className="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-                          <span className="text-lg">{sessionTypes.find(s => s.id === (selectedSessionType || sessionTypeFilter))?.emoji}</span>
-                        </div>
+                        <span className="text-lg">{sessionTypes.find(s => s.id === (selectedSessionType || sessionTypeFilter))?.emoji}</span>
                       </div>
+                    </div>
                       <div className="flex-1 min-w-0">
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-50 mb-1 line-clamp-2">
                           {meeting.meet_title}
@@ -604,7 +604,7 @@ const OnlineMeeting: React.FC<IOnlineClassProps> = ({ categoryFilter, sessionTyp
                           <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
                             <FaCalendarAlt className="text-xs text-emerald-600 dark:text-emerald-400" />
                             <span className="text-xs">{formatDate(meeting.date)}</span>
-                          </div>
+                      </div>
                           <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
                             <FaClock className="text-xs text-emerald-600 dark:text-emerald-400" />
                             <span className="text-xs">{meeting.time}</span>
