@@ -116,22 +116,95 @@ interface UserProfile {
   // other user properties
 }
 
+interface CourseDescription {
+  program_overview?: string;
+  benefits?: string;
+  learning_objectives?: string[];
+  course_requirements?: string[];
+  target_audience?: string[];
+  _id?: string;
+}
+
+interface FinalEvaluation {
+  final_project?: {
+    evaluation_criteria?: string[];
+  };
+  has_final_exam?: boolean;
+  has_final_project?: boolean;
+}
+
+interface Certification {
+  is_certified?: boolean;
+  certification_criteria?: {
+    min_assignments_score?: number;
+    min_quizzes_score?: number;
+    min_attendance?: number;
+  };
+}
+
+interface Meta {
+  ratings?: {
+    average?: number;
+    count?: number;
+  };
+  views?: number;
+  enrollments?: number;
+  lastUpdated?: string;
+}
+
 interface CourseDetails extends ICourse {
   // any additional details specific to the course details page
   slug?: string;
   no_of_Sessions?: number;
   course_duration?: string;
+  session_duration?: string;
   classType?: string;
+  class_type?: string;
+  course_type?: string;
+  delivery_format?: string;
+  delivery_type?: string;
   grade?: string;
   course_category?: string;
-  course_description?: string;
+  course_subcategory?: string;
+  course_subtitle?: string;
+  course_tag?: string;
+  course_level?: string;
+  language?: string;
+  course_description?: string | CourseDescription; // Support both formats
   course_fee?: number;
   curriculum?: any[];
   target_audience?: string[];
   features?: string[];
-  meta?: {
-    views?: number;
+  meta?: Meta;
+  status?: string;
+  tools_technologies?: any[];
+  faqs?: any[];
+  course_videos?: any[];
+  resource_videos?: any[];
+  recorded_videos?: any[];
+  show_in_home?: boolean;
+  _source?: string;
+  subtitle_languages?: any[];
+  final_evaluation?: FinalEvaluation;
+  is_Certification?: string;
+  is_Assignments?: string;
+  is_Projects?: string;
+  is_Quizes?: string;
+  related_courses?: any[];
+  doubt_session_schedule?: {
+    frequency?: string;
+    preferred_days?: string[];
+    preferred_time_slots?: any[];
   };
+  certification?: Certification;
+  course_modules?: any[];
+  resource_pdfs?: any[];
+  bonus_modules?: any[];
+  createdAt?: string;
+  updatedAt?: string;
+  unique_key?: string;
+  __v?: number;
+  brochures?: string[];
   // ... other fields
 }
 
@@ -277,7 +350,25 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [userId, setUserId] = useState<string | null>(null);
-  const isBlendedCourse = courseDetails?.classType === 'Blended Courses';
+  
+  // Enhanced blended course detection
+  const isBlendedCourse = useMemo(() => {
+    return (
+      courseDetails?.classType === 'Blended Courses' || 
+      courseDetails?.class_type === 'Blended Courses' ||
+      courseDetails?.course_type === 'blended' || 
+      courseDetails?.course_type === 'Blended' ||
+      courseDetails?.delivery_format === 'Blended' ||
+      courseDetails?.delivery_type === 'Blended'
+    );
+  }, [
+    courseDetails?.classType, 
+    courseDetails?.class_type, 
+    courseDetails?.course_type,
+    courseDetails?.delivery_format,
+    courseDetails?.delivery_type
+  ]);
+  
   const [enrollmentType, setEnrollmentType] = useState<EnrollmentType>(isBlendedCourse ? 'individual' : 'batch');
   const [showBatchInfo, setShowBatchInfo] = useState<boolean>(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState<boolean>(false);
@@ -330,9 +421,18 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     }
   }, []);
 
+  // Always force individual enrollment for blended courses
+  useEffect(() => {
+    if (isBlendedCourse) {
+      setEnrollmentType('individual');
+      setShowBatchInfo(false);
+    }
+  }, [isBlendedCourse]);
+
   // Extract data from courseDetails with better fallbacks
   const duration = courseDetails?.course_duration || 
-    (courseDetails?.no_of_Sessions ? `${courseDetails.no_of_Sessions} sessions` : '4 months / 16 weeks');
+    (courseDetails?.session_duration ? `${courseDetails.session_duration} per session` : 
+    (courseDetails?.no_of_Sessions ? `${courseDetails.no_of_Sessions} sessions` : '4 months / 16 weeks'));
   
   // Format duration to handle "0 months X weeks" cases
   const formatDuration = (durationStr: string): string => {
@@ -359,8 +459,63 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
 
   const formattedDuration = formatDuration(duration);
   
-  const grade = courseDetails?.grade || 
-    (courseDetails?.target_audience?.length ? courseDetails.target_audience[0] : 'All Levels');
+  // Get grade/level from multiple possible sources with new API structure support
+  const getGradeLevel = useCallback((): string => {
+    // First check course_level from new API structure
+    if (courseDetails?.course_level) {
+      return courseDetails.course_level;
+    }
+    
+    // Check grade field (legacy)
+    if (courseDetails?.grade) {
+      return courseDetails.grade;
+    }
+    
+    // Check target_audience from course_description object (new structure)
+    if (typeof courseDetails?.course_description === 'object' && courseDetails.course_description?.target_audience?.length) {
+      return courseDetails.course_description.target_audience[0];
+    }
+    
+    // Check target_audience array directly (legacy)
+    if (courseDetails?.target_audience?.length) {
+      return courseDetails.target_audience[0];
+    }
+    
+    return 'All Levels';
+  }, [courseDetails]);
+  
+  const grade = getGradeLevel();
+
+  // Helper function to extract description text from course_description
+  const getDescriptionText = useCallback((): string => {
+    if (!courseDetails?.course_description) {
+      return "No description available";
+    }
+    
+    // Handle string format (legacy)
+    if (typeof courseDetails.course_description === 'string') {
+      return courseDetails.course_description;
+    }
+    
+    // Handle object format (new structure)
+    const desc = courseDetails.course_description as CourseDescription;
+    
+    // Try program_overview first, then benefits, then combine available fields
+    if (desc.program_overview) {
+      return desc.program_overview;
+    }
+    
+    if (desc.benefits) {
+      return desc.benefits;
+    }
+    
+    // Combine available text fields
+    const textParts = [];
+    if (desc.program_overview) textParts.push(desc.program_overview);
+    if (desc.benefits) textParts.push(desc.benefits);
+    
+    return textParts.length > 0 ? textParts.join(' ') : "No description available";
+  }, [courseDetails?.course_description]);
 
   // Get active price information
   const getActivePrice = useCallback((): Price | null => {
@@ -408,17 +563,18 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
       return 0;
     }
     
-    const basePrice = enrollmentType === 'individual' 
+    // Always use individual price for blended courses
+    const basePrice = isBlendedCourse 
       ? activePricing.individual
-      : activePricing.batch;
+      : (enrollmentType === 'individual' ? activePricing.individual : activePricing.batch);
     
-    const discountPercentage = enrollmentType === 'batch' 
-      ? activePricing.group_discount
-      : activePricing.early_bird_discount;
+    const discountPercentage = isBlendedCourse
+      ? activePricing.early_bird_discount
+      : (enrollmentType === 'batch' ? activePricing.group_discount : activePricing.early_bird_discount);
     
     const finalPrice = calculateFinalPrice(basePrice, discountPercentage);
     return finalPrice;
-  }, [activePricing, enrollmentType, calculateFinalPrice]);
+  }, [activePricing, enrollmentType, calculateFinalPrice, isBlendedCourse]);
 
   // Format price for display with proper currency symbol
   const getDisplayCurrencySymbol = useCallback(() => {
@@ -515,7 +671,10 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
   }, [courseDetails]);
   
   const formatPriceDisplay = useCallback((price: number | undefined | null): string => {
-    const courseIsActuallyFree = courseDetails?.isFree || (courseDetails?.prices && courseDetails.prices.every(p => p.individual === 0 && p.batch === 0));
+    // Check if course is free using multiple indicators
+    const courseIsActuallyFree = courseDetails?.isFree || 
+      courseDetails?.course_fee === 0 ||
+      (courseDetails?.prices && courseDetails.prices.every(p => p.individual === 0 && p.batch === 0));
     
     if (courseIsActuallyFree || price === 0) return "Free";
     if (price === undefined || price === null || isNaN(price)) return "N/A";
@@ -1038,17 +1197,44 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     router.push('/dashboards/my-courses');
   };
 
-  // Handle course features
+  // Handle course features with improved certificate detection
   const courseFeatures = useMemo(() => {
-    const defaultFeatures = [
+    const baseFeatures = [
       "Live interactive sessions",
-      "Certificate of completion",
       "Lifetime access to recordings",
       "Hands-on projects & assignments"
     ];
     
-    return courseDetails?.features || defaultFeatures;
-  }, [courseDetails?.features]);
+    // Check if course has certificate using multiple sources
+    const hasCertificate = () => {
+      // Check is_Certification field (string format)
+      if (courseDetails?.is_Certification === "Yes") {
+        return true;
+      }
+      
+      // Check certification object (new structure)
+      if (courseDetails?.certification?.is_certified === true) {
+        return true;
+      }
+      
+      // Check final_evaluation for certification indicators
+      if (courseDetails?.final_evaluation?.has_final_exam || 
+          courseDetails?.final_evaluation?.has_final_project) {
+        return true;
+      }
+      
+      return false;
+    };
+    
+    // Add certificate feature if available
+    const features = [...baseFeatures];
+    if (hasCertificate()) {
+      features.splice(1, 0, "Certificate of completion");
+    }
+    
+    // Use custom features if provided, otherwise use dynamic features
+    return courseDetails?.features || features;
+  }, [courseDetails?.features, courseDetails?.is_Certification, courseDetails?.certification, courseDetails?.final_evaluation]);
   
   // If there's an error, show error fallback
   if (error) {
@@ -1061,25 +1247,37 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
   }
 
   // Calculate any discount percentage to display
-  const discountPercentage = activePricing ? (enrollmentType === 'batch' 
-    ? activePricing.group_discount || 0
-    : activePricing.early_bird_discount || 0) : 0;
+  const discountPercentage = activePricing ? (
+    isBlendedCourse 
+      ? activePricing.early_bird_discount || 0 
+      : (enrollmentType === 'batch' 
+        ? activePricing.group_discount || 0
+        : activePricing.early_bird_discount || 0)
+  ) : 0;
 
   // Get the final price for display
   const finalPrice = getFinalPrice();
   
   // Determine original price (before discount) if applicable
-  const originalPrice = activePricing && discountPercentage > 0 
-    ? getCoursePriceValue(courseDetails, enrollmentType === 'individual')
-    : null;
+  const originalPrice = useMemo(() => {
+    if (!activePricing) return null;
+    
+    if (isBlendedCourse) {
+      return discountPercentage > 0 ? activePricing.individual : null;
+    } else {
+      return discountPercentage > 0 
+        ? (enrollmentType === 'individual' ? activePricing.individual : activePricing.batch) 
+        : null;
+    }
+  }, [activePricing, discountPercentage, enrollmentType, isBlendedCourse]);
 
-  // Update enrollment type if course type changes
+  // Update enrollment type if course type changes - Force individual for blended courses
   useEffect(() => {
-    if (isBlendedCourse && enrollmentType === 'batch') {
+    if (isBlendedCourse) {
       setEnrollmentType('individual');
       setShowBatchInfo(false);
     }
-  }, [isBlendedCourse, enrollmentType]);
+  }, [isBlendedCourse]);
 
   // Sync EMI dropdown state with ref
   useEffect(() => {
@@ -1760,24 +1958,25 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
   return (
     <>
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow border border-gray-200 dark:border-gray-700 overflow-hidden enrollment-section w-full">
-        {/* Enhanced header with clearer pricing visibility */}
+        {/* Header section */}
         <div className={`px-4 sm:px-6 py-3 sm:py-4 ${bgClass} border-b ${borderClass} flex items-center justify-between`}>
           <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 flex items-center leading-tight">
             <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" />
-            <span className="hidden xs:inline">Enrollment Options</span>
+            <span className="hidden xs:inline">
+              {isBlendedCourse ? 'Enrollment' : 'Enrollment Options'}
+            </span>
             <span className="xs:hidden">Enroll</span>
           </h3>
-          {!isBlendedCourse && (
-            <div className="inline-flex items-center justify-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-white dark:bg-gray-700 text-xs font-medium shadow-sm">
-              <span className={`${colorClass} font-semibold`}>
-                {enrollmentType === 'individual' ? 'Individual' : 'Batch'}
-              </span>
-            </div>
-          )}
+          {/* Badge showing enrollment type */}
+          <div className="inline-flex items-center justify-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-white dark:bg-gray-700 text-xs font-medium shadow-sm">
+            <span className={`${colorClass} font-semibold`}>
+              {isBlendedCourse ? 'Individual' : (enrollmentType === 'individual' ? 'Individual' : 'Batch')}
+            </span>
+          </div>
         </div>
         
         <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
-          {/* Enrollment Type Selection - Better optimized for mobile with clear touch targets */}
+          {/* Enrollment Type Selection - Only show for non-blended courses */}
           {!isBlendedCourse && (
             <div className="flex w-full rounded-lg sm:rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm">
               <button
@@ -1819,6 +2018,27 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
             </div>
           )}
           
+          {/* Individual Option Card for Blended Courses */}
+          {isBlendedCourse && (
+            <div className="rounded-lg sm:rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm">
+              <div className={`py-3 sm:py-4 px-4 sm:px-5 flex flex-col items-center justify-center ${bgClass}`}>
+                <User className={`h-6 w-6 sm:h-7 sm:w-7 mb-1.5 sm:mb-2 ${colorClass}`} />
+                <span className="text-sm sm:text-base font-medium leading-tight">Individual Enrollment</span>
+                {activePricing && (
+                  <span className="text-sm mt-1 sm:mt-1.5 font-semibold leading-tight">
+                    {formatPriceDisplay(activePricing.individual)}
+                  </span>
+                )}
+              </div>
+              <div className="p-3 sm:p-4 bg-white dark:bg-gray-800 text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+                <p className="flex items-center">
+                  <Info className="w-3.5 h-3.5 mr-1.5 text-blue-500 flex-shrink-0" />
+                  This course is designed for individual enrollment with personalized learning experience.
+                </p>
+              </div>
+            </div>
+          )}
+          
           {/* Course Price - Enhanced for clarity on mobile */}
           <AnimatePresence mode="wait">
             <motion.div 
@@ -1849,6 +2069,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
                     </span>
                   )}
                 </div>
+                {/* Only show min students for batch enrollment in non-blended courses */}
                 {enrollmentType === 'batch' && !isBlendedCourse && activePricing && (
                   <p className="text-xs text-gray-500 mt-1.5 sm:mt-2 flex items-center leading-tight">
                     <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 sm:mr-1.5 flex-shrink-0" />
@@ -1914,7 +2135,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
             </div>
           </div>
           
-          {/* Enroll Button - Modified to show installment selection if available */}
+          {/* Enroll Button - Update label for blended courses */}
           <motion.button
             whileHover={{ scale: 1.02, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)" }}
             whileTap={{ scale: 0.98 }}
@@ -1939,9 +2160,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
                   <>
                     <span className="leading-tight">
                       {courseDetails?.isFree ? 'Enroll for Free' : 
-                        selectedInstallmentPlan ? `Pay ${formatPriceDisplay(selectedInstallmentPlan.downPayment)} now (20% down)` : 
-                        (isBlendedCourse ? 'Enroll Now' : 
-                        (enrollmentType === 'individual' ? 'Enroll Now' : 'Enroll in Batch'))}
+                        selectedInstallmentPlan ? `Pay ${formatPriceDisplay(selectedInstallmentPlan.downPayment)} now (20% down)` : 'Enroll Now'}
                     </span>
                     <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2 flex-shrink-0" />
                   </>
