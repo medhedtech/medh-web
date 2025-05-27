@@ -74,27 +74,7 @@ const FreeCourses = () => {
       variants={containerVariants}
       className="container mx-auto py-12 px-6 md:px-10"
     >
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-        <div>
-          <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 text-sm font-medium mb-2">
-            <Tag size={14} className="mr-1" />
-            Free Access
-          </span>
-          <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
-            Free Courses
-          </h2>
-        </div>
 
-        <motion.a
-          href="/dashboards/students-free-courses"
-          className="group inline-flex items-center px-4 py-2 rounded-full bg-primary-50 dark:bg-primary-900/10 text-primary-600 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-900/20 transition-all duration-300 whitespace-nowrap"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          View All
-          <ChevronRight size={16} className="ml-1 group-hover:translate-x-1 transition-transform duration-300" />
-        </motion.a>
-      </div>
 
       {freeCourses.length > 0 ? (
         <motion.div 
