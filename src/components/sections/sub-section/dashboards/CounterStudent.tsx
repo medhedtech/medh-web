@@ -167,7 +167,7 @@ const CounterStudent: React.FC = () => {
     return (
       <motion.div
         variants={itemVariants}
-        className="relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700/50 group"
+        className="relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 transition-all duration-300 border border-gray-100 dark:border-gray-700/50 group"
       >
         {/* Background gradient overlay */}
         <div className={`absolute inset-0 opacity-5 bg-gradient-to-br ${secondaryColor}`}></div>
