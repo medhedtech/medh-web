@@ -369,7 +369,24 @@ export const apiUrls = {
       if (!id) throw new Error('Course ID cannot be empty');
       return `${apiBaseUrl}/courses/delete/${id}`;
     },
-    searchSuggestions: (query: string): string => `${apiBaseUrl}/courses/search-suggestions?q=${encodeURIComponent(query)}`
+    searchSuggestions: (query: string): string => `${apiBaseUrl}/courses/search-suggestions?q=${encodeURIComponent(query)}`,
+    getNewCourses: (options: {
+      page?: number; limit?: number; course_tag?: string; status?: string; search?: string;
+      user_id?: string; sort_by?: string; sort_order?: string; class_type?: string;
+    } = {}): string => {
+      const { page = 1, limit = 10, course_tag = "", status = "Published", search = "", user_id = "", sort_by = "createdAt", sort_order = "desc", class_type = "" } = options;
+      const queryParams = new URLSearchParams();
+      apiUtils.appendParam('page', page, queryParams);
+      apiUtils.appendParam('limit', limit, queryParams);
+      apiUtils.appendParam('status', status, queryParams);
+      apiUtils.appendParam('search', search, queryParams);
+      apiUtils.appendParam('user_id', user_id, queryParams);
+      apiUtils.appendArrayParam('course_tag', course_tag, queryParams);
+      apiUtils.appendArrayParam('class_type', class_type, queryParams);
+      apiUtils.appendParam('sort_by', sort_by, queryParams);
+      apiUtils.appendParam('sort_order', sort_order, queryParams);
+      return `${apiBaseUrl}/courses/new?${queryParams.toString()}`;
+    }
   },
   faqs: {
     getAllFaqs: "/faq/getAll",
