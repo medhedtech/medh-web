@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { apiBaseUrl } from '@/apis';
 import { toast } from 'react-toastify';
@@ -38,11 +38,14 @@ const useAuth = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [user, setUser] = useState<IUser | null>(null);
   const [tokenInfo, setTokenInfo] = useState<DecodedToken | null>(null);
+  
+  // Use ref to track if we've already fetched user profile to prevent duplicate calls
+  const hasAttemptedProfileFetch = useRef<boolean>(false);
 
   /**
    * Decode and validate token
    */
-  const validateToken = useCallback((token: string | null): boolean => {
+  const validateToken = useCallback((token: string | null, shouldUpdateUser: boolean = false): boolean => {
     if (!token) return false;
     
     try {
@@ -58,22 +61,30 @@ const useAuth = () => {
         return false;
       }
       
-      // Extract as much user info as possible from the token
-      const tokenUser = {
-        ...(decoded._id ? { _id: decoded._id } : {}),
-        ...(decoded.id ? { _id: decoded.id } : {}),
-        ...(decoded.userId ? { _id: decoded.userId } : {}),
-        ...(decoded.email ? { email: decoded.email } : {}),
-        ...(decoded.role ? { role: decoded.role } : {}),
-        ...(decoded.name ? { name: decoded.name } : {}),
-      };
-      
-      // Only update user if we have some basic info
-      if (Object.keys(tokenUser).length > 0) {
-        setUser(prev => ({ ...(prev || {}), ...tokenUser } as IUser));
+      // Only update user info from token if explicitly requested and we don't have user data
+      if (shouldUpdateUser) {
+        const tokenUser = {
+          ...(decoded._id ? { _id: decoded._id } : {}),
+          ...(decoded.id ? { _id: decoded.id } : {}),
+          ...(decoded.userId ? { _id: decoded.userId } : {}),
+          ...(decoded.email ? { email: decoded.email } : {}),
+          ...(decoded.role ? { role: decoded.role } : {}),
+          ...(decoded.name ? { name: decoded.name } : {}),
+        };
+        
+        // Only update user if we have some basic info and don't already have user data
+        if (Object.keys(tokenUser).length > 0) {
+          setUser(prev => {
+            // Don't update if we already have more complete user data
+            if (prev && Object.keys(prev).length >= Object.keys(tokenUser).length) {
+              return prev;
+            }
+            return { ...(prev || {}), ...tokenUser } as IUser;
+          });
+        }
       }
       
-      // Valid token even without ID
+      // Valid token
       return true;
     } catch (error) {
       console.error('Invalid token:', error);
@@ -88,7 +99,9 @@ const useAuth = () => {
    */
   const fetchUserProfile = useCallback(async () => {
     const token = getAuthToken();
-    if (!token) return null;
+    if (!token || hasAttemptedProfileFetch.current) return null;
+    
+    hasAttemptedProfileFetch.current = true;
     
     try {
       // First decode the token to get possible user identifiers
@@ -130,7 +143,7 @@ const useAuth = () => {
   useEffect(() => {
     const checkAuth = async () => {
       const token = getAuthToken();
-      const isValid = validateToken(token);
+      const isValid = validateToken(token, true); // Allow user update from token on initial load
       
       // --- Set/Clear token on apiClient based on initial validation --- 
       if (isValid && token) {
@@ -143,7 +156,7 @@ const useAuth = () => {
       setIsAuthenticated(isValid);
       
       // If token is valid but we don't have user data, fetch it
-      if (isValid && !user && token) {
+      if (isValid && token && !hasAttemptedProfileFetch.current) {
         await fetchUserProfile();
       }
       
@@ -155,13 +168,13 @@ const useAuth = () => {
     // Set up an interval to periodically check token validity
     const intervalId = setInterval(() => {
       const token = getAuthToken();
-      validateToken(token);
+      validateToken(token, false); // Don't update user from token in periodic checks
     }, 60000); // Check every minute
     
     return () => {
       clearInterval(intervalId);
     };
-  }, [validateToken, fetchUserProfile, user]);
+  }, [validateToken, fetchUserProfile]); // Removed 'user' from dependencies to prevent infinite loop
 
   /**
    * Login using email and password
@@ -178,7 +191,7 @@ const useAuth = () => {
         saveAuthToken(response.data.token);
         const token = response.data.token;
         apiClient.setAuthToken(token);
-        validateToken(response.data.token);
+        validateToken(response.data.token, false); // Don't update user from token since we have user data from login response
         setIsAuthenticated(true);
         setUser(response.data.user || null);
         toast.success('Login successful');
@@ -200,10 +213,12 @@ const useAuth = () => {
    */
   const setToken = useCallback((token: string) => {
     if (token) {
-      const isValid = validateToken(token);
+      const isValid = validateToken(token, true); // Allow user update from token when manually setting token
       if (isValid) {
         saveAuthToken(token);
         setIsAuthenticated(true);
+        // Reset the profile fetch flag so we can fetch profile for the new token
+        hasAttemptedProfileFetch.current = false;
         fetchUserProfile();
         return true;
       } else {
@@ -250,7 +265,7 @@ const useAuth = () => {
       if (response.data && (response.data.token || (response.data.data && response.data.data.access_token))) {
         const newToken = response.data.token || response.data.data.access_token;
         saveAuthToken(newToken);
-        validateToken(newToken);
+        validateToken(newToken, false); // Don't update user from token during refresh
         
         // Save new refresh token if provided
         if (response.data.refresh_token || (response.data.data && response.data.data.refresh_token)) {
@@ -306,6 +321,7 @@ const useAuth = () => {
     setIsAuthenticated(false);
     setTokenInfo(null);
     setUser(null);
+    hasAttemptedProfileFetch.current = false; // Reset profile fetch flag
     toast.info('Logged out successfully');
   }, []);
 
