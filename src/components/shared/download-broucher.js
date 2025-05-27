@@ -156,12 +156,30 @@ const animationStyles = `
 }
 `;
 
+/**
+ * DownloadBrochureModal Component
+ * 
+ * Supports multiple brochure download methods:
+ * 1. Direct brochure URLs from course object (course.brochures array)
+ * 2. API-based download using courseId or brochureId
+ * 
+ * @param {boolean} isOpen - Whether the modal is open
+ * @param {function} onClose - Function to close the modal
+ * @param {string} courseTitle - Course title (optional, can be derived from course object)
+ * @param {string} brochureId - ID for API-based brochure download
+ * @param {string} courseId - ID for API-based course brochure download
+ * @param {object} course - Course object containing brochures array with direct URLs
+ * @param {boolean} inlineForm - Whether to display as inline form
+ * @param {boolean} flipCard - Whether to use flip card animation
+ * @param {ReactNode} children - Child components for flip card mode
+ */
 const DownloadBrochureModal = ({
   isOpen,
   onClose,
   courseTitle,
   brochureId,
   courseId,
+  course = null, // New prop for course object with brochures array
   inlineForm = false,
   flipCard = false,
   children
@@ -183,6 +201,9 @@ const DownloadBrochureModal = ({
 
   // Add cardMode for compact styles in flipCard mode
   const cardMode = !!flipCard;
+
+  // Get effective course title from props or course object
+  const effectiveCourseTitle = courseTitle || (course && course.course_title) || '';
 
   // Check if device is mobile
   useEffect(() => {
@@ -241,12 +262,12 @@ const DownloadBrochureModal = ({
     }
   }, [isOpen, isAuthenticated, user]);
 
-  // Warn if neither courseId nor brochureId is provided
+  // Warn if neither courseId, brochureId, nor course with brochures is provided
   useEffect(() => {
-    if (isOpen && !courseId && !brochureId) {
-      console.error("DownloadBrochureModal: Missing courseId or brochureId");
+    if (isOpen && !courseId && !brochureId && (!course || !course.brochures || course.brochures.length === 0)) {
+      console.error("DownloadBrochureModal: Missing courseId, brochureId, or course with brochures array");
     }
-  }, [isOpen, courseId, brochureId]);
+  }, [isOpen, courseId, brochureId, course]);
 
   // Auto download brochure if user is authenticated
   useEffect(() => {
@@ -335,10 +356,60 @@ const DownloadBrochureModal = ({
     return Object.keys(newErrors).length === 0;
   };
 
+  // Function for direct brochure URL download (for courses with brochures array)
+  const handleDirectBrochureDownload = async () => {
+    try {
+      setLoading(true);
+      
+      if (course && course.brochures && course.brochures.length > 0) {
+        console.log('Opening brochure from direct URL...');
+        
+        // Get the first brochure URL (you can modify this logic to handle multiple brochures)
+        const brochureUrl = course.brochures[0];
+        
+        // Open the direct brochure URL in a new tab
+        const newTab = window.open('about:blank', '_blank');
+        
+        if (newTab) {
+          newTab.location = brochureUrl;
+        } else {
+          // Fallback - this might be blocked by popup blockers
+          window.open(brochureUrl, '_blank');
+        }
+        
+        console.log('Brochure opened from direct URL');
+        setDownloadSuccess(true);
+        
+        // Close the modal after a short delay
+        setTimeout(() => {
+          onClose();
+          setDownloadSuccess(false);
+        }, 1800);
+        
+        setLoading(false);
+        return true;
+      }
+      
+      return false;
+    } catch (err) {
+      console.error('Error opening brochure from direct URL:', err);
+      setLoading(false);
+      setErrors(prev => ({ ...prev, general: "Failed to open brochure. Please try again." }));
+      return false;
+    }
+  };
+
   // Function for direct download (authenticated users)
   const handleDirectDownload = async () => {
     try {
       setLoading(true);
+      
+      // Check if we have a course with direct brochure URLs first
+      if (course && course.brochures && course.brochures.length > 0) {
+        const success = await handleDirectBrochureDownload();
+        if (success) return;
+      }
+      
       const idToUse = courseId || brochureId;
       if (!idToUse) {
         console.error("Missing course or brochure ID");
@@ -387,6 +458,42 @@ const DownloadBrochureModal = ({
     try {
       setLoading(true);
       setFormSubmitted(true);
+      
+      // Check if we have a course with direct brochure URLs
+      if (course && course.brochures && course.brochures.length > 0) {
+        // For courses with direct brochure URLs, we can still send via email
+        // but we'll need to handle this differently or just direct download
+        console.log('Course has direct brochure URLs, attempting direct download for non-authenticated user');
+        
+        // For now, let's direct download for non-authenticated users as well
+        const brochureUrl = course.brochures[0];
+        
+        // Create a temporary link to download the file
+        const link = document.createElement('a');
+        link.href = brochureUrl;
+        link.download = `${course.course_title || 'Course'}_Brochure.pdf`;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        setDownloadSuccess(true);
+        
+        setTimeout(() => {
+          onClose();
+          setDownloadSuccess(false);
+          setFormSubmitted(false);
+          setFormData({
+            full_name: "",
+            email: "",
+            phone_number: "",
+            country_code: "IN",
+            accepted: false,
+          });
+        }, 2500);
+        
+        return;
+      }
       
       const idToUse = courseId || brochureId;
       if (!idToUse) {
@@ -481,8 +588,8 @@ const DownloadBrochureModal = ({
                 <div className={`flex justify-between items-center ${isMobile ? 'mobile-header bg-white/90 dark:bg-gray-800/90 mb-2 pb-2 pt-1' : 'border-b border-gray-200 dark:border-gray-700 pb-2 mb-2'}`}>
                   <div>
                     <h2 className={`${isMobile ? 'text-sm' : 'text-base'} font-bold text-gray-900 dark:text-white`}>Download Brochure</h2>
-                    {courseTitle && (
-                      <p className={`${isMobile ? 'text-[10px]' : 'text-xs'} text-gray-600 dark:text-gray-400 truncate max-w-[180px]`}>{courseTitle}</p>
+                    {effectiveCourseTitle && (
+                      <p className={`${isMobile ? 'text-[10px]' : 'text-xs'} text-gray-600 dark:text-gray-400 truncate max-w-[180px]`}>{effectiveCourseTitle}</p>
                     )}
                   </div>
                   <button 
@@ -705,8 +812,8 @@ const DownloadBrochureModal = ({
         <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-4 mb-6">
           <div>
             <h2 className="text-xl font-bold text-gray-900 dark:text-white modal-title-responsive">Download Brochure</h2>
-            {courseTitle && (
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1.5">{courseTitle}</p>
+            {effectiveCourseTitle && (
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1.5">{effectiveCourseTitle}</p>
             )}
           </div>
           <button onClick={onClose} aria-label="Close" className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
