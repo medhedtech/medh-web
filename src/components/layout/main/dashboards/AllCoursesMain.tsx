@@ -117,42 +117,11 @@ const AllCoursesMain: React.FC = () => {
         variants={containerVariants}
         className="space-y-8 lg:space-y-12 pt-8 lg:pt-12"
       >
-        {/* Page Header */}
-        <motion.div variants={itemVariants} className="text-center pt-6 pb-4">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4 lg:mb-6">
-            All Courses
-          </h1>
-          <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed px-4">
-            Discover our comprehensive collection of courses designed to advance your skills and career
-          </p>
-        </motion.div>
 
-        {/* Course Stats */}
-        <motion.div variants={itemVariants} className="px-4 sm:px-6 lg:px-8">
-          <CourseStats />
-        </motion.div>
 
-        {/* Features Section */}
-        <motion.div variants={itemVariants} className="px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-            {features.map((feature, index) => (
-              <div
-                key={index}
-                className="bg-white dark:bg-gray-800 rounded-2xl p-6 text-center border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow duration-300"
-              >
-                <div className="inline-flex items-center justify-center w-12 h-12 lg:w-14 lg:h-14 bg-primary-100 dark:bg-primary-900/30 rounded-xl mb-4 text-primary-600 dark:text-primary-400">
-                  {feature.icon}
-                </div>
-                <h3 className="text-base lg:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                  {feature.title}
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                  {feature.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </motion.div>
+
+
+
 
         {/* Courses Filter Section */}
         <motion.div variants={itemVariants} className="px-4 sm:px-6 lg:px-8">
