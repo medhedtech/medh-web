@@ -271,10 +271,7 @@ const CompletedCoursesMain: React.FC = () => {
           </p>
         </motion.div>
 
-        {/* Achievement Stats */}
-        <motion.div variants={itemVariants} className="px-4 sm:px-6 lg:px-8">
-          <AchievementStats />
-        </motion.div>
+
 
         {/* Filter Tabs */}
         <motion.div variants={itemVariants} className="px-4 sm:px-6 lg:px-8">
