@@ -69,53 +69,53 @@ const colorClasses: Record<ColorType, IColorClasses> = {
 export default function OnlineClassSelectionPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      {/* Header */}
+        {/* Header */}
       <div className="text-center py-16 px-6">
         <div className="inline-flex items-center gap-2 px-3 py-1 bg-gray-200 dark:bg-gray-800 rounded-full mb-6">
           <span className="text-sm text-gray-700 dark:text-gray-300">online classes</span>
-        </div>
-        
+          </div>
+          
         <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-gray-50 mb-4">
           Choose Your Learning Style
-        </h1>
-        
+          </h1>
+          
         <p className="text-gray-700 dark:text-gray-300 max-w-md mx-auto">
           Select the perfect format for your educational journey
-        </p>
-      </div>
+          </p>
+        </div>
 
-      {/* Session Types */}
+        {/* Session Types */}
       <div className="max-w-4xl mx-auto px-6 pb-20">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {sessionTypes.map((sessionType) => {
-            const IconComponent = sessionType.icon;
+              const IconComponent = sessionType.icon;
             const colors = colorClasses[sessionType.color];
-            
-            return (
-              <Link
-                key={sessionType.id}
-                href={`/dashboards/admin/online-class/${sessionType.id}`}
+              
+              return (
+                <Link
+                  key={sessionType.id}
+                  href={`/dashboards/admin/online-class/${sessionType.id}`}
                 className="group h-full"
-              >
+                >
                 <div className={`bg-white dark:bg-gray-900 border-2 ${colors.border} ${colors.hover} rounded-xl p-6 transition-all duration-200 hover:shadow-md h-full flex flex-col min-h-[200px]`}>
                   {/* Icon and Title */}
                   <div className="flex items-start gap-4 mb-4 flex-1">
                     <div className="flex-shrink-0">
                       <IconComponent className={`text-2xl ${colors.icon}`} />
-                    </div>
+                          </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-50 mb-1 line-clamp-2">
-                        {sessionType.title}
-                      </h3>
+                          {sessionType.title}
+                        </h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 line-clamp-1">
-                        {sessionType.subtitle}
-                      </p>
+                          {sessionType.subtitle}
+                        </p>
                       <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-3">
-                        {sessionType.description}
-                      </p>
+                          {sessionType.description}
+                        </p>
                     </div>
-                  </div>
-
+                </div>
+                
                   {/* Action */}
                   <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700 mt-auto">
                     <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
