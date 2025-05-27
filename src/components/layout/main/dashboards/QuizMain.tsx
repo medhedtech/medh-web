@@ -68,7 +68,7 @@ type ColorType = "blue" | "rose" | "emerald" | "amber" | "purple" | "indigo";
  */
 const QuizMain: React.FC = () => {
   const [isClient, setIsClient] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState<"all" | "available" | "in-progress" | "completed" | "overdue">("all");
+  const [selectedStatus, setSelectedStatus] = useState<"all" | "available" | "completed" | "overdue">("all");
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
@@ -137,24 +137,7 @@ const QuizMain: React.FC = () => {
       maxAttempts: 5,
       timeLimit: 60
     },
-    {
-      id: 3,
-      title: "UI/UX Design Principles Quiz",
-      course: "UI/UX Design Principles",
-      dueDate: "2024-04-18",
-      completedDate: null,
-      status: "in-progress",
-      score: null,
-      maxScore: 100,
-      description: "Test your knowledge of user interface and user experience design",
-      type: "Midterm",
-      difficulty: "Medium",
-      estimatedTime: "40 minutes",
-      questions: 35,
-      attempts: 1,
-      maxAttempts: 2,
-      timeLimit: 50
-    },
+
     {
       id: 4,
       title: "Project Management Final Quiz",
@@ -536,10 +519,7 @@ const QuizMain: React.FC = () => {
           </p>
         </motion.div>
 
-        {/* Quiz Stats */}
-        <motion.div variants={itemVariants} className="px-4 sm:px-6 lg:px-8">
-          <QuizStats />
-        </motion.div>
+
 
         {/* Search and Filter */}
         <motion.div variants={itemVariants} className="px-4 sm:px-6 lg:px-8">
@@ -561,7 +541,6 @@ const QuizMain: React.FC = () => {
               {[
                 { key: "all", label: "All", icon: FileQuestion },
                 { key: "available", label: "Available", icon: Play },
-                { key: "in-progress", label: "In Progress", icon: Clock },
                 { key: "completed", label: "Completed", icon: CheckCircle },
                 { key: "overdue", label: "Overdue", icon: XCircle }
               ].map(({ key, label, icon: Icon }) => (
