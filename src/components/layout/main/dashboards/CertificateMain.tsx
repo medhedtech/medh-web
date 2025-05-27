@@ -490,10 +490,7 @@ const CertificateMain: React.FC = () => {
           </p>
         </motion.div>
 
-        {/* Certificate Stats */}
-        <motion.div variants={itemVariants} className="px-4 sm:px-6 lg:px-8">
-          <CertificateStats />
-        </motion.div>
+
 
         {/* Search and Filter */}
         <motion.div variants={itemVariants} className="px-4 sm:px-6 lg:px-8">
@@ -515,8 +512,7 @@ const CertificateMain: React.FC = () => {
               {[
                 { key: "all", label: "All", icon: Award },
                 { key: "issued", label: "Issued", icon: CheckCircle },
-                { key: "pending", label: "Pending", icon: Clock },
-                { key: "expired", label: "Expired", icon: FileText }
+                { key: "pending", label: "Pending", icon: Clock }
               ].map(({ key, label, icon: Icon }) => (
                 <button
                   key={key}
