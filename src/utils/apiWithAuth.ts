@@ -4,6 +4,10 @@ import { getAuthToken, saveAuthToken, getRefreshToken, saveRefreshToken } from '
 import { jwtDecode } from 'jwt-decode';
 import { Tooltip } from "react-tooltip";
 
+// Flag to prevent multiple simultaneous refresh attempts
+let isRefreshing = false;
+let refreshPromise: Promise<string | null> | null = null;
+
 const COUNTRY_NAME_MAP: Record<string, string> = {
   "USA": "United States of America",
   "UK": "United Kingdom",
@@ -26,7 +30,7 @@ const isTokenExpired = (token: string, thresholdSeconds = 300): boolean => {
 };
 
 // Refresh token if needed
-const refreshTokenIfNeeded = async (token: string): Promise<string> => {
+const refreshTokenIfNeeded = async (token: string): Promise<string | null> => {
   if (!token) {
     console.warn('No token provided to refreshTokenIfNeeded');
     return token;
@@ -42,25 +46,34 @@ const refreshTokenIfNeeded = async (token: string): Promise<string> => {
     return token;
   }
   
-  try {
-    console.log('Attempting to refresh token:', {
-      tokenLength: token?.length,
-      tokenStart: token?.substring(0, 10),
-      isExpired: isTokenExpired(token),
-      hasRefreshToken: !!refreshToken
-    });
+  // If already refreshing, wait for the existing promise
+  if (isRefreshing && refreshPromise) {
+    console.log('Token refresh already in progress, waiting...');
+    return refreshPromise;
+  }
+  
+  // Set refreshing flag and create promise
+  isRefreshing = true;
+  refreshPromise = (async () => {
+    try {
+      console.log('Attempting to refresh token:', {
+        tokenLength: token?.length,
+        tokenStart: token?.substring(0, 10),
+        isExpired: isTokenExpired(token),
+        hasRefreshToken: !!refreshToken
+      });
 
-    // Call refresh token endpoint with refresh token in body
-    const response = await axios.post(
-      `${apiBaseUrl}/auth/refresh-token`,
-      { refresh_token: refreshToken },
-      {
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        timeout: 10000 // 10 second timeout
-      }
-    );
+      // Call refresh token endpoint with refresh token in body
+      const response = await axios.post(
+        `${apiBaseUrl}/auth/refresh-token`,
+        { refresh_token: refreshToken },
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          timeout: 10000 // 10 second timeout
+        }
+      );
     
     if (response.data && (response.data.token || (response.data.data && response.data.data.access_token))) {
       const newToken = response.data.token || response.data.data.access_token;
@@ -81,22 +94,48 @@ const refreshTokenIfNeeded = async (token: string): Promise<string> => {
       return newToken;
     }
     
-    console.warn('Token refresh failed: No token in response', response.data);
-    return token; // Return original token if refresh failed
-  } catch (error) {
+      console.warn('Token refresh failed: No token in response', response.data);
+      return token; // Return original token if refresh failed
+    } catch (error) {
     if (axios.isAxiosError(error)) {
       console.error('Error refreshing token:', {
         message: error.message,
         status: error.response?.status,
         data: error.response?.data,
-        isAxiosError: error.isAxiosError,
-        stack: error.stack,
+        url: error.config?.url,
+        method: error.config?.method,
       });
+      
+      // If it's a 401 or 403, the refresh token is invalid
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        console.warn('Refresh token is invalid, clearing auth data');
+        // Clear invalid tokens to prevent infinite refresh loops
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('token');
+          localStorage.removeItem('refreshToken');
+          sessionStorage.removeItem('token');
+        }
+        return null; // Return null to indicate auth failure
+      }
     } else {
       console.error('Error refreshing token:', error);
     }
-    return token; // Return original token if refresh failed
-  }
+    
+    // For development mode, return the original token to prevent auth loops
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Development mode: Returning original token despite refresh failure');
+      return token;
+    }
+    
+      return token; // Return original token if refresh failed
+    } finally {
+      // Reset refreshing flag and promise
+      isRefreshing = false;
+      refreshPromise = null;
+    }
+  })();
+  
+  return refreshPromise;
 };
 
 /**
@@ -117,11 +156,18 @@ export const createAuthClient = (): AxiosInstance => {
         
         if (token) {
           // Try to refresh token if it's expired or close to expiring
-          token = await refreshTokenIfNeeded(token);
+          const refreshedToken = await refreshTokenIfNeeded(token);
           
-          // Add both authorization header formats
-          config.headers['Authorization'] = `Bearer ${token}`;
-          config.headers['x-access-token'] = token;
+          // Only use the refreshed token if it's valid
+          if (refreshedToken) {
+            token = refreshedToken;
+            // Add both authorization header formats
+            config.headers['Authorization'] = `Bearer ${token}`;
+            config.headers['x-access-token'] = token;
+          } else {
+            // If refresh failed and returned null, don't add auth headers
+            console.warn('Token refresh failed, proceeding without auth headers');
+          }
         }
         
         return config;
