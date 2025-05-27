@@ -56,11 +56,27 @@ const StudentEnrolledCourses = dynamic(
   }
 );
 
-const QuizPage = dynamic(
-  () => import("@/components/layout/main/dashboards/QuizPage"), 
+const QuizMain = dynamic(
+  () => import("@/components/layout/main/dashboards/QuizMain"), 
   { 
     ssr: false,
     loading: () => <SkeletonLoader type="quiz" />
+  }
+);
+
+const CertificateMain = dynamic(
+  () => import("@/components/layout/main/dashboards/CertificateMain"), 
+  { 
+    ssr: false,
+    loading: () => <SkeletonLoader type="certificates" />
+  }
+);
+
+const FeedbackMain = dynamic(
+  () => import("@/components/layout/main/dashboards/FeedbackMain"), 
+  { 
+    ssr: false,
+    loading: () => <SkeletonLoader type="form" />
   }
 );
 
@@ -91,6 +107,14 @@ const Payments = dynamic(
 
 const PlacementForm = dynamic(
   () => import("@/components/layout/main/dashboards/PlacementForm"), 
+  { 
+    ssr: false,
+    loading: () => <SkeletonLoader type="form" />
+  }
+);
+
+const PlacementMain = dynamic(
+  () => import("@/components/layout/main/dashboards/PlacementMain"), 
   { 
     ssr: false,
     loading: () => <SkeletonLoader type="form" />
@@ -356,6 +380,14 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
       setCurrentView("recordedsessions");
     } else if (pathname.includes('/dashboards/student/enrolled-courses')) {
       setCurrentView("enrolledcourses");
+    } else if (pathname.includes('/dashboards/student/quiz')) {
+      setCurrentView("quiz");
+    } else if (pathname.includes('/dashboards/student/certificate')) {
+      setCurrentView("certificate");
+    } else if (pathname.includes('/dashboards/student/feedback')) {
+      setCurrentView("feedback");
+    } else if (pathname.includes('/dashboards/student/apply')) {
+      setCurrentView("apply");
     } else if (pathname === '/dashboards/student') {
       setCurrentView("overview");
     }
@@ -540,9 +572,9 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
     } else if (viewMatches(['enrolledcourses', 'enrolled-courses', 'enrolled'])) {
       return <StudentEnrolledCourses />;
     } else if (viewMatches(['quiz', 'quizzes'])) {
-      return <QuizPage closeQuiz={() => setCurrentView("overview")} />;
+      return <QuizMain />;
     } else if (viewMatches(['feedback', 'support'])) {
-      return <FeedbackAndSupport />;
+      return <FeedbackMain />;
     } else if (viewMatches(['certificate', 'certificates'])) {
       if (viewMatches(['view'])) {
         return (
@@ -565,28 +597,12 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
           </div>
         );
       } else {
-        return (
-          <CertificateCoursesEnroll 
-            onViewCertificate={handleViewCertificate} 
-            setCertificateUrl={setCertificateUrl} 
-          />
-        );
+        return <CertificateMain />;
       }
     } else if (viewMatches(['payment', 'payments'])) {
       return <Payments />;
-    } else if (viewMatches(['placement'])) {
-      return <PlacementForm 
-        isOpen={true} 
-        onClose={() => {
-          setIsLoading(true);
-          setCurrentView("overview");
-          
-          // Simulate network delay and then stop loading
-          setTimeout(() => {
-            setIsLoading(false);
-          }, 400);
-        }} 
-      />;
+    } else if (viewMatches(['placement-application', 'placement', 'apply'])) {
+      return <PlacementMain />;
     } else if (viewMatches(['democlasses', 'demo'])) {
       return <StudentDemoClasses />;
     } else if (viewMatches(['progress', 'analytics'])) {
