@@ -4,24 +4,63 @@ import React, { Suspense, useState, useEffect, useMemo } from 'react';
 import { motion } from "framer-motion";
 import Link from 'next/link';
 import {
-  BookOpen,
+  FileQuestion,
   Calendar,
   Clock,
   CheckCircle,
   AlertCircle,
   XCircle,
   Play,
-  Award,
+  RotateCcw,
   Eye,
   Star,
-  FileText,
+  BookOpen,
   Filter,
   Search,
-  Timer,
-  Brain,
   Target,
-  TrendingUp
+  Award,
+  TrendingUp,
+  Timer,
+  Brain
 } from 'lucide-react';
+
+// TypeScript interfaces
+interface IQuiz {
+  id: number;
+  title: string;
+  course: string;
+  dueDate: string;
+  completedDate: string | null;
+  status: "available" | "in-progress" | "completed" | "overdue" | "locked";
+  score: number | null;
+  maxScore: number;
+  description: string;
+  type: "Practice" | "Assessment" | "Final" | "Midterm";
+  difficulty: "Easy" | "Medium" | "Hard";
+  estimatedTime: string;
+  questions: number;
+  attempts: number;
+  maxAttempts: number;
+  timeLimit: number; // in minutes
+}
+
+interface IQuizStats {
+  total: number;
+  available: number;
+  completed: number;
+  inProgress: number;
+  overdue: number;
+  averageScore: string;
+}
+
+interface IColorClasses {
+  bg: string;
+  text: string;
+  border: string;
+  hover: string;
+}
+
+type ColorType = "blue" | "rose" | "emerald" | "amber" | "purple" | "indigo";
 
 /**
  * QuizMain - Component that displays the quiz content
@@ -29,7 +68,7 @@ import {
  */
 const QuizMain: React.FC = () => {
   const [isClient, setIsClient] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState<"all" | "pending" | "completed" | "graded" | "expired">("all");
+  const [selectedStatus, setSelectedStatus] = useState<"all" | "available" | "in-progress" | "completed" | "overdue">("all");
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
@@ -60,141 +99,135 @@ const QuizMain: React.FC = () => {
     }
   }), []);
 
-  // Mock quizzes data
-  const quizzes = useMemo(() => [
+  // Mock quiz data
+  const quizzes = useMemo<IQuiz[]>(() => [
     {
       id: 1,
-      title: "Digital Marketing Concepts",
+      title: "Digital Marketing Fundamentals Quiz",
       course: "Digital Marketing Fundamentals",
       dueDate: "2024-04-15",
       completedDate: "2024-04-12",
-      status: "graded",
-      score: 92,
+      status: "completed",
+      score: 85,
       maxScore: 100,
-      description: "Test your knowledge of basic digital marketing concepts and strategies",
-      type: "Multiple Choice",
+      description: "Test your knowledge of digital marketing concepts and strategies",
+      type: "Assessment",
       difficulty: "Medium",
-      duration: "45 minutes",
-      questions: 30,
-      attempts: {
-        used: 1,
-        max: 2
-      }
+      estimatedTime: "30 minutes",
+      questions: 25,
+      attempts: 1,
+      maxAttempts: 3,
+      timeLimit: 45
     },
     {
       id: 2,
-      title: "Python Data Structures",
+      title: "Python Data Structures Quiz",
       course: "Data Science with Python",
       dueDate: "2024-04-20",
       completedDate: null,
-      status: "pending",
+      status: "available",
       score: null,
       maxScore: 100,
-      description: "Test your understanding of Python data structures and algorithms",
-      type: "Mixed",
+      description: "Evaluate your understanding of Python data structures and algorithms",
+      type: "Practice",
       difficulty: "Hard",
-      duration: "60 minutes",
-      questions: 25,
-      attempts: {
-        used: 0,
-        max: 2
-      }
+      estimatedTime: "45 minutes",
+      questions: 30,
+      attempts: 0,
+      maxAttempts: 5,
+      timeLimit: 60
     },
     {
       id: 3,
-      title: "UI/UX Design Principles",
-      course: "UI/UX Design Fundamentals",
+      title: "UI/UX Design Principles Quiz",
+      course: "UI/UX Design Principles",
       dueDate: "2024-04-18",
-      completedDate: "2024-04-17",
-      status: "completed",
+      completedDate: null,
+      status: "in-progress",
       score: null,
       maxScore: 100,
-      description: "Evaluate your knowledge of UI/UX design principles and best practices",
-      type: "Multiple Choice",
+      description: "Test your knowledge of user interface and user experience design",
+      type: "Midterm",
       difficulty: "Medium",
-      duration: "30 minutes",
-      questions: 20,
-      attempts: {
-        used: 1,
-        max: 1
-      }
+      estimatedTime: "40 minutes",
+      questions: 35,
+      attempts: 1,
+      maxAttempts: 2,
+      timeLimit: 50
     },
     {
       id: 4,
-      title: "Project Management Basics",
+      title: "Project Management Final Quiz",
       course: "Project Management Essentials",
       dueDate: "2024-04-10",
       completedDate: null,
-      status: "expired",
+      status: "overdue",
       score: null,
       maxScore: 100,
-      description: "Test your understanding of project management fundamentals",
-      type: "Multiple Choice",
-      difficulty: "Easy",
-      duration: "30 minutes",
-      questions: 25,
-      attempts: {
-        used: 0,
-        max: 2
-      }
+      description: "Comprehensive assessment of project management methodologies",
+      type: "Final",
+      difficulty: "Hard",
+      estimatedTime: "60 minutes",
+      questions: 50,
+      attempts: 0,
+      maxAttempts: 1,
+      timeLimit: 90
     },
     {
       id: 5,
-      title: "Machine Learning Concepts",
+      title: "Machine Learning Basics Quiz",
       course: "Data Science with Python",
       dueDate: "2024-04-25",
       completedDate: "2024-04-22",
-      status: "graded",
-      score: 88,
+      status: "completed",
+      score: 92,
       maxScore: 100,
-      description: "Evaluate your understanding of machine learning concepts and applications",
-      type: "Mixed",
+      description: "Assess your understanding of machine learning fundamentals",
+      type: "Assessment",
       difficulty: "Hard",
-      duration: "90 minutes",
+      estimatedTime: "50 minutes",
       questions: 40,
-      attempts: {
-        used: 2,
-        max: 2
-      }
+      attempts: 2,
+      maxAttempts: 3,
+      timeLimit: 75
     },
     {
       id: 6,
-      title: "SEO Fundamentals",
+      title: "SEO Fundamentals Quiz",
       course: "Digital Marketing Fundamentals",
       dueDate: "2024-04-22",
       completedDate: null,
-      status: "pending",
+      status: "available",
       score: null,
       maxScore: 100,
-      description: "Test your knowledge of SEO principles and strategies",
-      type: "Multiple Choice",
-      difficulty: "Medium",
-      duration: "45 minutes",
-      questions: 35,
-      attempts: {
-        used: 0,
-        max: 2
-      }
+      description: "Test your knowledge of search engine optimization techniques",
+      type: "Practice",
+      difficulty: "Easy",
+      estimatedTime: "25 minutes",
+      questions: 20,
+      attempts: 0,
+      maxAttempts: 5,
+      timeLimit: 35
     }
   ], []);
 
   // Quiz stats
-  const quizStats = useMemo(() => {
+  const quizStats = useMemo<IQuizStats>(() => {
     const total = quizzes.length;
-    const pending = quizzes.filter(q => q.status === "pending").length;
+    const available = quizzes.filter(q => q.status === "available").length;
     const completed = quizzes.filter(q => q.status === "completed").length;
-    const graded = quizzes.filter(q => q.status === "graded").length;
-    const expired = quizzes.filter(q => q.status === "expired").length;
+    const inProgress = quizzes.filter(q => q.status === "in-progress").length;
+    const overdue = quizzes.filter(q => q.status === "overdue").length;
     const averageScore = quizzes
       .filter(q => q.score !== null)
       .reduce((sum, q) => sum + (q.score || 0), 0) / quizzes.filter(q => q.score !== null).length;
 
     return {
       total,
-      pending,
+      available,
       completed,
-      graded,
-      expired,
+      inProgress,
+      overdue,
       averageScore: averageScore ? averageScore.toFixed(1) : "N/A"
     };
   }, [quizzes]);
@@ -221,34 +254,40 @@ const QuizMain: React.FC = () => {
   // Get status color and icon
   const getStatusInfo = (status: string) => {
     switch (status) {
-      case "pending":
+      case "available":
+        return {
+          color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+          icon: <Play className="w-4 h-4" />,
+          label: "Available"
+        };
+      case "in-progress":
         return {
           color: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
           icon: <Clock className="w-4 h-4" />,
-          label: "Pending"
+          label: "In Progress"
         };
       case "completed":
         return {
-          color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+          color: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
           icon: <CheckCircle className="w-4 h-4" />,
           label: "Completed"
         };
-      case "graded":
-        return {
-          color: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-          icon: <Award className="w-4 h-4" />,
-          label: "Graded"
-        };
-      case "expired":
+      case "overdue":
         return {
           color: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
           icon: <XCircle className="w-4 h-4" />,
-          label: "Expired"
+          label: "Overdue"
+        };
+      case "locked":
+        return {
+          color: "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400",
+          icon: <AlertCircle className="w-4 h-4" />,
+          label: "Locked"
         };
       default:
         return {
           color: "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400",
-          icon: <FileText className="w-4 h-4" />,
+          icon: <FileQuestion className="w-4 h-4" />,
           label: "Unknown"
         };
     }
@@ -268,6 +307,22 @@ const QuizMain: React.FC = () => {
     }
   };
 
+  // Get quiz type color
+  const getTypeColor = (type: string) => {
+    switch (type) {
+      case "Practice":
+        return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400";
+      case "Assessment":
+        return "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400";
+      case "Midterm":
+        return "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400";
+      case "Final":
+        return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
+      default:
+        return "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400";
+    }
+  };
+
   // Quiz Stats Component
   const QuizStats = () => (
     <div className="bg-gradient-to-r from-primary-500 to-primary-700 dark:from-primary-800 dark:to-primary-900 rounded-2xl p-4 sm:p-6 text-white shadow-lg">
@@ -278,10 +333,10 @@ const QuizMain: React.FC = () => {
           <div className="text-primary-100 text-xs sm:text-sm font-medium whitespace-nowrap">Total Quizzes</div>
         </div>
 
-        {/* Pending */}
+        {/* Available */}
         <div className="text-center flex-1 min-w-[80px]">
-          <div className="text-2xl sm:text-3xl font-bold mb-1">{quizStats.pending}</div>
-          <div className="text-primary-100 text-xs sm:text-sm font-medium">Pending</div>
+          <div className="text-2xl sm:text-3xl font-bold mb-1">{quizStats.available}</div>
+          <div className="text-primary-100 text-xs sm:text-sm font-medium">Available</div>
         </div>
 
         {/* Average Score */}
@@ -292,36 +347,39 @@ const QuizMain: React.FC = () => {
 
         {/* Completed */}
         <div className="text-center flex-1 min-w-[80px]">
-          <div className="text-2xl sm:text-3xl font-bold mb-1">{quizStats.completed + quizStats.graded}</div>
+          <div className="text-2xl sm:text-3xl font-bold mb-1">{quizStats.completed}</div>
           <div className="text-primary-100 text-xs sm:text-sm font-medium">Completed</div>
         </div>
 
-        {/* Expired */}
+        {/* In Progress */}
         <div className="text-center flex-1 min-w-[80px]">
-          <div className="text-2xl sm:text-3xl font-bold mb-1">{quizStats.expired}</div>
-          <div className="text-primary-100 text-xs sm:text-sm font-medium">Expired</div>
+          <div className="text-2xl sm:text-3xl font-bold mb-1">{quizStats.inProgress}</div>
+          <div className="text-primary-100 text-xs sm:text-sm font-medium whitespace-nowrap">In Progress</div>
         </div>
       </div>
     </div>
   );
 
   // Quiz Card Component
-  const QuizCard = ({ quiz }: { quiz: any }) => {
+  const QuizCard = ({ quiz }: { quiz: IQuiz }) => {
     const statusInfo = getStatusInfo(quiz.status);
-    const isExpired = quiz.status === "expired";
+    const isOverdue = quiz.status === "overdue";
     const daysUntilDue = Math.ceil((new Date(quiz.dueDate).getTime() - new Date().getTime()) / (1000 * 3600 * 24));
 
     return (
-      <div className={`bg-white dark:bg-gray-800 rounded-2xl p-6 border ${isExpired ? 'border-red-200 dark:border-red-800' : 'border-gray-200 dark:border-gray-700'} hover:shadow-lg transition-all duration-300`}>
+      <div className={`bg-white dark:bg-gray-800 rounded-2xl p-6 border ${isOverdue ? 'border-red-200 dark:border-red-800' : 'border-gray-200 dark:border-gray-700'} hover:shadow-lg transition-all duration-300`}>
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${statusInfo.color}`}>
                 {statusInfo.icon}
                 <span className="ml-1">{statusInfo.label}</span>
               </span>
               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(quiz.difficulty)}`}>
                 {quiz.difficulty}
+              </span>
+              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getTypeColor(quiz.type)}`}>
+                {quiz.type}
               </span>
             </div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
@@ -344,11 +402,11 @@ const QuizMain: React.FC = () => {
           </div>
           <div className="flex items-center">
             <Timer className="w-3 h-3 mr-1" />
-            {quiz.duration}
+            {quiz.timeLimit} min limit
           </div>
           <div className="flex items-center">
-            <Brain className="w-3 h-3 mr-1" />
-            {quiz.questions} Questions
+            <FileQuestion className="w-3 h-3 mr-1" />
+            {quiz.questions} questions
           </div>
           <div className="flex items-center">
             <Target className="w-3 h-3 mr-1" />
@@ -357,15 +415,16 @@ const QuizMain: React.FC = () => {
         </div>
 
         {/* Attempts Info */}
-        <div className="flex items-center justify-between mb-4 p-3 bg-gray-50 dark:bg-gray-700/30 rounded-lg">
-          <span className="text-sm text-gray-600 dark:text-gray-400">
-            Attempts: {quiz.attempts.used}/{quiz.attempts.max}
-          </span>
-          {quiz.attempts.used < quiz.attempts.max && quiz.status !== "expired" && (
-            <span className="text-sm text-primary-600 dark:text-primary-400 font-medium">
-              {quiz.attempts.max - quiz.attempts.used} remaining
+        <div className="flex items-center justify-between mb-4 p-3 bg-gray-50 dark:bg-gray-900/20 rounded-lg">
+          <div className="flex items-center">
+            <RotateCcw className="w-4 h-4 text-gray-400 mr-2" />
+            <span className="text-sm text-gray-700 dark:text-gray-300">
+              Attempts: {quiz.attempts}/{quiz.maxAttempts}
             </span>
-          )}
+          </div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">
+            {quiz.estimatedTime}
+          </div>
         </div>
 
         {/* Score Display */}
@@ -384,7 +443,7 @@ const QuizMain: React.FC = () => {
         )}
 
         {/* Due Date Warning */}
-        {quiz.status === "pending" && daysUntilDue <= 3 && daysUntilDue > 0 && (
+        {quiz.status === "available" && daysUntilDue <= 3 && daysUntilDue > 0 && (
           <div className="flex items-center mb-4 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
             <AlertCircle className="w-4 h-4 text-yellow-500 mr-2" />
             <span className="text-sm text-yellow-700 dark:text-yellow-400">
@@ -399,16 +458,22 @@ const QuizMain: React.FC = () => {
             <Eye className="w-4 h-4 mr-2" />
             View Details
           </button>
-          {quiz.status === "pending" && quiz.attempts.used < quiz.attempts.max && (
+          {quiz.status === "available" && (
             <button className="flex-1 flex items-center justify-center px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm">
               <Play className="w-4 h-4 mr-2" />
               Start Quiz
             </button>
           )}
-          {quiz.status === "graded" && (
-            <button className="flex-1 flex items-center justify-center px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm">
-              <Eye className="w-4 h-4 mr-2" />
-              Review
+          {quiz.status === "in-progress" && (
+            <button className="flex-1 flex items-center justify-center px-3 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors text-sm">
+              <Clock className="w-4 h-4 mr-2" />
+              Continue
+            </button>
+          )}
+          {quiz.status === "completed" && quiz.attempts < quiz.maxAttempts && (
+            <button className="flex-1 flex items-center justify-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
+              <RotateCcw className="w-4 h-4 mr-2" />
+              Retake
             </button>
           )}
         </div>
@@ -424,6 +489,7 @@ const QuizMain: React.FC = () => {
           <div className="flex space-x-2 mb-3">
             <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-20"></div>
             <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-16"></div>
+            <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-18"></div>
           </div>
           <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
           <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
@@ -460,13 +526,13 @@ const QuizMain: React.FC = () => {
         {/* Page Header */}
         <motion.div variants={itemVariants} className="text-center pt-6 pb-4">
           <div className="flex items-center justify-center mb-4">
-            <BookOpen className="w-8 h-8 text-primary-500 mr-3" />
+            <Brain className="w-8 h-8 text-primary-500 mr-3" />
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-gray-100">
               Quizzes
             </h1>
           </div>
           <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed px-4">
-            Take course quizzes, track your progress, and review your performance
+            Test your knowledge, track your progress, and improve your understanding
           </p>
         </motion.div>
 
@@ -493,11 +559,11 @@ const QuizMain: React.FC = () => {
             {/* Status Filter */}
             <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
               {[
-                { key: "all", label: "All", icon: BookOpen },
-                { key: "pending", label: "Pending", icon: Clock },
+                { key: "all", label: "All", icon: FileQuestion },
+                { key: "available", label: "Available", icon: Play },
+                { key: "in-progress", label: "In Progress", icon: Clock },
                 { key: "completed", label: "Completed", icon: CheckCircle },
-                { key: "graded", label: "Graded", icon: Award },
-                { key: "expired", label: "Expired", icon: XCircle }
+                { key: "overdue", label: "Overdue", icon: XCircle }
               ].map(({ key, label, icon: Icon }) => (
                 <button
                   key={key}
@@ -526,7 +592,7 @@ const QuizMain: React.FC = () => {
             </div>
           ) : (
             <div className="text-center py-12">
-              <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <Brain className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
                 No quizzes found
               </h3>
