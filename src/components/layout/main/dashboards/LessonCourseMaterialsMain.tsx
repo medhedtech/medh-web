@@ -62,19 +62,6 @@ const LessonCourseMaterialsMain: React.FC = () => {
   // Mock course materials data
   const courseMaterials = useMemo(() => [
     {
-      id: 1,
-      title: "Introduction to Digital Marketing",
-      type: "video",
-      course: "Digital Marketing Fundamentals",
-      duration: "45 min",
-      size: "250 MB",
-      uploadDate: "2024-01-15",
-      downloads: 1250,
-      rating: 4.8,
-      thumbnail: "/images/materials/video-thumb-1.jpg",
-      description: "Complete overview of digital marketing strategies and fundamentals"
-    },
-    {
       id: 2,
       title: "SEO Best Practices Guide",
       type: "document",
@@ -86,19 +73,6 @@ const LessonCourseMaterialsMain: React.FC = () => {
       rating: 4.9,
       thumbnail: "/images/materials/doc-thumb-1.jpg",
       description: "Comprehensive guide to search engine optimization techniques"
-    },
-    {
-      id: 3,
-      title: "Python Data Structures Lecture",
-      type: "video",
-      course: "Data Science with Python",
-      duration: "1h 20min",
-      size: "450 MB",
-      uploadDate: "2024-02-01",
-      downloads: 2100,
-      rating: 4.7,
-      thumbnail: "/images/materials/video-thumb-2.jpg",
-      description: "Deep dive into Python data structures and their applications"
     },
     {
       id: 4,
@@ -342,10 +316,7 @@ const LessonCourseMaterialsMain: React.FC = () => {
           </p>
         </motion.div>
 
-        {/* Material Stats */}
-        <motion.div variants={itemVariants} className="px-4 sm:px-6 lg:px-8">
-          <MaterialStats />
-        </motion.div>
+
 
         {/* Search and Filter */}
         <motion.div variants={itemVariants} className="px-4 sm:px-6 lg:px-8">
@@ -366,7 +337,6 @@ const LessonCourseMaterialsMain: React.FC = () => {
             <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
               {[
                 { key: "all", label: "All", icon: Folder },
-                { key: "videos", label: "Videos", icon: Video },
                 { key: "documents", label: "Documents", icon: FileText },
                 { key: "images", label: "Images", icon: Image },
                 { key: "assignments", label: "Assignments", icon: File }
