@@ -56,11 +56,27 @@ const StudentEnrolledCourses = dynamic(
   }
 );
 
-const QuizPage = dynamic(
-  () => import("@/components/layout/main/dashboards/QuizPage"), 
+const QuizMain = dynamic(
+  () => import("@/components/layout/main/dashboards/QuizMain"), 
   { 
     ssr: false,
     loading: () => <SkeletonLoader type="quiz" />
+  }
+);
+
+const CertificateMain = dynamic(
+  () => import("@/components/layout/main/dashboards/CertificateMain"), 
+  { 
+    ssr: false,
+    loading: () => <SkeletonLoader type="certificates" />
+  }
+);
+
+const FeedbackMain = dynamic(
+  () => import("@/components/layout/main/dashboards/FeedbackMain"), 
+  { 
+    ssr: false,
+    loading: () => <SkeletonLoader type="form" />
   }
 );
 
@@ -91,6 +107,14 @@ const Payments = dynamic(
 
 const PlacementForm = dynamic(
   () => import("@/components/layout/main/dashboards/PlacementForm"), 
+  { 
+    ssr: false,
+    loading: () => <SkeletonLoader type="form" />
+  }
+);
+
+const PlacementMain = dynamic(
+  () => import("@/components/layout/main/dashboards/PlacementMain"), 
   { 
     ssr: false,
     loading: () => <SkeletonLoader type="form" />
@@ -163,6 +187,38 @@ const EnrolledCoursesMain = dynamic(
   { 
     ssr: false,
     loading: () => <SkeletonLoader type="courses" />
+  }
+);
+
+const AllCoursesMain = dynamic(
+  () => import("@/components/layout/main/dashboards/AllCoursesMain"), 
+  { 
+    ssr: false,
+    loading: () => <SkeletonLoader type="courses" />
+  }
+);
+
+const CompletedCoursesMain = dynamic(
+  () => import("@/components/layout/main/dashboards/CompletedCoursesMain"), 
+  { 
+    ssr: false,
+    loading: () => <SkeletonLoader type="courses" />
+  }
+);
+
+const LessonCourseMaterialsMain = dynamic(
+  () => import("@/components/layout/main/dashboards/LessonCourseMaterialsMain"), 
+  { 
+    ssr: false,
+    loading: () => <SkeletonLoader type="resources" />
+  }
+);
+
+const AssignmentsMain = dynamic(
+  () => import("@/components/layout/main/dashboards/AssignmentsMain"), 
+  { 
+    ssr: false,
+    loading: () => <SkeletonLoader type="assignments" />
   }
 );
 
@@ -302,7 +358,15 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
     
     // Detect current path to set the appropriate view
     const pathname = window.location.pathname;
-    if (pathname.includes('/dashboards/student/my-courses')) {
+    if (pathname.includes('/dashboards/student/all-courses')) {
+      setCurrentView("allcourses");
+    } else if (pathname.includes('/dashboards/student/completed-courses')) {
+      setCurrentView("completedcourses");
+    } else if (pathname.includes('/dashboards/student/lesson-course-materials')) {
+      setCurrentView("lessoncoursematerials");
+    } else if (pathname.includes('/dashboards/student/assignments')) {
+      setCurrentView("assignments");
+    } else if (pathname.includes('/dashboards/student/my-courses')) {
       setCurrentView("my-courses");
     } else if (pathname.includes('/dashboards/student/membership')) {
       setCurrentView("membership");
@@ -316,6 +380,14 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
       setCurrentView("recordedsessions");
     } else if (pathname.includes('/dashboards/student/enrolled-courses')) {
       setCurrentView("enrolledcourses");
+    } else if (pathname.includes('/dashboards/student/quiz')) {
+      setCurrentView("quiz");
+    } else if (pathname.includes('/dashboards/student/certificate')) {
+      setCurrentView("certificate");
+    } else if (pathname.includes('/dashboards/student/feedback')) {
+      setCurrentView("feedback");
+    } else if (pathname.includes('/dashboards/student/apply')) {
+      setCurrentView("apply");
     } else if (pathname === '/dashboards/student') {
       setCurrentView("overview");
     }
@@ -485,6 +557,14 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
     // Component selection based on view
     if (viewMatches(['overview', 'dashboard'])) {
       return <StudentDashboardMain />;
+    } else if (viewMatches(['allcourses', 'all-courses'])) {
+      return <AllCoursesMain />;
+    } else if (viewMatches(['completedcourses', 'completed-courses', 'completed'])) {
+      return <CompletedCoursesMain />;
+    } else if (viewMatches(['lessoncoursematerials', 'lesson-course-materials', 'materials'])) {
+      return <LessonCourseMaterialsMain />;
+    } else if (viewMatches(['assignments', 'assignment'])) {
+      return <AssignmentsMain />;
     } else if (viewMatches(['mycourses', 'my-courses', 'courses'])) {
       return <MyCoursesDashboard />;
     } else if (viewMatches(['membership'])) {
@@ -492,9 +572,9 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
     } else if (viewMatches(['enrolledcourses', 'enrolled-courses', 'enrolled'])) {
       return <StudentEnrolledCourses />;
     } else if (viewMatches(['quiz', 'quizzes'])) {
-      return <QuizPage closeQuiz={() => setCurrentView("overview")} />;
+      return <QuizMain />;
     } else if (viewMatches(['feedback', 'support'])) {
-      return <FeedbackAndSupport />;
+      return <FeedbackMain />;
     } else if (viewMatches(['certificate', 'certificates'])) {
       if (viewMatches(['view'])) {
         return (
@@ -517,28 +597,12 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
           </div>
         );
       } else {
-        return (
-          <CertificateCoursesEnroll 
-            onViewCertificate={handleViewCertificate} 
-            setCertificateUrl={setCertificateUrl} 
-          />
-        );
+        return <CertificateMain />;
       }
     } else if (viewMatches(['payment', 'payments'])) {
       return <Payments />;
-    } else if (viewMatches(['placement'])) {
-      return <PlacementForm 
-        isOpen={true} 
-        onClose={() => {
-          setIsLoading(true);
-          setCurrentView("overview");
-          
-          // Simulate network delay and then stop loading
-          setTimeout(() => {
-            setIsLoading(false);
-          }, 400);
-        }} 
-      />;
+    } else if (viewMatches(['placement-application', 'placement', 'apply'])) {
+      return <PlacementMain />;
     } else if (viewMatches(['democlasses', 'demo'])) {
       return <StudentDemoClasses />;
     } else if (viewMatches(['progress', 'analytics'])) {

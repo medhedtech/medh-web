@@ -115,17 +115,17 @@ export default function CategorySelectionPage() {
                   <div className="flex items-start gap-4 mb-4 flex-1">
                     <div className="flex-shrink-0">
                       <IconComponent className={`text-2xl ${colors.icon}`} />
-                    </div>
+                  </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-50 mb-1 line-clamp-2">
-                        {category.title}
-                      </h3>
+                              {category.title}
+                            </h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 line-clamp-1">
                         {category.subtitle}
                       </p>
                       <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-3">
-                        {category.description}
-                      </p>
+                          {category.description}
+                        </p>
                     </div>
                   </div>
 
