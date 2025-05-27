@@ -502,10 +502,7 @@ const UpcomingClassesMain: React.FC = () => {
           </p>
         </motion.div>
 
-        {/* Class Stats */}
-        <motion.div variants={itemVariants} className="px-4 sm:px-6 lg:px-8">
-          <ClassStats />
-        </motion.div>
+
 
         {/* Search and Filter */}
         <motion.div variants={itemVariants} className="px-4 sm:px-6 lg:px-8">
