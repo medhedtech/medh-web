@@ -3,9 +3,12 @@ import React from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Facebook, Instagram, Linkedin, Youtube, QrCode, ArrowUpRight } from "lucide-react";
+import { useIsClient, useCurrentYear, getHydrationSafeProps } from "@/utils/hydration";
 
 const CopyRight = ({ qrCodeImage, isMobile }) => {
   const router = useRouter();
+  const isClient = useIsClient();
+  const currentYear = useCurrentYear();
   
   const handleNavigation = (path) => {
     router.push(path);
@@ -40,6 +43,25 @@ const CopyRight = ({ qrCodeImage, isMobile }) => {
     { name: "Cookie Policy", path: "/cookie-policy" },
     { name: "Refund Policy", path: "/cancellation-and-refund-policy" }
   ];
+
+  // Show loading state until client-side hydration is complete
+  if (!isClient) {
+    return (
+      <div className="relative font-body w-full">
+        <div className="w-full flex flex-col items-center">
+          <div className="animate-pulse">
+            <div className="h-32 w-32 bg-gray-200 rounded-xl mb-8"></div>
+            <div className="flex gap-4 mb-6">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-4 w-20 bg-gray-200 rounded"></div>
+              ))}
+            </div>
+            <div className="h-4 w-64 bg-gray-200 rounded"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Enhanced mobile-optimized view - full width with specific ordering
   if (isMobile) {
@@ -83,6 +105,7 @@ const CopyRight = ({ qrCodeImage, isMobile }) => {
                   rel="noopener noreferrer"
                   aria-label={`Visit our ${link.name} page`}
                   className="w-8 h-8 flex items-center justify-center rounded-full bg-gradient-to-br from-gray-800 to-black hover:from-primary-600 hover:to-primary-700 text-gray-300 hover:text-white transition-all duration-300 shadow-md hover:shadow-primary-500/20"
+                  {...getHydrationSafeProps()}
                 >
                   {link.icon}
                 </a>
@@ -90,12 +113,13 @@ const CopyRight = ({ qrCodeImage, isMobile }) => {
             </div>
             
             {/* 3. Policy Links - each on their own line for clarity */}
-            <div className="flex  items-center gap-2 pt-2 pb-3 w-full">
+            <div className="flex items-center gap-2 pt-2 pb-3 w-full">
               {policyLinks.map((link, index) => (
                 <button
                   key={index}
                   onClick={() => handleNavigation(link.path)}
-                  className="text-gray-400 hover:text-primary-400 transition-colors text-xs hover:underline decoration-primary-400/30 underline-offset-2 flex items-center gap-1 py-1 " 
+                  className="text-gray-400 hover:text-primary-400 transition-colors text-xs hover:underline decoration-primary-400/30 underline-offset-2 flex items-center gap-1 py-1"
+                  {...getHydrationSafeProps()}
                 >
                   <span>{link.name}</span>
                   <ArrowUpRight size={10} className="opacity-70" />
@@ -105,8 +129,8 @@ const CopyRight = ({ qrCodeImage, isMobile }) => {
             
             {/* 4. Copyright text with modern styling */}
             <div className="text-center pt-1 pb-2">
-              <p className="text-gray-500 text-xs tracking-wide">
-                © {new Date().getFullYear()} MEDH. All Rights Reserved.
+              <p className="text-gray-500 text-xs tracking-wide" {...getHydrationSafeProps()}>
+                © {currentYear} MEDH. All Rights Reserved.
               </p>
               <p className="bg-gradient-to-r from-primary-500 via-primary-400 to-primary-500 bg-clip-text text-transparent text-sm font-semibold tracking-wide animate-gradient pt-1">
                 LEARN. UPSKILL. ELEVATE.
@@ -157,12 +181,13 @@ const CopyRight = ({ qrCodeImage, isMobile }) => {
         {/* Enhanced layout with modern styling - full width with better space distribution */}
         <div className="w-full flex flex-col items-center space-y-6">
           {/* Policy links section - centered for all screen sizes */}
-          <div className="flex flex-wrap justify-center  gap-4 text-xs">
+          <div className="flex flex-wrap justify-center gap-4 text-xs">
             {policyLinks.map((link, index) => (
               <button
                 key={index}
                 onClick={() => handleNavigation(link.path)}
                 className="text-gray-400 hover:text-primary-400 transition-colors"
+                {...getHydrationSafeProps()}
               >
                 <span>{link.name}</span>
                 <ArrowUpRight size={10} className="opacity-0 group-hover:opacity-100 transition-opacity transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 duration-300" />
@@ -174,8 +199,8 @@ const CopyRight = ({ qrCodeImage, isMobile }) => {
           <div className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between px-4">
             {/* Copyright Text with gradient effect */}
             <div className="text-center sm:text-left order-2 sm:order-1 mt-4 sm:mt-0">
-              <p className="text-gray-400 text-xs tracking-wide">
-                Copyright © {new Date().getFullYear()} MEDH. All Rights Reserved.
+              <p className="text-gray-400 text-xs tracking-wide" {...getHydrationSafeProps()}>
+                Copyright © {currentYear} MEDH. All Rights Reserved.
               </p>
               <p className="bg-gradient-to-r from-primary-500 via-primary-400 to-primary-500 bg-clip-text text-transparent text-sm font-semibold tracking-wide animate-gradient">
                 LEARN. UPSKILL. ELEVATE.
@@ -192,6 +217,7 @@ const CopyRight = ({ qrCodeImage, isMobile }) => {
                   rel="noopener noreferrer"
                   aria-label={`Visit our ${link.name} page`}
                   className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-full bg-gradient-to-br from-gray-800 to-black hover:from-primary-600 hover:to-primary-700 text-gray-300 hover:text-white transition-all duration-300 shadow-md hover:shadow-primary-500/20"
+                  {...getHydrationSafeProps()}
                 >
                   {link.icon}
                 </a>
