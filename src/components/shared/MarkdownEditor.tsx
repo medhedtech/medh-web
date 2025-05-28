@@ -326,7 +326,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                   <div className="bg-gray-50 dark:bg-gray-900/50 p-2 rounded">
                     <p className="text-sm font-mono text-gray-700 dark:text-gray-300">- Bullet point</p>
                     <p className="text-sm font-mono text-gray-700 dark:text-gray-300">1. Numbered item</p>
-                    <p className="text-sm font-mono text-gray-700 dark:text-gray-300">> Quote block</p>
+                    <p className="text-sm font-mono text-gray-700 dark:text-gray-300">{'>'} Quote block</p>
                   </div>
                 </div>
                 <div className="space-y-2">

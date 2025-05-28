@@ -1304,6 +1304,58 @@ export const apiUrls = {
     logout: "/auth/logout",
     verifyToken: "/auth/verify-token"
   },
+  batches: {
+    getAllBatches: `${apiBaseUrl}/batches`,
+    getBatchesByCourse: (courseId: string): string => {
+      if (!courseId) throw new Error('Course ID is required');
+      return `${apiBaseUrl}/batches/course/${courseId}`;
+    },
+    getBatchesByInstructor: (instructorId: string): string => {
+      if (!instructorId) throw new Error('Instructor ID is required');
+      return `${apiBaseUrl}/batches/instructor/${instructorId}`;
+    },
+    getBatchById: (batchId: string): string => {
+      if (!batchId) throw new Error('Batch ID is required');
+      return `${apiBaseUrl}/batches/${batchId}`;
+    },
+    createBatch: (courseId: string): string => {
+      if (!courseId) throw new Error('Course ID is required');
+      return `${apiBaseUrl}/batches/courses/${courseId}/batches`;
+    },
+    updateBatch: (batchId: string): string => {
+      if (!batchId) throw new Error('Batch ID is required');
+      return `${apiBaseUrl}/batches/${batchId}`;
+    },
+    deleteBatch: (batchId: string): string => {
+      if (!batchId) throw new Error('Batch ID is required');
+      return `${apiBaseUrl}/batches/${batchId}`;
+    },
+    getBatchAnalytics: `${apiBaseUrl}/batches/analytics`,
+    getBatchStudents: (batchId: string): string => {
+      if (!batchId) throw new Error('Batch ID is required');
+      return `${apiBaseUrl}/batches/${batchId}/students`;
+    },
+    enrollStudents: `${apiBaseUrl}/batches/enroll-students`,
+    removeStudent: (batchId: string, studentId: string): string => {
+      if (!batchId) throw new Error('Batch ID is required');
+      if (!studentId) throw new Error('Student ID is required');
+      return `${apiBaseUrl}/batches/${batchId}/students/${studentId}`;
+    },
+    updateStudentStatus: (batchId: string, studentId: string): string => {
+      if (!batchId) throw new Error('Batch ID is required');
+      if (!studentId) throw new Error('Student ID is required');
+      return `${apiBaseUrl}/batches/${batchId}/students/${studentId}/status`;
+    },
+    cloneBatch: (batchId: string): string => {
+      if (!batchId) throw new Error('Batch ID is required');
+      return `${apiBaseUrl}/batches/${batchId}/clone`;
+    },
+    toggleArchive: (batchId: string): string => {
+      if (!batchId) throw new Error('Batch ID is required');
+      return `${apiBaseUrl}/batches/${batchId}/archive`;
+    },
+    checkScheduleConflicts: `${apiBaseUrl}/batches/check-conflicts`
+  },
 };
 
 /**
@@ -1542,6 +1594,7 @@ export interface IBlogCommentInput {
 export * from './courses';
 export * from './blog.api';
 export * from './apiClient';
+export * from './batch';
 
 // Admin Dashboard Interfaces
 export interface IDashboardCount {
