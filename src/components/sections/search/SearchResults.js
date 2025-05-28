@@ -18,13 +18,13 @@ import { getAllCoursesWithLimits } from "@/apis/course/course";
 
 // Import the pre-defined categories list
 const categories = [
-  "AI and Data Science",
+  // Removed: "AI and Data Science",
   "AI For Professionals",
   "Business And Management",
   "Career Development",
   "Communication And Soft Skills",
   "Data And Analytics",
-  "Digital Marketing with Data Analytics",
+  // Removed: "Digital Marketing with Data Analytics",
   "Environmental and Sustainability Skills",
   "Finance And Accounts",
   "Health And Wellness",
@@ -32,10 +32,10 @@ const categories = [
   "Language And Linguistic",
   "Legal And Compliance Skills",
   "Personal Well-Being",
-  "Personality Development",
+  // Removed: "Personality Development",
   "Sales And Marketing",
   "Technical Skills",
-  "Vedic Mathematics",
+  // Removed: "Vedic Mathematics",
 ];
 
 /**
