@@ -532,12 +532,16 @@ const CourseDetailsPage = ({ ...props }) => {
   const hasCertificate = () => {
     if (!courseDetails) return true; // Default to true
     
-    // Check for is_Certification field
+    // Check both is_Certification field and certification object
     if (courseDetails.is_Certification) {
       return courseDetails.is_Certification === "Yes";
     }
     
-    return true; // Default to true if information not available
+    if (courseDetails.certification) {
+      return courseDetails.certification.is_certified === true;
+    }
+    
+    return false; // Default to false if no certification info available
   };
 
   // Determine if the course has a brochure
@@ -790,11 +794,18 @@ const CourseDetailsPage = ({ ...props }) => {
               </h3>
               {(() => {
                 // Get description from various possible fields
-                const description = courseDetails?.course_description || 
-                                    courseDetails?.description || 
-                                    courseDetails?.about || 
-                                    courseDetails?.long_description || 
-                                    courseDetails?.short_description || '';
+                // Handle both string and object formats for course_description
+                let description = '';
+                if (typeof courseDetails?.course_description === 'string') {
+                  description = courseDetails.course_description;
+                } else if (typeof courseDetails?.course_description === 'object' && courseDetails?.course_description?.program_overview) {
+                  description = courseDetails.course_description.program_overview;
+                } else {
+                  description = courseDetails?.description || 
+                               courseDetails?.about || 
+                               courseDetails?.long_description || 
+                               courseDetails?.short_description || '';
+                }
                 
                 // Parse the description into overview and sections
                 const { overview, sections } = parseDescription(description);
@@ -875,9 +886,26 @@ const CourseDetailsPage = ({ ...props }) => {
                               </h4>
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                              {sections.filter(section => section.title === 'Benefits' || section.title === 'What You\'ll Learn')
-                                .flatMap(section => section.bullets || [])
-                                .map((bullet, index) => (
+                              {(() => {
+                                // Get benefits from parsed sections or from the course_description.benefits field
+                                let benefitsList = sections.filter(section => section.title === 'Benefits' || section.title === 'What You\'ll Learn')
+                                  .flatMap(section => section.bullets || []);
+                                
+                                // If no benefits found in parsed sections, try to get from course_description.benefits
+                                if (benefitsList.length === 0 && courseDetails?.course_description?.benefits) {
+                                  // Split benefits by common separators and clean up
+                                  benefitsList = courseDetails.course_description.benefits
+                                    .split(/[,;.]/)
+                                    .map(benefit => benefit.trim())
+                                    .filter(benefit => benefit.length > 0);
+                                }
+                                
+                                // If still no benefits, show default message
+                                if (benefitsList.length === 0) {
+                                  benefitsList = ['Enhanced skills and knowledge', 'Industry-relevant expertise', 'Practical hands-on experience'];
+                                }
+                                
+                                return benefitsList.map((bullet, index) => (
                                   <motion.div 
                                     key={`benefit-${index}`}
                                     className={`flex items-start p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md hover:border-${getCategoryColorClasses().primaryColor}-200 dark:hover:border-${getCategoryColorClasses().primaryColor}-700/50 transition-all duration-300`}
@@ -891,7 +919,8 @@ const CourseDetailsPage = ({ ...props }) => {
                                     </div>
                                     <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300">{bullet}</p>
                                   </motion.div>
-                                ))}
+                                ));
+                              })()}
                             </div>
                           </div>
                         )}
@@ -1661,17 +1690,18 @@ const CourseDetailsPage = ({ ...props }) => {
                       
                       {/* Description with improved readability - More Compact */}
                       <div className="text-sm sm:text-base text-gray-700/90 dark:text-gray-300/90 leading-relaxed font-light mt-3">
-                        <p>
-                          {(() => {
-                            const description = courseDetails?.course_description;
-                            if (!description || typeof description !== 'string') {
-                              return 'Course description not available.';
-                            }
-                            return description.length > 180 
-                              ? `${description.slice(0, 180)}...` 
-                              : description;
-                          })()}
-                        </p>
+                        <p>{(() => {
+                          // Handle both string and object formats for course_description
+                          let description = '';
+                          if (typeof courseDetails?.course_description === 'string') {
+                            description = courseDetails.course_description;
+                          } else if (typeof courseDetails?.course_description === 'object' && courseDetails?.course_description?.program_overview) {
+                            description = courseDetails.course_description.program_overview;
+                          } else {
+                            description = 'Course description not available.';
+                          }
+                          return description.length > 180 ? description.slice(0, 180) + '...' : description;
+                        })()}</p>
                       </div>
                       
                       {/* Premium UI Feature Indicators - More Compact */}
@@ -1685,7 +1715,7 @@ const CourseDetailsPage = ({ ...props }) => {
                         <div className="flex items-center px-2.5 py-1 bg-white/70 dark:bg-gray-800/70 rounded-lg shadow-sm border border-gray-100/80 dark:border-gray-700/80">
                           <Award className={`h-3.5 w-3.5 text-${getCategoryColorClasses().primaryColor}-500 mr-1.5`} />
                           <span className="text-xs text-gray-700 dark:text-gray-300">
-                            {courseDetails?.is_Certification ? "Certificate Included" : "No Certificate"}
+                            {courseDetails?.is_Certification === "Yes" || courseDetails?.certification?.is_certified === true ? "Certificate Included" : "No Certificate"}
                           </span>
                         </div>
                         <div className="flex items-center px-2.5 py-1 bg-white/70 dark:bg-gray-800/70 rounded-lg shadow-sm border border-gray-100/80 dark:border-gray-700/80">
@@ -1783,4 +1813,4 @@ const CourseDetailsPage = ({ ...props }) => {
   );
 };
 
-export default CourseDetailsPage; 
+export default CourseDetailsPage;
