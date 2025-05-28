@@ -149,15 +149,59 @@ const BatchStudentEnrollment: React.FC<BatchStudentEnrollmentProps> = ({
     try {
       setLoading(true);
       
-      // In a real app, these would be actual API calls
-      // const enrolledResponse = await batchAPI.getBatchStudents(batch._id!);
-      // const availableResponse = await fetch('/api/students/available');
+      // Try to fetch real batch students
+      try {
+        if (batch._id) {
+          const enrolledResponse = await batchAPI.getBatchStudents(batch._id);
+          
+          if (enrolledResponse?.data?.success && enrolledResponse.data.students?.data) {
+            // Parse the real API response structure
+            const studentsData = enrolledResponse.data.students.data;
+            const transformedStudents: IStudent[] = studentsData.map((enrollment: any) => ({
+              _id: enrollment.student._id,
+              full_name: enrollment.student.full_name,
+              email: enrollment.student.email,
+              phone_number: enrollment.student.phone_numbers?.[0]?.number || '',
+              role: ['student'],
+              enrollment_date: enrollment.enrollmentDate,
+              status: enrollment.status || 'active'
+            }));
+            setEnrolledStudents(transformedStudents);
+          } else if (enrolledResponse?.data?.data && Array.isArray(enrolledResponse.data.data)) {
+            // Fallback format parsing
+            const transformedStudents: IStudent[] = enrolledResponse.data.data.map((student: any) => ({
+              _id: student._id,
+              full_name: student.full_name || student.name || 'Unknown Student',
+              email: student.email || '',
+              phone_number: student.phone_number || student.phone,
+              role: student.role || ['student'],
+              enrollment_date: student.enrollment_date || student.createdAt,
+              status: student.status || 'active'
+            }));
+            setEnrolledStudents(transformedStudents);
+          } else {
+            // No students enrolled yet
+            setEnrolledStudents([]);
+          }
+        } else {
+          setEnrolledStudents([]);
+        }
+      } catch (apiError) {
+        console.warn('Failed to fetch real students, using mock data for development:', apiError);
+        // Only use mock data if batch.enrolled_students suggests there should be students
+        if (batch.enrolled_students > 0) {
+          setEnrolledStudents(mockEnrolledStudents.slice(0, batch.enrolled_students));
+        } else {
+          setEnrolledStudents([]);
+        }
+      }
       
-      setEnrolledStudents(mockEnrolledStudents);
+      // For available students, use mock data for now since we don't have an API endpoint
       setAvailableStudents(mockAvailableStudents);
     } catch (error) {
       console.error('Error loading students:', error);
       toast.error('Failed to load student data');
+      setEnrolledStudents([]);
     } finally {
       setLoading(false);
     }
@@ -213,16 +257,78 @@ const BatchStudentEnrollment: React.FC<BatchStudentEnrollmentProps> = ({
     try {
       setLoading(true);
       
-      // In a real app, this would find the enrollment and cancel it
-      // const enrollment = enrolledStudents.find(s => s._id === studentId);
-      // await enrollmentAPI.cancelEnrollment(enrollment.enrollmentId);
+      // Find the student to get enrollment info
+      const studentInfo = enrolledStudents.find(s => s._id === studentId);
       
-      setEnrolledStudents(prev => prev.filter(s => s._id !== studentId));
-      toast.success(`${studentName} has been unenrolled from the batch`);
-      onUpdate();
-    } catch (error) {
-      console.error('Error unenrolling student:', error);
-      toast.error('Failed to unenroll student');
+      console.log('Attempting to remove student:', {
+        batchId: batch._id,
+        studentId,
+        enrollmentId: studentInfo?.enrollmentId,
+        studentInfo,
+        apiUrl: `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/api/v1'}/batches/${batch._id}/students/${studentId}`
+      });
+      
+      // Try the main approach first: remove student from batch
+      let response;
+      try {
+        response = await batchAPI.removeStudent(batch._id!, studentId);
+        console.log('Remove student API response:', response);
+      } catch (batchError: any) {
+        console.log('Batch API failed, trying enrollment cancellation...', batchError);
+        
+        // If that fails and we have enrollmentId, try canceling the enrollment directly
+        if (studentInfo?.enrollmentId) {
+          try {
+            const enrollmentResponse = await enrollmentAPI.cancelEnrollment(studentInfo.enrollmentId);
+            console.log('Enrollment cancellation response:', enrollmentResponse);
+            response = enrollmentResponse;
+          } catch (enrollmentError: any) {
+            console.error('Both batch removal and enrollment cancellation failed:', {
+              batchError,
+              enrollmentError
+            });
+            throw batchError; // Throw the original batch error
+          }
+        } else {
+          throw batchError; // No enrollment ID available, throw the original error
+        }
+      }
+      
+      if (response?.data?.success || response?.success) {
+        // Update local state after successful API call
+        setEnrolledStudents(prev => prev.filter(s => s._id !== studentId));
+        toast.success(`${studentName} has been unenrolled from the batch`);
+        onUpdate();
+      } else {
+        console.error('API returned non-success response:', response?.data || response);
+        throw new Error(response?.data?.message || response?.message || 'Failed to remove student from batch');
+      }
+    } catch (error: any) {
+      console.error('Error unenrolling student:', {
+        error,
+        status: error?.response?.status,
+        statusText: error?.response?.statusText,
+        data: error?.response?.data,
+        message: error?.message
+      });
+      
+      let errorMessage = 'Failed to unenroll student';
+      
+      if (error?.response?.status === 404) {
+        errorMessage = 'API endpoint not found. The backend route may not be properly configured.';
+      } else if (error?.response?.status === 401) {
+        errorMessage = 'Authentication required. Please login again.';
+      } else if (error?.response?.status === 403) {
+        errorMessage = 'Permission denied. You may not have the required permissions.';
+      } else if (error?.response?.status === 500) {
+        errorMessage = 'Server error. Please try again later or contact support.';
+      } else if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -352,7 +458,7 @@ const BatchStudentEnrollment: React.FC<BatchStudentEnrollmentProps> = ({
             <div className="flex items-center space-x-3">
               <Users className="h-5 w-5 text-blue-600" />
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Enrolled Students ({filteredEnrolledStudents.length})
+                Enrolled Students ({enrolledStudents.length})
               </h3>
             </div>
             {expandedView === 'enrolled' ? (
@@ -475,6 +581,12 @@ const BatchStudentEnrollment: React.FC<BatchStudentEnrollmentProps> = ({
           }}
           mode="batch_enrollment"
           batch={batch}
+          course={{
+            _id: batch.course_details._id,
+            course_title: batch.course_details.course_title,
+            course_category: batch.course_details.course_category,
+            course_image: batch.course_details.course_image
+          }}
         />
       )}
     </div>
